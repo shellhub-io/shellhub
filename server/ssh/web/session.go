@@ -92,10 +92,6 @@ func bannerCallback(conn *Conn) func(string) error {
 
 // getAuth gets the authentication methods from credentials.
 func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
-	// Identity mode: the browser presents its own enrolled key. Sign the SSH
-	// challenge over the WebSocket with it (the private half never leaves the
-	// browser); the gateway resolves the key to the identity via ssh_identities.
-	// This bypasses the legacy public-key ACL below entirely.
 	if creds.PublicKey != "" {
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
 		if err != nil {
@@ -210,9 +206,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		return ErrGetAuth
 	}
 
-	// The SSH handshake has nowhere to carry the browser's address or, in identity
-	// mode, the logged-in account, so they are parked under the username about to
-	// be dialled and claimed by the session on the other side of the loopback.
 	handoff.Put(user, webhandoff.Data{
 		Device: creds.Device,
 		IP:     info.IP,
@@ -228,16 +221,12 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	if err != nil {
 		var e *BannerError
 
-		// NOTE: if the connection returns an error banner, map it to a standard error for the web client
-		// instead of forwarding the raw banner text (which is meant for native SSH clients).
 		if errors.As(err, &e) {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
 			return mapBannerError(e)
 		}
 
-		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
-		// keeping the real error internally to avoid exposing some sensitive data.
 		logger.WithError(err).Debug("failed to dial to the ssh server")
 
 		return ErrAuthentication
@@ -245,8 +234,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 	defer connection.Close() //nolint:errcheck
 
-	// Ask the SSH server for this connection's session UID and relay it to the web
-	// client, so a client-side recording can be tied to its server session.
 	if ok, reply, err := connection.SendRequest("session-uid@shellhub.io", true, nil); err == nil && ok {
 		if _, err := conn.WriteMessage(&Message{Kind: messageKindSession, Data: string(reply)}); err != nil {
 			logger.WithError(err).Debug("failed to send the session UID to the web client")
@@ -422,8 +409,6 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		start = buflen - end
 
 		if start > 0 {
-			// copy remaning read bytes from the end to the beginning of a buffer
-			// so that we will get normal bytes
 			for i := range start {
 				buf[i] = buf[end+i]
 			}

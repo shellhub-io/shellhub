@@ -166,7 +166,6 @@ func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.Install
 func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.InstallKey, string, error) {
 	if req.InstallKey != "" {
 		sk, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey))
-		// A system key (legacy/pairing) is never presentable by an agent; treat it like any invalid key.
 		if err != nil || sk.IsSystem() || !sk.IsValid() {
 			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, err)
 		}
@@ -174,9 +173,6 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 		return sk, sk.ID, nil
 	}
 
-	// The pairing-code flow attributes to the pairing system key, not the legacy one, so its devices
-	// get their own enrollment source and history. Acceptance is the code itself (automatic mode); the
-	// pairing flow accepts the device explicitly regardless.
 	if paired {
 		if pairing, err := s.store.InstallKeyResolveSystemPairing(ctx, sc); err == nil {
 			return pairing, pairing.ID, nil
@@ -186,15 +182,10 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 	}
 
 	if legacy, err := s.store.InstallKeyResolveSystem(ctx, sc); err == nil {
-		// A disabled legacy key means the namespace opted out of keyless enrollment: it requires an
-		// install key, so a device that shows up without one is hard-rejected here (no device row, no
-		// pending queue) rather than enrolled. Enabled is the default, so this is backward-compatible.
 		if !legacy.IsValid() {
 			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "required"}, nil)
 		}
 
-		// Return the legacy key itself (not nil) so the enrollment decision reads its mode uniformly:
-		// the legacy key is a manual key, so a keyless enrollment lands pending.
 		return legacy, legacy.ID, nil
 	}
 
@@ -232,9 +223,6 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 // keyless enrollment attributes to the pairing system key instead of the legacy one. The flag is
 // server-only (never read from the wire) so an agent can't claim it to dodge the legacy key.
 func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.DeviceAuthResponse, error) {
-	// An install key is namespace-scoped, so it identifies the namespace on its own. The tenant is
-	// recovered before anything else runs: the device UID hashes it, the token claims carry it, and
-	// the rows written below reference it, so nothing downstream can proceed without it.
 	if req.TenantID == "" && req.InstallKey != "" {
 		tenantID, err := s.installKeyTenant(ctx, req.InstallKey)
 		if err != nil {
@@ -305,11 +293,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, err
 		}
 
-		// NOTE: The position lookup is best-effort: a pairing accept materializes
-		// the device server-side without a device IP, and a lookup failure should
-		// not block registration. RemoteAddr is only persisted when RealIP parses as
-		// an IP: it comes from the client-controlled X-Real-IP header, and storing an
-		// unbounded value would overflow the remote_addr column and fail registration.
 		position := geoip.Position{}
 		remoteAddr := ""
 		if ip := net.ParseIP(req.RealIP); ip != nil {
@@ -366,20 +349,11 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
 		}
 
-		// The install key's mode is the enrollment policy: it decides whether this device is accepted,
-		// rejected, or left pending. A keyless enrollment resolves the legacy (manual) key, so it lands
-		// pending, exactly as before.
-		// Reflect the decision on the in-memory device so the response carries the resulting status
-		// (the store was already updated through UpdateDeviceStatus by applyEnrollmentDecision).
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired), installKey, req, uid, hostname, false, true)
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
 
-		// Refresh RemoteAddr to the current connection's address so it reflects the
-		// latest reconnect, not only first registration. Guarded on a parseable IP for
-		// the same reason as the create branch (client-controlled X-Real-IP, bounded
-		// column); an unparseable value leaves the last known address intact.
 		if ip := net.ParseIP(req.RealIP); ip != nil {
 			device.RemoteAddr = req.RealIP
 		}
@@ -410,14 +384,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
 			}
 
-			// A re-registration is a fresh enrollment: the key's mode is re-evaluated (a webhook is
-			// called again, a use is consumed on accept). Keep the in-memory device status consistent
-			// with the decision so the DeviceUpdate below persists it.
 			decision := s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired)
 
-			// An accept/reject runs through UpdateDeviceStatus, which derives the namespace counter delta
-			// from the device's *stored* status. Persist the pending transition first so it reads this
-			// fresh "pending", not the stale "removed" left by the soft-delete, or the counters drift.
 			if decision == enrollAccept || decision == enrollReject {
 				if err := s.store.DeviceUpdate(ctx, device); err != nil {
 					return nil, err
@@ -430,10 +398,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				device.StatusUpdatedAt = clock.Now()
 			}
 		} else if device.Status == models.DeviceStatusPending {
-			// A still-pending device re-evaluates its enrollment policy on the agent's periodic
-			// AuthDevice, so a webhook decision the integrator couldn't make synchronously (or an accept
-			// the license limit blocked) can land on a later phone-home. Mutations land on the in-memory
-			// device and are persisted by the DeviceUpdate below.
 			s.reconcileEnrollment(ctx, device, req, uid, hostname)
 		}
 
@@ -453,8 +417,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, err
 		}
 
-		// last_seen/disconnected_at are skipupdate, so DeviceUpdate no longer brings the device
-		// online; do it through the targeted heartbeat path.
 		if _, err := s.store.DeviceHeartbeat(ctx, []string{uid}, device.LastSeen); err != nil {
 			log.WithError(err).Error("failed to update device last_seen to online")
 
@@ -462,9 +424,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 	}
 
-	// The agent hands us the session UIDs it believes it is serving. Bounding the resolve to the
-	// agent's own namespace is what stops it reporting on — or probing for — another tenant's
-	// sessions.
 	for _, sessionUID := range req.Sessions {
 		session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, sessionUID)
 		if err != nil {
@@ -525,9 +484,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	// Service accounts are SSH-only principals and never sign in to the console. Reject
-	// before any auth-method check, returning the generic unauthorized error so this path
-	// can't be used to tell a service account apart from a nonexistent user.
 	if user.Type == models.UserTypeService {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -543,14 +499,10 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		break
 	}
 
-	// A completed account added by a non-superadmin on enterprise stays inert until a system
-	// admin approves it. Ordering is irrelevant: this gate blocks login whether the invitee
-	// completes before or after approval, and the approve step clears the flag.
 	if user.AwaitingApproval {
 		return nil, 0, "", NewErrUserAwaitingApproval(nil)
 	}
 
-	// Checks whether the user is currently blocked from new login attempts
 	if lockout, attempt, _ := s.cache.HasAccountLockout(ctx, sourceIP, user.ID); lockout > 0 {
 		log.
 			WithFields(log.Fields{
@@ -583,7 +535,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 			Warn("unable to reset authentication attempts")
 	}
 
-	// Users with MFA enabled must authenticate to the cloud instead of community.
 	if user.MFA.Enabled {
 		mfaToken := uuid.Generate()
 		if err := s.cache.Set(ctx, "mfa-token={"+mfaToken+"}", user.ID, 30*time.Minute); err != nil {
@@ -619,7 +570,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
 
-	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
 	user.LastLogin = clock.Now()
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
@@ -627,12 +577,10 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		}
 	}
 
-	// TODO: evaluate make this update in a go routine.
 	if err := s.store.UserUpdate(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
-	// preferred_namespace_id is skipupdate, so the UserUpdate above doesn't persist it.
 	if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
@@ -673,7 +621,6 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 
 	switch req.TenantID {
 	case "":
-		// A user may not have a preferred namespace. In such cases, we create a token without it.
 		namespace, err := s.store.NamespaceGetPreferred(ctx, user.ID)
 		if err != nil {
 			break
@@ -701,8 +648,6 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			// preferred_namespace_id is skipupdate; write it through the targeted update.
-			// TODO: evaluate make this update in a go routine.
 			if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
 				return nil, NewErrUserUpdate(user, err)
 			}
@@ -755,8 +700,6 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		hashedKey := hex.EncodeToString(keySum[:])
 
 		var err error
-		// The digest is the credential being authenticated: it is what identifies the namespace, so
-		// there is no namespace to bound by until it resolves.
 		sc := scope.NewUnbounded("authenticating an API key by its digest, which is itself the capability identifying the namespace")
 		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey); err != nil {
 			return nil, NewErrAPIKeyNotFound("", err)
@@ -771,11 +714,6 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		log.WithError(err).Info("Unable to set the api-key in cache")
 	}
 
-	// The role is frozen on the key at creation, so re-derive the creator's
-	// current role on every request (as the JWT path does). A key must not
-	// outlive its creator's access: reject it if they left the namespace, and
-	// cap it at their current role so a demotion is honoured while the
-	// least-privilege role chosen at creation is preserved.
 	_, role, err := s.ResolveNamespaceRole(ctx, apiKey.TenantID, apiKey.CreatedBy)
 	if err != nil {
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)

@@ -39,14 +39,10 @@ func TestService_DeviceCleanup(t *testing.T) {
 	thirtyDaysAgo := now.AddDate(0, 0, -30)
 	sorter := query.Sorter{By: "removed_at", Order: query.OrderAsc, Tiebreak: "id"}
 
-	// countOpts matches the single-option DeviceList call used to retrieve the total
-	// count (only a Match option; no Sort or Paginate).
 	countOpts := mock.MatchedBy(func(opts []store.QueryOption) bool {
 		return len(opts) == 1
 	})
 
-	// pageOpts matches the three-option DeviceList call used to retrieve a page
-	// (Match + Sort + Paginate).
 	pageOpts := mock.MatchedBy(func(opts []store.QueryOption) bool {
 		return len(opts) == 3
 	})
@@ -449,7 +445,6 @@ func TestService_SessionCleanup(t *testing.T) {
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now).Maybe()
 
-	// expired builds a batch of n sessions, none of them recorded.
 	expired := func(n int) []store.ExpiredSession {
 		batch := make([]store.ExpiredSession, n)
 		for i := range batch {
@@ -482,7 +477,6 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   0,
 			requiredMocks: func(_ context.Context, _ *mockSessionRecordingPruner) {
 				// No store call is set up: a non-positive window must never be read as a cutoff
-				// of now, which would delete every session there is.
 			},
 			expected: nil,
 		},
@@ -586,8 +580,6 @@ func TestService_SessionCleanup(t *testing.T) {
 					On("SessionDeleteMany", ctx, uids(expired(3))).
 					Return(int64(3), nil).
 					Once()
-				// No DeleteRecordings: an instance that records nothing must not pay a storage
-				// lookup per session it deletes.
 			},
 			expected: nil,
 		},
@@ -640,7 +632,6 @@ func TestService_SessionCleanup(t *testing.T) {
 					On("DeleteRecordings", ctx, []string{"ok", "stuck"}).
 					Return([]string{"ok"}, nil).
 					Once()
-				// "stuck" keeps its row, which is what leaves its object reachable next run.
 				storeMock.
 					On("SessionDeleteMany", ctx, []string{"ok"}).
 					Return(int64(1), nil).
@@ -661,8 +652,6 @@ func TestService_SessionCleanup(t *testing.T) {
 					On("DeleteRecordings", ctx, []string{"stuck"}).
 					Return([]string{}, nil).
 					Once()
-				// No SessionDeleteMany, and only one listing: retrying inside the run would
-				// re-list the same blocked rows and spin until the cap.
 			},
 			expected: nil,
 		},
@@ -702,8 +691,6 @@ func TestService_SessionCleanup(t *testing.T) {
 		})
 	}
 
-	// The cases above drive the loop directly so they do not pay the batch pause. This one goes
-	// through the cron handler itself, which is what the composition root registers.
 	t.Run("the cron handler prunes nothing when retention is not positive", func(tt *testing.T) {
 		s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
 		require.NoError(tt, s.SessionCleanup(0)(context.Background()))

@@ -89,7 +89,6 @@ func TestRelayOutputDrainsStderrWhileStdoutIsOpen(t *testing.T) {
 	wg := new(sync.WaitGroup)
 	relayOutput(wg, session, stdoutReader, stderrReader)
 
-	// Comfortably past the 64 KiB Linux pipe buffer.
 	payload := bytes.Repeat([]byte("e"), 256*1024)
 
 	written := make(chan error, 1)

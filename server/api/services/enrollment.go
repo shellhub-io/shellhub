@@ -97,11 +97,6 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 		return enrollPending
 	}
 
-	// The pairing-code flow is its own acceptance: the user already approved by entering the code, and
-	// the whole stack (the agent's accepted-only waiter, the code-accept UI) assumes pairing == accepted.
-	// So a paired enrollment accepts outright, ignoring the pairing key's mode — never firing the
-	// webhook POST, the allowlist reject, or a manual/pending hold, which would hang the agent or lie in
-	// the UI. The pairing key's mode is meaningless by construction.
 	if paired {
 		return enrollAccept
 	}
@@ -119,14 +114,10 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 
 		return enrollReject
 	case models.InstallKeyModeWebhook:
-		// Hand the integrator a signed, scoped, expiring callback URL so it can defer and decide later
-		// without any standing credential.
 		callbackURL := s.enrollmentCallbackURL(key, req, uid)
 
 		decision, err := s.callEnrollmentWebhook(ctx, key, req, uid, hostname, callbackURL)
 		if err != nil {
-			// Fail closed: a webhook error/timeout must never open the door. Leave the device pending
-			// for manual review.
 			log.WithError(err).WithField("install_key", key.Name).Warn("enrollment webhook failed; device remains pending")
 
 			return enrollPending
@@ -134,7 +125,6 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 
 		return decision
 	default:
-		// An unknown/empty mode is treated as manual: the safe default is human review.
 		return enrollPending
 	}
 }
@@ -145,20 +135,12 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 // event all run; reject transitions the device to rejected through the same path (no license gate);
 // pending leaves it for manual review. A keyless enrollment (nil key) has no key to consume or record.
 func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, reRegistration, record bool) models.DeviceStatus {
-	// Append the append-only enrollment history event before applying the decision. UpdateDeviceStatus
-	// stamps the device's newest event with the accept/reject outcome, so the event must already exist
-	// for a fresh automatic/allowlist enrollment or the decision is lost. A reconcile re-evaluation
-	// passes record=false: it is not a new enrollment, so it appends nothing and the stamp lands on the
-	// device's original event instead. A keyless enrollment (nil key) has nothing to record against.
 	if record {
 		s.recordEnrollment(ctx, key, req, uid, hostname, reRegistration)
 	}
 
 	switch decision {
 	case enrollAccept:
-		// Reserve a use before accepting. The store guards the increment with the usage limit, so if
-		// concurrent enrollments raced us to the last slot this fails and the device stays pending
-		// instead of being accepted past the limit.
 		if key != nil {
 			if err := s.store.InstallKeyIncrementUsage(ctx, key); err != nil {
 				log.WithError(err).WithField("install_key", key.Name).Warn("install key exhausted; device remains pending")
@@ -173,8 +155,6 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 			Status:   string(models.DeviceStatusAccepted),
 		}
 		if err := s.UpdateDeviceStatus(ctx, acceptReq); err != nil {
-			// The accept failed after we reserved a use; return it so a later reconcile can retry
-			// against a key that still has the slot.
 			if key != nil {
 				if releaseErr := s.store.InstallKeyDecrementUsage(ctx, key); releaseErr != nil {
 					log.WithError(releaseErr).WithField("install_key", key.Name).Warn("failed to release reserved install key use")
@@ -235,18 +215,13 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 	}
 
 	key, err := s.store.InstallKeyResolve(ctx, scope.MustBounded(device.TenantID), store.InstallKeyIDResolver, device.InstallKeyID)
-	// IsValid gates the same as a fresh enrollment: a key revoked, disabled, expired, or exhausted after
-	// the device landed pending must not accept it on a later phone-home.
 	if err != nil || key == nil || !key.IsValid() || !key.ReconcilableOnAuth() {
 		return
 	}
 
-	// Stamp the attempt before evaluating so a defer-again or a transport error still backs off.
 	now := clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
-	// A reconcile re-evaluates a still-pending device (webhook/allowlist); a pairing enrollment never
-	// reaches this path (it accepts outright), so paired is always false here.
 	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, uid, hostname, false, false)
 	if status != models.DeviceStatusPending {
 		device.Status = status
@@ -376,8 +351,6 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Install
 	case string(enrollReject):
 		return enrollReject, nil
 	case enrollDeferDecision, string(enrollPending):
-		// "defer" is the async signal; "pending" is accepted as an explicit "leave for manual". Both
-		// land the device pending (the callback URL stays valid either way).
 		return enrollPending, nil
 	default:
 		return "", fmt.Errorf("enrollment webhook returned invalid decision %q", decoded.Decision)

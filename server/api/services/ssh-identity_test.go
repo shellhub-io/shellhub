@@ -313,7 +313,6 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 
 	authorized, fingerprint := newTestPublicKey(t)
 
-	// enroll runs the given path and reports the source that reached the store.
 	enroll := func(t *testing.T, run func(service *APIService) error) models.SSHIdentitySource {
 		t.Helper()
 
@@ -364,8 +363,6 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		require.Equal(t, models.SSHIdentitySourceBrowser, source)
 	})
 
-	// A TTL only matters if it survives the trip to the row: the gateway reads
-	// expires_at and nothing else to decide a key is dead.
 	t.Run("a TTL in days becomes an absolute expiry", func(t *testing.T) {
 		var got *time.Time
 
@@ -534,7 +531,6 @@ func TestListSSHIdentities(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, list, 2)
 
-		// WithUserID must not be applied for the namespace-wide view.
 		queryOptionsMock.AssertNotCalled(t, "WithUserID", mock.Anything)
 
 		storeMock.AssertExpectations(t)

@@ -193,8 +193,6 @@ func (v *OpenAPIValidator) ShouldFailOnMismatch() bool {
 
 // GetDefaultSchemaPath returns the default path to the OpenAPI schema
 func GetDefaultSchemaPath() *url.URL {
-	// NOTE: This path refers to the generated OpenAPI spec file.
-	// TODO: Make this configurable via environment variable if needed.
 	u, err := url.Parse("http://openapi:8080/openapi/openapi.json")
 	if err != nil {
 		return nil

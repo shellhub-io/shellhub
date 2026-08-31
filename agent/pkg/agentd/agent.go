@@ -193,14 +193,12 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		return nil, nil, err
 	}
 
-	// TODO: test the envinromental variables validation on integration tests.
 	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
 		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
 
 		return nil, fields, err
 	}
 
-	// Tenant resolution: environment > tenant persisted by a previous pairing.
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
@@ -501,12 +499,6 @@ func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 		InstallKey: a.config.InstallKey,
 	}
 
-	// NOTE: A MAC address can be empty when the network interface used to communicate with the external world isn't a
-	// physical one. In this case, we should be able to define a custom value for MAC's field using the
-	// [PREFERRED_IDENTITY] variable. If the hostname is also empty, [PREFERRED_HOSTNAME] could be defined to provide a
-	// fallback identifier for the device. This ensures that even if both the MAC address and hostname are missing, we
-	// have a way to identify the device uniquely. When it occurs, and no variable was defined, the agent should fail to
-	// initialize.
 	if auth.Hostname == "" && (auth.Identity == nil || auth.Identity.MAC == "") {
 		return nil, ErrNoIdentityAndHostname
 	}
@@ -620,8 +612,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 }
 
 func (a *Agent) listenV1(ctx context.Context) error {
-	// NOTE: ListenV1 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
-	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV1()
 
 	tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
@@ -641,7 +631,6 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				return
 			}
 
-			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV1] function.
 			ShellHubConnectV1Path := "/ssh/connection"
 
 			a.logger.Debug("Using tunnel version 1")
@@ -678,8 +667,6 @@ func (a *Agent) listenV1(ctx context.Context) error {
 }
 
 func (a *Agent) listenV2(ctx context.Context) error {
-	// NOTE: ListenV2 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
-	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV2(a.cli)
 
 	tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
@@ -699,7 +686,6 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				return
 			}
 
-			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV2] function.
 			ShellHubConnectV2Path := "/agent/connection"
 
 			a.logger.Debug("Using tunnel version 2")

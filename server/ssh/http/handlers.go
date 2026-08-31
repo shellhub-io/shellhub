@@ -58,8 +58,6 @@ func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Devic
 			return device, nil
 		}
 
-		// A device that does not exist will not start existing on the next
-		// attempt; only infrastructure failures are worth another try.
 		if errors.Is(err, store.ErrNoDocuments) {
 			break
 		}
@@ -115,10 +113,6 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		return err
 	}
 
-	// The gateway only authenticates this route; closing a session is an
-	// administrative action, so enforce the permission here from the role it
-	// forwards. Without this, any observer, operator, API key or device token in
-	// the namespace could terminate any session.
 	if role := authorizer.RoleFromString(c.Request().Header.Get("X-Role")); !role.HasPermission(authorizer.SessionClose) {
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -167,8 +161,6 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	uid := c.Request().Header.Get("X-Device-UID")
 
 	if h.Config.RequireAcceptedTunnel {
-		// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused
-		// device gets a clean HTTP error instead of a dropped WebSocket).
 		device, err := h.requireAcceptedDevice(c.Request().Context(), uid)
 		if err != nil {
 			return err
@@ -178,9 +170,6 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 			tenant = device.TenantID
 		}
 	} else if tenant == "" {
-		// WARN: In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID"
-		// header. This can cause issues with establishing sessions and tracking online devices. To solve
-		// this, we fall back to the device's tenant. Maybe this can be removed in a future release.
 		device, err := h.resolveDevice(c.Request().Context(), uid)
 		if err != nil {
 			return err
@@ -235,8 +224,6 @@ func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 		return err
 	}
 
-	// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused device
-	// gets a clean HTTP error instead of a dropped WebSocket).
 	if h.Config.RequireAcceptedTunnel {
 		if _, err := h.requireAcceptedDevice(c.Request().Context(), data.UID); err != nil {
 			return err

@@ -104,7 +104,6 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		digest := s.createInstallKey(t, tenantID)
 
-		// A second namespace + key: its events must not leak into the first key's history.
 		otherTenant := s.CreateNamespace(t)
 		_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
 			ID:   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",

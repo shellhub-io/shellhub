@@ -48,8 +48,6 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	// device-a beats twice: a device is one row, so the batch must not ask the
-	// store to update it twice.
 	h.Submit("device-a")
 	h.Submit("device-b")
 	h.Submit("device-a")
@@ -66,8 +64,6 @@ func TestDeviceHeartbeater_usesTheEarliestBeatInTheBatch(t *testing.T) {
 	fixedClock(t, earliest, latest)
 
 	storeMock := storemock.NewMockStore(t)
-	// last_seen must never claim the device was seen later than it was, so the
-	// batch carries the earliest beat rather than the flush time.
 	storeMock.
 		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, earliest).
 		Return(int64(2), nil).
@@ -96,19 +92,12 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 
 	h.Submit("device-a")
 
-	// A failed write is logged and dropped: the next beat arrives well within the
-	// online threshold, so retrying would only pile work onto a struggling store.
 	require.NoError(t, h.Shutdown(context.Background()))
 
 	storeMock.AssertExpectations(t)
 }
 
 func TestDeviceHeartbeater_ignoresEmptyUID(t *testing.T) {
-	// No clock is pinned on purpose: Submit must reject the empty UID before it
-	// even reads the time, so a clock expectation here would go unmet.
-	//
-	// No store expectation either: an empty UID must not reach the store, and
-	// NewMockStore fails the test on any unexpected call.
 	storeMock := storemock.NewMockStore(t)
 
 	h := NewDeviceHeartbeater(storeMock)
@@ -129,8 +118,6 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	// Submit runs on the connection manager's goroutine: blocking it would stall
-	// the very tunnel it is reporting on, so a full queue has to drop instead.
 	done := make(chan struct{})
 	go func() {
 		defer close(done)

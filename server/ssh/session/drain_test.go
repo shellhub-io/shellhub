@@ -57,7 +57,6 @@ func TestDrainAgentRequestsSurvivesKeepAliveFailure(t *testing.T) {
 
 	sess := newTestSession(serviceMock)
 
-	// More than x/crypto buffers, so a loop that stopped early would wedge.
 	drained(t, sess, make(chan *gossh.Request), 32)
 }
 

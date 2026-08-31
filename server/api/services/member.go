@@ -272,26 +272,10 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
-	// A member cannot change their own role through this endpoint. The dangerous case
-	// is an administrator self-demoting: they would lose NamespaceEditMember and be
-	// unable to reach this endpoint again. Reject all self-targeting here (including
-	// no-op empty-role writes). To leave a namespace, use LeaveNamespace instead.
 	if active.ID == member.ID {
 		return NewErrAuthForbidden()
 	}
 
-	// Guard against BFLA: the active member must have authority over the passive
-	// member's *current* role, not only over the requested new role. Without this
-	// check an administrator could demote an owner by supplying a lower target role
-	// that satisfies the existing check, an owner could self-demote leaving the
-	// namespace without an owner, or a lower-privileged actor could force writes
-	// (including token invalidation) against a higher-privileged passive member via
-	// an omitted-role (no-op) request.
-	//
-	// Note: HasAuthority treats RoleInvalid passive as the lowest rank, so the check
-	// below passes for any valid active role acting on a corrupted/legacy member. That
-	// allows the owner (or any higher-ranked member) to repair or remove such a record
-	// via the normal API path instead of requiring direct DB intervention.
 	if !active.Role.HasAuthority(member.Role) {
 		return NewErrRoleForbidden()
 	}
@@ -324,9 +308,6 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
-	// A member cannot remove themselves through this endpoint; doing so bypasses the
-	// LeaveNamespace flow (which the UI uses and which blocks the owner from leaving
-	// a namespace without a successor). Self-removal must go through LeaveNamespace.
 	if active.ID == passive.ID {
 		return nil, NewErrAuthForbidden()
 	}
@@ -370,8 +351,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, err
 	}
 
-	// If the user is attempting to leave a namespace other than the authenticated one,
-	// there is no need to generate a new token.
 	if req.TenantID != req.AuthenticatedTenantID {
 		return nil, nil
 	}
@@ -381,7 +360,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	// preferred_namespace_id is skipupdate, so a full-model UserUpdate can't clear it.
 	if err := s.store.UserUpdatePreferredNamespace(ctx, req.UserID, ""); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
@@ -396,7 +374,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 			Error("failed to uncache the token")
 	}
 
-	// TODO: make this method a util function
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
@@ -409,10 +386,6 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 		return err
 	}
 
-	// Revoke the keys the member created here. AuthAPIKey already re-derives the role
-	// from live membership, so their keys stop authenticating on removal; this stops
-	// non-expiring keys lingering in storage. Best-effort: a failure must not leave the
-	// membership half-removed.
 	if err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", ns.TenantID).

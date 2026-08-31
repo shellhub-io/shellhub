@@ -37,13 +37,6 @@ type GatewayConfig struct {
 	WebEndpointsAcmeDNSSubdomain string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN"`
 	EnableAutoSSL                bool        `env:"SHELLHUB_AUTO_SSL"`
 	EnableProxyProtocol          bool        `env:"SHELLHUB_PROXY"`
-	// defaultProxyTrustedIPs is applied by applyDefaults as well as by the env
-	// tag, because the two do not cover the same case: a compose file that
-	// passes SHELLHUB_PROXY_TRUSTED_IPS=${SHELLHUB_PROXY_TRUSTED_IPS} against an
-	// .env from before this key existed sends the variable set-but-empty, and an
-	// env default only applies when the variable is absent. An empty list here
-	// trusts nobody, silently, on exactly the deployments that sit behind a
-	// balancer.
 
 	// ProxyTrustedIPs names the peers allowed to declare the client's address,
 	// through the PROXY protocol preamble and the X-Forwarded-* headers. The

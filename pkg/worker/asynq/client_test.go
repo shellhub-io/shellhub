@@ -38,10 +38,6 @@ func TestClient(t *testing.T) {
 		},
 	)
 
-	// Buffered so the handler never blocks on a test that has already given up,
-	// and a channel rather than a variable because the handler runs on one of
-	// asynq's own goroutines: the send is what orders the write against the read
-	// below.
 	handled := make(chan string, 1)
 	asynqMux.HandleFunc("queue:kind", func(_ context.Context, t *asynqlib.Task) error {
 		handled <- string(t.Payload())

@@ -35,7 +35,6 @@ type NamespaceSettings struct {
 }
 
 func NamespaceFromModel(model *models.Namespace) *Namespace {
-	// Default to personal if Type is empty (for test cases)
 	namespaceType := string(model.Type)
 	if namespaceType == "" {
 		namespaceType = string(models.TypePersonal)

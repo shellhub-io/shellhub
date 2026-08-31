@@ -53,8 +53,6 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 			case "shell":
 				return []string{user.Shell}
 			case "exec":
-				// NOTE(r): when the exec session's has `-t` or `-tt` flag, the command must be executed into a tty/pty.
-				// the Shell's `-c` flag is used to do this.
 				if isPty {
 					return append([]string{user.Shell, "-c"}, commands...)
 				}
@@ -86,7 +84,6 @@ func exitCodeExecFromContainer(cli dockerclient.APIClient, id string) (int, erro
 	}
 
 	if inspected.Running {
-		// NOTICE: when a process is running after the exec command, it is necessary to kill it.
 		return 0, process.Kill(inspected.Pid)
 	}
 

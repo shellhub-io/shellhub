@@ -36,9 +36,6 @@ func (pg *Pg) SSHApprovalGet(ctx context.Context, code string, now time.Time) (*
 func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error) {
 	db := pg.GetConnection(ctx)
 
-	// Atomic claim: only the first caller moves the row out of pending, so the
-	// affected-row count decides who wins. An already-decided or expired approval
-	// matches no row and returns false, which the service reports as not found.
 	res, err := db.NewUpdate().
 		Model((*entity.SSHApproval)(nil)).
 		Set("state = ?", string(state)).

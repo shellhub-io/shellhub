@@ -128,8 +128,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
-	// Capture the wrapper factory before the local "store" variable shadows the
-	// package name. In CE builds this returns nil.
 	wrapperFactory := store.StoreWrapper()
 
 	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
@@ -143,8 +141,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Info("store connected successfully")
 
-	// If a store wrapper factory was registered (EE/cloud build), wrap the
-	// store so cloud-specific entity overrides are used by the core service.
 	if wrapperFactory != nil {
 		store, err = wrapperFactory(store, cache)
 		if err != nil {
@@ -163,8 +159,6 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
-	// If a billing provider factory was registered (EE/cloud build), create and
-	// inject the billing provider before the service is constructed.
 	if factory := services.BillingFactory(); factory != nil {
 		log.Info("Billing provider factory registered; initializing billing provider")
 
@@ -208,8 +202,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 
-	// Authentication runs in-process: the edge proxy forwards requests without
-	// deciding anything about them.
 	s.authn = middleware.NewAuthenticator(service)
 	routerOptions = append(routerOptions, routes.WithAuthentication(s.authn))
 
@@ -294,9 +286,6 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	d := dialer.NewDialer(service, s.heartbeater)
 
-	// Published on routes.InternalMetricsURL, which is always on. Registration
-	// is the only thing that can fail here, and it does not stop the SSH
-	// server: losing a gauge is not a reason to refuse device connections.
 	if err := prometheus.Register(dialer.NewCollector(d.Manager)); err != nil {
 		log.WithError(err).Warning("failed to register the dialer connection metrics")
 	}
@@ -305,9 +294,6 @@ func (s *Server) setupSSH(service services.Service) error {
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
-	// The bridge and the SSH listener share one handoff store: the bridge writes
-	// what the SSH handshake cannot carry, and the session on the other side of
-	// the loopback dial claims it.
 	handoff := webhandoff.NewStore()
 
 	web.NewSSHServerBridge(s.router, s.authn, service, handoff)
@@ -337,20 +323,11 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	// The SSH side reaches the API over loopback on its first connection, and an unbound port
-	// refuses it rather than queueing it. Bind here instead of letting the HTTP server do it, so
-	// the port is already accepting by the time the SSH listener comes up.
-	// The wildcard bind is the intended one: the API answers the gateway container and the SSH
-	// side over loopback, and the port is not published to the host. Echo bound this same
-	// address from inside the library until now, which is the only reason the scanners have
-	// started pointing at it.
-	// nosemgrep: go.lang.security.audit.net.bind_all.avoid-bind-to-all-interfaces
 	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress)
 	if err != nil {
 		return err
 	}
 
-	// No timeouts, matching what Echo's own Start built for us until now.
 	s.http = &http.Server{Handler: s.router} //nolint:gosec
 
 	errs := make(chan error, 2)
@@ -373,8 +350,6 @@ func (s *Server) Shutdown() {
 
 	s.ssh.Close() //nolint:errcheck
 
-	// Drained after the SSH listener closes, so no tunnel can submit a beat that
-	// the final batch would miss.
 	if s.heartbeater != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), heartbeaterDrainTimeout)
 		defer cancel()
@@ -391,9 +366,6 @@ func (s *Server) Shutdown() {
 func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {
 	opts := []services.Option{}
 
-	// If a locator factory was registered (EE/cloud build), create and inject
-	// the GeoIP locator before the service is constructed. In CE builds the
-	// factory is nil and the service falls back to the null locator.
 	if factory := services.LocatorFactory(); factory != nil {
 		locator, err := factory(ctx)
 		if err != nil {
@@ -430,8 +402,6 @@ func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c c
 		return nil, errors.Join(errors.New("init license evaluator"), err)
 	}
 
-	// The factory returns an untyped nil on its skip path, so a plain nil-check
-	// is sufficient — no typed-nil interface can occur here.
 	if le != nil {
 		return []services.Option{services.WithLicenseEvaluator(le)}, nil
 	}

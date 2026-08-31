@@ -149,7 +149,6 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, ns.DeviceLimit(), forwarded)
 
-	// A request targeting a different namespace must not be answered from it.
 	_, ok = authctx.NamespaceDeviceLimit(c.Request().Context(), "00000000-0000-4000-0000-000000000009")
 	assert.False(t, ok)
 

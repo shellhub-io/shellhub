@@ -15,8 +15,6 @@ var _ func() error = CheckCredentialSwitch
 // The assertion is evaluated at compile time; the test body itself is a
 // simple pass-through that confirms the symbol is reachable at runtime too.
 func TestCheckCredentialSwitchCompiles(t *testing.T) {
-	// Calling the function ensures the linker includes the symbol and that
-	// it actually returns nil in docker mode (documented no-op).
 	if err := CheckCredentialSwitch(); err != nil {
 		t.Errorf("CheckCredentialSwitch() returned unexpected error under -tags docker: %v", err)
 	}

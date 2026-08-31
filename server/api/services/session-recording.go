@@ -70,8 +70,6 @@ func (s *service) pruneRecordings(ctx context.Context, sessions []store.ExpiredS
 		return nil, err
 	}
 
-	// Everything that was never recorded, plus the recordings actually purged. A session left
-	// out here keeps its row, so its object stays reachable for the next run to retry.
 	deletable := make([]string, 0, len(uids))
 	purgedSet := make(map[string]struct{}, len(purged))
 

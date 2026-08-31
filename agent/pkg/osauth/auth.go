@@ -249,13 +249,11 @@ func VerifyPasswordHash(hash, password string) bool {
 	// https://man7.org/linux/man-pages/man5/shadow.5.html
 	if hash == "" {
 		if PermitEmptyPasswords() {
-			// NOTE: We allow login with empty password if the environment variable SHELLHUB_PERMIT_EMPTY_PASSWORDS is set to true.
 			logrus.Warn("User logged in with empty password")
 
 			return true
 		}
 
-		// NOTE: By default, we dont allow login with empty password.
 		logrus.Error("User cannot login with empty password")
 
 		return false
@@ -279,7 +277,6 @@ func VerifyPasswordHash(hash, password string) bool {
 		return false
 	}
 
-	// NOTE: If hash algorithm is yescrypt, we verify by ourselves, otherwise let's try crypt package.
 	if strings.HasPrefix(hash, "$y$") {
 		return yescrypt.Verify(password, hash)
 	}
@@ -365,7 +362,6 @@ func parseIntString(value string) int {
 }
 
 func parseUint32(value string) (uint32, error) {
-	// NOTE: [strconv.Atoi] uses the [strconv.ParseInt] under the hood to do the conversion.
 	parsed, err := strconv.ParseUint(value, 10, 32)
 	if err != nil {
 		return 0, err

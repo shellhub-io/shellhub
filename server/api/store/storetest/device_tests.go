@@ -115,24 +115,19 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		tagBackend := s.CreateTag(t, WithTagName("backend"), WithTagTenant(tenantID))
 		tagFrontend := s.CreateTag(t, WithTagName("frontend"), WithTagTenant(tenantID))
 
-		// device-1: production + backend
 		dev1 := s.CreateDevice(t, WithDeviceName("device-1"), WithTenantID(tenantID))
 		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev1)))
 		require.NoError(t, st.TagPushToTarget(ctx, tagBackend, store.TagTargetDevice, string(dev1)))
 
-		// device-2: production + frontend
 		dev2 := s.CreateDevice(t, WithDeviceName("device-2"), WithTenantID(tenantID))
 		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev2)))
 		require.NoError(t, st.TagPushToTarget(ctx, tagFrontend, store.TagTargetDevice, string(dev2)))
 
-		// device-3: production only
 		dev3 := s.CreateDevice(t, WithDeviceName("device-3"), WithTenantID(tenantID))
 		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev3)))
 
-		// device-4: no tags
 		s.CreateDevice(t, WithDeviceName("device-4"), WithTenantID(tenantID))
 
-		// Filter by ["production"] — should match device-1, device-2, device-3
 		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production"}}},
@@ -143,7 +138,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		assert.Equal(t, 3, count)
 		assert.Len(t, devices, 3)
 
-		// Filter by ["production", "backend"] — AND semantics, should match only device-1
 		devices, count, err = st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production", "backend"}}},
@@ -155,7 +149,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		assert.Len(t, devices, 1)
 		assert.Equal(t, "device-1", devices[0].Name)
 
-		// Filter by ["nonexistent"] — should match nothing
 		devices, count, err = st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"nonexistent"}}},
@@ -246,7 +239,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("dev-accepted"), WithDeviceStatus(models.DeviceStatusAccepted))
 		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
 
-		// Use a value outside the known constants to trigger the default branch
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptable(0),
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
@@ -268,8 +260,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("beta"), WithDeviceStatus(models.DeviceStatusAccepted), WithTenantID(tenantID))
 		s.CreateDevice(t, WithDeviceName("alpha-pending"), WithDeviceStatus(models.DeviceStatusPending), WithTenantID(tenantID))
 
-		// AND: status = "accepted" AND status != "pending" (effectively filters to accepted)
-		// We use "status" which is unambiguous in the device query
 		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
@@ -292,7 +282,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("beta"), WithDeviceStatus(models.DeviceStatusPending), WithTenantID(tenantID))
 		s.CreateDevice(t, WithDeviceName("gamma"), WithDeviceStatus(models.DeviceStatusRejected), WithTenantID(tenantID))
 
-		// OR: status = "accepted" OR status = "rejected"
 		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
@@ -378,7 +367,6 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 	t.Run("succeeds resolving device by MAC", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create device - CreateDevice helper already sets a MAC address
 		deviceUID := s.CreateDevice(t, WithDeviceName("mac-test-device"))
 
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
@@ -517,7 +505,6 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		nsB := s.CreateNamespace(t)
 		s.CreateDevice(t, WithDeviceName("shared"), WithTenantID(nsA))
 
-		// Scoped to namespace B, an accepted "shared" in namespace A must not conflict.
 		conflicts, ok, err := st.DeviceConflicts(ctx, scope.MustBounded(nsB), &models.DeviceConflicts{Name: "shared"})
 		require.NoError(t, err)
 		assert.Empty(t, conflicts)
@@ -573,7 +560,6 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 
 		deviceUID := s.CreateDevice(t, WithDeviceName("test-device"))
 
-		// Use a nil UUID that will never be generated by the system
 		nonExistentTenant := "00000000-0000-0000-0000-000000000000"
 
 		err := st.DeviceUpdate(ctx, &models.Device{
@@ -621,7 +607,6 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NotNil(t, device.RemovedAt, "RemovedAt should be set after creation")
 		assert.Equal(t, models.DeviceStatusRemoved, device.Status)
 
-		// Simulate what AuthDevice does: clear RemovedAt and restore status
 		device.RemovedAt = nil
 		device.Status = models.DeviceStatusPending
 		err = st.DeviceUpdate(ctx, device)

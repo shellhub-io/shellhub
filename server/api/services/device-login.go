@@ -69,12 +69,7 @@ func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code strin
 	}
 
 	data := new(deviceLoginCode)
-	// NOTE: A cache miss is not an error; it leaves data untouched.
 	if err := s.cache.Get(ctx, "login_code/"+code, data); err != nil || data.UID == "" {
-		// Not a device-bound code; it may be a pairing code from a tenant-less
-		// agent. The device does not exist yet, so there is no membership to
-		// check: any authenticated user may see the preview, but accepting is
-		// limited to namespaces where they hold the device accept permission.
 		pairing := new(devicePairing)
 		if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err == nil && pairing.PublicKey != "" {
 			return &models.DeviceLoginCodePreview{

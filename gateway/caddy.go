@@ -49,8 +49,6 @@ type caddyfileData struct {
 func dnsProvider(provider DNSProvider) string {
 	switch provider {
 	case "":
-		// Same fallback the environment declares, so a configuration built in
-		// code behaves like one built from env vars.
 		return dnsProvider(DigitalOceanDNSProvider)
 	case AcmeDNSProvider:
 		return `acmedns {
@@ -67,9 +65,6 @@ func dnsProvider(provider DNSProvider) string {
 func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 	development := cfg.Env == "development"
 
-	// Only the flag decides. The previous configuration also refused TLS in
-	// development, which meant the setting silently did nothing there and the
-	// whole certificate path could not be rehearsed before production met it.
 	scheme := "http://"
 	if cfg.EnableAutoSSL {
 		scheme = "https://"
@@ -84,8 +79,6 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 
 		SiteAddress: scheme + cfg.Domain,
 
-		// One block for every device tunnel: the wildcard matches exactly one
-		// label, which is the address the API reads back off the Host header.
 		WebEndpointsAddress: scheme + "*." + domain,
 		DNSProvider:         dnsProvider(cfg.WebEndpointsDNSProvider),
 
@@ -114,8 +107,5 @@ func Caddyfile(cfg *GatewayConfig) ([]byte, error) {
 		return nil, fmt.Errorf("failed to render the Caddyfile: %w", err)
 	}
 
-	// Through Caddy's own formatter: a template that emits conditional blocks
-	// cannot indent them all correctly, and the adapter warns about it. This
-	// also means what a customer reads while debugging is canonically laid out.
 	return caddyfile.Format(rendered.Bytes()), nil
 }

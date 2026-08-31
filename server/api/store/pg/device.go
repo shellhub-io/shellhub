@@ -33,10 +33,6 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *model
 		return []string{}, false, nil
 	}
 
-	// A name only conflicts with an accepted device; pending/rejected/removed don't hold a name.
-	// Namespace bounding comes from sc, so a name used in another namespace is not a conflict. Keep
-	// the predicates ANDed: chaining with WhereGroup(" OR ", ...) would let the name match satisfy
-	// the query on its own and silently disable the status filter.
 	devices := make([]entity.Device, 0)
 	query := db.NewSelect().
 		Model(&devices).
@@ -108,8 +104,6 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Device, 0)
-	// disconnected_at is NULL while online; the interval math keeps only ephemeral devices offline
-	// longer than their own timeout (in minutes).
 	err := db.NewSelect().
 		Model(&entities).
 		Where("ephemeral = TRUE").

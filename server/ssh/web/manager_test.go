@@ -42,10 +42,6 @@ func TestManagerSave(t *testing.T) {
 			assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 				_, ok := manager.get(test.id)
 				assert.False(tt, ok)
-
-				// NOTICE: we are waiting for two times the defined time, verifying each 10 Millisecond if the condition
-				// met. It means that the wait time multiplied by two is the max time, but the codition can be met until
-				// its end.
 			}, 2*test.waitFor, 10*time.Millisecond)
 		})
 	}

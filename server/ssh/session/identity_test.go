@@ -91,7 +91,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		consumedAt := clock.Now()
 
 		serviceMock := servicemocks.NewMockService(t)
-		// A burned single-use key resolves but is no longer active.
 		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
 			Return(&models.SSHIdentity{PrincipalID: "user1", ConsumedAt: &consumedAt}, true, nil). //nolint:exhaustruct
@@ -102,7 +101,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, auth)
-		// A dead service-account key must never enroll or bind an account.
 		assert.Empty(t, sess.UserID)
 	})
 
@@ -137,13 +135,9 @@ func TestResolveKeyAuth(t *testing.T) {
 		assert.IsType(t, &approvalAuth{}, auth)
 		assert.Empty(t, sess.UserID)
 
-		// The approval is only parked once the client proves it holds the key: the
-		// code is untouched, and the mock would fail if CreateSSHApproval ran.
 		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
 	})
 
-	// Offer is what runs for a key the client has merely offered, so it must not
-	// reach the service at all.
 	t.Run("offering an unknown key writes nothing", func(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
@@ -184,8 +178,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
 
-		// Rejected rather than approved: the point is that the approval was
-		// created and waited on, not what the person decided.
 		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
 	})

@@ -31,8 +31,6 @@ var (
 func TestMain(m *testing.M) {
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
 	publicKey = &privateKey.PublicKey
-	// Capture now before swapping clock.DefaultBackend so that clock.Now()
-	// uses the real wall-clock backend and returns a valid timestamp.
 	now = clock.Now()
 	realUUIDBackend = uuid.DefaultBackend
 	clockMock = &clockmocks.MockClock{}

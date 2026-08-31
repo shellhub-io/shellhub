@@ -19,8 +19,6 @@ func specDir(t *testing.T) string {
 	_, file, _, ok := runtime.Caller(0)
 	require.True(t, ok, "runtime.Caller failed")
 
-	// file is <repo>/server/api/openapi/spec_test.go
-	// Navigate: server/api/openapi -> server/api -> server -> <repo> -> openapi/spec
 	repoRoot := filepath.Join(filepath.Dir(file), "..", "..", "..")
 
 	return filepath.Join(repoRoot, "openapi", "spec")
@@ -34,7 +32,6 @@ func TestGetSessionsAdvertisesFilterQueryParameter(t *testing.T) {
 	sessionsPath := filepath.Join(dir, "paths", "api@sessions.yaml")
 	filterRef := filepath.Join(dir, "components", "parameters", "query", "filterQuery.yaml")
 
-	// The referenced component file must exist.
 	_, err := os.Stat(filterRef)
 	require.NoError(t, err, "filterQuery.yaml component file should exist at %s", filterRef)
 

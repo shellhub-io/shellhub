@@ -39,15 +39,8 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		groups = []uint32{}
 	}
 
-	// NOTE: Wrap the command with nsenter and setpriv to run it inside the
-	// host's namespaces with the correct user and groups. This is necessary
-	// because the agent is running inside a Docker container and we want to
-	// execute the command in the host's context.
 	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, groups, u.HomeDir, command...)
 
-	// noctx: NewCmd has a docker and a native build-tag variant sharing one signature, called
-	// from linux and freebsd paths. The session context reaches the callers, not here, so
-	// threading it through is a change to the command API rather than a lint fix.
 	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:noctx,gosec
 	// TODO: There are other environment variables we could set like SSH_CONNECTION, SSH_TTY, SSH_ORIGINAL_COMMAND, etc.
 	// We need to check which ones are relevant and set them accordingly.

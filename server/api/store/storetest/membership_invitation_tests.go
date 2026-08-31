@@ -87,10 +87,6 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		assert.Equal(t, models.MembershipInvitationStatusPending, invitation.Status)
 	})
 
-	// Regression: cancelling a pending invitation while a previously cancelled
-	// invitation exists for the same (tenant, user) used to return the older
-	// cancelled row when the store ordered by primary key. Resolve must return
-	// the most recently created invitation regardless of status.
 	t.Run("returns most recent invitation when multiple exist for the same user", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -111,8 +107,6 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		}
 		require.NoError(t, st.MembershipInvitationCreate(ctx, cancelled))
 
-		// Force a distinguishable created_at on the next row (PG stores microseconds,
-		// so a couple of milliseconds is plenty).
 		time.Sleep(2 * time.Millisecond)
 
 		pending := &models.MembershipInvitation{
@@ -199,8 +193,6 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		assert.Nil(t, resolved)
 	})
 
-	// A cancelled invitation keeps its sig and expiry (the row is retained for the
-	// namespace listing), so the pending filter is what stops it from being consumed.
 	t.Run("fails when the invitation carrying the signature was cancelled", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -234,7 +226,6 @@ func (s *Suite) TestMembershipInvitationUpdate(t *testing.T) {
 	t.Run("fails when invitation not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// All UUID fields must be valid for PG compatibility.
 		nonExistentInvitation := &models.MembershipInvitation{
 			ID:          "99999999-9999-4999-9999-999999999999",
 			TenantID:    "99999999-9999-4999-9999-999999999998",

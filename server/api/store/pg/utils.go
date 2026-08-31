@@ -61,9 +61,6 @@ func fromSQLError(err error) error {
 				return store.ErrDuplicate
 			}
 
-			// Instance binding: deleting the namespace the instance is bound to is refused by
-			// ON DELETE RESTRICT. Postgres reports that as restrict_violation (23001); a plain
-			// foreign_key_violation (23503) is matched too for defensiveness.
 			if (pgErr.Code == "23001" || pgErr.Code == "23503") && pgErr.ConstraintName == constraintSystemsInstanceTenantIDFkey {
 				return store.ErrNamespaceInstanceProtected
 			}

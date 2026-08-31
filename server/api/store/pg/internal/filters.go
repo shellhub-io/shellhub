@@ -52,7 +52,6 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	case bool:
 		isOnline = v
 	case float64:
-		// JSON numbers always decode to float64; nonzero means online.
 		isOnline = v != 0
 	case string:
 		var err error
@@ -138,20 +137,14 @@ func ParseFilterOperator(op *query.FilterOperator) (string, bool) {
 // It returns a SQL condition string, SQL arguments array, boolean indicating
 // if the operator is valid and an error, if any.
 func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, []any, bool, error) {
-	// Handle virtual fields that don't exist as real columns (see fromOnlineFilter for details)
 	if fp.Name == "online" {
 		return fromOnlineFilter(fp.Value)
 	}
 
-	// active is a virtual field backed by the active_sessions table (see fromActiveFilter for details)
 	if fp.Name == "active" {
 		return fromActiveFilter(fp.Value, tableAlias)
 	}
 
-	// In the session context "device_uid" is a user-facing alias for the actual
-	// "device_id" column in the sessions table. The mapping is scoped to sessions
-	// only so it cannot silently affect other filter contexts that happen to
-	// expose a device_uid field but use a different column name or no column at all.
 	if tableAlias == "session" && fp.Name == "device_uid" {
 		fp = renameFilterField(fp, "device_id")
 	}
@@ -160,13 +153,10 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 		fp = renameFilterField(fp, column)
 	}
 
-	// tags.name requires an EXISTS subquery through the device_tags junction table,
-	// because tags live in a separate table with a many-to-many relationship.
 	if fp.Name == "tags.name" {
 		return fromTagsFilter(fp.Operator, fp.Value)
 	}
 
-	// custom_fields is a JSONB column; search across all values.
 	if fp.Name == "custom_fields" {
 		return fromCustomFieldsFilter(fp.Operator, fp.Value)
 	}
@@ -221,8 +211,6 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 				strs[i] = s
 			}
 
-			// Use a counting subquery to ensure AND semantics: the device must have ALL
-			// specified tags, consistent with MongoDB's $all and the generic PG @> operator.
 			return `(SELECT COUNT(DISTINCT "tags"."name") FROM "device_tags" JOIN "tags" ON "tags"."id" = "device_tags"."tag_id" WHERE "device_tags"."device_id" = "device"."id" AND "tags"."name" IN (?)) = ?`,
 				[]any{bun.List(strs), len(strs)}, true, nil
 		default:

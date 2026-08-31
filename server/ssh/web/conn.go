@@ -92,8 +92,6 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
-		// NOTE: Enforce the maximum line length for terminal input even when the buffer store more characters than
-		// [TermniosMaxLineLength], as the PTY slave will truncate the input to 4096 characters.
 		if utf8.RuneCountInString(str) > TermniosMaxLineLength {
 			return 0, errors.Join(ErrConnReadMessageInputTooLong)
 		}
@@ -145,9 +143,6 @@ func (c *Conn) WriteBinary(data []byte) (int, error) {
 
 	socket, ok := c.Socket.(*websocket.Conn)
 	if !ok {
-		// NOTE: If the underlying connection is not a websocket connection, fallback to a normal write.
-		// This is useful for testing purposes, where we use a mock socket that does not implement
-		// the websocket interface.
 		return c.Socket.Write(data)
 	}
 

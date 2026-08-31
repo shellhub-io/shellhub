@@ -24,9 +24,6 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 	envstest.SetEdition(t, envs.Community)
 
 	service := serviceMocks.NewMockService(t)
-	// Reading the JWT signing key is incidental to what these tests assert; a nil
-	// key still rejects every token, which is what an unauthenticated request
-	// needs.
 	service.On("PublicKey").Return(nil).Maybe()
 
 	authn := routesmiddleware.NewAuthenticator(service)
@@ -90,10 +87,6 @@ func TestRouterRejectsUncredentialedRequests(t *testing.T) {
 			},
 		},
 		{
-			// A key the store cannot resolve is a rejected credential, not a
-			// missing resource: the edge proxy turned every non-2xx from the
-			// authentication subrequest into a 401, and a client holding a
-			// revoked key needs to be told to reauthenticate.
 			description: "an api key the store does not know",
 			headers:     map[string]string{"X-API-Key": "not-a-key"},
 			mock: func(service *serviceMocks.MockService) {
@@ -158,8 +151,6 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 		Return(nil, services.NewErrAPIKeyNotFound("", nil)).
 		Once()
 
-	// Every header gateway.Identity writes, so a new one cannot be added to that
-	// set without being scrubbed here too.
 	forged := map[string]string{
 		"X-ID":         "forged-user",
 		"X-Username":   "forged-username",

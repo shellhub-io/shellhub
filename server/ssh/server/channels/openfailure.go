@@ -14,7 +14,6 @@ import (
 // pty-req that way — so dropping a malformed request without answering would
 // hang the session instead of failing it.
 func denyRequest(logger *log.Entry, req *gossh.Request) {
-	// Reply is itself a no-op when the client did not ask for one.
 	if err := req.Reply(false, nil); err != nil {
 		logger.WithError(err).Error("failed to deny the channel request")
 	}

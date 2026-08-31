@@ -38,7 +38,6 @@ var rawReauthRequired string
 
 // render converts LF line endings to the CRLF required by the SSH protocol.
 func render(s string) string {
-	// Normalise first so we never double-add \r.
 	s = strings.ReplaceAll(s, "\r\n", "\n")
 
 	return strings.ReplaceAll(s, "\n", "\r\n")

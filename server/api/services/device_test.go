@@ -199,9 +199,6 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 		queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 	}
 
-	// The authenticator resolved the namespace for this request, so the device-limit check
-	// must read it from the context instead of going back to the store. MockStore fails the
-	// test on any call that was not set up, which is what asserts the store is untouched.
 	t.Run("uses the authenticated namespace instead of reading the store", func(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -221,7 +218,6 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	// An authenticated namespace for a different tenant must not answer this request's limit.
 	t.Run("falls back to the store when the context namespace is another tenant", func(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -1604,7 +1600,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 						nil,
 					).
 					Once()
-				// opts is built once (WithDeviceStatus+InNamespace) and reused for the hostname lookup.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
@@ -1675,7 +1670,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
@@ -1744,7 +1738,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "duplicate-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
@@ -1802,7 +1795,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -1851,7 +1843,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -1964,7 +1955,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -2013,7 +2003,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -2050,7 +2039,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 			tc.requiredMocks()
 
-			// A successful accept/reject freezes the decision on the device's history event.
 			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
 				storeMock.On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
 			}
@@ -2126,7 +2114,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -2179,7 +2166,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -2204,7 +2190,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			// (c) evaluator returns (false, err) → fail-open, device accepted
 			description: "success (accepted) (different MAC) - license evaluator error is fail-open",
 			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
@@ -2245,7 +2230,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
@@ -2270,7 +2254,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			// (d) same-MAC merge path at limit → NOT blocked by licenseEvaluator
 			description: "success (accepted) (same MAC) - merge path bypasses license limit",
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2324,13 +2307,10 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				// licenseEvaluatorMock.CanAcceptDevice must NOT be called on the merge path
-				// Merge operations
 				storeMock.
 					On("SessionUpdateDeviceUID", ctx, models.UID("old-device"), models.UID("new-device")).
 					Return(nil).
@@ -2379,7 +2359,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 
 			tc.requiredMocks()
 
-			// A successful accept/reject freezes the decision on the device's history event.
 			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
 				storeMock.On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
 			}

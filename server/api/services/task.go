@@ -107,9 +107,6 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 			break
 		}
 
-		// Recordings first, rows second, because the row is the only thing that can still name
-		// the object. Sessions whose recording could not be purged are left out and keep their
-		// rows, so the next run finds them again.
 		deletable, err := s.pruneRecordings(ctx, sessions)
 		if err != nil {
 			log.WithError(err).WithField("deleted", total).Error("failed to prune recordings of expired sessions")
@@ -117,9 +114,6 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 			return err
 		}
 
-		// The batch is not empty but nothing in it can be deleted, so every session in it is
-		// blocked on its recording. Retrying inside this run would list the same rows again and
-		// spin until the cap; leave it for the next one, by which time the storage may answer.
 		if len(deletable) == 0 {
 			log.WithFields(log.Fields{"deleted": total, "blocked": len(sessions)}).
 				Warn("no expired session in the batch could be deleted; ending the run")
@@ -137,8 +131,6 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 		total += deleted
 		batches++
 
-		// A batch that came back short means the store ran out of sessions older than the
-		// cutoff, so there is nothing left for this run to do.
 		if len(sessions) < sessionCleanupBatchSize {
 			break
 		}
@@ -197,8 +189,6 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Tiebreak: "id",
 		}
 
-		// The cleanup cron sweeps every namespace and buckets its deletions per namespace afterwards,
-		// so it deliberately reads across all of them.
 		sc := scope.NewUnbounded("device-cleanup cron sweeps every namespace, bucketing its deletions per namespace afterwards")
 
 		_, totalCount, err := s.store.DeviceList(ctx, sc, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
@@ -266,8 +256,6 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			}
 		}
 
-		// Iterate tenants in a stable order so the decrement sequence is
-		// deterministic (map iteration order is randomized in Go).
 		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
 			deletedCount := deletedPerTenant[tenantID]
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusRemoved, -deletedCount); err != nil {
@@ -289,8 +277,6 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 	return func(ctx context.Context) error {
 		log.Info("Starting cleanup for offline ephemeral devices")
 
-		// The store selects ephemeral devices offline longer than their own per-device timeout. It is
-		// capped per run, so a large scale-down drains across successive cron ticks.
 		devices, err := s.store.DeviceListExpiredEphemeral(ctx)
 		if err != nil {
 			log.WithError(err).Error("Failed to list offline ephemeral devices")
@@ -306,8 +292,6 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 
 		log.WithField("total_devices", len(devices)).Info("Found offline ephemeral devices to cleanup")
 
-		// Decrement per (tenant, status): ephemeral devices are usually accepted, but a pending one
-		// (whose accept failed) must not be counted against the accepted total.
 		uids := make([]string, len(devices))
 		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)
 		for i, device := range devices {
@@ -324,7 +308,6 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			return err
 		}
 
-		// Iterate tenants and statuses in a stable order so the decrement sequence is deterministic.
 		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
 			for _, status := range slices.Sorted(maps.Keys(deletedPerTenant[tenantID])) {
 				count := deletedPerTenant[tenantID][status]

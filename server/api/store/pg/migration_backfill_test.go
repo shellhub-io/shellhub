@@ -53,7 +53,6 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// NamespaceCreate seeds the namespace's legacy (system) key; the test devices enroll against it.
 	tenant, err := st.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "ns",
 		Owner:      owner,
@@ -91,7 +90,6 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	withEventUID := mkDevice("cc", "aa:bb:cc:dd:ee:03", models.DeviceStatusAccepted, legacy.ID)
 	keylessUID := mkDevice("dd", "aa:bb:cc:dd:ee:04", models.DeviceStatusPending, "")
 
-	// The device that already has an event must be left untouched by the backfill.
 	require.NoError(t, st.InstallKeyEventCreate(ctx, &models.InstallKeyEvent{
 		InstallKeyID: legacy.ID,
 		TenantID:     tenant,
@@ -120,8 +118,6 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 
 	require.Len(t, events[pendingUID], 1, "a pending device without an event gets one")
 	assert.Empty(t, events[pendingUID][0].Decided, "a pending device's backfilled event stays open so the accept control shows")
-	// The device's OS facts must ride along so the registration activity shows the distro icon and name,
-	// not a blank generic row: info_id drives the icon, info_pretty_name/arch the labels.
 	assert.Equal(t, "arch", events[pendingUID][0].InfoID, "the device's distro id (identifier) is copied so the icon renders")
 	assert.Equal(t, "Arch Linux", events[pendingUID][0].InfoPretty)
 	assert.Equal(t, "amd64", events[pendingUID][0].InfoArch)

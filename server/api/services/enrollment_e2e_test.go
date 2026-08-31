@@ -52,9 +52,6 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	st := provider.Store()
 
-	// Isolate clock and env from the package-global mocks so this test controls them fully. Use the
-	// real "now" captured at TestMain (not a fixed past date) so signed callback tokens' expiry is
-	// valid against the JWT library's wall-clock check.
 	fixed := now
 	localClock := clockmock.NewMockClock(t)
 	localClock.On("Now").Return(fixed).Maybe()
@@ -62,16 +59,11 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	clock.DefaultBackend = localClock
 
 	localEnv := envmock.NewMockBackend(t)
-	// The webhook tests point their install key at an httptest server on loopback, which the SSRF guard
-	// blocks by default; permit it via the operator allowlist so the real dial path is still exercised.
 	localEnv.On("Get", "SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
 	localEnv.On("Get", mock.Anything).Return("").Maybe() // community edition: not cloud, not enterprise
 	prevEnv := envs.DefaultBackend
 	envs.DefaultBackend = localEnv
 
-	// A prior unit test may have leaked a fixed-value uuid mock as DefaultBackend; this e2e uses the
-	// real store, which needs genuinely unique IDs (e.g. a re-registered device's second history event
-	// must not collide with the first). Reset to the real generator.
 	prevUUID := uuid.DefaultBackend
 	uuid.DefaultBackend = realUUIDBackend
 
@@ -168,7 +160,6 @@ func clearSecret(k *models.InstallKey) { k.KeyEncrypted, k.KeyHint = "", "" }
 
 func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.InstallKeyEvent {
 	t.Helper()
-	// History is keyed by the key's id (digest); resolve the seeded key's name to its id first.
 	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyNameResolver, keyName)
 	require.NoError(t, err)
 
@@ -214,14 +205,11 @@ func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "keyless device must land pending")
 	require.Equal(t, 1, e.pendingCount(t), "device must be listable via ?status=pending")
 
-	// The legacy key's history is the keyless-pending queue: the event carries the device's live
-	// status, so the UI can accept from there.
 	events := e.events(t, "legacy")
 	require.Len(t, events, 1)
 	require.Equal(t, uid, events[0].DeviceUID)
 	require.Equal(t, models.DeviceStatusPending, events[0].DeviceStatus)
 
-	// The integrator accepts it through the same endpoint it uses today.
 	require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
 		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
 	}))
@@ -229,7 +217,6 @@ func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 	require.Equal(t, 0, e.pendingCount(t), "device must leave the pending queue once accepted")
 
-	// After acceptance the history reflects the new live status (drives the UI refresh).
 	require.Equal(t, models.DeviceStatusAccepted, e.events(t, "legacy")[0].DeviceStatus)
 }
 
@@ -244,9 +231,6 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:10", plaintextFor(0x01))
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 
-		// The auto-accept must freeze its outcome onto the enrollment event so the audit keeps it after
-		// the device is removed. Regression: the decision was stamped before the event was appended, so a
-		// fresh automatic enrollment left DecidedStatus empty.
 		evs := e.events(t, "auto")
 		require.Len(t, evs, 1)
 		require.Equal(t, models.DeviceStatusAccepted, evs[0].DecidedStatus)
@@ -272,7 +256,6 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 		rejected := e.enroll(t, "aa:bb:cc:dd:ee:32", plaintextFor(0x03))
 		require.Equal(t, models.DeviceStatusRejected, e.status(t, rejected))
 
-		// Both the auto-accept and the auto-reject must freeze their outcome onto their own event.
 		decisions := map[string]models.DeviceStatus{}
 		for _, ev := range e.events(t, "allow") {
 			decisions[ev.DeviceUID] = ev.DecidedStatus
@@ -282,8 +265,6 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("the auth response carries the device status", func(t *testing.T) {
-		// The response exposes the enrollment status so an agent can react to its authorization state
-		// instead of connecting blind.
 		e.installKey(t, digest(0x04), "auto-status", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
 		res, err := e.svc.AuthDevice(context.Background(), requests.DeviceAuth{
 			TenantID:   e.tenantID,
@@ -311,8 +292,6 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x40)))
 
-		// Soft-remove the accepted device, then re-enroll: it is a fresh enrollment, so the policy runs
-		// again and accepts it, consuming another use.
 		require.NoError(t, e.svc.DeleteDevice(context.Background(), models.UID(uid), e.tenantID))
 
 		uid2 := e.enroll(t, "aa:bb:cc:dd:ee:40", plaintextFor(0x40))
@@ -320,10 +299,6 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid2))
 		require.Equal(t, 2, e.usedTimes(t, digest(0x40)))
 
-		// The re-registration must leave the namespace counters consistent: one accepted device, nothing
-		// pending or removed. Regression: re-evaluating the policy read the device's stale "removed"
-		// status (the pending transition was not persisted before deciding), so the accept double-counted
-		// the removed decrement and left a phantom pending.
 		counts := e.deviceCounts(t)
 		require.Equal(t, int64(1), counts.DevicesAcceptedCount)
 		require.Equal(t, int64(0), counts.DevicesPendingCount)
@@ -336,7 +311,6 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:41", plaintextFor(0x41))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x41)))
 
-		// Same identity, not removed: a reconnect must leave the status and the usage counter untouched.
 		e.enroll(t, "aa:bb:cc:dd:ee:41", plaintextFor(0x41))
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x41)), "reconnect must not re-run the policy or consume a use")
@@ -351,7 +325,6 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:42", plaintextFor(0x42))
 		require.Equal(t, models.DeviceStatusRejected, e.status(t, uid))
 
-		// Rejected is not a dead end: accept it through the canonical endpoint.
 		require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
 			TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
 		}))
@@ -427,13 +400,9 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 	require.NotEmpty(t, callbackURL)
 	token := callbackURL[strings.LastIndex(callbackURL, "/")+1:]
 
-	// First redemption: reject. Rejected is not terminal for a later accept (the re-accept feature), so
-	// the device-state guard alone would let a replayed accept flip it.
 	require.NoError(t, e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: "reject"}))
 	require.Equal(t, models.DeviceStatusRejected, e.status(t, uid))
 
-	// Replay the same URL with the opposite decision: the jti is already spent, so it is refused and the
-	// device stays rejected. Without the single-use gate this would flip rejected -> accepted.
 	err := e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: "accept"})
 	require.Error(t, err)
 	require.Equal(t, models.DeviceStatusRejected, e.status(t, uid))
@@ -445,8 +414,6 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
-	// enrollDeferred spins a defer-only integrator, enrolls a device with a fresh single-use webhook key,
-	// and returns the device UID plus the single-use callback token the integrator was handed.
 	enrollDeferred := func(keyByte byte, name, mac string) (string, string) {
 		t.Helper()
 		var callbackURL string
@@ -504,7 +471,6 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
-	// A mutable clock so the reconcile throttle window can be crossed deterministically.
 	base := now
 	cur := base
 	clk := clockmock.NewMockClock(t)
@@ -525,23 +491,18 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 		clearSecret(k)
 	})
 
-	// Enrollment: the integrator defers, so the device lands pending (webhook consulted once).
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
 	require.Equal(t, 1, hits)
 
-	// First phone-home after enrollment reconciles (no prior attempt to throttle against); the
-	// integrator still defers, so it stays pending but the attempt is now stamped.
 	e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 	require.Equal(t, 2, hits)
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
 
-	// A second phone-home within the throttle window must not re-consult the integrator.
 	e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 	require.Equal(t, 2, hits, "a re-auth within the throttle window must not re-evaluate")
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
 
-	// Past the window, with the integrator now accepting, the next phone-home reconciles and accepts.
 	decision = "accept"
 	cur = base.Add(models.EnrollmentReconcileInterval + time.Minute)
 	e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
@@ -549,14 +510,9 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid), "a recovered integrator resolves the device")
 	require.Equal(t, 1, e.usedTimes(t, digest(0x60)), "the reconciled accept consumes one key use")
 
-	// Reconcile is not a new enrollment: despite three re-evaluations (two pending, one accepting), the
-	// history holds only the single original enrollment event. The device's outcome shows through the
-	// history's live-joined status, not through extra rows.
 	require.Len(t, e.events(t, "webhook"), 1, "reconcile must not append history events")
 
 	t.Run("a terminal device is never reconciled", func(t *testing.T) {
-		// The accepted device above keeps re-authing past the window: a terminal status is never
-		// re-evaluated, so the integrator is not consulted again and the status stays put.
 		cur = base.Add(10 * models.EnrollmentReconcileInterval)
 		e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 		require.Equal(t, 3, hits, "an accepted device must not re-consult the integrator")
@@ -596,8 +552,6 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	key.Revoked = true
 	require.NoError(t, e.st.InstallKeyUpdate(context.Background(), key))
 
-	// Past the throttle window, with the integrator now accepting: reconcile must skip the revoked key,
-	// so the device stays pending instead of being flipped to accepted.
 	decision = "accept"
 	cur = base.Add(models.EnrollmentReconcileInterval + time.Minute)
 	e.enroll(t, "aa:bb:cc:dd:ee:61", plaintextFor(0x61))
@@ -652,8 +606,6 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 	accepted := 0
 	for i := range racers {
 		if errs[i] != nil {
-			// A racer that resolved the key after it was exhausted is rejected at auth (no device row);
-			// that is the expected outcome, not a failure.
 			require.ErrorContains(t, errs[i], "auth invalid")
 
 			continue
@@ -674,7 +626,6 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 	e.installKey(t, digest(0x70), "man", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
 
-	// A mutable clock so the decision time can advance past the enrollment time deterministically.
 	base := now
 	cur := base
 	clk := clockmock.NewMockClock(t)
@@ -687,14 +638,11 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	evs := e.events(t, "man")
 	require.Len(t, evs, 1)
 	require.Equal(t, "pk-aa:bb:cc:dd:ee:70", evs[0].PublicKey, "the enrollment key is captured")
-	// The placeholder key is not a real PEM, so the fingerprint is empty (the SHA256 computation itself
-	// is covered by the entity unit test). A pending device has no decision yet.
 	require.Empty(t, evs[0].Fingerprint)
 	require.Empty(t, evs[0].DecidedStatus)
 	require.Nil(t, evs[0].DecidedAt)
 	enrolledAt := evs[0].Timestamp
 
-	// Accept it later: the event row's enrollment facts stay, and the decision is frozen onto it.
 	cur = base.Add(time.Hour)
 	require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
 		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
@@ -707,8 +655,6 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	require.NotNil(t, evs[0].DecidedAt)
 	require.True(t, evs[0].DecidedAt.After(enrolledAt), "the decision time is the accept moment, after enrollment")
 
-	// The whole point: remove the device and the frozen decision must remain in the audit (the live
-	// status would go to removed and lose it).
 	require.NoError(t, e.svc.DeleteDevice(context.Background(), models.UID(uid), e.tenantID))
 
 	evs = e.events(t, "man")
@@ -724,8 +670,6 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 	e.installKey(t, digest(0x80), "man2", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
 
-	// A mutable clock so the two events get distinct created_at (the "newest per device" window keys on
-	// it); the shared setup clock is fixed, which would tie them.
 	base := now
 	cur := base
 	clk := clockmock.NewMockClock(t)
@@ -744,7 +688,6 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	firstDecidedAt := cur
 	require.NoError(t, e.svc.DeleteDevice(context.Background(), models.UID(uid), e.tenantID))
 
-	// Same identity re-enrolls (re-registration → same device row, second event), accepted later.
 	cur = base.Add(3 * time.Hour)
 	uid2 := e.enroll(t, "aa:bb:cc:dd:ee:80", plaintextFor(0x80))
 	require.Equal(t, uid, uid2, "the same identity re-enrolls as the same device")
@@ -762,7 +705,6 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	require.True(t, newer.IsCurrent, "the newest event owns the live accept/reject action")
 	require.False(t, older.IsCurrent, "the older event is historical, not current")
 
-	// Each event keeps its OWN frozen decision — the accept doesn't leak onto both rows.
 	require.Equal(t, models.DeviceStatusAccepted, older.DecidedStatus)
 	require.Equal(t, models.DeviceStatusAccepted, newer.DecidedStatus)
 	require.NotNil(t, older.DecidedAt)

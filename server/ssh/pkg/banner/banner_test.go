@@ -88,7 +88,6 @@ func TestClassifyLFOnlyInput(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			// Replace all CRLF with LF to simulate LF-only input.
 			lfOnly := strings.ReplaceAll(Message(tc.kind), "\r\n", "\n")
 			kind, _ := Classify(lfOnly)
 			assert.Equal(t, tc.kind, kind)

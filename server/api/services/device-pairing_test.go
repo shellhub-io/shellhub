@@ -25,7 +25,6 @@ func TestCreateDevicePairing(t *testing.T) {
 		PublicKey: "public-key",
 	}
 
-	// notAlreadyAccepted makes the resume lookup miss, so a fresh code is minted.
 	notAlreadyAccepted := func(storeMock *storemock.MockStore) {
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -36,7 +35,6 @@ func TestCreateDevicePairing(t *testing.T) {
 			Once()
 	}
 
-	// noLiveCode makes the dedup-by-pubkey lookup miss, so no existing code is reused.
 	noLiveCode := func(cacheMock *cachemock.MockCache) {
 		cacheMock.
 			On("Get", mock.Anything, mock.MatchedBy(func(key string) bool {
@@ -75,7 +73,6 @@ func TestCreateDevicePairing(t *testing.T) {
 					}), devicePairingTTL).
 					Return(nil).
 					Once()
-				// the dedup reference mapping the public key to the new code
 				cacheMock.
 					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
 						return regexp.MustCompile(`^pairing_code_pubkey/[0-9a-f]{64}$`).MatchString(key)
@@ -102,7 +99,6 @@ func TestCreateDevicePairing(t *testing.T) {
 			description: "reuses the live code when one already exists for the public key",
 			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
 				notAlreadyAccepted(storeMock)
-				// the dedup lookup finds a code already mapped to this public key
 				cacheMock.
 					On("Get", mock.Anything, mock.MatchedBy(func(key string) bool {
 						return strings.HasPrefix(key, "pairing_code_pubkey/")
@@ -293,9 +289,6 @@ func TestAcceptDevicePairing(t *testing.T) {
 			Once()
 	}
 
-	// NOTE: The success path goes through AuthDevice + UpdateDeviceStatus, which
-	// carry their own test suites; here we cover the pairing-specific authz and
-	// lookup failures, and the happy path is exercised end to end in dev.
 	cases := []struct {
 		description   string
 		userID        string
@@ -304,11 +297,9 @@ func TestAcceptDevicePairing(t *testing.T) {
 		expectedErr   error
 	}{
 		{
-			description: "fails when the code is not a well-formed pairing code",
-			userID:      "owner1",
-			req:         &requests.DevicePairingAccept{Code: "00000000", TenantID: "tenant1"},
-			// A code that fails the charset gate must be rejected before the cache
-			// lookup, so no Get is expected.
+			description:   "fails when the code is not a well-formed pairing code",
+			userID:        "owner1",
+			req:           &requests.DevicePairingAccept{Code: "00000000", TenantID: "tenant1"},
 			requiredMocks: func(_ *cachemock.MockCache, _ *storemock.MockStore) {},
 			expectedErr:   NewErrDevicePairingCodeNotFound("00000000", nil),
 		},
@@ -525,7 +516,6 @@ func TestClaimDevicePairing(t *testing.T) {
 			description: "fails when the code is not pre-authorized",
 			req:         baseReq("WXYZ2K7Q"),
 			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
-				// An agent-minted code has a public key but no pre-authorization.
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {

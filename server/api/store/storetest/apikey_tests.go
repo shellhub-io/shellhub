@@ -101,12 +101,9 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		assert.Nil(t, apiKey)
 	})
 
-	// namespace_id is uuid-typed; a malformed tenant ID must return ErrNoDocuments
-	// without reaching the database (avoids SQLSTATE 22P02 on Postgres).
 	t.Run("fails with malformed (non-UUID) namespace ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// 'l' in position 13 makes this an invalid UUID (not a hex digit).
 		malformedTenantID := "83176492-e6cl-43d7-922e-ee01c3693e26"
 
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(malformedTenantID), store.APIKeyIDResolver, "any-key-id")
@@ -224,7 +221,6 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete an API key to get a valid but non-existent ID
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
@@ -264,7 +260,6 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete an API key to get a valid but non-existent ID
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
@@ -329,7 +324,6 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 		require.Len(t, remaining, 1)
 		assert.Equal(t, "other-user", remaining[0].Name)
 
-		// The same creator's key in another tenant must be untouched.
 		otherRemaining, otherCount, err := st.APIKeyList(ctx, scope.MustBounded(otherTenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))

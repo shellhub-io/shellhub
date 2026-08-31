@@ -93,8 +93,6 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		identity, err := a.Resolve(c)
 		if err != nil {
-			// A route that needs no credential must not fail because the caller
-			// volunteered a bad one.
 			if !anonymous {
 				return err
 			}
@@ -107,8 +105,6 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			identity = &scoped
 		}
 
-		// Stamped unconditionally: on the anonymous and rejected paths this is
-		// what strips a forged identity header the edge forwarded verbatim.
 		identity.WriteTo(c.Request().Header)
 
 		if identity == nil && !anonymous {
@@ -150,15 +146,6 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
 		if err != nil {
-			// Same rule as the bearer token below: a key that does not resolve
-			// yields no identity rather than an error. Propagating it would
-			// surface the store's own status -- 404 for an unknown key, 400 for
-			// an expired one -- when the caller's problem is the credential.
-			// The edge proxy turned every non-2xx from the authentication
-			// subrequest into a 401, including when its store was down. Log the
-			// error for the same reason the bearer path does: an outage is
-			// otherwise indistinguishable from an unusable key. The key itself
-			// is a credential and never goes to the log.
 			log.WithError(err).Warn("failed to resolve the API key")
 
 			return nil, nil
@@ -178,10 +165,6 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 
 	claims, err := jwttoken.ClaimsFromBearerToken(a.service.PublicKey(), bearer)
 	if err != nil {
-		// A token that does not verify yields no identity rather than an error:
-		// the caller decides what that means. A protected route rejects it, and
-		// an anonymous route proceeds without an identity — which is how the
-		// edge proxy behaved when it skipped the authentication subrequest.
 		return nil, nil //nolint:nilerr
 	}
 
@@ -192,16 +175,6 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			TenantID:  claims.TenantID,
 		}, nil
 	case *authorizer.UserClaims:
-		// Role and admin are dynamic attributes that can change while a JWT is
-		// still valid, so we re-fetch them from the store on every request.
-		//
-		// Both lookups follow the same rule as the API key above: any failure
-		// yields no identity rather than an error, so a token whose namespace,
-		// membership or user is gone gets a 401 telling the caller to
-		// re-authenticate instead of the store's own status as a 500. As with
-		// the API key, that deliberately covers a store outage too, so both log
-		// the error they swallow: otherwise an outage is indistinguishable from
-		// a stale token and shows up only as a rise in 401s.
 		if claims.TenantID != "" {
 			ns, role, err := a.service.ResolveNamespaceRole(c.Request().Context(), claims.TenantID, claims.ID)
 			if err != nil {
@@ -214,8 +187,6 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 
 			claims.Role = authorizer.RoleFromString(role)
 
-			// Resolving the role already read the namespace, and the device-limit check in
-			// the handler would otherwise read it a second time.
 			c.SetRequest(c.Request().WithContext(
 				authctx.WithNamespaceDeviceLimit(c.Request().Context(), ns.TenantID, ns.DeviceLimit()),
 			))

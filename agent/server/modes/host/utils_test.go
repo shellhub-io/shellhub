@@ -211,9 +211,6 @@ func TestGenerateShellCmdExcludesForbiddenVarsPresentInCmdEnv(t *testing.T) {
 
 		for _, e := range cmd.Env {
 			if strings.HasPrefix(e, name+"=") {
-				// HOME, USER, TERM are set by NewCmd itself from the user struct, so they
-				// can appear in cmd.Env — but must not carry the dangerous client-supplied value.
-				// All other dangerous vars must be absent entirely.
 				if name != "HOME" && name != "USER" && name != "TERM" {
 					t.Errorf("dangerous var %q from session.Environ() reached cmd.Env as %q", danger, e)
 				}

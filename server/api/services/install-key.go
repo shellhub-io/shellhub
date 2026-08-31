@@ -191,7 +191,6 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// Default to automatic (the classic auto-accept behavior) when no mode is given.
 	mode := models.InstallKeyMode(req.Mode)
 	if mode == "" {
 		mode = models.InstallKeyModeAutomatic
@@ -202,11 +201,8 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, err
 	}
 
-	// Reusability is derived from the usage limit: 1 is single-use, anything else (a higher cap, or 0
-	// for unlimited) is reusable.
 	reusable := req.UsageLimit != 1
 
-	// The ephemeral timeout only applies to ephemeral keys; clamp it to the maximum and default to it.
 	ephemeralTimeout := 0
 	if req.Ephemeral {
 		ephemeralTimeout = req.EphemeralTimeout
@@ -217,9 +213,6 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 
 	key := uuid.Generate()
 
-	// The plaintext's SHA256 digest is the primary key, so an enrolling agent's presented key can be
-	// matched by hashing it the same way. The plaintext is also kept encrypted at rest so an admin can
-	// reveal it later, alongside a short non-secret hint for the masked list display.
 	hashedKey := hashInstallKey(key)
 
 	encryptedKey, err := s.encryptInstallKey(key)
@@ -261,14 +254,11 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, err
 	}
 
-	// Bounded: the digest is only unique per namespace, so an unbounded read-back here could return
-	// another namespace's key that happens to share the digest.
 	installKey, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashedKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// We need to return the plaintext key once, so temporarily place it into the ID here.
 	installKey.ID = key
 
 	return responses.CreateInstallKeyFromModel(installKey), nil
@@ -314,22 +304,15 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		}
 	}
 
-	// The pairing key force-accepts (its mode is meaningless, see evaluateEnrollment), so nothing about
-	// it is editable.
 	if installKey.IsPairing() {
 		return NewErrInstallKeyForbidden()
 	}
 
-	// The legacy key governs every keyless enrollment in the namespace. Only two fields are editable:
-	// its mode (the default acceptance policy) and disabled (disabling it turns off keyless enrollment
-	// entirely — devices without a key are rejected). Its other fields (name/lifecycle/limit/tags) are
-	// fixed. Revoke never applies: the legacy key is permanent.
 	if installKey.IsSystem() {
 		if req.Name != "" || req.Revoked != nil || req.UsageLimit != nil || req.ExpiresIn.Present || req.Tags != nil || req.Ephemeral != nil || req.EphemeralTimeout != nil {
 			return NewErrInstallKeyForbidden()
 		}
 	} else if installKey.Revoked {
-		// A revoked key is terminal: it can no longer enroll devices, so it is not editable either.
 		return NewErrInstallKeyForbidden()
 	}
 
@@ -350,9 +333,6 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		installKey.Tags = req.Tags
 	}
 
-	// Mode and its config are patched field-by-field, then validated against the resulting state, so a
-	// caller can switch to (say) webhook by sending mode+url+secret together, or retarget an existing
-	// webhook key by sending just the URL.
 	if req.Mode != nil {
 		installKey.Mode = models.InstallKeyMode(*req.Mode)
 	}
@@ -383,19 +363,15 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		}
 	}
 
-	// Revocation is one-way: a key may be revoked but never un-revoked.
 	if req.Revoked != nil && *req.Revoked {
 		installKey.Revoked = true
 	}
 
-	// Disabling is reversible: honor both directions so a paused key can be re-enabled.
 	if req.Disabled != nil {
 		installKey.Disabled = *req.Disabled
 	}
 
 	if req.UsageLimit != nil {
-		// A bounded limit can't be lowered below the devices that already enrolled: those enrollments
-		// happened and the counter can't be walked back. Zero (unlimited) is always allowed.
 		if *req.UsageLimit != 0 && *req.UsageLimit < installKey.UsedTimes {
 			return NewErrInstallKeyInvalidField(map[string]string{
 				"usage_limit": "cannot be lower than the number of times the key was already used",
@@ -403,7 +379,6 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		}
 
 		installKey.UsageLimit = *req.UsageLimit
-		// Reusability is derived from the usage limit, same rule as at creation.
 		installKey.Reusable = *req.UsageLimit != 1
 	}
 
@@ -411,8 +386,6 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		installKey.Ephemeral = *req.Ephemeral
 	}
 
-	// The timeout only matters while Ephemeral is on; a non-ephemeral key carries no meaningful
-	// timeout, mirroring how creation only stamps it for ephemeral keys.
 	if req.EphemeralTimeout != nil {
 		installKey.EphemeralTimeout = *req.EphemeralTimeout
 	}
@@ -420,9 +393,6 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 	if !installKey.Ephemeral {
 		installKey.EphemeralTimeout = 0
 	} else if installKey.EphemeralTimeout <= 0 || installKey.EphemeralTimeout > installKeyMaxEphemeralTimeout {
-		// Mirror creation's clamp: an ephemeral key with no (or an out-of-range) timeout defaults to the
-		// maximum, so PATCH {"ephemeral": true} can't leave it at 0 and delete devices the moment they
-		// disconnect.
 		installKey.EphemeralTimeout = installKeyMaxEphemeralTimeout
 	}
 
@@ -461,8 +431,6 @@ func (s *service) RevealInstallKey(ctx context.Context, req *requests.RevealInst
 		}
 	}
 
-	// A system key has no presentable secret, and keys created before at-rest encryption have no
-	// ciphertext to reveal.
 	if installKey.IsSystem() || installKey.KeyEncrypted == "" {
 		return "", NewErrInstallKeyNotFound(req.Name, nil)
 	}
@@ -502,15 +470,11 @@ func (s *service) ListInstallKeyEvents(ctx context.Context, req *requests.ListIn
 }
 
 func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) error {
-	// The token is the credential: verify its signature/expiry and read the device it is scoped to.
 	claims, jti, err := jwttoken.DecodeEnrollmentDecisionClaims(s.pubKey, req.Token)
 	if err != nil {
 		return NewErrAuthUnathorized(err)
 	}
 
-	// Make the token single-use: claim its jti before acting. A replayed callback URL (the token stays
-	// valid until it expires) finds the jti already recorded and is refused, so it can't flip a still
-	// pending device accept<->reject. Claim before the transition so a decision is spent exactly once.
 	redeemed, err := s.store.EnrollmentCallbackRedeem(ctx, jti, clock.Now())
 	if err != nil {
 		return err
@@ -520,7 +484,6 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		return NewErrAuthUnathorized(errors.New("enrollment callback token already redeemed"))
 	}
 
-	// Reject is always safe and carries no key state: deny the device and return.
 	if req.Decision == "reject" {
 		return s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 			TenantID: claims.TenantID,
@@ -529,13 +492,6 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		})
 	}
 
-	// Accept mirrors applyEnrollmentDecision's accept branch. The token can outlive the key's validity
-	// (up to its TTL), so re-resolve the key by its digest and re-check IsValid() — a key revoked,
-	// disabled, expired, or exhausted after the token was minted must not still accept — and reserve a
-	// use against the atomic usage-limit guard before flipping the device, so a deferred accept honors
-	// the same limit and revocation guarantees as the synchronous path.
-	// The tenant comes out of a signed token, which does not itself require it to be non-empty, so
-	// bound it through the error-returning constructor rather than assuming it.
 	sc, err := BoundTo(claims.TenantID)
 	if err != nil {
 		return NewErrInstallKeyForbidden()
@@ -550,15 +506,11 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		return NewErrInstallKeyForbidden()
 	}
 
-	// Apply through the canonical transition (license/billing/counters). The token acts only on the
-	// device it was minted for; a device already accepted (terminal) surfaces the usual error.
 	if err := s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 		TenantID: claims.TenantID,
 		UID:      claims.DeviceUID,
 		Status:   string(models.DeviceStatusAccepted),
 	}); err != nil {
-		// The accept failed after we reserved a use; return it so a later reconcile can retry against a
-		// key that still has the slot.
 		if releaseErr := s.store.InstallKeyDecrementUsage(ctx, key); releaseErr != nil {
 			log.WithError(releaseErr).WithField("install_key", key.Name).Warn("failed to release reserved install key use")
 		}

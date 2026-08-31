@@ -111,7 +111,6 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 			},
 		).WithError(err).Error("user passwd is empty, so the authentication via password is blocked")
 
-		// NOTICE(r): when the user doesn't have password, we block the login.
 		return false
 	}
 
@@ -138,7 +137,6 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
 
 	log.WithFields(
@@ -275,7 +273,6 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		return false
 	}
 
-	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
 
 	log.WithFields(

@@ -145,8 +145,6 @@ func (s *service) reportBilling(ctx context.Context, tenant string, action Billi
 	}
 
 	if err := s.billing.Report(ctx, tenant, action); err != nil {
-		// The provider adapter already maps errors to appropriate types
-		// (ErrPaymentRequired for subscription issues, ErrReport for others)
 		return err
 	}
 
@@ -161,17 +159,12 @@ func (s *service) validateBillingForDeviceAcceptance(ctx context.Context, namesp
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	} else {
-		// Inactive subscription - evaluate if namespace can still accept
 		evaluation, err := s.evaluateBilling(ctx, namespace.TenantID)
 		if err != nil {
 			return NewErrBillingEvaluate(err)
 		}
 
 		if !evaluation.CanAccept {
-			// The two denials need different answers from the user: one has to remove a device
-			// or upgrade, the other has to finish or repair the subscription. Reporting both as
-			// a device limit sends a namespace that is under its allowance to delete devices
-			// that were never the problem.
 			if evaluation.Blocked == models.BillingBlockedSubscription {
 				return ErrDeviceBillingBlocked
 			}

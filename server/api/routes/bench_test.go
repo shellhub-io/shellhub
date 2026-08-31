@@ -32,8 +32,6 @@ func (w *nullWriter) WriteHeader(int) {}
 func benchRouter(b *testing.B) http.Handler {
 	b.Helper()
 
-	// The request-log middleware writes a line per request. Keep the formatting in the
-	// measurement — it is real per-request work — but not the terminal write behind it.
 	previous := logrus.StandardLogger().Out
 	logrus.SetOutput(io.Discard)
 	b.Cleanup(func() { logrus.SetOutput(previous) })

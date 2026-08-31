@@ -107,8 +107,6 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
 	require.NoError(dcc.t, err)
 
-	// Since we can't utilize [compose.dockerCompose] in the parameters,
-	// we must implement the [DockerCompose.down] method here.
 	dc.down = func() {
 		err := tcDc.Down(
 			ctx,
@@ -124,8 +122,6 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	}
 
 	services := []Service{ServiceGateway, ServiceServer}
-	// TODO: Perhaps we could devise a strategy to wait for specific services instead
-	// of blocking until all are running|healthy?
 	if err := tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true)); !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
 	}

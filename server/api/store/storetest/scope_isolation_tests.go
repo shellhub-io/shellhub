@@ -167,8 +167,6 @@ func (s *Suite) TestScopeIsolationInstallKeyList(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Every namespace is provisioned with its own system keys, so the assertion is not a count but
-	// that nothing from another namespace is ever returned.
 	keys, _, err := st.InstallKeyList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
 	assert.Contains(t, installKeyNames(keys), "only-key")
@@ -229,8 +227,6 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystem(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	// CreateNamespace provisions each namespace's system keys, so both exist; the assertion is that
-	// each scope resolves its own.
 	ownerKey, err := st.InstallKeyResolveSystem(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
 	assert.Equal(t, owner, ownerKey.TenantID)
@@ -417,7 +413,6 @@ func (s *Suite) TestScopeIsolationGetStats(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 0, otherStats.RegisteredDevices)
 
-	// The unbounded scope is what the instance-wide statistics ask for, and it does span both.
 	allStats, err := st.GetStats(ctx, scope.NewUnbounded("test: instance-wide statistics span every namespace"))
 	require.NoError(t, err)
 	assert.Equal(t, 1, allStats.RegisteredDevices)
@@ -442,7 +437,6 @@ func (s *Suite) TestScopeIsolationCountRegisteredDevices(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 0, otherCount)
 
-	// The unbounded scope is what the license evaluation asks for, and it does span both.
 	allCount, err := st.CountRegisteredDevices(ctx, scope.NewUnbounded("test: instance-wide device count spans every namespace"))
 	require.NoError(t, err)
 	assert.Equal(t, 1, allCount)
@@ -501,8 +495,6 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystemPairing(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, other, otherKey.TenantID)
 
-	// An unbounded scope cannot name "the namespace's" system key, so it is refused outright rather
-	// than returning whichever namespace's key happened to sort first.
 	_, err = st.InstallKeyResolveSystemPairing(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 	assert.ErrorIs(t, err, store.ErrInvalidScope)
 }
@@ -535,8 +527,6 @@ func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 		Hostname:     "enrolled",
 	}))
 
-	// Stamping from another namespace must not touch the event: this is an UPDATE, so an unbounded
-	// or wrongly-bounded scope would silently write across namespaces.
 	require.NoError(t, st.InstallKeyEventStampDecision(ctx, scope.MustBounded(other), string(deviceUID), models.DeviceStatusRejected, clock.Now()))
 
 	events, _, err := st.InstallKeyEventList(ctx, scope.MustBounded(owner), digest)
@@ -551,7 +541,6 @@ func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 	require.Len(t, events, 1)
 	assert.Equal(t, models.DeviceStatusAccepted, events[0].DecidedStatus)
 
-	// An unbounded scope is refused rather than stamping every namespace's newest event.
 	assert.ErrorIs(t,
 		st.InstallKeyEventStampDecision(ctx, scope.NewUnbounded(reasonTestQueryMechanics), string(deviceUID), models.DeviceStatusRejected, clock.Now()),
 		store.ErrInvalidScope)
@@ -573,7 +562,6 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, members)
 
-	// Updating and deleting it from another namespace finds nothing to act on.
 	require.ErrorIs(t,
 		st.NamespaceUpdateMembership(ctx, scope.MustBounded(other), &models.Member{ID: memberID, Role: authorizer.RoleAdministrator}),
 		store.ErrNoDocuments)
@@ -581,12 +569,10 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 		st.NamespaceDeleteMembership(ctx, scope.MustBounded(other), &models.Member{ID: memberID}),
 		store.ErrNoDocuments)
 
-	// The membership survives both, and its own namespace can still act on it.
 	require.NoError(t, st.NamespaceUpdateMembership(ctx, scope.MustBounded(owner),
 		&models.Member{ID: memberID, Role: authorizer.RoleAdministrator}))
 	require.NoError(t, st.NamespaceDeleteMembership(ctx, scope.MustBounded(owner), &models.Member{ID: memberID}))
 
-	// Membership writes cannot be expressed unbounded at all.
 	assert.ErrorIs(t,
 		st.NamespaceCreateMembership(ctx, scope.NewUnbounded(reasonTestQueryMechanics), &models.Member{ID: memberID, Role: authorizer.RoleObserver}),
 		store.ErrInvalidScope)
@@ -610,7 +596,6 @@ func (s *Suite) TestScopeIsolationNamespaceIncrementDeviceCount(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), otherNs.DevicesAcceptedCount)
 
-	// Counting devices across every namespace at once is not expressible.
 	assert.ErrorIs(t,
 		st.NamespaceIncrementDeviceCount(ctx, scope.NewUnbounded(reasonTestQueryMechanics), models.DeviceStatusAccepted, 1),
 		store.ErrInvalidScope)

@@ -50,7 +50,6 @@ func TestDeleteServiceAccount(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			// Guards against deleting a real person through the service-account endpoint.
 			description: "fails when the user is a human, not a service account",
 			requireMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, saID).
@@ -59,7 +58,6 @@ func TestDeleteServiceAccount(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			// Guards against deleting a service account that lives in another namespace.
 			description: "fails when the service account is not a member of the namespace",
 			requireMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, saID).

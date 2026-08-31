@@ -68,7 +68,6 @@ func (pg *Pg) UserInvitationUpdate(ctx context.Context, invitation *models.UserI
 
 	r, err := db.NewUpdate().
 		Model(e).
-		// Only the mutable fields; created_at stays put and invitations is skipupdate-protected.
 		Column("email", "status", "updated_at").
 		WherePK().
 		Exec(ctx)

@@ -19,8 +19,6 @@ import (
 // testable without a live database or Redis connection.
 func TestLicenseEvaluatorWiring(t *testing.T) {
 	t.Cleanup(func() {
-		// Reset the package-level factory after all sub-tests so it does not
-		// leak into the regression suite.
 		services.RegisterLicenseEvaluator(nil)
 	})
 
@@ -54,8 +52,6 @@ func TestLicenseEvaluatorWiring(t *testing.T) {
 
 	t.Run("factory returns untyped nil evaluator: option is NOT appended", func(t *testing.T) {
 		services.RegisterLicenseEvaluator(func(_ context.Context, _ store.Store, _ cache.Cache) (services.LicenseEvaluator, error) {
-			// The real factory returns an untyped nil on its skip path, so a plain
-			// nil-check is sufficient — no typed-nil interface can occur.
 			return nil, nil
 		})
 

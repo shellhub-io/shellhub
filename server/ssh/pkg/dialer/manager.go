@@ -68,7 +68,6 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 	m.evict(key, m.Connections.Store(key, dialer))
 	m.DialerKeepAliveCallback(key)
 
-	// Start the ping loop and get the channel for pong responses
 	pong := conn.Ping()
 
 	go func() {
@@ -141,12 +140,8 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	key := NewKey(tenant, uid)
 
 	session, err := yamux.Client(conn, &yamux.Config{
-		AcceptBacklog: 256,
-		// NOTE: As we need to keep the registered connection alive, we use our own ping/pong mechanism.
-		EnableKeepAlive: false,
-		// NOTE: Although we disable the built-in keepalive, we still need to set the interval to a non-zero value to
-		// avoid yamux error when verifying the configuration. We've created a Pull Request to improve this behavior.
-		// TODO: Remove this workaround when yamux supports disabling keepalive completely.
+		AcceptBacklog:          256,
+		EnableKeepAlive:        false,
 		KeepAliveInterval:      BindPingInterval,
 		ConnectionWriteTimeout: 15 * time.Second,
 		MaxStreamWindowSize:    256 * 1024,
@@ -166,7 +161,6 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	go func() {
 		for {
 			select {
-			// NOTE: Ping is also important to keep the underlying WebSocket connection alive and avoid NAT timeouts.
 			case <-time.After(BindPingInterval):
 				if _, err := session.Ping(); err != nil {
 					log.WithFields(log.Fields{

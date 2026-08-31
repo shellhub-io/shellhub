@@ -18,8 +18,6 @@ func NewBinder() *Binder {
 }
 
 func (b *Binder) Bind(c *echo.Context, s any) error {
-	// Echo does not URL-decode path parameters. Decode them here so that
-	// names containing reserved characters (e.g. @, %) round-trip correctly.
 	values := c.PathValues()
 	for i, v := range values {
 		decoded, err := url.PathUnescape(v.Value)

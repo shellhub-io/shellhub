@@ -25,14 +25,6 @@ func TestFilterUnmarshalJSON(t *testing.T) {
 					Value:    "true",
 				},
 			},
-			// {
-			//     "type": "property",
-			//     "params": {
-			//         "name": "online",
-			//         "operator": "bool",
-			//         "value": "true"
-			//     }
-			// }
 			data:     "ewogICAgInR5cGUiOiAicHJvcGVydHkiLAogICAgInBhcmFtcyI6IHsKICAgICAgICAibmFtZSI6ICJvbmxpbmUiLAogICAgICAgICJvcGVyYXRvciI6ICJib29sIiwKICAgICAgICAidmFsdWUiOiAidHJ1ZSIKICAgIH0KfQ==",
 			expected: nil,
 		},
@@ -44,12 +36,6 @@ func TestFilterUnmarshalJSON(t *testing.T) {
 					Name: "and",
 				},
 			},
-			// {
-			//     "type": "operator",
-			//     "params": {
-			//         "name": "and"
-			//     }
-			// }
 			data:     "ewogICAgInR5cGUiOiAib3BlcmF0b3IiLAogICAgInBhcmFtcyI6IHsKICAgICAgICAibmFtZSI6ICJhbmQiCiAgICB9Cn0=",
 			expected: nil,
 		},
@@ -71,36 +57,26 @@ func TestFilters_Unmarshal(t *testing.T) {
 	//   json1pad  = `[{"type":"property","params":{"name":"a","operator":"eq","value":"b"}}]`  → 1 padding char
 	//   json2pad  = `[{"type":"property","params":{"name":"aa","operator":"eq","value":"bb"}}]` → 2 padding chars
 	const (
-		// 0-padding: StdEncoding and RawStdEncoding produce the same string.
 		b64Padded0 = "W3sidHlwZSI6Im9wZXJhdG9yIiwicGFyYW1zIjp7Im5hbWUiOiJhbmQifX1d"
 
-		// 1-padding: StdEncoding appends one '='.
 		b64Padded1  = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhIiwib3BlcmF0b3IiOiJlcSIsInZhbHVlIjoiYiJ9fV0="
 		b64Missing1 = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhIiwib3BlcmF0b3IiOiJlcSIsInZhbHVlIjoiYiJ9fV0"
 
-		// 2-padding: StdEncoding appends two '='.
 		b64Padded2  = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhYSIsIm9wZXJhdG9yIjoiZXEiLCJ2YWx1ZSI6ImJiIn19XQ=="
 		b64Missing2 = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhYSIsIm9wZXJhdG9yIjoiZXEiLCJ2YWx1ZSI6ImJiIn19XQ"
 	)
 
-	// base64url row: value '>>>' contains bytes that produce '+' in standard base64
-	// but '-' in URL-safe base64, so RawStdEncoding cannot decode the RawURLEncoding output.
 	b64URLTripleGT := base64.RawURLEncoding.EncodeToString(
 		[]byte(`[{"type":"property","params":{"name":"a","operator":"eq","value":">>>"}}]`),
 	)
 
 	cases := []struct {
-		description string
-		raw         string
-		wantErr     error
-		// wantFirstType and wantData are optional content assertions for success rows.
-		// When wantFirstType is non-empty the test verifies that fs.Data has exactly the
-		// expected filters, catching a decoder that returns nil error but wrong data.
+		description   string
+		raw           string
+		wantErr       error
 		wantFirstType string
 		wantData      []Filter
-		// stdFails, when true, asserts that base64.RawStdEncoding cannot decode raw,
-		// proving the input belongs strictly to the URL-safe alphabet.
-		stdFails bool
+		stdFails      bool
 	}{
 		{
 			description:   "padded base64 (0 padding) round-trips unchanged",
@@ -148,8 +124,7 @@ func TestFilters_Unmarshal(t *testing.T) {
 			},
 		},
 		{
-			description: "zero-padding raw input (no '=' at all) decodes",
-			// b64Padded0 already has no padding; use it directly as the raw input.
+			description:   "zero-padding raw input (no '=' at all) decodes",
 			raw:           b64Padded0,
 			wantErr:       nil,
 			wantFirstType: FilterTypeOperator,
@@ -179,23 +154,18 @@ func TestFilters_Unmarshal(t *testing.T) {
 		},
 		{
 			description: "invalid JSON in valid base64 returns ErrFilterInvalid",
-			// base64("not valid json")
-			raw:     base64.StdEncoding.EncodeToString([]byte("not valid json")),
-			wantErr: ErrFilterInvalid,
+			raw:         base64.StdEncoding.EncodeToString([]byte("not valid json")),
+			wantErr:     ErrFilterInvalid,
 		},
 		{
 			description: "valid base64 + valid JSON with unknown filter type returns ErrFilterInvalid",
-			// base64(`[{"type":"unknown","params":{}}]`)
-			raw:     base64.StdEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
-			wantErr: ErrFilterInvalid,
+			raw:         base64.StdEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
+			wantErr:     ErrFilterInvalid,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			// Self-check: when stdFails is set the raw string must NOT be decodable by
-			// RawStdEncoding, proving the payload belongs strictly to the URL-safe alphabet
-			// and that the test case genuinely exercises the URL fallback path.
 			if tc.stdFails {
 				_, errStd := base64.RawStdEncoding.DecodeString(tc.raw)
 				require.Error(t, errStd, "RawStdEncoding must not decode a RawURLEncoding-only string")
@@ -224,9 +194,7 @@ func TestFilters_Unmarshal_base64url(t *testing.T) {
 	// contains '/' in RawStdEncoding and '_' in RawURLEncoding, making it an ideal
 	// probe for the two alphabets.
 	const (
-		// RawURLEncoding of `[{"type":"property","params":{"name":"a","operator":"eq","value":"鸿"}}]`
-		b64URLRaw = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhIiwib3BlcmF0b3IiOiJlcSIsInZhbHVlIjoi6bi_In19XQ"
-		// URLEncoding (padded) of the same payload
+		b64URLRaw    = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhIiwib3BlcmF0b3IiOiJlcSIsInZhbHVlIjoi6bi_In19XQ"
 		b64URLPadded = "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhIiwib3BlcmF0b3IiOiJlcSIsInZhbHVlIjoi6bi_In19XQ=="
 	)
 

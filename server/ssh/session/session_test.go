@@ -91,13 +91,11 @@ func TestRecorded(t *testing.T) {
 	errStoreDown := errors.New("store is down")
 
 	tests := []struct {
-		description string
-		record      bool
-		pty         bool
-		setupMock   func(m *servicemocks.MockService)
-		expectedErr error
-		// expectSkipped is whether the error means the session was never going to be
-		// recorded, which is what the caller reports below a warning.
+		description   string
+		record        bool
+		pty           bool
+		setupMock     func(m *servicemocks.MockService)
+		expectedErr   error
 		expectSkipped bool
 	}{
 		{
@@ -176,7 +174,6 @@ func TestEvaluate(t *testing.T) {
 			description: "cloud: firewall denies the connection",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
-				// Firewall runs first; a denial stops before billing is consulted.
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(services.ErrFirewallBlocked).
@@ -206,8 +203,6 @@ func TestEvaluate(t *testing.T) {
 					Return(nil).
 					Once()
 
-				// The tenant comes from the device the session already resolved, so
-				// billing is evaluated without a second device lookup.
 				m.EXPECT().
 					EvaluateBilling(mock.Anything, "tenant-id").
 					Return(nil).

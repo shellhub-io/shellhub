@@ -97,7 +97,6 @@ func parseLocaleLine(line string) (string, string, bool) {
 		return "", "", false
 	}
 
-	// pam_env accepts a quoted value, so /etc/environment may hold LANG="pt_BR.UTF-8".
 	value = strings.Trim(strings.TrimSpace(value), `"'`)
 	if value == "" || strings.ContainsRune(value, 0) {
 		return "", "", false

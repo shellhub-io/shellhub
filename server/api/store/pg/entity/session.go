@@ -44,7 +44,6 @@ type Session struct {
 }
 
 func SessionFromModel(model *models.Session) *Session {
-	// Default to shell if Type is empty (for test cases)
 	sessionType := model.Type
 	if sessionType == "" {
 		sessionType = "shell"

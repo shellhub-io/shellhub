@@ -148,8 +148,6 @@ func (f *fakeChannel) quiet() {
 func newPipeSession(t *testing.T) *fakeSession {
 	t.Helper()
 
-	// Recording is a separate concern from the data path; the community edition
-	// keeps the recorder out of the writer set.
 	envstest.SetEdition(t, envs.Community)
 
 	return new(fakeSession)
@@ -223,7 +221,6 @@ func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 			hook := captureLogs(t)
 
 			sess := newPipeSession(t)
-			// The recorder is only wired in on the editions that record.
 			envstest.SetEdition(t, envs.Enterprise)
 
 			sess.recordedErr = tt.recordedErr
@@ -308,7 +305,6 @@ func TestPipeClosesWriteAfterBothStreams(t *testing.T) {
 
 	finished := runPipe(t, sess, client, agent)
 
-	// stdout is already at EOF; the agent's stderr is not.
 	assert.Never(t, client.closeWriteCalled, 200*time.Millisecond, 20*time.Millisecond,
 		"client write side was closed while agent stderr was still open")
 

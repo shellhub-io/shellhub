@@ -59,14 +59,12 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		Tags:           []*Tag{},
 	}
 
-	// Handle Tags if fully populated (e.g., from API requests)
 	if len(model.Filter.Tags) > 0 {
 		accessPolicy.Tags = make([]*Tag, len(model.Filter.Tags))
 		for i, t := range model.Filter.Tags {
 			accessPolicy.Tags[i] = TagFromModel(&t)
 		}
 	} else if len(model.Filter.TagIDs) > 0 {
-		// Handle TagIDs if only IDs are provided (e.g., from tests or internal operations)
 		accessPolicy.Tags = make([]*Tag, len(model.Filter.TagIDs))
 		for i, tagID := range model.Filter.TagIDs {
 			accessPolicy.Tags[i] = &Tag{ID: tagID}

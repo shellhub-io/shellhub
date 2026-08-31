@@ -26,34 +26,22 @@ func registerAnonymousRoutes(authn *routesmiddleware.Authenticator) {
 		authn.AllowAnonymous(method, publicAPIPrefix+path)
 	}
 
-	// Obtaining a credential cannot itself require one.
 	allow(http.MethodPost, AuthLocalUserURL)
 	allow(http.MethodPost, RegisterUserURL)
 
-	// An agent authenticates with its install key or tenant, carried in the body.
 	allow(http.MethodPost, AuthDeviceURL)
 
-	// Tenant-less pairing: the short-lived code is the credential. Minting a
-	// pre-authorized code (/pairing/prepare) and accepting one both act on behalf
-	// of a user and stay authenticated.
 	allow(http.MethodPost, CreateDevicePairingURL)
 	allow(http.MethodGet, GetDevicePairingStatusURL)
 
-	// Deferred enrollment: the signed token in the path is the credential.
 	allow(http.MethodPost, EnrollmentCallbackURL)
 
-	// A logged-out invitee resolves their invite by its code before any account
-	// exists.
 	allow(http.MethodGet, URLResolveInvitation)
 
-	// Instance metadata and the install script, served to unauthenticated
-	// clients by design.
 	allow(http.MethodGet, HealthCheckURL)
 	allow(http.MethodGet, GetSystemInfoURL)
 	allow(http.MethodGet, GetSystemDownloadInstallScriptURL)
 
-	// First-boot setup, registered only outside Cloud — mirror that here so the
-	// allowlist never names a route the router does not have.
 	if !envs.IsCloud() {
 		allow(http.MethodPost, SetupEndpoint)
 	}

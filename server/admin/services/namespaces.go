@@ -135,8 +135,6 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 	}
 
 	if err := s.store.NamespaceDelete(ctx, ns); err != nil {
-		// Community binds the instance to its single namespace; the store's ON DELETE
-		// RESTRICT refuses to remove it. Report that plainly instead of a generic failure.
 		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
 			return ErrNamespaceInstanceProtected
 		}

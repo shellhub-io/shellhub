@@ -21,7 +21,6 @@ import (
 func defaultSSHIdentityName(fingerprint string, data []byte) string {
 	algo := "ssh key"
 	if pubKey, _, _, _, err := ssh.ParseAuthorizedKey(data); err == nil { //nolint:dogsled
-		// Type() is e.g. "ssh-ed25519", "ssh-rsa", "ecdsa-sha2-nistp256".
 		algo = strings.TrimPrefix(pubKey.Type(), "ssh-")
 		if i := strings.IndexByte(algo, '-'); i > 0 {
 			algo = algo[:i] // "ecdsa-sha2-nistp256" -> "ecdsa"
@@ -93,8 +92,6 @@ func (s *service) ResolveSSHIdentity(ctx context.Context, tenantID, fingerprint 
 		return nil, false, err
 	}
 
-	// A recognized connect stamps last-used, feeding the management screen and
-	// later stale-key cleanup. A failure here must not fail the connection.
 	if err := s.store.SSHIdentityTouchLastUsed(ctx, tenantID, fingerprint); err != nil {
 		log.WithError(err).WithField("fingerprint", fingerprint).
 			Warn("failed to stamp ssh identity last-used; connection proceeds")
@@ -207,8 +204,6 @@ func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdenti
 }
 
 func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error) {
-	// data is a raw OpenSSH authorized_keys line; derive the fingerprint the same
-	// way the gateway does at connect (SHA256) so a manually-added key resolves.
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(req.Data)) //nolint:dogsled
 	if err != nil {
 		return nil, NewErrSSHIdentityInvalid(req.Data, err)
@@ -217,7 +212,6 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 	fingerprint := ssh.FingerprintSHA256(pubKey)
 	data := ssh.MarshalAuthorizedKey(pubKey)
 
-	// The source is the caller's claim here, so it may only ever label the key.
 	return s.enrollSSHIdentity(ctx, &models.SSHIdentity{
 		TenantID:    req.TenantID,
 		PrincipalID: req.UserID,
@@ -240,8 +234,6 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return nil, NewErrSSHIdentityNotFound(req.ID, err)
 	}
 
-	// Renaming is own-key only (SSHIdentityAdd); managing others' keys is
-	// limited to revocation.
 	if identity.PrincipalID != req.UserID {
 		return nil, NewErrForbidden(ErrForbidden, nil)
 	}
@@ -266,8 +258,6 @@ func (s *service) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return NewErrSSHIdentityNotFound(req.ID, err)
 	}
 
-	// A member revokes only their own keys; revoking another member's requires
-	// the manage permission (offboarding), signalled by req.Manage.
 	if identity.PrincipalID != req.UserID && !req.Manage {
 		return NewErrForbidden(ErrForbidden, nil)
 	}

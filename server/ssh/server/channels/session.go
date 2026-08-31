@@ -96,10 +96,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		sess, state := session.ObtainSession(ctx)
 		if sess == nil || !state.Established() {
-			// Unreachable today: a channel only opens once authentication has
-			// completed, and that is what advances the session to StateFinished.
-			// Kept so a change to the auth ordering fails the channel instead of
-			// dereferencing nothing and taking the API down with it.
 			log.WithFields(log.Fields{"session": ctx.SessionID(), "state": state}).
 				Error("session channel opened without an established session")
 
@@ -116,9 +112,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChannel) {
 	logger := log.WithFields(sess.LogFields())
 
-	// Only usable before the channel is accepted: Reject on a channel that has
-	// already been decided returns an error that nothing can act on, so the
-	// client would be left with no explanation at all.
 	reject := func(err error, msg string) {
 		logger.WithError(err).Error(msg)
 
@@ -135,10 +128,6 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		return
 	}
 
-	// The agent channel is opened first so its failure can still be reported:
-	// accepting the client's channel commits to it, and a rejection after that
-	// reaches nobody. The device dropping between the banner-handler dial and
-	// this point is the common case, and it used to close in silence.
 	agent, err := sess.NewAgentChannel(SessionChannel, seat)
 	if err != nil {
 		reject(err, openFailureMessage(err))
@@ -160,8 +149,6 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 	var wg sync.WaitGroup
 
-	// Buffered so pipe's completion signal never blocks the sender, even if
-	// this goroutine is still looping on agent.Requests.
 	done := make(chan bool, 1)
 
 	oncePipe := sync.OnceFunc(func() {
@@ -262,11 +249,6 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 						continue
 					}
 
-					// The seat is only marked once the agent says it allocated
-					// one, below. A device can refuse a pty-req — no /dev/ptmx
-					// in a restricted container — and a seat that claims a pty
-					// it does not have sends the announcement into a stdout
-					// that is a pipe, and records a session with no terminal.
 					ptyRequested = &pty
 				case WindowChangeRequestType:
 					var dimensions models.SSHWindowChange
@@ -345,9 +327,6 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 				}
 
 				if ptyRequested != nil {
-					// SendRequest reports false when the client asked for no
-					// reply, so only a client that wanted one tells us
-					// anything about the device's answer.
 					if ok || !req.WantReply {
 						sess.SetSeatPty(seat, true)
 						sess.Event(PtyRequestType, *ptyRequested, seat)

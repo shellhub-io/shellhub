@@ -15,16 +15,12 @@ package routes
 // they are suffix matches, and would also catch a path a device serves through
 // a web endpoint tunnel.
 var rootAliases = map[string]string{
-	"^/healthcheck":   "/api" + HealthCheckURL,
-	"^/healthcheck?*": "/api" + HealthCheckURL + "?$1",
-	"^/info":          "/api" + GetSystemInfoURL,
-	"^/info?*":        "/api" + GetSystemInfoURL + "?$1",
-	// The install script reads tenant_id, preferred_hostname and friends from
-	// the query string, so it has to survive the rewrite.
-	"^/install.sh":   "/api" + GetSystemDownloadInstallScriptURL,
-	"^/install.sh?*": "/api" + GetSystemDownloadInstallScriptURL + "?$1",
-	// The name the install script was published under before, kept because the
-	// address is the part that outlives the release that changed it.
+	"^/healthcheck":    "/api" + HealthCheckURL,
+	"^/healthcheck?*":  "/api" + HealthCheckURL + "?$1",
+	"^/info":           "/api" + GetSystemInfoURL,
+	"^/info?*":         "/api" + GetSystemInfoURL + "?$1",
+	"^/install.sh":     "/api" + GetSystemDownloadInstallScriptURL,
+	"^/install.sh?*":   "/api" + GetSystemDownloadInstallScriptURL + "?$1",
 	"^/kickstart.sh":   "/api" + GetSystemDownloadInstallScriptURL,
 	"^/kickstart.sh?*": "/api" + GetSystemDownloadInstallScriptURL + "?$1",
 }

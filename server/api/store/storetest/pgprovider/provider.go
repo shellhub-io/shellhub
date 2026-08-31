@@ -48,7 +48,6 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 		return nil, err
 	}
 
-	// Get direct access to Bun driver for fixture loading
 	pgStore, ok := st.(*pg.Pg)
 	if !ok {
 		_ = srv.Down(ctx)
@@ -59,7 +58,6 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 	driver := pgStore.Driver()
 
 	_, file, _, _ := runtime.Caller(0)
-	// Navigate from storetest/pgprovider/provider.go to storetest/fixtures
 	fixturesPath := filepath.Join(filepath.Dir(file), "..", "fixtures")
 
 	return &Provider{
@@ -107,7 +105,6 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 
 		t.Logf("Successfully loaded fixture %s", fixtureName)
 
-		// Debug: verify records were actually inserted
 		count, err := p.driver.NewSelect().Table(fixtureName).Count(ctx)
 		if err != nil {
 			t.Logf("Warning: could not count records in %s: %v", fixtureName, err)
@@ -130,13 +127,11 @@ func (p *Provider) insertFixture(ctx context.Context, fixtureName string, record
 	for _, record := range records {
 		processedRecord := p.processRecordForPostgres(record)
 
-		// Use Model with map and Table to specify table name
 		_, err := p.driver.NewInsert().
 			Model(&processedRecord).
 			Table(tableName).
 			Exec(ctx)
 		if err != nil {
-			// Return error instead of silently continuing
 			return fmt.Errorf("failed to insert record into %s: %w", tableName, err)
 		}
 	}
@@ -178,7 +173,6 @@ func (p *Provider) CleanDatabase(t *testing.T) error {
 	t.Helper()
 	ctx := context.Background()
 
-	// Query to get all table names in public schema
 	query := `
 		SELECT string_agg(quote_ident(tablename), ', ')
 		FROM pg_tables
@@ -195,8 +189,6 @@ func (p *Provider) CleanDatabase(t *testing.T) error {
 		return nil
 	}
 
-	// TRUNCATE all tables at once with RESTART IDENTITY and CASCADE
-	// This is the fastest way - single atomic operation
 	truncateSQL := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", tableList)
 	_, err = p.driver.ExecContext(ctx, truncateSQL)
 	if err != nil {

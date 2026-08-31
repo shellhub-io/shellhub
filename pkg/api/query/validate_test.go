@@ -86,13 +86,6 @@ func TestValidateSorter(t *testing.T) {
 }
 
 func TestValidateFilters(t *testing.T) {
-	// "online" mirrors production DeviceFilterFields: it accepts both "bool" and
-	// "eq" so the virtual-field eq-with-bool-value path is exercised.
-	// "realclosed" simulates a real boolean column that has both "bool" and "eq"
-	// operators but is NOT declared as a virtual field — it must never accept
-	// bool-convertible values for eq/ne because ParseFilterProperty will not
-	// intercept it and the value would be bound directly to a Postgres boolean
-	// column via fromEq, where a non-string bind causes a type-mismatch 500.
 	allowed := NewFieldConstraints(map[string][]string{
 		"name":       {"contains", "eq"},
 		"status":     {"eq", "ne"},
@@ -247,10 +240,6 @@ func TestValidateFilters(t *testing.T) {
 			wantErr: ErrFilterPropertyInvalid,
 		},
 		{
-			// nil is a JSON primitive (isPrimitive passes), but isBoolConvertible(nil)
-			// returns false, so the bool-operator guard must catch and reject it before
-			// it reaches the store's fromBool/fromOnlineFilter (which return
-			// ErrUnsupportedBoolType on nil, producing a 500 instead of 400).
 			name: "bool operator with nil value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "bool", Value: nil}},
@@ -285,9 +274,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: nil,
 		},
-		// eq/ne must reject non-string scalars (float64/bool/nil) for text columns;
-		// a numeric or bool bind parameter against a varchar column causes a Postgres
-		// type-mismatch error (500) instead of a clean 400.
 		{
 			name: "eq operator with float64 (JSON number) is rejected",
 			filters: &Filters{Data: []Filter{
@@ -316,7 +302,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
-		// eq/ne with nil value is rejected regardless of field type.
 		{
 			name: "eq operator with nil value is rejected",
 			filters: &Filters{Data: []Filter{
@@ -331,9 +316,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
-		// Virtual bool-backed fields (those also allowing "bool") may use eq/ne with
-		// bool-convertible values because ParseFilterProperty routes them to
-		// fromOnlineFilter before any SQL column binding occurs.
 		{
 			name: "online: eq operator with bool true is accepted",
 			filters: &Filters{Data: []Filter{
@@ -376,12 +358,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
-		// realclosed is a real boolean column (not virtual): "bool" and "eq" are
-		// both allowed operators, but since it is NOT declared as a virtual bool
-		// field, eq/ne must require a string value.  Accepting a bool or float64
-		// here would produce a Postgres type-mismatch 500 because ParseFilterProperty
-		// does not intercept "realclosed" and would pass the raw bool/numeric to
-		// fromEq, binding it against a boolean column via "boolean = numeric/bool".
 		{
 			name: "realclosed (non-virtual): eq with bool value is rejected",
 			filters: &Filters{Data: []Filter{

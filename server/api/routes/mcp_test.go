@@ -32,9 +32,6 @@ func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *http
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
-	// The stateless session manager only validates the format of the session
-	// ID, not its existence -- a well-formed value stands in for a client that
-	// has already completed the initialize handshake.
 	req.Header.Set("Mcp-Session-Id", "mcp-session-00000000-0000-4000-8000-000000000000")
 	if tenant != "" {
 		req.Header.Set("X-Tenant-ID", tenant)
@@ -129,8 +126,6 @@ func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
 		assert.NotEqual(t, "shellhub_list_namespaces", tool.Name)
 	}
 }
-
-// --- device tools ---
 
 // TestMCPListDevices ensures status and pagination args reach the REST list
 // handler and the response is wrapped as {total, devices}.
@@ -261,8 +256,6 @@ func TestMCPGetStats(t *testing.T) {
 	assert.Contains(t, text, "registered_devices")
 	mock.AssertExpectations(t)
 }
-
-// --- session tools ---
 
 // TestMCPListSessions ensures pagination reaches the list handler and the
 // response is wrapped as {total, sessions}.

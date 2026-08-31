@@ -107,15 +107,14 @@ func InstallKeyEventFromModel(model *models.InstallKeyEvent) *InstallKeyEvent {
 
 func InstallKeyEventToModel(entity *InstallKeyEvent) *models.InstallKeyEvent {
 	event := &models.InstallKeyEvent{
-		ID:           entity.ID,
-		InstallKeyID: entity.InstallKeyID,
-		TenantID:     entity.NamespaceID,
-		DeviceUID:    entity.DeviceUID,
-		Hostname:     entity.Hostname,
-		MAC:          entity.MAC,
-		SourceIP:     entity.SourceIP,
-		PublicKey:    entity.PublicKey,
-		// Fingerprint is derived from the stored key at read time, not persisted.
+		ID:             entity.ID,
+		InstallKeyID:   entity.InstallKeyID,
+		TenantID:       entity.NamespaceID,
+		DeviceUID:      entity.DeviceUID,
+		Hostname:       entity.Hostname,
+		MAC:            entity.MAC,
+		SourceIP:       entity.SourceIP,
+		PublicKey:      entity.PublicKey,
 		Fingerprint:    fingerprintFromPEM(entity.PublicKey),
 		Ephemeral:      entity.Ephemeral,
 		ReRegistration: entity.ReRegistration,

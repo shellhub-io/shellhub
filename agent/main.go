@@ -328,9 +328,6 @@ func main() {
 				}).Fatal("Failed to marshal agent information")
 			}
 
-			// NOTICE: this output was made to enable the agent's user to check and parse the agent's information with
-			// a know format without having to parse the log output.
-			// TODO: Should it have line break or not?
 			cmd.Println(string(data))
 		},
 	})
@@ -352,9 +349,6 @@ waits until the device is accepted, rejected, or the code expires.`,
 			cfg.Version = AgentVersion
 			cfg.Platform = AgentPlatform
 
-			// Without a tenant (no env, nothing persisted) the device does not
-			// exist yet; enroll it through a pairing where the user picks the
-			// namespace on the accept page.
 			if cfg.TenantID == "" {
 				pairingLogin(cmd, cfg)
 
@@ -386,8 +380,6 @@ waits until the device is accepted, rejected, or the code expires.`,
 				log.WithError(err).Fatal("Failed to create the device login code")
 			}
 
-			// NOTE: cobra's cmd.Print* writes to stderr; the install.sh wrapper
-			// merges stderr into its pipe (2>&1) to scan the output for the URL.
 			printPairingInstructions(cmd, cfg.ServerAddress, code.Code, code.ExpiresIn)
 
 			deadline := clock.Now().Add(time.Duration(code.ExpiresIn) * time.Second)
@@ -437,8 +429,6 @@ It is initialized by the agent when a new SFTP session is created.`,
 		runtime.Version(),
 	))
 
-	// A failed command must exit non-zero: install.sh guards every agent call with
-	// `|| { ...; exit 1; }`, and a discarded error made a failed install report success.
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
@@ -450,8 +440,6 @@ It is initialized by the agent when a new SFTP session is created.`,
 // must not hammer the server forever — and from then on it only watches the
 // tenant file, which a concurrent `shellhub-agent login` writes on success.
 func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config) (string, error) {
-	// Scope SIGTERM handling to the pairing wait so the loops below can unwind
-	// cleanly (the root command runs with a non-cancellable context).
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -459,10 +447,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	pairing, err := ag.CreatePairing()
 	if err != nil {
-		// A pre-authorized PAIRING_CODE the server rejected (expired, already
-		// claimed, or invalid) must not crash-loop the agent: baked into the
-		// container env, a Fatal here would restart and re-reject forever. Drop
-		// the code and fall back to a normal pairing the user can accept.
 		if cfg.PairingCode != "" {
 			log.WithError(err).Warn("The pre-authorized pairing code was rejected; falling back to manual pairing")
 			ag.ClearPairingCode()
@@ -475,9 +459,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 		}
 	}
 
-	// Resume: the server already has this device accepted (e.g. it crashed
-	// after acceptance but before persisting the tenant). Learn the tenant now
-	// without a new pairing.
 	if pairing.Status == models.DeviceStatusAccepted && pairing.TenantID != "" {
 		if err := agentd.PersistTenant(tenantFile, pairing.TenantID); err != nil {
 			log.WithError(err).Warn("Failed to persist the tenant; the device will need to be paired again on restart")
@@ -502,8 +483,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 		case <-time.After(3 * time.Second):
 		}
 
-		// A concurrent `shellhub-agent login` may have been accepted with its
-		// own code; the tenant file reconciles both.
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			return tenant, nil
 		}
@@ -526,7 +505,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	log.Info("The pairing code expired. Run 'shellhub-agent login' to get a new one.")
 
-	// Passive phase: no more server traffic, only the local tenant file.
 	for {
 		select {
 		case <-ctx.Done():
@@ -560,8 +538,6 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 
 	tenantFile := agentd.TenantFilePath(cfg.PrivateKey)
 
-	// Resume: the device is already accepted server-side; persist the tenant
-	// and exit so the agent connects on its next start.
 	if pairing.Status == models.DeviceStatusAccepted && pairing.TenantID != "" {
 		if err := agentd.PersistTenant(tenantFile, pairing.TenantID); err != nil {
 			log.WithError(err).Fatal("Device already accepted, but failed to persist the tenant")
@@ -578,8 +554,6 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	for clock.Now().Before(deadline) {
 		time.Sleep(3 * time.Second)
 
-		// The main process may have logged its own pairing URL at boot; if that
-		// one was accepted instead, the tenant file reconciles both.
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			cmd.Println("✓ Device accepted. The agent will connect automatically.")
 
@@ -658,7 +632,6 @@ func openBrowser(url string) bool {
 		return false
 	}
 
-	// noctx: best-effort launch with its own timeout below; there is no caller context here.
 	cmd := exec.Command(xdgOpen, url) //nolint:noctx,gosec // #nosec G204 -- xdgOpen comes from LookPath and url is built from local config
 	if err := cmd.Start(); err != nil {
 		return false
@@ -667,10 +640,6 @@ func openBrowser(url string) bool {
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 
-	// xdg-open normally exits right away after handing the URL to the browser;
-	// a non-zero exit (no display, no handler) means nothing was opened. If it
-	// is still running after the timeout, it likely became the browser process
-	// itself, so leave it alone and assume it worked.
 	select {
 	case err := <-done:
 		return err == nil

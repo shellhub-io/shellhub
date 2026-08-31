@@ -157,9 +157,6 @@ func TestLoopbackProxyPolicy(t *testing.T) {
 		{"ipv4 loopback", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4444, Zone: ""}, proxyproto.USE},
 		{"ipv6 loopback", &net.TCPAddr{IP: net.IPv6loopback, Port: 4444, Zone: ""}, proxyproto.USE},
 		{"public peer", &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}, proxyproto.REJECT},
-		// A published Docker port makes external clients appear to originate from
-		// the private bridge gateway, so a private (non-loopback) peer must still
-		// be rejected or the spoof re-opens.
 		{"docker bridge peer", &net.TCPAddr{IP: net.IPv4(172, 18, 0, 1), Port: 4444, Zone: ""}, proxyproto.REJECT},
 	}
 

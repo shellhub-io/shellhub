@@ -220,7 +220,6 @@ func TestPtyStartOptionsBoundsTheOwnerID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			// WithJobControl is always present, so an owner option makes it two.
 			opts := ptyStartOptions(tc.uid)
 			if tc.wantOwner {
 				assert.Len(t, opts, 2)

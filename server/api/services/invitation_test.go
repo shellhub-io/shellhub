@@ -36,7 +36,6 @@ func mockClockNow(t *testing.T, now time.Time) {
 	prevClock := clock.DefaultBackend
 	t.Cleanup(func() { clock.DefaultBackend = prevClock })
 	clock.DefaultBackend = clockMock
-	// Maybe(): early-return failure paths never reach a clock.Now() call.
 	clockMock.On("Now").Return(now).Maybe()
 
 	uuidMock := uuidmock.NewMockUUID(t)
@@ -50,7 +49,6 @@ func TestService_ResolveInvitation(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 
-	// A freshly-minted code passes pairingcode.IsValid; the service normalizes before lookup.
 	code, err := pairingcode.New(pairingcode.InviteCodeLength)
 	require.NoError(t, err)
 	normalized := pairingcode.Normalize(code)

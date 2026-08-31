@@ -47,9 +47,6 @@ func TestBinder(t *testing.T) {
 			wantName: "plain",
 		},
 		{
-			// Echo does not URL-decode path parameters - c.Param() returns the raw
-			// value as extracted from the URL (e.g. "%40" instead of "@"). The binder
-			// must decode them so the application never sees percent-encoded strings.
 			description: "decodes URL-encoded path parameters",
 			setup: func() *echo.Context {
 				e := echo.New()
@@ -72,9 +69,6 @@ func TestBinder(t *testing.T) {
 			wantName: "test",
 		},
 		{
-			// Unlike path parameters, query strings are decoded automatically by
-			// Go's url.ParseQuery before Echo touches them, so no binder intervention
-			// is needed for this case.
 			description: "succeeds to bind query parameters with special characters",
 			setup: func() *echo.Context {
 				e := echo.New()
@@ -85,9 +79,6 @@ func TestBinder(t *testing.T) {
 			wantName: "@@@",
 		},
 		{
-			// A body-less request sent with Transfer-Encoding: chunked (resty does so
-			// since v2.17) has no Content-Length, and Echo's binder would reject the
-			// missing Content-Type with 415 instead of skipping the absent body.
 			description: "succeeds to bind a body-less chunked request",
 			setup: func() *echo.Context {
 				e := echo.New()

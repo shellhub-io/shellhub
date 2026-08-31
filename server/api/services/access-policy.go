@@ -71,9 +71,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return nil, err
 	}
 
-	// Deny wins: a matching deny blocks access before any allow is considered,
-	// however specific the allow. It is fail-closed — a deny whose filter cannot
-	// be evaluated denies rather than silently opening access.
 	for _, policy := range policies {
 		if policy.Action != models.PolicyActionDeny {
 			continue
@@ -92,10 +89,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		}
 	}
 
-	// Take the strictest re-auth across all matching allows — required if any allow
-	// requires it, at the shortest window. The match order is unspecified, so
-	// returning on the first match would let a broad no-reauth grant shadow a
-	// narrower allow that adds re-auth.
 	allowed := false
 	requireReauth := false
 
@@ -135,9 +128,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: login}, nil
 	}
 
-	// Re-auth is an interactive step, so it cannot apply to a service account: there
-	// is no human to complete it, and demanding it would hang the connection. A
-	// service account's freshness comes from its key's lifecycle instead.
 	if member.Type == models.UserTypeService {
 		requireReauth = false
 		reauthPeriod = nil
@@ -240,10 +230,6 @@ func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID strin
 func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role, userType models.UserType) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
-		// Only all-members needs the service carve-out: a role subject already excludes
-		// service accounts by exact equality, so an over-broad "*" allow is the one place a
-		// service account could be swept in by accident. Grant one on purpose via a
-		// role=service or user=<sa> subject.
 		return userType != models.UserTypeService
 	case models.PolicySubjectRole:
 		return subject.Value == role.String()

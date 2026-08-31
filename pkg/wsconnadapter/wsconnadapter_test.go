@@ -95,7 +95,6 @@ func TestConcurrentPing(t *testing.T) {
 
 	wg.Wait()
 
-	// All goroutines must get back the same channel.
 	for i := 1; i < goroutines; i++ {
 		assert.Equal(t, channels[0], channels[i],
 			"Ping() returned different channels on concurrent calls")
@@ -106,7 +105,6 @@ func TestCloseWithoutPing(t *testing.T) {
 	client, server := newTestPair(t)
 	defer server.Close() //nolint:errcheck
 
-	// Close without ever calling Ping — stopPingCh is nil.
 	err := client.Close()
 	assert.NoError(t, err)
 }
@@ -117,18 +115,13 @@ func TestCloseWithoutPing(t *testing.T) {
 func TestPingFailureClosesConnection(t *testing.T) {
 	client, server := newTestPair(t)
 
-	// Drive the ping loop fast so the test doesn't wait the default 30s.
 	client.pingInterval = 5 * time.Millisecond
 	client.pongTimeout = time.Hour // keep the pong timeout out of the picture
 
 	client.Ping()
 
-	// Kill the peer so the next ping write fails with a closed/broken connection.
 	_ = server.Close()
 
-	// The ping loop must Close() the adapter on the write failure, which closes
-	// stopPingCh. A closed channel reads immediately, so this returns quickly;
-	// if teardown never happens the test times out.
 	require.Eventually(t, func() bool {
 		select {
 		case <-client.stopPingCh:
@@ -138,6 +131,5 @@ func TestPingFailureClosesConnection(t *testing.T) {
 		}
 	}, 2*time.Second, 5*time.Millisecond, "ping failure did not tear down the connection")
 
-	// Close() must remain safe to call again after the auto-teardown.
 	assert.NotPanics(t, func() { _ = client.Close() })
 }

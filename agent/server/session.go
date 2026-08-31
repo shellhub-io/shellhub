@@ -88,8 +88,6 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 
 		authSock := l.Addr().String()
 
-		// NOTE: When the agent is started by the root user, we need to change the ownership of the Unix socket created
-		// to allow access for the logged-in user.
 		if err := os.Chown(path.Dir(authSock), id, gid); err != nil {
 			log.WithError(err).Error("failed to change the permission of directory where unix socket was created")
 

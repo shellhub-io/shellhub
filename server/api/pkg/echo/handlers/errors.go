@@ -93,13 +93,6 @@ func fieldsOf(e errors.Error) map[string]string {
 // NewErrors returns a custom echo's error handler.
 func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 	return func(ctx *echo.Context, err error) {
-		// NOTE(r): The early return approach here, despite it being a bit verbose, is the best way to clarify what
-		// happens in each case, avoiding the use of else statements, which would make the code more confusing or a big
-		// switch statement, which would make the code less readable.
-
-		// Order-sensitive: checked before the generic Layer switch below.
-		// ErrInternal shares Layer == store.ErrLayer with other store errors but
-		// must also be reported to Sentry, so it needs its own early branch.
 		if errors.Is(err, store.ErrInternal) {
 			report(reporter, err, ctx.Request())
 			respond(ctx, http.StatusInternalServerError, "", nil)
@@ -107,9 +100,6 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 			return
 		}
 
-		// On HTTP errors, anything related to the HTTP protocol, we just return the error code, avoiding a 500 error.
-		// Ask Echo for the status rather than matching on *echo.HTTPError: its own sentinels
-		// (echo.ErrNotFound and friends) are a different unexported type that a type match misses.
 		if code := echo.StatusCode(err); code != 0 {
 			respond(ctx, code, echoMessage(err, code), nil)
 
@@ -133,12 +123,8 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 		case services.ErrLayer:
 			status = converter.FromErrServiceToHTTPStatus(e.Code)
 		case store.ErrLayer:
-			// What happens when an error is returned directly from the store's layer, which means it doesn't have a
-			// service error affecting it, which requires fixing.
 			status = http.StatusInternalServerError
 		default:
-			// Layers this switch does not name, such as the scope package's, would otherwise
-			// produce status zero.
 			status = http.StatusInternalServerError
 		}
 

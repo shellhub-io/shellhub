@@ -195,16 +195,8 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 			want:        ErrInvalidSSHID,
 		},
 		{
-			// KindNone produces an empty banner string. The BannerCallback returns nil
-			// for an empty string, so no *BannerError is injected into the dial error.
-			// The server has no auth handlers set, so it accepts any credentials and
-			// the dial succeeds: there is no dial error at all. mapBannerError is never
-			// called for this case, so there is no sentinel to assert — `want` is
-			// intentionally absent. The unknown-banner → ErrConnect sentinel mapping is
-			// covered separately by TestBannerNewBannerErrorUnrecognizedSetsKindNone.
 			description: "KindNone (empty banner) produces no BannerError and the dial succeeds",
 			kind:        banner.KindNone,
-			// want is deliberately omitted: mapBannerError is not reached on this path.
 		},
 	}
 
@@ -217,8 +209,6 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 			var e *BannerError
 
 			if tc.kind == banner.KindNone {
-				// Empty banner: BannerCallback returns nil, so the dial should
-				// succeed with no error and no *BannerError embedded.
 				require.NoError(t, dialErr, "expected dial to succeed when banner is empty")
 				assert.NotErrorAs(t, dialErr, &e, "expected no BannerError for empty banner")
 

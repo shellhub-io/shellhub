@@ -36,8 +36,6 @@ func (d *forwardData) logFields() log.Fields {
 func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 	sess, state := session.ObtainSession(ctx)
 	if sess == nil || !state.Established() {
-		// See the same guard in the session channel handler: unreachable today,
-		// and here the goroutine below sits outside the panic recovery.
 		log.WithFields(log.Fields{"session": ctx.SessionID(), "state": state}).
 			Error("direct-tcpip channel opened without an established session")
 
@@ -74,10 +72,6 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 	dest := net.JoinHostPort(data.DestAddr, strconv.FormatInt(int64(data.DestPort), 10))
 
-	// NOTE: Certain SSH connections may not necessitate a dedicated handler, such as an SSH handler.
-	// In such instances, a new connection to the agent is generated and saved in the metadata for
-	// subsequent use.
-	// An illustrative scenario is when the SSH connection is initiated with the "-N" flag.
 	agent, err := sess.DialAgent(ctx, "tcp", dest)
 	if err != nil {
 		newChan.Reject(gossh.ConnectionFailed, "failed dialing the agent to host and port: "+err.Error()) //nolint:errcheck
@@ -104,15 +98,12 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 	wg := new(sync.WaitGroup)
 
-	// TODO: control the running state of these goroutines.
-
 	wg.Go(func() {
 		logger.Trace("copying data from client to agent")
 
 		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && !errors.Is(err, io.EOF) {
 			logger.WithError(err).Error("failed to copy data from agent to client")
 
-			// Close both ends so the peer goroutine unblocks and wg.Wait can return.
 			_ = agent.Close()
 			_ = client.Close()
 

@@ -41,8 +41,6 @@ const systemCacheTTL = time.Minute
 // Cloud and Enterprise serve /info from their own service, which caches the same key on its
 // own side because it has the SAML config to fetch alongside this row.
 func (s *service) systemGet(ctx context.Context) (*models.System, error) {
-	// Guard the authentication chain rather than just the hit: callers dereference it, and a
-	// cache miss leaves the value zeroed.
 	cached := new(models.System)
 	if err := s.cache.Get(ctx, cache.SystemKey, cached); err == nil &&
 		cached.Setup && cached.Authentication != nil && cached.Authentication.Local != nil {
@@ -100,9 +98,6 @@ func (s *service) SystemDownloadInstallScript(_ context.Context, req *requests.S
 		return "", err
 	}
 
-	// Replace only the marker, not through text/template: the script contains
-	// other "{{...}}" sequences (Docker/Podman --format '{{.Names}}') that the
-	// template engine would resolve to "<no value>" and silently break.
 	overrides := buildInstallOverrides(req)
 
 	return strings.Replace(string(raw), "{{.Overrides}}", overrides, 1), nil
@@ -121,12 +116,6 @@ func buildInstallOverrides(req *requests.SystemInstallScript) string {
 	var b strings.Builder
 	b.WriteString("\n")
 
-	// The host may carry a port: the gateway forwards it separately in
-	// X-Forwarded-Port, but the direct-access fallback (c.Request().Host) keeps
-	// it inline. Split it out so it isn't lost, preferring the forwarded port.
-	// Values are reflected from the requester's own request and the script is
-	// served uncached (Cache-Control: no-store), so it only ever reaches that
-	// requester; no escaping is needed.
 	host, hostPort := req.Host, ""
 	if h, p, err := net.SplitHostPort(req.Host); err == nil {
 		host, hostPort = h, p

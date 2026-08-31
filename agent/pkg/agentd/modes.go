@@ -85,10 +85,6 @@ func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 var _ Mode = new(ConnectorMode)
 
 func (m *ConnectorMode) Serve(agent *Agent) {
-	// NOTE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
-	// communication between the server and the agent when the container name on the host changes.  This information is
-	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
-	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
 	agent.server = server.NewServer(
 		agent.cli,
 		&connector.Mode{

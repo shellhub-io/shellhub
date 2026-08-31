@@ -36,8 +36,6 @@ func TestCreateInstallKey(t *testing.T) {
 	defer func() { clock.DefaultBackend = prevClock }()
 	clockMock.On("Now").Return(now).Maybe()
 
-	// Subtests below swap the global uuid backend for a mock; restore it so the
-	// mock does not leak into other (parallel) tests that call uuid.Generate.
 	prevUUID := uuid.DefaultBackend
 	defer func() { uuid.DefaultBackend = prevUUID }()
 
@@ -52,16 +50,12 @@ func TestCreateInstallKey(t *testing.T) {
 	future := now.AddDate(0, 0, 30)
 	days30 := 30
 
-	// InstallKeyCreate receives a struct whose KeyEncrypted has a random nonce, so match on the
-	// deterministic fields and assert the ciphertext and hint were populated.
 	matchCreate := func(want *models.InstallKey) any {
 		return mock.MatchedBy(func(got *models.InstallKey) bool {
 			if got.KeyEncrypted == "" || got.KeyHint != installKeyHint(generated) {
 				return false
 			}
 
-			// These cases create default-mode keys: assert the mode defaults to automatic with an empty
-			// allowlist, then clear them so the remaining fields can be compared against `want`.
 			if got.Mode != models.InstallKeyModeAutomatic || len(got.AllowedMACs) != 0 {
 				return false
 			}
@@ -469,8 +463,6 @@ func TestUpdateInstallKey(t *testing.T) {
 					Return(namespace, nil).Once()
 				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
-				// EphemeralTimeout must land at the max (10), never 0 — a 0 timeout would delete devices the
-				// moment they disconnect.
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 10}).
 					Return(nil).Once()
 			},

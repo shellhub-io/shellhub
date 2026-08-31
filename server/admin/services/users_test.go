@@ -207,7 +207,6 @@ func TestUserCreate(t *testing.T) {
 				mock.On("SystemGet", ctx).
 					Return(&models.System{Setup: false}, nil).
 					Once()
-				// bare ErrDuplicate with no field (ok==false)
 				mock.On("UserCreate", ctx, user).
 					Return("", store.ErrDuplicate).
 					Once()

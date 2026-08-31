@@ -76,8 +76,6 @@ func TestApprovalLimiter(t *testing.T) {
 		assert.False(t, ok)
 	})
 
-	// The web terminal bridge dials the gateway over loopback, so every browser
-	// session in the instance shares that address.
 	t.Run("loopback is exempt", func(t *testing.T) {
 		limiter := newApprovalLimiter(1, 1)
 

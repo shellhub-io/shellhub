@@ -41,9 +41,6 @@ func (f *fakeGosshConn) Close() error { return nil }
 // Wait blocks until the returned channel is closed — used by tests to
 // control when the "kill on disconnect" goroutine unblocks.
 func (f *fakeGosshConn) Wait() error {
-	// Block until the test is done (goroutine is abandoned when the test
-	// function returns; the Go runtime cleans it up). This is acceptable
-	// because the caller only needs Wait to not panic.
 	select {}
 }
 
@@ -59,7 +56,6 @@ func TestShell_DeniedCredentialSwitch(t *testing.T) {
 		checkCredentialSwitchFn = origCheckCredentialSwitch
 	})
 
-	// Stub: simulate a denied credential switch.
 	checkCredentialSwitchFn = func() error {
 		return errors.New("setgroups denied in unprivileged user namespace")
 	}
@@ -91,7 +87,6 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 		checkCredentialSwitchFn = origCheckCredentialSwitch
 	})
 
-	// Stub: simulate a denied credential switch.
 	checkCredentialSwitchFn = func() error {
 		return errors.New("setgroups denied in unprivileged user namespace")
 	}
@@ -124,12 +119,9 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 // After the fix: cmd.Start() failure triggers an early-return — log.Warn + session.Exit(1)
 // + return err — BEFORE launching any goroutine or reaching cmd.ProcessState.ExitCode().
 func TestHeredoc_StartFailure(t *testing.T) {
-	// Mock osauth so generateShellCmd produces a cmd with a non-existent binary.
 	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
-	// Point the shell at a path that does not exist so cmd.Start() will fail with
-	// "no such file or directory".
 	fakeUser := &osauth.User{
 		UID:      0,
 		GID:      0,
@@ -146,8 +138,6 @@ func TestHeredoc_StartFailure(t *testing.T) {
 
 	sess := newFakeSession("session-heredoc-start-fail", "root")
 
-	// Inject a fakeGosshConn so the serverConn context lookup inside Heredoc()
-	// succeeds (the kill-goroutine path requires a non-nil serverConn).
 	fakeConn := &gossh.ServerConn{Conn: &fakeGosshConn{}}
 	testCtx, ok := sess.ctx.(*testSSHContext)
 	require.True(t, ok)
@@ -176,7 +166,6 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 		checkCredentialSwitchFn = origCheckCredentialSwitch
 	})
 
-	// Stub: simulate a denied credential switch.
 	checkCredentialSwitchFn = func() error {
 		return errors.New("setgroups denied in unprivileged user namespace")
 	}
@@ -230,8 +219,6 @@ func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	sess.command = []string{"/bin/true"}
 	sess.rawCommand = "/bin/true"
 
-	// Inject a fakeGosshConn so the serverConn context lookup succeeds and
-	// Exec() can proceed past that check to reach session.Exit().
 	fakeConn := &gossh.ServerConn{Conn: &fakeGosshConn{}}
 	testCtx, ok := sess.ctx.(*testSSHContext)
 	require.True(t, ok)

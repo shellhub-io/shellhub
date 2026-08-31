@@ -93,9 +93,6 @@ const statusWaitInterval = 200 * time.Millisecond
 func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApprovalStatus) (*models.SSHApprovalStatus, error) {
 	code := pairingcode.Normalize(req.Code)
 
-	// The budget is a timer rather than a deadline on ctx so that expiring it
-	// never cuts a read in flight, which would surface as an unknown code. ctx
-	// stays the request's, so a gateway that hangs up still ends the wait.
 	budget := time.NewTimer(statusWaitTimeout)
 	defer budget.Stop()
 
@@ -114,8 +111,6 @@ func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApp
 			return status, nil
 		}
 
-		// Answering "still pending" when the budget elapses is not a failure: the
-		// gateway asks again, and that is also how it notices a client that hung up.
 		select {
 		case <-ctx.Done():
 			return status, nil
@@ -136,11 +131,6 @@ func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*mod
 		return nil, NewErrSSHApprovalCodeNotFound(code, err)
 	}
 
-	// Only a member of the target namespace may read the request. Without this a
-	// code holder from outside the namespace could learn the key fingerprint,
-	// device, login and source IP of someone else's pending login. Deciding is
-	// already gated (see decideSSHApproval); this closes the read side, and
-	// reports not-found so a non-member cannot confirm the code exists.
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, approval.TenantID)
 	if err != nil {
 		return nil, NewErrSSHApprovalCodeNotFound(code, err)
@@ -190,9 +180,6 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 		return NewErrSSHApprovalCodeNotFound(code, err)
 	}
 
-	// The console session may be scoped to another namespace, so the gateway's
-	// permission middleware cannot cover this route; check the user's role in the
-	// target namespace explicitly.
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, approval.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(approval.TenantID, err)
@@ -208,23 +195,15 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 	}
 
 	if decision == models.SSHApprovalConfirmed {
-		// A re-auth is only satisfied by proving a factor, which happens on the
-		// step-up route and releases the login there (see StampWebReauth).
-		// Accepting a bare confirm here would be a way to skip the factor entirely.
 		if approval.Kind == models.SSHApprovalReauth {
 			return NewErrForbidden(ErrForbidden, nil)
 		}
 
-		// Binding a key to an account is a bigger act than releasing a login;
-		// require the add permission on top of the approve permission.
 		if !member.Role.HasPermission(authorizer.SSHIdentityAdd) {
 			return NewErrRoleForbidden()
 		}
 	}
 
-	// The claim and the effect share a transaction, so the gateway's poll never
-	// reads a confirmation whose effect has not landed, and a failed effect rolls
-	// the claim back — leaving the code decidable again instead of stuck.
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		claimed, err := s.store.SSHApprovalDecide(ctx, code, decision, userID, now)
 		if err != nil {
@@ -253,10 +232,6 @@ func (s *service) applySSHApproval(ctx context.Context, userID string, approval 
 		return nil
 	}
 
-	// A confirmation can be replayed, so this enrolls through the tolerant path.
-	// An empty name lets the identity service generate a default from the key.
-	// The source is the one the server asserts for itself: it saw the key offered
-	// on a login it was holding open.
 	if _, err := s.reenrollSSHIdentity(ctx, &models.SSHIdentity{
 		TenantID:    approval.TenantID,
 		PrincipalID: userID,
@@ -268,10 +243,6 @@ func (s *service) applySSHApproval(ctx context.Context, userID string, approval 
 		return err
 	}
 
-	// The gateway's initial resolve missed (the key was not an identity yet), so
-	// nothing stamped last-used for this connection. Stamp it here so the
-	// connection that created the identity counts, not just the next one.
-	// Non-fatal, as in ResolveSSHIdentity.
 	if err := s.store.SSHIdentityTouchLastUsed(ctx, approval.TenantID, approval.Fingerprint); err != nil {
 		log.WithError(err).WithField("fingerprint", approval.Fingerprint).
 			Warn("failed to stamp ssh identity last-used on approval; connection proceeds")

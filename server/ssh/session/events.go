@@ -164,11 +164,6 @@ func (e *Events) run() {
 			return
 		}
 
-		// The session is often already gone by the time its last events are
-		// written — the client disconnected, which is what ended it. A context
-		// derived from that connection would be cancelled here, and Postgres
-		// passes cancellation straight through, so the write would fail
-		// silently.
 		ctx, cancel := context.WithTimeout(context.Background(), eventWriteTimeout)
 		defer cancel()
 

@@ -56,11 +56,6 @@ func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
 func ptyStartOptions(uid uint32) []gliderssh.PtyStartOption {
 	opts := []gliderssh.PtyStartOption{gliderssh.WithJobControl()}
 
-	// WithOwner takes an int because that is what os.Chown takes, but uid_t is
-	// unsigned 32-bit. On a 32-bit build (the agent ships for ARM) an id above
-	// MaxInt32 wraps negative, and os.Chown reads a negative id as "leave it
-	// alone", so the pty would silently stay owned by the agent. Such an id is
-	// not a real account, so skip the hand-over rather than pass a wrapped one.
 	if geteuidFn() == 0 && uid <= math.MaxInt32 {
 		opts = append(opts, gliderssh.WithOwner(int(uid)))
 	}
@@ -281,8 +276,6 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	wg := &sync.WaitGroup{}
 	relayOutput(wg, session, stdout, stderr)
 
-	// cmd.Wait closes the parent ends of the pipes, so the copies have to finish
-	// first or they lose whatever the command wrote last.
 	wg.Wait()
 
 	if err := cmd.Wait(); err != nil {
@@ -344,7 +337,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
 
-		// relay input from the SSH session to the command.
 		go func() {
 			if _, err := io.Copy(stdin, session); err != nil {
 				fmt.Println(err) //nolint:forbidigo
@@ -364,8 +356,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command started")
 
-	// Pty.Start starts the command itself, so only the pipe branch reaches
-	// cmd.Start. Both must leave cmd.Process set before the reaper below.
 	if sIsPty {
 		if err := sPty.Start(cmd, ptyStartOptions(user.UID)...); err != nil {
 			entry := log.WithError(err)
@@ -384,9 +374,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return err
 	}
 
-	// Before the wait below, not after: that wait ends when the command closes
-	// its output, which a command that ignores a vanished client never does, so
-	// a reaper installed afterwards would never be installed at all.
 	if err := reapOnDisconnect(session, cmd); err != nil {
 		return err
 	}
@@ -435,10 +422,6 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 
 	cmd := newSFTPServerCommand()
 
-	// osauth, not os/user: the agent usually runs in a container with the host's
-	// filesystem mounted, and osauth is the one that reads the host's passwd.
-	// os/user reads the container's, where the account being logged into does
-	// not exist.
 	looked, err := osauth.LookupUser(session.User())
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{

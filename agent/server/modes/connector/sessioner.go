@@ -41,7 +41,6 @@ func NewSessioner(container *string, docker dockerclient.APIClient) *Sessioner {
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, _, _ := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)
@@ -88,7 +87,6 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 func (s *Sessioner) Exec(session gliderssh.Session) error {
 	sspty, _, isPty := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)
@@ -149,7 +147,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	sspty, _, _ := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)

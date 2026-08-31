@@ -58,8 +58,6 @@ func (s *service) ResolveInvitation(ctx context.Context, req *requests.ResolveIn
 
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, invitation.UserID)
 	if err != nil {
-		// No real account yet; the invitee still needs to register. Resolve the
-		// placeholder to surface their email and the "invited" status.
 		ui, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, invitation.UserID)
 		if err != nil {
 			return nil, NewErrUserNotFound(invitation.UserID, err)
@@ -122,8 +120,6 @@ func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.Gene
 		return "", err
 	}
 
-	// Direct membership added the account right away — no invitation, no link to hand over. The
-	// empty return signals the caller that the member was added, not invited.
 	if invitation == nil {
 		return "", nil
 	}

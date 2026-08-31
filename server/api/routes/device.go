@@ -205,9 +205,6 @@ func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 		return err
 	}
 
-	// TODO: Remove this legacy status mapping in API v2.
-	// This mapping exists solely for backward compatibility with API consumers
-	// that were sending string values before the device status refactor.
 	status := map[string]string{
 		"accept":  string(models.DeviceStatusAccepted),
 		"reject":  string(models.DeviceStatusRejected),

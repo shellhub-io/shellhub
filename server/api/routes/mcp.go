@@ -51,8 +51,6 @@ func SetupMCPRoutes(router *echo.Echo) {
 
 		ctx = context.WithValue(ctx, mcpKeyTenantID, tenantID)
 
-		// Capture the gateway-injected auth headers so tools can replay them
-		// on in-process API calls and inherit the REST middleware.
 		headers := http.Header{}
 		for _, key := range mcpAuthHeaders {
 			if value := r.Header.Get(key); value != "" {
@@ -83,8 +81,6 @@ func buildMCPServer(router http.Handler) *mcpserver.MCPServer {
 
 	return s
 }
-
-// --- helpers ---
 
 // mcpAPICall replays the caller's request against the API's own Echo router
 // in-process, so the full middleware chain (BlockAPIKey, RequiresPermission,
@@ -242,7 +238,6 @@ func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 			uid, _ := args["uid"].(string)
 			status, _ := args["status"].(string)
 
-			// The REST route expects the legacy short form in the path param.
 			pathStatus := map[string]string{"accepted": "accept", "rejected": "reject"}[status]
 			if pathStatus == "" {
 				return mcp.NewToolResultError("status must be 'accepted' or 'rejected'"), nil
@@ -340,10 +335,6 @@ func addSessionTools(s *mcpserver.MCPServer, router http.Handler) {
 // --- Namespace tools ---
 
 func addNamespaceTools(s *mcpserver.MCPServer, router http.Handler) {
-	// No "list namespaces" tool: an API key is scoped to one namespace, and
-	// listing namespaces is an account-level action the REST API blocks for
-	// API keys (BlockAPIKey on GetNamespaceList). get_namespace reads the
-	// caller's own namespace.
 	s.AddTool(
 		mcp.NewTool("shellhub_get_namespace",
 			mcp.WithDescription("Get details and settings of the caller's ShellHub namespace."),
@@ -356,8 +347,6 @@ func addNamespaceTools(s *mcpserver.MCPServer, router http.Handler) {
 				tenantID = tenantFromCtx(ctx)
 			}
 
-			// Cross-tenant access is rejected by RequiresTenant on the route;
-			// no manual guard needed here.
 			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/namespaces/"+url.PathEscape(tenantID), nil)
 
 			return mcpAPIResult(rec), nil

@@ -50,8 +50,6 @@ func Command() *cobra.Command {
 		Short: "Manage users and namespaces directly in the database",
 		Long: `Manage users and namespaces by writing to the database directly, without going
 through the API. Intended for operators administering a ShellHub instance.`,
-		// Cobra resolves --help and validates arguments before persistent hooks
-		// run, so connecting here keeps those paths off the database.
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			s, err := connect(cmd.Context())
 			if err != nil {

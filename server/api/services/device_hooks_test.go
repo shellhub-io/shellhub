@@ -11,7 +11,6 @@ import (
 )
 
 func TestFireDeviceMerge(t *testing.T) {
-	// Save and restore global hooks so tests don't leak.
 	saved := deviceMergeHooks
 	t.Cleanup(func() { deviceMergeHooks = saved })
 

@@ -74,30 +74,15 @@ type DevicePairingService interface {
 }
 
 func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
-	// Claim path: the agent was handed a pre-authorized code at install time.
-	// Accept it into the pre-authorized namespace right away, no user in the loop.
 	if req.Code != "" {
 		return s.claimDevicePairing(ctx, req)
 	}
 
-	// Resume: if this public key already belongs to an accepted device (the
-	// agent crashed after acceptance but before persisting its tenant, or the
-	// previous accept's cache writeback was lost), hand the tenant back right
-	// away instead of starting a new pairing the user would have to accept
-	// again. The public key is not exposed by any read API, so disclosing the
-	// tenant to whoever holds it is acceptable; possession of the matching
-	// private key is still required to actually operate as the device.
 	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
 	if device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, req.PublicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); err == nil && device != nil {
 		return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: device.TenantID}, nil
 	}
 
-	// Dedup by public key: the daemon and the `login` command both request a
-	// pairing for the same device (same key), so the server is the single point
-	// that coordinates them. If a live code already exists for this key, return
-	// the same one instead of minting a second — one code, no agent-side IPC.
-	// The server owns the code lifecycle (it issues it; there is no external IdP
-	// in the loop), so dedup belongs here, not on the agent.
 	pubKeyRef := "pairing_code_pubkey/" + hashPublicKey(req.PublicKey)
 
 	var existingCode string
@@ -142,8 +127,6 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 		return nil, err
 	}
 
-	// Map the public key to its current code so a concurrent request for the
-	// same device reuses it. Same TTL, so both expire together.
 	if err := s.cache.Set(ctx, pubKeyRef, code, devicePairingTTL); err != nil {
 		log.WithError(err).Warn("failed to store the pairing dedup reference; a duplicate code may be minted")
 	}
@@ -161,9 +144,6 @@ func (s *service) PrepareDevicePairing(ctx context.Context, userID, tenantID str
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	// The route middleware already checked the permission for the session's
-	// namespace, but re-derive it from membership here so the pre-authorization
-	// can never outrank the user who minted it.
 	member, ok := namespace.FindMember(userID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(userID, nil)
@@ -205,16 +185,10 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 	}
 
 	pairing := new(devicePairing)
-	// Only codes minted by PrepareDevicePairing (PreauthTenantID set) can be
-	// claimed; an agent-minted code has no pre-authorization and must go through
-	// a user accept.
 	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PreauthTenantID == "" {
 		return nil, NewErrDevicePairingCodeNotFound(code, err)
 	}
 
-	// Single-use: once a device has claimed the code (PublicKey filled), only that
-	// same device may re-read the outcome (idempotent retry); any other key is
-	// rejected so a leaked code can enroll at most one device.
 	if pairing.PublicKey != "" {
 		if pairing.PublicKey == req.PublicKey {
 			return &models.DevicePairing{Status: pairing.Status, TenantID: pairing.TenantID}, nil
@@ -223,11 +197,6 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 
-	// Reserve the code atomically before materializing anything. The Get/check/Set
-	// above is not race-safe on its own: two devices with different keys could both
-	// pass the PublicKey=="" gate and both get accepted. SetNX lets exactly one
-	// concurrent claim win, keeping the code truly single-use. The reservation is
-	// released below if materialization fails, so a legitimate retry can proceed.
 	claimRef := "pairing_claim/" + code
 
 	reserved, err := s.cache.SetNX(ctx, claimRef, hashPublicKey(req.PublicKey), devicePairingTTL)
@@ -246,7 +215,6 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 		return nil, NewErrNamespaceNotFound(pairing.PreauthTenantID, err)
 	}
 
-	// Fill the payload so the cached outcome is complete, then accept via the shared path.
 	pairing.Hostname = req.Hostname
 	pairing.PublicKey = req.PublicKey
 
@@ -266,12 +234,6 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 
 	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID)
 	if err != nil {
-		// Release the reservation so a retry can proceed. We deliberately do NOT
-		// delete the device on failure: AuthDevice is create-or-resolve, so it may
-		// have returned a device that already existed (e.g. a pending one blocked
-		// by the device limit) — deleting by UID could destroy the user's own
-		// device. A leftover pending device is harmless and can be accepted or
-		// removed from the console.
 		_ = s.cache.Delete(ctx, claimRef)
 
 		return nil, err
@@ -281,7 +243,6 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 	pairing.TenantID = namespace.TenantID
 	pairing.UID = auth.UID
 
-	// Renew the TTL so the console has the full window to poll the outcome.
 	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
 		log.WithError(err).WithField("device_uid", auth.UID).
 			Warn("device accepted but failed to store the pairing outcome; the console will not see it via this code")
@@ -302,9 +263,6 @@ func (s *service) GetDevicePairingStatus(ctx context.Context, code string) (*mod
 	code = pairingcode.Normalize(code)
 
 	pairing := new(devicePairing)
-	// NOTE: A cache miss is not an error; it leaves the value untouched. A code
-	// exists if it was minted by an agent (PublicKey set once it submits) or
-	// pre-authorized by a user (PreauthTenantID set before any device claims it).
 	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil ||
 		(pairing.PublicKey == "" && pairing.PreauthTenantID == "") {
 
@@ -330,10 +288,6 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrDevicePairingCodeNotFound(code, err)
 	}
 
-	// Pre-authorized codes are auto-accept-only: they carry their own namespace
-	// and are claimed by the agent, never routed through a user-chosen accept.
-	// Refuse them here so a code holder can't re-materialize the device into an
-	// arbitrary namespace.
 	if pairing.PreauthTenantID != "" {
 		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
@@ -343,9 +297,6 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// The session may be scoped to another tenant, so the gateway's permission
-	// middleware cannot cover this route; check the user's role in the chosen
-	// namespace explicitly.
 	member, ok := namespace.FindMember(userID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(userID, nil)
@@ -364,7 +315,6 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 	pairing.TenantID = namespace.TenantID
 	pairing.UID = auth.UID
 
-	// Renew the TTL so the agent has the full window to poll the outcome.
 	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
 		log.WithError(err).WithField("device_uid", auth.UID).
 			Warn("device accepted but failed to store the pairing outcome; the agent will not learn its tenant from this code")

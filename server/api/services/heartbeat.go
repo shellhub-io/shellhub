@@ -150,9 +150,6 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 		return
 	}
 
-	// The batcher owns this context: it is deliberately not derived from any
-	// session, because a device disconnecting must not cancel the write that
-	// carries the other devices in the same batch.
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
@@ -204,8 +201,6 @@ func (b *deviceHeartbeatBatch) take() ([]string, time.Time) {
 		uids = append(uids, uid)
 	}
 
-	// Sorted so the UPDATE always touches rows in the same order, which keeps
-	// concurrent batches from deadlocking each other.
 	slices.Sort(uids)
 
 	seenAt := b.oldest

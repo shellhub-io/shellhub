@@ -60,8 +60,6 @@ func TestDeadReadGuard(t *testing.T) {
 	})
 
 	t.Run("real data resets the empty-read counter", func(t *testing.T) {
-		// 99 empty reads, then a real read, then empties again: the data read in
-		// the middle must reset the counter so the guard does not trip early.
 		steps := make([]readStep, 0, maxConsecutiveEmptyReads*2)
 		for range maxConsecutiveEmptyReads - 1 {
 			steps = append(steps, readStep{})
@@ -81,8 +79,6 @@ func TestDeadReadGuard(t *testing.T) {
 			total += n
 		}
 
-		// The single non-empty step ("hi") must have flowed through, and resetting
-		// the counter on it kept the guard from tripping across the surrounding empties.
 		assert.Equal(t, len("hi"), total)
 	})
 
