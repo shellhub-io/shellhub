@@ -13,8 +13,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// stubContext is a minimal gliderssh.Context backed by a map, enough for the
-// connection-state module to round-trip its values.
 type stubContext struct {
 	context.Context
 	sync.Mutex
@@ -67,8 +65,6 @@ func (c *recordingConn) Close() error {
 func testKey(t *testing.T) gliderssh.PublicKey {
 	t.Helper()
 
-	// A fixed key: these tests never reach signature checking, they only need a
-	// well-formed key to pass to the handlers.
 	const authorized = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ0eKgLLYAqQBiKtHqBQF3JzKlXjmVjJqB0eqzKlEnCf test"
 
 	key, _, _, _, err := gossh.ParseAuthorizedKey([]byte(authorized))

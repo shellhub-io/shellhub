@@ -17,9 +17,6 @@ const (
 	displacedMetric   = "shellhub_ssh_dialer_connections_displaced_total"
 )
 
-// expositionOf renders what a scrape must return. The help text is written out
-// once here rather than per case, so rewording it is one edit and a scrape that
-// silently changes its own contract still fails.
 func expositionOf(connections, devices int) string {
 	return fmt.Sprintf(`
 		# HELP shellhub_ssh_dialer_connections Reverse connections currently held, across every device. Counted per server process; sum() across replicas for a fleet total.
@@ -62,9 +59,6 @@ func TestCollectorReportsTheStoreSize(t *testing.T) {
 			devices:     2,
 		},
 		{
-			// The gap between the two gauges is the number an operator sizing
-			// the store cannot get anywhere else: connections a reconnect
-			// displaced and that are not yet torn down.
 			title: "separates the gauges when a device holds a second connection",
 			setup: func(m *Manager) {
 				key := NewKey("tenant", "uid")
@@ -99,8 +93,6 @@ func TestCollectorCountsDisplacedConnections(t *testing.T) {
 	m := NewManager()
 	collector := NewCollector(m)
 
-	// Every reconnect below waits for the previous teardown, so each one
-	// displaces exactly one connection.
 	reconnect := func() {
 		require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
 		require.Eventually(t, func() bool { return m.Connections.Size(key) == 1 },

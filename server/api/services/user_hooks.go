@@ -25,7 +25,6 @@ func OnUserRegistered(fn UserRegisteredHookFn) {
 	userRegisteredHooks = append(userRegisteredHooks, fn)
 }
 
-// fireUserRegistered dispatches all registered post-registration hooks sequentially.
 func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost, forwardedProto string, validUntil time.Time) error {
 	for _, fn := range userRegisteredHooks {
 		if err := fn(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
@@ -36,8 +35,6 @@ func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost, f
 	return nil
 }
 
-// openSignupEnabled reports whether open self-registration is allowed. Cloud turns this on at init;
-// community and enterprise are invite-only (an uninvited RegisterUser is refused).
 var openSignupEnabled bool
 
 // EnableOpenSignup turns on open self-registration. It must be called during package init.
@@ -45,7 +42,6 @@ func EnableOpenSignup() {
 	openSignupEnabled = true
 }
 
-// openSignupAllowed reports whether open self-registration is on.
 func openSignupAllowed() bool {
 	return openSignupEnabled
 }

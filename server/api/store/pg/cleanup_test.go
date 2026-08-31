@@ -19,7 +19,6 @@ import (
 // These are deleted as one atomic change because they reference each other.
 func TestMongoInfraDeleted(t *testing.T) {
 	_, file, _, _ := runtime.Caller(0)
-	// api/store/pg -> api/store -> api -> server
 	serverRoot := filepath.Join(filepath.Dir(file), "..", "..", "..")
 
 	deleted := []string{
@@ -52,13 +51,11 @@ func TestMongoInfraDeleted(t *testing.T) {
 // testcontainers-go core and modules/postgres must remain (used by pg/dbtest).
 func TestMongoDepsPruned(t *testing.T) {
 	_, file, _, _ := runtime.Caller(0)
-	// api/store/pg -> api/store -> api -> server
 	serverRoot := filepath.Join(filepath.Dir(file), "..", "..", "..")
 
 	gomod := filepath.Join(serverRoot, "go.mod")
 	gosum := filepath.Join(serverRoot, "go.sum")
 
-	// Patterns that must NOT appear anywhere in go.mod or go.sum.
 	banned := []string{
 		"go.mongodb.org/mongo-driver",
 		"github.com/shellhub-io/mongotest",
@@ -93,7 +90,6 @@ func TestMongoDepsPruned(t *testing.T) {
 		})
 	}
 
-	// Positive assertion: modules/postgres must still be present in go.mod.
 	t.Run("postgres_kept", func(t *testing.T) {
 		f, err := os.Open(gomod) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 		if err != nil {

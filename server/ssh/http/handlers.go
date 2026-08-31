@@ -24,29 +24,10 @@ type Handlers struct {
 }
 
 const (
-	// deviceResolveAttempts and deviceResolveBackoff retry a device lookup that
-	// failed for a reason other than the device not existing.
-	//
-	// The loopback HTTP client used to do this for free, and the agent fleet
-	// depends on it: a brief database problem that fails the handshake sends every
-	// agent into a reconnect loop with a fixed ten second delay and no jitter, so
-	// they come back in lockstep. The agent's dial allows 45 seconds, which is
-	// ample for these attempts.
 	deviceResolveAttempts = 3
 	deviceResolveBackoff  = time.Second
 )
 
-// resolveDevice looks a device up by UID across every namespace.
-//
-// Both agent-facing call sites need exactly that: the tenant is the answer, not
-// the input. The V1 handler derives it from the device when the header is absent,
-// which is how agents older than 0.15 connect at all.
-//
-// The returned error is deliberately opaque. These two routes answer agents
-// already deployed, which cannot be updated in step with the server, so the
-// status they see is frozen: any failure here is a server error, exactly as it
-// was when this went over loopback HTTP and the client's error type fell through
-// to the generic branch.
 func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Device, error) {
 	var err error
 
@@ -58,8 +39,6 @@ func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Devic
 			return device, nil
 		}
 
-		// A device that does not exist will not start existing on the next
-		// attempt; only infrastructure failures are worth another try.
 		if errors.Is(err, store.ErrNoDocuments) {
 			break
 		}
@@ -115,10 +94,6 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		return err
 	}
 
-	// The gateway only authenticates this route; closing a session is an
-	// administrative action, so enforce the permission here from the role it
-	// forwards. Without this, any observer, operator, API key or device token in
-	// the namespace could terminate any session.
 	if role := authorizer.RoleFromString(c.Request().Header.Get("X-Role")); !role.HasPermission(authorizer.SessionClose) {
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -136,11 +111,6 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// requireAcceptedDevice fetches the device and refuses the connection unless it is accepted. A pending
-// or rejected device authenticates (it holds a token) but must not open a reverse tunnel: it is
-// unreachable over SSH anyway (device lookup filters accepted), so the tunnel would be an idle,
-// unreachable connection. Refusing here keeps pending and rejected devices from holding tunnels; the
-// agent keeps re-authenticating and connects once it is accepted.
 func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*models.Device, error) {
 	device, err := h.resolveDevice(ctx, uid)
 	if err != nil {
@@ -167,8 +137,6 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	uid := c.Request().Header.Get("X-Device-UID")
 
 	if h.Config.RequireAcceptedTunnel {
-		// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused
-		// device gets a clean HTTP error instead of a dropped WebSocket).
 		device, err := h.requireAcceptedDevice(c.Request().Context(), uid)
 		if err != nil {
 			return err
@@ -178,9 +146,6 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 			tenant = device.TenantID
 		}
 	} else if tenant == "" {
-		// WARN: In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID"
-		// header. This can cause issues with establishing sessions and tracking online devices. To solve
-		// this, we fall back to the device's tenant. Maybe this can be removed in a future release.
 		device, err := h.resolveDevice(c.Request().Context(), uid)
 		if err != nil {
 			return err
@@ -235,8 +200,6 @@ func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 		return err
 	}
 
-	// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused device
-	// gets a clean HTTP error instead of a dropped WebSocket).
 	if h.Config.RequireAcceptedTunnel {
 		if _, err := h.requireAcceptedDevice(c.Request().Context(), data.UID); err != nil {
 			return err

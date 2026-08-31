@@ -7,22 +7,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// resolveKeyAuth builds the [session.Auth] for a presented key. It is a lookup:
-// identity mode resolves the key to an account, legacy mode uses the key as
-// presented, and neither writes anything.
 func resolveKeyAuth(ctx gliderssh.Context, sess *session.Session, publicKey gliderssh.PublicKey) (session.Auth, error) {
 	if !sess.IsIdentityMode() {
 		return session.AuthPublicKey(publicKey), nil
 	}
 
-	// In identity mode the presented key IS the identity: resolve its fingerprint
-	// to an account (connect straight through) or hold the login open for a
-	// browser approval that turns the key into one. The ephemeral mint to the
-	// agent is unchanged; the user's key is never forwarded.
-	//
-	// Native and web alike. The web terminal holds its own registered key, so it
-	// is a first-class identity resolved here like any other public key; password
-	// authentication is disabled entirely in identity mode.
 	return sess.ResolveKeyAuth(ctx, publicKey)
 }
 
@@ -85,10 +74,6 @@ func PublicKeyVerified(ctx gliderssh.Context, publicKey gliderssh.PublicKey) boo
 		return false
 	}
 
-	// Resolved again rather than carried over from the offer: x/crypto caches one
-	// key at a time, so a client that offers several keys can have the callback
-	// re-run in any order, and a stale carry-over would authenticate the wrong
-	// one. The lookup is a single read.
 	auth, err := resolveKeyAuth(ctx, sess, publicKey)
 	if err != nil {
 		logger.WithError(err).Warn("failed to resolve the identity for the public key")

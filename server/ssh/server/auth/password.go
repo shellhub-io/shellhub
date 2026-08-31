@@ -21,9 +21,6 @@ func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
 		return false
 	}
 
-	// Identity mode has no password login at all: the identity is an SSH key, and
-	// the web terminal presents its own browser-held one through the public-key
-	// handler like any other client.
 	if sess.IsIdentityMode() {
 		logger.Info("password authentication is disabled in identity access mode")
 

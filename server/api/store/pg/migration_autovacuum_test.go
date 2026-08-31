@@ -21,9 +21,6 @@ func TestSessionAutovacuumThresholds(t *testing.T) {
 
 	for _, table := range []string{"sessions", "session_events"} {
 		t.Run(table, func(t *testing.T) {
-			// unnest rather than reading the array whole: it yields one row per option, so
-			// the assertion matches a setting exactly instead of finding it as a substring
-			// of another. A table with no storage parameters yields no rows.
 			var options []string
 			require.NoError(t,
 				provider.DB().NewSelect().
@@ -37,9 +34,6 @@ func TestSessionAutovacuumThresholds(t *testing.T) {
 			assert.Contains(t, options, "autovacuum_vacuum_scale_factor=0.05")
 			assert.Contains(t, options, "autovacuum_analyze_scale_factor=0.02")
 
-			// The new analyze factor only decides when the daemon next looks; it does nothing
-			// about statistics that are already stale, which on the instance this came from
-			// were 45 days old. The migration refreshes them once itself.
 			var analyzed int
 			require.NoError(t,
 				provider.DB().NewSelect().

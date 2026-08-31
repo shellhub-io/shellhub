@@ -41,8 +41,6 @@ type Request struct {
 }
 
 func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	// Tag filters need the device's tag ids, which the agent-sent payload omits;
-	// resolve the stored device so the shared matcher can intersect them.
 	if len(key.Filter.TagIDs) > 0 {
 		sc, err := BoundTo(key.TenantID)
 		if err != nil {
@@ -84,9 +82,6 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 
 	publicKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 	if err != nil {
-		// The store matches by fingerprint *and* namespace, so a key owned by another namespace is
-		// indistinguishable from one that does not exist — and must stay so, to avoid disclosing
-		// keys across namespaces.
 		if errors.Is(err, store.ErrNoDocuments) {
 			return nil, NewErrPublicKeyNotFound(fingerprint, err)
 		}
@@ -103,8 +98,6 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 		return nil, err
 	}
 
-	// Checks if public key filter type is Tags.
-	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
 	tagIDs := []string{}
 	if req.Filter.Tags != nil {
 		tags, _, err := s.store.TagList(ctx, sc)
@@ -199,8 +192,6 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		return nil, NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
-	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
-	// filter and if the all tags exist on database.
 	tagIDs := []string{}
 	if key.Filter.Tags != nil {
 		tags, _, err := s.store.TagList(ctx, sc)

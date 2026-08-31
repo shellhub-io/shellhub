@@ -86,14 +86,6 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 	return nil
 }
 
-// applyUserChanges creates a new User instance by applying the requested changes to the current user.
-// It returns a copy of the current user with updated fields, leaving the original unchanged.
-//
-// Only non-empty fields from changes are applied, and string comparisons are case-insensitive.
-// String fields (Username, Email, RecoveryEmail) are normalized to lowercase.
-//
-// For password changes, the current password must be provided and match the existing password.
-// The new password is hashed before being stored.
 func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) (*models.User, error) {
 	isDifferentAndNotEmpty := func(currentValue, newValue string) bool {
 		return newValue != "" && !strings.EqualFold(currentValue, newValue)

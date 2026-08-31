@@ -21,11 +21,8 @@ func TestService_RegisterUser(t *testing.T) {
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 
-	// A shared hash expectation: the exact plaintext varies per case but the returned digest is
-	// irrelevant to the assertions (users are matched with AnythingOfType).
 	hashMock.On("Do", "secret123").Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil)
 
-	// runTx executes the transaction callback so the inner store writes are exercised.
 	runTx := func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }
 
 	type Expected struct {
@@ -51,9 +48,6 @@ func TestService_RegisterUser(t *testing.T) {
 			expected:      Expected{false, NewErrAuthForbidden()},
 		},
 		{
-			// A non-resolving Sig with an empty email must not fall through to createNewUser:
-			// request validation only requires Email when Sig is absent, so this would otherwise
-			// persist a blank-email account on open-signup editions.
 			description: "refuses an unresolved sig with no email even when open signup is on",
 			openSignup:  true,
 			req: requests.RegisterUser{
@@ -109,7 +103,6 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
-				// CreateUserToken (post-commit): resolves the user, then finds no preferred namespace.
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "invitee").
 					Return(&models.User{
 						ID: "invitee", Status: models.UserStatusConfirmed, UserData: models.UserData{Username: "alice"},
@@ -135,7 +128,6 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
 					}, nil).Once()
-				// The inviter is a namespace admin but not a system admin, so the account is gated.
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "namespace-admin").
 					Return(&models.User{ID: "namespace-admin", Admin: false}, nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).

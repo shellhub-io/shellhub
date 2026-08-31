@@ -138,9 +138,6 @@ func TestEveryUpstreamReceivesTheClientAddress(t *testing.T) {
 	}
 }
 
-// reverseProxyBlocks returns the body of every reverse_proxy directive, walking
-// brace depth rather than looking for the next closing brace: a placeholder
-// such as {host} is written with the same braces a block is.
 func reverseProxyBlocks(caddyfile string) []string {
 	var blocks []string
 

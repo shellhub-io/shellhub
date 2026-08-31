@@ -47,7 +47,6 @@ func TestLicenseEvaluator(t *testing.T) {
 		got := LicenseEvaluatorFactory()
 		require.NotNil(t, got)
 
-		// Invoke the returned factory to confirm it is the same function.
 		//nolint:errcheck
 		got(context.Background(), nil, nil)
 		assert.True(t, called)

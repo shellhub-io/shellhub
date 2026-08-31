@@ -160,13 +160,10 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			userID:      "user1",
 			code:        "WXYZ2K7Q",
 			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
-				// NOTE: A cache miss is not an error; the value is just left untouched.
 				cacheMock.
 					On("Get", mock.Anything, "login_code/WXYZ2K7Q", mock.Anything).
 					Return(nil).
 					Once()
-				// Not a device-bound code, so the resolve falls back to a pairing
-				// lookup, which also misses.
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Return(nil).

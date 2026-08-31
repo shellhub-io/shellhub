@@ -13,9 +13,6 @@ import (
 )
 
 func TestHandleSSHCloseAuthorization(t *testing.T) {
-	// Roles that lack the SessionClose permission (and the device-token case,
-	// which carries no role) must be rejected before the dialer is reached, so a
-	// nil Dialer is a valid assertion that DialTo is never called.
 	forbiddenRoles := []string{"observer", "operator", "", "invalid"}
 
 	for _, role := range forbiddenRoles {

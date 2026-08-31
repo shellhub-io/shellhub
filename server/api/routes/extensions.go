@@ -32,8 +32,6 @@ import (
 //	})
 type RouteExtension func(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service) error
 
-// routeExtensions holds all registered route extensions.
-// Extensions are typically registered by enterprise/cloud builds in init() or main().
 var routeExtensions []RouteExtension
 
 // RegisterRouteExtension registers a route extension function.
@@ -44,8 +42,6 @@ func RegisterRouteExtension(ext RouteExtension) {
 	routeExtensions = append(routeExtensions, ext)
 }
 
-// applyExtensions invokes all registered extensions on the router.
-// Returns an error if any extension fails to register its routes.
 func applyExtensions(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service) error {
 	for _, ext := range routeExtensions {
 		if err := ext(router, authn, service); err != nil {
@@ -63,7 +59,6 @@ func applyExtensions(router *echo.Echo, authn *routesmiddleware.Authenticator, s
 // tasks (e.g., member invitations) via this extension point.
 type WorkerExtension func(server worker.Server, store store.Store, cache cache.Cache)
 
-// workerExtensions holds all registered worker extensions.
 var workerExtensions []WorkerExtension
 
 // RegisterWorkerExtension registers a worker extension. Must be called before

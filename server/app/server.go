@@ -81,21 +81,11 @@ type Env struct {
 	SessionRetentionDays int `env:"SHELLHUB_SESSION_RETENTION_DAYS,default=0"`
 }
 
-// sshEnv is parsed with the SSH_ prefix, keeping the names the ssh service used.
 type sshEnv struct {
-	ConnectTimeout time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
-	// HostKeyFile is read as SSH_HOST_KEY_FILE rather than PRIVATE_KEY, which the
-	// API already uses for its JWT signing key. envs.ParseWithPrefix falls back to
-	// the unprefixed name, so PRIVATE_KEY here would silently adopt that key as
-	// the SSH host key and change every installation's fingerprint.
-	HostKeyFile string `env:"HOST_KEY_FILE"`
-	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
-	// Agents 0.5.x or earlier do not validate the public key request and may panic.
-	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-	// RequireAcceptedTunnel refuses the agent's reverse tunnel unless the device is accepted, so a
-	// pending or rejected device holds no connection. Off by default: not every fleet can adopt it
-	// (some rely on seeing pending devices online), so it is opt-in per instance.
-	RequireAcceptedTunnel bool `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
+	ConnectTimeout               time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
+	HostKeyFile                  string        `env:"HOST_KEY_FILE"`
+	AllowPublickeyAccessBelow060 bool          `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	RequireAcceptedTunnel        bool          `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
 }
 
 type Server struct {
@@ -111,8 +101,6 @@ type Server struct {
 const (
 	httpAddress = ":8080"
 
-	// heartbeaterDrainTimeout bounds how long shutdown waits for the pending
-	// device heartbeats to be written.
 	heartbeaterDrainTimeout = 10 * time.Second
 )
 
@@ -128,8 +116,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
-	// Capture the wrapper factory before the local "store" variable shadows the
-	// package name. In CE builds this returns nil.
 	wrapperFactory := store.StoreWrapper()
 
 	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
@@ -143,8 +129,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Info("store connected successfully")
 
-	// If a store wrapper factory was registered (EE/cloud build), wrap the
-	// store so cloud-specific entity overrides are used by the core service.
 	if wrapperFactory != nil {
 		store, err = wrapperFactory(store, cache)
 		if err != nil {
@@ -163,8 +147,6 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
-	// If a billing provider factory was registered (EE/cloud build), create and
-	// inject the billing provider before the service is constructed.
 	if factory := services.BillingFactory(); factory != nil {
 		log.Info("Billing provider factory registered; initializing billing provider")
 
@@ -208,8 +190,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 
-	// Authentication runs in-process: the edge proxy forwards requests without
-	// deciding anything about them.
 	s.authn = middleware.NewAuthenticator(service)
 	routerOptions = append(routerOptions, routes.WithAuthentication(s.authn))
 
@@ -246,12 +226,6 @@ func (s *Server) Setup(ctx context.Context) error {
 	return nil
 }
 
-// reconcileInstanceBinding makes systems.instance_tenant_id reflect the current edition on every
-// boot, without an edition check — the mounted store decides. It reads the system, proposes the
-// oldest namespace as the binding when unset, and writes it back: the core store (Community)
-// persists it (activating single-namespace, and backfilling existing installs), while the
-// Enterprise/Cloud store wrapper strips it in SystemSet (keeping multi-tenant, and clearing a
-// binding inherited from a former Community install after an upgrade).
 func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 	system, err := st.SystemGet(ctx)
 	if err != nil {
@@ -281,11 +255,6 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 	return st.SystemSet(ctx, system)
 }
 
-// setupSSH wires the SSH server and its HTTP routes onto the API's router. The
-// cache and the internal client are the ones the API already built: both halves
-// now live in the same process, so a second client would buy nothing. The
-// service is handed over for the same reason: the SSH side is migrating off the
-// loopback HTTP client and onto in-process calls.
 func (s *Server) setupSSH(service services.Service) error {
 	env, err := envs.ParseWithPrefix[sshEnv]("SSH_")
 	if err != nil {
@@ -294,9 +263,6 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	d := dialer.NewDialer(service, s.heartbeater)
 
-	// Published on routes.InternalMetricsURL, which is always on. Registration
-	// is the only thing that can fail here, and it does not stop the SSH
-	// server: losing a gauge is not a reason to refuse device connections.
 	if err := prometheus.Register(dialer.NewCollector(d.Manager)); err != nil {
 		log.WithError(err).Warning("failed to register the dialer connection metrics")
 	}
@@ -305,9 +271,6 @@ func (s *Server) setupSSH(service services.Service) error {
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
-	// The bridge and the SSH listener share one handoff store: the bridge writes
-	// what the SSH handshake cannot carry, and the session on the other side of
-	// the loopback dial claims it.
 	handoff := webhandoff.NewStore()
 
 	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, &web.Config{HostKeyFile: env.HostKeyFile}); err != nil {
@@ -339,20 +302,11 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	// The SSH side reaches the API over loopback on its first connection, and an unbound port
-	// refuses it rather than queueing it. Bind here instead of letting the HTTP server do it, so
-	// the port is already accepting by the time the SSH listener comes up.
-	// The wildcard bind is the intended one: the API answers the gateway container and the SSH
-	// side over loopback, and the port is not published to the host. Echo bound this same
-	// address from inside the library until now, which is the only reason the scanners have
-	// started pointing at it.
-	// nosemgrep: go.lang.security.audit.net.bind_all.avoid-bind-to-all-interfaces
 	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress)
 	if err != nil {
 		return err
 	}
 
-	// No timeouts, matching what Echo's own Start built for us until now.
 	s.http = &http.Server{Handler: s.router} //nolint:gosec
 
 	errs := make(chan error, 2)
@@ -375,8 +329,6 @@ func (s *Server) Shutdown() {
 
 	s.ssh.Close() //nolint:errcheck
 
-	// Drained after the SSH listener closes, so no tunnel can submit a beat that
-	// the final batch would miss.
 	if s.heartbeater != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), heartbeaterDrainTimeout)
 		defer cancel()
@@ -389,13 +341,9 @@ func (s *Server) Shutdown() {
 	log.Info("Server shutdown complete")
 }
 
-// serviceOptions returns configuration options for the application services.
 func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {
 	opts := []services.Option{}
 
-	// If a locator factory was registered (EE/cloud build), create and inject
-	// the GeoIP locator before the service is constructed. In CE builds the
-	// factory is nil and the service falls back to the null locator.
 	if factory := services.LocatorFactory(); factory != nil {
 		locator, err := factory(ctx)
 		if err != nil {
@@ -412,15 +360,6 @@ func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) 
 	return opts, nil
 }
 
-// licenseEvaluatorOption initialises the license evaluator when a factory has been
-// registered by an enterprise/cloud package via services.RegisterLicenseEvaluator.
-// In Community Edition builds the factory is nil and an empty slice is returned.
-//
-// The nil-interface guard (if le != nil) is MANDATORY for cloud builds.  The
-// cloud factory may return a concrete *T(nil) to signal "not applicable"; without
-// the guard that typed-nil would be wrapped in a non-nil interface value and
-// passed to WithLicenseEvaluator, causing a panic the first time any method is
-// called on the injected evaluator.
 func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
 	factory := services.LicenseEvaluatorFactory()
 	if factory == nil {
@@ -432,8 +371,6 @@ func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c c
 		return nil, errors.Join(errors.New("init license evaluator"), err)
 	}
 
-	// The factory returns an untyped nil on its skip path, so a plain nil-check
-	// is sufficient — no typed-nil interface can occur here.
 	if le != nil {
 		return []services.Option{services.WithLicenseEvaluator(le)}, nil
 	}
@@ -441,10 +378,6 @@ func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c c
 	return nil, nil
 }
 
-// sessionRecordingPrunerOption initialises the recording pruner when an enterprise package
-// registered a factory. Its factory also returns nil on an enterprise instance with no object
-// storage configured, where there are no recordings to prune. Same nil guard, same reason as
-// licenseEvaluatorOption.
 func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
 	factory := services.SessionRecordingPrunerFactory()
 	if factory == nil {
@@ -463,9 +396,6 @@ func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Stor
 	return nil, nil
 }
 
-// firewallEvaluatorOption initialises the firewall evaluator when an enterprise package
-// registered a factory. The nil guard carries the same weight as in
-// licenseEvaluatorOption: injecting a typed nil would panic on first use.
 func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
 	factory := services.FirewallEvaluatorFactory()
 	if factory == nil {
@@ -484,20 +414,6 @@ func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c 
 	return nil, nil
 }
 
-// openAPIValidationSkipper reports whether a request's response must not be captured for
-// OpenAPI validation.
-//
-// Metrics and internal endpoints are exempt only for now: the schema does not describe them
-// today, and nothing stops them being brought in later.
-//
-// The upgrade routes are exempt permanently. They hijack the connection, so past the handshake
-// there is no HTTP response left to validate, and the validator's response wrapper hides
-// http.Hijacker from the WebSocket libraries. Both assert that interface directly, so wrapping
-// fails every agent tunnel and every web terminal - and with no tunnel there is no heartbeat,
-// so the whole fleet then ages out to offline.
-//
-// They match exactly rather than by prefix: WebSessionRoute sits under WebsocketSSHBridgeRoute
-// and does answer with a JSON body worth validating.
 func openAPIValidationSkipper(ctx *echo.Context) bool {
 	path := ctx.Request().URL.Path
 
@@ -518,7 +434,6 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 	return false
 }
 
-// routerOptions returns configuration options for the HTTP router.
 func (s *Server) routerOptions() ([]routes.Option, error) {
 	opts := []routes.Option{}
 

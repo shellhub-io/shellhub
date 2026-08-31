@@ -15,14 +15,10 @@ import (
 
 var ErrUserNotFound = errors.New("user not found on context")
 
-// NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 
 // Sessioner implements the Sessioner interface when the server is running in connector mode.
 type Sessioner struct {
-	// container is the device name.
-	//
-	// NOTICE: It's a pointer because when the server is created, we don't know the device name yet, that is set later.
 	container *string
 	docker    dockerclient.APIClient
 }
@@ -41,7 +37,6 @@ func NewSessioner(container *string, docker dockerclient.APIClient) *Sessioner {
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, _, _ := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)
@@ -88,7 +83,6 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 func (s *Sessioner) Exec(session gliderssh.Session) error {
 	sspty, _, isPty := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)
@@ -113,11 +107,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 			session.Exit(code) //nolint:errcheck
 		}()
 
-		// NOTICE: According to the [Docker] documentation, we can "demultiplex" a command sent to container, but only
-		// when the exec started doesn't allocate a TTY. As a result, we check if the exec's is requesting it and do
-		// what was recommended by [Docker]'s to get the stdout and stderr separately.
-		//
-		// [Docker]: https://pkg.go.dev/github.com/docker/docker/client#Client.ContainerAttach
 		if isPty {
 			if _, err := io.Copy(session, resp.Reader); err != nil && !errors.Is(err, io.EOF) {
 				log.WithError(err).Error("connector session I/O failed")
@@ -149,7 +138,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	sspty, _, _ := session.Pty()
 
-	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := *s.container
 
 	user, ok := session.Context().Value("user").(*osauth.User)

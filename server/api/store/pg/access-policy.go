@@ -115,8 +115,6 @@ func (pg *Pg) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.Acces
 			return store.ErrNoDocuments
 		}
 
-		// Sync the many-to-many tag relationships: drop the existing junction
-		// entries and re-insert the current set so removed tags don't linger.
 		if _, err := db.NewDelete().
 			Model((*entity.AccessPolicyTag)(nil)).
 			Where("access_policy_id = ?", e.ID).

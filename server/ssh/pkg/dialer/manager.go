@@ -22,9 +22,6 @@ type Manager struct {
 	DialerDoneCallback      func(string)
 	DialerKeepAliveCallback func(string)
 
-	// displaced counts the connections evict has closed. It is monotonic and
-	// read by [Collector]; the store's own size says nothing about how often
-	// this happened, because a displaced connection is gone by the next scrape.
 	displaced atomic.Uint64
 }
 
@@ -68,7 +65,6 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 	m.evict(key, m.Connections.Store(key, dialer))
 	m.DialerKeepAliveCallback(key)
 
-	// Start the ping loop and get the channel for pong responses
 	pong := conn.Ping()
 
 	go func() {
@@ -89,19 +85,6 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 	}()
 }
 
-// evict closes the connections a new registration for key displaced.
-//
-// A device that reconnects before the server has noticed its previous socket
-// is gone registers a second connection for the same identifier. Only the last
-// one is ever dialed, so the earlier ones are dead weight: they hold their
-// sockets and buffers until their own ping loop times out, which is up to
-// [BindPingInterval] away and never arrives at all for a peer that vanished
-// without resetting the connection.
-//
-// Closing runs in its own goroutine because it is teardown of an already
-// abandoned connection, and [revdial.Dialer.Close] blocks until its owner
-// observes the close. Neither belongs on the path registering the live
-// connection.
 func (m *Manager) evict(key string, displaced []any) {
 	if len(displaced) == 0 {
 		return
@@ -141,12 +124,8 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	key := NewKey(tenant, uid)
 
 	session, err := yamux.Client(conn, &yamux.Config{
-		AcceptBacklog: 256,
-		// NOTE: As we need to keep the registered connection alive, we use our own ping/pong mechanism.
-		EnableKeepAlive: false,
-		// NOTE: Although we disable the built-in keepalive, we still need to set the interval to a non-zero value to
-		// avoid yamux error when verifying the configuration. We've created a Pull Request to improve this behavior.
-		// TODO: Remove this workaround when yamux supports disabling keepalive completely.
+		AcceptBacklog:          256,
+		EnableKeepAlive:        false,
 		KeepAliveInterval:      BindPingInterval,
 		ConnectionWriteTimeout: 15 * time.Second,
 		MaxStreamWindowSize:    256 * 1024,
@@ -166,7 +145,6 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	go func() {
 		for {
 			select {
-			// NOTE: Ping is also important to keep the underlying WebSocket connection alive and avoid NAT timeouts.
 			case <-time.After(BindPingInterval):
 				if _, err := session.Ping(); err != nil {
 					log.WithFields(log.Fields{
@@ -208,15 +186,6 @@ const (
 	TransportVersion2 TransportVersion = 2
 )
 
-// openStream opens a yamux stream without outliving the caller.
-//
-// Opening does not await an acknowledgement, but it does block where yamux
-// takes no context: the in-flight SYN semaphore, which has no deadline once
-// AcceptBacklog opens are unacknowledged, and sending the SYN, bounded by
-// ConnectionWriteTimeout. Both are reached when the peer stops reading.
-//
-// The open is left running so a stream that lands late is closed rather than
-// leaked on the device.
 func openStream(ctx context.Context, session *yamux.Session) (net.Conn, error) { //nolint:ireturn
 	type opened struct {
 		conn net.Conn

@@ -17,8 +17,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// fakeSession is the second adapter behind the Session seam: it lets the channel
-// handlers be exercised without an SSH handshake or a live agent.
 type fakeSession struct {
 	mu sync.Mutex
 
@@ -110,7 +108,6 @@ func (f *fakeSession) Seat(int) (session.Seat, bool) { return session.Seat{}, tr
 func (f *fakeSession) SetSeatPty(int, bool)          { f.record("SetSeatPty") }
 func (f *fakeSession) SetSeatType(int, string)       { f.record("SetSeatType") }
 
-// nopChannel is an inert channel: the rejection paths never move data over it.
 type nopChannel struct{}
 
 func (*nopChannel) Read([]byte) (int, error)    { return 0, io.EOF }
@@ -128,7 +125,6 @@ func closedRequests() <-chan *gossh.Request {
 	return requests
 }
 
-// rejectingNewChannel records the rejection the handler chose.
 type rejectingNewChannel struct {
 	mu       sync.Mutex
 	rejected bool

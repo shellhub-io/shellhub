@@ -47,7 +47,6 @@ func TestWebReauthVerify(t *testing.T) {
 			expectedErr: false,
 		},
 		{
-			// A wrong factor must never reach the stamp (no SSHIdentityResolve).
 			description: "rejects a wrong password without stamping",
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "wrong", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
@@ -65,7 +64,6 @@ func TestWebReauthVerify(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			// A member must not refresh a fingerprint owned by someone else.
 			description: "rejects a fingerprint owned by another member",
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
@@ -136,7 +134,6 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			expectedErr:  false,
 		},
 		{
-			// A factor proved for one key must not release a login waiting on another.
 			description: "refuses an approval for a different key",
 			approval: &models.SSHApproval{
 				Code: code, TenantID: tenantID, Kind: models.SSHApprovalReauth,
@@ -145,7 +142,6 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			// The step-up route must not double as a way to add an identity.
 			description: "refuses an identity approval",
 			approval: &models.SSHApproval{
 				Code: code, TenantID: tenantID, Kind: models.SSHApprovalIdentity,

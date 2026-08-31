@@ -20,7 +20,6 @@ func (r *zeroReadNoEOFReader) Read(p []byte) (int, error) {
 	return 0, nil
 }
 
-// singleRead returns the provided bytes on the first Read call, then EOF.
 type singleRead struct {
 	data []byte
 	read bool
@@ -43,11 +42,6 @@ func TestRedirToWs_Regression_EndNegative(t *testing.T) {
 
 	conn := NewConn(mock)
 
-	// All three bytes are UTF-8 continuation bytes, which will cause the
-	// logic in redirToWs to set end to -1 if not handled properly.
-	// This test ensures that the function does not panic in such a case.
-	//
-	// https://datatracker.ietf.org/doc/html/rfc3629#section-3
 	reader := &singleRead{data: []byte{0x80, 0x81, 0x82}}
 
 	assert.NotPanics(t, func() {
@@ -129,10 +123,6 @@ func TestMapBannerErrorEmptyMessage(t *testing.T) {
 	assert.ErrorIs(t, got, ErrConnect, "expected ErrConnect for empty-message BannerError, got %v", got)
 }
 
-// dialWithBanner starts a gliderssh server that sends the given banner, then
-// dials it with a BannerCallback that returns NewBannerError — exactly as the
-// production newSession does. It returns the dial error (which embeds a
-// *BannerError) so callers can exercise the errors.As path.
 func dialWithBanner(t *testing.T, bannerText string) error {
 	t.Helper()
 
@@ -195,16 +185,8 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 			want:        ErrInvalidSSHID,
 		},
 		{
-			// KindNone produces an empty banner string. The BannerCallback returns nil
-			// for an empty string, so no *BannerError is injected into the dial error.
-			// The server has no auth handlers set, so it accepts any credentials and
-			// the dial succeeds: there is no dial error at all. mapBannerError is never
-			// called for this case, so there is no sentinel to assert — `want` is
-			// intentionally absent. The unknown-banner → ErrConnect sentinel mapping is
-			// covered separately by TestBannerNewBannerErrorUnrecognizedSetsKindNone.
 			description: "KindNone (empty banner) produces no BannerError and the dial succeeds",
 			kind:        banner.KindNone,
-			// want is deliberately omitted: mapBannerError is not reached on this path.
 		},
 	}
 
@@ -212,13 +194,9 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			dialErr := dialWithBanner(t, banner.Message(tc.kind))
 
-			// The production newSession path: errors.As extracts *BannerError from
-			// the dial error, then mapBannerError converts it to a sentinel.
 			var e *BannerError
 
 			if tc.kind == banner.KindNone {
-				// Empty banner: BannerCallback returns nil, so the dial should
-				// succeed with no error and no *BannerError embedded.
 				require.NoError(t, dialErr, "expected dial to succeed when banner is empty")
 				assert.NotErrorAs(t, dialErr, &e, "expected no BannerError for empty banner")
 

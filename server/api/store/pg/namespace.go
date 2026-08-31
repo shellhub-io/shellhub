@@ -17,11 +17,6 @@ import (
 func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
 	namespace.CreatedAt = clock.Now()
 
-	// Single-namespace binding: once the instance is bound to a namespace
-	// (systems.instance_tenant_id, set in Community deployments), refuse any further namespace
-	// with a specific error — distinct from a duplicate-name conflict. Enterprise/Cloud keep the
-	// binding empty (their store wrapper strips it), so this never triggers there. Setup creates
-	// the first namespace while the binding is still empty.
 	system, err := pg.SystemGet(ctx)
 	if err != nil {
 		return "", err
@@ -35,8 +30,6 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.TenantID = uuid.Generate()
 	}
 
-	// Identity-first: a namespace created without an explicit SSH access mode is
-	// born identity, with the owner starter policy seeded below.
 	if namespace.Settings == nil {
 		namespace.Settings = &models.NamespaceSettings{}
 	}
@@ -45,9 +38,6 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
 	}
 
-	// Insert the namespace, its memberships, and its legacy install key atomically, so a failure can't
-	// leave a namespace without the legacy key that keyless enrollments attribute to. InstallKeyCreate
-	// resolves its connection from ctx, so it joins this transaction transparently.
 	if err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
@@ -62,14 +52,6 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			}
 		}
 
-		// Every namespace gets its two system-managed install keys, so every keyless enrollment has a
-		// source to attribute to. Created here, at the single namespace-creation chokepoint every path
-		// funnels through — the API, setup, the CLI, and the cloud/enterprise store that delegates here —
-		// so no path can skip them. Digests are derived from the tenant; agents never present them, they
-		// are resolved by type.
-		//
-		// legacy: tenant-only keyless enrollment (a device presenting only the tenant ID). Manual mode,
-		// so such devices land pending.
 		legacyDigest := sha256.Sum256([]byte("system:" + namespace.TenantID))
 		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
 			ID:        hex.EncodeToString(legacyDigest[:]),
@@ -83,8 +65,6 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			return err
 		}
 
-		// pairing: code-pairing enrollment (a tenant-less agent accepted via its printed code). Automatic
-		// mode, since acceptance is the code itself; the pairing flow accepts the device explicitly.
 		pairingDigest := sha256.Sum256([]byte("system:pairing:" + namespace.TenantID))
 		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
 			ID:        hex.EncodeToString(pairingDigest[:]),
@@ -98,10 +78,6 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			return err
 		}
 
-		// An identity-mode namespace with zero policies denies every SSH login
-		// (default-deny), so a namespace born identity gets the owner starter
-		// policy atomically with its creation (see NewOwnerAccessPolicy).
-		// AccessPolicyCreate joins this transaction via ctx.
 		if namespace.Settings.IsIdentityAccess() && namespace.Owner != "" {
 			if _, err := pg.AccessPolicyCreate(ctx, models.NewOwnerAccessPolicy(namespace.TenantID, namespace.Owner)); err != nil {
 				return err
@@ -187,9 +163,6 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 		return nil, err
 	}
 
-	// namespaces.id is a uuid-typed column; a malformed value would otherwise reach
-	// Postgres and fail with SQLSTATE 22P02. Treat it as not-found to match the prior
-	// Mongo behavior and avoid logging a misleading SQL error.
 	if resolver == store.NamespaceTenantIDResolver {
 		if _, err := uuid.Parse(val); err != nil {
 			return nil, store.ErrNoDocuments
@@ -210,8 +183,6 @@ func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (mod
 
 	limit := models.NamespaceDeviceLimit{}
 
-	// Same guard as NamespaceResolve: namespaces.id is uuid-typed, so a malformed value
-	// would reach Postgres and fail with SQLSTATE 22P02 instead of a clean not-found.
 	if _, err := uuid.Parse(tenantID); err != nil {
 		return limit, store.ErrNoDocuments
 	}
@@ -234,7 +205,6 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...s
 	query := db.NewSelect().
 		Model(&entities).
 		Relation("User").
-		// Service accounts are not human members; keep them out of the members list.
 		Where("membership.user_id IN (SELECT id FROM users WHERE type != ?)", string(models.UserTypeService)).
 		OrderExpr("membership.created_at ASC")
 
@@ -460,7 +430,6 @@ func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) fun
 	}
 }
 
-// namespaceExprPreferredOrder returns the SQL expression for ordering by preferred namespace.
 func namespaceExprPreferredOrder() string {
 	return "CASE WHEN namespace.id = users.preferred_namespace_id THEN 0 ELSE 1 END"
 }

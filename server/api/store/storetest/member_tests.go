@@ -19,7 +19,6 @@ func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 	t.Run("fails when tenant is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create a user but not a namespace
 		userID := s.CreateUser(t)
 
 		member := &models.Member{
@@ -94,7 +93,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 	t.Run("fails when tenant is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace with a member, then delete the namespace
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 		member := &models.Member{
@@ -136,7 +134,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		tenantID := s.CreateNamespace(t, WithOwner(userID))
 		s.CreateMembership(t, tenantID, userID, "observer")
 
-		// Set preferred namespace (targeted write; full UserUpdate no longer persists it)
 		require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, tenantID))
 
 		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)

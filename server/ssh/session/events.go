@@ -12,26 +12,12 @@ import (
 )
 
 const (
-	// eventQueueSize bounds how many events may be waiting to be written. The
-	// producer is the PTY copy loop, so this is the buffer that absorbs a slow
-	// database without stalling the terminal.
-	eventQueueSize = 4096
-	// eventBatchSize and eventFlushInterval bound a batch by size and by age. A
-	// busy terminal fills the batch; an idle one still gets its events written
-	// promptly, which matters because a recording is only complete once flushed.
-	eventBatchSize     = 256
-	eventFlushInterval = 250 * time.Millisecond
-	// eventEnqueueTimeout is how long a producer waits for room in the queue.
-	// Recording is an audit artifact, so the writer applies backpressure rather
-	// than discarding on sight — but it cannot wait forever, or a database
-	// problem would freeze every terminal on the server.
+	eventQueueSize      = 4096
+	eventBatchSize      = 256
+	eventFlushInterval  = 250 * time.Millisecond
 	eventEnqueueTimeout = 5 * time.Second
-	// eventWriteTimeout bounds a single batch insert. It is deliberately generous:
-	// the alternative to a slow write is a lost recording.
-	eventWriteTimeout = 30 * time.Second
-	// eventDrainTimeout bounds how long finishing a session waits for the events
-	// still in flight.
-	eventDrainTimeout = 10 * time.Second
+	eventWriteTimeout   = 30 * time.Second
+	eventDrainTimeout   = 10 * time.Second
 )
 
 // Events records a session's events. It buffers them and writes them in batches,
@@ -47,17 +33,8 @@ type Events struct {
 	queue chan models.SessionEvent
 	wg    sync.WaitGroup
 
-	// start brings the writer up on the first event rather than at construction.
-	// A session is built during the pre-authentication banner, and most of the
-	// connections that get that far never reach a channel: the device is offline,
-	// the firewall refuses them, or the key is simply wrong. Those never record
-	// anything, and starting a ticker for each of them would leave one running per
-	// rejected connection, since only Finish stops it and Finish belongs to the
-	// channel handlers.
 	start sync.Once
 
-	// mu guards closed against the queue being closed while a producer is
-	// blocked sending to it.
 	mu      sync.RWMutex
 	closed  bool
 	dropped atomic.Uint64
@@ -164,11 +141,6 @@ func (e *Events) run() {
 			return
 		}
 
-		// The session is often already gone by the time its last events are
-		// written — the client disconnected, which is what ended it. A context
-		// derived from that connection would be cancelled here, and Postgres
-		// passes cancellation straight through, so the write would fail
-		// silently.
 		ctx, cancel := context.WithTimeout(context.Background(), eventWriteTimeout)
 		defer cancel()
 

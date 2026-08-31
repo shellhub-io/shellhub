@@ -17,13 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The status codes on these two routes are a contract with agents already in the
-// field, which do not upgrade alongside the server. They are asserted against the
-// wired error handler rather than the handler's return value, because the status
-// is decided by the handler chain and not by the route.
-//
-// Every case below fails before the WebSocket upgrade, so no upgrade is needed to
-// exercise it.
 func newConnectionTestServer(t *testing.T, service services.Service, cfg *Config) *echo.Echo {
 	t.Helper()
 
@@ -60,9 +53,6 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 					Return(nil, services.NewErrDeviceNotFound(models.UID(testDeviceUID), store.ErrNoDocuments)).
 					Once()
 			},
-			// The agent cannot tell 404 from 500 -- any non-101 is a failed handshake
-			// -- but the code is pinned so the move off the loopback HTTP client
-			// cannot change it by accident.
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
@@ -78,10 +68,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "the pre-0.15 fallback refuses an unknown device with a server error",
-			// With the tunnel check off and no tenant header, the handler looks the
-			// device up purely to discover its tenant. This is the path agents older
-			// than 0.15 take.
+			description:  "the pre-0.15 fallback refuses an unknown device with a server error",
 			config:       &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct
 			tenantHeader: "",
 			setupMock: func(m *servicemocks.MockService) {
@@ -198,8 +185,6 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			// Validation runs before the service is touched, so a nil one asserts it
-			// is never reached.
 			e := newConnectionTestServer(t, nil, &Config{}) //nolint:exhaustruct
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV2Path, nil)

@@ -44,7 +44,6 @@ type Session struct {
 }
 
 func SessionFromModel(model *models.Session) *Session {
-	// Default to shell if Type is empty (for test cases)
 	sessionType := model.Type
 	if sessionType == "" {
 		sessionType = "shell"
@@ -188,7 +187,6 @@ func SessionEventToModel(entity *SessionEvent) *models.SessionEvent {
 	return event
 }
 
-// parseEventTypes converts a comma-separated string of event types into a slice of strings
 func parseEventTypes(eventTypes string) []string {
 	if eventTypes == "" {
 		return []string{}
@@ -206,7 +204,6 @@ func parseEventTypes(eventTypes string) []string {
 	return result
 }
 
-// parseEventSeats converts a comma-separated string of seat numbers into a slice of integers
 func parseEventSeats(eventSeats string) []int {
 	if eventSeats == "" {
 		return []int{}

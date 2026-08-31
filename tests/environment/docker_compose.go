@@ -16,24 +16,14 @@ import (
 )
 
 type DockerCompose struct {
-	// t is the [testing.T] associated with the [DockerCompose] instance. It is used for
-	// making assertions.
 	t *testing.T
 
-	// services is a list of running services such as the gateway and the server.
 	services map[Service]*tc.DockerContainer
 
-	// client is a HTTP client with "http://localhost:{SHELLHUB_HTTP_PORT}" as the base URL.
 	client *resty.Client
 
-	// envs is a map containing all environment variables passed to the services.
 	envs map[string]string
 
-	// down is a function designed to be invoked internally within [Down] method calls. This
-	// attribute is necessary because when initializing docker-compose with testcontainer,
-	// the returned value is of a private type, rendering it inaccessible for passing as a
-	// function parameter, for example. Consequently, we construct the Down method within
-	// the Up method, encapsulating it within an attribute and invoking it within a method.
 	down func()
 }
 
@@ -64,12 +54,6 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
-// runAdminCommand runs one "server admin ..." invocation inside the running server
-// container. The commands ship in the server binary, so there is no container to stand
-// up and no connection settings to repeat: the process inherits the service's own.
-//
-// It calls assert.FailNow when the command cannot be run or exits non-zero, so callers
-// do not silently proceed against a database that was never seeded.
 func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
 	code, output, err := dc.Service(ServiceServer).Exec(
 		ctx,

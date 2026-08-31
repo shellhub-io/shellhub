@@ -18,8 +18,6 @@ func NewBinder() *Binder {
 }
 
 func (b *Binder) Bind(c *echo.Context, s any) error {
-	// Echo does not URL-decode path parameters. Decode them here so that
-	// names containing reserved characters (e.g. @, %) round-trip correctly.
 	values := c.PathValues()
 	for i, v := range values {
 		decoded, err := url.PathUnescape(v.Value)
@@ -46,8 +44,6 @@ func (b *Binder) Bind(c *echo.Context, s any) error {
 	return nil
 }
 
-// unwrapBindError digs out the cause Echo wrapped in the error it returns from binding, which is
-// what callers get told about. It returns the error itself when there is nothing underneath.
 func unwrapBindError(err error) error {
 	if cause := stderrors.Unwrap(err); cause != nil {
 		return cause
@@ -56,13 +52,6 @@ func unwrapBindError(err error) error {
 	return err
 }
 
-// discardEmptyChunkedBody marks a request that carries no payload as having a zero-length
-// body. Echo's binder skips the body only when Content-Length is 0, but clients sending a
-// body-less request with Transfer-Encoding: chunked (resty does so since v2.17) leave it at
-// -1, and the binder then rejects the missing Content-Type with 415.
-//
-// A request whose body turns out to be non-empty is left untouched, save for the buffering
-// needed to peek at it.
 func discardEmptyChunkedBody(r *http.Request) {
 	if r == nil || r.Body == nil || r.ContentLength >= 0 {
 		return

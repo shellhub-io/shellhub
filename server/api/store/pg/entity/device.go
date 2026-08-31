@@ -48,7 +48,6 @@ type Device struct {
 }
 
 func DeviceFromModel(model *models.Device) *Device {
-	// Default to pending if Status is empty (for test cases)
 	status := string(model.Status)
 	if status == "" {
 		status = string(models.DeviceStatusPending)
@@ -97,15 +96,12 @@ func DeviceFromModel(model *models.Device) *Device {
 		device.Platform = model.Info.Platform
 	}
 
-	// Handle Tags if fully populated (e.g., from API requests)
 	if len(model.Tags) > 0 {
 		device.Tags = make([]*Tag, len(model.Tags))
 		for i, t := range model.Tags {
 			device.Tags[i] = TagFromModel(&t)
 		}
 	} else if len(model.TagIDs) > 0 {
-		// Handle TagIDs if only IDs are provided (e.g., from tests or internal operations)
-		// Create minimal Tag entities with just ID for many-to-many relationship
 		device.Tags = make([]*Tag, len(model.TagIDs))
 		for i, tagID := range model.TagIDs {
 			device.Tags[i] = &Tag{ID: tagID}

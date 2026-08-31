@@ -16,13 +16,6 @@ type Target struct {
 }
 
 func NewTarget(sshid string) (*Target, error) {
-	// SSHID could be either device ID or a SSHID.
-	//
-	// Example: username@namespace.00-00-00-00-00-00@localhost.
-	// 'username' is the user on the device.
-	// 'namespace' is the user's namespace in ShellHub.
-	// '00-00-00-00-00' is the device's hostname in ShellHub.
-	// 'localhost' is the server's address.
 	const USERNAME = 0
 	const DATA = 1
 

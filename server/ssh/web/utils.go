@@ -72,7 +72,6 @@ func (c *Credentials) isPublicKey() bool {
 	return c.Fingerprint != ""
 }
 
-// isPassword checks if connection is using password method.
 func (c *Credentials) isPassword() bool {
 	return !c.isPublicKey()
 }

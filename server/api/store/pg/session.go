@@ -16,8 +16,6 @@ import (
 func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error) {
 	db := pg.GetConnection(ctx)
 
-	// Sessions and devices both have namespace_id; qualify the column to
-	// avoid ambiguity when SessionSelectQuery JOINs the devices table.
 	ctx = context.WithValue(ctx, CtxTableAlias, "session")
 
 	entities := make([]entity.Session, 0)
@@ -61,9 +59,6 @@ func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.Que
 func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	db := pg.GetConnection(ctx)
 
-	// Sessions and devices both have namespace_id; qualify the column so the
-	// scope predicate doesn't hit an ambiguous column when SessionSelectQuery
-	// JOINs the devices table.
 	ctx = context.WithValue(ctx, CtxTableAlias, "session")
 
 	var sessionID string
@@ -106,9 +101,6 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 		session.UID = uuid.Generate()
 	}
 
-	// The device is what establishes the session's namespace, so this lookup cannot be bounded by
-	// the namespace it is about to discover. The device UID is a hash the SSH server has already
-	// authenticated the connection against.
 	sc := scope.NewUnbounded("resolving the device that determines the new session's namespace")
 
 	device, err := pg.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(session.DeviceUID))
@@ -354,13 +346,6 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 
 	db := pg.GetConnection(ctx)
 
-	// Ordering by started_at walks sessions_started_at_idx and takes the oldest rows first, so
-	// successive batches drain the backlog from its far end instead of re-reading it.
-	//
-	// The anti-join is the safety rail: closed is not reliable for this (a session whose server
-	// died never gets closed and would otherwise be immortal), whereas a row in active_sessions
-	// is what a live session actually holds. Deleting one would cascade that row away underneath
-	// the connection still using it.
 	uids := make([]string, 0, limit)
 	recorded := make([]bool, 0, limit)
 

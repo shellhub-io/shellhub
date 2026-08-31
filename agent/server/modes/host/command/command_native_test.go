@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Compile-time assertion: CheckCredentialSwitch must be defined under the !docker tag.
 var _ = CheckCredentialSwitch
 
 // TestSetgroupsDenied verifies the setgroupsDenied helper across all documented
@@ -76,8 +75,6 @@ func TestSetgroupsDenied(t *testing.T) {
 			return nil, errors.New("permission denied")
 		}
 
-		// Should return false (and emit a warning via log, but we do not
-		// capture log output — the return value is what matters here).
 		assert.False(t, setgroupsDenied())
 	})
 }

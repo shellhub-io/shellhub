@@ -27,15 +27,12 @@ func TestNsenterCommandWrapper(t *testing.T) {
 		statFn = origStatFn
 	})
 
-	// presentNSFiles is the set of /proc/1/ns/* files that statFn will report as present.
-	// We choose a deterministic subset: mnt, net, pid.
 	presentNSFiles := map[string]bool{
 		"/proc/1/ns/mnt": true,
 		"/proc/1/ns/net": true,
 		"/proc/1/ns/pid": true,
 	}
 
-	// statFn stub: /usr/bin/nsenter always exists; only the listed ns files exist.
 	statFn = func(path string) (os.FileInfo, error) {
 		if path == "/usr/bin/nsenter" {
 			return nil, nil
@@ -48,35 +45,28 @@ func TestNsenterCommandWrapper(t *testing.T) {
 		return nil, os.ErrNotExist
 	}
 
-	// nsFlags that must always appear (from the present map above).
 	expectedNSFlags := []string{"-m", "-n", "-p"}
 
 	t.Run("present ns flags included and -T never present", func(t *testing.T) {
 		cmd, err := nsenterCommandWrapper(1000, 1000, []uint32{1000}, "/home/user", "/bin/sh")
 		require.NoError(t, err)
 
-		// -T must never be present.
 		assert.NotContains(t, cmd, "-T")
 
-		// All namespace flags from statFn must be present.
 		for _, flag := range expectedNSFlags {
 			assert.Contains(t, cmd, flag)
 		}
 
-		// Flags for absent namespaces must NOT be present.
 		for _, absent := range []string{"-u", "-i", "-C"} {
 			assert.NotContains(t, cmd, absent)
 		}
 
-		// setpriv/nsenter prefix ordering: /bin/setpriv must come first,
-		// /usr/bin/nsenter must follow.
 		setprivIdx := indexOf(cmd, "/bin/setpriv")
 		nsenterIdx := indexOf(cmd, "/usr/bin/nsenter")
 		assert.NotEqual(t, -1, setprivIdx, "/bin/setpriv must be present")
 		assert.NotEqual(t, -1, nsenterIdx, "/usr/bin/nsenter must be present")
 		assert.Less(t, setprivIdx, nsenterIdx, "/bin/setpriv must precede /usr/bin/nsenter")
 
-		// The user command must appear at the end.
 		assert.Equal(t, "/bin/sh", cmd[len(cmd)-1])
 	})
 
@@ -122,7 +112,6 @@ func TestNsenterCommandWrapper(t *testing.T) {
 	})
 }
 
-// indexOf returns the index of target in slice, or -1 if not found.
 func indexOf(slice []string, target string) int {
 	for i, s := range slice {
 		if s == target {

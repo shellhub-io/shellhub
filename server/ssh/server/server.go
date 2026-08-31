@@ -22,11 +22,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// finishingConn finishes the session bound to a connection when it closes.
-//
-// A channel handler cannot carry this: a client that opens no channel leaves
-// the session with nothing to finish it. The library closes this connection on
-// every exit path, so it is the one signal every session gets.
 type finishingConn struct {
 	net.Conn
 
@@ -59,14 +54,6 @@ type Options struct {
 	AutoSSL bool
 }
 
-// keepAlive is how a peer that went away without closing its socket gets
-// reclaimed: the kernel probes an idle connection and the read then fails with
-// a net.Error, which is what cancels the connection's context.
-//
-// These are Go's own defaults, set explicitly so the bound stays a decision of
-// ours rather than one a future release could change underneath us. Nine probes
-// fifteen seconds apart after fifteen seconds of silence puts the worst case at
-// about two and a half minutes.
 var keepAlive = net.KeepAliveConfig{
 	Enable:   true,
 	Idle:     15 * time.Second,
@@ -74,16 +61,6 @@ var keepAlive = net.KeepAliveConfig{
 	Count:    9,
 }
 
-// handshakeBudget bounds an unauthenticated connection.
-//
-// It has to outlast the browser approvals an identity-mode login can wait on:
-// an enrollment and a re-auth are two separate waits in one handshake, and the
-// deadline would otherwise cut off a login the user is about to approve.
-//
-// It bounds the connection, not the time spent inside a callback. The library
-// applies it as a socket deadline, and no I/O is in flight while the gateway
-// waits on an approval, so it fires on the next read rather than interrupting
-// the wait.
 const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
 
 type Server struct {
@@ -92,9 +69,6 @@ type Server struct {
 	dialer *dialer.Dialer
 }
 
-// bannerDeps holds the injectable operations used by newBannerHandler. The
-// defaults (set by defaultBannerDeps) delegate to the real session package;
-// tests supply stubs to exercise individual branches without network I/O.
 type bannerDeps struct {
 	newSession func(ctx gliderssh.Context, d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
 	dial       func(sess *session.Session, ctx gliderssh.Context) error
@@ -109,16 +83,10 @@ func defaultBannerDeps() bannerDeps {
 	}
 }
 
-// newBannerHandler returns a gliderssh.BannerHandler that validates the SSHID,
-// establishes the session, and dials the target device. It returns a banner
-// message (using ssh/pkg/banner) when any step fails, or an empty string on
-// success so the SSH handshake continues normally.
 func newBannerHandler(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) gliderssh.BannerHandler {
 	return newBannerHandlerWithDeps(d, service, handoff, defaultBannerDeps())
 }
 
-// newBannerHandlerWithDeps is the testable core of newBannerHandler. Callers
-// supply a bannerDeps to stub out network-dependent operations.
 func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
@@ -127,9 +95,6 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handof
 				"sshid": ctx.User(),
 			})
 
-		// gliderlabs/ssh runs this handler in the per-connection goroutine with
-		// no recover of its own, so an unhandled panic here crashes the whole
-		// service. Contain it and fail just this connection.
 		defer func() {
 			if r := recover(); r != nil {
 				logger.WithField("panic", r).Error("recovered from panic while establishing the session")
@@ -160,8 +125,6 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handof
 		}
 
 		if err := deps.evaluate(sess, ctx); err != nil {
-			// Firewall and billing denials look the same to the user but need different
-			// answers from us, so they must not share a log message.
 			evaluated := logger.WithError(err)
 			if sess.Device != nil {
 				evaluated = evaluated.WithField("tenant", sess.Device.TenantID)
@@ -179,49 +142,18 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handof
 			return banner.Message(banner.KindAccessDenied)
 		}
 
-		// No pre-auth banner on success. In identity mode the enrollment URL is
-		// sent later, mid-handshake, only if the presented key is unenrolled, so
-		// an enrolled key connects cleanly with no banner.
 		return ""
 	}
 }
 
 var (
-	// errNoneAuthUnsupported fails the `none` method so the server falls back to
-	// advertising the standard publickey+password methods (legacy behavior).
 	errNoneAuthUnsupported = errors.New("ssh: none authentication is not supported")
-	// errPermissionDenied denies a publickey attempt in identity mode.
-	errPermissionDenied = errors.New("ssh: permission denied")
+	errPermissionDenied    = errors.New("ssh: permission denied")
 )
 
-// newServerConfigCallback builds the per-connection SSH server config. It enables
-// the `none` auth method so the offered authentication methods can be decided
-// AFTER the SSHID — and thus the namespace's access mode — is known, which only
-// happens once the client sends its username. The banner handler runs before
-// `none` is processed (x/crypto sends the banner first), so the session and its
-// access mode are already resolved here.
-//
-// In identity mode the identity is an SSH key, so the connection is restricted to
-// publickey only via a PartialSuccessError: password is never advertised, so a
-// stock OpenSSH client never prompts for one, and a keyless client gets a clean
-// "publickey" denial instead of a password prompt. Legacy namespaces are
-// untouched — `none` fails and the standard publickey+password set is advertised
-// exactly as before, so password login keeps working there.
-//
-// The gliderssh fork overlays the host key and the publickey/password/banner
-// callbacks (from the server's handlers) onto the returned config; it never
-// touches NoClientAuth/NoClientAuthCallback, so what is set here survives.
 func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	return &gossh.ServerConfig{ //nolint:exhaustruct
 		NoClientAuth: true,
-		// Runs only after the client has signed for the key it offered, and only
-		// when the offer was accepted. x/crypto reads it from the top-level config
-		// rather than from the callbacks a PartialSuccessError installs, so it
-		// covers identity and legacy namespaces alike.
-		//
-		// A publickey callback must not return a PartialSuccessError while this is
-		// set — x/crypto rejects that combination by dropping the connection, not
-		// by failing the attempt. Ours return only nil or a denial.
 		VerifiedPublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey, _ *gossh.Permissions, _ string) (*gossh.Permissions, error) {
 			if ok := auth.PublicKeyVerified(ctx, key); !ok {
 				return nil, errPermissionDenied
@@ -229,9 +161,6 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 
 			return ctx.Permissions().Permissions, nil
 		},
-		// Capture the pre-auth connection so the enrollment/step-up banner can be
-		// sent mid-handshake, after the presented key is resolved, instead of
-		// unconditionally up front.
 		PreAuthConnCallback: func(conn gossh.ServerPreAuthConn) {
 			session.StorePreAuthConn(ctx, conn)
 		},
@@ -270,20 +199,11 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 	}
 
 	server.sshd = &gliderssh.Server{ //nolint:exhaustruct
-		Addr: ":2222",
-		// Only the handshake is bounded by a deadline. An established connection
-		// is left to TCP keepalive, which reclaims a dead peer without punishing
-		// a live one for being quiet — an idle port forward carries no traffic
-		// for hours and is perfectly healthy.
-		//
-		// MaxTimeout is deliberately left unset too: it is an absolute deadline
-		// that is never cleared, so it would kill established shells at the limit.
+		Addr:             ":2222",
 		HandshakeTimeout: handshakeBudget,
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
 			wrapped := &finishingConn{Conn: conn, ctx: ctx}
 
-			// Stored wrapped as well: the auth handlers close this on a failed
-			// guard, and that has to finish the session too.
 			session.StoreConn(ctx, wrapped)
 
 			return wrapped
@@ -292,16 +212,10 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 		BannerHandler:        newBannerHandler(dialer, service, handoff),
 		PasswordHandler:      auth.PasswordHandler,
 		PublicKeyHandler:     auth.PublicKeyOffer,
-		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
-		// channel, in the context of SSH, is a logical conduit through which data travels securely between the client
-		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,
-		// and securely forwarding network services.
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			channels.SessionChannel:     recoverChannel(channels.SessionChannel, channels.DefaultSessionHandler()),
 			channels.DirectTCPIPChannel: recoverChannel(channels.DirectTCPIPChannel, channels.DefaultDirectTCPIPHandler),
 		},
-		// Answers the web terminal bridge with this connection's session UID, so a
-		// client-side recording can be tied to its server session.
 		RequestHandlers: map[string]gliderssh.RequestHandler{
 			"session-uid@shellhub.io": func(ctx gliderssh.Context, _ *gliderssh.Server, _ *gossh.Request) (bool, []byte) {
 				return true, []byte(ctx.SessionID())
@@ -330,10 +244,6 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 	return server, nil
 }
 
-// recoverChannel keeps a panic in one channel from reaching the runtime. The
-// upstream server runs these in a per-connection goroutine with no recover of
-// its own, and since the HTTP server shares this process a single bad session
-// would take the API down with it.
 func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.ChannelHandler {
 	return func(srv *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		defer func() {
@@ -351,14 +261,6 @@ func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.Channe
 	}
 }
 
-// loopbackProxyPolicy honours a PROXY protocol header only when the real TCP
-// peer is loopback, and rejects the connection outright otherwise.
-//
-// Nothing produces such a header today: the web terminal bridge dials localhost
-// as a plain SSH client and passes the browser's address through the handoff
-// store instead. This is hardening, not a live path — the source address feeds
-// the firewall ip_address rule, the audit trail and the geoip record, so a peer
-// that is not us must never be able to declare one.
 var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
 
 func newProxyListener(lis net.Listener) *proxyproto.Listener {

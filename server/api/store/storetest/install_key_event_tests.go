@@ -13,8 +13,6 @@ import (
 
 const testInstallKeyDigest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-// createInstallKey inserts a minimal, valid install key so enrollment events can reference it via
-// the composite FK (install_key_id, namespace_id).
 func (s *Suite) createInstallKey(t *testing.T, tenantID string) string {
 	t.Helper()
 
@@ -104,7 +102,6 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		digest := s.createInstallKey(t, tenantID)
 
-		// A second namespace + key: its events must not leak into the first key's history.
 		otherTenant := s.CreateNamespace(t)
 		_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
 			ID:   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -148,7 +145,6 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		// The earlier row is byte-identical after the second append.
 		var still *models.InstallKeyEvent
 		for i := range after {
 			if after[i].ID == original.ID {

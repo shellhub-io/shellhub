@@ -11,9 +11,6 @@ import (
 // TestPgStore runs all store tests against PostgreSQL
 // Each sub-suite gets a fresh database with migrations to prevent test pollution
 func TestPgStore(t *testing.T) {
-	// Run each store interface test suite with its own isolated database
-	// This prevents data leakage between test suites and ensures clean state
-
 	runSubSuite(t, "UserStore", func(t *testing.T, suite *storetest.Suite) {
 		t.Helper()
 
@@ -184,8 +181,6 @@ func TestPgStore(t *testing.T) {
 		suite.TestWithTransaction(t)
 	})
 
-	// Cross-namespace isolation for every operation that takes a namespace scope. These are the
-	// tests that fail when a converted query stops applying its bound.
 	runSubSuite(t, "ScopeIsolation", func(t *testing.T, suite *storetest.Suite) {
 		t.Helper()
 
@@ -224,8 +219,6 @@ func TestPgStore(t *testing.T) {
 	})
 }
 
-// runSubSuite creates a fresh PostgreSQL database for each sub-suite
-// This ensures complete isolation between test suites
 func runSubSuite(t *testing.T, name string, testFunc func(*testing.T, *storetest.Suite)) {
 	t.Helper()
 

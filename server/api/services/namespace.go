@@ -24,9 +24,6 @@ var NamespaceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"type": {"eq", "ne"},
 })
 
-// namespaceFilterColumns maps API-level field names to their actual database column
-// names where the two differ. It is used by the store layer to translate filter
-// properties before constructing SQL queries.
 var namespaceFilterColumns = map[string]string{
 	"type": "scope",
 }
@@ -48,8 +45,6 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	// When MaxNamespaces is less than zero, it means that the user has no limit
-	// of namespaces. If the value is zero, it means he has no right to create a new namespace
 	if user.MaxNamespaces == 0 {
 		return nil, NewErrNamespaceCreationIsForbidden(user.MaxNamespaces, nil)
 	} else if user.MaxNamespaces > 0 {
@@ -100,33 +95,22 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 	}
 
 	if envs.IsCloud() {
-		// cloud free plan is limited only by the max of devices
 		ns.MaxDevices = 3
 	} else {
-		// we don't set limits on enterprise and community instances
 		ns.MaxDevices = -1
 	}
 
-	// The NamespaceConflicts pre-check above is the fast path; store.ErrDuplicate
-	// here means a concurrent insert raced past it. Map it to ErrNamespaceDuplicated
-	// so callers get a consistent duplicate signal regardless of timing.
 	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			return nil, NewErrNamespaceDuplicated(err)
 		}
 
-		// Defense in depth: the route is dropped in Community, but if the edition env and the
-		// store binding ever disagree (e.g. an Enterprise env running against a bound CE store),
-		// surface the single-namespace refusal as a clean conflict instead of a 500.
 		if errors.Is(err, store.ErrNamespaceSingle) {
 			return nil, NewErrNamespaceSingle(err)
 		}
 
 		return nil, NewErrNamespaceCreateStore(err)
 	}
-
-	// The namespace's legacy install key is created by the store at namespace creation, so every
-	// creation path (here, setup, the CLI, cloud/enterprise) gets it uniformly.
 
 	return ns, nil
 }
@@ -140,9 +124,6 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 		}
 	}
 
-	// When the caller has no user ID and is not a system admin (e.g.
-	// authenticated via API key), the listing is scoped to the caller's
-	// tenant. Otherwise the caller could enumerate namespaces across tenants.
 	if req.UserID == "" && !req.IsAdmin {
 		if req.TenantID == "" {
 			return []models.Namespace{}, 0, nil
@@ -233,8 +214,6 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	if err := s.store.NamespaceDelete(ctx, n); err != nil {
-		// The instance is bound to this namespace (single-namespace Community deployment); the
-		// FK's ON DELETE RESTRICT refuses it. Surface it as a 409 instead of a 500.
 		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
 			return NewErrNamespaceInstanceProtected(err)
 		}
@@ -263,9 +242,6 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
 	}
 
-	// NamespaceUpdate returns store.ErrDuplicate when the new name collides with an
-	// existing namespace. Map it to ErrNamespaceDuplicated so callers get a
-	// consistent duplicate signal regardless of timing.
 	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			return nil, NewErrNamespaceDuplicated(err)

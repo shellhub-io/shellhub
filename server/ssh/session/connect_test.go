@@ -35,7 +35,6 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 			return
 		}
 
-		// Accept and stay silent: never send the SSH version banner.
 		accepted <- conn
 	}()
 

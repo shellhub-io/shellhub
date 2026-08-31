@@ -36,23 +36,18 @@ var rawAccessDenied string
 //go:embed messages/reauth_required.txt
 var rawReauthRequired string
 
-// render converts LF line endings to the CRLF required by the SSH protocol.
 func render(s string) string {
-	// Normalise first so we never double-add \r.
 	s = strings.ReplaceAll(s, "\r\n", "\n")
 
 	return strings.ReplaceAll(s, "\n", "\r\n")
 }
 
-// normalize strips \r and trims surrounding whitespace so that messages with
-// different line endings or trailing newlines compare equal.
 func normalize(s string) string {
 	s = strings.ReplaceAll(s, "\r", "")
 
 	return strings.TrimSpace(s)
 }
 
-// index maps the normalised form of each embedded message to its Kind.
 var index = map[string]Kind{
 	normalize(rawInvalidSSHID):     KindInvalidSSHID,
 	normalize(rawConnectionFailed): KindConnectionFailed,
@@ -60,13 +55,8 @@ var index = map[string]Kind{
 	normalize(rawReauthRequired):   KindReauthRequired,
 }
 
-// codeTrailer prefixes the machine-readable last line carrying an approval code.
-// Only the web bridge reads these banners, and it needs the code to open the
-// approval screen for the login the gateway is holding. A native client gets a
-// human banner with the URL instead, built by the session package.
 const codeTrailer = "shellhub-approval: "
 
-// raw returns the embedded message for the given Kind, empty for KindNone.
 func raw(k Kind) string {
 	switch k {
 	case KindInvalidSSHID:

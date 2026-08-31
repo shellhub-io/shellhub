@@ -24,7 +24,6 @@ func TestNew(t *testing.T) {
 				assert.Truef(t, strings.ContainsRune(Alphabet, r), "unexpected char %q", r)
 			}
 
-			// Ambiguous characters must never appear.
 			for _, bad := range []string{"0", "O", "1", "I", "L", "U"} {
 				assert.NotContains(t, code, bad)
 			}
@@ -32,7 +31,6 @@ func TestNew(t *testing.T) {
 			seen[code] = struct{}{}
 		}
 
-		// Collisions in 2000 draws are effectively impossible.
 		assert.Len(t, seen, 2000, "expected all generated codes to be unique")
 	}
 }

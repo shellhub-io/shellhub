@@ -56,7 +56,6 @@ func (c Context) Error(err error) error {
 type Headers map[string]string
 
 func (c Context) Headers() (Headers, error) {
-	// TODO: cache the headers after the first call.
 	var header Headers
 
 	if err := c.decoder.Decode(&header); err != nil {

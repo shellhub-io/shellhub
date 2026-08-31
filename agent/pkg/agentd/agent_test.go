@@ -62,8 +62,6 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			// NOTE: TenantID is no longer required — an empty tenant is valid and
-			// drives the agent into pairing mode.
 			description: "fail to load the environment variables when one required values is empty",
 			requiredMocks: func() {
 				envs := new(Config)
@@ -163,7 +161,6 @@ func TestNewAgentWithConfig(t *testing.T) {
 		err   error
 	}
 
-	// NOTICE: configuration structure used by the successfully test.
 	config := &Config{
 		ServerAddress:    "http://localhost",
 		TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
@@ -200,9 +197,6 @@ func TestNewAgentWithConfig(t *testing.T) {
 			},
 		},
 		{
-			// NOTE: An empty tenant is allowed at construction time so a
-			// tenant-less agent can run Setup and pair; Authorize is the one
-			// that requires it.
 			description: "fail when private key is empty",
 			config: &Config{
 				ServerAddress: "http://localhost",
@@ -230,9 +224,6 @@ func TestNewAgentWithConfig(t *testing.T) {
 			},
 		},
 		{
-			// NOTE: A hand-built Config that bypasses env parsing leaves
-			// TransportVersion at its zero value, which is not a supported
-			// version and would otherwise fail late in Agent.Listen.
 			description: "fail when transport version is unsupported",
 			config: &Config{
 				ServerAddress:    "http://localhost",
@@ -372,10 +363,8 @@ func TestAgent_generatePrivateKey_PathContainment(t *testing.T) {
 		},
 		{
 			description: "path traversal via raw .. sequence",
-			// Construct the traversal without filepath.Join so the ".." is
-			// not cleaned before it reaches the agent's path-containment check.
-			privateKey: baseDir + "/../escaped.key",
-			wantErr:    keygen.ErrPathTraversal,
+			privateKey:  baseDir + "/../escaped.key",
+			wantErr:     keygen.ErrPathTraversal,
 		},
 	}
 
@@ -417,10 +406,8 @@ func TestAgent_readPublicKey_PathContainment(t *testing.T) {
 		},
 		{
 			description: "path traversal via raw .. sequence",
-			// Construct the traversal without filepath.Join so the ".." is
-			// not cleaned before it reaches the agent's path-containment check.
-			privateKey: baseDir + "/../escaped.key",
-			wantErr:    keygen.ErrPathTraversal,
+			privateKey:  baseDir + "/../escaped.key",
+			wantErr:     keygen.ErrPathTraversal,
 		},
 	}
 

@@ -32,7 +32,6 @@ func (h *Handler) GetSessionList(c *gateway.Context) error {
 		return err
 	}
 
-	// TODO: normalize is not required when request is privileged
 	req.Paginator.Normalize()
 
 	if err := req.Filters.Unmarshal(); err != nil {

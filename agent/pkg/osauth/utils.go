@@ -19,8 +19,5 @@ type User struct {
 // SHELLHUB_PERMIT_EMPTY_PASSWORDS is set to true. If so, it returns true,
 // allowing empty passwords. Otherwise, it returns false.
 func PermitEmptyPasswords() bool {
-	// TODO: Consider reading this configuration from the main application's function
-	// and passing it down to the osauth package.
-	// TODO: Consider caching the result to avoid repeated environment variable lookups.
 	return strings.EqualFold(os.Getenv("SHELLHUB_PERMIT_EMPTY_PASSWORDS"), "true")
 }

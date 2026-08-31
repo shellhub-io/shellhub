@@ -22,8 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// spyTransport is a sentry.Transport that records every event sent to it, for
-// use in unit tests. It is safe to use from multiple goroutines.
 type spyTransport struct {
 	mu     sync.Mutex
 	events []*sentry.Event
@@ -50,7 +48,6 @@ func (s *spyTransport) Flush(_ time.Duration) bool              { return true }
 func (s *spyTransport) FlushWithContext(_ context.Context) bool { return true }
 func (s *spyTransport) Close()                                  {}
 
-// reported returns the number of events captured so far.
 func (s *spyTransport) reported() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -58,7 +55,6 @@ func (s *spyTransport) reported() int {
 	return len(s.events)
 }
 
-// firstMessage returns the message of the first captured event, or "" when none arrived.
 func (s *spyTransport) firstMessage() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -70,8 +66,6 @@ func (s *spyTransport) firstMessage() string {
 	return s.events[0].Message
 }
 
-// waitForEvent blocks until at least one event has been delivered or the
-// deadline is reached. Returns true if an event was received.
 func (s *spyTransport) waitForEvent(timeout time.Duration) bool {
 	select {
 	case <-s.done:
@@ -81,8 +75,6 @@ func (s *spyTransport) waitForEvent(timeout time.Duration) bool {
 	}
 }
 
-// newSpyClient returns a *sentry.Client wired to a spyTransport together with
-// the spy so tests can inspect captured events.
 func newSpyClient(t *testing.T) (*sentry.Client, *spyTransport) {
 	t.Helper()
 
@@ -97,7 +89,6 @@ func newSpyClient(t *testing.T) (*sentry.Client, *spyTransport) {
 	return client, spy
 }
 
-// newEchoCtx returns an *echo.Context backed by an HTTP recorder for assertions.
 func newEchoCtx() (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
@@ -116,8 +107,6 @@ func TestNewErrors(t *testing.T) {
 		wantReported bool
 	}{
 		{
-			// (1) store.ErrInternal must yield 500 AND invoke report(). The response carries the
-			//     generic message; only the reporter sees the real one.
 			description:  "store.ErrInternal yields a generic 500 body and is reported to sentry",
 			err:          errors.Wrap(store.ErrInternal, errors.New("some internal detail", store.ErrLayer, store.ErrCodeInternal)),
 			wantStatus:   http.StatusInternalServerError,
@@ -125,8 +114,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: true,
 		},
 		{
-			// (2) A plain store-layer error that is NOT ErrInternal yields 500 but MUST NOT invoke
-			//     report(), and must not echo its own message either.
 			description:  "store.ErrNoDocuments yields a generic 500 body without reporting to sentry",
 			err:          store.ErrNoDocuments,
 			wantStatus:   http.StatusInternalServerError,
@@ -134,7 +121,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// (3) context.Canceled cannot be classified: generic body, no report.
 			description:  "context.Canceled yields a generic 500 body without reporting to sentry",
 			err:          context.Canceled,
 			wantStatus:   http.StatusInternalServerError,
@@ -142,7 +128,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// (4) An error carrying an HTTP status answers with that status and its own message.
 			description:  "an echo error yields its status and message",
 			err:          echo.ErrNotFound,
 			wantStatus:   http.StatusNotFound,
@@ -157,8 +142,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// A binding error reports 400 and reads its own Error() as
-			// "code=400, message=…, err=strconv.ParseInt: …" — the client must not see the cause.
 			description:  "a binding error yields 400 without echoing the underlying cause",
 			err:          echo.NewBindingError("page", []string{"abc"}, "failed to bind field value to int", strconv.ErrSyntax),
 			wantStatus:   http.StatusBadRequest,
@@ -215,7 +198,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// A service code with no HTTP mapping falls back to 500, so it must not echo either.
 			description:  "a service store error yields a generic 500 body",
 			err:          services.ErrUserUpdate,
 			wantStatus:   http.StatusInternalServerError,
@@ -251,7 +233,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// 204 forbids a body, so this code keeps its bare status.
 			description:  "a service no-content-change error yields a bare 204",
 			err:          services.ErrNoContentChange,
 			wantStatus:   http.StatusNoContent,
@@ -259,8 +240,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			// The scope package declares a layer the switch does not name, so the default arm is
-			// reachable and must answer 500 rather than status zero.
 			description:  "an error from an unrecognised layer yields a generic 500 body",
 			err:          scope.ErrEmptyTenantID,
 			wantStatus:   http.StatusInternalServerError,
@@ -288,13 +267,11 @@ func TestNewErrors(t *testing.T) {
 			}
 
 			if tc.wantReported {
-				// report() fires a goroutine; wait for the event to arrive.
 				got := spy.waitForEvent(500 * time.Millisecond)
 				require.True(t, got, "expected exactly one sentry event, got none within 500ms")
 				assert.Equal(t, 1, spy.reported(), "expected exactly one sentry event")
 				assert.Contains(t, spy.firstMessage(), "some internal detail", "the reporter must receive the real message")
 			} else {
-				// Give any (erroneous) async report a chance to arrive, then assert silence.
 				time.Sleep(50 * time.Millisecond)
 				assert.Equal(t, 0, spy.reported(), "expected no sentry events")
 			}

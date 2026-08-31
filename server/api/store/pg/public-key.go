@@ -71,7 +71,6 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 		a := entity.PublicKeyFromModel(publicKey)
 		a.UpdatedAt = clock.Now()
 
-		// Filter by both fingerprint and namespace_id to match MongoDB behavior
 		r, err := db.NewUpdate().
 			Model(a).
 			Where("fingerprint = ?", publicKey.Fingerprint).
@@ -85,8 +84,6 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 			return store.ErrNoDocuments
 		}
 
-		// Sync the many-to-many tag relationships: drop the existing junction
-		// entries and re-insert the current set so removed tags don't linger.
 		if _, err := db.NewDelete().
 			Model((*entity.PublicKeyTag)(nil)).
 			Where("public_key_fingerprint = ?", a.Fingerprint).
@@ -140,7 +137,6 @@ func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) 
 
 	a := entity.PublicKeyFromModel(publicKey)
 
-	// Filter by both fingerprint and namespace_id to match MongoDB behavior
 	r, err := db.NewDelete().
 		Model(a).
 		Where("fingerprint = ?", publicKey.Fingerprint).

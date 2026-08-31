@@ -16,9 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newAgentConn returns the server side of a live WebSocket, as the connection
-// handler hands it to Bind. The peer is left connected and silent, so the
-// session stays up until the test closes it.
 func newAgentConn(t *testing.T) *wsconnadapter.Adapter {
 	t.Helper()
 

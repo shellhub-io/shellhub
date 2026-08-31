@@ -11,9 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockLicenseEvaluator stands in for LicenseEvaluator. It lives here rather than in the
-// generated mocks package because this package's own tests use it: services/mocks
-// imports services, so an internal test importing it would form a cycle.
 type mockLicenseEvaluator struct {
 	mock.Mock
 }

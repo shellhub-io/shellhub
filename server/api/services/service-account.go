@@ -36,7 +36,6 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// Parse the key up front so an invalid key fails before opening the transaction.
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(req.Data)) //nolint:dogsled
 	if err != nil {
 		return nil, NewErrSSHIdentityInvalid(req.Data, err)
@@ -45,13 +44,8 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 	fingerprint := ssh.FingerprintSHA256(pubKey)
 	data := ssh.MarshalAuthorizedKey(pubKey)
 
-	// SingleUse burns the key after one session, and stays service-account only:
-	// on a person's key it would lock them out after one login.
 	expiresAt := sshIdentityExpiry(req.ExpiresIn)
 
-	// Service accounts carry no console credentials. Their identifiers are synthetic and
-	// never shown; the password digest is a locked sentinel and login rejects the type
-	// anyway (see AuthLocalUser). auth_methods is empty so no method can authenticate them.
 	suffix := uuid.Generate()
 	user := &models.User{
 		Type:          models.UserTypeService,
@@ -82,8 +76,6 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 			return err
 		}
 
-		// A service account's key is pasted like any other; what sets it apart is
-		// the principal it binds to, which principal_type already carries.
 		identity, err := s.enrollSSHIdentity(ctx, &models.SSHIdentity{
 			TenantID:    req.TenantID,
 			PrincipalID: id,
@@ -150,8 +142,6 @@ func (s *service) DeleteServiceAccount(ctx context.Context, req *requests.Servic
 		return NewErrServiceAccountNotFound(req.ID, err)
 	}
 
-	// Confirm the service account belongs to the requesting namespace before deleting it,
-	// so a caller can't remove one from another namespace by id.
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
@@ -161,6 +151,5 @@ func (s *service) DeleteServiceAccount(ctx context.Context, req *requests.Servic
 		return NewErrServiceAccountNotFound(req.ID, nil)
 	}
 
-	// Deleting the user cascades to its membership and SSH identities (FK ON DELETE CASCADE).
 	return s.store.UserDelete(ctx, &models.User{ID: req.ID})
 }

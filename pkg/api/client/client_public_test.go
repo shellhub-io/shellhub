@@ -260,40 +260,6 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestAuthPublicKey(t *testing.T) {
-	// NOTICE: It was generated for tests only.
-	/*
-		-----BEGIN RSA PRIVATE KEY-----
-		MIIEpQIBAAKCAQEAmQnNydiZxmr+qwxeibKE3UuSq4SlqrDaYlanynQ6FGRqgL+E
-		LWlHDgsXFMeYajcTpYTXl8lcexh6Rld2yU7szZQ6LmBQRpZmQpOI5185/b6oZx1X
-		eNpxd9fQzSoRrYRzllvdy3IquH8KUlNPQC7lyM05j/8oITvwibhHAYCJhRhKGMDJ
-		msiMeNYnPphLWCaJVvryZKrVMcVK+G7evuMRaysUi+hHaR4wTlqdXnikIslHdsRE
-		bD+wHfXu7Z0GKtLr0JOyfSf9oyK8GfdMLpScCnd9uTeuQ/Yw5zjdeuaBo548fIV2
-		YYOUcQ4Np15p+qeSdCtoqykwwI7XTEcY3CqnfwIDAQABAoIBAQCJPRx5nS9Rm1Oj
-		6qTA0QGLPiFahMrYBl7g/xrbWF1ZOi+0I4sR+i4JLvLU5KUO4zNQJI/+A0pW7T2B
-		5R+WKZv8Q6flPOPgWTF9FLcZ3fCwV5DHX624qBRHR5ds1QQjWfsZ5GpC7q/W4b5M
-		037nbOcNqtSrCENhglIT/thWRYGNgzEZ89hYPxzDeqrmA9DUoRD5wfnX2JQ7XefX
-		OslgNgMuZEAXXmSWP4ViI0l/jX/zSsEekB0eTPGPWPPSu79gQuClYyF96cq04J1v
-		elMW2vntUzCeY9FlCg1Dhl/TbUAxAgEyfd5jZhUAwrQtXUPR+ajflFTaqf6+/mO6
-		AndsUdLBAoGBAOxk8xWskCxkTtR6jU9OWOJI0T/+/5vFNO6XsJQmE9kMdd+TodUv
-		6MaF6LbGp1zCQxha99FOn7voMs7t5qR1ZaIeImAs9VJzimVJ26TKyrtRPEUUKo2K
-		0MCC4SV4nyITTRro7JvOxvY9nIawktPvz9vl6xYWXZKBymE0gSnjm5zhAoGBAKW7
-		EKWw1KbKh2Qvtomdp98NEdvbdp0QtwtrMvcy9VY9qqIQkxe1q0SM4kjHpAym34EM
-		2kE/aKkv76eON5yayh76SQsL3sWEyl+1DfyqDZvG+CQMLNFfYwetn5SqhBiXk8wS
-		l794POSP9INwmNotF0VDJWfYwbKv+xOgUQCI6XBfAoGBALvdgj3gVPeig+9isbis
-		CAFVY05bpeGyeN2AmakzFaTxvR+AYSVenLxgoU/YUhtqmw3ZBYdG17Tq1K4U7K4Y
-		SjvrfOA3+oKbJgpXBwJQ04rIBYDUhPjVsA6+NJWl5bmb4zQWlitAymfZEPMNkrJx
-		rBwS/aAhCB4tnZtgsaGLrBihAoGAeHKB4MmpYybiS0/Z7B4meRc4mX7gr7oMLkJU
-		og/o+iqLLom5PYwM0x9I/fgKJB/LZDEBFlaNLBjope/YPvrIVscz+tE/sHGX2wLt
-		DWpRxZtPkHNAx1H52QS4bAWZR34yLih9HOy35K0y2awlirsmpHHuZ5DDBaicY2Eq
-		PadDcSUCgYEAzvA5hDoPYGFxYw75nARwJ53YVrcE3+tQK+sIIQLzS+iqXdq0BbiF
-		brF4wr6bHphEFa6WsJF0/3zJ1CsFUu6EsXKsHZaJ77MMuQZ/P/Uz1SynaCwXIdZQ
-		tjgb9WIhnkq4PQvEj+84E2q0q14etm6Nl02KZ1R8vweDCmNrNhNkDbY=
-		-----END RSA PRIVATE KEY-----
-
-		ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCZCc3J2JnGav6rDF6JsoTdS5KrhKWqsNpiVqfKdDoUZGqAv4QtaUcOCxcUx5hqNxOlhNeXyVx7GHpGV3bJTuzNlDouYFBGlmZCk4jnXzn9vqhnHVd42nF319DNKhGthHOWW93Lciq4fwpSU09ALuXIzTmP/yghO/CJuEcBgImFGEoYwMmayIx41ic+mEtYJolW+vJkqtUxxUr4bt6+4xFrKxSL6EdpHjBOWp1eeKQiyUd2xERsP7Ad9e7tnQYq0uvQk7J9J/2jIrwZ90wulJwKd325N65D9jDnON165oGjnjx8hXZhg5RxDg2nXmn6p5J0K2irKTDAjtdMRxjcKqd/
-
-		cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77*/
-
 	type Signature struct {
 		Username  string `json:"Username"`
 		Namespace string `json:"Namespace"`

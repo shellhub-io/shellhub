@@ -164,8 +164,6 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 			return fromSQLError(err)
 		}
 	case store.TagTargetPublicKey:
-		// targetID is "fingerprint:namespace_id" composite key
-		// But for now, we need the namespace_id from the tag's namespace
 		pk := new(entity.PublicKey)
 		err := db.NewSelect().Model(pk).
 			Where("fingerprint = ?", targetID).

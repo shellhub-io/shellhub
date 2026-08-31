@@ -11,7 +11,6 @@ import (
 )
 
 func TestFireNamespaceDelete(t *testing.T) {
-	// Save and restore global hooks so tests don't leak.
 	saved := namespaceDeleteHooks
 	t.Cleanup(func() { namespaceDeleteHooks = saved })
 

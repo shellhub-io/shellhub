@@ -15,9 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// namespaceCommands creates and returns a Cobra command for namespace management.
-// It registers namespace-related subcommands and uses the provided service
-// to handle the underlying business logic.
 func namespaceCommands(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "namespace",
@@ -331,9 +328,6 @@ Members (%d):
 	return cmd
 }
 
-// memberCommands factory function that creates and returns a new command with
-// add and remove subcommands dedicated to members management. It receives a service
-// for handling business logic.
 func memberCommands(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",

@@ -13,11 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// sshApprovalTTL is how long an approval code remains valid. It is a
-// just-in-time gate: the SSH gateway holds the login open for this long while
-// the user decides in the console. It must not outlive the gateway's own wait
-// (approvalWaitTimeout), so a code is never decidable after the connection
-// waiting on it is gone.
 const sshApprovalTTL = 90 * time.Second
 
 type SSHApprovalService interface {
@@ -78,24 +73,13 @@ func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprov
 	}, nil
 }
 
-// statusWaitTimeout bounds how long a single waiting status request is held
-// open. It is well under the gateway's own wait so a login is asked about
-// several times while it is held, which is what lets a decision written by
-// another API replica be picked up without any cross-replica signalling.
 const statusWaitTimeout = 20 * time.Second
 
-// statusWaitInterval is how often a waiting request re-reads the decision, and
-// so is the floor on how long someone stares at a frozen terminal after they
-// have already proven who they are. The read is a primary-key lookup on a table
-// that only holds logins currently in flight, so it stays cheap at this rate.
 const statusWaitInterval = 200 * time.Millisecond
 
 func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApprovalStatus) (*models.SSHApprovalStatus, error) {
 	code := pairingcode.Normalize(req.Code)
 
-	// The budget is a timer rather than a deadline on ctx so that expiring it
-	// never cuts a read in flight, which would surface as an unknown code. ctx
-	// stays the request's, so a gateway that hangs up still ends the wait.
 	budget := time.NewTimer(statusWaitTimeout)
 	defer budget.Stop()
 
@@ -114,8 +98,6 @@ func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApp
 			return status, nil
 		}
 
-		// Answering "still pending" when the budget elapses is not a failure: the
-		// gateway asks again, and that is also how it notices a client that hung up.
 		select {
 		case <-ctx.Done():
 			return status, nil
@@ -136,11 +118,6 @@ func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*mod
 		return nil, NewErrSSHApprovalCodeNotFound(code, err)
 	}
 
-	// Only a member of the target namespace may read the request. Without this a
-	// code holder from outside the namespace could learn the key fingerprint,
-	// device, login and source IP of someone else's pending login. Deciding is
-	// already gated (see decideSSHApproval); this closes the read side, and
-	// reports not-found so a non-member cannot confirm the code exists.
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, approval.TenantID)
 	if err != nil {
 		return nil, NewErrSSHApprovalCodeNotFound(code, err)
@@ -174,9 +151,6 @@ func (s *service) RejectSSHApproval(ctx context.Context, userID string, req *req
 	return s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalRejected, nil)
 }
 
-// decideSSHApproval writes the confirm/reject decision after checking that the
-// user is a member of the target's namespace with the approve permission. A
-// reject carries no TTL, since it creates nothing.
 func (s *service) decideSSHApproval(ctx context.Context, userID, code string, decision models.SSHApprovalState, expiresIn *int) error {
 	code = pairingcode.Normalize(code)
 	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
@@ -190,9 +164,6 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 		return NewErrSSHApprovalCodeNotFound(code, err)
 	}
 
-	// The console session may be scoped to another namespace, so the gateway's
-	// permission middleware cannot cover this route; check the user's role in the
-	// target namespace explicitly.
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, approval.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(approval.TenantID, err)
@@ -208,23 +179,15 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 	}
 
 	if decision == models.SSHApprovalConfirmed {
-		// A re-auth is only satisfied by proving a factor, which happens on the
-		// step-up route and releases the login there (see StampWebReauth).
-		// Accepting a bare confirm here would be a way to skip the factor entirely.
 		if approval.Kind == models.SSHApprovalReauth {
 			return NewErrForbidden(ErrForbidden, nil)
 		}
 
-		// Binding a key to an account is a bigger act than releasing a login;
-		// require the add permission on top of the approve permission.
 		if !member.Role.HasPermission(authorizer.SSHIdentityAdd) {
 			return NewErrRoleForbidden()
 		}
 	}
 
-	// The claim and the effect share a transaction, so the gateway's poll never
-	// reads a confirmation whose effect has not landed, and a failed effect rolls
-	// the claim back — leaving the code decidable again instead of stuck.
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		claimed, err := s.store.SSHApprovalDecide(ctx, code, decision, userID, now)
 		if err != nil {
@@ -243,20 +206,11 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 	})
 }
 
-// applySSHApproval performs a confirmation's durable effect: binding the key as
-// an identity. Only the identity kind ever gets here — a re-auth is refused
-// above and released on the step-up route instead, once a factor is proved (see
-// StampWebReauth). expiresIn is the TTL in days the person chose while
-// confirming.
 func (s *service) applySSHApproval(ctx context.Context, userID string, approval *models.SSHApproval, expiresIn *int) error {
 	if approval.Kind != models.SSHApprovalIdentity {
 		return nil
 	}
 
-	// A confirmation can be replayed, so this enrolls through the tolerant path.
-	// An empty name lets the identity service generate a default from the key.
-	// The source is the one the server asserts for itself: it saw the key offered
-	// on a login it was holding open.
 	if _, err := s.reenrollSSHIdentity(ctx, &models.SSHIdentity{
 		TenantID:    approval.TenantID,
 		PrincipalID: userID,
@@ -268,10 +222,6 @@ func (s *service) applySSHApproval(ctx context.Context, userID string, approval 
 		return err
 	}
 
-	// The gateway's initial resolve missed (the key was not an identity yet), so
-	// nothing stamped last-used for this connection. Stamp it here so the
-	// connection that created the identity counts, not just the next one.
-	// Non-fatal, as in ResolveSSHIdentity.
 	if err := s.store.SSHIdentityTouchLastUsed(ctx, approval.TenantID, approval.Fingerprint); err != nil {
 		log.WithError(err).WithField("fingerprint", approval.Fingerprint).
 			Warn("failed to stamp ssh identity last-used on approval; connection proceeds")

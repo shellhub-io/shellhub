@@ -32,8 +32,6 @@ func TestEvaluateKeyFilter(t *testing.T) {
 
 	ctx := context.TODO()
 
-	// The device re-read is bounded to the key's namespace: the tag identifiers being compared
-	// belong to the key, so a device in another namespace must not be able to satisfy the filter.
 	const keyTenant = "00000000-0000-4000-0000-000000000000"
 
 	type Expected struct {

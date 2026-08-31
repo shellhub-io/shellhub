@@ -18,9 +18,6 @@ var (
 	ErrUnsupportedNumericType  = errors.New("unsupported value type for numeric comparison")  // ErrUnsupportedNumericType is returned when a 'gt' filter receives an unsupported value type
 )
 
-// Deprecated: legacy Mongo-style device filter field names mapped to their real
-// columns, kept for backward compatibility. Slated for removal in the next major
-// API version.
 var legacyDeviceFieldAliases = map[string]string{
 	"info.platform": "platform",
 	"identity.mac":  "mac",
@@ -33,8 +30,6 @@ func renameFilterField(fp *query.FilterProperty, name string) *query.FilterPrope
 	return &adjusted
 }
 
-// qualifyColumn returns a bun.Ident for the given column, optionally prefixed
-// with a table alias (e.g. "device.name") to avoid ambiguity in JOINed queries.
 func qualifyColumn(column, tableAlias string) bun.Ident {
 	if tableAlias != "" {
 		return bun.Ident(tableAlias + "." + column)
@@ -43,8 +38,6 @@ func qualifyColumn(column, tableAlias string) bun.Ident {
 	return bun.Ident(column)
 }
 
-// "online" is a virtual field (not a real column), so we can't filter by it directly in WHERE.
-// We expand it to the actual expression: disconnected_at IS NULL AND last_seen > (now - 2min).
 func fromOnlineFilter(value any) (string, []any, bool, error) {
 	var isOnline bool
 
@@ -52,7 +45,6 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	case bool:
 		isOnline = v
 	case float64:
-		// JSON numbers always decode to float64; nonzero means online.
 		isOnline = v != 0
 	case string:
 		var err error
@@ -73,20 +65,6 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
 }
 
-// fromActiveFilter returns an EXISTS or NOT EXISTS correlated subquery on active_sessions.
-//
-// When tableAlias is "session" (session-list context) the subquery correlates on the
-// current session row's id, because the outer query is already iterating sessions:
-//
-//	EXISTS  (SELECT 1 FROM "active_sessions" WHERE "active_sessions"."session_id" = "session"."id")
-//	NOT EXISTS ...
-//
-// In all other contexts (e.g. device-list) the subquery checks whether any session for
-// the current device row has an active_sessions entry:
-//
-//	EXISTS  (SELECT 1 FROM "active_sessions"
-//	         JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id"
-//	         WHERE "sessions"."device_id" = "device"."id")
 func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error) {
 	var isActive bool
 
@@ -106,7 +84,6 @@ func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error)
 	}
 
 	if tableAlias == "session" {
-		// Session-list context: correlate directly on the session's own id.
 		const sub = `(SELECT 1 FROM "active_sessions" WHERE "active_sessions"."session_id" = "session"."id")`
 
 		if isActive {
@@ -116,7 +93,6 @@ func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error)
 		return `NOT EXISTS ` + sub, nil, true, nil
 	}
 
-	// Device-list (and other) contexts: correlate via the sessions join.
 	const subquery = `(SELECT 1 FROM "active_sessions" JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id" WHERE "sessions"."device_id" = "device"."id")`
 
 	if isActive {
@@ -138,20 +114,14 @@ func ParseFilterOperator(op *query.FilterOperator) (string, bool) {
 // It returns a SQL condition string, SQL arguments array, boolean indicating
 // if the operator is valid and an error, if any.
 func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, []any, bool, error) {
-	// Handle virtual fields that don't exist as real columns (see fromOnlineFilter for details)
 	if fp.Name == "online" {
 		return fromOnlineFilter(fp.Value)
 	}
 
-	// active is a virtual field backed by the active_sessions table (see fromActiveFilter for details)
 	if fp.Name == "active" {
 		return fromActiveFilter(fp.Value, tableAlias)
 	}
 
-	// In the session context "device_uid" is a user-facing alias for the actual
-	// "device_id" column in the sessions table. The mapping is scoped to sessions
-	// only so it cannot silently affect other filter contexts that happen to
-	// expose a device_uid field but use a different column name or no column at all.
 	if tableAlias == "session" && fp.Name == "device_uid" {
 		fp = renameFilterField(fp, "device_id")
 	}
@@ -160,13 +130,10 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 		fp = renameFilterField(fp, column)
 	}
 
-	// tags.name requires an EXISTS subquery through the device_tags junction table,
-	// because tags live in a separate table with a many-to-many relationship.
 	if fp.Name == "tags.name" {
 		return fromTagsFilter(fp.Operator, fp.Value)
 	}
 
-	// custom_fields is a JSONB column; search across all values.
 	if fp.Name == "custom_fields" {
 		return fromCustomFieldsFilter(fp.Operator, fp.Value)
 	}
@@ -199,10 +166,6 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	return condition, args, true, nil
 }
 
-// fromTagsFilter handles "tags.name" filters by generating an EXISTS subquery
-// through the device_tags junction table. For "contains" with a string value, it
-// matches tag names using ILIKE. For "contains" with an array value, it checks
-// that the device has all specified tags. For "eq", it checks for an exact tag name.
 func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 	const base = `EXISTS (SELECT 1 FROM "device_tags" JOIN "tags" ON "tags"."id" = "device_tags"."tag_id" WHERE "device_tags"."device_id" = "device"."id" AND `
 
@@ -221,8 +184,6 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 				strs[i] = s
 			}
 
-			// Use a counting subquery to ensure AND semantics: the device must have ALL
-			// specified tags, consistent with MongoDB's $all and the generic PG @> operator.
 			return `(SELECT COUNT(DISTINCT "tags"."name") FROM "device_tags" JOIN "tags" ON "tags"."id" = "device_tags"."tag_id" WHERE "device_tags"."device_id" = "device"."id" AND "tags"."name" IN (?)) = ?`,
 				[]any{bun.List(strs), len(strs)}, true, nil
 		default:
@@ -235,9 +196,6 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 	}
 }
 
-// fromContains converts a "contains" JSON expression to an SQL expression. For strings, it uses ILIKE with '%value%'
-// for case-insensitive substring matching. For arrays, it uses the @> (contains) operator to check if the column
-// contains all the values in the array. Returns SQL condition string, arguments array, and error if any.
 func fromContains(column string, value any, tableAlias string) (string, []any, error) {
 	switch v := value.(type) {
 	case string:
@@ -249,22 +207,10 @@ func fromContains(column string, value any, tableAlias string) (string, []any, e
 	return "", nil, ErrUnsupportedContainsType
 }
 
-// fromEq converts an "eq" (equals) JSON expression to an SQL expression using =.
-// Returns SQL condition string, arguments array, and error if any.
 func fromEq(column string, value any, tableAlias string) (string, []any, error) {
 	return "? = ?", []any{qualifyColumn(column, tableAlias), value}, nil
 }
 
-// fromBool converts a "bool" JSON expression to an SQL expression. It handles various input types (int, float64,
-// string, bool) and converts them to boolean values.
-//
-// - For integers or float64: 0 is false, anything else is true
-//
-// - For strings: uses strconv.ParseBool
-//
-// - For booleans: uses the value directly
-//
-// Returns SQL condition string, arguments array, and error if any.
 func fromBool(column string, value any, tableAlias string) (string, []any, error) {
 	var boolValue bool
 
@@ -288,9 +234,6 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
 }
 
-// fromGt converts a "gt" (greater than) JSON expression to an SQL expression using >. It handles various numeric types
-// (int, float, etc.) and string representations of numbers. For strings, it attempts to convert to int first, then to
-// float if int conversion fails. Returns SQL condition string, arguments array, and error if any.
 func fromGt(column string, value any, tableAlias string) (string, []any, error) {
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
@@ -315,8 +258,6 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 	}
 }
 
-// fromLt converts a "lt" (less than) JSON expression to an SQL expression using <. It handles numeric types,
-// strings, and time.Time values. Returns SQL condition string, arguments array, and error if any.
 func fromLt(column string, value any, tableAlias string) (string, []any, error) {
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
@@ -341,14 +282,10 @@ func fromLt(column string, value any, tableAlias string) (string, []any, error) 
 	}
 }
 
-// fromNe converts a "ne" (not equals) JSON expression to an SQL expression using <>. Returns SQL condition string,
-// arguments array, and error if any.
 func fromNe(column string, value any, tableAlias string) (string, []any, error) {
 	return "? <> ?", []any{qualifyColumn(column, tableAlias), value}, nil
 }
 
-// fromCustomFieldsFilter searches across all values of the custom_fields JSONB column.
-// Only "contains" is supported: it matches any value using ILIKE.
 func fromCustomFieldsFilter(operator string, value any) (string, []any, bool, error) {
 	if operator != "contains" {
 		return "", nil, false, nil

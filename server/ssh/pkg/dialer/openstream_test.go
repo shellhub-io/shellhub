@@ -12,9 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// unresponsiveSession is a yamux client whose peer never reads. Opening blocks
-// on sending the SYN, and with a backlog of one also on the in-flight
-// semaphore, which yamux waits on with no deadline.
 func unresponsiveSession(t *testing.T) *yamux.Session {
 	t.Helper()
 

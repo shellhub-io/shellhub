@@ -13,8 +13,6 @@ type StatsService interface {
 }
 
 func (s *service) GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error) {
-	// An absent tenant is the instance-wide statistics request from the admin surface, which counts
-	// devices and sessions across every namespace by design.
 	sc := scope.NewUnbounded("instance-wide statistics deliberately aggregate every namespace")
 	if req.TenantID != "" {
 		var err error

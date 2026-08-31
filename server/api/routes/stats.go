@@ -55,8 +55,6 @@ func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 		return err
 	}
 
-	// Fall back to the request Host when the gateway didn't forward it, so the
-	// served script can default SERVER_ADDRESS to the instance's own address.
 	if req.Host == "" {
 		req.Host = c.Request().Host
 	}

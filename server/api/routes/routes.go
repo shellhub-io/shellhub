@@ -38,22 +38,14 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 
 	server.IPExtractor = handlers.RealIPExtractor()
 
-	// NOTE: Instantiates a new logger instance to be used by the logger's middleware.
 	server.Logger = pkgmiddleware.NewSlogLogger(logrus.NewEntry(logrus.StandardLogger()))
 
-	// Echo writes the ID it generates to the response only. Mirror it onto the
-	// request, because that is where everything downstream reads it from: the
-	// log middleware, and the agent transport, which binds it as a required
-	// field and uses it to trace the connection. Until now the value was always
-	// the edge proxy's $request_id, so a request that did not come through the
-	// proxy reached the V2 handshake with nothing to bind.
 	server.Use(echoMiddleware.RequestIDWithConfig(echoMiddleware.RequestIDConfig{
 		RequestIDHandler: func(c *echo.Context, id string) {
 			c.Request().Header.Set(echo.HeaderXRequestID, id)
 		},
 	}))
 	server.Use(echoMiddleware.Secure())
-	// NOTE: We load the gateway context to each route handler to access their context as gateway's context.
 	server.Use(gateway.WithContext(service))
 	server.Use(pkgmiddleware.Log)
 
@@ -116,7 +108,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		}
 	}
 
-	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
@@ -124,7 +115,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	// Token-authenticated (the callback token is the credential); no JWT/API-key middleware.
 	publicAPI.POST(EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback))
 	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))
 	publicAPI.POST(AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser))
@@ -145,9 +135,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
 	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
 
-	// Membership invitations — one flow for every edition. RegisterUser is here because it's how
-	// an invitee completes their account (createInvitedUser); the invite-code resolve is public
-	// (the code is the credential). Email delivery and the approval gate are edition add-ons.
 	publicAPI.POST(RegisterUserURL, gateway.Handler(handler.RegisterUser))
 	publicAPI.GET(URLResolveInvitation, gateway.Handler(handler.ResolveInvitation))
 	publicAPI.POST(URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
@@ -163,26 +150,15 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))
 	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.RequiresPermission(authorizer.DeviceAccept)) // TODO: DeviceWrite
 
-	// Device login flow: the device (authenticated with its own token) creates a
-	// short-lived code and polls its status; a user resolves the code into a
-	// device preview on the console's accept page.
 	publicAPI.POST(CreateDeviceLoginCodeURL, gateway.Handler(handler.CreateDeviceLoginCode))
 	publicAPI.GET(GetDeviceAuthStatusURL, gateway.Handler(handler.GetDeviceAuthStatus))
 	publicAPI.GET(ResolveDeviceLoginCodeURL, gateway.Handler(handler.ResolveDeviceLoginCode), routesmiddleware.BlockAPIKey)
 
-	// Tenant-less pairing: an agent without a tenant submits its identity and
-	// waits for a user to accept it into a namespace of their choice.
 	publicAPI.POST(CreateDevicePairingURL, gateway.Handler(handler.CreateDevicePairing))
 	publicAPI.GET(GetDevicePairingStatusURL, gateway.Handler(handler.GetDevicePairingStatus))
 	publicAPI.POST(AcceptDevicePairingURL, gateway.Handler(handler.AcceptDevicePairing), routesmiddleware.BlockAPIKey)
-	// PrepareDevicePairing mints a pre-authorized code for the session's
-	// namespace; a real user session with the accept permission is required.
 	publicAPI.POST(PrepareDevicePairingURL, gateway.Handler(handler.PrepareDevicePairing), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceAccept))
 
-	// JIT SSH login approval: a logged-in member opens the code deep-linked in
-	// their terminal, reviews the request, and approves or denies it. The permission
-	// is checked in the service against the target's namespace (the session may be
-	// scoped elsewhere), so no RequiresPermission middleware here.
 	publicAPI.GET(GetSSHApprovalURL, gateway.Handler(handler.GetSSHApproval), routesmiddleware.BlockAPIKey)
 	publicAPI.POST(ConfirmSSHApprovalURL, gateway.Handler(handler.ConfirmSSHApproval), routesmiddleware.BlockAPIKey)
 	publicAPI.POST(RejectSSHApprovalURL, gateway.Handler(handler.RejectSSHApproval), routesmiddleware.BlockAPIKey)
@@ -197,7 +173,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.POST(URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
 	publicAPI.DELETE(URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
 
-	// NOTE: Legacy tag routes with tenant in path for backward compatibility.
 	publicAPI.GET(URLOldGetTags, gateway.Handler(handler.GetTags))
 	publicAPI.POST(URLOldCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
 	publicAPI.PATCH(URLOldUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
@@ -217,9 +192,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
 	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
 
-	// Community is single-namespace: the one namespace is created at setup and the store refuses
-	// any further one (once the instance is bound). Drop the create route so CE returns 404
-	// instead of a confusing error; Enterprise/Cloud keep it.
 	if envs.IsEnterpriseOrCloud() {
 		publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), routesmiddleware.BlockAPIKey)
 	}
@@ -237,26 +209,19 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
 	publicAPI.PUT(EditSSHAccessModeURL, gateway.Handler(handler.EditSSHAccessMode), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
 
-	// Access Policies (identity-based SSH access mode). Managed by owner/admin.
 	publicAPI.GET(ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 	publicAPI.POST(CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 	publicAPI.GET(GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 	publicAPI.PUT(UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 	publicAPI.DELETE(DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 
-	// SSH Identities (enrolled keys) for the identity-based SSH access mode. A
-	// member manages their own; owner/admin can view/revoke every member's.
 	publicAPI.GET(ListSSHIdentitiesURL, gateway.Handler(handler.ListSSHIdentities))
 	publicAPI.POST(CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
 	publicAPI.PATCH(UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
 	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
 
-	// Web terminal re-auth step-up: the browser submits its factor here when a
-	// policy's require_reauth window has lapsed. Any authenticated member.
 	publicAPI.POST(WebReauthURL, gateway.Handler(handler.WebReauthVerify))
 
-	// Service accounts (non-human SSH principals). Managed by owner/admin, reusing the
-	// member-management permission.
 	publicAPI.GET(ListServiceAccountsURL, gateway.Handler(handler.ListServiceAccounts), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
 	publicAPI.POST(CreateServiceAccountURL, gateway.Handler(handler.CreateServiceAccount), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
 	publicAPI.DELETE(DeleteServiceAccountURL, gateway.Handler(handler.DeleteServiceAccount), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
@@ -265,7 +230,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
-	// MCP server (Model Context Protocol) for AI assistants.
 	SetupMCPRoutes(router)
 
 	registerInternalMetrics(router, handler.authn)
@@ -274,12 +238,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		registerAnonymousRoutes(handler.authn)
 	}
 
-	// Apply route extensions (enterprise/cloud features)
 	if err := applyExtensions(router, handler.authn, service); err != nil {
 		logrus.WithError(err).Error("failed to apply route extensions")
 	}
 
-	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
 	router.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
 		"/api/containers?*": "/api/devices?$1&connector=true",

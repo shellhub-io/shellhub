@@ -12,9 +12,6 @@ import (
 // channel handlers set it; the session reads it back in [Session.CloseAgentWrite].
 const SeatTypeExec = "exec"
 
-// agentExecCloseFloor is the first agent release that survives a write-side
-// close after an exec. Below it the agent waits on a read that never ends, so
-// the whole channel has to go.
 var agentExecCloseFloor = semver.MustParse("v0.9.3")
 
 // OpenAgentForwards returns the channels the agent opens back towards the

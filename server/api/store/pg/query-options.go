@@ -190,10 +190,6 @@ func inNamespace(namespaceID string) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		// namespace_id is a uuid-typed column in Postgres. Passing a non-UUID
-		// string would produce SQLSTATE 22P02 ("invalid input syntax for type
-		// uuid") and a misleading SQL error in the logs. Return ErrNoDocuments
-		// early so the caller gets a clean not-found result.
 		if _, err := uuid.Parse(namespaceID); err != nil {
 			return store.ErrNoDocuments
 		}

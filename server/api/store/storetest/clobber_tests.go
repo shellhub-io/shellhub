@@ -14,14 +14,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// These tests lock a rule: full-model *Update methods must
-// not clobber columns that are maintained by separate targeted writes (atomic counters, the
-// heartbeat, preferred-namespace clears, the invitation counter). Each test interleaves a targeted
-// write with a full-model update built from a stale resolve-time snapshot and asserts the targeted
-// column survives. This class of bug is invisible to the mocked-store service tests.
-
-// dbAccessor is implemented by the PostgreSQL provider to expose the underlying Bun driver for
-// assertions on columns not surfaced through the store models (e.g. active_sessions.created_at).
 type dbAccessor interface {
 	DB() *bun.DB
 }
@@ -41,7 +33,6 @@ func (s *Suite) TestNamespaceUpdateDoesNotClobberDeviceCounts(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(5), snapshot.DevicesAcceptedCount)
 
-	// Concurrent increment lands between the resolve and the save.
 	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 1))
 
 	snapshot.Name = "counters-renamed"
@@ -68,7 +59,6 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberCustomFields(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{"first": "1"}, snapshot.CustomFields)
 
-	// Concurrent set adds a second field between the resolve and the save.
 	require.NoError(t, st.DeviceSetCustomField(ctx, string(uid), "second", "2"))
 
 	snapshot.Name = "device-renamed"
@@ -95,7 +85,6 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	snapshot, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 
-	// Concurrent heartbeat bumps last_seen and clears disconnected_at after the snapshot.
 	heartbeat := clock.Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
 	modified, err := st.DeviceHeartbeat(ctx, []string{string(uid)}, heartbeat)
 	require.NoError(t, err)
@@ -161,7 +150,6 @@ func (s *Suite) TestUserUpdateDoesNotClobberPreferredNamespace(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, tenantID, snapshot.Preferences.PreferredNamespace)
 
-	// Concurrent membership/namespace removal clears the preference after the snapshot.
 	require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, ""))
 
 	snapshot.Name = "renamed"
@@ -218,7 +206,6 @@ func (s *Suite) TestUserInvitationUpdateDoesNotClobberInvitations(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, 1, snapshot.Invitations)
 
-	// Concurrent re-invite increments the counter between the resolve and the save.
 	_, err = st.UserInvitationsUpsert(ctx, "invitee@test.com")
 	require.NoError(t, err)
 
@@ -247,7 +234,6 @@ func (s *Suite) TestActiveSessionUpdatePreservesCreatedAt(t *testing.T) {
 
 	sessionUID := s.CreateSession(t, WithSessionActive(true))
 
-	// Pin created_at to a fixed point in the past so a reset to "now" is unambiguous.
 	createdAt := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	_, err := db.NewUpdate().
 		Table("active_sessions").

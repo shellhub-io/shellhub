@@ -251,7 +251,6 @@ func TestCreateAPIKey(t *testing.T) {
 					).
 					Once()
 
-				// req.Key is already provided, so uuid.Generate() is not called.
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])
 

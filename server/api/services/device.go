@@ -31,13 +31,9 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"online":        {"bool", "eq"},
 	"custom_fields": {"contains"},
 
-	// Deprecated: legacy Mongo-style aliases for "platform" and "mac", kept for
-	// backward compatibility and slated for removal in the next major API version.
 	"info.platform": {"contains", "eq", "ne"},
 	"identity.mac":  {"contains", "eq", "ne"},
 },
-	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
-	// SQL column binding — safe to accept bool-convertible values with eq/ne.
 	"online",
 )
 
@@ -103,8 +99,6 @@ type DeviceService interface {
 	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
 }
 
-// deviceLimit prefers the limit authentication already read for this request, falling back to
-// the store when it carries none.
 func (s *service) deviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
 	if limit, ok := authctx.NamespaceDeviceLimit(ctx, tenantID); ok {
 		return limit, nil
@@ -174,7 +168,6 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 	}
 
 	if err != nil {
-		// TODO: refactor this error to accept a string instead of models.UID
 		return nil, NewErrDeviceNotFound(models.UID(""), err)
 	}
 
@@ -200,8 +193,6 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	// NOTE: Always soft-delete accepted devices for audit purposes.
-	// Pending/Rejected devices can be hard-deleted as they don't need audit trail.
 	if device.Status == models.DeviceStatusAccepted {
 		now := clock.Now()
 
@@ -216,7 +207,6 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 	} else {
-		// Hard-delete pending/rejected devices (no audit needed)
 		if err := s.store.DeviceDelete(ctx, device); err != nil {
 			return err
 		}
@@ -288,9 +278,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 		return err
 	}
 
-	// Freeze the decision on the device's enrollment history event so the audit keeps it after the
-	// device is removed. Best-effort and outside the transaction: a stamp failure must not roll back the
-	// accept/reject that already committed. This is the single chokepoint every accept/reject reaches.
 	status := models.DeviceStatus(req.Status)
 	if status == models.DeviceStatusAccepted || status == models.DeviceStatusRejected {
 		sc, err := BoundTo(req.TenantID)
@@ -396,8 +383,6 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 		device.Status = newStatus
 		device.StatusUpdatedAt = clock.Now()
 		if err := s.store.DeviceUpdate(ctx, device); err != nil {
-			// The devices_accepted_mac_unique index can reject a concurrent accept of
-			// a same-MAC device; surface that as a duplicate (409), not a bare 500.
 			if newStatus == models.DeviceStatusAccepted && errors.Is(err, store.ErrDuplicate) {
 				return NewErrDeviceDuplicated(device.Name, err)
 			}
@@ -430,8 +415,6 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return nil
 	}
 
-	// Device names are stored lower-cased, so match on the lower-cased value. The scope bounds the
-	// lookup to the device's namespace: a name used in another namespace is not a conflict.
 	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(req.Name)}
 	conflictsTarget.Distinct(device)
 	if _, has, err := s.store.DeviceConflicts(ctx, sc, conflictsTarget); err != nil || has {
@@ -447,8 +430,6 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 	return nil
 }
 
-// maxCustomFieldsPerDevice is the upper bound on the number of custom_fields entries
-// per device. Enforced server-side to prevent storage abuse.
 const maxCustomFieldsPerDevice = 20
 
 func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error {
@@ -490,8 +471,6 @@ func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.Dev
 	return nil
 }
 
-// mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
-// renames the new device to preserve the old device's identity. The old device is then deleted and the namespace's device count is decremented.
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
 	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
 
@@ -535,16 +514,8 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	return nil
 }
 
-// validateDeviceAcceptance checks if a namespace can accept another device.
-// For cloud environments, this includes billing validation.
-// For community/enterprise, this checks configured device limits.
-//
-// NOTE: this function is only called on the non-merge path (line 354). The same-MAC
-// merge path returns before reaching that call site, so merges are never limit-checked.
 func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
-	// Check hard limit first (applies to all editions)
 	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-		// For cloud with inactive billing, this is a billing issue
 		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
 			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
 				Error("namespace's limit reached - cannot accept another device")
@@ -566,17 +537,6 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 		}
 	}
 
-	// Check license-based device limit (enterprise/cloud licensing).
-	// NOTE: enforcement is best-effort and not atomic. CanAcceptDevice reads the
-	// global device count, but that read is not serialized with the device status
-	// update performed by the surrounding transaction, so concurrent acceptances
-	// can race and overshoot the licensed limit by a small margin. This is an
-	// accepted trade-off: the same limit is independently enforced at SSH
-	// connection time, so an overshoot cannot be exploited to gain SSH access
-	// beyond the license.
-	// Fail-open: if the evaluator returns an error, log a warning and allow
-	// the device to be accepted so that a transient license-service outage
-	// does not block operators from managing their fleet.
 	if s.licenseEvaluator != nil {
 		ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
 		if err != nil {

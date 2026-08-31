@@ -54,17 +54,6 @@ type MemberService interface {
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 }
 
-// resolveActingMember resolves the namespace and the acting member — the authenticated member
-// identified by actorID performing an operation on it. The store is not consulted for the actor's
-// user record: a resolved membership already proves the account exists, so FindMember alone
-// suffices.
-//
-// When requireAuthorityOver is not [authorizer.RoleInvalid], it additionally asserts that the acting
-// member outranks that role, returning [NewErrRoleForbidden] otherwise. Passing RoleInvalid resolves
-// without any authority assertion.
-//
-// It returns [NewErrNamespaceNotFound] when the namespace does not exist and
-// [NewErrNamespaceMemberNotFound] when the actor is not a member of it.
 func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role) (*models.Namespace, *models.Member, error) {
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil || namespace == nil {
@@ -83,12 +72,6 @@ func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID str
 	return namespace, member, nil
 }
 
-// admitMember places a user into a namespace as a member and, when an invitation is supplied,
-// consumes it — the single "add-and-consume" write shared by every intake path.
-//
-// It opens no transaction of its own: the store's WithTransaction is not reentrant, so a caller that
-// needs the create and the delete to be atomic must wrap the call in its own transaction. admitMember
-// then joins that ambient transaction through the context.
 func (s *service) admitMember(ctx context.Context, sc scope.Scope, member *models.Member, invitation *models.MembershipInvitation) error {
 	if err := s.store.NamespaceCreateMembership(ctx, sc, member); err != nil {
 		return err
@@ -114,17 +97,6 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 }
 
-// intakeMembership is the single membership-intake flow shared by AddNamespaceMember and
-// GenerateInvitationLink: given the already-resolved namespace, the acting member's ID, the invited
-// email, the role, and the forwarded host/proto, it resolves-or-upserts the placeholder account,
-// rejects duplicates, short-circuits to direct membership where enabled (enterprise), and creates
-// or resends the pending invitation. The invited email is always lowercased and the whole write runs
-// in one transaction, so both entry points behave identically.
-//
-// It returns the resulting invitation, or nil when direct membership was applied and no invitation
-// is needed. On the invitation path it assembles the typed notification (signature, expiry,
-// recipient email + name, forwarded proto + host) and fires the post-commit delivery hook; delivery
-// is non-fatal — the invite is durable, so a failure is logged but does not fail the call.
 func (s *service) intakeMembership(ctx context.Context, namespace *models.Namespace, invitedBy, email string, role authorizer.Role, forwardedHost, forwardedProto string) (*models.MembershipInvitation, error) {
 	email = strings.ToLower(email)
 
@@ -203,8 +175,6 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 	return invitation, nil
 }
 
-// createMembershipInvitation persists a fresh pending invitation with a one-time signature and a
-// 7-day expiry. The signature is generated here so the link is usable even when no email is sent.
 func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invitedBy, userID string, role authorizer.Role) (*models.MembershipInvitation, error) {
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
@@ -235,8 +205,6 @@ func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invi
 	return invitation, nil
 }
 
-// resendMembershipInvitation refreshes an expired invitation with a new signature and expiry. The
-// previous link stops resolving.
 func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, role authorizer.Role) error {
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
@@ -272,26 +240,10 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
-	// A member cannot change their own role through this endpoint. The dangerous case
-	// is an administrator self-demoting: they would lose NamespaceEditMember and be
-	// unable to reach this endpoint again. Reject all self-targeting here (including
-	// no-op empty-role writes). To leave a namespace, use LeaveNamespace instead.
 	if active.ID == member.ID {
 		return NewErrAuthForbidden()
 	}
 
-	// Guard against BFLA: the active member must have authority over the passive
-	// member's *current* role, not only over the requested new role. Without this
-	// check an administrator could demote an owner by supplying a lower target role
-	// that satisfies the existing check, an owner could self-demote leaving the
-	// namespace without an owner, or a lower-privileged actor could force writes
-	// (including token invalidation) against a higher-privileged passive member via
-	// an omitted-role (no-op) request.
-	//
-	// Note: HasAuthority treats RoleInvalid passive as the lowest rank, so the check
-	// below passes for any valid active role acting on a corrupted/legacy member. That
-	// allows the owner (or any higher-ranked member) to repair or remove such a record
-	// via the normal API path instead of requiring direct DB intervention.
 	if !active.Role.HasAuthority(member.Role) {
 		return NewErrRoleForbidden()
 	}
@@ -324,9 +276,6 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
-	// A member cannot remove themselves through this endpoint; doing so bypasses the
-	// LeaveNamespace flow (which the UI uses and which blocks the owner from leaving
-	// a namespace without a successor). Self-removal must go through LeaveNamespace.
 	if active.ID == passive.ID {
 		return nil, NewErrAuthForbidden()
 	}
@@ -370,8 +319,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, err
 	}
 
-	// If the user is attempting to leave a namespace other than the authenticated one,
-	// there is no need to generate a new token.
 	if req.TenantID != req.AuthenticatedTenantID {
 		return nil, nil
 	}
@@ -381,7 +328,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	// preferred_namespace_id is skipupdate, so a full-model UserUpdate can't clear it.
 	if err := s.store.UserUpdatePreferredNamespace(ctx, req.UserID, ""); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
@@ -396,7 +342,6 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 			Error("failed to uncache the token")
 	}
 
-	// TODO: make this method a util function
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
@@ -409,10 +354,6 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 		return err
 	}
 
-	// Revoke the keys the member created here. AuthAPIKey already re-derives the role
-	// from live membership, so their keys stop authenticating on removal; this stops
-	// non-expiring keys lingering in storage. Best-effort: a failure must not leave the
-	// membership half-removed.
 	if err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", ns.TenantID).
@@ -423,18 +364,6 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 	return nil
 }
 
-// deleteOrphanedMemberAccount deletes a user's account when removing this membership left
-// them with no namespace at all, but only on a single-namespace Community instance. There,
-// adding a member creates the account, so removing their last tie should reclaim it: an
-// account with no namespace can neither create one (the instance binding refuses it) nor
-// self-register, so it is dead weight.
-//
-// It is deliberately gated on the instance binding, not on the edition: multi-tenant
-// deployments (Cloud, Enterprise, and legacy Community instances never bound to a single
-// namespace) keep accounts that legitimately outlive a single membership, so there the
-// account is preserved and only the membership is detached. The remaining-namespace count
-// is the second guard, so a user still present in another namespace is never deleted, which
-// keeps legacy multi-namespace Community instances safe.
 func (s *service) deleteOrphanedMemberAccount(ctx context.Context, userID string) error {
 	system, err := s.store.SystemGet(ctx)
 	if err != nil {

@@ -15,13 +15,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// defaultSSHIdentityName derives a human-scannable name for an enrolled key when
-// none is given (a key accepted at login): the key algorithm plus a short
-// fingerprint slice, e.g. "ed25519 (jJhkjTqB)". The user can rename it.
 func defaultSSHIdentityName(fingerprint string, data []byte) string {
 	algo := "ssh key"
 	if pubKey, _, _, _, err := ssh.ParseAuthorizedKey(data); err == nil { //nolint:dogsled
-		// Type() is e.g. "ssh-ed25519", "ssh-rsa", "ecdsa-sha2-nistp256".
 		algo = strings.TrimPrefix(pubKey.Type(), "ssh-")
 		if i := strings.IndexByte(algo, '-'); i > 0 {
 			algo = algo[:i] // "ecdsa-sha2-nistp256" -> "ecdsa"
@@ -36,8 +32,6 @@ func defaultSSHIdentityName(fingerprint string, data []byte) string {
 	return fmt.Sprintf("%s (%s)", algo, short)
 }
 
-// sshIdentityExpiry turns a TTL in days into the absolute instant the key stops
-// working. A nil TTL means it never expires, which is what a durable key wants.
 func sshIdentityExpiry(days *int) *time.Time {
 	if days == nil {
 		return nil
@@ -93,8 +87,6 @@ func (s *service) ResolveSSHIdentity(ctx context.Context, tenantID, fingerprint 
 		return nil, false, err
 	}
 
-	// A recognized connect stamps last-used, feeding the management screen and
-	// later stale-key cleanup. A failure here must not fail the connection.
 	if err := s.store.SSHIdentityTouchLastUsed(ctx, tenantID, fingerprint); err != nil {
 		log.WithError(err).WithField("fingerprint", fingerprint).
 			Warn("failed to stamp ssh identity last-used; connection proceeds")
@@ -107,12 +99,6 @@ func (s *service) ConsumeSSHIdentity(ctx context.Context, tenantID, fingerprint 
 	return s.store.SSHIdentityConsume(ctx, tenantID, fingerprint)
 }
 
-// enrollSSHIdentity creates the binding, failing with a duplicated error when
-// the fingerprint is already taken in the namespace — by this principal or
-// another. A caller re-adding a key it already holds is a mistake worth
-// reporting, not a no-op to hide; the one path that must tolerate a replay uses
-// reenrollSSHIdentity. A zero ExpiresAt and SingleUse give the durable,
-// reusable key most callers want.
 func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
 	existing, err := s.resolveEnrolledSSHIdentity(ctx, identity.TenantID, identity.Fingerprint)
 	if err != nil {
@@ -126,10 +112,6 @@ func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIde
 	return s.persistSSHIdentity(ctx, identity)
 }
 
-// reenrollSSHIdentity is enrollSSHIdentity for the paths that can legitimately
-// run twice for the same key — a confirmation replayed by the person or the
-// gateway — returning the existing binding unchanged instead of a conflict. The
-// fingerprint held by a different principal still conflicts.
 func (s *service) reenrollSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
 	existing, err := s.resolveEnrolledSSHIdentity(ctx, identity.TenantID, identity.Fingerprint)
 	if err != nil {
@@ -147,9 +129,6 @@ func (s *service) reenrollSSHIdentity(ctx context.Context, identity *models.SSHI
 	return s.persistSSHIdentity(ctx, identity)
 }
 
-// resolveEnrolledSSHIdentity reports a free fingerprint as a nil identity rather
-// than an error, so the enroll paths branch on the holder instead of on
-// ErrNoDocuments.
 func (s *service) resolveEnrolledSSHIdentity(ctx context.Context, tenantID, fingerprint string) (*models.SSHIdentity, error) {
 	sc, err := BoundTo(tenantID)
 	if err != nil {
@@ -207,8 +186,6 @@ func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdenti
 }
 
 func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error) {
-	// data is a raw OpenSSH authorized_keys line; derive the fingerprint the same
-	// way the gateway does at connect (SHA256) so a manually-added key resolves.
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(req.Data)) //nolint:dogsled
 	if err != nil {
 		return nil, NewErrSSHIdentityInvalid(req.Data, err)
@@ -217,7 +194,6 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 	fingerprint := ssh.FingerprintSHA256(pubKey)
 	data := ssh.MarshalAuthorizedKey(pubKey)
 
-	// The source is the caller's claim here, so it may only ever label the key.
 	return s.enrollSSHIdentity(ctx, &models.SSHIdentity{
 		TenantID:    req.TenantID,
 		PrincipalID: req.UserID,
@@ -240,8 +216,6 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return nil, NewErrSSHIdentityNotFound(req.ID, err)
 	}
 
-	// Renaming is own-key only (SSHIdentityAdd); managing others' keys is
-	// limited to revocation.
 	if identity.PrincipalID != req.UserID {
 		return nil, NewErrForbidden(ErrForbidden, nil)
 	}
@@ -266,8 +240,6 @@ func (s *service) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return NewErrSSHIdentityNotFound(req.ID, err)
 	}
 
-	// A member revokes only their own keys; revoking another member's requires
-	// the manage permission (offboarding), signalled by req.Manage.
 	if identity.PrincipalID != req.UserID && !req.Manage {
 		return NewErrForbidden(ErrForbidden, nil)
 	}

@@ -59,20 +59,12 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 		}
 	}
 
-	// Both agent transports authenticate with the device's own token.
 	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
 	router.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
 
-	// The revdial handshake carries no credential of its own: it opens a further
-	// logical session over a connection already authenticated on
-	// HandleConnectionV1Path.
 	router.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
 	allowAnonymous(http.MethodGet, HandleRevdialPath)
 
-	// Registered at the root rather than under the API group: the group carries
-	// license enforcement in Enterprise, which this route does not have today.
-	// HandleSSHClose enforces the SessionClose permission itself, from the role
-	// the authenticator resolves.
 	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 
 	if err := applyTunnelExtensions(router, authn, d); err != nil {

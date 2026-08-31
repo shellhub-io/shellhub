@@ -184,10 +184,6 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 
 	output := bytes.Repeat([]byte{'o'}, 128)
 
-	// The client auto-replies a pong to every ping and the handler never reads
-	// them, so closing with that data unread would RST the connection and
-	// truncate what the client has yet to receive. Hold the handler open until
-	// the client has read everything.
 	read := make(chan struct{})
 
 	server := httptest.NewServer(websocket.Handler(func(socket *websocket.Conn) {
@@ -237,15 +233,11 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 
 	defer client.Close() //nolint:errcheck
 
-	// Without serialization the frames interleave and the parser desyncs, which
-	// would otherwise block this read until the whole suite times out.
 	require.NoError(t, client.SetDeadline(clock.Now().Add(30*time.Second)))
 
 	binary := 0
 	control := 0
 
-	// Pings are answered and consumed by the client's frame handler, so only the
-	// binary and text frames surface here.
 	for range rounds * 2 {
 		var frame capturedFrame
 
@@ -254,8 +246,6 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 		if frame.payloadType == websocket.BinaryFrame {
 			binary++
 
-			// A frame carrying anything other than the whole payload means two
-			// writers interleaved on the shared frame writer.
 			assert.Equal(t, output, frame.data)
 
 			continue
@@ -275,8 +265,6 @@ type capturedFrame struct {
 	data        []byte
 }
 
-// frameCapture exposes the frame's opcode, which the stock Message codec
-// discards when unmarshalling.
 var frameCapture = websocket.Codec{
 	Marshal: func(_ any) ([]byte, byte, error) {
 		return nil, websocket.UnknownFrame, websocket.ErrNotSupported

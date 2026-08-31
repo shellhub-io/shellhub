@@ -23,8 +23,6 @@ func TestEvaluateEnrollment(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-	// The request MAC is upper-cased; the key's allowlist is stored normalized (lower), so a match
-	// must be case-insensitive.
 	req := requests.DeviceAuth{TenantID: "00000000-0000-4000-0000-000000000000", Identity: &requests.DeviceIdentity{MAC: "AA:BB:CC:DD:EE:FF"}}
 
 	cases := []struct {
@@ -39,8 +37,6 @@ func TestEvaluateEnrollment(t *testing.T) {
 		{"allowlist accepts a listed MAC (case-insensitive)", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
 		{"allowlist rejects an unlisted MAC", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, false, enrollReject},
 		{"an unknown mode stays pending", &models.InstallKey{Mode: "bogus"}, false, enrollPending},
-		// The pairing-code flow is its own acceptance: paired accepts regardless of the key's mode, so a
-		// manual/allowlist-miss pairing key still accepts (and never fires the webhook/reject).
 		{"paired accepts despite a manual key", &models.InstallKey{Mode: models.InstallKeyModeManual}, true, enrollAccept},
 		{"paired accepts despite an allowlist miss", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
 	}
@@ -54,7 +50,6 @@ func TestEvaluateEnrollment(t *testing.T) {
 }
 
 func TestEvaluateEnrollmentWebhook(t *testing.T) {
-	// The integrator runs on loopback in these tests; permit it through the SSRF guard's allowlist.
 	prevEnv := envs.DefaultBackend
 	env := envmock.NewMockBackend(t)
 	env.On("Get", enrollmentWebhookAllowedCIDRsEnv).Return("127.0.0.0/8,::1/128").Maybe()
@@ -62,7 +57,6 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 	envs.DefaultBackend = env
 	t.Cleanup(func() { envs.DefaultBackend = prevEnv })
 
-	// callEnrollmentWebhook stamps the payload with clock.Now(); the package clock is the shared mock.
 	clockMock.On("Now").Return(now).Maybe()
 
 	storeMock := storemock.NewMockStore(t)
@@ -93,7 +87,6 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false)
 			require.Equal(t, decision, got)
-			// The integrator can trust the request: the signature it received matches HMAC(secret, body).
 			require.Equal(t, signEnrollmentWebhook(secret, gotBody), gotSignature)
 
 			srv.Close()

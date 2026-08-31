@@ -27,13 +27,10 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 
-		// Get global stats (no tenantID filter)
 		stats, err := st.GetStats(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		// Should count all accepted devices and sessions across all tenants
-		// RegisteredDevices counts only "accepted" devices, not "pending" or "rejected"
 		assert.Equal(t, 3, stats.RegisteredDevices) // 2 accepted from tenant1 + 1 from tenant2
 		assert.Equal(t, 1, stats.ActiveSessions)
 		assert.Equal(t, 1, stats.PendingDevices)
@@ -50,7 +47,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
-		// Create data for tenant2 (should not be counted)
 		tenant2 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 

@@ -40,7 +40,6 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *model
 		return nil, false, err
 	}
 
-	// Add OR conditions for ID and Name within the same tenant
 	switch {
 	case target.ID != "" && target.Name != "":
 		query = query.Where("key_digest = ? OR name = ?", target.ID, target.Name)

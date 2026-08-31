@@ -119,8 +119,6 @@ func (s *service) EvaluateBilling(ctx context.Context, tenant string) error {
 	return nil
 }
 
-// evaluateBilling reports what the namespace's billing state allows.
-// It fails when the billing provider is not available (Community Edition).
 func (s *service) evaluateBilling(ctx context.Context, tenant string) (*models.BillingEvaluation, error) {
 	if s.billing == nil {
 		return nil, ErrBillingNotAvailable
@@ -138,40 +136,30 @@ func (s *service) ReportBilling(ctx context.Context, tenant string, action Billi
 	return s.reportBilling(ctx, tenant, action)
 }
 
-// reportBilling notifies the billing system of a namespace action.
 func (s *service) reportBilling(ctx context.Context, tenant string, action BillingAction) error {
 	if s.billing == nil {
 		return ErrBillingNotAvailable
 	}
 
 	if err := s.billing.Report(ctx, tenant, action); err != nil {
-		// The provider adapter already maps errors to appropriate types
-		// (ErrPaymentRequired for subscription issues, ErrReport for others)
 		return err
 	}
 
 	return nil
 }
 
-// validateBillingForDeviceAcceptance checks billing and reports device acceptance.
-// This is called during device acceptance in cloud environments.
 func (s *service) validateBillingForDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
 	if namespace.Billing.IsActive() {
 		if err := s.reportBilling(ctx, namespace.TenantID, BillingActionDeviceAccept); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	} else {
-		// Inactive subscription - evaluate if namespace can still accept
 		evaluation, err := s.evaluateBilling(ctx, namespace.TenantID)
 		if err != nil {
 			return NewErrBillingEvaluate(err)
 		}
 
 		if !evaluation.CanAccept {
-			// The two denials need different answers from the user: one has to remove a device
-			// or upgrade, the other has to finish or repair the subscription. Reporting both as
-			// a device limit sends a namespace that is under its allowance to delete devices
-			// that were never the problem.
 			if evaluation.Blocked == models.BillingBlockedSubscription {
 				return ErrDeviceBillingBlocked
 			}

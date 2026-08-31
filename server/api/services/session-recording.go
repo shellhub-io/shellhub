@@ -44,11 +44,6 @@ type SessionRecordingPruner interface {
 	DeleteRecordings(ctx context.Context, uids []string) ([]string, error)
 }
 
-// pruneRecordings discards the recordings of the recorded sessions in the batch and returns the
-// sessions whose rows may now be deleted.
-//
-// Without a pruner — Community Edition, or an enterprise instance with no object storage — no
-// session owns anything outside the database, so the whole batch is deletable as it stands.
 func (s *service) pruneRecordings(ctx context.Context, sessions []store.ExpiredSession) ([]string, error) {
 	uids := make([]string, 0, len(sessions))
 	recorded := make([]string, 0, len(sessions))
@@ -70,8 +65,6 @@ func (s *service) pruneRecordings(ctx context.Context, sessions []store.ExpiredS
 		return nil, err
 	}
 
-	// Everything that was never recorded, plus the recordings actually purged. A session left
-	// out here keeps its row, so its object stays reachable for the next run to retry.
 	deletable := make([]string, 0, len(uids))
 	purgedSet := make(map[string]struct{}, len(purged))
 

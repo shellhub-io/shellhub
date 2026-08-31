@@ -24,19 +24,13 @@ var _ connector.Connector = new(DockerConnector)
 
 // DockerConnector is a struct that represents a connector that uses Docker as the container runtime.
 type DockerConnector struct {
-	mu sync.Mutex
-	// server is the ShellHub address of the server that the agent will connect to.
-	server string
-	// tenant is the tenant ID of the namespace that the agent belongs to.
-	tenant string
-	// cli is the Docker client.
-	cli *dockerclient.Client
-	// privateKeys is the path to the directory that contains the private keys for the containers.
+	mu          sync.Mutex
+	server      string
+	tenant      string
+	cli         *dockerclient.Client
 	privateKeys string
 	// Label is the label used to identify the containers managed by the ShellHub agent.
-	Label string
-	// cancels is a map that contains the cancel functions for each container.
-	// This is used to stop the agent for a container, marking as done its context and closing the agent.
+	Label   string
 	cancels map[string]context.CancelFunc
 }
 
@@ -71,7 +65,6 @@ func LoadConfigConnectorFromEnv() (*ConfigConnector, map[string]any, error) {
 		log.Fatal(err)
 	}
 
-	// TODO: test the envinromental variables validation on integration tests.
 	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
 		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
 
@@ -109,7 +102,6 @@ func NewDockerConnector(config *ConfigConnector) (connector.Connector, error) {
 	}, nil
 }
 
-// events returns the docker events.
 func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-chan error) {
 	filters := filters.NewArgs()
 	if d.Label != "" {
@@ -188,13 +180,8 @@ func (d *DockerConnector) getContainerNameFromID(ctx context.Context, id string)
 		return "", err
 	}
 
-	// NOTE: It removes the first character on container's name that is a `/`.
 	name := container.Name[1:]
 
-	// NOTE: Normalize the container name to comply with ShellHub's device naming conventions.
-	// While Docker allows characters like dots and hyphens in its naming pattern `[a-zA-Z0-9][a-zA-Z0-9_.-]`,
-	// ShellHub restricts names to letters, numbers, underscores, and hyphens, with a maximum length of 64 characters
-	// `([a-zA-Z0-9_-]){1,64}$`. This normalization is essential for compatibility.
 	name = strings.ReplaceAll(name, ".", "_")
 	if len(name) > 64 {
 		name = name[:64]
@@ -222,10 +209,6 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 		case err := <-errs:
 			return err
 		case container := <-events:
-			// NOTE: "start" and "die" Docker's events are call every time a new container start or stop,
-			// independently how the command was run. For example, if a container was started with `docker run -d`, the
-			// "start" event will be called, but if the same container was started with `docker start <container-id>`,
-			// the "start" event will be called too. The same happens with the "die" event.
 			switch container.Action {
 			case "start":
 				name, err := d.getContainerNameFromID(ctx, container.Actor.ID)
@@ -237,7 +220,6 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 			case "die":
 				d.Stop(ctx, container.Actor.ID)
 			default:
-				// Every other Docker event is none of the connector's business.
 			}
 		}
 	}
@@ -265,9 +247,7 @@ func (d *DockerConnector) CheckUpdate() (*semver.Version, error) {
 	return semver.NewVersion(info.Version)
 }
 
-// initContainerAgent initializes the agent for a container.
 func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container connector.Container) {
-	// TODO: Let this configuration build next to the Agent [agent.LoadConfigConnectorFromEnv] function.
 	cfg := &agentd.Config{
 		ServerAddress:             container.ServerAddress,
 		TenantID:                  container.Tenant,
@@ -331,9 +311,6 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		"version":        cfg.Version,
 	}).Info("Listening for connections")
 
-	// NOTICE(r): listing for connection and wait for a channel message to close the agent. It will receives
-	// this mensagem when something out of this goroutine send a `done`, what will cause the agent closes
-	// and no more connection to be allowed until it be started again.
 	if err := ag.Listen(ctx); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":             container.ID,

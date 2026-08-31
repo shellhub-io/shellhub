@@ -65,11 +65,6 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		req.Role = req.OptRole
 	}
 
-	// We don't store the plain key, which means we cannot save (because it is the primary key)
-	// the UUID with a nondeterministic hash (like bcrypt). For this reason, we convert the
-	// key to a SHA256 hash, which is guaranteed to be the same every time. This way, when
-	// retrieving the API key by the UUID, we can simply convert the UUID to a SHA256 hash and
-	// try to match it.
 	keySum := sha256.Sum256([]byte(req.Key))
 	hashedKey := hex.EncodeToString(keySum[:])
 
@@ -90,8 +85,6 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, err
 	}
 
-	// As we need to return the plain key in the create service, we temporarily set
-	// the apiKey.ID to the plain key here.
 	apiKey, _ := s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey)
 	apiKey.ID = req.Key
 
@@ -124,8 +117,6 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return err
 	}
 
-	// The acting member must outrank the role being assigned. A RoleInvalid (empty) req.Role means
-	// no role change, so the seam resolves membership without an authority assertion.
 	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
 		return err
 	}

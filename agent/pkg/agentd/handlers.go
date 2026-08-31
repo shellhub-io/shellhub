@@ -25,7 +25,6 @@ const (
 	HandleHTTPProxyV2 = "/http/proxy/1.0.0"
 )
 
-// httpProxyHandlerV2 handlers proxy connections to the required address.
 func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	const ProxyHandlerNetwork = "tcp"
 
@@ -125,7 +124,6 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 		logger.Trace("proxy handler dialed to the address")
 
-		// TODO: Add consts for status values.
 		if err := ctx.Status("ok"); err != nil {
 			logger.WithError(err).Error("proxy handler failed to send status response")
 
@@ -308,8 +306,6 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 			host = target
 		}
 
-		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
-		// localhost:8080.
 		addr := net.JoinHostPort(host, port)
 
 		in, err := new(net.Dialer).DialContext(c.Request().Context(), ProxyHandlerNetwork, addr)
@@ -319,13 +315,10 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 
 		defer in.Close() //nolint:errcheck
 
-		// NOTE: Inform to the connection that the dial was successfully.
 		if err := c.NoContent(http.StatusOK); err != nil {
 			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
 		}
 
-		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
-		// depend upon anything externally, only the data.
 		out, _, err := http.NewResponseController(c.Response()).Hijack()
 		if err != nil {
 			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)

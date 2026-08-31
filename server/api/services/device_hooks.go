@@ -26,8 +26,6 @@ func OnDeviceMerge(fn DeviceMergeHookFn) {
 	deviceMergeHooks = append(deviceMergeHooks, fn)
 }
 
-// fireDeviceMerge dispatches all registered merge hooks sequentially.
-// The first error aborts execution (the caller's transaction rolls back).
 func fireDeviceMerge(ctx context.Context, tenantID string, oldDevice, newDevice *models.Device) error {
 	for _, fn := range deviceMergeHooks {
 		if err := fn(ctx, tenantID, oldDevice, newDevice); err != nil {

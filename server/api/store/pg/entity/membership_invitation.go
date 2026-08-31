@@ -30,13 +30,11 @@ type MembershipInvitation struct {
 }
 
 func MembershipInvitationFromModel(model *models.MembershipInvitation) *MembershipInvitation {
-	// Default to observer if Role is empty (for test cases)
 	role := string(model.Role)
 	if role == "" {
 		role = string(authorizer.RoleObserver)
 	}
 
-	// Default to pending if Status is empty (for test cases)
 	status := string(model.Status)
 	if status == "" {
 		status = "pending"

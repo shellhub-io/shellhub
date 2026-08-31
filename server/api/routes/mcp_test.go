@@ -18,23 +18,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mcpToolCall builds a tools/call JSON-RPC body for the given tool and args.
 func mcpToolCall(name, args string) string {
 	return `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"` + name + `","arguments":` + args + `}}`
 }
 
 const mcpCallerTenant = "00000000-0000-4000-0000-000000000000"
 
-// mcpCall posts a JSON-RPC message to the MCP endpoint, simulating the headers
-// nginx injects for an API-key caller (X-Tenant-ID and X-Role, no X-ID).
 func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *httptest.ResponseRecorder {
 	t.Helper()
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
-	// The stateless session manager only validates the format of the session
-	// ID, not its existence -- a well-formed value stands in for a client that
-	// has already completed the initialize handshake.
 	req.Header.Set("Mcp-Session-Id", "mcp-session-00000000-0000-4000-8000-000000000000")
 	if tenant != "" {
 		req.Header.Set("X-Tenant-ID", tenant)
@@ -49,8 +43,6 @@ func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *http
 	return rec
 }
 
-// mcpToolResult decodes a tools/call response into the tool's first text
-// content and its isError flag.
 func mcpToolResult(t *testing.T, rec *httptest.ResponseRecorder) (string, bool) {
 	t.Helper()
 
@@ -129,8 +121,6 @@ func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
 		assert.NotEqual(t, "shellhub_list_namespaces", tool.Name)
 	}
 }
-
-// --- device tools ---
 
 // TestMCPListDevices ensures status and pagination args reach the REST list
 // handler and the response is wrapped as {total, devices}.
@@ -261,8 +251,6 @@ func TestMCPGetStats(t *testing.T) {
 	assert.Contains(t, text, "registered_devices")
 	mock.AssertExpectations(t)
 }
-
-// --- session tools ---
 
 // TestMCPListSessions ensures pagination reaches the list handler and the
 // response is wrapped as {total, sessions}.

@@ -45,8 +45,6 @@ func (b *BannerError) Kind() banner.Kind {
 	return b.kind
 }
 
-// mapBannerError converts a BannerError to the appropriate sentinel error for
-// the web client based on the banner Kind.
 func mapBannerError(e *BannerError) error {
 	switch e.Kind() {
 	case banner.KindConnectionFailed:
@@ -64,12 +62,6 @@ func mapBannerError(e *BannerError) error {
 	}
 }
 
-// bannerCallback handles the banners the gateway sends mid-handshake.
-//
-// A re-auth banner is not a failure: the gateway is holding this login open
-// while it waits for the browser, so the code rides out to the console as a
-// frame and the dial stays blocked until the decision lands. Every other banner
-// is terminal, and becomes an error the caller maps for the client.
 func bannerCallback(conn *Conn) func(string) error {
 	return func(message string) error {
 		if message == "" {
@@ -90,12 +82,7 @@ func bannerCallback(conn *Conn) func(string) error {
 	}
 }
 
-// getAuth gets the authentication methods from credentials.
 func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
-	// Identity mode: the browser presents its own enrolled key. Sign the SSH
-	// challenge over the WebSocket with it (the private half never leaves the
-	// browser); the gateway resolves the key to the identity via ssh_identities.
-	// This bypasses the legacy public-key ACL below entirely.
 	if creds.PublicKey != "" {
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
 		if err != nil {
@@ -210,9 +197,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		return ErrGetAuth
 	}
 
-	// The SSH handshake has nowhere to carry the browser's address or, in identity
-	// mode, the logged-in account, so they are parked under the username about to
-	// be dialled and claimed by the session on the other side of the loopback.
 	handoff.Put(user, webhandoff.Data{
 		Device: creds.Device,
 		IP:     info.IP,
@@ -228,16 +212,12 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	if err != nil {
 		var e *BannerError
 
-		// NOTE: if the connection returns an error banner, map it to a standard error for the web client
-		// instead of forwarding the raw banner text (which is meant for native SSH clients).
 		if errors.As(err, &e) {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
 			return mapBannerError(e)
 		}
 
-		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
-		// keeping the real error internally to avoid exposing some sensitive data.
 		logger.WithError(err).Debug("failed to dial to the ssh server")
 
 		return ErrAuthentication
@@ -245,8 +225,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 	defer connection.Close() //nolint:errcheck
 
-	// Ask the SSH server for this connection's session UID and relay it to the web
-	// client, so a client-side recording can be tied to its server session.
 	if ok, reply, err := connection.SendRequest("session-uid@shellhub.io", true, nil); err == nil && ok {
 		if _, err := conn.WriteMessage(&Message{Kind: messageKindSession, Data: string(reply)}); err != nil {
 			logger.WithError(err).Debug("failed to send the session UID to the web client")
@@ -343,7 +321,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 					return
 				}
 			default:
-				// The client sends the other kinds only in the opposite direction.
 			}
 		}
 	}()
@@ -359,7 +336,6 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 }
 
 func redirToWs(rd io.Reader, ws *Conn) error {
-	// TODO: Evaluate refactoring this function to improve its readability.
 	var buf [32 * 1024]byte
 	var start, end, buflen int
 
@@ -370,11 +346,6 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		}
 
 		if nr == 0 {
-			// NOTE: "Callers should treat a return of 0 and nil as indicating that nothing happened; in particular it
-			// does not indicate EOF", in such a case, the caller should not interpret it as EOF, but instead wait for
-			// more data.
-			//
-			// https://pkg.go.dev/io#Reader
 			continue
 		}
 
@@ -398,12 +369,6 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		}
 
 		if end < 0 {
-			// NOTE: This workround is to avoid a panic in case the end is negative, which would lead to a negative slice.
-			// This situation can happen when the buffer contains only UTF-8 continuation bytes, which are bytes that
-			// cannot start a valid UTF-8 rune. In such cases, the loop above will not find a valid rune start and
-			// will leave `end` as -1.
-			//
-			// https://datatracker.ietf.org/doc/html/rfc3629#section-3
 			log.WithFields(log.Fields{
 				"buf":    buf,
 				"buflen": buflen,
@@ -422,8 +387,6 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		start = buflen - end
 
 		if start > 0 {
-			// copy remaning read bytes from the end to the beginning of a buffer
-			// so that we will get normal bytes
 			for i := range start {
 				buf[i] = buf[end+i]
 			}

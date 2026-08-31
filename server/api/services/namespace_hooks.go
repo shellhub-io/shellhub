@@ -26,8 +26,6 @@ func OnNamespaceDelete(fn NamespaceDeleteHookFn) {
 	namespaceDeleteHooks = append(namespaceDeleteHooks, fn)
 }
 
-// fireNamespaceDelete dispatches all registered delete hooks sequentially.
-// The first error aborts execution (the caller rolls back the operation).
 func fireNamespaceDelete(ctx context.Context, ns *models.Namespace) error {
 	for _, fn := range namespaceDeleteHooks {
 		if err := fn(ctx, ns); err != nil {

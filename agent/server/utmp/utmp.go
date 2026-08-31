@@ -1,18 +1,5 @@
 package utmp
 
-/*	At session start, a utmp record is constructed containing the PID,
-	tty name, ID, username, remote host, source IP and time.
-	Type is set to UserProcess and the record is written to UtmpxFile.
-	If a record with the same ID exists, that record is overwritten;
-	otherwise the record is appended to the file.  The same record is
-	appended to WtmpxFile.
-
-	At session end, Type is set to DeadProcess, the User and Host fields
-	are cleared, time is updated and the record is wrtten to UtmpxFile,
-	overwriting the session start record. The same record with ID and
-	source IP address cleared is appended to WtmpxFile.
-*/
-
 import (
 	"bytes"
 	"encoding/binary"
@@ -43,19 +30,9 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
 	u.Type = UserProcess
-	// NOTE: The maximum value of a pid in Linux and FreeBSD systems fits inside a 4-byte int32.
-	// [https://github.com/torvalds/linux/blob/c766d1472c70d25ad475cf56042af1652e792b23/include/uapi/asm-generic/posix_types.h#L28]
 	u.Pid = int32(os.Getpid()) //nolint:gosec
-	// There are two versions of the utmpSetTime function
-	// defined in utmp_timeval_time??.go, one for systems
-	// that write the time fields as 32-bit values and one
-	// for systems that write time fields as 64-bit values
 	u = utmpSetTime(u)
 
-	// remoteAddr has the form <IPv4 address>:<port>
-	// or [<IPv6 address>]:<port>
-	// Remove the port suffix and also the square brackets
-	// if IPv6, leaving the bare IPv4 or IPv6 address
 	host, _, err := net.SplitHostPort(remoteAddr)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -64,13 +41,8 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 	} else {
 		ip := net.ParseIP(host)
 		if ip4 := ip.To4(); ip4 != nil {
-			// This is a 32-bit IPv4 address to be
-			// stored in the first element of u.AddrV6
 			u.AddrV6[0] = binary.LittleEndian.Uint32(ip4)
 		} else {
-			// This is a 128-bit IPv6 address. Each 4 bytes
-			// of the address is stored as a 32-bit int in
-			// successive elements of u.AddrV6
 			u.AddrV6[0] = binary.LittleEndian.Uint32(ip[0:4])
 			u.AddrV6[1] = binary.LittleEndian.Uint32(ip[4:8])
 			u.AddrV6[2] = binary.LittleEndian.Uint32(ip[8:12])
@@ -79,7 +51,6 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 	}
 
 	line = strings.TrimPrefix(line, "/dev/")
-	// The index to the utmp record is the last 4 chars of line
 	id := line[len(line)-4:]
 
 	_ = copy(u.ID[:], id)
@@ -108,8 +79,6 @@ func UtmpEndSession(u Utmpx) {
 	updWtmp(u)
 }
 
-// This function updates the utmp file by overwriting the record with index
-// id if present; otherwise by appending the new record to the file.
 func updUtmp(u Utmpx, id string) {
 	file, err := os.OpenFile( //nolint:gosec // utmp files conventionally use 0644; tighter permissions break system accounting tools.
 		UtmpxFile,
@@ -143,7 +112,6 @@ func updUtmp(u Utmpx, id string) {
 
 	var ut Utmpx
 
-	// Read through the utmp file looking for a record with index id
 	for {
 		offset, err := file.Seek(0, io.SeekCurrent)
 		if err != nil {
@@ -184,7 +152,6 @@ func updUtmp(u Utmpx, id string) {
 	}
 }
 
-// This function updates the wtmp file by appending the record to the file.
 func updWtmp(u Utmpx) {
 	file, err := os.OpenFile( //nolint:gosec // wtmp files conventionally use 0644; tighter permissions break system accounting tools.
 		WtmpxFile,
@@ -224,7 +191,6 @@ func updWtmp(u Utmpx) {
 		return
 	}
 
-	// Check that the file is a multiple of the record size
 	rem := fileSize % int64(unsafe.Sizeof(Utmpx{}))
 	if rem != 0 {
 		fileSize -= rem

@@ -26,10 +26,6 @@ func TestParseFilterProperty_DeviceUID(t *testing.T) {
 			wantCol:     bun.Ident("session.device_id"),
 		},
 		{
-			// In non-session contexts device_uid is an unknown alias and must
-			// NOT be silently remapped — it should produce the literal column
-			// name so that the database rejects it with a clear error if the
-			// column does not exist.
 			description: "non-session context: device_uid passes through unchanged",
 			tableAlias:  "device",
 			wantCol:     bun.Ident("device.device_uid"),
@@ -227,8 +223,6 @@ func TestFromActiveFilter(t *testing.T) {
 			wantErr:     nil,
 		},
 		{
-			// int is not produced by JSON decoding (JSON numbers decode to float64),
-			// so int remains an unsupported type.
 			description: "unsupported type int returns error",
 			value:       42,
 			tableAlias:  "",
@@ -267,8 +261,6 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 		{description: "string false", value: "false", wantBool: false, wantOk: true},
 		{description: "float64 nonzero (JSON number)", value: float64(1), wantBool: true, wantOk: true},
 		{description: "float64 zero (JSON number)", value: float64(0), wantBool: false, wantOk: true},
-		// int is not produced by JSON decoding but is still handled by fromBool
-		// for programmatic callers.
 		{description: "int nonzero (programmatic, not JSON)", value: 1, wantBool: true, wantOk: true},
 		{description: "invalid string", value: "yes", wantOk: false, wantErr: true},
 	}
@@ -288,7 +280,6 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, "? = ?", sqlCond)
 			require.Len(t, args, 2)
-			// args[0] is the qualified column identifier; args[1] is the resolved bool.
 			assert.Equal(t, bun.Ident("session.closed"), args[0])
 			assert.Equal(t, tc.wantBool, args[1])
 		})
@@ -335,7 +326,6 @@ func TestFromOnlineFilter(t *testing.T) {
 			wantErr:     nil,
 		},
 		{
-			// JSON numbers always decode to float64; nonzero means online.
 			description: "float64 nonzero (JSON number) produces online SQL",
 			value:       float64(1),
 			wantSQL:     onlineSQL,
@@ -350,8 +340,6 @@ func TestFromOnlineFilter(t *testing.T) {
 			wantErr:     nil,
 		},
 		{
-			// int is not produced by JSON decoding (JSON numbers decode to float64),
-			// so int remains an unsupported type.
 			description: "unsupported type int returns ErrUnsupportedBoolType",
 			value:       42,
 			wantSQL:     "",
@@ -444,8 +432,6 @@ func TestParseFilterProperty_Active(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			// int is not produced by JSON decoding (JSON numbers decode to float64),
-			// so int remains unsupported.
 			description: "active with unsupported value type int returns error",
 			fp:          &query.FilterProperty{Name: "active", Value: 99},
 			tableAlias:  "device",

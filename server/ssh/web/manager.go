@@ -5,14 +5,11 @@ import (
 	"time"
 )
 
-// manager is used to store credentials for a time period.
 type manager struct {
-	// ttl is the time that each credial live in the map.
 	ttl         time.Duration
 	credentials *sync.Map
 }
 
-// newManager creates a new [Manager] to store the credentials for a time period.
 func newManager(ttl time.Duration) *manager {
 	return &manager{
 		ttl:         ttl,
@@ -20,7 +17,6 @@ func newManager(ttl time.Duration) *manager {
 	}
 }
 
-// save credentials for a time period. After this, the credentials are deleted.
 func (m *manager) save(id string, data *Credentials) {
 	m.credentials.Store(id, data)
 
@@ -29,7 +25,6 @@ func (m *manager) save(id string, data *Credentials) {
 	})
 }
 
-// get gets the credentials if it time period have not ended.
 func (m *manager) get(id string) (*Credentials, bool) {
 	l, ok := m.credentials.Load(id)
 	if !ok {

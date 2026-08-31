@@ -8,13 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// emptyReader always returns (0, nil), the broken-reader case that makes io.Copy
-// busy-loop without the guard.
 type emptyReader struct{}
 
 func (emptyReader) Read(_ []byte) (int, error) { return 0, nil }
 
-// scriptedReader returns each step in order, then (0, io.EOF).
 type scriptedReader struct {
 	steps []readStep
 	i     int
@@ -60,8 +57,6 @@ func TestDeadReadGuard(t *testing.T) {
 	})
 
 	t.Run("real data resets the empty-read counter", func(t *testing.T) {
-		// 99 empty reads, then a real read, then empties again: the data read in
-		// the middle must reset the counter so the guard does not trip early.
 		steps := make([]readStep, 0, maxConsecutiveEmptyReads*2)
 		for range maxConsecutiveEmptyReads - 1 {
 			steps = append(steps, readStep{})
@@ -81,8 +76,6 @@ func TestDeadReadGuard(t *testing.T) {
 			total += n
 		}
 
-		// The single non-empty step ("hi") must have flowed through, and resetting
-		// the counter on it kept the guard from tripping across the surrounding empties.
 		assert.Equal(t, len("hi"), total)
 	})
 

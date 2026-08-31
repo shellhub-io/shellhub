@@ -489,7 +489,6 @@ func TestGetNamespace(t *testing.T) {
 
 func TestCreateNamespace(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
-	// A namespace create also provisions its legacy install key (best-effort).
 	storeMock.On("InstallKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
 	clockMock := clockmock.NewMockClock(t)
 
@@ -686,9 +685,6 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
-			// store.ErrDuplicate from NamespaceCreate means a concurrent insert raced past the
-			// NamespaceConflicts pre-check (case-sensitive name=? queries rely on lowercased
-			// writes). The service must map it to ErrNamespaceDuplicated, not ErrNamespaceCreateStore.
 			description: "fails when NamespaceCreate returns store.ErrDuplicate",
 			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
@@ -1382,10 +1378,6 @@ func TestEditSessionRecord(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-// withSSHAccessMode is the namespace as the service is expected to hand it to
-// NamespaceUpdate. Settings is a pointer, so the expectation needs a copy of its
-// own: sharing it with the namespace the service mutates in place would compare
-// the same memory against itself, and pass whatever got written.
 func withSSHAccessMode(ns *models.Namespace, mode string) *models.Namespace {
 	settings := *ns.Settings
 	settings.SSHAccessMode = mode

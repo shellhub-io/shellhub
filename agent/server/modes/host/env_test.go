@@ -145,8 +145,6 @@ func TestAcceptClientEnv(t *testing.T) {
 	}
 }
 
-// withLocaleFiles points localeFiles at a temporary directory. Each content maps to one entry of
-// localeFiles, in order; an empty content leaves that file absent.
 func withLocaleFiles(t *testing.T, contents ...string) {
 	t.Helper()
 

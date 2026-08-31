@@ -15,8 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// greeting stands for the opening line of a server-first protocol, as SMTP and
-// MySQL send on connect.
 const greeting = "220 smtp.example.com ESMTP ready\r\n"
 
 func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
@@ -29,8 +27,6 @@ func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
 		_ = agent.Close()
 	})
 
-	// Without a deadline a dropped greeting parks the read forever instead of
-	// failing the test.
 	require.NoError(t, client.SetDeadline(time.Now().Add(5*time.Second))) //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 	require.NoError(t, agent.SetDeadline(time.Now().Add(5*time.Second)))  //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 
@@ -53,8 +49,6 @@ func TestHTTPProxyTargetKeepsGreetingSentWithTheReply(t *testing.T) {
 			return
 		}
 
-		// One write, because the agent answers and starts piping immediately:
-		// reply and payload can reach the caller in a single read.
 		agent.Write([]byte(`{"status":"ok"}` + greeting)) //nolint:errcheck
 	}()
 

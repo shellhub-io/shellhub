@@ -93,9 +93,6 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 
 		buffered := bufio.NewReader(conn)
 
-		// The body shares the tunnel's buffered reader, which is handed back to the caller on
-		// success. Closing it would consume bytes belonging to the proxied stream; on the error
-		// paths below the caller closes conn, which releases it.
 		resp, err := http.ReadResponse(buffered, handshakeReq) //nolint:bodyclose
 		if err != nil {
 			return nil, err
@@ -118,7 +115,6 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 		}
 		result := map[string]string{}
 
-		// NOTE: limit the size of the response to avoid DoS via large payloads.
 		const Limit = 512
 
 		decoder := json.NewDecoder(io.LimitReader(conn, Limit))

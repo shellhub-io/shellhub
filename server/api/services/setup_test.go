@@ -41,7 +41,6 @@ func TestSetup(t *testing.T) {
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	clockMock.On("Now").Return(now)
 
-	// Setup calls envs.IsDevelopment() to decide the namespace tenant; not development here.
 	envMock.On("Get", "SHELLHUB_ENV").Return("")
 	envMock.On("Get", "SHELLHUB_EDITION").Return("")
 
@@ -456,8 +455,6 @@ func TestSetup(t *testing.T) {
 				storeMock.On("NamespaceCreate", ctx, namespace).Return(tenant, nil).Once()
 				storeMock.On("SystemSet", ctx, finalSystem).Return(nil).Once()
 
-				// Setup mints an authenticated session for the new admin (auto-login) by
-				// delegating to CreateUserToken, which resolves the user and namespace back.
 				createdUser := &models.User{
 					ID:        "000000000000000000000000",
 					Origin:    models.UserOriginLocal,

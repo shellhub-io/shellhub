@@ -32,7 +32,6 @@ func (c *Context) isAdminRoute() bool {
 	return v
 }
 
-// contextKey is where [WithContext] parks the gateway [Context] in Echo's per-request store.
 const contextKey = "gateway-context"
 
 func NewContext(service any, c *echo.Context) *Context {

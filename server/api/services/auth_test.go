@@ -2083,8 +2083,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-				// UserUpdate receives the user unchanged; the preferred namespace is persisted
-				// separately via UserUpdatePreferredNamespace, so it stays empty here.
 				updatedUser := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -2306,8 +2304,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 			tc.requiredMocks()
 
 			res, lockout, mfaToken, err := service.AuthLocalUser(ctx, tc.req, tc.sourceIP)
-			// Since the resulting token is not crucial for the assertion and
-			// difficult to mock, it is safe to ignore this field.
 			if res != nil {
 				res.Token = "must ignore"
 			}
@@ -2624,8 +2620,6 @@ func TestCreateUserToken(t *testing.T) {
 			tc.requiredMocks(ctx)
 
 			res, err := s.CreateUserToken(ctx, tc.req)
-			// Since the resulting token is not crucial for the assertion and
-			// difficult to mock, it is safe to ignore this field.
 			if res != nil {
 				res.Token = "must ignore"
 			}
@@ -2910,7 +2904,6 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(nil, store.ErrNoDocuments).
 			Once()
-		// A tenant-only enrollment resolves the namespace's legacy key; none here.
 		storeMock.
 			On("InstallKeyResolveSystem", ctx, scope.MustBounded(tenantID)).
 			Return(nil, store.ErrNoDocuments).

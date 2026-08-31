@@ -39,8 +39,6 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 		return nil, err
 	}
 
-	// The active-session count reaches the namespace through devices, so the scope predicate
-	// has to name that table rather than the query's own model.
 	activeSessions, err := countInScope(context.WithValue(ctx, CtxTableAlias, "devices"), buildActiveSessionsQuery(db), sc)
 	if err != nil {
 		return nil, err

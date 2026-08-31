@@ -121,7 +121,6 @@ func TestSSHIdentityMode(t *testing.T) {
 
 		_, err := ssh.Dial("tcp", addr, config)
 		require.Error(t, err)
-		// The client never gets to try a password: the server advertises publickey only.
 		require.Contains(t, err.Error(), "attempted methods []")
 	})
 
@@ -530,7 +529,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				var status *ssh.ExitError
 
-				// NOTICE: write to stderr to simulate a error from connection.
 				output, err := sess.CombinedOutput(`echo -n "test" 1>&2; exit 142`)
 				require.ErrorAs(t, err, &status)
 
@@ -650,7 +648,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				_, err = fmt.Fscanf(received, "%s", &data)
 				require.NoError(t, err)
 
-				// NOTICE: This assertion brake if the Docker image used to build the Agent wasn't the Alpine.
 				assert.Contains(t, data, "Alpine")
 
 				_ = sess.Close()
@@ -854,7 +851,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 				defer client.Close() //nolint:errcheck
 
-				// Create a large file (10MB)
 				fileSize := 10 * 1024 * 1024 // 10MB
 				randomData := make([]byte, fileSize)
 				_, err = rand.Read(randomData)
@@ -923,10 +919,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// Regression: stderr used to be merged into stdout, so `2>/dev/null`
-			// filtered nothing and redirects were polluted. CombinedOutput cannot
-			// catch that — it merges the two streams itself — so this reads them
-			// apart.
 			name: "connection EXEC with separate stdout and stderr",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -964,10 +956,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// Regression: io.MultiReader drains its readers in sequence, so nothing
-			// read stderr until stdout reached EOF. A command writing past the pipe
-			// buffer blocked in write(2) and never exited, so stdout never reached
-			// EOF either. The assertion that matters is that this returns at all.
 			name: "connection EXEC with large stderr",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -996,7 +984,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				done := make(chan error, 1)
 
 				go func() {
-					// Well past the 64 KiB pipe buffer that used to deadlock.
 					done <- sess.Run("yes E | tr -d '\n' | head -c 1048576 1>&2; echo -n done")
 				}()
 
@@ -1012,10 +999,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// A shell with a pty used to report success whatever it exited with,
-			// because the agent never sent a status of its own and the library
-			// filled in a zero. Exec and the heredoc shape both got this right,
-			// so the gap was invisible unless you asked for a terminal.
 			name: "connection SHELL with Pty reports the exit code",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -1103,9 +1086,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// Regression: a shell with no pty is all a heredoc sends, and it was
-			// not one of the requests that started the data pipe, so the session
-			// had no data path and hung until the client gave up.
 			name: "connection SHELL without Pty",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -1159,10 +1139,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// Replaces a case disabled since b32abb41d. It waited for the keepalive
-			// on the channel's request stream; the gateway forwards it on the
-			// connection now, so that a client holding only port forwards gets one
-			// too.
 			name: "connection keepalive reaches the client",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -1191,8 +1167,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					}
 				}()
 
-				// The agent only starts its keepalive loop once a session is
-				// requested, so ask for one and leave it open.
 				ch, chReqs, err := conn.OpenChannel("session", nil)
 				require.NoError(t, err)
 
@@ -1222,10 +1196,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			// Regression: the agent must enforce the AcceptEnv allowlist (LANG and
-			// LC_* only). LC_TEST passes through; TEST_VAR1 is silently dropped.
-			// Setenv still returns no error — the SSH protocol accepts the request;
-			// the agent silently drops blocked vars.
 			name: "connection EXEC with environment variables",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -1246,19 +1216,15 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 				defer sess.Close() //nolint:errcheck
 
-				// LC_TEST matches the "LC_*" allowlist — it must reach the remote shell.
 				err = sess.Setenv("LC_TEST", "allowed")
 				require.NoError(t, err)
 
-				// TEST_VAR1 is outside the allowlist — the agent drops it silently.
-				// The SSH protocol still accepts the env-request, so Setenv returns nil.
 				err = sess.Setenv("TEST_VAR1", "blocked")
 				require.NoError(t, err)
 
 				output, err := sess.Output("echo -n $LC_TEST:$TEST_VAR1")
 				require.NoError(t, err)
 
-				// LC_TEST is "allowed"; TEST_VAR1 expands to "" because the agent dropped it.
 				assert.Equal(t, "allowed:", string(output))
 			},
 		},
@@ -1288,14 +1254,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				})
 				require.NoError(t, err)
 
-				// Nothing drains the size until the session handler starts, and that
-				// only happens on the exec below: a resize that blocks here never
-				// lets it through.
 				require.NoError(t, sess.WindowChange(48, 160))
 
-				// No reply confirms a resize reached the pty, so wait on the device's
-				// own report — it can only follow the ioctl. Under exec because an
-				// interactive shell defers the trap until its line editor returns.
 				const reportResizes = `sh -c 'trap "echo SIZE \$(stty size)" WINCH; echo READY; sleep 3600 & while :; do wait; done'`
 
 				stdout, _ := sess.StdoutPipe()
@@ -1316,8 +1276,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					}
 				}()
 
-				// The deadline stops a wedged session hanging the suite, and is never
-				// the criterion — raising it has hidden this bug before.
 				waitFor := func(want string) error {
 					deadline := time.After(30 * time.Second)
 
@@ -1337,7 +1295,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					}
 				}
 
-				// Start waits on the exec reply forever, and a wedged loop never sends one.
 				started := make(chan error, 1)
 				go func() {
 					started <- sess.Start(reportResizes)
@@ -1753,9 +1710,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 	ctx := context.Background()
 
-	// The table below authenticates with a password and with ad-hoc public keys, which is
-	// the legacy authorization model. Namespaces are born identity-first, so the mode has to
-	// be asked for explicitly. Identity mode is covered by [TestSSHIdentityMode].
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
 
 	for _, tc := range tests {
@@ -1775,11 +1729,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	}
 }
 
-// newSSHEnvironment brings up a ShellHub stack with a single user and namespace in the given
-// SSH access mode, and authenticates the compose client as that user.
-//
-// The database backend is configured via SHELLHUB_DATABASE in .env; postgres is the only one
-// supported.
 func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
 	t.Helper()
 
@@ -1808,8 +1757,6 @@ func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) 
 	return compose
 }
 
-// startAcceptedAgent starts an agent container, accepts the device it registers, and waits for
-// it to come online, returning the container and the accepted device.
 func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) (testcontainers.Container, *models.Device) {
 	t.Helper()
 

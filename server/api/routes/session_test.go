@@ -55,10 +55,6 @@ func TestGetSessionList(t *testing.T) {
 			},
 		},
 		{
-			// Non-default paginator (Page:2, PerPage:5) distinguishes values
-			// actually bound from the URL from the handler's Normalize() defaults
-			// (Page:1, PerPage:10). If pagination binding regressed the mock
-			// would not match and the test would fail.
 			description: "success when try to searching a session list of a existing session",
 			paginator:   query.Paginator{Page: 2, PerPage: 5},
 			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
@@ -132,9 +128,6 @@ func TestGetSessionList(t *testing.T) {
 			}(),
 			headers: map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
-				// Assert that the decoded filter is forwarded to the service:
-				// if filter binding or Unmarshal regressed, the MatchedBy
-				// predicate would not match and the test would fail.
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
 						if len(req.Filters.Data) != 1 {
