@@ -114,10 +114,8 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch (err) {
-          // Check if MFA token was set by interceptor (401 with x-mfa-token)
           const currentState = get();
           if (currentState.mfaToken) {
-            // MFA required — set user info so recovery pages can access it
             set({ loading: false, user: username, mfaEnabled: true });
             return;
           }
@@ -142,9 +140,6 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
-          // Token rejected — auth state collapses just like a logout, so
-          // tear the widget down too. Otherwise a stale Chatwoot iframe
-          // (loaded earlier in the session) survives into the login screen.
           tearDownChatwoot("logout");
           set({ ...initialState });
           throw new Error("Token login failed");
@@ -152,22 +147,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Tear the Chatwoot widget down BEFORE clearing auth state. Clearing
-        // state first would unmount AppLayout (and ChatwootProvider with it),
-        // detaching the widget DOM before reset() runs and leaving a stale
-        // identity for the next sign-in. The runtime helper also removes the
-        // <script> tag and the window globals so the next mount can cleanly
-        // re-bootstrap with the new user's identity.
         tearDownChatwoot("logout");
         useVaultStore.getState().lock();
-        // Close terminal sessions so an in-progress local recording is
-        // finalized instead of discarded when the terminal unmounts.
         const terminal = useTerminalStore.getState();
         terminal.sessions.forEach((s) => terminal.close(s.id));
         set(initialState);
         localStorage.removeItem("shellhub-session");
-        // Drop every cached query so the next user doesn't briefly see the
-        // previous user's namespaces, devices, role, etc. before refetches land.
         queryClient.clear();
       },
 
@@ -245,7 +230,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       recoverWithCode: async (code: string, identifier?: string) => {
-        // Try to get identifier from parameter first, then fall back to store
         const username = identifier || get().user || get().username;
         if (!username) {
           set({ error: "Username or email is required" });
@@ -310,15 +294,11 @@ export const useAuthStore = create<AuthState>()(
         isAdmin: state.isAdmin,
         name: state.name,
         mfaEnabled: state.mfaEnabled,
-        // Do NOT persist: username, recoveryEmail (fetched fresh via fetchUser)
-        // Do NOT persist: mfaToken, mfaRecoveryExpiry (transient MFA session state)
       }),
     },
   ),
 );
 
-// Namespace local session recordings to the signed-in user. Synced here (not in
-// each userId write) so it also covers rehydration and logout.
 setRecordingsScope(useAuthStore.getState().userId);
 useAuthStore.subscribe((state, prev) => {
   if (state.userId !== prev.userId) setRecordingsScope(state.userId);

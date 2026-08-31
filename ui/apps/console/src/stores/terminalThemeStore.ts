@@ -94,8 +94,6 @@ const FALLBACK_THEME: TerminalTheme = {
   },
 };
 
-// Themes are static assets under public/, not API endpoints, so they bypass the API client and
-// its auth pipeline entirely.
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok)

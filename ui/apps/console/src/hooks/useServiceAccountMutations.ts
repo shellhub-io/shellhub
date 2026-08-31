@@ -6,7 +6,6 @@ import {
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateServiceAccount() {
-  // Creating a service account also enrolls an SSH identity, so refresh both lists.
   const invalidate = useInvalidateByIds(
     "listServiceAccounts",
     "listSshIdentities",
@@ -18,7 +17,6 @@ export function useCreateServiceAccount() {
 }
 
 export function useDeleteServiceAccount() {
-  // Deleting a service account cascades to its SSH identities, so refresh both lists.
   const invalidate = useInvalidateByIds(
     "listServiceAccounts",
     "listSshIdentities",

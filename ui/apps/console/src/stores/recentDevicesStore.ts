@@ -43,7 +43,6 @@ export const useRecentDevicesStore = create<RecentDevicesState>()(
         };
         set((state) => {
           const existing = state.byTenant[tenant] ?? [];
-          // Drop any prior entry for this device, then prepend the fresh one.
           const next = [entry, ...existing.filter((d) => d.uid !== uid)].slice(
             0,
             STORE_CAP,

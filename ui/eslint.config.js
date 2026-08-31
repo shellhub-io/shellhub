@@ -9,6 +9,7 @@ import vitestPlugin from "@vitest/eslint-plugin";
 import globals from "globals";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import reactPlugin from "eslint-plugin-react";
+import jsdocPlugin from "eslint-plugin-jsdoc";
 
 export default defineConfig([
   globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "**/src/client"]),
@@ -24,46 +25,32 @@ export default defineConfig([
   },
   stylisticPlugin.configs.recommended,
 
-  // Accessibility — catches missing aria-labels, bad roles, inaccessible interactive elements
   jsxA11y.flatConfigs.recommended,
   {
     rules: {
-      // Icon-only interactive elements must have an accessible label.
-      // Catches close buttons, icon buttons, etc. that render no visible text.
       "jsx-a11y/control-has-associated-label": ["error", {
         ignoreElements: ["audio", "canvas", "embed", "input", "textarea", "tr", "video"],
         ignoreRoles: ["grid", "listbox", "menu", "menubar", "radiogroup", "row", "tablist", "toolbar", "tree", "treegrid"],
       }],
 
-      // Interactive elements (role=button, etc.) must be keyboard-focusable.
-      // Catches <div onClick> that omit tabIndex and keyboard handlers.
       "jsx-a11y/interactive-supports-focus": "warn",
 
-      // Prevents attaching mouse/pointer handlers to static, non-interactive elements
-      // without a corresponding keyboard handler.
       "jsx-a11y/no-static-element-interactions": "warn",
 
-      // Any element with an onClick must also handle Enter/Space via onKeyDown/onKeyUp/onKeyPress.
       "jsx-a11y/click-events-have-key-events": "warn",
     },
   },
 
-  // React — button types, dangerous HTML, safe anchor targets
   {
     plugins: { react: reactPlugin },
     settings: { react: { version: "detect" } },
     rules: {
-      // Same goal as jsx-a11y/button-has-type but from the React side.
-      // Together they cover both JSX and DOM-level checks.
       "react/button-has-type": "error",
 
-      // Prevents dangerouslySetInnerHTML from being introduced silently.
       "react/no-danger": "warn",
 
-      // <a target="_blank"> without rel="noreferrer" is a security/privacy issue.
       "react/jsx-no-target-blank": "error",
 
-      // Enforces self-closing tags on components/elements with no children.
       "react/self-closing-comp": "warn",
     },
   },
@@ -104,7 +91,6 @@ export default defineConfig([
       "@stylistic/arrow-parens": ["error", "always"],
       "@stylistic/quote-props": ["error", "as-needed"],
 
-      // Disabled — Prettier controls these and cannot be configured to match
       "@stylistic/indent": "off",
       "@stylistic/indent-binary-ops": "off",
       "@stylistic/jsx-indent-props": "off",
@@ -114,8 +100,6 @@ export default defineConfig([
     },
   },
 
-  // Design-system is a library — fast refresh doesn't apply, and compound
-  // components intentionally export multiple functions from one file.
   {
     files: ["packages/design-system/**/*.{ts,tsx}"],
     rules: {
@@ -123,7 +107,30 @@ export default defineConfig([
     },
   },
 
-  // Disable type-checked rules for JS config files
+  {
+    files: ["packages/design-system/**/*.{ts,tsx}"],
+    ignores: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
+    plugins: { jsdoc: jsdocPlugin },
+    rules: {
+      "jsdoc/require-jsdoc": ["error", {
+        publicOnly: true,
+        require: {
+          ArrowFunctionExpression: true,
+          ClassDeclaration: true,
+          FunctionDeclaration: true,
+          FunctionExpression: true,
+          MethodDefinition: true,
+        },
+        contexts: [
+          "ExportNamedDeclaration > TSInterfaceDeclaration",
+          "ExportNamedDeclaration > TSTypeAliasDeclaration",
+          "ExportNamedDeclaration > VariableDeclaration",
+        ],
+      }],
+      "jsdoc/require-description": ["error", { contexts: ["any"] }],
+    },
+  },
+
   {
     files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
     ...tseslint.configs.disableTypeChecked,
@@ -139,7 +146,6 @@ export default defineConfig([
     },
   },
 
-  // Test overrides
   {
     files: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
     plugins: {

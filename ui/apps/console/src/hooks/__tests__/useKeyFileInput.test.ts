@@ -7,7 +7,6 @@ function makeFile(name: string, content: string): File {
 }
 
 function makeOversizedFile(): File {
-  // 513 KB — just above the 512 KB limit
   const blob = new Blob([new Uint8Array(513 * 1024)]);
   return new File([blob], "big.pem", { type: "text/plain" });
 }

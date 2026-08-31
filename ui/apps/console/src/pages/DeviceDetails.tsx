@@ -64,7 +64,6 @@ export default function DeviceDetails() {
   });
   const runDeviceAction = useDeviceActionRunner();
 
-  // Auto-open connect drawer if ?connect=true (adjust during render)
   const shouldAutoConnect =
     searchParams.get("connect") === "true" &&
     device?.online &&
@@ -79,7 +78,6 @@ export default function DeviceDetails() {
     setAutoConnectDone(false);
   }
 
-  // Restore existing terminal session (side effect only, no setState)
   useEffect(() => {
     if (
       searchParams.get("connect") === "true" &&

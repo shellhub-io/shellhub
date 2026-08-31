@@ -10,10 +10,6 @@ export function useSessionRecording() {
     setIsLoading(true);
     setError(null);
     try {
-      // The route serves an asciicast file, not the JSON array the spec declares, so the body
-      // is read as text and the generated response type does not describe what arrives. Guard
-      // rather than cast, so a spec fix that makes the type honest surfaces here instead of
-      // handing the player a value it cannot render.
       const { data } = await getSessionRecord({
         path: { uid, seat: 0 },
         parseAs: "text",

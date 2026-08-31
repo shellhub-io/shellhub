@@ -10,8 +10,6 @@ import CopyButton from "@/components/common/CopyButton";
  * keeps working even after the user switches to the code-entry face.
  */
 export default function WizardStepInstall() {
-  // Code-less install: a clean command with no credential. The agent boots
-  // tenant-less and prints an accept link (and a code), then waits.
   const installCmd = `curl -sSf ${window.location.origin}/install.sh | sh`;
 
   const requirements: { key: string; label: ReactNode }[] = [

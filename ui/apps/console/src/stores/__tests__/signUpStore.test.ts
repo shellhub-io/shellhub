@@ -319,7 +319,6 @@ describe("signUpStore", () => {
         .getState()
         .validateAccount("t@t.com", "tok", controller.signal);
 
-      // Status must stay at "processing" — no terminal state set after an abort.
       expect(useSignUpStore.getState().validationStatus).toBe("processing");
     });
 

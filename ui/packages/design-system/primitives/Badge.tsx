@@ -2,9 +2,21 @@ import type { ReactNode } from "react";
 import type { Palette } from "./IconBadge";
 import { cn } from "./cn";
 
+/**
+ * The palette a Badge may take. Neutral is excluded because a badge on a neutral fill has no
+ * contrast against the surface it sits on.
+ */
 export type BadgeColor = Exclude<Palette, "neutral">;
+/**
+ * Rounded reads as a label in running text; pill is bordered, monospaced and uppercased, for a
+ * status or a count.
+ */
 export type BadgeShape = "rounded" | "pill";
 
+/**
+ * Props of Badge. Anything else given is spread onto the span, so a caller can attach data
+ * attributes and ARIA without the component naming them.
+ */
 export interface BadgeProps {
   color?: BadgeColor;
   shape?: BadgeShape;
@@ -31,6 +43,9 @@ const pillColorClasses: Record<BadgeColor, string> = {
   cyan: "bg-accent-cyan/10 text-accent-cyan border-accent-cyan/20",
 };
 
+/**
+ * Small inline label carrying a state or a category next to the thing it describes.
+ */
 export function Badge({
   color = "primary",
   shape = "rounded",

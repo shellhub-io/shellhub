@@ -85,17 +85,12 @@ export function injectChatwootScript({
   if (typeof window === "undefined") return;
   if (getWidgetReadySnapshot()) return;
 
-  // HMR / desync recovery: if the latch claims an injection is in flight but
-  // the actual <script> tag is gone (Vite hot-reload, manual DOM cleanup),
-  // unstick the latch so a fresh injection can proceed.
   if (scriptInjected && !document.getElementById(SCRIPT_ID)) {
     scriptInjected = false;
   }
 
   if (scriptInjected || document.getElementById(SCRIPT_ID)) return;
 
-  // A new injection attempt is underway — clear any stale failure flag from
-  // a prior aborted bootstrap so a successful re-attempt isn't shadowed.
   bootstrapFailed = false;
   scriptInjected = true;
   const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
@@ -107,9 +102,6 @@ export function injectChatwootScript({
     type: "standard",
   };
 
-  // One-shot listener: when the widget reports ready, cancel the watchdog,
-  // clear any lingering failure flag, and notify subscribers so React's
-  // useSyncExternalStore picks up the new state.
   detachReadyListener();
   readyListener = () => {
     clearWatchdog();
@@ -125,8 +117,6 @@ export function injectChatwootScript({
   script.async = true;
   script.onload = () => {
     if (!window.chatwootSDK) {
-      // Script loaded but the SDK never attached its global (CSP, ad-block
-      // mid-stream). No point waiting 15s — surface "unavailable" now.
       tearDownChatwoot("bootstrap-timeout");
       return;
     }
@@ -144,10 +134,6 @@ export function injectChatwootScript({
     }, BOOTSTRAP_TIMEOUT_MS);
   };
   script.onerror = () => {
-    // Network failure — surface "unavailable" so consumers re-render out of
-    // the loading state instead of spinning forever. tearDownChatwoot resets
-    // scriptInjected, so a future dep change (tenant switch, re-auth) can
-    // retry injection.
     tearDownChatwoot("bootstrap-timeout");
   };
   document.body.appendChild(script);
@@ -177,9 +163,6 @@ export function tearDownChatwoot(
     // Widget mid-bootstrap — nothing to close.
   }
 
-  // Remove the SDK script and the DOM the SDK injected outside our React
-  // tree. Without this, the chat bubble/iframe persists across logout and
-  // can leak the previous user's conversation state into the next session.
   document.getElementById(SCRIPT_ID)?.remove();
   document.querySelectorAll(SDK_DOM_SELECTORS).forEach((node) => node.remove());
 

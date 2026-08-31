@@ -18,7 +18,6 @@ export const isValidRole = (role: string | null): role is Role =>
   role !== null && Object.prototype.hasOwnProperty.call(roleLevels, role);
 
 const permissions = {
-  // Devices
   "device:connect": RoleLevel.OBSERVER,
   "device:details": RoleLevel.OBSERVER,
   "device:add": RoleLevel.OPERATOR,
@@ -29,13 +28,11 @@ const permissions = {
   "device:remove": RoleLevel.ADMINISTRATOR,
   "device:choose": RoleLevel.OWNER,
 
-  // Sessions
   "session:details": RoleLevel.OBSERVER,
   "session:play": RoleLevel.ADMINISTRATOR,
   "session:close": RoleLevel.ADMINISTRATOR,
   "session:removeRecord": RoleLevel.ADMINISTRATOR,
 
-  // Namespace
   "namespace:create": RoleLevel.OBSERVER,
   "namespace:leave": RoleLevel.OBSERVER,
   "namespace:rename": RoleLevel.ADMINISTRATOR,
@@ -47,65 +44,52 @@ const permissions = {
   "namespace:updateSshAccessMode": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
-  // Tags
   "tag:edit": RoleLevel.OPERATOR,
   "tag:remove": RoleLevel.OPERATOR,
   "tag:deviceCreate": RoleLevel.OPERATOR,
   "tag:update": RoleLevel.OPERATOR,
 
-  // Web Endpoints
   "webEndpoint:create": RoleLevel.ADMINISTRATOR,
   "webEndpoint:delete": RoleLevel.ADMINISTRATOR,
 
-  // Connectors
   "connector:add": RoleLevel.ADMINISTRATOR,
   "connector:edit": RoleLevel.ADMINISTRATOR,
   "connector:remove": RoleLevel.ADMINISTRATOR,
 
-  // Firewall
   "firewall:create": RoleLevel.ADMINISTRATOR,
   "firewall:edit": RoleLevel.ADMINISTRATOR,
   "firewall:remove": RoleLevel.ADMINISTRATOR,
 
-  // Public Keys
   "publicKey:create": RoleLevel.ADMINISTRATOR,
   "publicKey:edit": RoleLevel.ADMINISTRATOR,
   "publicKey:remove": RoleLevel.ADMINISTRATOR,
 
-  // Access Policies
   "accessPolicy:create": RoleLevel.ADMINISTRATOR,
   "accessPolicy:edit": RoleLevel.ADMINISTRATOR,
   "accessPolicy:remove": RoleLevel.ADMINISTRATOR,
 
-  // SSH Identities
   "sshIdentity:add": RoleLevel.OPERATOR,
   "sshIdentity:manage": RoleLevel.ADMINISTRATOR,
 
-  // Service Accounts
   "serviceAccount:view": RoleLevel.ADMINISTRATOR,
   "serviceAccount:create": RoleLevel.ADMINISTRATOR,
   "serviceAccount:delete": RoleLevel.ADMINISTRATOR,
 
-  // Billing
   "billing:subscribe": RoleLevel.OWNER,
   "billing:unsubscribe": RoleLevel.OWNER,
 
-  // Notifications
   "notification:view": RoleLevel.OPERATOR,
 
-  // API Keys
   "apiKey:create": RoleLevel.ADMINISTRATOR,
   "apiKey:edit": RoleLevel.ADMINISTRATOR,
   "apiKey:delete": RoleLevel.ADMINISTRATOR,
 
-  // Install Keys — edit/disable/revoke all map to the backend's InstallKeyUpdate permission.
   "installKey:create": RoleLevel.ADMINISTRATOR,
   "installKey:reveal": RoleLevel.ADMINISTRATOR,
   "installKey:edit": RoleLevel.ADMINISTRATOR,
   "installKey:disable": RoleLevel.ADMINISTRATOR,
   "installKey:revoke": RoleLevel.ADMINISTRATOR,
 
-  // Namespace settings
   "namespace:editBanner": RoleLevel.ADMINISTRATOR,
 } as const;
 

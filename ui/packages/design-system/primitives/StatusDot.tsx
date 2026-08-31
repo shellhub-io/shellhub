@@ -1,8 +1,17 @@
 import { cn } from "./cn";
 
+/**
+ * Colour of an online dot. Ignored when offline, which is always muted.
+ */
 export type StatusDotColor = "green" | "primary" | "yellow";
+/**
+ * Diameter of a StatusDot: sm for a dense table row, md beside a heading.
+ */
 export type StatusDotSize = "sm" | "md";
 
+/**
+ * Props of StatusDot.
+ */
 export interface StatusDotProps {
   online?: boolean;
   color?: StatusDotColor;
@@ -27,6 +36,10 @@ const bgClasses: Record<StatusDotColor, string> = {
   yellow: "bg-accent-yellow",
 };
 
+/**
+ * Connectivity dot: a glowing pulse when online, a flat muted dot when not. Both carry a
+ * role and a label, so the state reaches a reader that cannot see the colour.
+ */
 export function StatusDot({
   online = true,
   color = "green",

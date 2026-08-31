@@ -245,8 +245,6 @@ function LicenseUpload() {
   };
 
   const clearFile = () => {
-    // Do NOT call selectFile here — that would reset feedback.
-    // Only clear the file and its validation state.
     setFile(null);
     setValidationError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";

@@ -18,19 +18,16 @@ Object.defineProperty(window, "IntersectionObserver", {
   value: IntersectionObserverShim,
 });
 
-// jsdom does not implement window.scrollTo; provide a no-op shim.
 Object.defineProperty(window, "scrollTo", {
   writable: true,
   configurable: true,
   value: () => {},
 });
 
-// jsdom does not implement ResizeObserver; Floating UI's autoUpdate needs it.
 global.ResizeObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}
 };
 
-// jsdom does not implement scrollIntoView.
 Element.prototype.scrollIntoView = function () {};

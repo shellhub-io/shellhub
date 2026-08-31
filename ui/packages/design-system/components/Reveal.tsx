@@ -16,6 +16,11 @@ function useReveal() {
   return ref;
 }
 
+/**
+ * Fades its children in the first time they scroll into view, then stops observing, so the
+ * animation plays once per mount rather than on every pass. delay staggers a group of
+ * siblings into a sequence.
+ */
 export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useReveal();
   return (

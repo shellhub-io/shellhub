@@ -65,8 +65,6 @@ const keyNameField = z.string().superRefine((value, ctx) => {
 export const generateKeySchema = z.object({
   name: keyNameField,
   role: roleField,
-  // Kept as a string so it binds directly to the radio-pill group; converted
-  // back to the numeric API value in buildGenerateKeyBody.
   expiresIn: z.string(),
 });
 

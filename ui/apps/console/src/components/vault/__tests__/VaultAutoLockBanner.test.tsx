@@ -3,7 +3,6 @@ import { render, screen, act } from "@testing-library/react";
 import { useVaultStore } from "@/stores/vaultStore";
 import VaultAutoLockBanner from "../VaultAutoLockBanner";
 
-// Prevent real vault-crypto / backend calls from running in tests
 vi.mock("@/utils/vault-crypto", () => ({
   createVaultMeta: vi.fn(),
   verifyPassword: vi.fn(),
@@ -43,7 +42,6 @@ vi.mock("@/utils/vault-activity-tracker", () => ({
 }));
 
 beforeEach(() => {
-  // Reset vault store to a known base state before each test (nonce = 0)
   useVaultStore.setState({
     status: "locked",
     keys: [],
@@ -71,10 +69,8 @@ describe("VaultAutoLockBanner", () => {
     });
 
     it("does NOT show the toast on mount even when autoLockNonce is already > 0 (pre-existing)", () => {
-      // Simulate a nonce that was set before the component mounted
       useVaultStore.setState({ autoLockNonce: 3 });
       render(<VaultAutoLockBanner />);
-      // The banner was not mounted when those nonce bumps happened — it should not fire
       expect(
         screen.queryByText(/vault locked due to inactivity/i),
       ).not.toBeInTheDocument();
@@ -96,8 +92,6 @@ describe("VaultAutoLockBanner", () => {
     });
 
     it("shows the toast on a second nonce bump (multiple lock events)", () => {
-      // Fake timers must be in place BEFORE render so the auto-dismiss setTimeout
-      // is captured as a fake timer and can be controlled by advanceTimersByTime.
       vi.useFakeTimers();
 
       useVaultStore.setState({ autoLockNonce: 0 });
@@ -111,17 +105,14 @@ describe("VaultAutoLockBanner", () => {
         screen.getByText(/vault locked due to inactivity/i),
       ).toBeInTheDocument();
 
-      // Advance past AUTO_DISMISS_MS so the first toast actually disappears
       act(() => {
         vi.advanceTimersByTime(6500);
       });
 
-      // Confirm the first toast is gone before bumping again
       expect(
         screen.queryByText(/vault locked due to inactivity/i),
       ).not.toBeInTheDocument();
 
-      // Second lock event — toast must reappear
       act(() => {
         useVaultStore.setState({ autoLockNonce: 2 });
       });
@@ -134,8 +125,6 @@ describe("VaultAutoLockBanner", () => {
 
   describe("dismiss behavior", () => {
     it("hides the toast when the dismiss button is clicked", () => {
-      // Use real timers here — we're only testing the dismiss click,
-      // not the auto-dismiss setTimeout
       useVaultStore.setState({ autoLockNonce: 0 });
       render(<VaultAutoLockBanner />);
 
@@ -212,7 +201,6 @@ describe("VaultAutoLockBanner", () => {
 
       unmount();
 
-      // Advancing timers should not throw (timer must have been cleared)
       expect(() => {
         act(() => {
           vi.advanceTimersByTime(7000);

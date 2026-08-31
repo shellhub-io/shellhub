@@ -20,7 +20,6 @@ describe("useCountdown", () => {
   });
 
   it("calculates time left correctly", () => {
-    // Align to second boundary to avoid sub-millisecond off-by-one
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
@@ -103,7 +102,6 @@ describe("useCountdown", () => {
 
     const expiredTime = result.current.timeLeft;
 
-    // Advance more - should not update
     act(() => {
       vi.advanceTimersByTime(5000);
     });

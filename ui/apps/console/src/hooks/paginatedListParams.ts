@@ -1,9 +1,4 @@
 /**
- * Pure (no React, no router) helpers for reading and writing paginated list
- * parameters from/to a URLSearchParams instance.
- */
-
-/**
  * A record that maps each key of T to its default value.
  * Used both to drive parsing fall-backs and to suppress default values during
  * serialization.
@@ -37,8 +32,6 @@ function parsePositiveInt(raw: string | null): number | null {
   return n;
 }
 
-// ── parseListParams ───────────────────────────────────────────────────────────
-
 /**
  * Parse a URLSearchParams instance into a typed params object.
  *
@@ -68,19 +61,11 @@ export function parseListParams<T extends Record<string, unknown>>(
     const defaultValue = defaults[key];
 
     if (Array.isArray(defaultValue)) {
-      // Array dimension
       const all = searchParams.getAll(key);
       const allowlist = constraints[key] as readonly string[] | undefined;
-      // Deduplicate (preserving first-seen order) so e.g. ?tags=a&tags=a does
-      // not round-trip a dirty URL or double-apply the filter.
       const values = [
         ...new Set(allowlist ? all.filter((v) => allowlist.includes(v)) : all),
       ];
-      // Return the previous array reference when contents are identical so
-      // that React memoization (useCallback/useMemo) deps stay stable.
-      // Use set-equality (order-insensitive) so that e.g. ?tags=b&tags=a and
-      // ?tags=a&tags=b produce the same reference — tag order is irrelevant for
-      // filtering and reordering should not bust memoization.
       const prevArr = prev ? (prev[key] as unknown[]) : undefined;
       if (prevArr && prevArr.length === values.length) {
         const prevSet = new Set(prevArr);
@@ -101,7 +86,6 @@ export function parseListParams<T extends Record<string, unknown>>(
     }
 
     if (typeof defaultValue === "number") {
-      // Numeric scalar (e.g. perPage)
       const raw = searchParams.get(key);
       const parsed = parsePositiveInt(raw);
       if (parsed === null) {
@@ -117,7 +101,6 @@ export function parseListParams<T extends Record<string, unknown>>(
       continue;
     }
 
-    // String scalar
     const raw = searchParams.get(key);
     if (raw === null) {
       result[key] = defaultValue;
@@ -133,8 +116,6 @@ export function parseListParams<T extends Record<string, unknown>>(
 
   return result as T;
 }
-
-// ── serializeListParams ───────────────────────────────────────────────────────
 
 /**
  * Serialize a typed params object into a URLSearchParams instance.
@@ -155,7 +136,6 @@ export function serializeListParams<T extends Record<string, unknown>>(
     if (Array.isArray(current)) {
       const currentArr = current as unknown[];
       const defaultArr = defaultValue as unknown[];
-      // Compare by JSON to handle same-order equality
       const isDefault =
         currentArr.length === defaultArr.length &&
         currentArr.every((v, i) => v === defaultArr[i]);

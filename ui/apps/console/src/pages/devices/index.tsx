@@ -127,17 +127,12 @@ export default function Devices() {
   const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
 
-  // Acceptance lives in the install-keys area (each key's registration activity), so the devices list
-  // shows only accepted devices and drops the Pending/Rejected tabs. This is UI-only; the API is
-  // unchanged, and a link points to where pending devices are reviewed.
   const visibleTabs = statusTabs.filter((tab) => tab.value === "accepted");
 
   const handleStatusChange = (newStatus: ValidStatus) => {
     setFilter("status", newStatus);
   };
 
-  // A lingering pending/rejected filter (e.g. a bookmarked URL) has no tab here, so snap back to
-  // accepted.
   useEffect(() => {
     if (params.status !== "accepted") {
       setFilter("status", "accepted");

@@ -23,12 +23,6 @@ type RhfErrors = Record<keyof SignUpFormValues, { type: string; message: string 
 const resolve = (input: SignUpFormValues) =>
   signUpResolver(input, undefined, emptyOptions);
 
-/**
- * Every invalid-field case shares the same shape: the resolver should surface a
- * single RHF error on `field` with the expected `type`, a string message, and
- * empty `values`. Asserting that contract in one place keeps the cases below to
- * just the input that triggers each error.
- */
 async function expectFieldError(
   input: SignUpFormValues,
   field: keyof SignUpFormValues,

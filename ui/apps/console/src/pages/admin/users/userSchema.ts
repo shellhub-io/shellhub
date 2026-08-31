@@ -131,7 +131,6 @@ export function buildUserPayload<M extends UserFormMode>(
   const payload: UserAdminUpdateRequest = {
     ...base,
     confirmed: values.confirmed,
-    // Omit when blank so the backend keeps the current password.
     ...(values.password !== "" && { password: values.password }),
   };
   return payload as UserFormPayload<M>;

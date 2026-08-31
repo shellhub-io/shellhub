@@ -17,15 +17,12 @@ export default function KeyValueChip({
   ariaLabel,
   labelTone = "muted",
 }: {
-  /** The prepend label pill. Omit to show just the value (e.g. a bare masked secret). */
   label?: string;
   value: ReactNode;
   onClick?: () => void;
-  /** A trailing affordance (e.g. a reveal eye) shown after the value. */
   trailing?: ReactNode;
   title?: string;
   ariaLabel?: string;
-  /** Tint of the label pill. "primary" marks the star value (the install key itself). */
   labelTone?: "muted" | "primary";
 }) {
   const labelCls =
@@ -53,8 +50,6 @@ export default function KeyValueChip({
     return (
       <button
         type="button"
-        // Stop propagation so a chip inside a clickable row (the install key list) reveals the key
-        // without also triggering the row's navigation.
         onClick={(e) => {
           e.stopPropagation();
           onClick();

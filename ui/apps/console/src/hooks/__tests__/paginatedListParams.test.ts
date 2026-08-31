@@ -40,8 +40,6 @@ function params(init?: Record<string, string | string[]>): URLSearchParams {
   return p;
 }
 
-// ── parseListParams ───────────────────────────────────────────────────────────
-
 describe("parseListParams", () => {
   describe("page", () => {
     it("returns default page when the param is absent", () => {
@@ -218,8 +216,6 @@ describe("parseListParams", () => {
     });
   });
 });
-
-// ── serializeListParams ───────────────────────────────────────────────────────
 
 describe("serializeListParams", () => {
   describe("page", () => {

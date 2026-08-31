@@ -34,7 +34,6 @@ function restoreVisibility() {
     );
     originalVisibilityDescriptor = undefined;
   } else {
-    // Delete the override so the prototype chain is visible again
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (document as any).visibilityState;
@@ -73,11 +72,9 @@ describe("idle timer", () => {
       onIdle,
     });
 
-    // Advance close to the deadline, then fire activity to re-arm
     vi.advanceTimersByTime(IDLE_MS - 100);
     window.dispatchEvent(new Event("mousemove"));
 
-    // Advance by another IDLE_MS - 1 (total way past original deadline)
     vi.advanceTimersByTime(IDLE_MS - 1);
     expect(onIdle).not.toHaveBeenCalled();
 
@@ -104,10 +101,8 @@ describe("first-activity throttle", () => {
       onIdle,
     });
 
-    // Fire activity at t=0 (well within throttle window relative to stamp=0)
     window.dispatchEvent(new Event("mousemove"));
 
-    // Advance past idle — it was re-armed by the above event
     vi.advanceTimersByTime(IDLE_MS - 1);
     expect(onIdle).not.toHaveBeenCalled();
 
@@ -119,7 +114,6 @@ describe("first-activity throttle", () => {
 describe("throttle", () => {
   it("second event within throttle window does NOT re-arm; idle fires at t=0-based deadline", () => {
     const onIdle = vi.fn();
-    // idleTimeoutMs=60_000 so the deadline is clearly separated from the throttle window
     start({
       idleTimeoutMs: 60_000,
       lockOnHidden: false,
@@ -127,26 +121,15 @@ describe("throttle", () => {
       onIdle,
     });
 
-    // t=0: first event — passes throttle (stamp was 0), re-arms idle timer to fire at t=60_000
     vi.setSystemTime(0);
     window.dispatchEvent(new Event("mousemove"));
 
-    // t=500ms: second event — within 1000ms throttle window, should NOT re-arm the timer.
-    // If it DID re-arm, the new deadline would be t=500+60_000=60_500ms, meaning onIdle
-    // would NOT fire at exactly t=60_000ms below — which is what would happen if the
-    // throttle guard were removed.
     vi.advanceTimersByTime(500);
     window.dispatchEvent(new Event("mousedown"));
 
-    // Advance to 1ms before the t=0-based deadline: timer must not have fired yet.
     vi.advanceTimersByTime(60_000 - 500 - 1); // total elapsed: 59_999ms
     expect(onIdle).not.toHaveBeenCalled();
 
-    // Advance the final 1ms to exactly t=60_000ms.
-    // The idle MUST fire here because the timer was last armed at t=0 (the second event
-    // at t=500 was throttled and did not re-arm it).
-    // If the throttle guard is broken the timer would have been re-armed at t=500ms and
-    // would still have 500ms remaining — so onIdle would NOT fire, making this assertion fail.
     vi.advanceTimersByTime(1); // total elapsed: 60_000ms
     expect(onIdle).toHaveBeenCalledOnce();
   });
@@ -160,20 +143,15 @@ describe("throttle", () => {
       onIdle,
     });
 
-    // t=0: first event — re-arms idle timer to fire at t=60_000
     vi.setSystemTime(0);
     window.dispatchEvent(new Event("mousemove"));
 
-    // t=1_500ms: third event — >1s after last re-arm at t=0, passes throttle, re-arms to t=61_500
     vi.advanceTimersByTime(1_500);
     window.dispatchEvent(new Event("keydown"));
 
-    // At t=60_000ms the original deadline passes; onIdle must NOT fire because the timer
-    // was re-armed at t=1_500ms.
     vi.advanceTimersByTime(60_000 - 1_500 - 1); // total elapsed: 59_999ms
     expect(onIdle).not.toHaveBeenCalled();
 
-    // Still not fired at just before t=61_500ms
     vi.advanceTimersByTime(1_500 - 1); // total elapsed: 61_498ms (= 60_000 + 1_498)
     expect(onIdle).not.toHaveBeenCalled();
 
@@ -209,7 +187,6 @@ describe("stop()", () => {
     });
     stop();
 
-    // Events dispatched after stop must not cause any effect
     window.dispatchEvent(new Event("mousemove"));
     window.dispatchEvent(new Event("keydown"));
     vi.advanceTimersByTime(IDLE_MS * 2);
@@ -308,10 +285,8 @@ describe("start() restart", () => {
       onIdle: onIdle2,
     });
 
-    // Advance past where the first timer would have fired
     vi.advanceTimersByTime(IDLE_MS / 2 + 1);
 
-    // First timer must have been cancelled
     expect(onIdle1).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(IDLE_MS / 2);

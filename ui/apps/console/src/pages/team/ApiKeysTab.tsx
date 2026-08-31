@@ -179,9 +179,6 @@ function ApiKeysTab() {
         sortField={sortBy}
         sortOrder={orderBy}
         onSort={handleSort}
-        // border-l-2 on every row (transparent by default) keeps the row
-        // height stable when the red border appears on expired keys.
-        // No hover darkening here — rows are not clickable.
         rowClassName={(key) =>
           isExpired(key.expires_in)
             ? "bg-accent-red/[0.03] border-l-2 border-l-accent-red/50"

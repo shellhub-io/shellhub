@@ -31,17 +31,13 @@ export default function MfaEnableDrawer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Step 1: Recovery Email
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [userWantsNewEmail, setUserWantsNewEmail] = useState(false);
-  // Derived: show the email input when there's no existing email, or user wants to change it
   const showRecoveryEmailInput = !currentRecoveryEmail || userWantsNewEmail;
 
-  // Step 2: Recovery Codes
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [codesSaved, setCodesSaved] = useState(false);
 
-  // Step 3: QR Code + Verification
   const [qrLink, setQrLink] = useState("");
   const [secret, setSecret] = useState("");
   const otp = useOtpInput(6);
@@ -99,7 +95,6 @@ export default function MfaEnableDrawer({
     if (!codesSaved) return;
     setError("");
 
-    // If we skipped step 1 (already had recovery email), generate codes now
     if (!qrLink) {
       setLoading(true);
       try {

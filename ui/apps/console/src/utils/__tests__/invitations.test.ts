@@ -56,15 +56,10 @@ describe("invitationStatusFilter", () => {
   });
 
   it("decodes a base64url value that contains '-' (from '+' in standard base64)", () => {
-    // The '>' character produces a '+' in standard base64, which toBase64Json
-    // replaces with '-' (base64url). atob() rejects '-', so this test proves
-    // the Buffer-based helper is required.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = invitationStatusFilter(">" as any);
-    // Must not contain raw '+' or unpadded '=' — it is proper base64url
     expect(result).not.toMatch(/\+/);
     expect(result).not.toMatch(/=$/);
-    // Buffer-based decoding must recover the original value
     const [filter] = decodeB64url(result) as Array<{
       type: string;
       params: { name: string; operator: string; value: string };

@@ -111,7 +111,6 @@ function SubjectCell({
       </Chip>
     );
   }
-  // A "user" subject is either a human member or a service account (bound by id).
   const sa = serviceAccountName(value);
   if (sa) {
     return (
@@ -139,7 +138,6 @@ function SubjectCell({
 
 function DevicesCell({ policy }: { policy: AccessPolicy }) {
   if (policy.filter.tags.length > 0) {
-    // Keep rows compact: show up to two tags inline, collapse the rest into a "+N" chip.
     const tags = policy.filter.tags;
     const shown = tags.slice(0, 2);
     const rest = tags.slice(2);
@@ -229,8 +227,6 @@ export default function AccessPolicies() {
   const { serviceAccounts } = useServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
 
-  // A "user" subject may be a member (show email) or a service account (show name);
-  // a role shows its member count.
   const members = ns?.members ?? [];
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
   const serviceAccountName = (id: string) =>
@@ -328,8 +324,6 @@ export default function AccessPolicies() {
       header: "",
       headerClassName: "w-16",
       render: (p) => (
-        // The row itself opens the policy, so the menu has to swallow its own
-        // clicks or opening it would edit the policy behind it.
         <div
           className="flex justify-end"
           onClick={(e) => e.stopPropagation()}
@@ -371,7 +365,6 @@ export default function AccessPolicies() {
     },
   ];
 
-  /* Full-page onboarding empty state (no policies at all) */
   if (!isLoading && policies.length === 0) {
     return (
       <>

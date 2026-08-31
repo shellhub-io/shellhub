@@ -144,8 +144,6 @@ function DeleteDialog({
         try {
           await deleteNs.mutateAsync(tenantId);
         } catch (err) {
-          // A single-namespace (Community) instance is bound to this namespace and
-          // refuses to remove it; the API answers 409. Say so plainly.
           setError(
             isSdkError(err) && err.status === 409
               ? "This namespace is bound to the instance and can't be deleted."
@@ -352,8 +350,6 @@ export default function Settings() {
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
   const sshAccessMode = settings?.ssh_access_mode ?? "legacy";
-  // Only grandfathered namespaces (pre identity-first) may toggle back to
-  // legacy; namespaces born identity have no mode switch at all.
   const sshLegacyAllowed = settings?.ssh_legacy_allowed ?? false;
   const banner = settings?.connection_announcement ?? "";
 

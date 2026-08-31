@@ -362,8 +362,6 @@ function AccessPolicyDrawer({
   const updatePolicy = useUpdateAccessPolicy();
   const isEdit = !!editPolicy;
 
-  // Service accounts share the namespace membership but are not human members, so keep them
-  // out of the member picker (they carry the "service" role); reach one via its own tab.
   const members = (namespace?.members ?? []).filter(
     (m): m is NamespaceMember =>
       !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
@@ -386,8 +384,6 @@ function AccessPolicyDrawer({
   const [sourceIpDraftError, setSourceIpDraftError] = useState(false);
   const [sourceIpKey, setSourceIpKey] = useState(0);
   const [requireReauth, setRequireReauth] = useState(false);
-  // null = always (re-auth every session); a number is the freshness window in
-  // seconds within which a re-auth is skipped.
   const [reauthPeriod, setReauthPeriod] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -454,7 +450,6 @@ function AccessPolicyDrawer({
   const buildSubject = (): AccessPolicyRequest["subject"] => {
     if (subjectType === "role") return { type: "role", value: roleValue };
     if (subjectType === "user") return { type: "user", value: userValue };
-    // A service account is targeted through a user subject bound to its id.
     if (subjectType === "service-account")
       return { type: "user", value: saValue };
     return { type: "all-members", value: "" };
@@ -465,8 +460,6 @@ function AccessPolicyDrawer({
       return { tags: selectedTags };
     return { hostname: ".*" };
   };
-  // Re-auth is interactive, so it does not apply to a service account; hide the
-  // control and never send it for one.
   const reauthApplies = subjectType !== "service-account";
 
   const confirmDisabled =
@@ -479,7 +472,6 @@ function AccessPolicyDrawer({
     logins.length === 0 ||
     sourceIpDraftError;
 
-  /* ---- summaries for the trigger pills + consequence callout ---- */
   const memberById = (id: string) => members.find((m) => m.id === id);
   const saById = (id: string) => serviceAccounts.find((s) => s.id === id);
 
@@ -542,7 +534,6 @@ function AccessPolicyDrawer({
     }
   };
 
-  /* ---- Who trigger ---- */
   const whoTrigger =
     subjectType === "all-members" ? (
       <Pill icon={<UsersIcon className="w-3.5 h-3.5" />}>All members</Pill>
@@ -567,7 +558,6 @@ function AccessPolicyDrawer({
       </span>
     );
 
-  /* ---- Devices trigger ---- */
   const devTrigger =
     filterOption === "all" ? (
       <Pill icon={<DevicesIcon className="w-3.5 h-3.5" />}>All devices</Pill>

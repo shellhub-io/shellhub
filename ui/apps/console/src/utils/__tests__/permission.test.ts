@@ -72,8 +72,6 @@ const ALL_ACTIONS: Action[] = [
   ...OWNER_ACTIONS,
 ];
 
-/* ─── isValidRole ─── */
-
 describe("isValidRole", () => {
   it("returns true for each of the four valid roles", () => {
     const validRoles: Role[] = [
@@ -100,14 +98,11 @@ describe("isValidRole", () => {
   });
 
   it("returns false for prototype-chain keys", () => {
-    // 'in' would return true for these; hasOwnProperty must not
     ["constructor", "toString", "hasOwnProperty"].forEach((s) =>
       expect(isValidRole(s)).toBe(false),
     );
   });
 });
-
-/* ─── hasPermission ─── */
 
 describe("hasPermission", () => {
   describe("null or invalid role", () => {

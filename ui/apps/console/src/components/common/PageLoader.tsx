@@ -38,8 +38,6 @@ export default function PageLoader({
   const wrapper = cn("flex h-full items-center justify-center", PADDING[padding]);
 
   if (showLabel) {
-    // role="status" is `nameFrom: author` — the visible text doesn't become
-    // the accessible name, so set it explicitly via aria-label.
     return (
       <div role="status" aria-label={label} className={cn(wrapper, "gap-3")}>
         <Spinner size={resolvedSize} />

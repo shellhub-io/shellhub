@@ -162,8 +162,6 @@ export function sshIdentityEndOfLife(
       title: formatDateFull(identity.expires_at),
     };
 
-  // A single-use key has a deadline that is not a date: it dies with the session
-  // that spends it, which is sooner than any TTL it also carries.
   if (identity.single_use)
     return { kind: "single-use", value: "on first use", tone: "armed" };
 

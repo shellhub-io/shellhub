@@ -280,8 +280,6 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/permission/i);
   });
 
-  // ─── Phase 5: open terminal sessions lead the default view ─────────────────
-
   it("lists open terminal sessions above devices", async () => {
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     renderPalette();
@@ -321,8 +319,6 @@ describe("CommandPalette", () => {
     expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Terminal Sessions")).not.toBeInTheDocument();
   });
-
-  // ─── Phase 6: recent devices section ───────────────────────────────────────
 
   it("lists recent devices between sessions and the full device list", async () => {
     sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
@@ -424,8 +420,6 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/offline/i);
   });
 
-  // ─── keyboard navigation across sections ────────────────────────────────────
-
   it("moves the highlight down across sections, tracking aria-activedescendant", async () => {
     const user = userEvent.setup();
     sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
@@ -520,8 +514,6 @@ describe("CommandPalette", () => {
     });
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
-
-  // ─── Phase 4: per-device drill-in action menu ──────────────────────────────
 
   it("opens the device action menu on ArrowRight without connecting", async () => {
     const user = userEvent.setup();

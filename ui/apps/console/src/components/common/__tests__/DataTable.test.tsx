@@ -168,7 +168,6 @@ describe("DataTable", () => {
 
     it("does not render data rows when data is empty", () => {
       renderTable({ data: [] });
-      // thead row + one empty-state row = 2 total rows
       expect(screen.getAllByRole("row")).toHaveLength(2);
     });
   });
@@ -508,8 +507,6 @@ describe("DataTable", () => {
     it("skips the default card wrapper when noWrapper is true", () => {
       const { container } = renderTable({ noWrapper: true });
       const firstChild = container.firstChild as HTMLElement;
-      // With noWrapper, the first child is the overflow-x-auto scroll container
-      // that holds the <table>, not a styled card wrapper.
       expect(firstChild.className).not.toContain("bg-card");
       expect(firstChild.className).not.toContain("rounded-xl");
       expect(firstChild.className).toContain("overflow-x-auto");

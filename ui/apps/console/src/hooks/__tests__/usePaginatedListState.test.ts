@@ -18,8 +18,6 @@ const DEFAULTS: TestParams = {
   search: "",
 };
 
-// ── page reads/writes ─────────────────────────────────────────────────────────
-
 describe("usePaginatedListState — page", () => {
   it("reads page=1 from default URL", () => {
     const { result } = renderHookWithRouter(() =>
@@ -48,8 +46,6 @@ describe("usePaginatedListState — page", () => {
     expect(result.current.params.page).toBe(5);
   });
 });
-
-// ── search reads/writes ───────────────────────────────────────────────────────
 
 describe("usePaginatedListState — search", () => {
   it("reads empty search from default URL", () => {
@@ -80,8 +76,6 @@ describe("usePaginatedListState — search", () => {
   });
 });
 
-// ── every non-page setter resets page to 1 ────────────────────────────────────
-
 describe("usePaginatedListState — non-page setter resets page to 1", () => {
   it("setSearch resets page to 1 when page was > 1", () => {
     const { result } = renderHookWithRouter(
@@ -98,8 +92,6 @@ describe("usePaginatedListState — non-page setter resets page to 1", () => {
     expect(result.current.params.page).toBe(1);
   });
 });
-
-// ── reset() returns all dimensions to defaults ────────────────────────────────
 
 describe("usePaginatedListState — reset", () => {
   it("reset() clears all params back to defaults", () => {
@@ -120,15 +112,12 @@ describe("usePaginatedListState — reset", () => {
   });
 });
 
-// ── replace-history: default-valued params are omitted ───────────────────────
-
 describe("usePaginatedListState — replace-history mode omits default-valued params", () => {
   it("does not write page=1 to URL when it equals the default", () => {
     const { result } = renderHookWithRouter(() =>
       usePaginatedListState({ defaults: DEFAULTS }),
     );
 
-    // Navigate to page 2 then back to page 1 — page should be absent from URL
     act(() => {
       result.current.setPage(2);
     });
@@ -138,7 +127,6 @@ describe("usePaginatedListState — replace-history mode omits default-valued pa
 
     expect(result.current.params.page).toBe(1);
 
-    // And the URL should not carry page=1 (default suppressed)
     expect(result.current.searchString).not.toContain("page=1");
   });
 
@@ -158,8 +146,6 @@ describe("usePaginatedListState — replace-history mode omits default-valued pa
     expect(result.current.searchString).not.toContain("search=");
   });
 });
-
-// ── unrelated existing params are preserved ───────────────────────────────────
 
 describe("usePaginatedListState — unrelated params are preserved", () => {
   it("leaves unrelated URL params untouched when updating page", () => {
@@ -256,7 +242,6 @@ describe("usePaginatedListState — handleSort", () => {
       }),
     );
 
-    // Currently on "name" field; switch to "created_at" (initialOrder: "desc")
     act(() => {
       result.current.handleSort("created_at");
     });
@@ -355,8 +340,6 @@ describe("usePaginatedListState — scalar filter with allowlist", () => {
       result.current.setFilter("status", "unknown");
     });
 
-    // "unknown" is not in VALID_STATUSES; after writing it to the URL the
-    // parser should fall back to the default
     expect(result.current.params.status).toBe("active");
   });
 
@@ -409,7 +392,6 @@ describe("usePaginatedListState — array filters", () => {
     });
 
     expect(result.current.params.tags).toEqual(["web", "prod"]);
-    // URL must use repeated keys, not comma-separated
     const sp = new URLSearchParams(result.current.searchString);
     expect(sp.getAll("tags")).toEqual(["web", "prod"]);
   });
@@ -482,8 +464,6 @@ describe("usePaginatedListState — array filters", () => {
   });
 });
 
-// ── mapArrayFilter (functional updater over committed URL state) ───────────────
-
 describe("usePaginatedListState — mapArrayFilter", () => {
   it("applies the functional updater to the current array value", () => {
     const { result } = renderHookWithRouter(
@@ -545,7 +525,6 @@ describe("usePaginatedListState — prefix option", () => {
     });
 
     expect(result.current.params.page).toBe(3);
-    // The URL should carry the prefixed key, not the bare key
     const sp = new URLSearchParams(result.current.searchString);
     expect(sp.get("devices.page")).toBe("3");
     expect(sp.get("page")).toBeNull();
@@ -604,7 +583,6 @@ describe("usePaginatedListState — prefix option", () => {
       initialEntries: ["/?devices.page=2&sessions.page=7"],
     });
 
-    // Calling setPage on h1 must not touch h2's page
     act(() => {
       result.current.h1.setPage(5);
     });
@@ -619,12 +597,10 @@ describe("usePaginatedListState — prefix option", () => {
       { initialEntries: ["/?page=99&a.page=2"] },
     );
 
-    // The hook with prefix "a" should read "a.page" (= 2), not the bare "page"
     expect(result.current.params.page).toBe(2);
   });
 
   it("preserves prefixed params when updating another prefixed instance", () => {
-    // This test uses a single router with two hooks sharing the same URL
     function useTwo() {
       const h1 = usePaginatedListState({
         defaults: PREFIXED_DEFAULTS,
@@ -641,7 +617,6 @@ describe("usePaginatedListState — prefix option", () => {
       initialEntries: ["/?devices.page=1&sessions.page=3"],
     });
 
-    // Update devices hook; sessions hook's page should remain 3
     act(() => {
       result.current.h1.setPage(5);
     });

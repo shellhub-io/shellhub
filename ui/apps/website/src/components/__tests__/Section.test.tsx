@@ -21,7 +21,6 @@ describe("Section", () => {
       </Section>,
     );
     const outer = screen.getByTestId("outer");
-    // containerClassName should NOT be on the outer element
     expect(outer).not.toHaveClass("custom-inner");
     const inner = outer.firstChild as HTMLElement;
     expect(inner).toHaveClass("custom-inner");
@@ -46,7 +45,6 @@ describe("Section", () => {
       </Section>,
     );
     const outer = screen.getByTestId("outer");
-    // direct child should be the span, not an inner div
     expect(outer.firstChild).toHaveTextContent("child");
     expect(outer.querySelector("div")).toBeNull();
   });

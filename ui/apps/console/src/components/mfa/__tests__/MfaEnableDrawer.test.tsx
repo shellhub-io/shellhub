@@ -60,7 +60,6 @@ describe("MfaEnableDrawer", () => {
       );
 
       expect(screen.getByText(/recovery@example.com/)).toBeInTheDocument();
-      // Use role-based selector to avoid matching the description text "Continue enabling MFA..."
       expect(
         screen.getByRole("button", { name: /continue/i }),
       ).toBeInTheDocument();
@@ -80,7 +79,6 @@ describe("MfaEnableDrawer", () => {
       const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
       await user.type(emailInput, "new-recovery@example.com");
 
-      // Button is "Save & Continue" when entering a new email
       const nextButton = screen.getByRole("button", { name: /save/i });
       await user.click(nextButton);
 
@@ -151,7 +149,6 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
       await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
@@ -183,8 +180,6 @@ describe("MfaEnableDrawer", () => {
       const downloadButton = screen.getByText(/download/i);
       await user.click(downloadButton);
 
-      // Check that download was triggered (would need to mock document.createElement)
-      // For now, just verify the button is clickable
       expect(downloadButton).toBeInTheDocument();
     });
   });
@@ -201,12 +196,10 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
       await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
 
-      // Proceed to step 3
       const checkbox = screen.getByRole("checkbox");
       await user.click(checkbox);
       const nextButton = screen.getByRole("button", { name: /next/i });
@@ -215,13 +208,11 @@ describe("MfaEnableDrawer", () => {
 
     it("displays QR code", async () => {
       await waitFor(() => {
-        // QR code canvas should be rendered (QRCodeDisplay component)
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
     });
 
     it("displays secret for manual entry", async () => {
-      // Secret is in a readOnly input; use getByDisplayValue instead of getByText
       await waitFor(() => {
         expect(
           screen.getByDisplayValue(mockMfaData.secret),
@@ -360,7 +351,6 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
       await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
@@ -383,8 +373,6 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Component state persists across open/close — step stays at 2 (recovery codes)
-      // Check that the drawer renders its current step content
       await waitFor(() => {
         expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
       });

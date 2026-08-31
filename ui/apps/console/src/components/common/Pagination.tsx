@@ -13,8 +13,6 @@ export default function Pagination({
   itemLabel = "item",
   onPageChange,
 }: Props) {
-  // Nothing to render: no navigation needed and no positive count to show.
-  // (Empty lists — totalCount 0 — defer to each page's own empty-state.)
   if (totalPages <= 1 && !totalCount) return null;
 
   const countLabel =

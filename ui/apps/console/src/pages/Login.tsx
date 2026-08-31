@@ -68,7 +68,6 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
     return () => clearInterval(interval);
   }, [lockoutEndEpoch]);
 
-  // If the epoch changed (or was cleared), state is stale — return clean defaults
   if (state.epoch !== lockoutEndEpoch) return { display: "", expired: false };
 
   return { display: state.display, expired: state.expired };
@@ -202,16 +201,10 @@ export default function Login() {
     void handleSubmit(onSubmit)(e);
   };
 
-  // On enterprise, show the local form only once we know local auth is enabled.
-  // Using an explicit === true guard (not !ssoOnly) prevents the form from
-  // flashing while authentication info is still loading (null state).
   const showLocalForm =
     !isEnterpriseOrCloudEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseOrCloudEdition && authentication?.local === false;
 
-  // Already authenticated (e.g. straight after setup's auto-login): the login form
-  // has nothing to do here, so send the user into the app. Skipped while a query
-  // token is being exchanged, which deliberately re-authenticates.
   if (token && !queryToken) {
     return <Navigate to="/" replace />;
   }

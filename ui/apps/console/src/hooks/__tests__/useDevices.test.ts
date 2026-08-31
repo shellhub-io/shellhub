@@ -72,8 +72,6 @@ describe("buildFilter", () => {
 
   describe("non-ASCII search value", () => {
     it("round-trips a non-ASCII search through base64url encoding", () => {
-      // "¿" encodes to a base64url string containing "_" (the url-safe replacement for "/"),
-      // which atob() cannot decode. This test verifies the polyfill-safe decode path.
       const result = decodeFilter(buildFilter("¿", []));
       expect(result).toEqual([
         { type: "operator", params: { name: "or" } },

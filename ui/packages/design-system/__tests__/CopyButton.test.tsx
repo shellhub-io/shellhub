@@ -35,12 +35,10 @@ describe("CopyButton — copy lifecycle (secure context)", () => {
 
     render(<CopyButton text="hello" />);
 
-    // At rest: clipboard icon present (no check icon)
     const btn = screen.getByTitle("Copy");
     const clipboardPath = btn.querySelector("path[d*='M15.666']");
     expect(clipboardPath).not.toBeNull();
 
-    // Click — triggers copy; wrap in act so the resolved promise + state update flush
     await act(async () => {
       fireEvent.click(btn);
     });

@@ -19,8 +19,6 @@ const VALIDATE_FIELDS = [
 ] as const;
 
 export const inviteResolver: Resolver<InviteFormValues> = (values) => {
-  // Reuse the shared field validators. Email is not part of this form (it comes
-  // from the invite), so feed a placeholder that satisfies the email check.
   const formErrors = validate({ ...values, email: "invite@placeholder.local" });
   const errors: FieldErrors<InviteFormValues> = {};
 

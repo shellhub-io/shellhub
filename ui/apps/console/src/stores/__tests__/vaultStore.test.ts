@@ -235,7 +235,6 @@ describe("vaultStore", () => {
       await expect(
         useVaultStore.getState().refreshStatus(),
       ).resolves.toBeUndefined();
-      // Status should still be set despite settings load failure
       expect(useVaultStore.getState().status).toBe("locked");
     });
   });
@@ -425,7 +424,6 @@ describe("vaultStore", () => {
     });
 
     it("sets error when vault has not been initialized", async () => {
-      // Precondition: status is "uninitialized" (default from beforeEach — no meta in backend)
       const backend = makeFakeBackend();
       backend.loadMeta.mockReturnValue(null);
       mockGetBackend.mockReturnValue(backend);
@@ -527,7 +525,6 @@ describe("vaultStore", () => {
       expect(mockTrackerStart).toHaveBeenCalled();
       const { onIdle } = mockTrackerStart.mock.calls[0][0];
 
-      // Simulate vault becoming locked before onIdle fires (ensure session key cleared)
       mockGetSession.mockReturnValue(derivedKey);
       useVaultStore.setState({ autoLockNonce: 0 });
 
@@ -758,7 +755,6 @@ describe("vaultStore", () => {
         fingerprint: "11:22:33",
       });
 
-      // Lock the vault mid-flight (simulating onIdle firing during await)
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
@@ -766,7 +762,6 @@ describe("vaultStore", () => {
         /* may throw */
       });
 
-      // keys should remain [] (the locked state, not overwritten by addKey)
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
     });
@@ -863,7 +858,6 @@ describe("vaultStore", () => {
         /* may throw or not */
       });
 
-      // Name should NOT have been updated; keys still [] from the locked state
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
     });
@@ -927,7 +921,6 @@ describe("vaultStore", () => {
         /* may throw or not */
       });
 
-      // keys should remain [] (locked state not overwritten with post-remove keys)
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
     });
@@ -1032,7 +1025,6 @@ describe("vaultStore", () => {
 
       const state = useVaultStore.getState();
       expect(state.error).toBe("Encrypt failed");
-      // Session should have been restored to old key as the last setSessionKey call
       expect(
         mockSetSession.mock.calls[mockSetSession.mock.calls.length - 1]?.[0],
       ).toBe(oldKey);
@@ -1067,9 +1059,6 @@ describe("vaultStore", () => {
         .getState()
         .changeMasterPassword("current-pass", "new-pass");
 
-      // Wait until loadMeta + verifyPassword have resolved and execution is
-      // suspended inside createVaultMeta, then simulate the vault locking
-      // while it is in flight.
       await vi.waitFor(() => expect(mockCrypto).toHaveBeenCalled());
       useVaultStore.setState({ status: "locked", keys: [] });
       mockGetSession.mockReturnValue(null);
@@ -1077,12 +1066,8 @@ describe("vaultStore", () => {
       resolveCrypto({ meta: newMeta, derivedKey: newKey });
       await promise;
 
-      // CRITICAL: neither setSessionKey(newKey) nor setSessionKey(oldKey) should be called
-      // after the early return path. getSessionKey() should remain null.
       expect(mockGetSession()).toBeNull();
-      // saveMeta should NOT be called with newMeta
       expect(backend.saveMeta).not.toHaveBeenCalledWith(newMeta);
-      // saveData should NOT have been re-called (the new encrypt path never ran)
       expect(mockEncrypt).not.toHaveBeenCalled();
       expect(useVaultStore.getState().error).toBe(
         "Vault locked during password change",
@@ -1145,7 +1130,6 @@ describe("vaultStore", () => {
     it("lock() called from logout stops the activity tracker", () => {
       useVaultStore.setState({ status: "unlocked", keys: [] });
 
-      // Simulate what authStore.logout() does: calls useVaultStore.getState().lock()
       useVaultStore.getState().lock();
 
       expect(mockTrackerStop).toHaveBeenCalled();

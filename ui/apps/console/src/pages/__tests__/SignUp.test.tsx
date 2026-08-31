@@ -56,7 +56,6 @@ async function fillValidForm(
     confirmPassword,
   );
 
-  // Accept privacy policy (required)
   await user.click(screen.getByLabelText(/privacy policy/i));
 
   if (acceptMarketing) {
@@ -164,7 +163,6 @@ describe("SignUp", () => {
       const user = userEvent.setup();
       renderSignUp();
 
-      // Fill all required text fields but skip checking the privacy checkbox
       await user.type(screen.getByLabelText(/^name$/i), "Alice Smith");
       await user.type(screen.getByLabelText(/^username$/i), "alice");
       await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
@@ -227,12 +225,10 @@ describe("SignUp", () => {
       await fillValidForm(user);
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      // The server error should appear on the username field
       expect(
         await screen.findByText(/this username already exists/i),
       ).toBeInTheDocument();
 
-      // Submit should be disabled because of the server field error
       expect(
         screen.getByRole("button", { name: /create account/i }),
       ).toBeDisabled();
@@ -261,9 +257,6 @@ describe("SignUp", () => {
 
       await screen.findByText(/this username already exists/i);
 
-      // Edit the username field — server error should be cleared. The clear is
-      // synchronous with the keystroke, so waitForElementToBeRemoved can't be
-      // used (the element is already gone by call time); assert absence instead.
       await user.type(screen.getByLabelText(/^username$/i), "a");
 
       await waitFor(() =>
@@ -272,8 +265,6 @@ describe("SignUp", () => {
         ).not.toBeInTheDocument(),
       );
 
-      // The re-enable is the headline behavior: editing the field must clear the
-      // server-field gate (clearSignUpServerField), not just RHF's error text.
       expect(
         screen.getByRole("button", { name: /create account/i }),
       ).toBeEnabled();

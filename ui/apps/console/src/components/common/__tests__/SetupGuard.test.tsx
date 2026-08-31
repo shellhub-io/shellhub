@@ -37,8 +37,6 @@ beforeEach(() => {
 
 describe("SetupGuard", () => {
   it("keeps a just-authenticated user on /setup so the success screen can show", async () => {
-    // Reproduce the auto-login sequence: getInfo resolves setup=false first (user is mid-setup),
-    // then loginWithToken sets the token synchronously. The guard must NOT bounce to /login.
     mockSetup(false);
     renderAt("/setup");
     expect(await screen.findByText("setup page")).toBeInTheDocument();
@@ -58,8 +56,6 @@ describe("SetupGuard", () => {
   });
 
   it("does not bounce an authenticated user on / back to /setup while setup state is stale", async () => {
-    // The post-setup redirect lands on / while getInfo still reports setup=false; the token
-    // must keep the user in the app instead of flashing the setup form.
     mockSetup(false);
     useAuthStore.setState({ token: "issued-token" });
     renderAt("/");

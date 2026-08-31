@@ -90,9 +90,6 @@ client.interceptors.error.use((error, response) => {
     return error;
   }
 
-  // Attach HTTP status and headers to the error so mutation handlers can
-  // distinguish error codes (e.g., 402 vs 403 vs 409) and read headers
-  // (e.g., x-account-lockout on 429).
   const enriched = typeof error === "object" && error !== null ? error : {};
   (enriched as Record<string, unknown>).status = response.status;
   (enriched as Record<string, unknown>).headers = response.headers;

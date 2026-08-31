@@ -31,7 +31,6 @@ describe("FilterBadge", () => {
       render(<FilterBadge filter={{ hostname: "web-server-01" }} />);
       const chip = screen.getByText("web-server-01").closest("span");
       expect(chip!.className).toContain("font-mono");
-      // Badge default shape adds font-medium which would be wrong here
       expect(chip!.className).not.toContain("font-medium");
     });
   });

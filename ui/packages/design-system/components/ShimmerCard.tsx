@@ -1,5 +1,9 @@
 import { cn } from "../primitives/cn";
 
+/**
+ * Lays a shimmer over its children on hover. The overlay is pointer-events-none, so it never
+ * intercepts a click meant for the card beneath it.
+ */
 export function ShimmerCard({
   children,
   className = "",

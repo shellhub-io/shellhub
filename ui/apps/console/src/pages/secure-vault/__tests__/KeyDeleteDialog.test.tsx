@@ -63,7 +63,6 @@ describe("KeyDeleteDialog", () => {
 
     it("renders nothing when entry is null", () => {
       render(<KeyDeleteDialog open entry={null} onClose={vi.fn()} />);
-      // Dialog is open but entry name will not appear
       expect(screen.queryByText("Production Server")).not.toBeInTheDocument();
     });
   });
@@ -124,7 +123,6 @@ describe("KeyDeleteDialog", () => {
     it("does nothing when entry is null and Delete is clicked", async () => {
       render(<KeyDeleteDialog open entry={null} onClose={vi.fn()} />);
 
-      // The confirm button is still rendered by ConfirmDialog even with null entry
       const deleteBtn = screen.queryByRole("button", { name: /delete/i });
       if (deleteBtn) {
         await userEvent.click(deleteBtn);

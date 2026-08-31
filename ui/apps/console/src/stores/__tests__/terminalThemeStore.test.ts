@@ -12,8 +12,6 @@ afterEach(() => {
 });
 
 describe("terminalThemeStore font size", () => {
-  // The store reads localStorage in its initializer, which runs at import time,
-  // so each case imports it fresh to control what was persisted.
   describe("initialization", () => {
     it("starts at the default size when nothing is persisted", async () => {
       const { useTerminalThemeStore, DEFAULT_FONT_SIZE } = await import("@/stores/terminalThemeStore");

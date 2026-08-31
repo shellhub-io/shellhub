@@ -14,10 +14,6 @@ import {
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useAcceptDevice() {
-  // "getStats" is included so the DeviceLimitBanner and admin dashboard stats card
-  // reflect the updated accepted-device count immediately after a successful accept.
-  // Invalidation fires on success only — a failed 402 does not change the count.
-  // If the banner is not mounted the fresh count loads on next mount (observer-driven).
   const invalidate = useInvalidateByIds(
     "getDevices",
     "getDevice",
@@ -43,10 +39,6 @@ export function useRejectDevice() {
 }
 
 export function useRemoveDevice() {
-  // "getStats" is included so the DeviceLimitBanner clears freed slots and the
-  // admin dashboard stats card reflects the reduced count after a successful remove.
-  // Invalidation fires on success only — a failed request does not change the count.
-  // If the banner is not mounted the fresh count loads on next mount (observer-driven).
   const invalidate = useInvalidateByIds(
     "getDevices",
     "getDevice",

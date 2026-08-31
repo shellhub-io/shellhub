@@ -77,8 +77,6 @@ export interface UsePaginatedListStateResult<T extends Record<string, unknown>> 
   reset: () => void;
 }
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
-
 /** Return `<prefix>.<key>` when a prefix is set, or the bare key otherwise. */
 function prefixKey(key: string, prefix: string | undefined): string {
   return prefix ? `${prefix}.${key}` : key;
@@ -105,8 +103,6 @@ function stripPrefix<T extends Record<string, unknown>>(
   }
   return stripped;
 }
-
-// ── Hook ──────────────────────────────────────────────────────────────────────
 
 /**
  * Stable empty-constraints sentinel.  Using a module-level constant instead of
@@ -135,11 +131,6 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
 }: UsePaginatedListStateConfig<T>): UsePaginatedListStateResult<T> {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Parse the current URL into typed params (handles prefix translation).
-  // Thread the previous result through `prev` so array dimensions reuse their
-  // prior reference when content-equal, keeping memoized deps stable. The ref
-  // only caches a pure derived value, so reading/writing it during render is
-  // safe — disable react-hooks/refs for these two intentional accesses.
   const paramsRef = useRef<T | undefined>(undefined);
   const stripped = stripPrefix(searchParams, defaults, prefix);
   // eslint-disable-next-line react-hooks/refs -- caches prior parse result for referential stability
@@ -147,29 +138,18 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
   // eslint-disable-next-line react-hooks/refs -- stash this render's result for the next render
   paramsRef.current = params;
 
-  /**
-   * Merge the given partial update into the URL.
-   *
-   * - Unrelated params survive.
-   * - Keys managed by THIS instance are written with the prefix.
-   * - Default-valued keys are omitted.
-   */
   const update = useCallback(
     (patch: Partial<T>) => {
       setSearchParams(
         (prev) => {
-          // Start from a copy of the current URL so unrelated params survive.
           const next = new URLSearchParams(prev);
 
-          // Apply the patch onto the current parsed (un-prefixed) state.
           const currentStripped = stripPrefix(prev, defaults, prefix);
           const current = parseListParams<T>(currentStripped, defaults, constraints);
           const merged = { ...current, ...patch };
 
           const serialized = serializeListParams<T>(merged, defaults);
 
-          // Remove every key managed by this instance (prefixed) from `next`,
-          // then re-add only the non-default ones from `serialized`.
           for (const key of Object.keys(defaults)) {
             const urlKey = prefixKey(key, prefix);
             next.delete(urlKey);
@@ -217,8 +197,6 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
 
   const mapArrayFilter = useCallback(
     <K extends keyof T>(key: K, fn: (current: T[K]) => T[K]) => {
-      // Compute the new array inside the setSearchParams callback so we always
-      // read the *committed* URL state, never a stale render-closure snapshot.
       setSearchParams(
         (prev) => {
           const currentStripped = stripPrefix(prev, defaults, prefix);
@@ -246,14 +224,10 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
 
   const handleSort = useCallback(
     (field: string) => {
-      // Derive currentField / currentOrder inside the setSearchParams callback
-      // so we always read the *committed* URL state, never a stale render closure.
       setSearchParams(
         (prev) => {
           const currentStripped = stripPrefix(prev, defaults, prefix);
           const current = parseListParams<T>(currentStripped, defaults, constraints);
-          // Access sortField / sortOrder through a type-erased view — they are
-          // present in T only when the caller includes them in their params type.
           const p = current as Record<string, unknown>;
           const currentField = p["sortField"] as string | undefined;
           const currentOrder = p["sortOrder"] as "asc" | "desc" | undefined;

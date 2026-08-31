@@ -63,7 +63,6 @@ describe("MfaRecover", () => {
   });
 
   it("displays error message on invalid code", async () => {
-    // Replicate the real store action: it sets `error` and rejects on failure.
     const mockRecover = vi.fn().mockImplementation(async () => {
       useAuthStore.setState({ error: "Invalid recovery code or username" });
       throw new Error("Invalid recovery code or username");

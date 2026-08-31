@@ -19,8 +19,6 @@ export function useAcceptInvite() {
 }
 
 export function useGenerateInvitationLink() {
-  // Enterprise adds an existing account directly (no invitation), so refresh the members list
-  // and namespace too — not just the pending invitations.
   const invalidate = useInvalidateByIds(
     "getNamespaceMembershipInvitationList",
     "listNamespaceMembers",

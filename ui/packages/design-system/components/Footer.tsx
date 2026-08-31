@@ -39,6 +39,11 @@ function isSameApp(href: string, origin: string) {
   return href.startsWith(origin);
 }
 
+/**
+ * Site footer shared by the website and the docs. app names which of the two is rendering it,
+ * so a link that stays inside that app can be routed by linkComponent while a link crossing
+ * to the other origin stays a plain anchor and reloads.
+ */
 export function Footer({
   app = "website",
   linkComponent: Link = "a",

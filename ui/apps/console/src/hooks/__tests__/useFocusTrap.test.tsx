@@ -53,8 +53,6 @@ function ToggleTrap() {
 
 describe("useFocusTrap", () => {
   beforeEach(() => {
-    // requestAnimationFrame runs the callback synchronously in jsdom with fake timers,
-    // but without fake timers we can mock it to run immediately.
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
       cb(0);
       return 0;
@@ -69,7 +67,6 @@ describe("useFocusTrap", () => {
   describe("when active=false", () => {
     it("does not move focus into the container", () => {
       render(<Trap active={false} />);
-      // Default focus is on body — nothing inside the container should be focused
       expect(document.activeElement).toBe(document.body);
     });
   });
@@ -86,7 +83,6 @@ describe("useFocusTrap", () => {
       const user = userEvent.setup({ document });
       render(<Trap active={true} />);
 
-      // Tab to Last (Second → Third)
       await user.tab();
       await user.tab();
 
@@ -104,7 +100,6 @@ describe("useFocusTrap", () => {
       const user = userEvent.setup({ document });
       render(<Trap active={true} />);
 
-      // Focus starts on First; Shift+Tab should wrap to Last
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "First" }),
       );
@@ -118,7 +113,6 @@ describe("useFocusTrap", () => {
       const user = userEvent.setup({ document });
       render(<Trap active={true} />);
 
-      // Focus is on First; Tab moves to Second (no wrap)
       await user.tab();
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "Second" }),
@@ -177,7 +171,6 @@ describe("useFocusTrap", () => {
 
       const user = userEvent.setup({ document });
       render(<EmptyTrap />);
-      // Tab should not throw
       await expect(user.tab()).resolves.toBeUndefined();
     });
   });

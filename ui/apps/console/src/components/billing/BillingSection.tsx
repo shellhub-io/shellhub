@@ -189,11 +189,6 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   const { tenant: tenantId } = useAuthStore();
   const { namespace } = useNamespace(tenantId ?? "");
   const billing = namespace?.billing;
-  // GET /subscription returns 400 until the namespace has BOTH a Stripe
-  // customer AND an actual subscription (backend: ErrNamespaceSubscriptionUndefined).
-  // Gating only on customer_id causes a retry cascade after customer bootstrap
-  // — and every billing mutation's invalidate() then awaits those 400 retries,
-  // making Save card / Set default hang for ~7s on each click.
   const hasSubscription = !!billing?.customer_id && !!billing?.subscription?.id;
   const { subscription, isLoading } = useSubscription(hasSubscription);
   const openPortal = useOpenBillingPortal();
@@ -232,7 +227,6 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
     status === "trialing" ||
     status === "past_due" ||
     status === "to_cancel_at_end_of_period";
-  // Only statuses where no Stripe subscription exists — safe to create a new one.
   const canShowSubscribeButton =
     status === "inactive" ||
     status === "canceled" ||
@@ -242,8 +236,6 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
     status === "unpaid" ||
     status === "paused" ||
     status === "incomplete" ||
-    // canceled/incomplete_expired retain a Stripe customer_id and subscription_id;
-    // they may carry an open invoice the 402 re-subscribe path directs here to settle.
     status === "canceled" ||
     status === "incomplete_expired";
 

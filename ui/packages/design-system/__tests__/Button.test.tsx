@@ -184,7 +184,6 @@ describe("Button — glow", () => {
         X
       </Button>,
     );
-    // Shimmer overlay was removed — no translate-x span should exist
     const shimmer = screen
       .getByTestId("btn")
       .querySelector("[class*='translate-x']");
@@ -206,7 +205,6 @@ describe("Button — loading", () => {
         Save
       </Button>,
     );
-    // Spinner renders a <span> with animate-spin
     const spinner = screen
       .getByTestId("btn")
       .querySelector("[class*='animate-spin']");
@@ -238,9 +236,7 @@ describe("Button — loading", () => {
         Save
       </Button>,
     );
-    // The icon should not be rendered when loading
     expect(screen.queryByTestId("icon")).toBeNull();
-    // But spinner should be there
     const spinner = screen
       .getByTestId("btn")
       .querySelector("[class*='animate-spin']");
@@ -323,7 +319,6 @@ describe("Button — className override", () => {
       </Button>,
     );
     const cls = screen.getByTestId("btn").className;
-    // rounded-full should win over default rounded-lg (tw-merge resolves border-radius group)
     expect(cls).toContain("rounded-full");
     expect(cls).not.toContain("rounded-lg");
   });
@@ -338,7 +333,6 @@ describe("Button — icon / iconRight", () => {
     );
     const btn = screen.getByTestId("btn");
     const leading = screen.getByTestId("leading");
-    // leading icon must appear before the text in DOM order
     expect(btn.contains(leading)).toBe(true);
     const children = Array.from(btn.childNodes);
     const leadingIdx = children.findIndex((n) => n.contains(leading));

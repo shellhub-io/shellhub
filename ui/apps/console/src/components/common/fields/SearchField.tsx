@@ -7,7 +7,6 @@ interface SearchFieldProps {
   value: string;
   onChange: (next: string) => void;
   placeholder: string;
-  /** Required accessible name. Rendered as a visually hidden <label>. */
   "aria-label": string;
   /** Layout overrides only (margins, alignment). Don't override colors or sizes. */
   className?: string;

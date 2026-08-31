@@ -82,7 +82,6 @@ describe("IconButton — sizes", () => {
       </IconButton>,
     );
     const cls = screen.getByTestId("btn").className;
-    // Should have `rounded` but not `rounded-md` or `rounded-lg` from the size token
     const hasRounded = /\brounded\b/.test(cls);
     const hasRoundedMd = /\brounded-md\b/.test(cls);
     const hasRoundedLg = /\brounded-lg\b/.test(cls);
@@ -229,7 +228,6 @@ describe("IconButton — as={Link} (React Router Link-like)", () => {
       </IconButton>,
     );
     const el = screen.getByTestId("btn");
-    // Should render as an anchor (from FakeLink) and forward the `to` as href
     expect(el.tagName).toBe("A");
     expect(el).toHaveAttribute("href", "/dashboard");
   });
@@ -280,7 +278,6 @@ describe("IconButton — loading", () => {
         X
       </IconButton>,
     );
-    // Spinner renders a <span> with animate-spin
     const spinner = screen
       .getByTestId("btn")
       .querySelector("[class*='animate-spin']");

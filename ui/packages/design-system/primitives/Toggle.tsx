@@ -1,6 +1,10 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
 
+/**
+ * Props of Toggle. Controlled: enabled comes from the caller and onChange receives the next
+ * value rather than the event.
+ */
 export type ToggleProps = {
   enabled: boolean;
   onChange: (enabled: boolean) => void;
@@ -17,6 +21,10 @@ const TRACK_BASE =
 const THUMB_BASE =
   "inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform";
 
+/**
+ * Switch for a setting that applies at once, as role=switch with aria-checked. For a value
+ * that only takes effect when a form is submitted, use Checkbox.
+ */
 export function Toggle({
   enabled,
   onChange,

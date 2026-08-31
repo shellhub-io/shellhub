@@ -74,8 +74,6 @@ export default function ConfirmDialog({
   errorMessage,
 }: ConfirmDialogProps) {
   const [confirming, setConfirming] = useState(false);
-  // useId produces a stable, unique id per component instance, satisfying
-  // the aria-labelledby / aria-describedby contracts without manual id management.
   const autoId = useId();
   const titleId = `confirm-dialog-title-${autoId}`;
   const descriptionId = `confirm-dialog-description-${autoId}`;
@@ -90,7 +88,6 @@ export default function ConfirmDialog({
       await onConfirm();
     } catch {
       // Errors are not surfaced here. Consumers manage their own error state
-      // and should pass an already-caught onConfirm handler (e.g. KeyDeleteDialog).
     } finally {
       setConfirming(false);
     }

@@ -51,7 +51,6 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     },
   ];
 
-  // In identity mode sessions move under the SSH section; keep them in Resources otherwise.
   if (!isIdentityMode) {
     resources.push({
       to: "/sessions",
@@ -69,9 +68,6 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     });
   }
 
-  // Identity access mode authorizes SSH via Access Policies and SSH Identities; the
-  // legacy key ACL, firewall, and key vault are bypassed, so hide them. The section is
-  // titled "SSH" there and leads with sessions.
   const security: NavItem[] = [];
 
   if (isIdentityMode) {

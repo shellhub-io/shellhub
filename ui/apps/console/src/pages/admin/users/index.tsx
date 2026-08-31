@@ -104,8 +104,6 @@ export default function AdminUsers() {
     {
       key: "status",
       header: "Status",
-      // awaiting_approval is a flag independent of the confirmed/not-confirmed
-      // status; surface it as the effective status so the queue lives inline.
       render: (user) => (
         <UserStatusChip
           status={user.awaiting_approval ? "awaiting_approval" : user.status}
@@ -119,8 +117,6 @@ export default function AdminUsers() {
       render: (user) => (
         <div className="flex items-center justify-end gap-1">
           {user.awaiting_approval ? (
-            // An unapproved account is inert (can't sign in), so it only offers
-            // Approve / Reject — not edit or login-as.
             <IconButton
               variant="primary"
               title="Approve account"

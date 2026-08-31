@@ -3,8 +3,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
 
-// Tiptap uses real DOM APIs that aren't fully available in jsdom.
-// Mock the whole editor so AnnouncementContent renders a stable placeholder.
 vi.mock("@tiptap/react", () => ({
   useEditor: vi.fn(() => null),
   EditorContent: () => null,
@@ -55,13 +53,9 @@ function renderModal({
   };
 }
 
-// ── Setup / teardown ──────────────────────────────────────────────────────────
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("AnnouncementModal", () => {
   describe("when open=false", () => {

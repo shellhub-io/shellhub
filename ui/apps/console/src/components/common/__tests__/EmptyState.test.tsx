@@ -52,7 +52,6 @@ describe("EmptyState", () => {
       />,
     );
 
-    // The <section> is an accessible region named by the <h1>.
     expect(
       screen.getByRole("region", { name: "Web Endpoints" }),
     ).toBeInTheDocument();

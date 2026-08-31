@@ -60,13 +60,10 @@ describe("getInitials", () => {
     });
 
     it("handles leading and trailing delimiters gracefully", () => {
-      // split produces empty strings at the boundaries — w[0] is undefined, ?? "" handles it
       expect(getInitials("-leading")).toBe("L");
     });
 
     it("collapses consecutive delimiters", () => {
-      // The regex [\s\-_@.]+ matches one-or-more delimiters as a single separator,
-      // so "a  b" splits into ["a", "b"] and both initials are returned.
       expect(getInitials("a  b")).toBe("AB");
     });
   });

@@ -169,8 +169,6 @@ describe("SSHApproval", () => {
     expect(await screen.findByText("Request expired")).toBeInTheDocument();
   });
 
-  // The details exist so somebody checks them. A secret field beside them
-  // invites typing past the check, so it only appears once the check is done.
   it("keeps the factor out of sight until the login has been reviewed", async () => {
     const user = userEvent.setup();
     sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
@@ -207,8 +205,6 @@ describe("SSHApproval", () => {
     expect(sdk.webTerminalReauth).not.toHaveBeenCalled();
   });
 
-  // Proving the factor is what releases the held login, so the call has to carry
-  // the code and the key it was asked for.
   it("proves the password and reports the login released", async () => {
     const user = userEvent.setup();
     sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
@@ -240,7 +236,6 @@ describe("SSHApproval", () => {
     expect(await screen.findByText(/re-authenticated/i)).toBeInTheDocument();
   });
 
-  // Adding a key asks for no factor, so it must not have grown a step.
   it("leaves the add-key flow at a single step", async () => {
     sdk.getSshApproval.mockResolvedValue(approval());
 

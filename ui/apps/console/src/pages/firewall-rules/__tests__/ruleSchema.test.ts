@@ -56,8 +56,6 @@ function makeResponse(
   };
 }
 
-// ── priority field ────────────────────────────────────────────────────────────
-
 describe("ruleSchema — priority", () => {
   it("rejects an empty priority", () => {
     expect(errorsFor(makeValues({ priority: "" })).priority).toBeDefined();
@@ -83,8 +81,6 @@ describe("ruleSchema — priority", () => {
     expect(errorsFor(makeValues({ priority: "100" })).priority).toBeUndefined();
   });
 });
-
-// ── source_ip field (restrict mode) ──────────────────────────────────────────
 
 describe("ruleSchema — sourceIp", () => {
   it("requires a non-empty sourceIp in restrict mode", () => {
@@ -115,8 +111,6 @@ describe("ruleSchema — sourceIp", () => {
   });
 });
 
-// ── username field (restrict mode) ───────────────────────────────────────────
-
 describe("ruleSchema — username", () => {
   it("requires a non-empty username in restrict mode", () => {
     expect(
@@ -144,8 +138,6 @@ describe("ruleSchema — username", () => {
     ).toBeUndefined();
   });
 });
-
-// ── hostname field (hostname mode) ───────────────────────────────────────────
 
 describe("ruleSchema — hostname", () => {
   it("requires a non-empty hostname when filterOption is 'hostname'", () => {
@@ -175,8 +167,6 @@ describe("ruleSchema — hostname", () => {
   });
 });
 
-// ── tags field (tags mode) ────────────────────────────────────────────────────
-
 describe("ruleSchema — tags", () => {
   it("rejects 0 tags in tags mode", () => {
     expect(errorsFor(makeValues({ filterOption: "tags", tags: [] })).tags).toBeDefined();
@@ -201,8 +191,6 @@ describe("ruleSchema — tags", () => {
     expect(errorsFor(makeValues({ filterOption: "all", tags: [] })).tags).toBeUndefined();
   });
 });
-
-// ── buildRuleBody ─────────────────────────────────────────────────────────────
 
 describe("buildRuleBody", () => {
   it("builds a body with source_ip='.*' and username='.*' when both are 'all'", () => {
@@ -251,8 +239,6 @@ describe("buildRuleBody", () => {
     expect(body.active).toBe(false);
   });
 });
-
-// ── buildRuleDefaults ─────────────────────────────────────────────────────────
 
 describe("buildRuleDefaults", () => {
   it("round-trips a rule with source_ip='.*' and username='.*'", () => {

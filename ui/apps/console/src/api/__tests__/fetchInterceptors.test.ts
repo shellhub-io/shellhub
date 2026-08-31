@@ -72,8 +72,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // Flush any timer the grace period left pending, so it cannot mark a later
-  // test down — the timer lives in module state shared by every test here.
   if (vi.isFakeTimers()) vi.advanceTimersByTime(GRACE_PERIOD_MS);
   vi.useRealTimers();
   vi.unstubAllGlobals();

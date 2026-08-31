@@ -89,7 +89,6 @@ export async function encrypt(
 
   return {
     iv: toBase64(iv),
-    // AES-GCM appends the 128-bit authentication tag to the ciphertext
     ciphertext: toBase64(ciphertext),
   };
 }

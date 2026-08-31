@@ -100,17 +100,10 @@ export default function SSHApproval({
 
   const reauth = flow === "confirm";
 
-  // Mounted inline, the terminal behind this screen is the outcome: once the
-  // decision lands it either continues or reports the refusal itself, so there
-  // is nothing left here to read.
   const decided = (landed: boolean) => {
     if (landed && !routed) onDecided?.();
   };
 
-  // Only the request itself says which of the two this is, and it arrives after
-  // the fetch. A link opened on the wrong route (stale, or pasted from another
-  // login) would otherwise render the wrong question. Mounted inline there is no
-  // route to correct, and redirecting would drag the app off the terminal.
   const actual: Flow = details?.kind === "reauth" ? "confirm" : "new";
   if (routed && details && actual !== flow) {
     return <Navigate to={FLOWS[actual].path(code)} replace />;
@@ -219,9 +212,6 @@ function PendingRequest({
   onReauthed: () => void;
 }) {
   const reauth = details.kind === "reauth";
-  // A re-auth asks two things, and they are read in order: is this login yours,
-  // then prove it is you. Keeping the secret field beside details nobody has
-  // read yet invites typing past the very check the details exist for.
   const [step, setStep] = useState<"review" | "verify">("review");
   const { elsewhere, currentName, switching, switchToTarget } =
     useNamespaceMismatch(details.namespace);
@@ -350,8 +340,6 @@ function PendingRequest({
             Switch to {details.namespace}
           </Button>
         ) : reauth ? (
-          // A re-auth is authentication, so it asks for a factor rather than a
-          // click. Without one it would only be a button that says yes to itself.
           <Button
             variant="primary"
             size="md"
@@ -424,8 +412,6 @@ function ReauthFactor({
 }) {
   const mfaEnabled = useAuthStore((s) => s.mfaEnabled);
   const origin = useAuthStore((s) => s.origin);
-  // SSO users have no local password or ShellHub MFA — their second factor lives
-  // at the identity provider, so the step-up re-authenticates there (ForceAuthn).
   const isSso = origin === "saml";
   const otp = useOtpInput(6);
   const [password, setPassword] = useState("");
@@ -433,15 +419,10 @@ function ReauthFactor({
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Landing here with the field ready gives back most of the click the extra
-  // step costs. Done on the DOM rather than with autoFocus, which the house
-  // lint bans, and a no-op for SSO, which has no field to fill.
   useEffect(() => {
     formRef.current?.querySelector<HTMLInputElement>("input")?.focus();
   }, []);
 
-  // The IdP re-auth runs in a popup; it lands on /sso-reauth, which posts the
-  // outcome back here.
   useEffect(() => {
     if (!isSso) return undefined;
 
@@ -501,8 +482,6 @@ function ReauthFactor({
       });
       onDone();
     } catch (err) {
-      // A wrong factor is a 403 (the session is still valid — a 401 would trip
-      // the global logout-on-401 interceptor and sign the user out).
       setError(
         isSdkError(err) && err.status === 403
           ? mfaEnabled

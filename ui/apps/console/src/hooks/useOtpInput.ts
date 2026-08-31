@@ -20,7 +20,6 @@ export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
   };
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    // Backspace: clear current and move to previous
     if (e.key === "Backspace") {
       if (!code[index] && index > 0) {
         setCode((prev) => {

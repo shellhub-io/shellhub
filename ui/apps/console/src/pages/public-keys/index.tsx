@@ -234,7 +234,6 @@ export default function PublicKeys() {
     },
   ];
 
-  /* Full-page onboarding empty state (no keys at all) */
   if (!isLoading && publicKeys.length === 0 && !debouncedSearch) {
     return (
       <>

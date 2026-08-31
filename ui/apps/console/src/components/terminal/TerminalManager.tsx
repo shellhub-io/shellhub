@@ -27,7 +27,6 @@ export default function TerminalManager({
     sshid: string;
   } | null>(null);
 
-  // Open ConnectDrawer when a reconnect is requested (works from any page)
   useEffect(() => {
     if (!reconnectTarget) return;
     useTerminalStore.getState().clearReconnect();
