@@ -89,7 +89,6 @@ export async function ensureBrowserKey(
       fingerprint: await sha256Fingerprint(raw),
     };
   } catch {
-    // Ed25519 unsupported (Safari < 17 / older Firefox) or IndexedDB blocked.
     return null;
   }
 }
@@ -175,8 +174,6 @@ export function browserLabel(): string {
           : /Linux/.test(ua)
             ? "Linux"
             : "Unknown OS";
-  // Order matters: Edge/Opera UAs also contain "Chrome/"; a real Safari has
-  // "Version/<n> … Safari" but no "Chrome/", so Safari is matched last.
   const rules: [RegExp, string][] = [
     [/Edg\/(\d+)/, "Edge"],
     [/OPR\/(\d+)/, "Opera"],

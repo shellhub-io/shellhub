@@ -1,6 +1,10 @@
 import type { CSSProperties } from "react";
 import { cn } from "../primitives/cn";
 
+/**
+ * Which arrangement of blurred orbs to lay behind a section. The first four are static;
+ * ambient is the only animated one.
+ */
 export type GlowOrbsPreset = "hero" | "duo" | "section" | "corner" | "ambient";
 
 /** Solid-fill tones for the static presets (hero/duo/section/corner). */
@@ -9,6 +13,10 @@ export type GlowOrbsTone = "primary" | "cyan" | "blue" | "green" | "yellow";
 /** Ambient recolors all three pulsing orbs together as a named set. */
 export type GlowOrbsAmbientTone = "brand" | "error" | "warning";
 
+/**
+ * Props of GlowOrbs, discriminated on preset: hero defaults its tone, the other static presets
+ * require one, and ambient takes a named set rather than a single colour.
+ */
 export type GlowOrbsProps =
   | { preset: "hero"; tone?: GlowOrbsTone; className?: string }
   | {

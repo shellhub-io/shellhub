@@ -24,11 +24,6 @@ export default function ValidationAccount() {
       return;
     }
 
-    // Pass an AbortController so that the in-flight request is cancelled when
-    // the effect cleanup fires (React Strict Mode double-invocation, unmount).
-    // Without this, a single-use token would be consumed by the first call and
-    // the second call would fail, leaving the user on the "failed" screen even
-    // though activation succeeded.
     const controller = new AbortController();
     void validateAccount(email, token, controller.signal);
 

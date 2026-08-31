@@ -64,13 +64,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const closePalette = useCommandPaletteStore((s) => s.closePalette);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  /* Drilled-in device whose action menu is showing (null = the normal list). */
   const [drillInUid, setDrillInUid] = useState<string | null>(null);
-  /* Inline banner feedback. An "error" (offline/permission) is assertive and
-   * shakes the row keyed by `shakeId`; a "success" (copy) is polite. Both clear
-   * on close, on new input, and on entering/leaving the drill-in. The shake
-   * also self-clears on a timer (effect below) so it resets under
-   * prefers-reduced-motion, where the animation — and animationend — never fire. */
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -85,43 +79,26 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const canConnect = useHasPermission("device:connect");
   const { namespace } = useNamespace(tenant ?? "");
   const nsName = namespace?.name ?? "";
-  // The green banner is our copy confirmation, so useCopy's own `copied` flag
-  // (its per-button "Copied!" affordance) is intentionally unused here.
   const { copy } = useCopy();
   const recentEntries = useRecentDevicesStore(
     (s) => s.byTenant[tenant ?? ""] ?? EMPTY_RECENTS,
   );
 
-  /* The drilled-in device, resolved from the live list. Deriving drill-in state
-   * from the *resolved* device means a drillInUid whose device left the list
-   * (e.g. a refetch) transparently falls back to the device list — no
-   * self-healing effect needed. */
   const drillDevice = drillInUid
     ? (devices.find((d) => d.uid === drillInUid) ?? null)
     : null;
   const isDrilledIn = drillDevice !== null;
 
-  /* Keep focus on the input across drill-in transitions — a mouse click on the
-   * chevron or back button moves focus to that control, which then unmounts.
-   * (Initial open focus is owned by BaseDialog's focus trap; this only fires on
-   * drillInUid changes.) */
   useEffect(() => {
     inputRef.current?.focus();
   }, [drillInUid]);
 
-  /* Self-clear the shake once its animation would have finished. Driven by a
-   * timer rather than onAnimationEnd so it also fires under
-   * prefers-reduced-motion (no animation → no animationend). A repeat reject on
-   * the same row within this window keeps the existing timer — the banner is
-   * the primary signal — and a reject on a different row reschedules it. */
   useEffect(() => {
     if (!shakeId) return undefined;
     const timer = setTimeout(() => setShakeId(null), 450);
     return () => clearTimeout(timer);
   }, [shakeId]);
 
-  /* Single dismissal path: clears local state and flips the shared open-state,
-   * so every way of fully closing resets uniformly. */
   const close = useCallback(() => {
     setQuery("");
     setActiveIndex(0);
@@ -145,17 +122,11 @@ export function useCommandPalette(): CommandPaletteViewModel {
     void navigate("/login");
   }, [close, logout, navigate]);
 
-  /* Reject an action inline: shake the row and show the assertive message; the
-   * palette stays open. Backs both the permission and offline guards below. */
   const rejectRow = useCallback((rowId: string, message: string) => {
     setFeedback({ kind: "error", text: message });
     setShakeId(rowId);
   }, []);
 
-  /* Copy to clipboard and confirm inline; the palette stays open. The banner is
-   * optimistic — useCopy is fire-and-forget and surfaces failures (insecure
-   * context, denied permission) through its own warning dialog rather than a
-   * return value, so we can't gate the banner on the outcome here. */
   const copyAction = useCallback(
     (value: string, label: string) => {
       copy(value);
@@ -164,8 +135,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [copy],
   );
 
-  /* Enter/leave a device's action menu. Both reset the filter and highlight so
-   * the secondary list starts clean. */
   const enterDrillIn = useCallback((uid: string) => {
     setDrillInUid(uid);
     setQuery("");
@@ -182,19 +151,11 @@ export function useCommandPalette(): CommandPaletteViewModel {
     setShakeId(null);
   }, []);
 
-  /* BaseDialog routes Escape (native cancel) and backdrop clicks here. When
-   * drilled in, that means "go back one level"; otherwise close. */
   const handleDismiss = useCallback(() => {
     if (isDrilledIn) exitDrillIn();
     else close();
   }, [isDrilledIn, exitDrillIn, close]);
 
-  /* Restore an open terminal for this device, else open the ConnectDrawer for
-   * it (TerminalManager owns that drawer and reacts to reconnectTarget). Reads
-   * fresh session state via getState(), mirroring the Devices page — including
-   * its `device:connect` gate, which covers both connecting and restoring. An
-   * offline device with no session can't be connected; an existing session
-   * still restores when permitted. */
   const connectOrRestore = useCallback(
     (uid: string, name: string, online: boolean, rowId: string) => {
       if (!canConnect) {
@@ -218,8 +179,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [canConnect, rejectRow, close],
   );
 
-  /* Cmd/Ctrl+K toggles the palette. The store also backs the visible Sidebar
-   * trigger; closing routes through close() so the query resets. */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -233,9 +192,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => window.removeEventListener("keydown", handler);
   }, [close]);
 
-  /* Resolve recent-device entries against the live list: hide any with an open
-   * session (already shown in Terminal Sessions) or no longer present, keep MRU
-   * order, and cap the count. */
   const recentDevices = useMemo(() => {
     const openUids = new Set(terminalSessions.map((s) => s.deviceUid));
     const resolved: { device: NormalizedDevice; connectedAt: string }[] = [];
@@ -285,8 +241,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [go, onLogout, namespace?.settings?.ssh_access_mode],
   );
 
-  /* Whether the drilled-in device has an open session to restore — lets its
-   * action-menu Connect stay enabled even when the device is offline. */
   const hasOpenSession = drillDevice
     ? terminalSessions.some((s) => s.deviceUid === drillDevice.uid)
     : false;
@@ -313,9 +267,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     ],
   );
 
-  /* While drilled in, the device's actions take over and ">" is inert. Else ">"
-   * gates page navigation; the default stays connection-first. Derived during
-   * render — no extra state. */
   const trimmedQuery = query.trimStart();
   const commandMode = !drillDevice && trimmedQuery.startsWith(">");
   const term = commandMode ? trimmedQuery.slice(1).trim() : query.trim();
@@ -351,30 +302,23 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return flat;
   }, [sections]);
 
-  /* Map item id → flat index (avoids a render-order-coupled counter). */
   const indexById = useMemo(() => {
     const map = new Map<string, number>();
     flatList.forEach((item, i) => map.set(item.id, i));
     return map;
   }, [flatList]);
 
-  /* Derive the in-range active index during render (no setState-in-render). */
   const safeIndex = flatList.length
     ? Math.min(activeIndex, flatList.length - 1)
     : -1;
   const activeItem = safeIndex >= 0 ? flatList[safeIndex] : undefined;
 
-  /* Scroll active into view. */
   useEffect(() => {
     if (!listRef.current) return;
     const active = listRef.current.querySelector("[data-active=true]");
     active?.scrollIntoView({ block: "nearest" });
   }, [safeIndex]);
 
-  /* List navigation + selection. Escape, Tab, and backdrop dismissal are owned
-   * by BaseDialog (native <dialog>). Focus stays on the input (combobox), so
-   * this handler lives on the input. →/← drill in and out, but only when the
-   * caret is at the matching edge so text editing still works. */
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       const len = flatList.length;
@@ -432,7 +376,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [flatList, safeIndex, isDrilledIn, exitDrillIn],
   );
 
-  /* Composite input handler: update the query and reset highlight + feedback. */
   const onQueryChange = useCallback((value: string) => {
     setQuery(value);
     setActiveIndex(0);

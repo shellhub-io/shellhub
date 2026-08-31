@@ -14,12 +14,10 @@ describe("formatLicenseTimestamp", () => {
   });
 
   it("returns a formatted date string for a valid Unix timestamp", () => {
-    // 2024-01-15T12:00:00Z — mid-day to avoid timezone edge cases
     expect(formatLicenseTimestamp(1705320000)).toBe("Jan 15, 2024");
   });
 
   it("handles timestamps at the start of the epoch", () => {
-    // Mid-day to avoid timezone edge cases
     expect(formatLicenseTimestamp(43200)).toBe("Jan 1, 1970");
   });
 });

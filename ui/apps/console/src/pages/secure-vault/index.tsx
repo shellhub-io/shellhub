@@ -82,12 +82,6 @@ export default function SecureVault() {
     }
   }, [autoLockNonce]);
 
-  // Offer syncing a local vault to the ShellHub server right after the user
-  // unlocks it: they just proved ownership and are looking at their keys, so
-  // it's the natural moment to pitch portability. Fires only on the
-  // locked -> unlocked transition (a real unlock), never on setup
-  // (uninitialized -> unlocked, where the user just picked a location) nor on
-  // a plain page open of an already-unlocked vault.
   const prevStatus = useRef(status);
   useEffect(() => {
     const cameFromLocked = prevStatus.current === "locked";

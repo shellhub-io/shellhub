@@ -23,7 +23,6 @@ export function useAdminLicense() {
         const { data } = await getLicense({ signal, throwOnError: true });
         return data;
       } catch (err) {
-        // 400 means no license stored; normalize to "no license" instead of error state.
         if (isSdkError(err) && err.status === 400) return null;
         throw err;
       }
@@ -31,7 +30,6 @@ export function useAdminLicense() {
     enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (count) => count < 1,
-    // Prevent refetch when the OS file picker closes and returns focus to the window.
     refetchOnWindowFocus: false,
   });
 

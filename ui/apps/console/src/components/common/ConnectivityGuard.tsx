@@ -65,7 +65,6 @@ export default function ConnectivityGuard() {
     );
   }
 
-  // Once passed, never block again — the banner handles mid-session disconnections.
   if (!initialGatePassed) {
     return <ApiUnavailablePage />;
   }

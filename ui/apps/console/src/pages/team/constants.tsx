@@ -64,7 +64,6 @@ export function RoleBadge({ role }: { role: string }) {
       </Badge>
     );
   }
-  // observer and unknown roles use a neutral style not in the Badge palette
   return <span className={ROLE_NEUTRAL_STYLE}>{role}</span>;
 }
 

@@ -28,8 +28,6 @@ function CreateInstallKeyDrawer({
 }: {
   open: boolean;
   onClose: () => void;
-  /** Fires with the new key's name once it's created, so a caller (Add Device)
-   * can select it. The plaintext still lives in this drawer's generated view. */
   onCreated?: (name: string) => void;
 }) {
   const createKey = useCreateInstallKey();
@@ -115,11 +113,8 @@ function CreateInstallKeyDrawer({
             : {}),
           ...(mode === "allowlist" ? { allowed_macs: macList } : {}),
           ...keyExpiryPayload(expiresIn),
-          // Reusability is derived server-side from this: 1 is single-use,
-          // N (>=2) enrolls N devices, 0 is unlimited (reusable forever).
           usage_limit: usageLimit,
           ephemeral,
-          // Only meaningful for ephemeral keys; already clamped to 1-10 by the field.
           ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
           tags,
         },

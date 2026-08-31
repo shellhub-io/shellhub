@@ -86,8 +86,6 @@ export default function DeviceChooserDialog({
   });
   const inFlightRef = useRef(false);
 
-  // Force the All tab whenever Suggested is empty so a refetch that returns
-  // [] doesn't strand the user on a tab that would submit zero choices.
   const tab: TabId = suggestedEmpty ? "all" : (userTab ?? "suggested");
 
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
@@ -164,8 +162,6 @@ export default function DeviceChooserDialog({
     void navigate("/settings#billing");
   };
 
-  // Block ESC/backdrop while the mutation is in flight so the user doesn't
-  // dismiss the dialog mid-request.
   const canClose = () => !choice.isPending;
 
   return (

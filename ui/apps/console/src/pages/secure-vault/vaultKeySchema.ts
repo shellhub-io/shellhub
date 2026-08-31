@@ -6,7 +6,6 @@ export const vaultKeySchema = z
   .object({
     name: z.string(),
     data: z.string(),
-    /** Derived from parsing the key; drives the passphrase field. */
     encrypted: z.boolean(),
     passphrase: z.string(),
   })

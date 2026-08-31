@@ -171,8 +171,6 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
-    // Setup responds with an authenticated session (auto-login); the token is what
-    // the page hands to loginWithToken before redirecting into the app.
     const setupSuccess = () => mockSdkResponse({ token: "jwt-token" });
 
     it("calls setup() with the correct payload and shows the success screen", async () => {
@@ -189,7 +187,6 @@ describe("Setup", () => {
           body: {
             name: "Alice Smith",
             username: "alice",
-            // Tests run with import.meta.env.DEV=true, so the namespace defaults to "dev".
             namespace: "dev",
             email: "alice@example.com",
             password: "Secret123",
@@ -252,7 +249,6 @@ describe("Setup", () => {
           state: { notice: "Setup complete. Please sign in." },
         }),
       );
-      // Setup succeeded, so the user must not see a failure error.
       expect(screen.queryByText(/an error occurred/i)).not.toBeInTheDocument();
     });
 

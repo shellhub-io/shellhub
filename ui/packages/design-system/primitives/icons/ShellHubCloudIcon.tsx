@@ -1,6 +1,10 @@
 import type { SVGProps } from "react";
 import { type BrandVariant, brandFill } from "../brandColor";
 
+/**
+ * The ShellHub Cloud mark. As with the wordmark the fill is fixed by variant rather than
+ * inherited, so it stays on-brand wherever it is placed.
+ */
 export function ShellHubCloudIcon({
   variant = "primary",
   ...props

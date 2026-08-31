@@ -11,7 +11,6 @@ function resolveInitialTheme(): AppTheme {
 }
 
 function applyTheme(theme: AppTheme) {
-  // Tokens default to dark in :root; the `light` class swaps the CSS variables.
   document.documentElement.classList.toggle("light", theme === "light");
 }
 
@@ -35,5 +34,4 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   },
 }));
 
-// Apply the persisted theme as soon as the module loads, before first paint.
 applyTheme(resolveInitialTheme());

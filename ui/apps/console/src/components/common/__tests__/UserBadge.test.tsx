@@ -12,7 +12,6 @@ describe("UserBadge", () => {
 
   it("falls back to the email as the primary label when there is no name", () => {
     render(<UserBadge email="svc@example.com" />);
-    // The email is the primary, so it appears once (not also as a subline).
     expect(screen.getAllByText("svc@example.com")).toHaveLength(1);
   });
 

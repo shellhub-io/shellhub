@@ -2,6 +2,10 @@ import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
 import { Spinner } from "./Spinner";
 import { cn } from "./cn";
 
+/**
+ * Intent a Button carries. The soft variants are tinted rather than filled, for a destructive
+ * or cautionary action that is not the primary one on the screen.
+ */
 export type ButtonVariant =
   | "primary"
   | "secondary"
@@ -14,6 +18,9 @@ export type ButtonVariant =
   | "success"
   | "warning"
   | "outline";
+/**
+ * Padding, text size and corner radius together; md is the size a form or a toolbar uses.
+ */
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
 
 const VARIANT: Record<ButtonVariant, string> = {
@@ -74,6 +81,12 @@ type ButtonOwnProps<T extends ElementType> = {
 type ButtonProps<T extends ElementType = "button"> = ButtonOwnProps<T> &
   Omit<ComponentPropsWithoutRef<T>, keyof ButtonOwnProps<T>>;
 
+/**
+ * Button, or whatever element as names — a router Link, an anchor. Rendered as anything but a
+ * button it cannot be disabled by the DOM, so loading and a caller's disabled are carried by
+ * aria-disabled and pointer-events instead, and the click has to be guarded by the caller.
+ * type defaults to button so a button inside a form does not submit it by accident.
+ */
 export function Button<T extends ElementType = "button">({
   as,
   variant = "primary",
@@ -90,19 +103,14 @@ export function Button<T extends ElementType = "button">({
   const Component: ElementType = as ?? "button";
   const isNativeButton = !as || as === "button";
 
-  // Strip `disabled` and `type` from rest before computing interaction props so
-  // they don't accidentally override loading-derived values when spread later.
   const {
     type: callerType,
     disabled: callerDisabled,
     ...restWithoutInteraction
   } = rest as Record<string, unknown> & { type?: unknown; disabled?: unknown };
 
-  // When loading, always treat the button as disabled regardless of the
-  // caller's `disabled` prop so the two can't fight each other.
   const isDisabled = loading || Boolean(callerDisabled);
 
-  // For non-button elements (e.g. <a>) we use aria-disabled instead of disabled
   const interactionProps = isNativeButton
     ? {
         type: (callerType as string | undefined) ?? "button",
@@ -113,7 +121,6 @@ export function Button<T extends ElementType = "button">({
         "aria-disabled": isDisabled ? ("true" as const) : undefined,
       };
 
-  // Remove `type` from rest for non-button elements so it isn't forwarded
   const { type: _type, ...restWithoutType } = restWithoutInteraction;
   const forwardedRest = isNativeButton
     ? restWithoutInteraction
@@ -136,9 +143,6 @@ export function Button<T extends ElementType = "button">({
     className,
   );
 
-  // Resolve leading icon: replaced by Spinner when loading.
-  // The Spinner is decorative here — the button's own text and aria-busy
-  // already convey the loading state to assistive technology.
   const leadingIcon = loading ? (
     <Spinner
       size="sm"

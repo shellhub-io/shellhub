@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { cn } from "./cn";
 
+/**
+ * The accent set shared by every tinted surface in the design-system. Badge narrows it,
+ * excluding neutral.
+ */
 export type Palette =
   | "primary"
   | "green"
@@ -9,8 +13,15 @@ export type Palette =
   | "blue"
   | "cyan"
   | "neutral";
+/**
+ * Side of the square the icon is centred in.
+ */
 export type IconBadgeSize = "sm" | "md" | "lg";
 
+/**
+ * Props of IconBadge. Anything else given is spread onto the wrapper, so a caller can attach
+ * data attributes and ARIA without the component naming them.
+ */
 export interface IconBadgeProps {
   color?: Palette;
   size?: IconBadgeSize;
@@ -35,6 +46,9 @@ const sizeClasses: Record<IconBadgeSize, string> = {
   lg: "w-12 h-12",
 };
 
+/**
+ * Rounded tinted square holding an icon, used as the leading mark of a card or a list row.
+ */
 export function IconBadge({
   color = "primary",
   size = "md",

@@ -154,12 +154,10 @@ describe("KeyFileInput", () => {
   describe("drop zone — dragging state", () => {
     it("sets dragging visual when dragOver fires on the drop zone", () => {
       const { container } = renderComponent();
-      // Find the drop zone div by a stable child element
       const dropZone = container.querySelector("[ondragover], .border-dashed");
       if (!dropZone) throw new Error("drop zone not found");
 
       fireEvent.dragOver(dropZone, { preventDefault: () => {} });
-      // After dragOver the border class shifts to primary color
       expect(dropZone.className).toMatch(/border-primary/);
     });
 

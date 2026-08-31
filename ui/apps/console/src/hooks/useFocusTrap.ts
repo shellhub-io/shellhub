@@ -26,7 +26,6 @@ export function useFocusTrap(
     const container = containerRef.current;
     const previousFocus = document.activeElement as HTMLElement | null;
 
-    // Move focus into the modal on the next frame so the element is painted.
     const raf = requestAnimationFrame(() => {
       if (!autoFocus) {
         container.focus();

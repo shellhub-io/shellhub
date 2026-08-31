@@ -5,7 +5,6 @@ import { useVaultStore } from "@/stores/vaultStore";
 import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
 import VaultSettingsSection from "../VaultSettingsSection";
 
-// Prevent real vault-crypto / backend calls from running in tests
 vi.mock("@/utils/vault-crypto", () => ({
   createVaultMeta: vi.fn(),
   verifyPassword: vi.fn(),
@@ -71,7 +70,6 @@ function setUnlocked(
 }
 
 beforeEach(() => {
-  // Reset to a known base state before each test
   useVaultStore.setState({
     status: "locked",
     keys: [],
@@ -83,8 +81,6 @@ beforeEach(() => {
     autoLockNonce: 0,
   });
   vi.clearAllMocks();
-  // clearAllMocks only clears call history — it does NOT restore mockReturnValue.
-  // Reset the implementation explicitly so every test starts from the documented default.
   vi.mocked(isVaultServerEnabled).mockReturnValue(false);
 });
 
@@ -260,23 +256,17 @@ describe("VaultSettingsSection", () => {
       setUnlocked();
       renderSection();
 
-      // The Drawer always renders its panel in the DOM (CSS-only hide via
-      // translate-x-full). When closed the panel carries inert so its
-      // descendants are removed from the tab order and the accessibility tree.
       const heading = screen.getByRole("heading", {
         name: /change master password/i,
         hidden: true,
       });
       expect(heading.closest("[inert]")).not.toBeNull();
 
-      // Requires aria-label="Change master password" (lowercase 'm') on the button
       const changeBtn = screen.getByRole("button", {
         name: "Change master password",
       });
       await userEvent.click(changeBtn);
 
-      // After opening, inert is removed — the heading becomes accessible and
-      // the password inputs are queryable without hidden:true.
       expect(
         screen.getByRole("heading", { name: /change master password/i }),
       ).toBeInTheDocument();
@@ -346,7 +336,6 @@ describe("VaultSettingsSection", () => {
       it("renders row title 'Change Master Password'", () => {
         setUnlocked();
         renderSection();
-        // Drawer also renders this title, so use getAllByText and check at least one match
         expect(
           screen.getAllByText("Change Master Password").length,
         ).toBeGreaterThanOrEqual(1);

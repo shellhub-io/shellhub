@@ -80,10 +80,8 @@ describe("authStore", () => {
     });
 
     it("clears mfaToken at start of login to prevent stale token reuse", async () => {
-      // Pre-populate a stale mfaToken from a previous login attempt
       useAuthStore.setState({ mfaToken: "stale-mfa-token" });
 
-      // Capture mfaToken state at the start of the request
       let mfaTokenDuringRequest: string | null = "not-checked";
       sdk.login.mockImplementationOnce(async () => {
         mfaTokenDuringRequest = useAuthStore.getState().mfaToken;
@@ -92,7 +90,6 @@ describe("authStore", () => {
 
       await useAuthStore.getState().login("admin", "password");
 
-      // mfaToken must be null when the request is made (not stale from previous session)
       expect(mfaTokenDuringRequest).toBeNull();
     });
 
@@ -174,7 +171,6 @@ describe("authStore", () => {
 
         expect(toggle).toHaveBeenCalledWith("close");
         expect(reset).toHaveBeenCalled();
-        // toggle("close") must happen before reset()
         const toggleOrder = toggle.mock.invocationCallOrder[0];
         const resetOrder = reset.mock.invocationCallOrder[0];
         expect(toggleOrder).toBeLessThan(resetOrder);
@@ -199,7 +195,6 @@ describe("authStore", () => {
 
         useAuthStore.setState({ token: "jwt", user: "admin" });
 
-        // Should not throw at the caller level
         expect(() => useAuthStore.getState().logout()).not.toThrow();
 
         expect(useAuthStore.getState().token).toBeNull();
@@ -268,7 +263,6 @@ describe("authStore", () => {
     it("silently ignores errors (interceptor handles redirect)", async () => {
       sdk.getUserInfo.mockRejectedValue(new Error("401"));
 
-      // Should not throw
       await useAuthStore.getState().fetchUser();
     });
   });
@@ -323,12 +317,10 @@ describe("authStore", () => {
         mfaEnabled: true, // MFA enabled status SHOULD persist
       });
 
-      // Should NOT persist transient state
       expect(persisted).not.toHaveProperty("loading");
       expect(persisted).not.toHaveProperty("username");
       expect(persisted).not.toHaveProperty("recoveryEmail");
 
-      // Should NOT persist transient MFA session state
       expect(persisted).not.toHaveProperty("mfaToken");
       expect(persisted).not.toHaveProperty("mfaRecoveryExpiry");
     });

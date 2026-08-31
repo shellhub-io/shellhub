@@ -1,5 +1,8 @@
 import type { SVGProps } from "react";
 
+/**
+ * Discord wordmark glyph. It inherits currentColor, so the colour is the caller's.
+ */
 export function DiscordIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>

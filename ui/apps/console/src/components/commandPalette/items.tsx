@@ -116,8 +116,6 @@ export function buildConnectionItems(deps: {
   } = deps;
   const list: CommandItem[] = [];
 
-  /* A device row (connect/restore + drill-in). Shared by the Recent and Devices
-   * sections, which differ only in id, section, sublabel, and icon. */
   const deviceRow = (
     d: NormalizedDevice,
     overrides: {
@@ -135,8 +133,6 @@ export function buildConnectionItems(deps: {
     badge: d.online
       ? { text: "Online", variant: "green" }
       : { text: "Offline", variant: "muted" },
-    // Shake the row the user actually clicked (Devices `device-`, Recent
-    // `recent-`) on an offline/permission reject — not a same-uid duplicate.
     onSelect: () => connectOrRestore(d.uid, d.name, d.online, overrides.id),
     onDrillIn: () => enterDrillIn(d.uid),
   });
@@ -177,9 +173,6 @@ export function buildConnectionItems(deps: {
     });
   });
 
-  // Recently-connected devices (already resolved, ordered, and deduped against
-  // open sessions by the caller). A `recent-` id lets the same device still
-  // appear in the full Devices list below.
   recentDevices.forEach(({ device, connectedAt }) => {
     list.push(
       deviceRow(device, {
@@ -191,8 +184,6 @@ export function buildConnectionItems(deps: {
     );
   });
 
-  // useDevices is called with status: "accepted", so the API already scopes
-  // this list — no client-side status filter needed.
   devices.forEach((d) => {
     list.push(
       deviceRow(d, {
@@ -214,8 +205,6 @@ export function buildCommandItems(deps: {
   isIdentityMode?: boolean;
 }): CommandItem[] {
   const { go, onLogout, isIdentityMode } = deps;
-  // The key vault and legacy public-key ACL are bypassed in identity access
-  // mode, so drop them here to match the hidden sidebar links and route guard.
   const legacyPaths = ["/sshkeys/public-keys", "/secure-vault"];
   const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
     { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
@@ -279,9 +268,6 @@ export function buildDeviceActionItems(deps: {
   const { uid, name, online } = drillDevice;
   const sshid = nsName ? buildSshid(nsName, name) : uid;
   const sshCommand = `ssh <username>@${sshid}`;
-  /* Connect is connect-or-restore, so it's actionable only when the user may
-   * connect AND the device is reachable or has an open session to restore.
-   * Disable it otherwise — the row stays open for Copy/View details. */
   const connectDisabled = !canConnect || (!online && !hasOpenSession);
   return [
     {

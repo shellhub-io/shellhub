@@ -1,6 +1,13 @@
 import { cn } from "./cn";
 
+/**
+ * Diameter of a Spinner, in the same steps as the icon sizes it is usually swapped for.
+ */
 export type SpinnerSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+/**
+ * Which surface the spinner sits on. The tone sets the track and head colours together, so a
+ * spinner on a primary button stays legible without the caller picking either.
+ */
 export type SpinnerTone = "onPrimary" | "onSurface" | "subtle" | "onBackground";
 
 interface SpinnerProps {
@@ -8,10 +15,6 @@ interface SpinnerProps {
   tone?: SpinnerTone;
   /** Layout overrides only (margins, block/inline-block). Don't override color or size. */
   className?: string;
-  /**
-   * If provided, the spinner is announced to assistive tech as a live status
-   * region. Omit for purely decorative spinners (the default).
-   */
   "aria-label"?: string;
 }
 
@@ -31,6 +34,10 @@ const TONE: Record<SpinnerTone, string> = {
   onBackground: "border-background/30 border-t-background",
 };
 
+/**
+ * Indeterminate loading indicator. It is aria-hidden unless given an aria-label, so a spinner
+ * beside text that already says it is loading is not announced twice.
+ */
 export function Spinner({
   size = "md",
   tone = "onSurface",

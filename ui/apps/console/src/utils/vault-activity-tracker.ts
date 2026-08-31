@@ -26,7 +26,6 @@ export interface TrackerOptions {
   onIdle: () => void;
 }
 
-/** Timestamp (Date.now()) of the last throttled activity reset. 0 = never. */
 let lastResetStamp = 0;
 
 let idleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -123,8 +122,6 @@ export function start(opts: TrackerOptions): void {
   stop();
 
   currentOptions = opts;
-  // stop() already reset lastResetStamp to 0, guaranteeing the first activity
-  // event after start() always passes the throttle check.
 
   for (const event of ACTIVITY_EVENTS) {
     window.addEventListener(event, onActivity);

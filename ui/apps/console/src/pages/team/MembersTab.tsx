@@ -93,7 +93,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const { members: memberViews, isLoading: membersLoading } =
     useNamespaceMembers(tenantId);
 
-  // Pending invitations exist in every edition, so always fetch them.
   const { invitations } = useNamespaceInvitations({
     tenantId,
     status: "pending",
@@ -107,8 +106,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const regenerateInvitation = useGenerateInvitationLink();
 
   const currentUserEmail = useAuthStore((s) => s.email);
-  // Approving a provisioned account is an instance-admin (superadmin) act. A
-  // namespace owner/admin who isn't a superadmin only sees the status.
   const isSuperAdmin = useAuthStore((s) => s.isAdmin);
 
   const [addOpen, setAddOpen] = useState(false);
@@ -144,9 +141,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     }
   };
 
-  // Pending invitations first (they need action), then real members sorted by
-  // email. The owner is shown too (complete roster) but has no destructive
-  // actions — ownership is transferred, not removed here.
   const members = memberViews
     .filter((m) => !!m.id && !!m.email)
     .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
@@ -241,8 +235,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
       key: "joined",
       header: "Added",
       render: (row) => {
-        // Members show when they joined; pending invitees show when they were
-        // invited (they haven't joined yet).
         const date =
           row.kind === "invite" ? row.invite.created_at : row.member.added_at;
         return (
@@ -259,8 +251,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
       render: (row) => {
         if (row.kind === "invite") {
           const inv = row.invite;
-          // The backend only regenerates an expired invitation; a still-valid one 409s (copy the
-          // existing link instead). Gate the action to match, as the old InvitationsTab did.
           const expired = isInvitationExpired(inv.expires_at);
           return (
             <div className="flex items-center justify-end gap-1">

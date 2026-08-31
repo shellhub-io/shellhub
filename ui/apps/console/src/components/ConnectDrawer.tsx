@@ -144,8 +144,6 @@ export default function ConnectDrawer({
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const [unlockOpen, setUnlockOpen] = useState(false);
-  // First-run browser-key consent: set when a fresh key was generated and awaits
-  // the user's OK to register it. Null once granted, declined, or not needed.
   const [pendingEnroll, setPendingEnroll] = useState<{
     key: BrowserKey;
     scope: string;
@@ -160,9 +158,6 @@ export default function ConnectDrawer({
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
 
-  // In identity access mode you are already authenticated in the console — your
-  // account is the identity, and Access Policies authorize the login. No device
-  // password or key is needed; the form collapses to just the unix login.
   const identityMode = namespace?.settings?.ssh_access_mode === "identity";
 
   useEffect(() => {
@@ -209,8 +204,6 @@ export default function ConnectDrawer({
     });
   };
 
-  // Apply the opt-in recording flag (OPFS, no upload; skipped when the namespace
-  // already records server-side), then open the terminal and close the drawer.
   const finalizeConnect = (params: ConnectParams) => {
     const withRecord =
       !namespaceRecords && state.recordSession && isRecordingSupported()
@@ -230,9 +223,6 @@ export default function ConnectDrawer({
     browserKey: key.privateKey,
   });
 
-  // Register the browser's public key under the given name, persist it for reuse,
-  // and connect. Throws on enrollment failure so the consent dialog can surface
-  // an error.
   const enrollAndConnect = async (
     key: BrowserKey,
     scope: string,
@@ -244,14 +234,9 @@ export default function ConnectDrawer({
         body: { name, data: key.publicKeyLine, source: "browser" },
       });
     } catch (err: unknown) {
-      // The registered check above reads the server, so another tab enrolling
-      // this same key in between lands here. The key works either way, so the
-      // connection this consent was for should still happen.
       if (!isAlreadyEnrolled(err)) throw err;
     }
     await persistBrowserKey(scope, key);
-    // This browser now holds a key it did not a moment ago, and the identities
-    // list reads that to mark its own row.
     await queryClient.invalidateQueries({ queryKey: BROWSER_KEY_QUERY_KEY });
     finalizeConnect(attachKey(params, key));
   };
@@ -261,9 +246,6 @@ export default function ConnectDrawer({
     if (!canConnect) return;
 
     if (identityMode) {
-      // Browser-held identity: the browser signs the SSH challenge with its own
-      // non-extractable key, so the web terminal is a first-class SSH identity
-      // (revocable, its own last_reauth_at).
       const params: ConnectParams = {
         deviceUid,
         deviceName,
@@ -274,8 +256,6 @@ export default function ConnectDrawer({
       const scope = userId && tenant ? `${userId}:${tenant}` : null;
       const key = scope ? await ensureBrowserKey(scope) : null;
 
-      // In identity mode the key IS the identity, so there is nothing to degrade
-      // to: a browser that cannot hold one cannot open the web terminal.
       if (!key || !scope) {
         dispatch({
           type: "setKeyUnavailable",
@@ -285,10 +265,6 @@ export default function ConnectDrawer({
         return;
       }
 
-      // The server is the source of truth: consent+enroll is driven by whether
-      // this key is registered there, not by local presence — so revoking it in
-      // the console re-triggers consent here even though the key stays in the
-      // browser. Fetch fresh (not the cache) to see a just-made revocation.
       let registered: boolean;
       try {
         const identities = await queryClient.fetchQuery(
@@ -305,12 +281,10 @@ export default function ConnectDrawer({
       }
 
       if (registered) {
-        // Already enrolled: connect straight with the key — no POST, no consent.
         finalizeConnect(attachKey(params, key));
         return;
       }
 
-      // New, revoked, or orphaned: get consent before registering the identity.
       setPendingEnroll({ key, scope, params });
       return;
     }

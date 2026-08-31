@@ -40,24 +40,19 @@ function crossfadeReducer(
     case "active-changed": {
       const next = action.session;
       if (state.phase !== "idle") {
-        // Safety net: active session vanished mid fade-out — settle straight to idle.
         if (state.phase === "fading-out" && !next) {
           return { displayed: null, phase: "idle", pending: null };
         }
-        // Already animating — stash the latest value to apply when the fade ends.
         return { ...state, pending: next };
       }
-      // Mode change (terminal <-> namespace) — start the crossfade.
       if (!!next !== !!state.displayed) {
         return { ...state, pending: next, phase: "fading-out" };
       }
-      // Same mode, different session — instant swap (no flash).
       if (next) {
         return { ...state, displayed: next };
       }
       return state;
     }
-    // Fade-out finished — swap in the pending content, then fade back in (see handler).
     case "fade-out-done":
       if (state.phase !== "fading-out") return state;
       return { displayed: state.pending, pending: null, phase: "swapped" };
@@ -87,14 +82,6 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
 
   const visible = phase === "idle";
 
-  // The crossfade is driven by store changes — an external event fired OUTSIDE
-  // React's render/effect cycle — not detected during render. Dispatching from the
-  // subscription callback (never during render, never synchronously in an effect
-  // body) keeps both react-hooks/set-state-in-render and set-state-in-effect happy
-  // while removing all render-phase state updates — the fix for the audit's
-  // concurrent-rendering concern. dispatch is stable so the effect runs
-  // once ([] deps); the listener fires on every store change but early-returns
-  // unless the active-session id actually changed.
   useEffect(() => {
     const unsubscribe = useTerminalStore.subscribe((state) => {
       const next = activeSessionOf(state.sessions);
@@ -105,7 +92,6 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
     return unsubscribe;
   }, []);
 
-  // Fade-out transition ended — commit the swap, then fade back in over two paint frames.
   const handleTransitionEnd = useCallback(() => {
     if (phase !== "fading-out") return;
     dispatch({ type: "fade-out-done" });

@@ -460,8 +460,6 @@ export default function Profile() {
     fetchUser,
   } = useAuthStore();
 
-  // SSO users authenticate at their identity provider, so their password and MFA
-  // live there, not in ShellHub — don't offer local password/MFA controls to them.
   const isSsoUser = origin === "saml";
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);

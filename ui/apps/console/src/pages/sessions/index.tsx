@@ -89,9 +89,6 @@ export default function Sessions() {
     clearLogs,
   } = useSessionRecording();
 
-  // Local (OPFS) recordings live only in the browser that made them, keyed by
-  // session uid. Surfacing their playback here makes a session the single home
-  // for both server and local recordings.
   const recordings = useRecordingsStore((s) => s.recordings);
   const refreshRecordings = useRecordingsStore((s) => s.refresh);
 
@@ -111,9 +108,6 @@ export default function Sessions() {
 
   const totalPages = pageCount(totalCount);
 
-  // Play routing: prefer a local recording (inline read), fall back to the
-  // server recording, and on Community pitch the paid feature when a shell
-  // session has no recording at all.
   const handlePlayClick = async (e: React.MouseEvent, s: Session) => {
     e.stopPropagation();
     const local = localBySessionUid.get(s.uid);
@@ -270,8 +264,6 @@ export default function Sessions() {
         const isShell = sessionType(s)?.label === "shell";
         const canPlay = Boolean(local) || s.recorded;
         const playing = logsLoading && playTarget === s.uid;
-        // A local recording is the user's own browser data, so it plays without
-        // the server-side session:play permission; only server playback needs it.
         const needsPermission = !local && s.recorded;
         const playButton = (
           <button
@@ -351,8 +343,6 @@ export default function Sessions() {
         itemLabel="session"
         onPageChange={setPage}
         onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}
-        // border-l-2 on every row (transparent by default) keeps the row
-        // height stable when the red border appears on unauthenticated rows.
         rowClassName={(s) =>
           !s.authenticated
             ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"

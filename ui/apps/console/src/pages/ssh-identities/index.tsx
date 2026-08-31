@@ -66,12 +66,7 @@ const EXPIRY_TONE: Record<IdentityStatusTone, string> = {
 export default function SSHIdentities() {
   const userId = useAuthStore((s) => s.userId);
 
-  // Always request the namespace-wide list; the API returns every member's keys
-  // to owners/admins and only the caller's own to everyone else, so the page
-  // behaves the same either way (one Principal column, your own row marked).
   const { identities, isLoading } = useSSHIdentities(true);
-  // The key this browser holds, so its own row can say so instead of looking
-  // like any other browser's.
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isCurrentBrowser = (i: SshIdentity) =>
     i.source === "browser" && i.fingerprint === browserKeyFingerprint;
@@ -116,9 +111,6 @@ export default function SSHIdentities() {
     {
       key: "name",
       header: "Name",
-      // The fingerprint goes under the name rather than in a column of its own:
-      // the two identify the same key, and reading them together is what tells
-      // one "ed25519 (…)" from the next.
       render: (i) => {
         const isService = i.principal_type === "service";
         const source = sshIdentitySource(i.source, isCurrentBrowser(i));
@@ -181,8 +173,6 @@ export default function SSHIdentities() {
         return (
           <UserBadge
             name={i.principal_name}
-            // A service account's email is a synthetic svc-…@service.local, so
-            // what it is takes the line that who it is would have used.
             email={isService ? undefined : i.principal_email}
             secondary={isService ? "Service account" : undefined}
             trailing={
@@ -199,10 +189,6 @@ export default function SSHIdentities() {
     {
       key: "timeline",
       header: "Timeline",
-      // The three dates in one column, each under its own label and in tabular
-      // figures, so the whole column reads straight down. Putting "expires in
-      // 12d" beside "used 23h ago" is what lets the two be judged together,
-      // which is the actual question when auditing a key.
       render: (i) => {
         const end = sshIdentityEndOfLife(i);
 
@@ -297,9 +283,6 @@ export default function SSHIdentities() {
     },
   ];
 
-  /* Full-page onboarding empty state (no keys enrolled in the namespace). The
-     Outlet still renders so an enroll modal can open over it — the first
-     enrollment happens with an empty list. */
   if (!isLoading && identities.length === 0) {
     return (
       <>

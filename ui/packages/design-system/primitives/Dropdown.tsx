@@ -402,6 +402,11 @@ function Item({
   );
 }
 
+/**
+ * Dropdown and its parts as one compound component: Dropdown.Trigger, .Anchor, .Input, .Panel
+ * and .Item. The parts read the open state from the root through context, so they only work
+ * inside one.
+ */
 export const Dropdown = Object.assign(DropdownRoot, {
   Trigger,
   Anchor,

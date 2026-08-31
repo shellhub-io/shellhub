@@ -61,7 +61,6 @@ describe("Spinner", () => {
   it("re-exports SpinnerSize and SpinnerTone types from primitives/index", async () => {
     const mod = await import("../primitives/index");
     expect(mod).toBeDefined();
-    // If Spinner is exported from the index, this confirms the re-export chain is wired
     expect(mod.Spinner).toBeDefined();
   });
 });

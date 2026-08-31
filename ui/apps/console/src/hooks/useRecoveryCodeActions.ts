@@ -17,7 +17,6 @@ export function useRecoveryCodeActions() {
       const content = codes.join("\n");
       await navigator.clipboard.writeText(content);
     } catch {
-      // Fallback: create temporary textarea for older browsers
       const textarea = document.createElement("textarea");
       textarea.value = codes.join("\n");
       textarea.style.position = "fixed";

@@ -21,7 +21,6 @@ export default function MfaResetRequest() {
     useMfaResetStore.setState({ error: null });
   }, []);
 
-  // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
     if (!identifier && !mfaToken) {
       void navigate("/login");

@@ -118,8 +118,6 @@ describe("SupportButton", () => {
       );
       expect(await screen.findByRole("dialog")).toBeInTheDocument();
 
-      // Subscription becomes active mid-session — paywall is no longer
-      // appropriate, so the dialog must close itself.
       rerender(
         <ChatwootContext.Provider value={makeHandle("ready")}>
           <SupportButton />

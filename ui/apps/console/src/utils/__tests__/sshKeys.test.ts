@@ -149,7 +149,6 @@ describe("validatePrivateKey", () => {
     });
 
     it("rejects a public key presented as a private key", () => {
-      // A minimal OpenSSH public key line — not a private key PEM block.
       const publicKey =
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI fake+public+key test@host";
       const result = validatePrivateKey(publicKey);
@@ -174,8 +173,6 @@ describe("validatePrivateKey", () => {
 describe("getFingerprint", () => {
   it("returns an MD5 fingerprint string for an RSA key", () => {
     const fingerprint = getFingerprint(RSA_PRIVATE_KEY);
-    // sshpk formats MD5 fingerprints as 16 colon-separated lowercase hex pairs
-    // without a leading "MD5:" prefix, e.g. "8d:c7:f8:50:..."
     expect(fingerprint).toMatch(/^[0-9a-f]{2}(:[0-9a-f]{2}){15}$/);
   });
 
@@ -225,14 +222,12 @@ describe("generateSignature", () => {
       const sig = generateSignature(RSA_PRIVATE_KEY, CHALLENGE);
       expect(typeof sig).toBe("string");
       expect(sig.length).toBeGreaterThan(0);
-      // base64 character set
       expect(sig).toMatch(/^[A-Za-z0-9+/]+=*$/);
     });
 
     it("produces the same signature for the same key and challenge", () => {
       const sig1 = generateSignature(RSA_PRIVATE_KEY, CHALLENGE);
       const sig2 = generateSignature(RSA_PRIVATE_KEY, CHALLENGE);
-      // RSA PKCS#1 with SHA-1 is deterministic
       expect(sig1).toBe(sig2);
     });
 
@@ -283,17 +278,13 @@ describe("generateSignature", () => {
     it("produces SSH wire format (mpint r || mpint s), not ASN.1 DER", () => {
       const sig = generateSignature(ECDSA_P256_PRIVATE_KEY, CHALLENGE);
       const blob = Buffer.from(sig, "base64");
-      // ASN.1 DER sequences start with 0x30 — must not be DER
       expect(blob[0]).not.toBe(0x30);
-      // Parse mpint r: [uint32 len][r bytes]
       const rLen = blob.readUInt32BE(0);
       expect(rLen).toBeGreaterThan(0);
       expect(rLen).toBeLessThanOrEqual(33); // P-256: 32 bytes + possible leading sign byte
-      // Parse mpint s: [uint32 len][s bytes] immediately after r
       const sLen = blob.readUInt32BE(4 + rLen);
       expect(sLen).toBeGreaterThan(0);
       expect(sLen).toBeLessThanOrEqual(33);
-      // Blob is exactly the two mpints with no extra framing
       expect(blob.length).toBe(4 + rLen + 4 + sLen);
     });
 
@@ -327,9 +318,6 @@ describe("generateSignature", () => {
   });
 });
 
-// Cross-check the browser-key encoders against sshpk (the OpenSSH-compatible
-// oracle): a wrong wire encoding would derive a fingerprint the gateway can't
-// resolve to the enrolled identity, silently breaking web-terminal auth.
 describe("browser Ed25519 key encoding", () => {
   const raw = new Uint8Array(32);
   for (let i = 0; i < raw.length; i++) raw[i] = i * 7 + 1;

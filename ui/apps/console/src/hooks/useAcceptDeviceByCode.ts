@@ -34,8 +34,6 @@ export function useAcceptDeviceByCode() {
         throwOnError: true,
       });
 
-      // Tenant-less pairing code (what the codeless install prints): the device
-      // doesn't exist yet, so accept it into the current namespace.
       if (data.kind === "pairing") {
         const { data: accepted } = await acceptDevicePairing({
           path: { code },
@@ -45,7 +43,6 @@ export function useAcceptDeviceByCode() {
         return { uid: accepted.uid ?? "", name: data.name ?? "" };
       }
 
-      // Login code for a device that already registered as pending.
       if (data.uid) {
         await acceptDevice.mutateAsync({ path: { uid: data.uid } });
         return { uid: data.uid, name: data.name ?? "" };
@@ -56,8 +53,6 @@ export function useAcceptDeviceByCode() {
       );
       return null;
     } catch (err) {
-      // The API collapses unknown, wrong, and expired codes into 404 on
-      // purpose (the code is the secret), so this one message covers all three.
       setError(
         isSdkError(err) && err.status === 404
           ? "That code is invalid or has expired. Double-check it and try again."

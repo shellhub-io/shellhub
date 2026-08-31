@@ -50,7 +50,6 @@ export function useAddContainerTag() {
       } catch (e) {
         if (!isSdkError(e) || e.status !== 409) throw e;
       }
-      // If this fails, the tag exists globally but is not attached to this container.
       return pushTagToContainer({
         path: { uid: options.path.uid, name: options.path.name },
         throwOnError: true,

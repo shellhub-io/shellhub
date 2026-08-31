@@ -35,15 +35,11 @@ export default function WelcomeWizard({
   onDismiss,
 }: WelcomeWizardProps) {
   const [step, setStep] = useState(1);
-  // Within step 1, the code-entry face (the "not on that machine" path). Not a
-  // numbered step; the progress still reads step 1 while it shows.
   const [showCode, setShowCode] = useState(false);
   const [device, setDevice] = useState<{ uid: string; name: string } | null>(
     null,
   );
 
-  // Code entry lives here (not in WizardStepCode) so the footer's Pair button
-  // can read the value and drive the accept.
   const otp = useOtpInput(PAIRING_CODE_LENGTH, true);
   const {
     submit: acceptByCode,
@@ -76,10 +72,6 @@ export default function WelcomeWizard({
     if (accepted) connect(accepted);
   };
 
-  // Closing the header X (or ESC/backdrop) defers on step 1 but, on the final
-  // step, onboarding is already done (a device is connected), so it dismisses
-  // for good, same as Finish. Memoized so BaseDialog's cancel-event listener
-  // doesn't re-attach on every render (its dep-array includes it).
   const handleClose = useCallback(
     () => (step < TOTAL_STEPS ? onClose() : onDismiss()),
     [step, onClose, onDismiss],
@@ -144,10 +136,6 @@ export default function WelcomeWizard({
 
       <footer className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-between">
         {step === 1 && !showCode ? (
-          // Escape hatch to the full page for Docker-specific methods, fleets,
-          // or advanced agent options: anything past the simple codeless
-          // install. Leaving defers the wizard (handleClose) rather than
-          // dismissing it for good.
           <Link
             to="/devices/add"
             onClick={handleClose}
@@ -170,16 +158,12 @@ export default function WelcomeWizard({
 
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
-            // Skip suppresses the wizard for good (the header X only defers it).
             <Button variant="ghost" onClick={onDismiss}>
               Skip
             </Button>
           )}
 
           {step === 1 && !showCode && (
-            // The link path auto-advances on its own; Next is the manual route
-            // to the code-entry face, for when the user isn't sitting at the
-            // target machine to open the link.
             <Button
               onClick={() => setShowCode(true)}
               iconRight={
@@ -191,8 +175,6 @@ export default function WelcomeWizard({
           )}
 
           {step === 1 && showCode && (
-            // Accept the typed code. In dev demo mode it jumps straight to the
-            // final step with a fake device, since a fake code can't resolve.
             <Button
               onClick={isWizardDemo() ? () => connect(DEMO_DEVICE) : acceptCode}
               loading={accepting}
@@ -203,7 +185,6 @@ export default function WelcomeWizard({
           )}
 
           {step === TOTAL_STEPS && (
-            // Finishing means the user completed onboarding, so dismiss for good.
             <Button
               onClick={onDismiss}
               iconRight={

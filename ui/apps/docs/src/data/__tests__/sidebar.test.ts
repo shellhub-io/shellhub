@@ -67,11 +67,6 @@ describe("flattenItems", () => {
       ]);
     });
 
-    // Defensive documentation of the ternary short-circuit: if an item has BOTH
-    // href and items, href takes precedence and children are dropped. In practice
-    // the real sidebar tree never contains such an item (asserted in group 2),
-    // so this is a hypothetical dead path — documented here so the short-circuit
-    // behavior is explicit and observable.
     it("short-circuits on href when an item has both href and items (href wins, children dropped)", () => {
       const items: SidebarItem[] = [
         {
@@ -88,7 +83,6 @@ describe("flattenItems", () => {
   });
 
   describe("group 2: structural invariants over the real sidebar constant", () => {
-    // Helper: recursively walk all items in a section (not just leaves).
     function walkItems(items: SidebarItem[]): SidebarItem[] {
       return items.flatMap((item) =>
         item.items ? [item, ...walkItems(item.items)] : [item],
@@ -111,10 +105,6 @@ describe("flattenItems", () => {
 
     it("every section icon is a component that renders to an <svg> element", () => {
       for (const section of sidebar) {
-        // Render the icon through React (the same SSR path the layout uses).
-        // This proves `icon` is a real, mountable component — not just a
-        // truthy value — and that it emits an SVG, catching broken imports
-        // or a wrong mapping that a `typeof` check would silently pass.
         const html = renderToStaticMarkup(createElement(section.icon));
         expect(
           html,

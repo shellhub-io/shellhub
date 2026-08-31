@@ -73,8 +73,6 @@ export function useChatwoot(): ChatwootHandle {
 
   const lastIdentityRef = useRef<string | null>(null);
 
-  // Inject the SDK script once prerequisites are met. The runtime helper is
-  // idempotent across StrictMode double-effects and concurrent mounts.
   useEffect(() => {
     if (!isCloudEdition || !hasCloudConfig) return;
     if (!hasActiveBilling || !identifier || !userId) return;
@@ -115,9 +113,6 @@ export function useChatwoot(): ChatwootHandle {
     }
   }, [widgetReady, userId, userEmail, userName, tenant, identifier]);
 
-  // Set conversation attributes on the next message. Gated on namespaceName
-  // so the first message after a tenant switch isn't tagged with an empty
-  // namespace while the new namespace fetch is still in flight.
   useEffect(() => {
     if (!widgetReady || !tenant || !namespaceName) return;
 
@@ -155,8 +150,6 @@ export function useChatwoot(): ChatwootHandle {
   } else if (!hasCloudConfig) {
     status = "unavailable";
   } else if (widgetFailed || identifierError) {
-    // Operator misconfiguration (missing identity key) or definitive SDK
-    // bootstrap failure — hide the button rather than spin forever.
     status = "unavailable";
   } else if (!namespace) {
     status = "loading";

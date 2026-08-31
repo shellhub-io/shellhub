@@ -189,7 +189,6 @@ export default function FirewallRules() {
     },
   ];
 
-  /* Full-page onboarding empty state (no rules at all) */
   if (!isLoading && rules.length === 0) {
     return (
       <>

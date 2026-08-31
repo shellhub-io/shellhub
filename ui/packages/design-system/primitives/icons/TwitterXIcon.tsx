@@ -1,5 +1,8 @@
 import type { SVGProps } from "react";
 
+/**
+ * The X (formerly Twitter) mark. It inherits currentColor, so the colour is the caller's.
+ */
 export function TwitterXIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>

@@ -23,7 +23,6 @@ function ServiceAccountDrawer({
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
-  // Key lifecycle. expiresIn is an EXPIRY_OPTIONS value in days ("-1" = never).
   const [expiresIn, setExpiresIn] = useState("-1");
   const [singleUse, setSingleUse] = useState(false);
   const [submitting, setSubmitting] = useState(false);

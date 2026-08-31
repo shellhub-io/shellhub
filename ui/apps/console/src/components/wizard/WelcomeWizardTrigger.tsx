@@ -30,8 +30,6 @@ export default function WelcomeWizardTrigger() {
   const tenant = useAuthStore((s) => s.tenant);
   const { stats, refetch } = useStats();
 
-  // Hold off until stats+tenant resolve, so the gate's lazy initializer below
-  // captures the actual page-load device state rather than a loading null.
   if (!stats || !tenant) return null;
 
   return (
@@ -67,19 +65,13 @@ function WelcomeWizardGate({
     () => !hasSeenWelcome(tenant) && !hasAcceptedDevices(initialStats),
   );
 
-  // `?wizard=demo` (dev only) forces the wizard open, bypassing the gate, but
-  // dismissing it still closes it for the session.
   const show = !dismissed && (isWizardDemo() || eligible);
 
-  // Close for now: hide it this session only, so it reappears next visit while
-  // the namespace is still empty.
   const handleClose = () => {
     setDismissed(true);
     void refetch();
   };
 
-  // Dismiss for good: the user skipped explicitly or finished onboarding, so
-  // never show it for this tenant again.
   const handleDismiss = () => {
     markWelcomeSeen(tenant);
     setDismissed(true);

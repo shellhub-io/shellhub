@@ -51,7 +51,6 @@ function generateRsaKeySignature(
   challenge: Buffer,
 ): string {
   const key = new NodeRSA(privateKeyPem);
-  // ShellHub server expects ssh-rsa (PKCS#1 v1.5 SHA-1) for RSA challenge-response
   key.setOptions({ signingScheme: "pkcs1-sha1" });
   return key.sign(challenge, "base64");
 }
@@ -67,14 +66,11 @@ export function generateSignature(
     return generateRsaKeySignature(decryptedPem, challenge);
   }
 
-  // Choose hash based on key type/curve to match what the server expects
-  // (the SSH protocol ties ECDSA curves to specific hash algorithms).
   let hashAlgo: sshpk.AlgorithmHashType = "sha512"; // ed25519 uses sha512
   if (parsedKey.type === "ecdsa") {
     const curve = (parsedKey as { curve?: string }).curve;
     if (curve === "nistp256") hashAlgo = "sha256";
     else if (curve === "nistp384") hashAlgo = "sha384";
-    // nistp521 uses sha512 (default)
   }
 
   const signer = parsedKey.createSign(hashAlgo);
@@ -82,15 +78,12 @@ export function generateSignature(
   const sig = signer.sign();
 
   if (parsedKey.type === "ecdsa") {
-    // toBuffer('ssh') = [uint32(algLen) || alg || uint32(blobLen) || blob]
-    // ssh.Signature.Blob needs just `blob` = mpint(r) || mpint(s)
     const buf = sig.toBuffer("ssh");
     const algLen = buf.readUInt32BE(0);
     const blobLen = buf.readUInt32BE(4 + algLen);
     return buf.subarray(8 + algLen, 8 + algLen + blobLen).toString("base64");
   }
 
-  // ed25519: toBuffer() returns raw 64-byte signature — correct for ssh.Signature.Blob
   return sig.toBuffer().toString("base64");
 }
 
@@ -124,8 +117,6 @@ export function ed25519PublicKeyLine(raw32: Uint8Array): string {
  * 32-byte Ed25519 public key, matching the gateway's identity resolution. */
 export async function sha256Fingerprint(raw32: Uint8Array): Promise<string> {
   const blob = ed25519Blob(raw32);
-  // blob is freshly allocated (byteOffset 0), so its buffer is a plain
-  // ArrayBuffer — cast to satisfy digest's BufferSource (not SharedArrayBuffer).
   const digest = await crypto.subtle.digest(
     "SHA-256",
     blob.buffer as ArrayBuffer,
@@ -153,7 +144,6 @@ export function isPublicKeyValid(key: string): boolean {
   const trimmed = key.trim();
   if (!trimmed) return false;
 
-  // OpenSSH format: "<type> <base64-data> [comment]"
   for (const prefix of SSH_KEY_PREFIXES) {
     if (trimmed.startsWith(prefix)) {
       const parts = trimmed.split(/\s+/);
@@ -161,7 +151,6 @@ export function isPublicKeyValid(key: string): boolean {
     }
   }
 
-  // PEM format
   if (trimmed.startsWith(PEM_BEGIN)) {
     return trimmed.includes("-----END");
   }

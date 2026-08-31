@@ -77,8 +77,6 @@ export default function BillingDialog({
     onClose();
   };
 
-  // Block ESC/backdrop while a subscription request is in flight, and on the
-  // success step (parent should drive closing via the "Done" button).
   const canClose = useCallback(
     () => !createSubscription.isPending && step < TOTAL_STEPS,
     [createSubscription.isPending, step],

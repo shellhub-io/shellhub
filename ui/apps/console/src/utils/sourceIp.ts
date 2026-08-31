@@ -6,7 +6,6 @@ export type SourceIpParse =
   | { status: "empty" }
   | { status: "incomplete"; note: string }
   | { status: "invalid"; note: string }
-  // value is the canonical CIDR that will be stored; label describes it.
   | {
       status: "valid" | "host" | "any";
       value: string;
@@ -59,8 +58,6 @@ export function parseSourceIp(raw: string): SourceIpParse {
   const s = raw.trim();
   if (!s) return { status: "empty" };
 
-  // Reject leading zeros early — Go's net.ParseCIDR rejects them to avoid
-  // octal ambiguity, so the UI must too.
   const cidr = s.match(/^(.+)\/(\d{1,3})$/);
   const addrPart = cidr ? cidr[1] : s;
   const hasLeadingZero =

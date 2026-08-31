@@ -43,8 +43,6 @@ describe("nextFontSize", () => {
     expect(nextFontSize(CURRENT, event({ key: "+", ctrlKey: true, shiftKey: true }))).toBe(CURRENT + 1);
   });
 
-  // Numpad add/subtract need no entries of their own: browsers report them as
-  // "+" and "-" in `key` (the "Numpad*" name lives in `code`).
   it.each([
     ["NumpadAdd", "+", CURRENT + 1],
     ["NumpadSubtract", "-", CURRENT - 1],

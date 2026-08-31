@@ -19,15 +19,11 @@ export default function UserBadge({
   name?: string | null;
   email?: string | null;
   short?: boolean;
-  /** Rendered next to the primary label, e.g. a "you" chip. */
   trailing?: ReactNode;
-  /** Takes the email's line when the principal has no email worth showing, so
-   *  what it is can occupy the same slot as who it is. */
   secondary?: ReactNode;
   className?: string;
 }) {
   const primary = name || email || "—";
-  // The email only earns the secondary line when a name occupies the primary.
   const secondaryLine = secondary ?? (name && email ? email : undefined);
 
   return (

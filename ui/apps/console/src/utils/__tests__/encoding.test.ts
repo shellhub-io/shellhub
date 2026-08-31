@@ -4,19 +4,13 @@ import { decodeB64url } from "@/tests/decodeB64url";
 
 describe("toBase64Json", () => {
   it("emits unpadded base64url (no +, /, or = characters)", () => {
-    // The output must be safe to embed in a URL query-string or HTTP header
-    // without percent-encoding. Standard base64 uses + and / which are
-    // URL-unsafe, and adds = padding which is also forbidden in some contexts.
-    // Covers ASCII (padding), Unicode (/ replacement), and mixed payloads.
     const inputs = [
-      // ASCII payload — v1 ends with "=" in standard base64
       [
         {
           type: "property",
           params: { name: "name", operator: "contains", value: "qa-edge" },
         },
       ],
-      // Unicode payload — v2 contains "/" in standard base64
       [
         {
           type: "property",
@@ -27,7 +21,6 @@ describe("toBase64Json", () => {
           },
         },
       ],
-      // Emoji + Arabic — also contains "/" in standard base64
       { tag: "日本語タグ", emoji: "🚀", arabic: "سلام" },
     ];
     for (const value of inputs) {
@@ -40,9 +33,6 @@ describe("toBase64Json", () => {
   });
 
   it("round-trips ASCII payload through unpadded base64url → UTF-8 → JSON", () => {
-    // The BE decoder reads the raw bytes, so the decoded JSON must match.
-    // After switching to base64url we no longer compare to btoa() — the two
-    // alphabets differ. Verify correctness by decoding instead.
     const value = [
       {
         type: "property",
@@ -74,8 +64,6 @@ describe("toBase64Json", () => {
   });
 
   it("maps std base64 '+' to '-' and strips '=' padding ('>>>' payload)", () => {
-    // '>>>' encodes to "Ij4+PiI=" in standard base64 (contains '+' and '=').
-    // base64url must replace '+' with '-' and strip trailing '='.
     const json = JSON.stringify(">>>");
     const expected = btoa(json)
       .replace(/\+/g, "-")

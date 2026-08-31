@@ -5,9 +5,6 @@ import NoticeBanner from "@/components/common/NoticeBanner";
 export default function LicenseBanner() {
   const { data, isLoading, isError, dataUpdatedAt } = useAdminLicense();
 
-  // data === undefined: query not enabled (non-admin) — banner stays hidden
-  // data === null:      no license installed (400 normalized by hook)
-  // data object:        license found, check flags
   const noLicense = data === null;
   const expired = data != null && data.expired && !data.grace_period;
   const gracePeriod = data != null && data.expired && data.grace_period;
@@ -16,7 +13,6 @@ export default function LicenseBanner() {
   const daysUntilExpiration = useMemo(() => {
     if (data == null || data.expires_at <= 0) return null;
     const days = Math.ceil((data.expires_at - dataUpdatedAt / 1000) / 86400);
-    // treat zero or negative as null so the fallback copy is shown
     return days > 0 ? days : null;
   }, [data, dataUpdatedAt]);
 

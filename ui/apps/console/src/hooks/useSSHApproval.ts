@@ -56,7 +56,6 @@ export function useSSHApproval(code: string) {
   const confirmMutation = useConfirmSSHApproval();
   const rejectMutation = useRejectSSHApproval();
 
-  // Fetch the request once on mount (or when the code changes).
   useEffect(() => {
     let cancelled = false;
 
@@ -96,9 +95,6 @@ export function useSSHApproval(code: string) {
           return;
         }
 
-        // The server reports what is left of the window rather than when it
-        // opened: attaching the key refreshes the TTL, so a countdown from
-        // requested_at would expire the dialog while the code is still live.
         const left = data.expires_in_seconds ?? APPROVAL_TTL_SECONDS;
         expiresAtRef.current = Date.now() + left * 1000;
         setSecondsLeft(left);
@@ -106,7 +102,6 @@ export function useSSHApproval(code: string) {
         setPhase("pending");
       } catch (err) {
         if (cancelled) return;
-        // 404 means unknown/expired/already-decided — treat all as expired.
         setPhase(isSdkError(err) && err.status === 404 ? "expired" : "error");
       }
     })();
@@ -116,7 +111,6 @@ export function useSSHApproval(code: string) {
     };
   }, [code]);
 
-  // Count down while pending; at zero the window has closed.
   useEffect(() => {
     if (phase !== "pending") return undefined;
 
@@ -171,9 +165,6 @@ export function useSSHApproval(code: string) {
     totalSeconds,
     confirm,
     reject,
-    // A re-auth is released by proving a factor elsewhere, not by decide(), and
-    // the request is only fetched once. Without this the screen would sit on the
-    // form after the login had already gone through.
     markConfirmed: useCallback(() => setPhase("confirmed"), []),
     deciding,
     actionError,

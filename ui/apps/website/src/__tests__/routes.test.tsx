@@ -8,7 +8,6 @@ afterEach(cleanup);
 
 describe("routes smoke", () => {
   it("exports exactly 12 route entries", () => {
-    // exactly 12 — update this assertion when a route is added or removed
     expect(routes).toHaveLength(12);
   });
 

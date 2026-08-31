@@ -55,7 +55,6 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   const clearError = useVaultStore((s) => s.clearError);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  // Server-backed deployments default to syncing — the value of the feature.
   const [mode, setMode] = useState<VaultStorageMode>("server");
 
   const serverEnabled = isVaultServerEnabled();
@@ -65,9 +64,6 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
     if (open) clearError();
   }, [open, clearError]);
 
-  // Compute once per open change — avoids a localStorage read on every
-  // render. Legacy keys predate the vault and always live in localStorage,
-  // regardless of which vault backend is active.
   const legacyCount = useMemo(() => {
     if (!open) return 0;
     return loadLegacyKeysFromStorage().length;

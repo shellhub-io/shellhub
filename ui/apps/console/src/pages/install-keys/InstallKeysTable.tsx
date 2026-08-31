@@ -32,8 +32,6 @@ import ExpiryLabel from "./ExpiryLabel";
 function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
   const { revoked, disabled, inert } = getKeyBlockers(installKey);
 
-  // The pairing key has no configurable admission mode — it always accepts via the printed code — so
-  // it reads as a pairing source, not a mode. Every other key shows its actual mode.
   const info = isPairingKey(installKey)
     ? { icon: QrCodeIcon, label: "Code pairing", summary: "Accepted by code" }
     : modeInfo(installKey.mode);
@@ -130,9 +128,6 @@ export default function InstallKeysTable({
   page: number;
   totalPages: number;
   totalCount: number;
-  /** True when the namespace has only built-in keys (no user-created ones), so the Custom keys
-   * section shows its onboarding placeholder instead of rows. Computed by the caller off the true
-   * count — page data alone can't distinguish "none" from "on a later page". */
   noCustomKeys: boolean;
   onPageChange: (page: number) => void;
   onCreate: () => void;
@@ -237,25 +232,15 @@ export default function InstallKeysTable({
       columns={columns}
       data={data}
       rowKey={(key) => key.name}
-      // The auto-managed keys (legacy, pairing) come with the namespace ("Built-in"); the keys an admin
-      // creates are grouped under "Custom keys". `data` is already ordered system-first, so the
-      // sections stay contiguous.
       sectionOf={(key) => (isSystemKey(key) ? "system" : "user")}
       sectionLabel={(section) =>
         section === "system" ? "Built-in" : "Custom keys"
       }
-      // With only built-in keys, the "Custom keys" section has no rows — render its onboarding
-      // placeholder under the built-in rows instead of the old full-page hero (which never showed,
-      // since the built-in keys keep the table non-empty). The placeholder names the section itself,
-      // so no "Custom keys" header precedes it.
       trailingEmptyState={
         noCustomKeys ? <CustomKeysEmpty onCreate={onCreate} /> : undefined
       }
-      // Tall, roomy rows; clicking a row opens the key's full registration history.
       rowClassName={(key) => {
         const base = "[&>td]:py-5";
-        // A revoked key is terminal and archival: fade the whole row so it recedes, while a disabled
-        // key (reversible pause) stays at full presence.
         return key.revoked ? `${base} opacity-55` : base;
       }}
       onRowClick={(key) => {

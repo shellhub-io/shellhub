@@ -28,7 +28,6 @@ function EditInstallKeyDrawer({
 }) {
   const updateKey = useUpdateInstallKey();
   const open = installKey !== null;
-  // The legacy/system key is edit-restricted: only its enrollment mode is shown and sent.
   const isSystem = installKey ? isSystemKey(installKey) : false;
   const [name, setName] = useState("");
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
@@ -49,8 +48,6 @@ function EditInstallKeyDrawer({
   const [error, setError] = useState("");
 
   const macList = parseAllowedMacs(allowedMacs);
-  // A key already in webhook mode may keep its stored (write-only) secret by leaving the field blank; a
-  // secret is only required when switching into webhook mode.
   const alreadyWebhook = installKey?.mode === "webhook";
   const modeError = validateModeConfig(
     mode,
@@ -64,9 +61,6 @@ function EditInstallKeyDrawer({
     },
   );
 
-  // The usage limit can't be lowered below the devices that already enrolled: those enrollments
-  // happened and the counter can't be walked back (the backend enforces this too). Unlimited (0) is
-  // always allowed. Validated live so the message points at the right field instead of a stray 400.
   const usedTimes = installKey?.used_times ?? 0;
   const usageLimitError =
     usageLimit !== 0 && usageLimit < usedTimes
@@ -111,15 +105,12 @@ function EditInstallKeyDrawer({
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (!installKey) return;
-    // The legacy/system key only exposes its mode; its name and other fields are fixed and must not
-    // be sent (the API rejects changing them).
     if (!isSystem) {
       const validationError = validateName(name.trim());
       if (validationError) {
         setNameError(validationError);
         return;
       }
-      // Block the impossible limit here so the message lands on the field, not as a bare 400.
       if (usageLimitError) {
         return;
       }
@@ -134,8 +125,6 @@ function EditInstallKeyDrawer({
     try {
       const modeBody: InstallKeyUpdate = {
         mode,
-        // The webhook secret is only sent when the user typed one, so an unchanged webhook key keeps
-        // its stored secret.
         ...(mode === "webhook"
           ? {
               webhook_url: webhookUrl.trim(),
@@ -155,16 +144,12 @@ function EditInstallKeyDrawer({
             ...(expiryTouched ? keyExpiryUpdatePayload(expiresIn) : {}),
             tags,
             ephemeral,
-            // Only meaningful for ephemeral keys; already clamped to 1-10 by the field.
             ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
           };
 
       await updateKey.mutateAsync({ path: { key: installKey.name }, body });
       onClose();
     } catch (err) {
-      // 409 is the rename collision (the one error the status alone pins to a field). Every other
-      // 400 is bodyless, so it can't be attributed to a specific field; name, limit and expiry are
-      // all validated client-side above, so a 400 here is an unexpected edge, shown at form level.
       if (isSdkError(err) && err.status === 409) {
         setNameError("A key with that name already exists.");
       } else {

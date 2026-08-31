@@ -52,7 +52,6 @@ export class ServerVaultBackend implements IVaultBackend {
     this.key = scopeKey(scope);
   }
 
-  /** Vault version from the last successful read or write for this scope. */
   private get version(): number {
     return versionRegistry.get(this.key) ?? 0;
   }
@@ -62,7 +61,6 @@ export class ServerVaultBackend implements IVaultBackend {
       versionRegistry.set(this.key, vault.version);
   }
 
-  /** Fetches the vault, returning null when it does not exist yet (404). */
   private async fetch(): Promise<VaultResponse | null> {
     const { data, error, response } = await getVault();
     if (response.status === 404) return null;
@@ -96,8 +94,6 @@ export class ServerVaultBackend implements IVaultBackend {
       body: { data: JSON.stringify(data), version: this.version },
     });
     if (res.response.status === 409) {
-      // Another session changed the vault since we last read it. Refresh the
-      // version so a retry (after the user reloads) can succeed.
       await this.fetch().catch(() => null);
       throw new Error(
         "The vault was changed in another session. Reload the vault and try again.",
@@ -110,7 +106,6 @@ export class ServerVaultBackend implements IVaultBackend {
 
   async clear(): Promise<void> {
     const { error, response } = await deleteVault();
-    // Resetting a vault that does not exist is a no-op, not an error.
     if (error && response.status !== 404)
       throw new Error("Failed to reset the vault on the server.");
     versionRegistry.delete(this.key);
@@ -130,9 +125,6 @@ export class ServerVaultBackend implements IVaultBackend {
     this.track(data);
   }
 
-  // Legacy keys predate the vault and only ever lived in this browser's
-  // localStorage, so they are read locally even when the vault is on the
-  // server: initializing a vault migrates them into the encrypted blob.
   loadLegacyKeys(): Promise<LegacyPrivateKey[]> {
     return Promise.resolve(loadLegacyKeysFromStorage());
   }
