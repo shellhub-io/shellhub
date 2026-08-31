@@ -6,12 +6,14 @@ import (
 	"net/http"
 )
 
+// Response is the part of an HTTP response the error mapping needs: everything here is decided by
+// the status code, so the body is not part of the contract.
 type Response interface {
 	StatusCode() int
 }
 
 var (
-	// ErrUnkown is returned when a non-mapped error occurred.
+	// ErrUnknown is returned when a non-mapped error occurred.
 	ErrUnknown = errors.New("unknown error")
 	// ErrConnectionFailed is returned when the client could not communicate with the sever.
 	ErrConnectionFailed = errors.New("connection failed")

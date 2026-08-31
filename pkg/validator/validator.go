@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
+// The errors validation returns, distinguishing a whole struct that failed from a single value.
+// Both wrap the underlying library's error, so the failing field is still reachable.
 var (
 	ErrStructureInvalid = errors.New("invalid structure")
 	ErrVarInvalid       = errors.New("invalid var")
@@ -39,7 +41,8 @@ const (
 	DeviceNameTag = "device_name"
 	// PrivateKeyPEMTag contains the rule to validate a private key.
 	PrivateKeyPEMTag = "privateKeyPEM"
-	CertPEMTag       = "certPEM"
+	// CertPEMTag contains the rule to validate a certificate.
+	CertPEMTag = "certPEM"
 	// APIKeyNameTag contains the rule to validate an API key's name.
 	APIKeyNameTag = "api-key_name"
 	// APIKeyExpiresAtTag contains the rule to validate an API key's expiration value.
@@ -87,10 +90,6 @@ var Rules = []Rule{
 		},
 		Error: errors.New("the device name can only contain `_`, `-` and alpha numeric characters"),
 	},
-	// api-key_name reports whether a given string is a valid API key name. A valid
-	// name must be between 3 and 20 characters and contain only letters, digits, `-`
-	// and `_`. URL-reserved characters (e.g. @, /, #) are intentionally excluded
-	// because the name is used as a path parameter in PATCH and DELETE endpoints.
 	{
 		Tag: APIKeyNameTag,
 		Handler: func(field validator.FieldLevel) bool {
@@ -98,7 +97,6 @@ var Rules = []Rule{
 		},
 		Error: errors.New("name must be between 3 and 20 characters and can only contain letters, numbers, `-` and `_`"),
 	},
-	// api-key_expires-at reports whether a given int is in [ 30 60 90 365 -1 ].
 	{
 		Tag: APIKeyExpiresAtTag,
 		Handler: func(field validator.FieldLevel) bool {
@@ -112,7 +110,6 @@ var Rules = []Rule{
 		},
 		Error: errors.New("expires_at must be in [ -1 30 60 90 365 ]"),
 	},
-	// member_role reports whether a given string is a valid role or not
 	{
 		Tag: MemberRoleTag,
 		Handler: func(field validator.FieldLevel) bool {
@@ -194,7 +191,6 @@ func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error
 	if err := v.Validate.Struct(structure); err != nil {
 		fields := make(map[string]any, 0)
 
-		// A non-struct argument yields InvalidValidationError instead, which carries no fields.
 		var errs validator.ValidationErrors
 		if errors.As(err, &errs) {
 			for _, e := range errs {

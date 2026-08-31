@@ -7,6 +7,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// CreateAPIKey is what the create-API-key route returns. ID is the key itself and this is the only
+// time it is ever sent: nothing can read it back afterwards.
 type CreateAPIKey struct {
 	ID        string          `json:"id"`
 	Name      string          `json:"name"`
@@ -18,6 +20,8 @@ type CreateAPIKey struct {
 	ExpiresIn int64           `json:"expires_in"`
 }
 
+// CreateAPIKeyFromModel projects the stored key onto the response, which is where the model's
+// internal fields are dropped rather than serialized by accident.
 func CreateAPIKeyFromModel(m *models.APIKey) *CreateAPIKey {
 	return &CreateAPIKey{
 		ID:        m.ID,

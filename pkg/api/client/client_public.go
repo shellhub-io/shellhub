@@ -194,6 +194,9 @@ func (c *client) NewReverseListenerV1(ctx context.Context, token string, path st
 	return c.reverser.NewListener()
 }
 
+// ReverseListenerV2Config tunes the yamux session a v2 reverse listener multiplexes over. It is
+// the server that chooses these values and sends them to the agent, so a fleet can be retuned
+// without redeploying agents.
 type ReverseListenerV2Config struct {
 	// AcceptBacklog is used to limit how many streams may be
 	// waiting an accept.
@@ -231,6 +234,8 @@ type ReverseListenerV2Config struct {
 	StreamCloseTimeout time.Duration `json:"yamux_stream_close_timeout"`
 }
 
+// DefaultReverseListenerV2Config is what an agent uses when the server sends no configuration of
+// its own — an older server, or one that left the field empty.
 var DefaultReverseListenerV2Config = ReverseListenerV2Config{
 	AcceptBacklog:          256,
 	EnableKeepAlive:        true,
@@ -277,6 +282,9 @@ func NewReverseV2ConfigFromMap(m map[string]any) *ReverseListenerV2Config {
 	return &cfg
 }
 
+// YamuxConfigFromReverseListenerV2 translates the wire configuration into yamux's own. A nil cfg
+// yields the defaults rather than a zero-valued session, which would refuse every stream. LogOutput
+// is filled in here because yamux refuses to build a session without one.
 func YamuxConfigFromReverseListenerV2(cfg *ReverseListenerV2Config) *yamux.Config {
 	if cfg == nil {
 		cfg = &DefaultReverseListenerV2Config
@@ -290,11 +298,13 @@ func YamuxConfigFromReverseListenerV2(cfg *ReverseListenerV2Config) *yamux.Confi
 		MaxStreamWindowSize:    cfg.MaxStreamWindowSize,
 		StreamCloseTimeout:     cfg.StreamCloseTimeout,
 		StreamOpenTimeout:      cfg.StreamOpenTimeout,
-		// NOTE: LogOutput is required, and without it yamux will failed to create the session.
-		LogOutput: os.Stderr,
+		LogOutput:              os.Stderr,
 	}
 }
 
+// NewReverseListenerV2 opens the websocket to the SSH server and multiplexes it with yamux. When the
+// server's configuration is refused it retries once with DefaultReverseListenerV2Config, so an agent
+// still connects to a server whose settings it cannot satisfy.
 func (c *client) NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error) {
 	if token == "" {
 		return nil, errors.New("token is empty")
@@ -328,8 +338,6 @@ func (c *client) NewReverseListenerV2(ctx context.Context, token string, path st
 			"stream_open_timeout":      cfg.StreamOpenTimeout,
 		}).Error("failed to create muxed session")
 
-		// NOTE: If we fail to create the session, we should try again with the [DefaultConfig] as the client
-		// could be using different settings.
 		log.WithError(err).Warning("trying to create muxed session with default config")
 		listener, err = yamux.Server(conn, YamuxConfigFromReverseListenerV2(&DefaultReverseListenerV2Config))
 		if err != nil {

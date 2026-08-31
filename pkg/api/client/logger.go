@@ -6,18 +6,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// LeveledLogger adapts a logrus logger to resty's leveled-logger interface, so the HTTP client's
+// own diagnostics land in the same log as everything else.
 type LeveledLogger struct {
 	Logger *logrus.Logger
 }
 
+// Errorf logs at error level. The variadic arguments are key/value pairs, not printf arguments,
+// despite the name the interface requires.
 func (l *LeveledLogger) Errorf(msg string, keysAndValues ...any) {
 	l.Logger.WithFields(toFields(keysAndValues)).Error(msg)
 }
 
+// Debugf logs at debug level, taking key/value pairs as Errorf does.
 func (l *LeveledLogger) Debugf(msg string, keysAndValues ...any) {
 	l.Logger.WithFields(toFields(keysAndValues)).Debug(msg)
 }
 
+// Warnf logs at warning level, taking key/value pairs as Errorf does.
 func (l *LeveledLogger) Warnf(msg string, keysAndValues ...any) {
 	l.Logger.WithFields(toFields(keysAndValues)).Warn(msg)
 }

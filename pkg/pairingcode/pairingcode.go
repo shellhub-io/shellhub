@@ -15,7 +15,7 @@ import (
 const Alphabet = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
 
 // Canonical code lengths. Device pairing keeps 8 (~2^39, paired with a short TTL
-// and per-IP rate limit); invitation codes use 12 (~2^59) because their link
+// and per-IP rate rejectAtOrAbove); invitation codes use 12 (~2^59) because their link
 // lives for days.
 const (
 	DeviceCodeLength = 8
@@ -26,9 +26,7 @@ const (
 // separator. It draws from crypto/rand with rejection sampling so every
 // character is uniform (a plain byte%30 would bias the first 256%30 characters).
 func New(length int) (string, error) {
-	// The largest multiple of the alphabet size that fits in a byte; bytes at or
-	// above it are rejected to keep the distribution uniform.
-	limit := byte(256 - (256 % len(Alphabet)))
+	rejectAtOrAbove := byte(256 - (256 % len(Alphabet)))
 
 	out := make([]byte, 0, length)
 	buf := make([]byte, length)
@@ -39,7 +37,7 @@ func New(length int) (string, error) {
 		}
 
 		for _, b := range buf {
-			if b >= limit {
+			if b >= rejectAtOrAbove {
 				continue
 			}
 

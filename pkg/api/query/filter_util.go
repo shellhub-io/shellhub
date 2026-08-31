@@ -1,5 +1,6 @@
 package query
 
+// The filter node types, as they appear in the encoded JSON a client sends.
 const (
 	FilterTypeProperty = "property"
 	FilterTypeOperator = "operator"

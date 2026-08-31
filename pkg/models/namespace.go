@@ -2,6 +2,9 @@ package models
 
 import "time"
 
+// Namespace is a tenant: the unit devices, members and billing all hang off. Its TenantID is what
+// every scoped query filters on, and its Name is what an SSH address resolves through, so the two
+// are equally load-bearing and only the name may change.
 type Namespace struct {
 	Name     string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
 	Owner    string             `json:"owner"`
@@ -44,6 +47,8 @@ func (l NamespaceDeviceLimit) IsReached() bool {
 	return l.DevicesAcceptedCount >= int64(l.MaxDevices)
 }
 
+// DeviceLimit returns the namespace's ceiling paired with the count it is measured against, so a
+// caller asking both questions reads one consistent snapshot.
 func (n *Namespace) DeviceLimit() NamespaceDeviceLimit {
 	return NamespaceDeviceLimit{
 		MaxDevices:           n.MaxDevices,
@@ -51,10 +56,14 @@ func (n *Namespace) DeviceLimit() NamespaceDeviceLimit {
 	}
 }
 
+// HasMaxDevices reports whether the namespace has a finite device ceiling at all. Community
+// instances and unbilled namespaces carry -1, which is no ceiling.
 func (n *Namespace) HasMaxDevices() bool {
 	return n.DeviceLimit().HasMax()
 }
 
+// HasMaxDevicesReached reports whether the ceiling is used up. Ask HasMaxDevices first: with no
+// ceiling this compares against -1 and answers true.
 func (n *Namespace) HasMaxDevicesReached() bool {
 	return n.DeviceLimit().IsReached()
 }
@@ -82,6 +91,8 @@ const (
 	SSHAccessModeIdentity = "identity"
 )
 
+// NamespaceSettings is the per-namespace policy the SSH gateway reads on every connection. A nil
+// Settings on a Namespace means the defaults, not "everything off".
 type NamespaceSettings struct {
 	SessionRecord          bool   `json:"session_record"`
 	ConnectionAnnouncement string `json:"connection_announcement"`

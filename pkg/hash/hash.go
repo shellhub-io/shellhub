@@ -1,10 +1,14 @@
 package hash
 
+// Hasher hashes passwords and checks them. CompareWith must compare in constant time, so a wrong
+// password cannot be found byte by byte from timing.
 type Hasher interface {
 	Do(plain string) (string, error)            // Hash takes a string and returns its hash.
 	CompareWith(plain string, hash string) bool // Compare takes a plaintext password and a hashed password, then checks if they match.
 }
 
+// Backend is the implementation the package-level helpers use. Tests replace it; production leaves
+// it alone.
 var Backend Hasher = &backend{}
 
 // Do takes a string and returns its hash.

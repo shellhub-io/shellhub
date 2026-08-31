@@ -4,11 +4,16 @@ import (
 	"time"
 )
 
+// SessionPosition is where the client connected from, resolved from its address by GeoIP. It is
+// recorded once at session start and not refreshed.
 type SessionPosition struct {
 	Longitude float64 `json:"longitude"`
 	Latitude  float64 `json:"latitude"`
 }
 
+// Session is one SSH connection to one device, live or finished. It is created when the
+// connection is established and outlives it: Active says whether it is still running, and Closed
+// distinguishes a session that ended cleanly from one whose device vanished.
 type Session struct {
 	UID       string  `json:"uid"`
 	DeviceUID UID     `json:"device_uid,omitempty"`
@@ -32,16 +37,17 @@ type Session struct {
 	Events        SessionEvents   `json:"events"`
 }
 
+// ActiveSession is the liveness half of a session, written on the keep-alive path. It is kept
+// apart from Session so a heartbeat does not rewrite the whole record.
 type ActiveSession struct {
 	UID      UID       `json:"uid"`
 	LastSeen time.Time `json:"last_seen"`
 	TenantID string    `json:"tenant_id"`
 }
 
-// NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
-// however, it is also utilized by migrations. For this reason, we must maintain the struct
-// here ensure everything continues to function as expected.
-// TODO: Remove this struct when it is no longer needed for migrations.
+// RecordedSession is one frame of a recorded terminal session. Recording is a cloud feature and
+// the type lives there too; this copy exists because migrations reference it, so it cannot move
+// until they no longer do.
 type RecordedSession struct {
 	UID      UID       `json:"uid"`
 	Message  string    `json:"message"`
@@ -51,38 +57,42 @@ type RecordedSession struct {
 	Height   int       `json:"height"`
 }
 
+// Status is the authentication state of a session, as the agent reports it back once the SSH
+// handshake has completed.
 type Status struct {
 	Authenticated bool `json:"authenticated"`
 }
 
+// SessionUpdate is a partial update to a session: a nil field is left alone, which is why every
+// field is a pointer.
 type SessionUpdate struct {
 	Recorded      *bool   `json:"recorded"`
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
 }
 
+// SessionEventType names the SSH request an event came from. The values are the wire names from
+// the SSH protocol, not names of our own, so they can be matched against a packet capture.
 type SessionEventType string
 
+// The event types a session can record. All but pty-output are SSH request names as they appear on
+// the wire; pty-output is ours, carrying the bytes the terminal produced, which SSH itself sends as
+// channel data rather than as a request.
 const (
-	// ShellHub custom requests.
 	SessionEventTypePtyOutput SessionEventType = "pty-output"
 
-	// Terminal (PTY) request types
 	SessionEventTypePtyRequest   SessionEventType = "pty-req"
 	SessionEventTypeWindowChange SessionEventType = "window-change"
 	SessionEventTypeExitCode     SessionEventType = "exit-code"
 
-	// Process-related requests
 	SessionEventTypeExitStatus SessionEventType = "exit-status"
 	SessionEventTypeExitSignal SessionEventType = "exit-signal"
 
-	// Environment and Shell requests
 	SessionEventTypeEnv       SessionEventType = "env"
 	SessionEventTypeShell     SessionEventType = "shell"
 	SessionEventTypeExec      SessionEventType = "exec"
 	SessionEventTypeSubsystem SessionEventType = "subsystem"
 
-	// Signal and forwarding requests
 	SessionEventTypeSignal       SessionEventType = "signal"
 	SessionEventTypeTcpipForward SessionEventType = "tcpip-forward"
 	SessionEventTypeAuthAgentReq SessionEventType = "auth-agent-req"

@@ -1,5 +1,6 @@
 package query
 
+// The sort directions a query may ask for. Anything else normalizes to OrderDesc.
 const (
 	OrderAsc  = "asc"
 	OrderDesc = "desc"
@@ -12,7 +13,8 @@ type Sorter struct {
 	Tiebreak string // stable secondary sort column, set by service layer
 }
 
-// NewOrder creates and returns a new Sort instance with the default descending order.
+// NewSorter returns a sorter with no field and descending order, which is what a request that
+// asked for no ordering gets.
 func NewSorter() *Sorter {
 	return &Sorter{
 		By:    "",

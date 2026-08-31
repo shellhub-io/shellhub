@@ -114,6 +114,11 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 // references a (field, operator) pair not in constraints, carries a
 // non-primitive Value, or exceeds the configured size limits. Operator
 // filters (and/or) are left to the store to parse.
+//
+// Equality on a virtual bool-backed field (see [FieldConstraints.IsVirtualBoolField]) accepts
+// anything bool-convertible, because ParseFilterProperty intercepts those before any column is
+// bound. Every other field must be compared against a string, or Postgres answers a type mismatch
+// with a 500.
 func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 	if filters == nil {
 		return nil
@@ -146,11 +151,6 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 		}
 
 		if prop.Operator == "eq" || prop.Operator == "ne" {
-			// Virtual bool-backed fields (see IsVirtualBoolField) are intercepted by
-			// ParseFilterProperty before any SQL column binding, so they accept any
-			// bool-convertible value (bool, float64, parseable string).
-			// Regular text-column fields must receive a string to prevent a
-			// Postgres type-mismatch 500.
 			if constraints.IsVirtualBoolField(prop.Name) {
 				if !isBoolConvertible(prop.Value) {
 					return ErrFilterPropertyInvalid
@@ -166,9 +166,6 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 	return nil
 }
 
-// isValueWithinLimits reports whether v respects the filter size limits:
-// strings up to [MaxStringValueLen] and arrays up to [MaxArrayLen] (with
-// each string inside the array also bounded by [MaxStringValueLen]).
 func isValueWithinLimits(v any) bool {
 	switch x := v.(type) {
 	case string:
@@ -189,10 +186,6 @@ func isValueWithinLimits(v any) bool {
 	}
 }
 
-// isBoolConvertible reports whether v can be converted to a boolean value by
-// the filter store layer. It accepts bool values directly, float64 values
-// (JSON numbers always decode to float64; 0 is false, any other value is true),
-// and strings accepted by [strconv.ParseBool].
 func isBoolConvertible(v any) bool {
 	switch x := v.(type) {
 	case bool:
@@ -208,11 +201,6 @@ func isBoolConvertible(v any) bool {
 	}
 }
 
-// isPrimitive reports whether v is a JSON primitive (string, number, bool, nil)
-// or a slice of primitives. Maps and slices of maps are rejected because they
-// smuggle operator-shaped keys into filter values. Only the types produced by
-// [json.Unmarshal] into [interface{}] are listed — internal programmatic
-// callers don't pass through this validator.
 func isPrimitive(v any) bool {
 	switch x := v.(type) {
 	case nil, bool, string, float64:

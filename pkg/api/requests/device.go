@@ -5,6 +5,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// DeviceList is the request to page through a namespace's devices. An empty DeviceStatus means
+// every status, not none.
 type DeviceList struct {
 	TenantID     string              `header:"X-Tenant-ID"`
 	DeviceStatus models.DeviceStatus `query:"status"` //  TODO: validate
@@ -13,12 +15,16 @@ type DeviceList struct {
 	query.Filters
 }
 
+// DeviceUpdate is the request to change a device's editable fields. An omitted field is left
+// alone, which is why Name is optional rather than required.
 type DeviceUpdate struct {
 	TenantID string `header:"X-Tenant-ID"`
 	UID      string `param:"uid" validate:"required"`
 	Name     string `json:"name" validate:"omitempty,device_name"`
 }
 
+// DeviceSetCustomField is the request to set one custom key/value on a device. Setting an existing
+// key overwrites it, so this is an upsert rather than an insert.
 type DeviceSetCustomField struct {
 	TenantID string `header:"X-Tenant-ID"`
 	DeviceParam
@@ -26,6 +32,7 @@ type DeviceSetCustomField struct {
 	Value string `json:"value" validate:"max=256"`
 }
 
+// DeviceDeleteCustomField is the request to remove one custom key from a device.
 type DeviceDeleteCustomField struct {
 	TenantID string `header:"X-Tenant-ID"`
 	DeviceParam
@@ -42,6 +49,8 @@ type DeviceGet struct {
 	DeviceParam
 }
 
+// ResolveDevice is the request to find a device by UID or by hostname. Exactly one of the two is
+// meant to be set; both are optional here because which one is present is the caller's choice.
 type ResolveDevice struct {
 	TenantID string `header:"X-Tenant-ID" validate:"required"`
 	UID      string `query:"uid" validate:"omitempty"`
@@ -70,7 +79,8 @@ type DeviceLookup struct {
 	Name     string `query:"name" validate:"required"`
 }
 
-// DeviceStatus is the structure to represent the request data for update device status to pending endpoint.
+// DeviceUpdateStatus is the request to accept, reject or re-pend a device. The target status is a
+// path parameter, so the same route serves all three transitions.
 type DeviceUpdateStatus struct {
 	TenantID string `header:"X-Tenant-ID"`
 	UID      string `param:"uid" validate:"required"`
@@ -127,10 +137,14 @@ type DeviceUpdateTag struct {
 	Tags []string `json:"tags" validate:"required,min=0,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
+// DeviceIdentity is the hardware identity an agent sends when authenticating. It mirrors
+// models.DeviceIdentity, kept apart so the wire shape can change without moving the stored one.
 type DeviceIdentity struct {
 	MAC string `json:"mac"`
 }
 
+// DeviceInfo is the operating-system description an agent sends when authenticating. It mirrors
+// models.DeviceInfo, kept apart so the wire shape can change without moving the stored one.
 type DeviceInfo struct {
 	ID         string `json:"id"`
 	PrettyName string `json:"pretty_name"`

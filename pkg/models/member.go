@@ -35,6 +35,8 @@ type MemberView struct {
 	AddedAt time.Time `json:"added_at"`
 }
 
+// Member ties a user to a namespace with a role. It is the only thing that grants a user access to
+// a namespace, and it denormalizes enough of the user row that authorization needs no second query.
 type Member struct {
 	ID      string          `json:"id,omitempty"`
 	AddedAt time.Time       `json:"added_at"`

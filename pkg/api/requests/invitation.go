@@ -11,6 +11,9 @@ type ResolveInvitation struct {
 	Invite string `query:"invite" validate:"required"`
 }
 
+// GenerateInvitationLink is the request to invite an email into a namespace and get back a link.
+// The forwarded headers are what the link's host is built from, so the link points at the address
+// the user reached the console on rather than at the server's own idea of itself.
 type GenerateInvitationLink struct {
 	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
@@ -20,6 +23,8 @@ type GenerateInvitationLink struct {
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
 }
 
+// UserMembershipInvitationList is the request to page through the invitations addressed to the
+// authenticated user, across every namespace.
 type UserMembershipInvitationList struct {
 	UserID string `header:"X-ID"`
 	query.Paginator
@@ -27,6 +32,8 @@ type UserMembershipInvitationList struct {
 	query.Filters
 }
 
+// NamespaceMembershipInvitationList is the request to page through one namespace's outstanding
+// invitations — the other direction from UserMembershipInvitationList.
 type NamespaceMembershipInvitationList struct {
 	// ForwardedHost is only used to build the copyable invite_url; it's optional so a missing
 	// header degrades to omitting the link rather than failing the whole listing.
@@ -39,11 +46,15 @@ type NamespaceMembershipInvitationList struct {
 	query.Filters
 }
 
+// AcceptInvite is the request that turns an invitation into a membership. The invitee is the
+// authenticated caller, so the request carries no email of its own.
 type AcceptInvite struct {
 	TenantID string `param:"tenant" validate:"required"`
 	UserID   string `header:"X-ID" validate:"required"`
 }
 
+// CancelMembershipInvitation is the request to withdraw an invitation the namespace sent. UserID
+// is the caller; InvitedUserID is whose invitation is being withdrawn.
 type CancelMembershipInvitation struct {
 	TenantID      string `param:"tenant" validate:"required"`
 	UserID        string `header:"X-ID" validate:"required"`

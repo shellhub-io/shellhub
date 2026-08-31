@@ -6,13 +6,10 @@ import (
 	"net"
 )
 
-// nullGeoLite is a structure what stores a geoIp2Reader to a GeoIp2 database.
 type nullGeoLite struct{}
 
-// Check if geoLite2 implements Locator interface.
 var _ Locator = (*nullGeoLite)(nil)
 
-// Check if geoLite2 implements io.Closer interface.
 var _ io.Closer = (*nullGeoLite)(nil)
 
 // NewNullGeoLite returns a no-op [Locator] that resolves every IP to an empty

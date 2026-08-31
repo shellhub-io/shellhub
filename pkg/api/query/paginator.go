@@ -2,6 +2,8 @@ package query
 
 import "math"
 
+// The bounds a paginator is normalized into. Anything outside them is clamped rather than
+// rejected, so a client cannot ask for an unbounded page.
 const (
 	MinPage        = 1   // MinPage represents the minimum allowed value for the pagination query's Page parameter.
 	MinPerPage     = 1   // MinPerPage represents the minimum allowed value for the pagination query's PerPage parameter.

@@ -30,8 +30,12 @@ var ErrEmptyTenantID = errors.New("cannot bound a scope to an empty tenant ID", 
 type Kind uint8
 
 const (
+	// KindInvalid is the zero value: a scope nobody constructed. Stores reject it, which is what
+	// makes forgetting to set a scope a failure rather than an unbounded query.
 	KindInvalid Kind = iota
+	// KindBounded is a scope tied to one tenant.
 	KindBounded
+	// KindUnbounded is a scope deliberately spanning every tenant, which only admin paths may build.
 	KindUnbounded
 )
 
