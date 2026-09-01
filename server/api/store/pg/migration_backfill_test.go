@@ -2,9 +2,6 @@ package pg_test
 
 import (
 	"context"
-	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -16,18 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func backfillSQL(t *testing.T) string {
-	t.Helper()
-	_, self, _, ok := runtime.Caller(0)
-	require.True(t, ok)
-
-	path := filepath.Join(filepath.Dir(self), "migrations", "014_backfill_install_key_events.tx.up.sql")
-	data, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
-	require.NoError(t, err)
-
-	return string(data)
-}
 
 // TestInstallKeyEventBackfillMigration covers migration 014: it writes exactly one registration event
 // for every device attributed to a key but missing one, freezing the decision for already accepted or
@@ -95,8 +80,10 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 		Hostname:     "cc",
 	}))
 
-	_, err = provider.DB().ExecContext(ctx, backfillSQL(t))
-	require.NoError(t, err)
+	for _, stmt := range migrationStatements(t, "014_backfill_install_key_events.tx.up.sql") {
+		_, err = provider.DB().ExecContext(ctx, stmt)
+		require.NoError(t, err)
+	}
 
 	type row struct {
 		DeviceUID  string `bun:"device_uid"`

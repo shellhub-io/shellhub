@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
-	"github.com/uptrace/bun"
 )
 
 // APIKeyCreate implements [store.APIKeyStore].
@@ -102,25 +101,17 @@ func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.Quer
 
 // APIKeyResolve implements [store.APIKeyStore].
 func (pg *Pg) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, val string, opts ...store.QueryOption) (*models.APIKey, error) {
-	db := pg.GetConnection(ctx)
-
 	column, err := APIKeyResolverToString(resolver)
 	if err != nil {
 		return nil, err
 	}
 
-	apKey := new(entity.APIKey)
-	query := db.NewSelect().Model(apKey).Where("? = ?", bun.Ident(column), val)
-	query, err = applyScopedOptions(ctx, query, sc, opts...)
+	apiKey, err := resolveUnique[entity.APIKey](ctx, pg.GetConnection(ctx), sc, column, val, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = query.Scan(ctx); err != nil {
-		return nil, fromSQLError(err)
-	}
-
-	return entity.APIKeyToModel(apKey), nil
+	return entity.APIKeyToModel(apiKey), nil
 }
 
 // APIKeyUpdate implements [store.APIKeyStore].

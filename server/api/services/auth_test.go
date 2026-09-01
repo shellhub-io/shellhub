@@ -2635,7 +2635,7 @@ func TestCreateUserToken(t *testing.T) {
 const (
 	testKeyPlaintext  = "00000000-0000-4000-0000-000000000000"
 	testKeyDigest     = "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a"
-	testKeyCacheEntry = "api-key={f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a}"
+	testKeyCacheEntry = "api-key/unique-digest={f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a}"
 )
 
 func TestAuthAPIKey(t *testing.T) {

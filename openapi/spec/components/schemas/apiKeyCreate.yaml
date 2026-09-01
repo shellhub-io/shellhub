@@ -26,14 +26,6 @@ properties:
       the key can access. It must be less or equal than the user's role. Leave
       it blank to use the user's role.
     example: owner
-  key:
-    type: string
-    format: uuidv4
-    description: |
-      An optional and unique value to be used as the API key's internal identifier. This value
-      is the "internal ID" and will NEVER be returned to the client. Leave it
-      blank for a random one to be generated.
-    example: c629572a-b643-4301-90fe-4572b00d007e
 required:
   - name
   - expires_at

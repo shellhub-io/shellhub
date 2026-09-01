@@ -103,6 +103,34 @@ func applyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Sc
 	return applyOptions(ctx, query, append([]store.QueryOption{ScopeOption(sc)}, opts...)...)
 }
 
+// resolveUnique runs a resolver's query and returns the single row it matched. A resolver names one
+// row by definition, so a second match is store.ErrAmbiguous rather than a choice to make: the
+// credential resolvers run unbounded, where the digest is the only thing naming a namespace, and
+// picking a row there authenticates into a namespace at random.
+func resolveUnique[E any](ctx context.Context, db bun.IDB, sc scope.Scope, column, val string, opts ...store.QueryOption) (*E, error) {
+	rows := make([]E, 0, 2)
+
+	query := db.NewSelect().Model(&rows).Where("? = ?", bun.Ident(column), val).Limit(2)
+
+	query, err := applyScopedOptions(ctx, query, sc, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	switch len(rows) {
+	case 0:
+		return nil, store.ErrNoDocuments
+	case 1:
+		return &rows[0], nil
+	default:
+		return nil, store.ErrAmbiguous
+	}
+}
+
 // ApplyOptions is the exported version of applyOptions, allowing external packages
 // (e.g. cloud store) to reuse the same query-option mechanism.
 func ApplyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) (*bun.SelectQuery, error) {

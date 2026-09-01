@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
-	"github.com/uptrace/bun"
 )
 
 // InstallKeyCreate implements [store.InstallKeyStore].
@@ -106,22 +105,14 @@ func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.
 
 // InstallKeyResolve implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, val string, opts ...store.QueryOption) (*models.InstallKey, error) {
-	db := pg.GetConnection(ctx)
-
 	column, err := InstallKeyResolverToString(resolver)
 	if err != nil {
 		return nil, err
 	}
 
-	installKey := new(entity.InstallKey)
-	query := db.NewSelect().Model(installKey).Where("? = ?", bun.Ident(column), val)
-	query, err = applyScopedOptions(ctx, query, sc, opts...)
+	installKey, err := resolveUnique[entity.InstallKey](ctx, pg.GetConnection(ctx), sc, column, val, opts...)
 	if err != nil {
 		return nil, err
-	}
-
-	if err = query.Scan(ctx); err != nil {
-		return nil, fromSQLError(err)
 	}
 
 	return entity.InstallKeyToModel(installKey), nil

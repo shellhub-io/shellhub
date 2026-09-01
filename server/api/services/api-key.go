@@ -28,9 +28,10 @@ var APIKeySortFields = query.NewFieldSet(
 // APIKeyService manages the keys that authenticate a namespace rather than a person. A key's
 // plaintext is returned once, at creation, and only its hash is kept.
 type APIKeyService interface {
-	// CreateAPIKey creates a new API key for the specified namespace. If req.Key is empty it will generate a
-	// random UUID, the optional req.OptRole must be less or equal than the user's role when provided. The key
-	// will be hashed into an SHA256 hash. It returns the inserted UUID and an error, if any.
+	// CreateAPIKey creates a new API key for the specified namespace. The key's plaintext is a UUID the
+	// server generates; the optional req.OptRole must be less or equal than the user's role when provided.
+	// Only the plaintext's SHA256 digest is stored. It returns the generated plaintext, which is the only
+	// time it is readable, and an error, if any.
 	CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (res *responses.CreateAPIKey, err error)
 
 	// ListAPIKeys retrieves a list of API keys within the specified tenant ID. It returns the list of API keys, the
@@ -72,10 +73,6 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, NewErrBadRequest(errors.New("experid date to APIKey is invalid"))
 	}
 
-	if req.Key == "" {
-		req.Key = uuid.Generate()
-	}
-
 	if req.OptRole != "" {
 		if !req.Role.HasAuthority(req.OptRole) {
 			return nil, NewErrRoleForbidden()
@@ -84,7 +81,8 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		req.Role = req.OptRole
 	}
 
-	keySum := sha256.Sum256([]byte(req.Key))
+	plaintext := uuid.Generate()
+	keySum := sha256.Sum256([]byte(plaintext))
 	hashedKey := hex.EncodeToString(keySum[:])
 
 	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{ID: hashedKey, Name: req.Name}); has {
@@ -104,8 +102,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, err
 	}
 
-	apiKey, _ := s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey)
-	apiKey.ID = req.Key
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey.ID = plaintext
 
 	return responses.CreateAPIKeyFromModel(apiKey), nil
 }

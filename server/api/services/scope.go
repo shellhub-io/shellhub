@@ -6,7 +6,7 @@ import (
 
 const reasonInternalSessionMutation = "internal SSH-driven session mutation: no namespace exists anywhere in the call chain yet; bounding it changes the SSH-facing contract (see #6749)"
 
-const reasonInstallKeyTenant = "enrolling with an install key alone, whose digest is itself the capability identifying the namespace"
+const reasonInstallKeyTenant = "enrolling with an install key alone, whose digest install_keys_key_digest_unique makes name exactly one namespace"
 
 // BoundTo bounds an operation to the tenant a request carries. An absent tenant refuses the request
 // rather than widening it to every namespace, matching the tenant-guard middleware's fail-closed

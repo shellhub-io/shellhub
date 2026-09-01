@@ -135,12 +135,17 @@ func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	const digest = "3333333333333333333333333333333333333333333333333333333333333333"
-	for _, tenant := range []string{owner, other} {
+	const ownerDigest = "3333333333333333333333333333333333333333333333333333333333333333"
+	const otherDigest = "5555555555555555555555555555555555555555555555555555555555555555"
+
+	for _, key := range []struct{ tenant, digest, name string }{
+		{owner, ownerDigest, "owner-key"},
+		{other, otherDigest, "other-key"},
+	} {
 		_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
-			ID:        digest,
-			Name:      "shared-digest",
-			TenantID:  tenant,
+			ID:        key.digest,
+			Name:      key.name,
+			TenantID:  key.tenant,
 			Mode:      models.InstallKeyModeManual,
 			Reusable:  true,
 			Tags:      []string{},
@@ -149,13 +154,17 @@ func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := st.InstallKeyResolve(ctx, scope.MustBounded(owner), store.InstallKeyIDResolver, digest)
+	got, err := st.InstallKeyResolve(ctx, scope.MustBounded(owner), store.InstallKeyIDResolver, ownerDigest)
 	require.NoError(t, err)
 	assert.Equal(t, owner, got.TenantID)
 
-	got, err = st.InstallKeyResolve(ctx, scope.MustBounded(other), store.InstallKeyIDResolver, digest)
+	got, err = st.InstallKeyResolve(ctx, scope.MustBounded(other), store.InstallKeyIDResolver, otherDigest)
 	require.NoError(t, err)
 	assert.Equal(t, other, got.TenantID)
+
+	got, err = st.InstallKeyResolve(ctx, scope.MustBounded(other), store.InstallKeyIDResolver, ownerDigest)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
+	assert.Nil(t, got)
 }
 
 // TestScopeIsolationInstallKeyList locks that InstallKeyList answers within the owning namespace and returns

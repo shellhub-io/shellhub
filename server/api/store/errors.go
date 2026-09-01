@@ -34,6 +34,11 @@ var (
 	// bound to one (systems.instance_tenant_id set — Community). Enterprise/Cloud never bind, so
 	// this is Community-specific and distinct from a plain duplicate-name conflict.
 	ErrNamespaceSingle = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConstraint)
+	// ErrAmbiguous is returned when a resolver that must identify a single row matched more than
+	// one. For a credential digest resolved without a namespace this is a security event rather
+	// than a lookup outcome: the store cannot tell which namespace the presented secret belongs
+	// to, so it refuses instead of choosing.
+	ErrAmbiguous = errors.New("resolver matched more than one document", ErrLayer, ErrCodeConstraint)
 	// ErrInvalidScope is returned when a namespace-bound operation is given a scope that was never
 	// constructed. It catches a zero-value [scope.Scope] reaching the store, which would otherwise
 	// read as neither bounded nor deliberately unbounded.

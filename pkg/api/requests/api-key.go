@@ -7,15 +7,14 @@ import (
 
 // CreateAPIKey is the request to mint an API key. UserID, TenantID and Role come from the
 // authenticated caller's headers, not from the body: a caller cannot mint a key more powerful than
-// itself. Key is optional and lets the caller supply the key's id, which is what makes creation
-// idempotent for provisioning.
+// itself. The key's plaintext is not a field: the server generates it, so no caller can name a
+// secret that another namespace may already hold.
 type CreateAPIKey struct {
 	UserID    string          `header:"X-ID"`
 	TenantID  string          `header:"X-Tenant-ID"`
 	Role      authorizer.Role `header:"X-Role"`
 	Name      string          `json:"name" validate:"required,api-key_name"`
 	ExpiresAt int             `json:"expires_at" validate:"required,api-key_expires-at"`
-	Key       string          `json:"key" validate:"omitempty,uuid"`
 	OptRole   authorizer.Role `json:"role" validate:"omitempty,member_role"`
 }
 

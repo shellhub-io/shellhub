@@ -212,7 +212,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds with optional body",
+			description: "ignores a caller-supplied key in the body",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
@@ -235,7 +235,6 @@ func TestCreateAPIKey(t *testing.T) {
 						Name:      "dev",
 						Role:      "owner",
 						ExpiresAt: 30,
-						Key:       "3d7a3ea1-d1eb-4ffc-8c14-f7bfd1b7c550",
 						OptRole:   "administrator",
 					}).
 					Return(&responses.CreateAPIKey{}, nil).

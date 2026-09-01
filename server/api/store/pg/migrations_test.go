@@ -20,16 +20,19 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func migration004Statements(t *testing.T) []string {
+// migrationStatements reads a migration file from disk and returns its statements, split on the
+// --bun:split separator the migrator splits on. Reading the file rather than the embedded registry
+// is what lets a test re-run one migration against data it planted first.
+func migrationStatements(t *testing.T, name string) []string {
 	t.Helper()
 
 	_, file, _, ok := runtime.Caller(0)
 	require.True(t, ok, "runtime.Caller must succeed")
 
-	path := filepath.Join(filepath.Dir(file), "migrations", "004_namespaces_name_unique.tx.up.sql")
+	path := filepath.Join(filepath.Dir(file), "migrations", name)
 
 	raw, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
-	require.NoError(t, err, "004 migration file must exist on disk")
+	require.NoError(t, err, "migration file must exist on disk")
 
 	var stmts []string
 	for part := range strings.SplitSeq(string(raw), "--bun:split") {
@@ -117,7 +120,7 @@ func TestMigration004Dedup(t *testing.T) {
 	insertNS(nsMixed, "MyApp", base.Add(2*time.Hour))
 	insertNS(nsControl, "otherapp", base.Add(3*time.Hour))
 
-	stmts := migration004Statements(t)
+	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
 	for i, stmt := range stmts {
 		_, execErr := db.ExecContext(ctx, stmt)
 		require.NoError(t, execErr, "004 migration statement %d failed:\n%s", i, stmt)
@@ -268,7 +271,7 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 		`, ns.id, ts, ts, ns.name, ownerID))
 	}
 
-	stmts := migration004Statements(t)
+	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
 	for i, stmt := range stmts {
 		_, execErr := db.ExecContext(ctx, stmt)
 		require.NoError(t, execErr, "statement %d failed", i)
@@ -373,7 +376,7 @@ func TestMigration004AtomicRollback(t *testing.T) {
 	insertRollbackNS(loserID, loserName, base.Add(time.Hour))
 	insertRollbackNS(controlID, controlName, base.Add(2*time.Hour))
 
-	stmts := migration004Statements(t)
+	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
 	require.Len(t, stmts, 2, "004 migration must have exactly 2 statements (dedup + index)")
 
 	tx, err := db.BeginTx(ctx, nil)

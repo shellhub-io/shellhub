@@ -31,6 +31,9 @@ func TestCreateAPIKey(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 
+	prevUUID := uuid.DefaultBackend
+	defer func() { uuid.DefaultBackend = prevUUID }()
+
 	cases := []struct {
 		description   string
 		req           *requests.CreateAPIKey
@@ -43,7 +46,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: -1,
 			},
@@ -64,7 +66,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: 2,
 			},
@@ -98,7 +99,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "administrator",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: -1,
 				OptRole:   "owner",
@@ -133,7 +133,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: -1,
 			},
@@ -154,6 +153,13 @@ func TestCreateAPIKey(t *testing.T) {
 						},
 						nil,
 					).
+					Once()
+
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
 					Once()
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
@@ -175,7 +181,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: -1,
 			},
@@ -196,6 +201,13 @@ func TestCreateAPIKey(t *testing.T) {
 						},
 						nil,
 					).
+					Once()
+
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
 					Once()
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
@@ -228,7 +240,6 @@ func TestCreateAPIKey(t *testing.T) {
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
-				Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 				Name:      "dev",
 				ExpiresAt: -1,
 			},
@@ -249,6 +260,13 @@ func TestCreateAPIKey(t *testing.T) {
 						},
 						nil,
 					).
+					Once()
+
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
 					Once()
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
@@ -284,84 +302,6 @@ func TestCreateAPIKey(t *testing.T) {
 			expected: Expected{
 				res: &responses.CreateAPIKey{
 					ID:        "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
-					Name:      "dev",
-					UserID:    "000000000000000000000000",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Role:      "owner",
-					ExpiresIn: -1,
-				},
-				err: nil,
-			},
-		},
-		{
-			description: "succeeds when request key is empty",
-			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Role:      "owner",
-				Key:       "",
-				Name:      "dev",
-				ExpiresAt: -1,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(
-						&models.Namespace{
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Members: []models.Member{
-								{
-									ID:   "000000000000000000000000",
-									Role: "owner",
-								},
-							},
-						},
-						nil,
-					).
-					Once()
-
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("1e7b0f4b-aca4-48eb-a353-7469f00665ed").
-					Once()
-
-				keySum := sha256.Sum256([]byte("1e7b0f4b-aca4-48eb-a353-7469f00665ed"))
-				hashedKey := hex.EncodeToString(keySum[:])
-
-				storeMock.
-					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("APIKeyCreate", ctx, &models.APIKey{
-						ID:        hashedKey,
-						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "owner",
-						ExpiresIn: -1,
-					}).
-					Return(hashedKey, nil).
-					Once()
-				storeMock.
-					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyIDResolver, hashedKey).
-					Return(&models.APIKey{
-						ID:        hashedKey,
-						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "owner",
-						ExpiresIn: -1,
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				res: &responses.CreateAPIKey{
-					ID:        "1e7b0f4b-aca4-48eb-a353-7469f00665ed",
 					Name:      "dev",
 					UserID:    "000000000000000000000000",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
