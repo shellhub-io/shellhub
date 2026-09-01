@@ -46,9 +46,9 @@ type Upgrader interface {
 	Upgrade(res http.ResponseWriter, req *http.Request) (Conn, error)
 }
 
-// GorillaUpgrader implements [Upgrader] using Gorilla's WebSocket implementation.
-// GorillaUpgrader is the gorilla/websocket implementation of Upgrader. It is exported so a caller
-// can reach the embedded upgrader's settings; everything else goes through the interface.
+// GorillaUpgrader is the gorilla/websocket implementation of [Upgrader]. The embedded upgrader is
+// unexported, so its settings are fixed at construction: build one with
+// [NewGorillaWebSocketUpgrader] and reach it through the interface.
 type GorillaUpgrader struct {
 	upgrader *websocket.Upgrader
 }
@@ -59,7 +59,10 @@ func (u *GorillaUpgrader) Upgrade(res http.ResponseWriter, req *http.Request) (C
 	return u.upgrader.Upgrade(res, req, nil)
 }
 
-// NewGorillaWebSocketUpgrader returns an upgrader with gorilla's defaults, which accept any origin.
+// NewGorillaWebSocketUpgrader returns an upgrader with gorilla's defaults. Leaving CheckOrigin nil
+// selects gorilla's same-origin check: a request carrying no Origin header is accepted, and one
+// carrying it is accepted only when its host equals the request's Host. A browser page on another
+// origin is therefore rejected with 403, while a non-browser client is not.
 func NewGorillaWebSocketUpgrader() Upgrader {
 	return &GorillaUpgrader{
 		upgrader: new(websocket.Upgrader),
