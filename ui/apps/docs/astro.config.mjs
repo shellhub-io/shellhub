@@ -7,4 +7,5 @@ export default defineConfig({
   server: { port: 8083, host: true, allowedHosts: true },
   devToolbar: { enabled: false },
   integrations: [mdx(), react(), shots()],
+  compressHTML: true,
 });
