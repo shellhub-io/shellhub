@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The API key routes, relative to the API's base path.
@@ -53,6 +55,10 @@ func (h *Handler) ListAPIKeys(c *gateway.Context) error {
 
 	if req.Sorter.Order == "" {
 		req.Sorter.Order = "desc"
+	}
+
+	if err := query.ValidateSorter(&req.Sorter, services.APIKeySortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {

@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -13,6 +14,24 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
+)
+
+// MembershipInvitationFilterFields maps each filter field the invitation list endpoints accept to
+// the set of operators valid for it. It names only fields the response already carries: the row
+// also holds the invitation's signature, which the response omits and a filter must not reach.
+var MembershipInvitationFilterFields = query.NewFieldConstraints(map[string][]string{
+	"status": {"eq", "ne"},
+	"role":   {"eq", "ne"},
+})
+
+// MembershipInvitationSortFields is the set of field names accepted in the sort_by query
+// parameter when listing invitations.
+var MembershipInvitationSortFields = query.NewFieldSet(
+	"status",
+	"role",
+	"created_at",
+	"updated_at",
+	"expires_at",
 )
 
 // InvitationService owns membership invitations, from issuing an invite code through to the
