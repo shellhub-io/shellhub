@@ -643,6 +643,7 @@ html {
 /* Preflight zeroes the UA's `margin: auto`, which is what centres a modal. */
 dialog.shot-zoom {
   position: fixed;
+  overflow: visible;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
@@ -669,4 +670,31 @@ dialog.shot-zoom::backdrop {
 
 body.shot-zoom-open {
   overflow: hidden;
+}
+
+.shot-zoom-close {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 50%;
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-text-muted));
+  cursor: pointer;
+}
+
+.shot-zoom-close:hover,
+.shot-zoom-close:focus-visible {
+  border-color: rgb(var(--color-primary-rgb));
+  color: rgb(var(--c-text-primary));
+}
+
+.shot-zoom-close svg {
+  width: 0.7rem;
+  height: 0.7rem;
 }
