@@ -35,6 +35,9 @@ var (
 	ErrTooManyRequests = errors.New("too many requests")
 	// ErrInternalServerError is returned when the server has cannot response to the request due an error.
 	ErrInternalServerError = errors.New("internal server error")
+	// ErrEmptyResponse is returned when a successful response carries no body for the client to
+	// decode, so there is no value to hand the caller.
+	ErrEmptyResponse = errors.New("empty response")
 )
 
 // ErrorFromResponse returns an error based on the response status code.
@@ -66,4 +69,12 @@ func ErrorFromResponse(response Response) error {
 	default:
 		return errors.Join(ErrUnknown, fmt.Errorf("%d", response.StatusCode()))
 	}
+}
+
+func requireBody[T any](result *T) (*T, error) {
+	if result == nil {
+		return nil, ErrEmptyResponse
+	}
+
+	return result, nil
 }

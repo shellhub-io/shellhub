@@ -35,5 +35,5 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 		return nil, err
 	}
 
-	return device, nil
+	return requireBody(device)
 }

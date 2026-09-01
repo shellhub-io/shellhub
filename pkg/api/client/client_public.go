@@ -30,7 +30,7 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 		return nil, err
 	}
 
-	return info, nil
+	return requireBody(info)
 }
 
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
@@ -70,7 +70,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 func (c *client) Endpoints() (*models.Endpoints, error) {
@@ -87,7 +87,7 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 		return nil, err
 	}
 
-	return endpoints, nil
+	return requireBody(endpoints)
 }
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {
@@ -106,7 +106,7 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error) {
@@ -124,7 +124,7 @@ func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, e
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
@@ -142,7 +142,7 @@ func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
@@ -159,7 +159,7 @@ func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatu
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {
@@ -177,7 +177,7 @@ func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, er
 		return nil, err
 	}
 
-	return res, nil
+	return requireBody(res)
 }
 
 // NewReverseListener creates a new reverse listener connection to ShellHub's server. This listener receives the SSH
