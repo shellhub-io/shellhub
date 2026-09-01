@@ -640,6 +640,13 @@ html {
   outline-offset: 2px;
 }
 
+/* The design system resets `dialog` with `all: unset`, which takes the browser's
+   `dialog:not([open]) { display: none }` with it: a closed dialog would keep
+   sitting over the page. */
+dialog.shot-zoom:not([open]) {
+  display: none;
+}
+
 /* Preflight zeroes the UA's `margin: auto`, which is what centres a modal. */
 dialog.shot-zoom {
   position: fixed;
@@ -668,9 +675,6 @@ dialog.shot-zoom::backdrop {
   background: color-mix(in srgb, rgb(var(--c-background)) 88%, transparent);
 }
 
-body.shot-zoom-open {
-  overflow: hidden;
-}
 
 .shot-zoom-close {
   position: absolute;

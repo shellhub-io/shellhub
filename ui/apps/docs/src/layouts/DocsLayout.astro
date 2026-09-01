@@ -508,8 +508,6 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
       // Any screenshot in the prose enlarges: a console table at page width is
       // readable only so far, and the reader should not have to open the image
       // in a tab of its own.
-      const OPEN = "shot-zoom-open";
-
       function zoomDialog() {
         const existing = document.querySelector("dialog.shot-zoom");
         if (existing) return existing;
@@ -524,7 +522,6 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
         // Any click closes: the image fills the dialog, so anything else would
         // leave the obvious target inert.
         created.addEventListener("click", () => created.close());
-        created.addEventListener("close", () => document.body.classList.remove(OPEN));
         document.body.append(created);
 
         return created;
@@ -557,7 +554,6 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
         image.src = source.src;
         image.alt = source.alt;
 
-        document.body.classList.add(OPEN);
         zoom.showModal();
       });
     </script>
