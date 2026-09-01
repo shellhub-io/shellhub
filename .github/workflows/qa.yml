@@ -145,3 +145,59 @@ jobs:
               docker save -o "/tmp/docker-cache/${name}.tar" "$img" 2>/dev/null || true
             done
 
+
+  cross-compile:
+    name: cross-compile (${{ matrix.goos }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Only the GOOS the agent carries platform-specific source for. A target
+        # with no _<goos>.go file of its own would be compiling the same code the
+        # validate job already builds.
+        goos: [freebsd]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: filter
+        with:
+          filters: |
+            go:
+              - 'agent/**'
+              - 'pkg/**'
+
+      - name: Set up Go 1.x [Go]
+        if: steps.filter.outputs.go == 'true'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Get Go dependencies [Go]
+        if: steps.filter.outputs.go == 'true'
+        working-directory: agent
+        run: go mod download
+
+      # The binaries cannot run here, so this is a compile and type check only.
+      # It is what catches a build tag drifting out of sync with the interface it
+      # implements, which is how the FreeBSD backend went unbuildable unnoticed.
+      - name: Go build [Go]
+        if: steps.filter.outputs.go == 'true'
+        working-directory: agent
+        env:
+          GOOS: ${{ matrix.goos }}
+          CGO_ENABLED: 0
+        run: go build -v ./...
+
+      - name: Go vet [Go]
+        if: steps.filter.outputs.go == 'true'
+        working-directory: agent
+        env:
+          GOOS: ${{ matrix.goos }}
+          CGO_ENABLED: 0
+        run: go vet ./...
