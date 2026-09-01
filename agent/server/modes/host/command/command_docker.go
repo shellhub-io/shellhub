@@ -58,16 +58,16 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home string) []string {
 	gids := []string{}
 	for _, g := range groups {
-		gids = append(gids, strconv.Itoa(int(g)))
+		gids = append(gids, strconv.FormatUint(uint64(g), 10))
 	}
 
 	setPrivCmd := []string{
 		"/bin/setpriv",
 		"--groups=" + strings.Join(gids, ","),
 		"--ruid",
-		strconv.Itoa(int(uid)),
+		strconv.FormatUint(uint64(uid), 10),
 		"--regid",
-		strconv.Itoa(int(gid)),
+		strconv.FormatUint(uint64(gid), 10),
 	}
 
 	nsenterCmd := append([]string{
@@ -80,7 +80,7 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 		nsenterCmd,
 		[]string{
 			"-S",
-			strconv.Itoa(int(uid)),
+			strconv.FormatUint(uint64(uid), 10),
 			"--wdns=" + home,
 		}...,
 	)
