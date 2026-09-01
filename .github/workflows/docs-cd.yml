@@ -1,0 +1,85 @@
+name: Docs CD
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "ui/apps/docs/**"
+      - "ui/packages/design-system/**"
+      - ".github/workflows/docs-cd.yml"
+  pull_request:
+    paths:
+      - "ui/apps/docs/**"
+      - "ui/packages/design-system/**"
+      - ".github/workflows/docs-cd.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: docs-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy the documentation
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node.JS 24.13.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.13.0"
+
+      - name: Cache node modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
+
+      - name: Install Node dependencies
+        working-directory: ui
+        run: npm install
+
+      - name: Astro sync
+        working-directory: ui
+        run: npm run sync -w @shellhub/docs
+
+      # CI is set by Actions, which is what makes the build refuse a declared screenshot with
+      # no image and an image no page references, instead of quietly rewriting the checkout.
+      - name: Build
+        working-directory: ui
+        run: npm run build -w @shellhub/docs
+
+      # A branch other than master publishes to a preview URL rather than to the site, which
+      # is how a documentation change gets read before it is merged.
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy ui/apps/docs/dist
+            --project-name=shellhub-docs
+            --branch=${{ github.head_ref || github.ref_name }}
+
+      - name: Comment the preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.deployment-url }}';
+            if (!url) return;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Documentation preview: ${url}`,
+            });
