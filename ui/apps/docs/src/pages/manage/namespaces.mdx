@@ -6,6 +6,7 @@ description: The workspace that holds your devices, members, policies and settin
 
 import EditionBanner from "../../components/EditionBanner.astro";
 import Shot from '../../components/Shot.astro';
+import Clip from "../../components/Clip.astro";
 
 # Namespaces
 
@@ -29,7 +30,7 @@ $ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 The **Tenant ID** is an immutable UUID generated when the namespace is created. It is what devices,
 API keys and sessions actually reference.
 
-![Namespace Settings page showing the Tenant ID being copied](/img/manual/namespace-copy-tenant-id.gif)
+<Clip name="namespace-copy-tenant-id" alt="Namespace Settings page showing the Tenant ID being copied" />
 
 Renaming a namespace changes every SSHID for it. Anything with a stored SSHID — an SSH config
 alias, an Ansible inventory, a script — breaks. The tenant ID does not change, so agent
@@ -37,7 +38,7 @@ configuration is unaffected.
 
 ## Creating one
 
-![Switching namespaces](/img/manual/namespace-create.gif)
+<Clip name="namespace-create" alt="Switching namespaces" />
 
 <EditionBanner>
 Creating a namespace is on **Cloud** and **Enterprise**. Community is single-namespace: the one
@@ -53,7 +54,7 @@ overhead of a second workspace.
 
 ## Switching
 
-![Switching namespaces](/img/manual/namespace-switch.gif)
+<Clip name="namespace-switch" alt="Switching namespaces" />
 
 Membership is per namespace, and so is your role — you can be an administrator in one and an
 observer in another.
@@ -69,7 +70,7 @@ A namespace born in identity mode can never leave it. See
 
 ## Deleting
 
-![Deleting namespaces](/img/manual/namespace-delete.gif)
+<Clip name="namespace-delete" alt="Deleting namespaces" />
 
 Deleting takes the devices, identities, policies and history with it. Only the owner can do it —
 an administrator cannot.
