@@ -7,7 +7,11 @@ export const consoleUrl = "http://localhost";
 /**
  * The docs origin. A cross-origin link, so it must not be routed by react-router.
  */
-export const docsUrl = "http://docs.localhost";
+export const docsUrl = import.meta.env.DEV ? "http://docs.localhost" : "https://docs.shellhub.io";
+/**
+ * This site's own origin, which the shared footer needs to build the links that stay here.
+ */
+export const websiteUrl = import.meta.env.DEV ? "http://website.localhost" : "https://shellhub.io";
 /**
  * The public repository, linked from the navigation and the footer.
  */

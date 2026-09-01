@@ -7,7 +7,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { sidebar, flattenItems } from "../data/sidebar";
-import { websiteUrl } from "../data/links";
+import { websiteUrl, docsUrl } from "../data/links";
 
 const sections = sidebar.map(section => ({
   label: section.label,
@@ -123,7 +123,7 @@ const allItems = sidebar.flatMap(section =>
       </div>
     </section>
 
-    <Footer app="docs" />
+    <Footer app="docs" websiteUrl={websiteUrl} docsUrl={docsUrl} />
 
     <!-- Command Palette -->
     <div class="cmd-palette" id="cmd-palette">
