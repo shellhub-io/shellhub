@@ -8,7 +8,12 @@ import LegacyBanner from "../../../components/LegacyBanner.astro";
 
 # Public Keys
 
-<LegacyBanner />
+<LegacyBanner>
+  Namespaces created today start in identity mode, where access is decided by
+  <a href="/manage/access-control/ssh-identities">SSH identities</a> and
+  <a href="/manage/access-control/access-policies">access policies</a>. In identity mode
+  this page describes something that is not running.
+</LegacyBanner>
 
 In the legacy model, a public key registered in the namespace *is* the access. Whoever holds the
 matching private key connects.
