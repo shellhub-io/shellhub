@@ -503,5 +503,57 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
         });
       }
     </script>
+
+    <script>
+      // Any screenshot in the prose enlarges: a console table at page width is
+      // readable only so far, and the reader should not have to open the image
+      // in a tab of its own.
+      const OPEN = "shot-zoom-open";
+
+      function zoomDialog() {
+        const existing = document.querySelector("dialog.shot-zoom");
+        if (existing) return existing;
+
+        const created = document.createElement("dialog");
+        created.className = "shot-zoom";
+        created.innerHTML = '<img alt="">';
+        created.addEventListener("click", () => created.close());
+        created.addEventListener("close", () => document.body.classList.remove(OPEN));
+        document.body.append(created);
+
+        return created;
+      }
+
+      // A markdown image is not a control, so it reaches neither the tab order nor
+      // Enter. The <Shot> frame is already a button and needs none of this.
+      document.querySelectorAll(".prose img").forEach((image) => {
+        image.tabIndex = 0;
+        image.setAttribute("role", "button");
+        image.setAttribute("aria-label", `Enlarge: ${image.alt}`);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        if (!event.target.matches(".prose img")) return;
+
+        event.preventDefault();
+        event.target.click();
+      });
+
+      document.addEventListener("click", (event) => {
+        const frame = event.target.closest("[data-shot-zoom]");
+        const source = frame ? frame.querySelector("img") : event.target.closest(".prose img");
+        if (!source) return;
+
+        const zoom = zoomDialog();
+        const image = zoom.querySelector("img");
+
+        image.src = source.src;
+        image.alt = source.alt;
+
+        document.body.classList.add(OPEN);
+        zoom.showModal();
+      });
+    </script>
   </body>
 </html>
