@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { SiteHeader } from "@/components/SiteHeader";
+import { docsUrl, websiteUrl } from "@/links";
 import { Footer } from "@shellhub/design-system/components";
 
 function RouterLink({
@@ -39,7 +40,7 @@ export function SiteLayout({
     >
       <SiteHeader />
       {children}
-      <Footer linkComponent={RouterLink} />
+      <Footer linkComponent={RouterLink} websiteUrl={websiteUrl} docsUrl={docsUrl} />
     </div>
   );
 }

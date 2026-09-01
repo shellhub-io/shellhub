@@ -1,31 +1,26 @@
 import { GithubIcon, ShellHubLogo } from "../primitives/icons";
 
 const GITHUB_URL = "https://github.com/shellhub-io/shellhub";
-const WEBSITE_URL = "http://website.localhost";
-const DOCS_URL = "http://docs.localhost";
 const CURRENT_YEAR = new Date().getFullYear();
 
 type FooterApp = "website" | "docs";
 
-const APP_ORIGINS: Record<FooterApp, string> = {
-  website: WEBSITE_URL,
-  docs: DOCS_URL,
-};
-
-const COLUMNS = [
+// The two sites are served from their own hosts, and in development those are .localhost names
+// the gateway routes. Which is which is the app's business, not this package's: it is rendered
+// by two different bundlers and has no environment of its own to read.
+const columnsFor = (websiteUrl: string, docsUrl: string) => [
   {
     title: "Product",
     links: [
-      { label: "Features", href: `${WEBSITE_URL}/features` },
-      { label: "Pricing", href: `${WEBSITE_URL}/pricing` },
-      { label: "Enterprise", href: `${WEBSITE_URL}/enterprise` },
+      { label: "Features", href: `${websiteUrl}/features` },
+      { label: "Pricing", href: `${websiteUrl}/pricing` },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Documentation", href: DOCS_URL },
-      { label: "Getting Started", href: `${WEBSITE_URL}/getting-started` },
+      { label: "Documentation", href: docsUrl },
+      { label: "Getting Started", href: `${docsUrl}/get-started` },
     ],
   },
 ];
@@ -33,6 +28,8 @@ const COLUMNS = [
 interface FooterProps {
   app?: FooterApp;
   linkComponent?: React.ElementType;
+  websiteUrl?: string;
+  docsUrl?: string;
 }
 
 function isSameApp(href: string, origin: string) {
@@ -47,8 +44,11 @@ function isSameApp(href: string, origin: string) {
 export function Footer({
   app = "website",
   linkComponent: Link = "a",
+  websiteUrl = "https://shellhub.io",
+  docsUrl = "https://docs.shellhub.io",
 }: FooterProps) {
-  const origin = APP_ORIGINS[app];
+  const origin = app === "docs" ? docsUrl : websiteUrl;
+  const columns = columnsFor(websiteUrl, docsUrl);
   const linkCls = "text-text-secondary hover:text-text-primary transition-colors";
 
   return (
@@ -56,14 +56,14 @@ export function Footer({
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-wrap gap-10 mb-10">
           <div className="w-full md:flex-[2]">
-            <Link href={WEBSITE_URL} className="inline-block mb-4">
+            <Link href={websiteUrl} className="inline-block mb-4">
               <ShellHubLogo className="h-8" />
             </Link>
             <p className="text-xs text-text-secondary max-w-[220px] leading-relaxed">
               The open source SSH gateway for remote access to Linux devices.
             </p>
           </div>
-          {COLUMNS.map((col) => (
+          {columns.map((col) => (
             <div key={col.title} className="flex-1 min-w-[140px] text-xs">
               <h5 className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-secondary mb-3">
                 {col.title}
