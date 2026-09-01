@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 
@@ -215,6 +217,110 @@ func TestHealthcheckAnswersOnEveryConfiguration(t *testing.T) {
 				"the healthcheck site must not depend on how TLS is configured")
 		})
 	}
+}
+
+// TestCaddyfileRefusesAHostItDoesNotServe pins the fallback site. Without it a
+// request arriving with any other Host reaches Caddy's own default, which
+// answers 200 with an empty body -- indistinguishable from a healthy ShellHub
+// until whatever asked tries to read the reply.
+func TestCaddyfileRefusesAHostItDoesNotServe(t *testing.T) {
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			rendered, err := Caddyfile(cfg)
+			require.NoError(t, err)
+
+			assert.Contains(t, string(rendered), "http:// {",
+				"a Host this proxy does not serve must not fall through to Caddy's default")
+		})
+	}
+}
+
+// TestTheFallbackIsTheLastRouteOnPortEighty is the other half of that fallback:
+// it matches every Host, so anything ordered after it is unreachable. Automatic
+// HTTPS appends its redirect for a name it holds no certificate for -- a supplied
+// certificate is exactly that name -- and the site would answer 404 on port 80
+// instead of redirecting.
+func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			rendered, err := Caddyfile(cfg)
+			require.NoError(t, err)
+
+			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+			require.NoError(t, err)
+
+			for name, server := range httpServers(t, adapted) {
+				if !slices.Contains(server.Listen, ":80") {
+					continue
+				}
+
+				require.NotEmpty(t, server.Routes, "%s serves port 80 with no route at all", name)
+
+				for i, route := range server.Routes[:len(server.Routes)-1] {
+					assert.NotEmpty(t, hosts(route),
+						"route %d of %s matches every Host, so the fallback is not the only one that does", i, name)
+				}
+
+				assert.Empty(t, hosts(server.Routes[len(server.Routes)-1]),
+					"the fallback must be the last route of %s", name)
+			}
+		})
+	}
+}
+
+// TestCaddyfileRedirectsItsOwnNameToHTTPS pins the redirect the fallback would
+// otherwise shadow. Caddy writes one per name it manages a certificate for and a
+// single blanket one for the rest, and the blanket one is what a deployment
+// serving a supplied certificate has.
+func TestCaddyfileRedirectsItsOwnNameToHTTPS(t *testing.T) {
+	rendered, err := Caddyfile(configurations()["supplied certificate"])
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "http://shellhub.example {")
+	assert.Contains(t, string(rendered), "redir https://{host}{uri} 308")
+
+	withoutTLS, err := Caddyfile(configurations()["community"])
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(withoutTLS), "redir ",
+		"there is nothing to redirect to when the site is served over plain HTTP")
+}
+
+type httpRoute struct {
+	Match []struct {
+		Host []string `json:"host"`
+	} `json:"match"`
+}
+
+type httpServer struct {
+	Listen []string    `json:"listen"`
+	Routes []httpRoute `json:"routes"`
+}
+
+func httpServers(t *testing.T, adapted []byte) map[string]httpServer {
+	t.Helper()
+
+	var config struct {
+		Apps struct {
+			HTTP struct {
+				Servers map[string]httpServer `json:"servers"`
+			} `json:"http"`
+		} `json:"apps"`
+	}
+
+	require.NoError(t, json.Unmarshal(adapted, &config))
+
+	return config.Apps.HTTP.Servers
+}
+
+func hosts(route httpRoute) []string {
+	var names []string
+
+	for _, match := range route.Match {
+		names = append(names, match.Host...)
+	}
+
+	return names
 }
 
 // TestCaddyfileStoresCertificatesOnTheVolume guards a mistake that is invisible

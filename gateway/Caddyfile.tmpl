@@ -191,6 +191,25 @@
 	}
 }
 
+{{- if .TLS }}
+# Automatic HTTPS redirects port 80 to the site above, but for a name it manages a
+# certificate for it writes a rule per name, and for the rest a single blanket one
+# at the end of the list -- which the fallback below shadows. A supplied
+# certificate is the case that has only the blanket rule, so say this name's
+# redirect here and let neither depend on the other.
+http://{{ $cfg.Domain }} {
+	redir https://{host}{uri} 308
+}
+
+{{ end }}
+# The fallback, and the reason it is here at all: a request whose Host is none of
+# the names above reaches Caddy's own default otherwise, which answers 200 with an
+# empty body. An agent reading that as ShellHub's /info gets no server info and no
+# error, so what should say "you are pointed at the wrong place" says nothing.
+http:// {
+	respond 404
+}
+
 # The container healthcheck. Written http:// so automatic HTTPS cannot redirect
 # it, and given a name of its own so it can share port 80 with the site above:
 # the probe runs inside this container, where every other name available to it is
