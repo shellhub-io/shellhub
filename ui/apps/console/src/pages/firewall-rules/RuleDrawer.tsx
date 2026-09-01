@@ -142,7 +142,7 @@ export default function RuleDrawer({
             value="restrict"
             icon={IpIcon}
             label="Restrict with regexp"
-            description="Match connections from IPs matching a pattern."
+            description="Match connections from IPs the whole pattern matches."
           />
         </FormRadioGroupField>
         {sourceIpOption === "restrict" && (
@@ -176,7 +176,7 @@ export default function RuleDrawer({
             value="restrict"
             icon={UserIcon}
             label="Restrict with regexp"
-            description="Match connections for usernames matching a pattern."
+            description="Match connections for usernames the whole pattern matches."
           />
         </FormRadioGroupField>
         {usernameOption === "restrict" && (
@@ -210,7 +210,7 @@ export default function RuleDrawer({
             value="hostname"
             icon={HostnameIcon}
             label="Filter by hostname"
-            description="Restrict to devices matching a hostname pattern."
+            description="Restrict to devices whose whole name the pattern matches."
           />
           <RadioCard
             value="tags"

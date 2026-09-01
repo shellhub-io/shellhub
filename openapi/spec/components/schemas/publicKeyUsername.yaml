@@ -1,5 +1,6 @@
 description: |
-  Public key's regex username.
+  Public key's username regexp, which must match the whole username: `root` authorizes the
+  login `root` and not `notroot`.
 
 
   The `username` field define which user, in the device, may be access through this public key.

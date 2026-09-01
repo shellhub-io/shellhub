@@ -3,13 +3,14 @@ description: |
 
   The `filter` rule defines whether the public key is valid for a device.
 
-  - When `hostname` is set, the public key applies to devices matching the hostname regex.
+  - When `hostname` is set, the public key applies to devices whose whole name the hostname
+    regexp matches: `staging` selects the device named `staging` and not `staging-db`.
   - When `tags` is set, it applies to devices that contain at least one of those tags.
 oneOf:
   - type: object
     properties:
       hostname:
-        description: Public key's regex hostname.
+        description: Public key's hostname regexp, which must match the whole device name.
         type: string
         example: .*
     required:
