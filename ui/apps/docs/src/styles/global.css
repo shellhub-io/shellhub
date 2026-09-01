@@ -618,3 +618,55 @@ html {
 }
 
 .prose td .badge-deprecated { margin-left: 0; }
+
+/* A screenshot sits on the same near-black the page uses, so it needs an edge of
+   its own to read as a picture rather than as part of the page. A <Shot> brings its
+   own frame, so its image is excluded rather than framed twice. */
+.prose img:not([data-shot-zoom] img) {
+  display: block;
+  background: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 0.5rem;
+  cursor: zoom-in;
+}
+
+.prose img:not([data-shot-zoom] img):hover,
+.prose img:not([data-shot-zoom] img):focus-visible {
+  border-color: rgb(var(--color-primary-rgb));
+}
+
+.prose img:not([data-shot-zoom] img):focus-visible {
+  outline: 2px solid rgb(var(--color-primary-rgb));
+  outline-offset: 2px;
+}
+
+/* Preflight zeroes the UA's `margin: auto`, which is what centres a modal. */
+dialog.shot-zoom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  padding: 0;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 0.5rem;
+  background: rgb(var(--c-surface));
+  cursor: zoom-out;
+}
+
+/* Sized against the viewport, not the dialog: a percentage here would ask the
+   dialog for a width the dialog is deriving from this image. */
+dialog.shot-zoom img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(96vw, 1600px);
+  max-height: 92vh;
+}
+
+dialog.shot-zoom::backdrop {
+  background: color-mix(in srgb, rgb(var(--c-background)) 88%, transparent);
+}
+
+body.shot-zoom-open {
+  overflow: hidden;
+}
