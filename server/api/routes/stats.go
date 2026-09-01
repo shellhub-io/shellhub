@@ -61,6 +61,10 @@ func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 		return err
 	}
 
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
 	if req.Host == "" {
 		req.Host = c.Request().Host
 	}

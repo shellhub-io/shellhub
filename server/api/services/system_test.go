@@ -2,6 +2,10 @@ package services
 
 import (
 	"context"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -25,54 +29,54 @@ func TestBuildInstallOverrides(t *testing.T) {
 		{
 			description: "injects SERVER_ADDRESS from host and forwarded proto",
 			req:         &requests.SystemInstallScript{Host: "cloud.example.com", Scheme: "https"},
-			contains:    []string{"\nSERVER_ADDRESS=\"${SERVER_ADDRESS:-https://cloud.example.com}\"\n"},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 		},
 		{
 			description: "defaults the scheme to https when not forwarded",
 			req:         &requests.SystemInstallScript{Host: "cloud.example.com"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-https://cloud.example.com}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 		},
 		{
 			description: "appends a non-standard forwarded port",
 			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "8443", Scheme: "https"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-https://localhost:8443}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:8443'"},
 		},
 		{
 			description: "omits the default port for the scheme",
 			req:         &requests.SystemInstallScript{Host: "cloud.example.com", ForwardedPort: "443", Scheme: "https"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-https://cloud.example.com}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 			excludes:    []string{":443"},
 		},
 		{
 			description: "keeps the http scheme when forwarded",
 			req:         &requests.SystemInstallScript{Host: "cloud.example.com", Scheme: "http"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-http://cloud.example.com}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://cloud.example.com'"},
 		},
 		{
 			description: "omits the default http port 80",
 			req:         &requests.SystemInstallScript{Host: "cloud.example.com", ForwardedPort: "80", Scheme: "http"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-http://cloud.example.com}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://cloud.example.com'"},
 			excludes:    []string{":80"},
 		},
 		{
 			description: "appends a non-standard http port",
 			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "8080", Scheme: "http"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-http://localhost:8080}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://localhost:8080'"},
 		},
 		{
 			description: "keeps a port carried inline on the host (direct access, no forwarded port)",
 			req:         &requests.SystemInstallScript{Host: "localhost:8080"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-https://localhost:8080}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:8080'"},
 		},
 		{
 			description: "prefers the forwarded port over an inline host port",
 			req:         &requests.SystemInstallScript{Host: "localhost:8080", ForwardedPort: "9000", Scheme: "https"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-https://localhost:9000}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:9000'"},
 		},
 		{
 			description: "appends port 443 when scheme is http (non-default for http)",
 			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "443", Scheme: "http"},
-			contains:    []string{"SERVER_ADDRESS=\"${SERVER_ADDRESS:-http://localhost:443}\""},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://localhost:443'"},
 		},
 		{
 			description: "injects the optional query overrides when present",
@@ -83,8 +87,8 @@ func TestBuildInstallOverrides(t *testing.T) {
 				PreferredHostname: "my-host",
 			},
 			contains: []string{
-				"TENANT_ID=\"${TENANT_ID:-00000000-0000-4000-0000-000000000000}\"",
-				"PREFERRED_HOSTNAME=\"${PREFERRED_HOSTNAME:-my-host}\"",
+				"[ -n \"${TENANT_ID:-}\" ] || TENANT_ID='00000000-0000-4000-0000-000000000000'",
+				"[ -n \"${PREFERRED_HOSTNAME:-}\" ] || PREFERRED_HOSTNAME='my-host'",
 			},
 		},
 		{
@@ -98,7 +102,7 @@ func TestBuildInstallOverrides(t *testing.T) {
 		t.Run(tc.description, func(tt *testing.T) {
 			out := buildInstallOverrides(tc.req)
 
-			assert.Equal(tt, "\n", out[:1])
+			assert.Equal(tt, "\n", out[:1], "the block is spliced onto install.sh's comment line, so it must open with a newline")
 
 			for _, want := range tc.contains {
 				assert.Contains(tt, out, want)
@@ -205,4 +209,151 @@ func TestSystemGet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, setupSystem, system)
 	})
+}
+
+// TestBuildInstallOverridesIsShellSafe runs the generated prologue through a real shell. The
+// overrides are prepended to a script the operator pipes into a root shell, so a value that the
+// shell still expands is remote code execution on the machine being enrolled (GHSA-w6jh-83pc-x59g).
+func TestBuildInstallOverridesIsShellSafe(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no POSIX shell to run the generated prologue against")
+	}
+
+	const probe = `
+printf 'SERVER_ADDRESS=%s\036' "${SERVER_ADDRESS:-}"
+printf 'TENANT_ID=%s\036' "${TENANT_ID:-}"
+printf 'PREFERRED_HOSTNAME=%s\036' "${PREFERRED_HOSTNAME:-}"
+printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
+`
+
+	cases := []struct {
+		description string
+		req         *requests.SystemInstallScript
+		want        map[string]string
+	}{
+		{
+			description: "keeps a command substitution in the tenant id unexpanded",
+			req: &requests.SystemInstallScript{
+				Host: "cloud.example.com", Scheme: "https",
+				TenantID: "x$(touch pwned)",
+			},
+			want: map[string]string{
+				"SERVER_ADDRESS": "https://cloud.example.com",
+				"TENANT_ID":      "x$(touch pwned)",
+			},
+		},
+		{
+			description: "keeps backticks in the preferred hostname unexpanded",
+			req: &requests.SystemInstallScript{
+				Host: "cloud.example.com", Scheme: "https",
+				PreferredHostname: "host`touch pwned`",
+			},
+			want: map[string]string{
+				"SERVER_ADDRESS":     "https://cloud.example.com",
+				"PREFERRED_HOSTNAME": "host`touch pwned`",
+			},
+		},
+		{
+			description: "keeps a quote break in the preferred identity from opening a statement",
+			req: &requests.SystemInstallScript{
+				Host: "cloud.example.com", Scheme: "https",
+				PreferredIdentity: "a\"\ntouch pwned\n#",
+			},
+			want: map[string]string{
+				"SERVER_ADDRESS":     "https://cloud.example.com",
+				"PREFERRED_IDENTITY": "a\"\ntouch pwned\n#",
+			},
+		},
+		{
+			description: "keeps a single quote in a value from closing the quoting",
+			req: &requests.SystemInstallScript{
+				Host: "cloud.example.com", Scheme: "https",
+				PreferredHostname: "it's'$(touch pwned)'",
+			},
+			want: map[string]string{
+				"SERVER_ADDRESS":     "https://cloud.example.com",
+				"PREFERRED_HOSTNAME": "it's'$(touch pwned)'",
+			},
+		},
+		{
+			description: "keeps a command substitution in the forwarded host unexpanded",
+			req: &requests.SystemInstallScript{
+				Host: "cloud.example.com$(touch pwned)", Scheme: "https",
+			},
+			want: map[string]string{
+				"SERVER_ADDRESS": "https://cloud.example.com$(touch pwned)",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			dir := tt.TempDir()
+
+			//nolint:gosec // G204: running the generated prologue under a shell is the assertion
+			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req)+probe)
+			cmd.Dir = dir
+			cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
+
+			out, err := cmd.CombinedOutput()
+			require.NoError(tt, err, "the generated prologue must be a valid script: %s", out)
+
+			entries, err := os.ReadDir(dir)
+			require.NoError(tt, err)
+			assert.Empty(tt, entries, "the payload ran: the prologue created files in the working directory")
+
+			assert.Equal(tt, tc.want, parseProbe(string(out)))
+		})
+	}
+}
+
+func parseProbe(out string) map[string]string {
+	values := map[string]string{}
+
+	for record := range strings.SplitSeq(strings.TrimSuffix(out, "\x1e"), "\x1e") {
+		if name, value, found := strings.Cut(record, "="); found && value != "" {
+			values[name] = value
+		}
+	}
+
+	return values
+}
+
+// TestInstallScriptRendersAValidShellScript renders the shipped template with a payload in every
+// override and parses the result. The overrides are spliced into a comment line, so a value that
+// escapes its quoting does not merely change a variable: it becomes a statement in a script that
+// is about to run as root.
+func TestInstallScriptRendersAValidShellScript(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no POSIX shell to parse the rendered script with")
+	}
+
+	template, err := os.ReadFile("../../../install.sh")
+	require.NoError(t, err)
+
+	script := renderInstallScript(string(template), &requests.SystemInstallScript{
+		Host:              "cloud.example.com$(touch pwned)",
+		Scheme:            "https",
+		TenantID:          "x$(touch pwned)",
+		PreferredHostname: "host`touch pwned`",
+		PreferredIdentity: "a'\"\ntouch pwned\n#",
+	})
+
+	require.NotContains(t, script, "{{.Overrides}}", "the marker must be replaced, not left in the served script")
+
+	dir := t.TempDir()
+	rendered := filepath.Join(dir, "install.sh")
+	//nolint:gosec // G703: rendered is filepath.Join(t.TempDir(), ...), so the path carries no input
+	require.NoError(t, os.WriteFile(rendered, []byte(script), 0o600))
+
+	//nolint:gosec // G204: parsing the rendered script under a shell is the assertion
+	cmd := exec.CommandContext(t.Context(), "sh", "-n", rendered)
+	cmd.Dir = dir
+
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "the rendered script must parse: %s", out)
+
+	entries, err := os.ReadDir(dir)
+	require.NoError(t, err)
+	assert.Len(t, entries, 1, "the payload ran while the script was being parsed")
 }

@@ -39,6 +39,8 @@ const (
 	UserPasswordTag = "password"
 	// DeviceNameTag contains the rule to validate the device's name.
 	DeviceNameTag = "device_name"
+	// DeviceIdentityTag contains the rule to validate the device's identity.
+	DeviceIdentityTag = "device_identity"
 	// PrivateKeyPEMTag contains the rule to validate a private key.
 	PrivateKeyPEMTag = "privateKeyPEM"
 	// CertPEMTag contains the rule to validate a certificate.
@@ -89,6 +91,13 @@ var Rules = []Rule{
 			return regexp.MustCompile(`^([a-zA-Z0-9_-]){1,64}$`).MatchString(field.Field().String())
 		},
 		Error: errors.New("the device name can only contain `_`, `-` and alpha numeric characters"),
+	},
+	{
+		Tag: DeviceIdentityTag,
+		Handler: func(field validator.FieldLevel) bool {
+			return regexp.MustCompile(`^([a-zA-Z0-9:_.-]){1,64}$`).MatchString(field.Field().String())
+		},
+		Error: errors.New("the device identity can only contain `:`, `.`, `_`, `-` and alpha numeric characters"),
 	},
 	{
 		Tag: APIKeyNameTag,

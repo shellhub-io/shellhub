@@ -88,9 +88,11 @@ func (s *service) SystemDownloadInstallScript(_ context.Context, req *requests.S
 		return "", err
 	}
 
-	overrides := buildInstallOverrides(req)
+	return renderInstallScript(string(raw), req), nil
+}
 
-	return strings.Replace(string(raw), "{{.Overrides}}", overrides, 1), nil
+func renderInstallScript(template string, req *requests.SystemInstallScript) string {
+	return strings.Replace(template, "{{.Overrides}}", buildInstallOverrides(req), 1)
 }
 
 func buildInstallOverrides(req *requests.SystemInstallScript) string {
@@ -118,22 +120,26 @@ func buildInstallOverrides(req *requests.SystemInstallScript) string {
 			address = net.JoinHostPort(host, port)
 		}
 
-		fmt.Fprintf(&b, "SERVER_ADDRESS=\"${SERVER_ADDRESS:-%s://%s}\"\n", scheme, address)
+		writeInstallOverride(&b, "SERVER_ADDRESS", scheme+"://"+address)
 	}
 
-	if req.TenantID != "" {
-		fmt.Fprintf(&b, "TENANT_ID=\"${TENANT_ID:-%s}\"\n", req.TenantID)
-	}
-
-	if req.PreferredHostname != "" {
-		fmt.Fprintf(&b, "PREFERRED_HOSTNAME=\"${PREFERRED_HOSTNAME:-%s}\"\n", req.PreferredHostname)
-	}
-
-	if req.PreferredIdentity != "" {
-		fmt.Fprintf(&b, "PREFERRED_IDENTITY=\"${PREFERRED_IDENTITY:-%s}\"\n", req.PreferredIdentity)
-	}
+	writeInstallOverride(&b, "TENANT_ID", req.TenantID)
+	writeInstallOverride(&b, "PREFERRED_HOSTNAME", req.PreferredHostname)
+	writeInstallOverride(&b, "PREFERRED_IDENTITY", req.PreferredIdentity)
 
 	return b.String()
+}
+
+func writeInstallOverride(b *strings.Builder, name, value string) {
+	if value == "" {
+		return
+	}
+
+	fmt.Fprintf(b, "[ -n \"${%s:-}\" ] || %s=%s\n", name, name, singleQuote(value))
+}
+
+func singleQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", `'\''`) + "'"
 }
 
 func isDefaultPort(scheme, port string) bool {
