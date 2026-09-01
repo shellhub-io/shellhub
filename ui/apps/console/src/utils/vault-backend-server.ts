@@ -61,7 +61,7 @@ export class ServerVaultBackend implements IVaultBackend {
 
   private async fetch(): Promise<VaultResponse | null> {
     const { data, error, response } = await getVault();
-    if (response.status === 404) return null;
+    if (response?.status === 404) return null;
     if (error || !data)
       throw new Error("Failed to load the vault from the server.");
     this.track(data);
@@ -106,7 +106,7 @@ export class ServerVaultBackend implements IVaultBackend {
     const res = await saveVaultData({
       body: { data: JSON.stringify(data), version: this.version },
     });
-    if (res.response.status === 409) {
+    if (res.response?.status === 409) {
       await this.fetch().catch(() => null);
       throw new Error(
         "The vault was changed in another session. Reload the vault and try again.",
@@ -123,7 +123,7 @@ export class ServerVaultBackend implements IVaultBackend {
    */
   async clear(): Promise<void> {
     const { error, response } = await deleteVault();
-    if (error && response.status !== 404)
+    if (error && response?.status !== 404)
       throw new Error("Failed to reset the vault on the server.");
     versionRegistry.delete(this.key);
   }

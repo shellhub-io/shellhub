@@ -97,10 +97,11 @@ describe("request interceptor", () => {
     ["expired", () => makeJwt(pastExp())],
     ["malformed", () => "not-a-jwt"],
   ])("rejects a %s token before it reaches the network, and logs out", async (_label, makeToken) => {
+    vi.useFakeTimers();
     useAuthStore.setState({ token: makeToken() });
     const fetchMock = respondWith(200);
 
-    await expect(client.get({ url: "/test" })).rejects.toThrow("Token expired");
+    await expect(client.get({ url: "/test", throwOnError: true })).rejects.toThrow("Token expired");
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(useAuthStore.getState().token).toBeNull();
@@ -108,14 +109,26 @@ describe("request interceptor", () => {
   });
 
   it("keeps the session on an expired token during a token login", async () => {
+    vi.useFakeTimers();
     setLocation("?token=abc");
     useAuthStore.setState({ token: makeJwt(pastExp()) });
     respondWith(200);
 
-    await expect(client.get({ url: "/test" })).rejects.toThrow("Token expired");
+    await expect(client.get({ url: "/test", throwOnError: true })).rejects.toThrow("Token expired");
 
     expect(useAuthStore.getState().token).not.toBeNull();
     expect(window.location.href).toBe("");
+  });
+
+  it("leaves the API marked up when the token is rejected before the network", async () => {
+    vi.useFakeTimers();
+    useAuthStore.setState({ token: makeJwt(pastExp()) });
+    respondWith(200);
+
+    await client.get({ url: "/test" });
+
+    vi.advanceTimersByTime(GRACE_PERIOD_MS);
+    expect(useConnectivityStore.getState().apiReachable).toBe(true);
   });
 });
 

@@ -15,6 +15,8 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+class ExpiredTokenError extends Error {}
+
 const GRACE_PERIOD_MS = 5000;
 let downTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -48,7 +50,7 @@ client.interceptors.request.use((request) => {
         useAuthStore.getState().logout();
         window.location.href = "/login";
       }
-      throw new Error("Token expired");
+      throw new ExpiredTokenError("Token expired");
     }
     request.headers.set("Authorization", `Bearer ${token}`);
   }
@@ -86,7 +88,7 @@ client.interceptors.response.use((response) => {
 
 client.interceptors.error.use((error, response) => {
   if (!response) {
-    scheduleMarkDown();
+    if (!(error instanceof ExpiredTokenError)) scheduleMarkDown();
     return error;
   }
 
