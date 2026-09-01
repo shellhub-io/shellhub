@@ -5,7 +5,7 @@ description: |
 type: object
 properties:
   hostname:
-    description: Public key's regex hostname.
+    description: Public key's hostname regexp, which must match the whole device name.
     type: string
     example: .*
   tags:

@@ -17,7 +17,7 @@ properties:
       - type: object
         properties:
           hostname:
-            description: Firewall rule's hostname
+            description: Firewall rule's hostname regexp, which must match the whole device name
             type: string
             example: .*
         required:
@@ -34,11 +34,11 @@ properties:
     minimum: 0
     example: 1
   source_ip:
-    description: Firewall rule's source IP regexp
+    description: Firewall rule's source IP regexp, which must match the whole address
     type: string
     example: .*
   username:
-    description: Firewall rule's username regexp
+    description: Firewall rule's username regexp, which must match the whole username
     type: string
     example: .*
 required:

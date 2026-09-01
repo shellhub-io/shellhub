@@ -163,7 +163,7 @@ export default function KeyDrawer({
             value="hostname"
             icon={<ClipboardDocumentListIcon className="w-4 h-4" />}
             label="Filter by hostname"
-            description="Restrict access using a regexp pattern for hostname."
+            description="Restrict access to devices whose whole name the pattern matches."
           />
           <RadioCard
             value="tags"
