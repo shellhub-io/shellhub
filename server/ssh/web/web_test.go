@@ -1,8 +1,13 @@
 package web
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/json"
+	"encoding/pem"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,8 +16,25 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
 )
+
+// writeHostKey writes a throwaway host key for the bridge to pin to, and returns its path.
+func writeHostKey(t *testing.T) string {
+	t.Helper()
+
+	_, key, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	block, err := ssh.MarshalPrivateKey(key, "")
+	require.NoError(t, err)
+
+	path := filepath.Join(t.TempDir(), "ssh.key")
+	require.NoError(t, os.WriteFile(path, pem.EncodeToMemory(block), 0o600))
+
+	return path
+}
 
 // TestExitLogLevel verifies that exitLogLevel returns logrus.WarnLevel for
 // expected/banner-derived errors and logrus.ErrorLevel for genuine server faults.
@@ -111,7 +133,7 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 
 	// The token is never found, so the request fails before either dependency is
 	// reached.
-	NewSSHServerBridge(e, nil, nil, webhandoff.NewStore())
+	require.NoError(t, NewSSHServerBridge(e, nil, nil, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
 	server := httptest.NewServer(e)
 	defer server.Close()
@@ -141,4 +163,10 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 		require.True(t, ok)
 		assert.Contains(t, data, ErrBridgeCredentialsNotFound.Error())
 	}, "handler must not panic when credentials are not found")
+}
+
+func TestNewSSHServerBridge_MissingHostKey(t *testing.T) {
+	err := NewSSHServerBridge(echo.New(), nil, nil, webhandoff.NewStore(), &Config{HostKeyFile: filepath.Join(t.TempDir(), "absent.key")})
+
+	assert.ErrorIs(t, err, ErrBridgeReadHostKey)
 }

@@ -36,7 +36,10 @@ var (
 	ErrWebSocketGetIP         = errors.New("failed to get IP from query")
 )
 
-var ErrBridgeCredentialsNotFound = errors.New("failed to find the credentials")
+var (
+	ErrBridgeCredentialsNotFound = errors.New("failed to find the credentials")
+	ErrBridgeReadHostKey         = errors.New("failed to read the SSH server's host key")
+)
 
 var (
 	ErrGetToken      = errors.New("token not found on request query")

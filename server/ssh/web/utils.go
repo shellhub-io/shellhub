@@ -6,6 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"os"
+
+	"golang.org/x/crypto/ssh"
 )
 
 type Credentials struct {
@@ -75,11 +78,30 @@ func (c *Credentials) isPassword() bool {
 }
 
 // Dimensions represents a web SSH terminal dimensions.
+//
+// The sizes are 16 bits wide because that is what a pty can allocate; the width also makes
+// the conversion to the int the pty request takes exact on any platform.
 type Dimensions struct {
-	Cols uint32 `json:"cols"`
-	Rows uint32 `json:"rows"`
+	Cols uint16 `json:"cols"`
+	Rows uint16 `json:"rows"`
 }
 
 type Info struct {
 	IP string `json:"ip"`
+}
+
+// readHostKey loads the public half of the SSH server's host key, which the bridge pins its
+// loopback connection to.
+func readHostKey(path string) (ssh.PublicKey, error) {
+	pem, err := os.ReadFile(path) //nolint:gosec // path comes from the server's own configuration, not user input.
+	if err != nil {
+		return nil, errors.Join(ErrBridgeReadHostKey, err)
+	}
+
+	signer, err := ssh.ParsePrivateKey(pem)
+	if err != nil {
+		return nil, errors.Join(ErrBridgeReadHostKey, err)
+	}
+
+	return signer.PublicKey(), nil
 }

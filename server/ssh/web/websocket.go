@@ -16,28 +16,27 @@ func getToken(req *http.Request) (string, error) {
 	return token, nil
 }
 
-func getDimensions(req *http.Request) (uint32, uint32, error) {
-	toUint32 := func(text string) (uint64, error) {
-		integer, err := strconv.ParseUint(text, 10, 32)
+func getDimensions(req *http.Request) (uint16, uint16, error) {
+	toUint16 := func(text string) (uint16, error) {
+		integer, err := strconv.ParseUint(text, 10, 16)
 		if err != nil {
 			return 0, err
 		}
 
-		return integer, nil
+		return uint16(integer), nil
 	}
 
-	cols, err := toUint32(req.URL.Query().Get("cols"))
+	cols, err := toUint16(req.URL.Query().Get("cols"))
 	if err != nil {
 		return 0, 0, errors.Join(ErrGetDimensions, err)
 	}
 
-	rows, err := toUint32(req.URL.Query().Get("rows"))
+	rows, err := toUint16(req.URL.Query().Get("rows"))
 	if err != nil {
 		return 0, 0, errors.Join(ErrGetDimensions, err)
 	}
 
-	//nolint:gosec // cols and rows are uint32, so we can safely convert them.
-	return uint32(cols), uint32(rows), nil
+	return cols, rows, nil
 }
 
 func getIP(req *http.Request) (string, error) {
