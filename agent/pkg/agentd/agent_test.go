@@ -341,6 +341,57 @@ func TestAgent_GetInfo(t *testing.T) {
 	}
 }
 
+func TestAgent_probeServerInfo(t *testing.T) {
+	type expected struct {
+		serverInfo *models.Info
+		err        error
+	}
+
+	failure := errors.New("the server could not be reached")
+
+	tests := []struct {
+		description   string
+		requiredMocks func(cli *client_mocks.MockClient)
+		expected      expected
+	}{
+		{
+			description: "leaves the server info unset when the probe fails",
+			requiredMocks: func(cli *client_mocks.MockClient) {
+				cli.On("GetInfo", "latest").Return(nil, failure).Once()
+			},
+			expected: expected{
+				serverInfo: nil,
+				err:        failure,
+			},
+		},
+		{
+			description: "stores the server info when the probe succeeds",
+			requiredMocks: func(cli *client_mocks.MockClient) {
+				cli.On("GetInfo", "latest").Return(&models.Info{Version: "latest"}, nil).Once()
+			},
+			expected: expected{
+				serverInfo: &models.Info{Version: "latest"},
+				err:        nil,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			cli := new(client_mocks.MockClient)
+			test.requiredMocks(cli)
+
+			agent := &Agent{
+				cli:    cli,
+				config: &Config{Version: "latest"},
+			}
+
+			require.ErrorIs(t, agent.probeServerInfo(), test.expected.err)
+			assert.Equal(t, test.expected.serverInfo, agent.serverInfo)
+		})
+	}
+}
+
 // TestAgent_generatePrivateKey_PathContainment verifies that the production
 // generatePrivateKey method rejects PrivateKey paths that contain raw ".."
 // traversal sequences.  The raw path is what an operator would supply via

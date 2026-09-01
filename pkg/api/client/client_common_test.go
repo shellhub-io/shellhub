@@ -229,6 +229,17 @@ func TestGetDevice(t *testing.T) {
 				err:    errors.Join(ErrUnknown, errors.New("418")),
 			},
 		},
+		{
+			description: "failed when the response succeeds with an empty body",
+			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
+			requiredMocks: func() {
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", httpmock.NewStringResponder(200, ""))
+			},
+			expected: Expected{
+				device: nil,
+				err:    ErrEmptyResponse,
+			},
+		},
 	}
 
 	for _, test := range tests {

@@ -453,9 +453,13 @@ func (a *Agent) loadDeviceInfo() error {
 
 func (a *Agent) probeServerInfo() error {
 	info, err := a.cli.GetInfo(a.config.Version)
+	if err != nil {
+		return err
+	}
+
 	a.serverInfo = info
 
-	return err
+	return nil
 }
 
 // ErrNoIdentityAndHostname is returned when the device can name itself neither by MAC nor by

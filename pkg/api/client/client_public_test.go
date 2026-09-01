@@ -122,6 +122,17 @@ func TestGetInfo(t *testing.T) {
 				err:  errors.Join(ErrUnknown, errors.New("418")),
 			},
 		},
+		{
+			description: "failed when the response succeeds with an empty body",
+			version:     "v0.13.0",
+			requiredMocks: func() {
+				mock.RegisterResponder("GET", "/info?agent_version=v0.13.0", mock.NewStringResponder(200, ""))
+			},
+			expected: Expected{
+				info: nil,
+				err:  ErrEmptyResponse,
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -236,6 +247,33 @@ func TestAuthDevice(t *testing.T) {
 					Namespace: "00000000-0000-4000-0000-000000000000",
 				},
 				err: nil,
+			},
+		},
+		{
+			description: "failed when the response succeeds with an empty body",
+			request: &models.DeviceAuthRequest{
+				Info: &models.DeviceInfo{
+					ID:         "manjaro",
+					PrettyName: "Manjaro",
+					Version:    "latest",
+					Arch:       "amd64",
+					Platform:   "docker",
+				},
+				DeviceAuth: &models.DeviceAuth{
+					Hostname: "83-18-77-25-78-0d",
+					Identity: &models.DeviceIdentity{
+						MAC: "83:18:77:25:78:0d",
+					},
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					PublicKey: "",
+				},
+			},
+			requiredMocks: func() {
+				mock.RegisterResponder("POST", "/api/devices/auth", mock.NewStringResponder(200, ""))
+			},
+			expected: Expected{
+				response: nil,
+				err:      ErrEmptyResponse,
 			},
 		},
 	}
