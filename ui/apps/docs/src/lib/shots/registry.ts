@@ -18,14 +18,17 @@ function store(): ShotDeclaration[] {
   return host[REGISTRY];
 }
 
+/** Add a declaration, called by `<Shot>` as the page renders. */
 export function recordShot(declaration: ShotDeclaration): void {
   store().push(declaration);
 }
 
+/** Everything declared since the last reset. */
 export function collectShots(): ShotDeclaration[] {
   return [...store()];
 }
 
+/** Drop what a previous build recorded, so a rebuild starts empty. */
 export function resetShots(): void {
   store().length = 0;
 }
