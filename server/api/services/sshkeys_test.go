@@ -16,6 +16,7 @@ import (
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -173,6 +174,73 @@ func TestEvaluateKeyFilter(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestEvaluateKeyUsername(t *testing.T) {
+	ctx := context.TODO()
+
+	cases := []struct {
+		description string
+		username    string
+		login       string
+		expected    bool
+	}{
+		{
+			description: "an unrestricted key authorizes any login",
+			username:    "",
+			login:       "root",
+			expected:    true,
+		},
+		{
+			description: "a restricted key authorizes the login it names",
+			username:    "root",
+			login:       "root",
+			expected:    true,
+		},
+		{
+			description: "a restricted key refuses a login that merely contains its rule",
+			username:    "root",
+			login:       "notroot",
+			expected:    false,
+		},
+		{
+			description: "a restricted key refuses a login its rule only prefixes",
+			username:    "deploy",
+			login:       "deployer",
+			expected:    false,
+		},
+		{
+			description: "a restricted key refuses a login trailing past its rule",
+			username:    "root",
+			login:       "root\nevil",
+			expected:    false,
+		},
+		{
+			description: "a rule listing alternatives authorizes each of them in full",
+			username:    "root|admin",
+			login:       "admin",
+			expected:    true,
+		},
+		{
+			description: "a rule listing alternatives refuses a login extending one of them",
+			username:    "root|admin",
+			login:       "administrator",
+			expected:    false,
+		},
+	}
+
+	storeMock := storemock.NewMockStore(t)
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			key := &models.PublicKey{PublicKeyFields: models.PublicKeyFields{Username: tc.username}}
+
+			ok, err := service.EvaluateKeyUsername(ctx, key, tc.login)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, ok)
+		})
+	}
 }
 
 func TestListPublicKeys(t *testing.T) {

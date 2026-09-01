@@ -11,16 +11,17 @@ import (
 // PublicKeyFilter contains the filter rule of a Public Key.
 //
 // A PublicKeyFilter can contain either Hostname, string, or Tags, slice of strings never both.
+// Hostname is a regexp matched against the whole device name; see MatchPattern.
 type PublicKeyFilter struct {
 	Hostname string `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
 	Taggable `json:",inline"`
 }
 
 // Matches reports whether the given device satisfies the filter. A filter is
-// either a hostname regexp matched against the device name, or a tag set matched
-// by intersection against the device's tag ids; an empty filter matches every
-// device. It is the shared device-selector matcher used by both the public-key
-// ACL and Access Policies.
+// either a hostname pattern matched against the whole device name (see
+// MatchPattern), or a tag set matched by intersection against the device's tag
+// ids; an empty filter matches every device. It is the shared device-selector
+// matcher used by both the public-key ACL and Access Policies.
 //
 // The device must already carry its tag ids (Taggable.TagIDs) for the tag
 // branch; callers resolving a device from an agent-sent payload must populate
@@ -28,7 +29,7 @@ type PublicKeyFilter struct {
 func (f PublicKeyFilter) Matches(device *Device) (bool, error) {
 	switch {
 	case f.Hostname != "":
-		return regexp.MatchString(f.Hostname, device.Name)
+		return MatchPattern(f.Hostname, device.Name)
 	case len(f.TagIDs) > 0:
 		for _, tagID := range f.TagIDs {
 			if slices.Contains(device.TagIDs, tagID) {
@@ -53,7 +54,7 @@ type PublicKeyFields struct {
 
 // Validate checks the fields, including that Username and the filter's Hostname compile as regular
 // expressions — they are patterns, not literals, and an uncompilable one would silently match
-// nothing.
+// nothing. It does not require them to be anchored: MatchPattern anchors them at match time.
 func (p *PublicKeyFields) Validate() error {
 	v := validator.New()
 

@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"regexp"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -62,16 +61,7 @@ func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, 
 }
 
 func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, username string) (bool, error) {
-	if key.Username == "" {
-		return true, nil
-	}
-
-	ok, err := regexp.MatchString(key.Username, username)
-	if err != nil {
-		return false, err
-	}
-
-	return ok, nil
+	return models.MatchPattern(key.Username, username)
 }
 
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
