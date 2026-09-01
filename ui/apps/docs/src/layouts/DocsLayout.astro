@@ -7,6 +7,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { sidebar, flattenItems } from "../data/sidebar";
+import { websiteUrl } from "../data/links";
 
 interface Props {
   title: string;
@@ -14,8 +15,6 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
-// Hardcoded to the local dev URL for now (no prod deploy yet).
-const websiteUrl = "http://website.localhost";
 
 const defaultCollapsed = new Set<string>();
 
