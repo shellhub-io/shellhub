@@ -3,7 +3,6 @@ package pg
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -39,6 +38,14 @@ func (*queryOptions) Paginate(page *query.Paginator) store.QueryOption {
 	}
 }
 
+func sortDirection(order string) bun.Safe {
+	if order == query.OrderAsc {
+		return bun.Safe("ASC")
+	}
+
+	return bun.Safe("DESC")
+}
+
 func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 	return func(ctx context.Context) error {
 		if sorter.By == "" {
@@ -58,10 +65,12 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 			return bun.Ident(col)
 		}
 
+		direction := sortDirection(sorter.Order)
+
 		if sorter.Tiebreak != "" {
-			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", qualifyCol(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)), qualifyCol(sorter.Tiebreak))
+			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", qualifyCol(sorter.By), direction, qualifyCol(sorter.Tiebreak))
 		} else {
-			wrapper.query = wrapper.query.OrderExpr("? ?", qualifyCol(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
+			wrapper.query = wrapper.query.OrderExpr("? ?", qualifyCol(sorter.By), direction)
 		}
 
 		return nil
