@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -2631,6 +2632,12 @@ func TestCreateUserToken(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+const (
+	testKeyPlaintext  = "00000000-0000-4000-0000-000000000000"
+	testKeyDigest     = "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a"
+	testKeyCacheEntry = "api-key={f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a}"
+)
+
 func TestAuthAPIKey(t *testing.T) {
 	type Expected struct {
 		apiKey *models.APIKey
@@ -2649,16 +2656,14 @@ func TestAuthAPIKey(t *testing.T) {
 	}{
 		{
 			description: "fails when could not get the api key from store",
-			key:         "00000000-0000-4000-0000-000000000000",
+			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
-					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
 					Return(nil).
 					Once()
-				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
-				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2669,16 +2674,14 @@ func TestAuthAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when the api key is not valid",
-			key:         "00000000-0000-4000-0000-000000000000",
+			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
-					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
 					Return(nil).
 					Once()
-				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
-				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2695,16 +2698,14 @@ func TestAuthAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when the creator is no longer a namespace member",
-			key:         "00000000-0000-4000-0000-000000000000",
+			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
-					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
 					Return(nil).
 					Once()
-				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
-				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2717,7 +2718,7 @@ func TestAuthAPIKey(t *testing.T) {
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
+					On("Set", ctx, testKeyCacheEntry, testifymock.Anything, apiKeyCacheTTL).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2732,16 +2733,14 @@ func TestAuthAPIKey(t *testing.T) {
 		},
 		{
 			description: "caps the role to the creator's current role when the creator was demoted",
-			key:         "00000000-0000-4000-0000-000000000000",
+			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
-					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
 					Return(nil).
 					Once()
-				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
-				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2754,7 +2753,7 @@ func TestAuthAPIKey(t *testing.T) {
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
+					On("Set", ctx, testKeyCacheEntry, testifymock.Anything, apiKeyCacheTTL).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2778,16 +2777,14 @@ func TestAuthAPIKey(t *testing.T) {
 		},
 		{
 			description: "succeeds and keeps the key role when the creator still outranks it",
-			key:         "00000000-0000-4000-0000-000000000000",
+			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
-					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
 					Return(nil).
 					Once()
-				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
-				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2800,7 +2797,7 @@ func TestAuthAPIKey(t *testing.T) {
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
+					On("Set", ctx, testKeyCacheEntry, testifymock.Anything, apiKeyCacheTTL).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2838,6 +2835,222 @@ func TestAuthAPIKey(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+type fakeAPIKeyCache struct {
+	storecache.Cache
+
+	entries map[string]*models.APIKey
+	writes  map[string]int
+	ttls    map[string]time.Duration
+}
+
+func newFakeAPIKeyCache() *fakeAPIKeyCache {
+	return &fakeAPIKeyCache{
+		entries: make(map[string]*models.APIKey),
+		writes:  make(map[string]int),
+		ttls:    make(map[string]time.Duration),
+	}
+}
+
+func (f *fakeAPIKeyCache) Get(_ context.Context, key string, value any) error {
+	entry, ok := f.entries[key]
+	if !ok {
+		return nil
+	}
+
+	target, ok := value.(*models.APIKey)
+	if !ok {
+		return errors.New("unexpected type on the api key cache", "", 0)
+	}
+
+	*target = *entry
+
+	return nil
+}
+
+func (f *fakeAPIKeyCache) Set(_ context.Context, key string, value any, ttl time.Duration) error {
+	apiKey, ok := value.(*models.APIKey)
+	if !ok {
+		return errors.New("unexpected type on the api key cache", "", 0)
+	}
+
+	entry := *apiKey
+	f.entries[key] = &entry
+	f.writes[key]++
+	f.ttls[key] = ttl
+
+	return nil
+}
+
+func (f *fakeAPIKeyCache) Delete(_ context.Context, key string) error {
+	delete(f.entries, key)
+
+	return nil
+}
+
+func newAPIKeyAuthFixture(t *testing.T, cache storecache.Cache) (*mocks.MockStore, *APIService) {
+	t.Helper()
+
+	storeMock := mocks.NewMockStore(t)
+
+	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	return storeMock, NewService(storeMock, privKey, &privKey.PublicKey, cache)
+}
+
+func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
+	ctx := context.Background()
+	cache := newFakeAPIKeyCache()
+	storeMock, service := newAPIKeyAuthFixture(t, cache)
+
+	apiKey := &models.APIKey{
+		ID:        testKeyDigest,
+		Name:      "dev",
+		TenantID:  "00000000-0000-4000-0000-000000000000",
+		CreatedBy: "creator-id",
+		Role:      authorizer.RoleAdministrator,
+		ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+	}
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		Return(apiKey, nil).
+		Once()
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+		Return(&models.Namespace{
+			TenantID: "00000000-0000-4000-0000-000000000000",
+			Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
+		}, nil).
+		Twice()
+
+	first, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.NoError(t, err)
+	require.Equal(t, authorizer.RoleAdministrator, first.Role)
+
+	cached, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.NoError(t, err)
+	require.Equal(t, authorizer.RoleAdministrator, cached.Role)
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyNameResolver, "dev").
+		Return(apiKey, nil).
+		Once()
+	storeMock.
+		On("APIKeyDelete", ctx, apiKey).
+		Return(nil).
+		Once()
+
+	require.NoError(t, service.DeleteAPIKey(ctx, &requests.DeleteAPIKey{
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Name:     "dev",
+	}))
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		Return(nil, store.ErrNoDocuments).
+		Once()
+
+	revoked, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.Nil(t, revoked)
+	require.Equal(t, NewErrAPIKeyNotFound("", store.ErrNoDocuments), err)
+}
+
+func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
+	ctx := context.Background()
+	cache := newFakeAPIKeyCache()
+	storeMock, service := newAPIKeyAuthFixture(t, cache)
+
+	apiKey := &models.APIKey{
+		ID:        testKeyDigest,
+		Name:      "dev",
+		TenantID:  "00000000-0000-4000-0000-000000000000",
+		CreatedBy: "creator-id",
+		Role:      authorizer.RoleAdministrator,
+		ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+	}
+
+	namespace := &models.Namespace{
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
+	}
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		Return(apiKey, nil).
+		Once()
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+		Return(namespace, nil).
+		Times(3)
+
+	before, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.NoError(t, err)
+	require.Equal(t, authorizer.RoleAdministrator, before.Role)
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyNameResolver, "dev").
+		Return(apiKey, nil).
+		Once()
+	storeMock.
+		On("APIKeyUpdate", ctx, apiKey).
+		Return(nil).
+		Once()
+
+	require.NoError(t, service.UpdateAPIKey(ctx, &requests.UpdateAPIKey{
+		TenantID:    "00000000-0000-4000-0000-000000000000",
+		UserID:      "creator-id",
+		CurrentName: "dev",
+		Name:        "dev",
+		Role:        authorizer.RoleObserver,
+	}))
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		Return(apiKey, nil).
+		Once()
+
+	after, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.NoError(t, err)
+	require.Equal(t, authorizer.RoleObserver, after.Role)
+}
+
+func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
+	ctx := context.Background()
+	cache := newFakeAPIKeyCache()
+	storeMock, service := newAPIKeyAuthFixture(t, cache)
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		Return(
+			&models.APIKey{
+				ID:        testKeyDigest,
+				Name:      "dev",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				CreatedBy: "creator-id",
+				Role:      authorizer.RoleObserver,
+				ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+			},
+			nil,
+		).
+		Once()
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+		Return(&models.Namespace{
+			TenantID: "00000000-0000-4000-0000-000000000000",
+			Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
+		}, nil).
+		Times(4)
+
+	for range 4 {
+		_, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+		require.NoError(t, err)
+	}
+
+	require.Equal(t, 1, cache.writes[testKeyCacheEntry])
+	require.Equal(t, apiKeyCacheTTL, cache.ttls[testKeyCacheEntry])
 }
 
 // TestAuthDevice_RemoteAddr verifies that RemoteAddr is persisted from the client-supplied

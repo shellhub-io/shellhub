@@ -37,10 +37,16 @@ type APIKeyService interface {
 	// total count of documents in the database, and an error, if any.
 	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int, err error)
 
-	// UpdateAPIKey updates an API key with the provided tenant ID and name. It returns an error, if any.
+	// UpdateAPIKey updates an API key with the provided tenant ID and name, dropping the key's cached
+	// document so the new role is enforced on the next request. It returns an error, if any; an error from
+	// the invalidation means the key may still authenticate with its previous role until apiKeyCacheTTL
+	// lapses, so the caller must not report the update as applied.
 	UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) (err error)
 
-	// DeleteAPIKey deletes an API key with the provided tenant ID and name. It returns an error, if any.
+	// DeleteAPIKey deletes an API key with the provided tenant ID and name, dropping the key's cached
+	// document so the key stops authenticating at once. It returns an error, if any; an error from the
+	// invalidation means the key may still authenticate until apiKeyCacheTTL lapses, so the caller must not
+	// report the revocation as complete.
 	DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) (err error)
 }
 
@@ -161,7 +167,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return err
 	}
 
-	return nil
+	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.ID))
 }
 
 func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
@@ -184,5 +190,5 @@ func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) 
 		return err
 	}
 
-	return nil
+	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.ID))
 }

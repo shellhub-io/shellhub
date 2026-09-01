@@ -73,7 +73,9 @@ type AuthService interface {
 	// which means that some routes are blocked from authentication within this method. An API key can be expired,
 	// rendering it invalid. It returns the API key and an error if any.
 	//
-	// The key is cached for 2 minutes after use, so requests made within this period will treat the key as valid.
+	// The document is cached under the key's digest for at most apiKeyCacheTTL from the resolution that populated
+	// it; using the key does not extend that. DeleteAPIKey and UpdateAPIKey drop the entry, so a revoked key stops
+	// authenticating at once.
 	AuthAPIKey(ctx context.Context, key string) (apiKey *models.APIKey, err error)
 
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
@@ -659,19 +661,29 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}, nil
 }
 
+// apiKeyCacheTTL bounds how long AuthAPIKey serves a key from the cache when nothing revokes it first.
+const apiKeyCacheTTL = 2 * time.Minute
+
+// apiKeyCacheKey names the cache entry of the API key with the given digest. The digest is what every
+// mutation of the key resolves, so an entry can be dropped without holding the plaintext.
+func apiKeyCacheKey(digest string) string {
+	return "api-key={" + digest + "}"
+}
+
 func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
+	keySum := sha256.Sum256([]byte(key))
+	digest := hex.EncodeToString(keySum[:])
+
 	apiKey := new(models.APIKey)
-	if err := s.cache.Get(ctx, "api-key={"+key+"}", apiKey); err != nil {
+	if err := s.cache.Get(ctx, apiKeyCacheKey(digest), apiKey); err != nil {
 		return nil, err
 	}
 
-	if apiKey.ID == "" {
-		keySum := sha256.Sum256([]byte(key))
-		hashedKey := hex.EncodeToString(keySum[:])
-
+	fromCache := apiKey.ID != ""
+	if !fromCache {
 		var err error
 		sc := scope.NewUnbounded("authenticating an API key by its digest, which is itself the capability identifying the namespace")
-		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey); err != nil {
+		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, digest); err != nil {
 			return nil, NewErrAPIKeyNotFound("", err)
 		}
 	}
@@ -680,8 +692,10 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)
 	}
 
-	if err := s.cache.Set(ctx, "api-key={"+key+"}", apiKey, 2*time.Minute); err != nil {
-		log.WithError(err).Info("Unable to set the api-key in cache")
+	if !fromCache {
+		if err := s.cache.Set(ctx, apiKeyCacheKey(digest), apiKey, apiKeyCacheTTL); err != nil {
+			log.WithError(err).Info("Unable to set the api-key in cache")
+		}
 	}
 
 	_, role, err := s.ResolveNamespaceRole(ctx, apiKey.TenantID, apiKey.CreatedBy)
