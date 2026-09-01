@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The install key routes, relative to the API's base path.
@@ -58,6 +60,10 @@ func (h *Handler) ListInstallKeys(c *gateway.Context) error {
 
 	if req.Sorter.Order == "" {
 		req.Sorter.Order = "desc"
+	}
+
+	if err := query.ValidateSorter(&req.Sorter, services.InstallKeySortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -149,6 +155,10 @@ func (h *Handler) HistoryInstallKey(c *gateway.Context) error {
 
 	if req.Sorter.Order == "" {
 		req.Sorter.Order = "desc"
+	}
+
+	if err := query.ValidateSorter(&req.Sorter, services.InstallKeyEventSortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {

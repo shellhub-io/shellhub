@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -25,6 +26,30 @@ import (
 
 const (
 	installKeyMaxEphemeralTimeout = 10
+)
+
+// InstallKeySortFields is the set of field names accepted in the sort_by query parameter when
+// listing install keys. The row also holds the key ciphertext and the webhook signing secret,
+// neither of which the response carries and neither of which a sort must order by.
+var InstallKeySortFields = query.NewFieldSet(
+	"name",
+	"mode",
+	"type",
+	"used_times",
+	"last_used_at",
+	"created_at",
+	"updated_at",
+	"expires_at",
+)
+
+// InstallKeyEventSortFields is the set of field names accepted in the sort_by query parameter
+// when listing an install key's history.
+var InstallKeyEventSortFields = query.NewFieldSet(
+	"hostname",
+	"source_ip",
+	"decided_status",
+	"decided_at",
+	"created_at",
 )
 
 func installKeyExpiry(days *int) *time.Time {

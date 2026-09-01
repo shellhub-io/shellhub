@@ -55,7 +55,9 @@ get:
       required: false
       in: query
     - name: sort_by
-      description: The property to sort of.
+      description: |
+        The property to sort by. Accepts `name`, `created_at`, `updated_at` and `expires_in`;
+        any other value is rejected with 400.
       schema:
         type: string
         example: name

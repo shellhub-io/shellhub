@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -124,6 +126,14 @@ func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	if err := c.Validate(req); err != nil {
 		return err
 	}
@@ -152,6 +162,14 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace membership invitation list filter")
 
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
 

@@ -16,6 +16,8 @@ get:
         Membership invitations filter.
 
         Filter field receives a base64url-encoded JSON object (URL-safe, unpadded) to limit the search. Standard base64 is also accepted for backward compatibility.
+
+        Filterable fields are `status` and `role`, each with the `eq` and `ne` operators. Naming any other field is rejected with 400.
       schema:
         type: string
       required: false
