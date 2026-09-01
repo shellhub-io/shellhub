@@ -161,3 +161,34 @@ func TestNsenterArgs(t *testing.T) {
 		assert.Empty(t, args)
 	})
 }
+
+//nolint:paralleltest
+func TestNsenterCommandWrapperIDsAboveMaxInt32(t *testing.T) {
+	origStatFn := statFn
+
+	t.Cleanup(func() {
+		statFn = origStatFn
+	})
+
+	statFn = func(path string) (os.FileInfo, error) {
+		if path == "/usr/bin/nsenter" {
+			return nil, nil
+		}
+
+		return nil, os.ErrNotExist
+	}
+
+	const (
+		uid = uint32(4294967294)
+		gid = uint32(4294967293)
+		sup = uint32(2147483648)
+	)
+
+	cmd, err := nsenterCommandWrapper(uid, gid, []uint32{gid, sup}, "/home/user", "/bin/sh")
+	require.NoError(t, err)
+
+	assert.Equal(t, "4294967294", cmd[indexOf(cmd, "--ruid")+1])
+	assert.Equal(t, "4294967293", cmd[indexOf(cmd, "--regid")+1])
+	assert.Equal(t, "4294967294", cmd[indexOf(cmd, "-S")+1])
+	assert.Contains(t, cmd, "--groups=4294967293,2147483648")
+}
