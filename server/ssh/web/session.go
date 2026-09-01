@@ -187,7 +187,7 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -222,7 +222,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint:exhaustruct
 		User:            user,
 		Auth:            auth,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		HostKeyCallback: ssh.FixedHostKey(hostKey),
 		BannerCallback:  bannerCallback(conn),
 	})
 	if err != nil {

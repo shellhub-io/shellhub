@@ -310,7 +310,9 @@ func (s *Server) setupSSH(service services.Service) error {
 	// the loopback dial claims it.
 	handoff := webhandoff.NewStore()
 
-	web.NewSSHServerBridge(s.router, s.authn, service, handoff)
+	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, &web.Config{HostKeyFile: env.HostKeyFile}); err != nil {
+		return err
+	}
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

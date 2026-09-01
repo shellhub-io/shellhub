@@ -49,11 +49,26 @@ func exitLogLevel(err error) log.Level {
 	}
 }
 
+// Config is what the bridge needs to reach the SSH server it dials over the loopback.
+type Config struct {
+	// HostKeyFile is the path to that server's host key. The bridge pins its connection to
+	// the key's public half, so nothing else answering on the loopback port is accepted.
+	HostKeyFile string
+}
+
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
 //
 // authn is the API's authenticator, used to declare the WebSocket upgrade as
 // reachable without a credential. It may be nil in tests.
-func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service, handoff *webhandoff.Store) {
+//
+// It fails when the SSH server's host key cannot be read, since without it the bridge has
+// nothing to pin its connection to.
+func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service, handoff *webhandoff.Store, config *Config) error {
+	hostKey, err := readHostKey(config.HostKeyFile)
+	if err != nil {
+		return err
+	}
+
 	manager := newManager(30 * time.Second)
 
 	// The upgrade is token-gated rather than authenticated: a browser cannot set
@@ -176,10 +191,13 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 			creds,
 			Dimensions{cols, rows},
 			Info{IP: ip},
+			hostKey,
 		); err != nil {
 			exit(wsconn, err)
 
 			return
 		}
 	})))
+
+	return nil
 }

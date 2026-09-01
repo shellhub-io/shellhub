@@ -59,8 +59,8 @@ func TestGetToken(t *testing.T) {
 
 func TestGetDimensions(t *testing.T) {
 	type Expected struct {
-		cols uint32
-		rows uint32
+		cols uint16
+		rows uint16
 		err  error
 	}
 
@@ -124,8 +124,8 @@ func TestGetDimensions(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when cols or rows exceed the uint32 limit",
-			uri:         "http://localhost?cols=4294967296&rows=4294967296",
+			description: "fail when cols or rows exceed the uint16 limit",
+			uri:         "http://localhost?cols=65536&rows=65536",
 			expected: Expected{
 				cols: 0,
 				rows: 0,
@@ -133,11 +133,11 @@ func TestGetDimensions(t *testing.T) {
 			},
 		},
 		{
-			description: "success to get the cols and rows uint32 limit",
-			uri:         "http://localhost?cols=4294967295&rows=4294967295",
+			description: "success to get the cols and rows uint16 limit",
+			uri:         "http://localhost?cols=65535&rows=65535",
 			expected: Expected{
-				cols: math.MaxUint32,
-				rows: math.MaxUint32,
+				cols: math.MaxUint16,
+				rows: math.MaxUint16,
 				err:  nil,
 			},
 		},
