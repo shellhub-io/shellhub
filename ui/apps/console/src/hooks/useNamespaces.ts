@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   type Namespace as GeneratedNamespace,
   type NamespaceMemberRole,
-  type MemberView,
   getNamespacesOptions,
   getNamespaceOptions,
   getNamespaceTokenOptions,
@@ -95,7 +94,7 @@ export function useNamespaceMembers(tenantId: string) {
   });
 
   return {
-    members: (result.data ?? []) as MemberView[],
+    members: result.data ?? [],
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,
