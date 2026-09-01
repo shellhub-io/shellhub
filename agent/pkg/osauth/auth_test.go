@@ -3,6 +3,7 @@
 package osauth
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -394,6 +395,78 @@ func TestParseUint32(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestParseErrorsDoNotEchoFileContent(t *testing.T) {
+	const poison = "SUPERSECRET-injected-by-a-hostile-image"
+
+	tests := []struct {
+		name     string
+		data     string
+		parse    func(io.Reader) error
+		wantLine string
+	}{
+		{
+			name: "passwd uid field",
+			data: "root:x:0:0:root:/root:/bin/bash\nbad:x:" + poison + ":0::/:/bin/sh\n",
+			parse: func(r io.Reader) error {
+				_, err := parsePasswdReader(r)
+
+				return err
+			},
+			wantLine: "passwd line 2",
+		},
+		{
+			name: "passwd gid field",
+			data: "bad:x:0:" + poison + "::/:/bin/sh\n",
+			parse: func(r io.Reader) error {
+				_, err := parsePasswdReader(r)
+
+				return err
+			},
+			wantLine: "passwd line 1",
+		},
+		{
+			name: "passwd field count",
+			data: "bad:x:0:0:" + poison + "\n",
+			parse: func(r io.Reader) error {
+				_, err := parsePasswdReader(r)
+
+				return err
+			},
+			wantLine: "passwd line 1",
+		},
+		{
+			name: "group gid field",
+			data: "root:x:0:root\nbad:x:" + poison + ":member\n",
+			parse: func(r io.Reader) error {
+				_, err := parseGroupReader(r)
+
+				return err
+			},
+			wantLine: "group line 2",
+		},
+		{
+			name: "shadow field count",
+			data: "bad:" + poison + "\n",
+			parse: func(r io.Reader) error {
+				_, err := parseShadowReader(r)
+
+				return err
+			},
+			wantLine: "shadow line 1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.parse(strings.NewReader(tt.data))
+
+			require.Error(t, err)
+			assert.NotContains(t, err.Error(), poison)
+			assert.Contains(t, err.Error(), tt.wantLine)
 		})
 	}
 }

@@ -100,7 +100,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 				"container": *a.container,
 				"username":  username,
 			},
-		).WithError(err).Error("user passwd is empty, so the authentication via password is blocked")
+		).Error("user passwd is empty, so the authentication via password is blocked")
 
 		return false
 	}
@@ -123,7 +123,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 				"container": *a.container,
 				"username":  username,
 			},
-		).WithError(err).Error("failed to authenticate the user on the device")
+		).Error("failed to authenticate the user on the device")
 
 		return false
 	}

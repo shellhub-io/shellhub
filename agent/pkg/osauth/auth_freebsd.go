@@ -105,7 +105,7 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 func parseMasterPasswdReader(r io.Reader) (map[string]User, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]User)
-	for {
+	for lineno := 1; ; lineno++ {
 		line, _, err := lines.ReadLine()
 		if err != nil {
 			break
@@ -117,7 +117,7 @@ func parseMasterPasswdReader(r io.Reader) (map[string]User, error) {
 
 		entry, err := parseMasterPasswdLine(string(line))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("master.passwd line %d: %w", lineno, err)
 		}
 
 		entries[entry.Username] = entry
@@ -130,20 +130,20 @@ func parseMasterPasswdLine(line string) (User, error) {
 	result := User{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
 	if len(parts) != 10 {
-		return result, fmt.Errorf("passwd line had wrong number of parts %d != 10", len(parts))
+		return result, fmt.Errorf("wrong number of fields: %d != 10", len(parts))
 	}
 	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
 	uid, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return result, fmt.Errorf("passwd line had badly formatted uid %s", parts[2])
+		return result, errMalformedUID
 	}
 	result.UID = uint32(uid)
 
 	gid, err := strconv.Atoi(parts[3])
 	if err != nil {
-		return result, fmt.Errorf("passwd line had badly formatted gid %s", parts[3])
+		return result, errMalformedGID
 	}
 	result.GID = uint32(gid)
 

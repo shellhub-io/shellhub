@@ -115,14 +115,14 @@ func parseGroupLine(line string) (Group, error) {
 	result := Group{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
 	if len(parts) != 4 {
-		return result, fmt.Errorf("group line had wrong number of parts %d != 4", len(parts))
+		return result, fmt.Errorf("wrong number of fields: %d != 4", len(parts))
 	}
 	result.Name = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
 	gid, err := parseUint32(parts[2])
 	if err != nil {
-		return result, fmt.Errorf("group line had badly formatted gid %s", parts[2])
+		return result, errMalformedGID
 	}
 	result.GID = gid
 
@@ -139,7 +139,7 @@ func parseGroupLine(line string) (Group, error) {
 func parseGroupReader(r io.Reader) (map[string]Group, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]Group)
-	for {
+	for lineno := 1; ; lineno++ {
 		line, _, err := lines.ReadLine()
 		if err != nil {
 			break
@@ -151,7 +151,7 @@ func parseGroupReader(r io.Reader) (map[string]Group, error) {
 
 		entry, err := parseGroupLine(string(line))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("group line %d: %w", lineno, err)
 		}
 
 		entries[entry.Name] = entry
@@ -292,7 +292,7 @@ func parseShadowReader(r io.Reader) (map[string]shadowEntry, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]shadowEntry)
 
-	for {
+	for lineno := 1; ; lineno++ {
 		line, _, err := lines.ReadLine()
 		if err != nil {
 			break
@@ -304,7 +304,7 @@ func parseShadowReader(r io.Reader) (map[string]shadowEntry, error) {
 
 		entry, err := parseShadowLine(string(line))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("shadow line %d: %w", lineno, err)
 		}
 
 		entries[entry.Username] = entry
@@ -317,7 +317,7 @@ func parseShadowLine(line string) (shadowEntry, error) {
 	result := shadowEntry{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
 	if len(parts) != 9 {
-		return result, fmt.Errorf("shadow line had wrong number of parts %d != 9", len(parts))
+		return result, fmt.Errorf("wrong number of fields: %d != 9", len(parts))
 	}
 
 	result.Username = strings.TrimSpace(parts[0])
@@ -383,7 +383,7 @@ func singleUser() *User {
 func parsePasswdReader(r io.Reader) (map[string]User, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]User)
-	for {
+	for lineno := 1; ; lineno++ {
 		line, _, err := lines.ReadLine()
 		if err != nil {
 			break
@@ -395,7 +395,7 @@ func parsePasswdReader(r io.Reader) (map[string]User, error) {
 
 		entry, err := parsePasswdLine(string(line))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("passwd line %d: %w", lineno, err)
 		}
 
 		entries[entry.Username] = entry
@@ -408,20 +408,20 @@ func parsePasswdLine(line string) (User, error) {
 	result := User{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
 	if len(parts) != 7 {
-		return result, fmt.Errorf("passwd line had wrong number of parts %d != 7", len(parts))
+		return result, fmt.Errorf("wrong number of fields: %d != 7", len(parts))
 	}
 	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
 	uid, err := parseUint32(parts[2])
 	if err != nil {
-		return result, fmt.Errorf("passwd line had badly formatted uid %s", parts[2])
+		return result, errMalformedUID
 	}
 	result.UID = uid
 
 	gid, err := parseUint32(parts[3])
 	if err != nil {
-		return result, fmt.Errorf("passwd line had badly formatted gid %s", parts[3])
+		return result, errMalformedGID
 	}
 	result.GID = gid
 
