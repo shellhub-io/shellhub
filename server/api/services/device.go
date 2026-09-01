@@ -16,6 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// StatusAccepted is the device status that permits connections. It is spelled out here
+// because the store and the API both compare against the wire value.
 const StatusAccepted = "accepted"
 
 // DeviceFilterFields maps each filter field the device list endpoint accepts
@@ -46,6 +48,8 @@ var DeviceSortFields = query.NewFieldSet(
 	"created_at",
 )
 
+// DeviceService owns the device lifecycle: enrolment, acceptance, renaming, tagging and
+// removal, all within a namespace scope.
 type DeviceService interface {
 	ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error)
 

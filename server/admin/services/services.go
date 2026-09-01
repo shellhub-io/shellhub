@@ -8,19 +8,24 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
+// The per-edition ceilings on namespaces and devices. A negative value means no limit.
 const (
 	MaxNumberNamespacesCommunity = -1 // MaxNumberNamespacesCommunity defines a unlimited number of namespaces for communitty environment.
 	MaxNumberDevicesLimited      = 3  // MaxNumberDevicesLimited defines the limit of devices for cloud environment.
 	MaxNumberDevicesUnlimited    = -1 // MaxNumberDevicesUnlimited defines a unlimited number of devices for enterprise and community environment.
 )
 
+// NamespaceResolver names the field an admin command looks a namespace up by.
 type NamespaceResolver string
 
+// The fields a namespace can be resolved by: its human-facing name, or its tenant ID.
 const (
 	NamespaceResolverName     NamespaceResolver = "name"
 	NamespaceResolverTenantID NamespaceResolver = "tenant-id"
 )
 
+// Services is the API behind the admin CLI. It is deliberately separate from the REST API's
+// services: these operations run as the instance operator and are not reachable over HTTP.
 type Services interface {
 	// UserCreate adds a new user based on the provided user's data. This method validates data and
 	// checks for conflicts.

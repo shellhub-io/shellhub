@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
+// Mode serves SSH sessions against a Docker container rather than the host.
 type Mode struct {
 	Authenticator
 	Sessioner

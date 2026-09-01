@@ -11,6 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// APIKeyCreate implements [store.APIKeyStore].
 func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -23,6 +24,7 @@ func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, 
 	return apiKey.ID, nil
 }
 
+// APIKeyConflicts implements [store.APIKeyStore].
 func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -72,6 +74,7 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *model
 	return conflicts, len(conflicts) > 0, nil
 }
 
+// APIKeyList implements [store.APIKeyStore].
 func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -97,6 +100,7 @@ func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.Quer
 	return apiKeys, count, nil
 }
 
+// APIKeyResolve implements [store.APIKeyStore].
 func (pg *Pg) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, val string, opts ...store.QueryOption) (*models.APIKey, error) {
 	db := pg.GetConnection(ctx)
 
@@ -119,6 +123,7 @@ func (pg *Pg) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.
 	return entity.APIKeyToModel(apKey), nil
 }
 
+// APIKeyUpdate implements [store.APIKeyStore].
 func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -136,6 +141,7 @@ func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
 	return nil
 }
 
+// APIKeyDelete implements [store.APIKeyStore].
 func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -152,6 +158,7 @@ func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
 	return nil
 }
 
+// APIKeyDeleteAllByCreator implements [store.APIKeyStore].
 func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) error {
 	db := pg.GetConnection(ctx)
 
@@ -166,6 +173,8 @@ func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID 
 	return nil
 }
 
+// APIKeyResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func APIKeyResolverToString(resolver store.APIKeyResolver) (string, error) {
 	switch resolver {
 	case store.APIKeyIDResolver:

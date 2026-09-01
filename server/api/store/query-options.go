@@ -7,8 +7,12 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// NamespaceQueryOption shapes a query that has already resolved its namespace, so it can
+// read the namespace's own settings — a device limit, for instance.
 type NamespaceQueryOption func(ctx context.Context, ns *models.Namespace) error
 
+// QueryOption shapes a query. Options are applied in order and may fail, which fails the
+// query rather than silently returning unshaped results.
 type QueryOption func(ctx context.Context) error
 
 // QueryOptions carries the optional shaping of a query — filtering, pagination, sorting. The

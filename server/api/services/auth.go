@@ -29,6 +29,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// AuthService issues and validates the credentials every other service trusts: user tokens,
+// device tokens and the recovery flows around them.
 type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)

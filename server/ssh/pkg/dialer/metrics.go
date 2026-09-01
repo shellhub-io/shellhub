@@ -39,10 +39,12 @@ type Collector struct {
 	manager *Manager
 }
 
+// NewCollector returns a Prometheus collector reporting the tunnel counts manager keeps.
 func NewCollector(manager *Manager) *Collector {
 	return &Collector{manager: manager}
 }
 
+// Describe implements [prometheus.Collector].
 func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- connectionsDesc
 	ch <- devicesDesc

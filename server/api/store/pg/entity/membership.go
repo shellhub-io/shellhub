@@ -8,6 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Membership is a row of memberships, binding a user to a namespace in a role.
 type Membership struct {
 	bun.BaseModel `bun:"table:memberships"`
 
@@ -21,6 +22,7 @@ type Membership struct {
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 }
 
+// MembershipFromModel projects a membership into its row form.
 func MembershipFromModel(namespaceID string, member *models.Member) *Membership {
 	role := string(member.Role)
 	if role == "" {
@@ -79,6 +81,8 @@ func ServiceAccountFromMembership(entity *Membership) *models.ServiceAccount {
 	return account
 }
 
+// MembershipToModel rebuilds a membership from its row, filling in the user's details when the
+// relation was loaded.
 func MembershipToModel(entity *Membership) *models.Member {
 	member := &models.Member{
 		ID:      entity.UserID,

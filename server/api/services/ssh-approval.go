@@ -15,6 +15,8 @@ import (
 
 const sshApprovalTTL = 90 * time.Second
 
+// SSHApprovalService mediates connections that need a person to approve them: the gateway
+// parks the request, shows a code in the banner, and waits for someone to act on it.
 type SSHApprovalService interface {
 	// CreateSSHApproval stores a pending approval and returns a short-lived code
 	// the SSH gateway embeds in the terminal banner. The code itself is the

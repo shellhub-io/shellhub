@@ -40,6 +40,7 @@ type Store struct {
 	entries *sync.Map
 }
 
+// NewStore returns an empty [Store].
 func NewStore() *Store {
 	return &Store{entries: new(sync.Map)}
 }

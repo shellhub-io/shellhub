@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// SystemGet implements [store.SystemStore].
 func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 	db := pg.GetConnection(ctx)
 
@@ -34,6 +35,7 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 	return entity.SystemToModel(system), nil
 }
 
+// SystemSet implements [store.SystemStore].
 func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 	db := pg.GetConnection(ctx)
 

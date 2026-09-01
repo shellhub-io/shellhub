@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestWithTransaction locks that a failing callback rolls back every write it made, and that a
+// successful one commits them together.
 func (s *Suite) TestWithTransaction(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// MembershipInvitationCreate implements [store.MembershipInvitationStore].
 func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	db := pg.GetConnection(ctx)
 
@@ -29,6 +30,7 @@ func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models
 	return nil
 }
 
+// MembershipInvitationResolve implements [store.MembershipInvitationStore].
 func (pg *Pg) MembershipInvitationResolve(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error) {
 	db := pg.GetConnection(ctx)
 
@@ -58,6 +60,7 @@ func (pg *Pg) MembershipInvitationResolve(ctx context.Context, sc scope.Scope, u
 	return entity.MembershipInvitationToModel(inv), nil
 }
 
+// MembershipInvitationResolveBySig implements [store.MembershipInvitationStore].
 func (pg *Pg) MembershipInvitationResolveBySig(ctx context.Context, sig string) (*models.MembershipInvitation, error) {
 	db := pg.GetConnection(ctx)
 
@@ -80,6 +83,7 @@ func (pg *Pg) MembershipInvitationResolveBySig(ctx context.Context, sig string) 
 	return entity.MembershipInvitationToModel(inv), nil
 }
 
+// MembershipInvitationUpdate implements [store.MembershipInvitationStore].
 func (pg *Pg) MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	db := pg.GetConnection(ctx)
 
@@ -99,6 +103,7 @@ func (pg *Pg) MembershipInvitationUpdate(ctx context.Context, invitation *models
 	return nil
 }
 
+// MembershipInvitationDelete implements [store.MembershipInvitationStore].
 func (pg *Pg) MembershipInvitationDelete(ctx context.Context, invitation *models.MembershipInvitation) error {
 	db := pg.GetConnection(ctx)
 
@@ -116,6 +121,7 @@ func (pg *Pg) MembershipInvitationDelete(ctx context.Context, invitation *models
 	return nil
 }
 
+// UserMembershipInvitationList implements [store.MembershipInvitationStore].
 func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
 	db := pg.GetConnection(ctx)
 
@@ -151,6 +157,7 @@ func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, o
 	return invitations, int64(count), nil
 }
 
+// NamespaceMembershipInvitationList implements [store.MembershipInvitationStore].
 func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
 	db := pg.GetConnection(ctx)
 

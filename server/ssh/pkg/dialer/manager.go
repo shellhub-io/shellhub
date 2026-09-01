@@ -15,8 +15,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ErrNoConnection is returned when a device holds no tunnel, which is how an offline device
+// presents itself to a caller trying to reach it.
 var ErrNoConnection = errors.New("no connection")
 
+// Manager holds the live tunnels, keyed by device. A device may hold more than one at a time
+// — during a reconnect both the old and new tunnel exist — so the newest wins and the older
+// is evicted.
 type Manager struct {
 	Connections             *SyncSliceMap
 	DialerDoneCallback      func(string)
@@ -51,6 +56,7 @@ func (m *Manager) Stats() Stats {
 	}
 }
 
+// NewManager returns an empty [Manager] whose callbacks do nothing until a caller sets them.
 func NewManager() *Manager {
 	return &Manager{
 		Connections:             &SyncSliceMap{},
@@ -59,6 +65,9 @@ func NewManager() *Manager {
 	}
 }
 
+// Set records conn as the tunnel for key, displacing and closing any tunnel already there.
+// The displacement is counted, because a device that reconnects in a loop shows up as a
+// rising displaced count rather than as an error.
 func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) {
 	dialer := revdial.NewDialer(conn.Logger, conn, connPath)
 

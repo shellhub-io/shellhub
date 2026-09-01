@@ -14,6 +14,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
+// APIKeyService manages the keys that authenticate a namespace rather than a person. A key's
+// plaintext is returned once, at creation, and only its hash is kept.
 type APIKeyService interface {
 	// CreateAPIKey creates a new API key for the specified namespace. If req.Key is empty it will generate a
 	// random UUID, the optional req.OptRole must be less or equal than the user's role when provided. The key

@@ -5,6 +5,7 @@
 // server in the host machine.
 package host
 
+// Mode serves SSH sessions against the host's own accounts and shells.
 type Mode struct {
 	Authenticator
 	Sessioner

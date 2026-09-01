@@ -5,16 +5,21 @@ import (
 	"strings"
 )
 
+// Reasons an SSHID cannot be read as a target.
 var (
 	ErrSplitTarget = errors.New("could not split the target into two parts")
 	ErrNotSSHID    = errors.New("target is not from SSHID type")
 )
 
+// Target is a parsed SSHID: the username to log in as, and the device to reach, written as
+// "username@device". Data is the device half, which may be a device name, a namespace-
+// qualified name, or a device UID.
 type Target struct {
 	Username string
 	Data     string
 }
 
+// NewTarget splits an SSHID at its last @, so that a username containing an @ still parses.
 func NewTarget(sshid string) (*Target, error) {
 	const USERNAME = 0
 	const DATA = 1

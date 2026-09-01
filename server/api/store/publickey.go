@@ -7,12 +7,15 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// PublicKeyResolver names the field a public key is looked up by.
 type PublicKeyResolver int
 
+// The fields a public key can be resolved by.
 const (
 	PublicKeyFingerprintResolver PublicKeyResolver = iota
 )
 
+// PublicKeyStore persists a namespace's public keys and the rules restricting each.
 type PublicKeyStore interface {
 	// PublicKeyList retrieves a list of public keys within the given namespace scope, with optional
 	// filtering and pagination.

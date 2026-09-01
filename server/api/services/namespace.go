@@ -28,6 +28,8 @@ var namespaceFilterColumns = map[string]string{
 	"type": "scope",
 }
 
+// NamespaceService owns namespaces themselves: creating, editing and removing them, and the
+// settings that apply to everything inside one.
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)

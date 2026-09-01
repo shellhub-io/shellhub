@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Device is a row of devices. The model's UID is the id column, and its TenantID is
+// namespace_id.
 type Device struct {
 	bun.BaseModel `bun:"table:devices"`
 
@@ -47,6 +49,8 @@ type Device struct {
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
 }
 
+// DeviceFromModel projects a device into its row form, defaulting an unset status to pending
+// so a device is never stored without one.
 func DeviceFromModel(model *models.Device) *Device {
 	status := string(model.Status)
 	if status == "" {
@@ -111,6 +115,7 @@ func DeviceFromModel(model *models.Device) *Device {
 	return device
 }
 
+// DeviceToModel rebuilds a device from its row.
 func DeviceToModel(entity *Device) *models.Device {
 	device := &models.Device{
 		UID:              entity.ID,

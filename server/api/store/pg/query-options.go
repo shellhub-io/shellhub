@@ -17,6 +17,7 @@ import (
 // ErrQueryNotFound is returned when the query context value is not found or has the wrong type
 var ErrQueryNotFound = errors.New("query not found in context")
 
+// Options implements [store.Store].
 func (pg *Pg) Options() store.QueryOptions {
 	return pg.options
 }

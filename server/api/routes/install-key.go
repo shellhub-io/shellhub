@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The install key routes, relative to the API's base path.
 const (
 	CreateInstallKeyURL  = "/namespaces/install-key"
 	ListInstallKeysURL   = "/namespaces/install-key"
@@ -21,6 +22,7 @@ const (
 	EnrollmentCallbackURL = "/devices/enroll/callback/:token"
 )
 
+// CreateInstallKey mints a key an agent can enrol with, returning its plaintext.
 func (h *Handler) CreateInstallKey(c *gateway.Context) error {
 	req := new(requests.CreateInstallKey)
 
@@ -40,6 +42,7 @@ func (h *Handler) CreateInstallKey(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// ListInstallKeys serves the namespace's install keys, without their plaintext.
 func (h *Handler) ListInstallKeys(c *gateway.Context) error {
 	req := new(requests.ListInstallKey)
 
@@ -71,6 +74,7 @@ func (h *Handler) ListInstallKeys(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// UpdateInstallKey changes a key's name, expiry or the device attributes it pre-assigns.
 func (h *Handler) UpdateInstallKey(c *gateway.Context) error {
 	req := new(requests.UpdateInstallKey)
 
@@ -89,6 +93,7 @@ func (h *Handler) UpdateInstallKey(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// RevealInstallKey returns a key's plaintext, decrypting the copy kept for this purpose.
 func (h *Handler) RevealInstallKey(c *gateway.Context) error {
 	req := new(requests.RevealInstallKey)
 
@@ -108,6 +113,8 @@ func (h *Handler) RevealInstallKey(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, &responses.RevealInstallKey{Key: key})
 }
 
+// EnrollmentCallback is called by an agent once it has enrolled, so the key's history records
+// which devices it produced.
 func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 	req := new(requests.EnrollmentCallback)
 
@@ -126,6 +133,7 @@ func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// HistoryInstallKey serves the record of what a key has been used for.
 func (h *Handler) HistoryInstallKey(c *gateway.Context) error {
 	req := new(requests.ListInstallKeyEvents)
 

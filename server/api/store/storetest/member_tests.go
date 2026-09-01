@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestNamespaceCreateMembership exercises NamespaceCreateMembership against the store under test.
 func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -44,6 +45,7 @@ func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 	})
 }
 
+// TestNamespaceUpdateMembership exercises NamespaceUpdateMembership against the store under test.
 func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -86,6 +88,7 @@ func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 	})
 }
 
+// TestNamespaceDeleteMembership exercises NamespaceDeleteMembership against the store under test.
 func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

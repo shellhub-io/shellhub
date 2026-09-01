@@ -7,12 +7,15 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// AccessPolicyResolver names the field an access policy is looked up by.
 type AccessPolicyResolver int
 
+// The fields an access policy can be resolved by.
 const (
 	AccessPolicyIDResolver AccessPolicyResolver = iota
 )
 
+// AccessPolicyStore persists the rules that decide who may reach which device as whom.
 type AccessPolicyStore interface {
 	// AccessPolicyList retrieves a list of access policies scoped to a namespace.
 	AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.AccessPolicy, int, error)

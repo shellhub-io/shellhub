@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The device routes, relative to the API's base path.
 const (
 	GetDeviceListURL           = "/devices"
 	GetDeviceURL               = "/devices/:uid"
@@ -24,12 +25,14 @@ const (
 	DeleteDeviceCustomFieldURL = "/devices/:uid/custom_fields/:key"
 )
 
+// The path parameter names these routes bind by.
 const (
 	ParamDeviceID             = "uid"
 	ParamDeviceStatus         = "status"
 	ParamDeviceCustomFieldKey = "key"
 )
 
+// GetDeviceList serves the namespace's devices, filtered, sorted and paginated as requested.
 func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	req := new(requests.DeviceList)
 
@@ -113,6 +116,7 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// GetDevice serves a single device by UID.
 func (h *Handler) GetDevice(c *gateway.Context) error {
 	var req requests.DeviceGet
 	if err := c.Bind(&req); err != nil {
@@ -136,6 +140,8 @@ func (h *Handler) GetDevice(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
+// ResolveDevice serves the device matching a name or SSHID, for callers that have a name
+// rather than a UID.
 func (h *Handler) ResolveDevice(c *gateway.Context) error {
 	var req requests.ResolveDevice
 	if err := c.Bind(&req); err != nil {
@@ -154,6 +160,7 @@ func (h *Handler) ResolveDevice(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
+// DeleteDevice removes a device, ending its access to the namespace.
 func (h *Handler) DeleteDevice(c *gateway.Context) error {
 	var req requests.DeviceDelete
 	if err := c.Bind(&req); err != nil {
@@ -176,6 +183,7 @@ func (h *Handler) DeleteDevice(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// RenameDevice changes a device's name, which is part of the SSHID clients connect by.
 func (h *Handler) RenameDevice(c *gateway.Context) error {
 	var req requests.DeviceRename
 	if err := c.Bind(&req); err != nil {
@@ -198,6 +206,8 @@ func (h *Handler) RenameDevice(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// UpdateDeviceStatus accepts or rejects a pending device, or returns an accepted one to the
+// pending list.
 func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 	req := new(requests.DeviceUpdateStatus)
 
@@ -225,6 +235,7 @@ func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// UpdateDevice changes a device's editable attributes.
 func (h *Handler) UpdateDevice(c *gateway.Context) error {
 	req := new(requests.DeviceUpdate)
 
@@ -243,6 +254,7 @@ func (h *Handler) UpdateDevice(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// SetDeviceCustomField sets one operator-defined field on a device.
 func (h *Handler) SetDeviceCustomField(c *gateway.Context) error {
 	req := new(requests.DeviceSetCustomField)
 
@@ -261,6 +273,7 @@ func (h *Handler) SetDeviceCustomField(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// DeleteDeviceCustomField removes one operator-defined field from a device.
 func (h *Handler) DeleteDeviceCustomField(c *gateway.Context) error {
 	req := new(requests.DeviceDeleteCustomField)
 

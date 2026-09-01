@@ -4,6 +4,8 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
+// Updater upgrades the running agent in place. Implementations differ by how the agent was
+// installed: a Docker container is replaced, a native binary is overwritten.
 type Updater interface {
 	CurrentVersion() (*semver.Version, error)
 	ApplyUpdate(v *semver.Version) error

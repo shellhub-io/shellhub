@@ -36,6 +36,8 @@ func (c *finishingConn) Close() error {
 	return c.Conn.Close()
 }
 
+// Options is the SSH server's configuration. It is supplied by the caller rather than read
+// from the environment here, so that tests can build a server without one.
 type Options struct {
 	ConnectTimeout time.Duration
 	// HostKeyFile is the path to the SSH host key. It is deliberately not read
@@ -63,6 +65,8 @@ var keepAlive = net.KeepAliveConfig{
 
 const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
 
+// Server is the public SSH endpoint. Clients connect to it; it reaches their devices through
+// the reverse tunnels held by dialer.
 type Server struct {
 	sshd   *gliderssh.Server
 	opts   *Options
@@ -185,6 +189,8 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	}
 }
 
+// NewServer builds the SSH server, wiring the connection handlers to dialer, the session
+// bookkeeping to service, and the web terminal's credential handoff to handoff.
 func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
 	session.Configure(session.Config{
 		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
@@ -275,6 +281,7 @@ func (s *Server) Close() error {
 	return s.sshd.Close()
 }
 
+// ListenAndServe serves SSH on the configured address until the server is closed.
 func (s *Server) ListenAndServe() error {
 	log.WithFields(log.Fields{
 		"addr": s.sshd.Addr,

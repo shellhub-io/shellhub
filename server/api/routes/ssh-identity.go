@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The SSH identity routes, relative to the API's base path.
 const (
 	ListSSHIdentitiesURL = "/ssh-identities"
 	CreateSSHIdentityURL = "/ssh-identities"

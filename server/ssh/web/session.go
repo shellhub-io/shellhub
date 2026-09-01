@@ -19,6 +19,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// BannerError is a failure that the client should see as an SSH banner rather than as a
+// connection error, so that the reason reaches the user's terminal.
 type BannerError struct {
 	Message string
 	kind    banner.Kind
@@ -138,15 +140,19 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
+// Signer authenticates to the device with a key the server never holds: each signature is
+// asked of the browser over the open connection, and the private key stays in the browser.
 type Signer struct {
 	conn      *Conn
 	publicKey *ssh.PublicKey
 }
 
+// PublicKey implements [ssh.Signer].
 func (s *Signer) PublicKey() ssh.PublicKey {
 	return *s.publicKey
 }
 
+// Sign asks the browser to sign data and waits for the answer, implementing [ssh.Signer].
 func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	dataB64 := base64.StdEncoding.EncodeToString(data)
 	if _, err := s.conn.WriteMessage(&Message{Kind: messageKindSignature, Data: dataB64}); err != nil {

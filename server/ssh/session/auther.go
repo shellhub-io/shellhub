@@ -72,6 +72,8 @@ type publicKeyAuth struct {
 	pk gliderssh.PublicKey
 }
 
+// AuthPublicKey authenticates the client to the server by the key pk it presented. The device
+// is then reached with an ephemeral key minted by the server, not with pk itself.
 func AuthPublicKey(pk gliderssh.PublicKey) Auth {
 	return &publicKeyAuth{pk: pk}
 }
@@ -136,6 +138,8 @@ type passwordAuth struct {
 	pwd string
 }
 
+// AuthPassword authenticates to the device with pwd, which is forwarded as the client typed
+// it because only the device can check it against its own accounts.
 func AuthPassword(pwd string) Auth {
 	return &passwordAuth{pwd: pwd}
 }
@@ -226,6 +230,8 @@ type approvalAuth struct {
 	ctx gliderssh.Context
 }
 
+// AuthApproval authenticates a session that an administrator has approved out of band,
+// reading the approval from ctx.
 func AuthApproval(ctx gliderssh.Context) Auth {
 	return &approvalAuth{ctx: ctx}
 }
@@ -268,6 +274,7 @@ type identityAuth struct {
 	ctx gliderssh.Context
 }
 
+// AuthIdentity authenticates a session as a stored SSH identity, reading it from ctx.
 func AuthIdentity(ctx gliderssh.Context) Auth {
 	return &identityAuth{ctx: ctx}
 }

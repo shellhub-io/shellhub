@@ -28,6 +28,8 @@ var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
 	"active",
 )
 
+// SessionService owns SSH session records and their recordings — the history of who reached
+// which device, and what was seen on screen.
 type SessionService interface {
 	ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error)
 

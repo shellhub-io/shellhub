@@ -15,6 +15,8 @@ type snapshot struct {
 // State type defines the current State of an associated session. It is used as "savepoints" for snapshots.
 type State int
 
+// The states a session passes through, in order. The zero value is not a state, so that an
+// uninitialised session is distinguishable from one that has only just been created.
 const (
 	StateNil        State = iota + 1 // StateNil represents a non initialized session.
 	StateCreated                     // StateCreated represents a session that has been created but not yet registered with the API.

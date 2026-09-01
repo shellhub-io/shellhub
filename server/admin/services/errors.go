@@ -4,6 +4,8 @@ import (
 	"errors"
 )
 
+// Failures the admin services report. They are matched by the CLI to choose an exit status,
+// so they are compared by identity and must not be replaced with wrapped equivalents.
 var (
 	ErrCreateNewUser               = errors.New("failed to create a new user")
 	ErrDuplicateNamespace          = errors.New("namespace already exists")

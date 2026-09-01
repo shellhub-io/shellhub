@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// ServiceAccountList implements [store.ServiceAccountStore].
 func (pg *Pg) ServiceAccountList(ctx context.Context, tenantID string) ([]models.ServiceAccount, int, error) {
 	db := pg.GetConnection(ctx)
 

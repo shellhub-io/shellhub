@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// StatsService reports the counts shown on the dashboard.
 type StatsService interface {
 	GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error)
 }

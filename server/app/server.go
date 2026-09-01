@@ -33,6 +33,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Env is the server's configuration, read from the environment at startup. Every field
+// carries its variable name and default in its tag; those are the contract with deployment,
+// not the field names.
 type Env struct {
 	// PostgresHost specifies the host for PostgreSQL.
 	PostgresHost string `env:"POSTGRES_HOST,default=postgres"`
@@ -88,6 +91,8 @@ type sshEnv struct {
 	RequireAcceptedTunnel        bool          `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
 }
 
+// Server owns the process: the HTTP router, the background worker, and the stores and
+// services they share. One [Server] serves both the REST API and the admin surface.
 type Server struct {
 	env         *Env
 	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)

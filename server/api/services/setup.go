@@ -25,6 +25,8 @@ const (
 	devTenantID  = "00000000-0000-4000-0000-000000000000"
 )
 
+// SetupService creates the first user and namespace on a fresh instance. It refuses once an
+// instance is set up, so it cannot be used to add a second administrator.
 type SetupService interface {
 	Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)
 }

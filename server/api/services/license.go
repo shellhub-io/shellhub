@@ -7,7 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// LicenseEvaluatorFactory is a function that constructs a LicenseEvaluator using
+// LicenseEvaluatorFactoryFunc constructs a LicenseEvaluator using
 // the core store and cache. It is called during server setup when the enterprise binary
 // is built. Enterprise packages register a factory via RegisterLicenseEvaluator in their
 // init() functions.
@@ -51,6 +51,8 @@ type LicenseEvaluator interface {
 	CanConnectDevice(ctx context.Context) (bool, error)
 }
 
+// LicenseService answers whether the instance's licence permits an action. The community
+// edition permits everything; the enterprise binary registers a real evaluator.
 type LicenseService interface {
 	// EvaluateLicense reports whether the license lets an SSH connection through,
 	// returning ErrLicenseBlocked when it does not.

@@ -31,6 +31,7 @@ func (s *Suite) createInstallKey(t *testing.T, tenantID string) string {
 	return testInstallKeyDigest
 }
 
+// TestInstallKeyEventCreate locks that a key's use is recorded, so its history is complete.
 func (s *Suite) TestInstallKeyEventCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -85,6 +86,7 @@ func (s *Suite) TestInstallKeyEventCreate(t *testing.T) {
 	})
 }
 
+// TestInstallKeyEventList locks the ordering and paging of a key's history.
 func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

@@ -17,6 +17,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Handlers serves the HTTP endpoints agents use to open and hold their reverse tunnels. It
+// is a sidecar to the SSH server proper, sharing its dialer.
 type Handlers struct {
 	Config  *Config
 	Dialer  *dialer.Dialer
@@ -172,6 +174,9 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	return nil
 }
 
+// HandleConnectionV2Data is the identifying header set an agent sends when opening a V2
+// tunnel. The device UID and tenant are validated here rather than trusted, because the
+// connection is not yet authenticated at that point.
 type HandleConnectionV2Data struct {
 	RequestID string `header:"x-request-id" validate:"required"`
 	UID       string `header:"x-device-uid" validate:"required,len=64"`

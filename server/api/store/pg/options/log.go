@@ -9,6 +9,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Log installs query logging at the given logrus level.
 func Log(level string, verbose bool) Option {
 	return func(ctx context.Context, db *bun.DB) error {
 		level, err := logrus.ParseLevel(level)

@@ -21,7 +21,9 @@ const (
 	//
 	// Example of dynamic application-level port forwarding: `ssh -D 1080 user@sshid`.
 	DirectTCPIPChannel = "direct-tcpip"
-	SessionChannel     = "session"
+	// SessionChannel carries a shell, an exec or a subsystem — the ordinary use of an SSH
+	// connection, as opposed to the forwarding channels above.
+	SessionChannel = "session"
 )
 
 // Session is what the channel handlers need from an SSH session: the operations

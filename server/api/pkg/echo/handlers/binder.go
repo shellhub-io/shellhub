@@ -11,12 +11,16 @@ import (
 	errors "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
+// Binder binds a request into a struct for echo, percent-decoding path parameters first.
 type Binder struct{}
 
+// NewBinder returns the binder the API installs on its echo instance.
 func NewBinder() *Binder {
 	return &Binder{}
 }
 
+// Bind fills s from the request. A path value that will not decode is left as it arrived
+// rather than failing the request, so that validation reports it instead of the binder.
 func (b *Binder) Bind(c *echo.Context, s any) error {
 	values := c.PathValues()
 	for i, v := range values {

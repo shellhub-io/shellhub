@@ -8,13 +8,16 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 )
 
+// DefaultOSReleaseFilename is the file [GetOSRelease] reads. Tests point it elsewhere.
 var DefaultOSReleaseFilename = "/etc/os-release"
 
+// OSRelease is the distribution identity reported to the server.
 type OSRelease struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
+// GetOSRelease reads the host's os-release file, taking ID and PRETTY_NAME from it.
 func GetOSRelease() (*OSRelease, error) {
 	id, err := getValueFromOsRelease("ID")
 	if err != nil {

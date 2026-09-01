@@ -28,6 +28,10 @@ func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 	return pg.driver
 }
 
+// WithTransaction implements [store.TransactionStore]. The callback receives a context
+// carrying the transaction, so every store call made with it joins the same transaction;
+// returning an error rolls it back.
+//
 // Example:
 //
 //	err := store.WithTransaction(ctx, func(ctx context.Context) error {

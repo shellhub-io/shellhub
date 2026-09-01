@@ -13,10 +13,14 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+// Socket is the transport under a [Conn]. It is an interface so tests can drive a connection
+// without a real WebSocket.
 type Socket interface {
 	io.ReadWriteCloser
 }
 
+// Conn is the browser's end of a web terminal session. Writes are serialised, because the
+// terminal, the ping loop and the signing exchange all write to the same socket.
 type Conn struct {
 	// Socket is the internal websocket connection the messages come from.
 	Socket Socket
@@ -26,6 +30,7 @@ type Conn struct {
 	writes sync.Mutex
 }
 
+// NewConn wraps socket, starting the ticker that keeps the session marked as live.
 func NewConn(socket Socket) *Conn {
 	return &Conn{
 		Socket: socket,
@@ -67,6 +72,8 @@ const TermniosMaxLineLength = 4096
 // minimum message size [MessageMinSize].
 const ReadMessageBufferSize = MessageMinSize + (TermniosMaxLineLength * CharacterSize)
 
+// ReadMessage decodes the next message into message, returning the bytes consumed. The read
+// is bounded by [ReadMessageBufferSize] so that a client cannot force unbounded buffering.
 func (c *Conn) ReadMessage(message *Message) (int, error) {
 	limit := io.LimitReader(c.Socket, ReadMessageBufferSize)
 	decoder := json.NewDecoder(limit)
@@ -116,6 +123,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 	return int(decoder.InputOffset()), nil
 }
 
+// WriteMessage sends message as JSON, returning the bytes written.
 func (c *Conn) WriteMessage(message *Message) (int, error) {
 	c.writes.Lock()
 	defer c.writes.Unlock()
@@ -133,6 +141,8 @@ func (c *Conn) WriteMessage(message *Message) (int, error) {
 	return wrote, nil
 }
 
+// WriteBinary sends data as a binary frame, which is how terminal output is carried. Non-
+// WebSocket sockets fall back to a plain write.
 func (c *Conn) WriteBinary(data []byte) (int, error) {
 	c.writes.Lock()
 	defer c.writes.Unlock()
@@ -155,6 +165,7 @@ func (c *Conn) WriteBinary(data []byte) (int, error) {
 	return wrote, nil
 }
 
+// WritePing sends a ping frame, telling the browser the session is still open.
 func (c *Conn) WritePing() error {
 	c.writes.Lock()
 	defer c.writes.Unlock()
@@ -187,12 +198,15 @@ func (c *Conn) Write(buffer []byte) (int, error) {
 	return c.Socket.Write(buffer)
 }
 
+// Close stops the ping ticker and closes the socket.
 func (c *Conn) Close() error {
 	c.Pinger.Stop()
 
 	return c.Socket.Close()
 }
 
+// KeepAlive pings on every tick until the connection is closed. It is meant to be run in its
+// own goroutine.
 func (c *Conn) KeepAlive() {
 	socket, ok := c.Socket.(*websocket.Conn)
 	if !ok {

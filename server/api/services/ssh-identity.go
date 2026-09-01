@@ -42,6 +42,8 @@ func sshIdentityExpiry(days *int) *time.Time {
 	return &at
 }
 
+// SSHIdentityService owns the enrolled public keys that identify a person to a device, as
+// opposed to the namespace-wide keys in [SSHKeysService].
 type SSHIdentityService interface {
 	// ResolveSSHIdentity looks up an enrolled identity by namespace and
 	// fingerprint. found is false (with a nil identity and nil error) when the

@@ -63,6 +63,8 @@ type ErrDataInvalid struct {
 	Data map[string]any
 }
 
+// The service layer's failures. Each carries a layer and a code that the route layer maps to
+// an HTTP status, so a service never chooses a status itself.
 var (
 	ErrReport                          = errors.New("report error", ErrLayer, ErrCodeInvalid)
 	ErrPaymentRequired                 = errors.New("payment required", ErrLayer, ErrCodePayment)
@@ -166,6 +168,7 @@ func NewErrNoContentChange(err error, next error) error {
 	return errors.Wrap(err, next)
 }
 
+// NewErrAuthMethodNotAllowed reports that method is not among those the instance accepts.
 func NewErrAuthMethodNotAllowed(method string) error {
 	return errors.Wrap(ErrAuthMethodNotAllowed, stderrors.New("method"+method+"not allowed"))
 }
@@ -209,7 +212,7 @@ func NewErrUnathorized(err error, next error) error {
 	return errors.Wrap(err, next)
 }
 
-// NewErrBadRequest returns a error to be used when the access to a resource is not authorized.
+// NewErrRequest wraps err as a malformed-request failure, with next as its cause.
 func NewErrRequest(err error, next error) error {
 	return errors.Wrap(err, next)
 }
@@ -229,6 +232,8 @@ func NewErrAPIKeyNotFound(name string, next error) error {
 	return NewErrNotFound(ErrAPIKeyNotFound, name, next)
 }
 
+// NewErrAPIKeyInvalid reports that the named API key did not authenticate. It deliberately
+// yields the same failure as a wrong password, so a caller cannot tell one from the other.
 func NewErrAPIKeyInvalid(name string) error {
 	return NewErrAuthInvalid(map[string]any{"api-key": name}, nil)
 }
@@ -580,46 +585,58 @@ func NewErrNamespaceCreationIsForbidden(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceCreationIsForbidden, limit, err)
 }
 
+// NewErrDeviceRemovedFull reports that the namespace's removed-device history is at limit.
 func NewErrDeviceRemovedFull(limit int, next error) error {
 	return NewErrLimit(ErrDeviceRemovedFull, limit, next)
 }
 
+// NewErrBillingReportNamespaceDelete reports that billing refused a namespace deletion.
 func NewErrBillingReportNamespaceDelete(next error) error {
 	return NewErrInvalid(ErrBillingReportNamespaceDelete, nil, next)
 }
 
+// NewErrBillingReportDevice reports that billing refused a device change.
 func NewErrBillingReportDevice(next error) error {
 	return NewErrInvalid(ErrBillingReportDevice, nil, next)
 }
 
+// NewErrBillingEvaluate reports that billing could not be consulted.
 func NewErrBillingEvaluate(next error) error {
 	return NewErrInvalid(ErrBillingEvaluate, nil, next)
 }
 
+// NewErrDeviceMaxDevicesReached reports that the namespace already holds count devices.
 func NewErrDeviceMaxDevicesReached(count int) error {
 	return NewErrLimit(ErrMaxDeviceCountReached, count, nil)
 }
 
+// NewErrAuthForbidden reports that the caller is authenticated but not permitted.
 func NewErrAuthForbidden() error {
 	return NewErrForbidden(ErrAuthForbidden, nil)
 }
 
+// NewErrRoleForbidden reports that the caller's namespace role is too low for the action.
 func NewErrRoleForbidden() error {
 	return NewErrForbidden(ErrRoleForbidden, nil)
 }
 
+// NewErrUserDelete reports that a user could not be removed.
 func NewErrUserDelete(err error) error {
 	return NewErrInvalid(ErrUserDelete, nil, err)
 }
 
+// NewErrSetupForbidden reports that the instance is already set up, so setup cannot run again.
 func NewErrSetupForbidden(err error) error {
 	return NewErrForbidden(ErrSetupForbidden, err)
 }
 
+// NewErrAuthDeviceNoIdentityAndHostname reports that a device offered neither a MAC nor a
+// hostname, leaving nothing to identify it by.
 func NewErrAuthDeviceNoIdentityAndHostname() error {
 	return NewErrInvalid(ErrAuthDeviceNoIdentityAndHostname, map[string]any{}, nil)
 }
 
+// NewErrAuthDeviceNoIdentity reports that a device offered no MAC address.
 func NewErrAuthDeviceNoIdentity() error {
 	return NewErrInvalid(ErrAuthDeviceNoIdentity, map[string]any{"identity": true}, nil)
 }

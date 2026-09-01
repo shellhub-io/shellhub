@@ -7,6 +7,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// User is a row of users. Namespaces is scan-only: it is computed by a join, not stored.
 type User struct {
 	bun.BaseModel `bun:"table:users"`
 
@@ -28,6 +29,8 @@ type User struct {
 	Namespaces       int             `bun:"namespaces,scanonly"`
 }
 
+// UserPreferences is embedded into the users row, so a user and their preferences are read in
+// one query.
 type UserPreferences struct {
 	// skipupdate: written only through UserUpdatePreferredNamespace and the membership/namespace
 	// removal clears, so a full-model UserUpdate can't restore a preference a concurrent removal cleared.
@@ -38,6 +41,7 @@ type UserPreferences struct {
 	EmailMarketing     bool     `bun:"email_marketing"`
 }
 
+// UserFromModel projects a user into its row form.
 func UserFromModel(model *models.User) *User {
 	authMethods := make([]string, len(model.Preferences.AuthMethods))
 	for i, method := range model.Preferences.AuthMethods {
@@ -84,6 +88,7 @@ func UserFromModel(model *models.User) *User {
 	}
 }
 
+// UserToModel rebuilds a user from its row.
 func UserToModel(entity *User) *models.User {
 	authMethods := make([]models.UserAuthMethod, len(entity.Preferences.AuthMethods))
 	for i, method := range entity.Preferences.AuthMethods {

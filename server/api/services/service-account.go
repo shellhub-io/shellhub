@@ -12,6 +12,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// ServiceAccountService manages accounts that exist only to hold an SSH identity. They never
+// sign in and are not API principals.
 type ServiceAccountService interface {
 	// CreateServiceAccount creates a service account in the namespace: a service-typed
 	// user, a membership with the service role, and an SSH identity for the given public

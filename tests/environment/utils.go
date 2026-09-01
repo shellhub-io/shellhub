@@ -12,8 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Service names a container in the test stack.
 type Service string
 
+// The services a test may reach through [DockerCompose.Service].
 const (
 	ServiceGateway Service = "gateway"
 	ServiceAgent   Service = "agent"
@@ -48,6 +50,7 @@ func GetFreePort(t *testing.T) string {
 	return port
 }
 
+// ReaderToString drains a Docker multiplexed stream, returning its stdout and discarding stderr.
 func ReaderToString(t *testing.T, reader io.Reader) string {
 	t.Helper()
 

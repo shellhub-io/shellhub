@@ -12,10 +12,12 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Reasons a filter's value cannot be rendered into SQL. They report the caller's input, not a
+// database failure, so a route maps them to a bad request rather than to a server error.
 var (
-	ErrUnsupportedContainsType = errors.New("unsupported value type for contains comparison") // ErrInvalidContainsValue is returned when a 'contains' filter has an unsupported value type
-	ErrUnsupportedBoolType     = errors.New("unsupported value type for boolean conversion")  // ErrUnsupportedBoolType is returned when a 'bool' filter receives an unsupported value type
-	ErrUnsupportedNumericType  = errors.New("unsupported value type for numeric comparison")  // ErrUnsupportedNumericType is returned when a 'gt' filter receives an unsupported value type
+	ErrUnsupportedContainsType = errors.New("unsupported value type for contains comparison")
+	ErrUnsupportedBoolType     = errors.New("unsupported value type for boolean conversion")
+	ErrUnsupportedNumericType  = errors.New("unsupported value type for numeric comparison")
 )
 
 var legacyDeviceFieldAliases = map[string]string{

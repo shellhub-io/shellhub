@@ -7,13 +7,17 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// NamespaceResolver names the field a namespace is looked up by.
 type NamespaceResolver uint
 
+// The fields a namespace can be resolved by. The zero value is not one, so an unset resolver
+// cannot silently mean the first.
 const (
 	NamespaceTenantIDResolver NamespaceResolver = iota + 1
 	NamespaceNameResolver
 )
 
+// NamespaceStore persists namespaces, their settings, and their device counts.
 type NamespaceStore interface {
 	// NamespaceList retrieves a list of namespaces based on the provided filters and pagination settings.
 	// If the user ID is available in the context, it will only match namespaces that the user is a member

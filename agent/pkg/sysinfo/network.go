@@ -12,6 +12,9 @@ import (
 	"syscall"
 )
 
+// PrimaryInterface returns the interface the device should be identified by: the up,
+// non-loopback interface with the lowest index, which is the most stable choice across
+// reboots. It reports [ErrNoInterfaceFound] when there is none.
 func PrimaryInterface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {

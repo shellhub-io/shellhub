@@ -11,6 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// UserCreate implements [store.UserStore].
 func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -26,6 +27,7 @@ func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error)
 	return user.ID, nil
 }
 
+// UserList implements [store.UserStore].
 func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -51,6 +53,7 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 	return users, count, nil
 }
 
+// UserResolve implements [store.UserStore].
 func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val string, opts ...store.QueryOption) (*models.User, error) {
 	db := pg.GetConnection(ctx)
 
@@ -75,6 +78,7 @@ func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val 
 	return entity.UserToModel(u), nil
 }
 
+// UserGetInfo implements [store.UserStore].
 func (pg *Pg) UserGetInfo(ctx context.Context, userID string) (userInfo *models.UserInfo, err error) {
 	db := pg.GetConnection(ctx)
 
@@ -106,6 +110,7 @@ func (pg *Pg) UserGetInfo(ctx context.Context, userID string) (userInfo *models.
 	return userInfo, nil
 }
 
+// UserUpdate implements [store.UserStore].
 func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 	db := pg.GetConnection(ctx)
 
@@ -124,6 +129,7 @@ func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 	return fromSQLError(err)
 }
 
+// UserUpdatePreferredNamespace implements [store.UserStore].
 func (pg *Pg) UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID string) error {
 	db := pg.GetConnection(ctx)
 
@@ -148,6 +154,7 @@ func (pg *Pg) UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID
 	return nil
 }
 
+// UserDelete implements [store.UserStore].
 func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 	db := pg.GetConnection(ctx)
 
@@ -174,6 +181,8 @@ func UserSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
 		ColumnExpr(`(SELECT COUNT(*) FROM namespaces WHERE owner_id = "user".id) AS namespaces`)
 }
 
+// UserResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func UserResolverToString(resolver store.UserResolver) (string, error) {
 	switch resolver {
 	case store.UserIDResolver:

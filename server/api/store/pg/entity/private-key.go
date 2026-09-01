@@ -7,6 +7,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// PrivateKey is a row of private_keys, holding a server-minted ephemeral key.
 type PrivateKey struct {
 	bun.BaseModel `bun:"table:private_keys"`
 
@@ -16,6 +17,7 @@ type PrivateKey struct {
 	Data        []byte    `bun:"data,type:bytea"`
 }
 
+// PrivateKeyFromModel projects a private key into its row form.
 func PrivateKeyFromModel(model *models.PrivateKey) *PrivateKey {
 	return &PrivateKey{
 		Fingerprint: model.Fingerprint,
@@ -25,6 +27,7 @@ func PrivateKeyFromModel(model *models.PrivateKey) *PrivateKey {
 	}
 }
 
+// PrivateKeyToModel rebuilds a private key from its row.
 func PrivateKeyToModel(entity *PrivateKey) *models.PrivateKey {
 	return &models.PrivateKey{
 		Fingerprint: entity.Fingerprint,

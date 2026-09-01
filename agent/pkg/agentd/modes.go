@@ -10,6 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/agent/server/modes/host"
 )
 
+// Info identifies the operating system, or the container image, the agent runs on.
+// It is reported to the server so the device can be shown with the right platform.
 type Info struct {
 	ID   string
 	Name string
@@ -36,6 +38,7 @@ type HostMode struct{}
 
 var _ Mode = new(HostMode)
 
+// Serve attaches an SSH server that authenticates against the host's own user database.
 func (m *HostMode) Serve(agent *Agent) {
 	agent.server = server.NewServer(
 		agent.cli,
@@ -53,6 +56,7 @@ func (m *HostMode) Serve(agent *Agent) {
 	agent.server.SetDeviceName(agent.authData.Name)
 }
 
+// GetInfo reports the host's distribution, read from its os-release file.
 func (m *HostMode) GetInfo() (*Info, error) {
 	osrelease, err := sysinfo.GetOSRelease()
 	if err != nil {
@@ -75,6 +79,8 @@ type ConnectorMode struct {
 	identity string
 }
 
+// NewConnectorMode returns a [Mode] that exposes the Docker container named by identity as a
+// device, using cli to inspect and exec into it.
 func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 	return &ConnectorMode{
 		cli:      cli,
@@ -84,6 +90,7 @@ func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 
 var _ Mode = new(ConnectorMode)
 
+// Serve attaches an SSH server whose sessions exec into the container rather than the host.
 func (m *ConnectorMode) Serve(agent *Agent) {
 	agent.server = server.NewServer(
 		agent.cli,
@@ -102,6 +109,7 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 	agent.server.SetDeviceName(agent.authData.Name)
 }
 
+// GetInfo reports the container's image, which stands in for the device's platform.
 func (m *ConnectorMode) GetInfo() (*Info, error) {
 	info, err := m.cli.ContainerInspect(context.Background(), m.identity)
 	if err != nil {

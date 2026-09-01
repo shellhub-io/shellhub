@@ -219,6 +219,8 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	return d.getContainer(clone.ID)
 }
 
+// NewUpdater returns the [Updater] matching how the agent was installed: outside a container
+// the binary is replaced in place, inside one the container itself is.
 func NewUpdater(version string) (Updater, error) {
 	if _, err := os.Stat("/.dockerenv"); os.IsNotExist(err) {
 		return &nativeUpdater{version}, nil

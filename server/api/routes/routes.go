@@ -18,6 +18,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// DefaultHTTPHandlerConfig is what the router needs beyond the service layer. Every field is
+// optional; a zero config yields a router with no reporting and no metrics.
 type DefaultHTTPHandlerConfig struct {
 	// Reporter represents an instance of [*sentry.Client] that should be proper configured to send error messages
 	// from the error handler. If it's nil, the error handler will ignore the Sentry client.
@@ -52,8 +54,11 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	return server
 }
 
+// Option installs a cross-cutting concern on the router. Returning an error aborts startup,
+// so a misconfigured option fails the process rather than serving without it.
 type Option func(e *echo.Echo, handler *Handler) error
 
+// WithReporter sends unhandled errors to Sentry through reporter.
 func WithReporter(reporter *sentry.Client) Option {
 	return func(e *echo.Echo, _ *Handler) error {
 		e.HTTPErrorHandler = handlers.NewErrors(reporter)
@@ -62,6 +67,7 @@ func WithReporter(reporter *sentry.Client) Option {
 	}
 }
 
+// WithMetrics records request metrics and serves them at /metrics.
 func WithMetrics() Option {
 	return func(e *echo.Echo, _ *Handler) error {
 		e.Use(echoprometheus.NewMiddleware("api"))
@@ -71,6 +77,8 @@ func WithMetrics() Option {
 	}
 }
 
+// WithOpenAPIValidator rejects requests that do not match the published spec, so the spec is
+// enforced rather than merely documented.
 func WithOpenAPIValidator(cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
 	return func(e *echo.Echo, _ *Handler) error {
 		e.Use(routesmiddleware.OpenAPIValidator(cfg))
@@ -95,6 +103,7 @@ func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 	}
 }
 
+// NewRouter builds the API router over service, applying each option in turn.
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	router, ok := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
 	if !ok {

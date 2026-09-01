@@ -38,6 +38,8 @@ func (srv *Server) Down(ctx context.Context) error {
 	return srv.container.Terminate(ctx)
 }
 
+// ConnectionString returns the DSN for the container, whose host port is assigned at start
+// and so cannot be known before it is running.
 func (srv *Server) ConnectionString(ctx context.Context) (string, error) {
 	host, err := srv.container.Host(ctx)
 	if err != nil {

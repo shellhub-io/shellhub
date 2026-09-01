@@ -39,6 +39,8 @@ type Authenticator struct {
 	anonymous map[string]struct{}
 }
 
+// NewAuthenticator returns an authenticator that resolves credentials through service. Its
+// anonymous allowlist starts empty, so every route is guarded until one is declared.
 func NewAuthenticator(service AuthnService) *Authenticator {
 	return &Authenticator{
 		service:   service,

@@ -21,14 +21,16 @@ import (
 )
 
 var (
-	// Default file path for shadow file.
+	// DefaultShadowFilename is where the hashed passwords are read from.
 	DefaultShadowFilename = "/etc/shadow"
-	// Default file path for passwd file.
+	// DefaultPasswdFilename is where the account records are read from.
 	DefaultPasswdFilename = "/etc/passwd"
-	// Default file path for group file.
+	// DefaultGroupFilename is where the group memberships are read from.
 	DefaultGroupFilename = "/etc/group"
 )
 
+// DefaultBackend is the [Backend] used by the package-level helpers. Tests replace it to
+// avoid reading the host's real account files.
 var DefaultBackend Backend
 
 type backend struct{}
@@ -81,6 +83,8 @@ func (b *backend) ListGroups(username string) ([]uint32, error) {
 	return groups, nil
 }
 
+// ListGroupsFromFile returns the GIDs of every group in group that lists username as a member.
+// The primary group recorded in passwd is not among them.
 func ListGroupsFromFile(username string, group io.Reader) ([]uint32, error) {
 	groups, err := parseGroupReader(group)
 	if err != nil {
@@ -99,6 +103,7 @@ func ListGroupsFromFile(username string, group io.Reader) ([]uint32, error) {
 	return userGroups, nil
 }
 
+// Group is one entry of a Unix group file.
 type Group struct {
 	Name     string   // The name of the group.
 	Password string   // The password of the group.

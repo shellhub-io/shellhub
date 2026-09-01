@@ -12,15 +12,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The session routes, relative to the API's base path.
 const (
 	GetSessionsURL = "/sessions"
 	GetSessionURL  = "/sessions/:uid"
 )
 
+// The path parameter name these routes bind by.
 const (
 	ParamSessionID = "uid"
 )
 
+// GetSessionList serves the namespace's sessions, filtered and paginated as requested.
 func (h *Handler) GetSessionList(c *gateway.Context) error {
 	req := new(requests.ListSessions)
 
@@ -59,6 +62,7 @@ func (h *Handler) GetSessionList(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
+// GetSession serves one session by UID.
 func (h *Handler) GetSession(c *gateway.Context) error {
 	var req requests.SessionGet
 	if err := c.Bind(&req); err != nil {

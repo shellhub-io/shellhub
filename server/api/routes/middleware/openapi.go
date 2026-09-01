@@ -59,6 +59,8 @@ type OpenAPIValidatorConfig struct {
 	Skipper func(*echo.Context) bool
 }
 
+// OpenAPIValidationMessage is the body returned when a request does not match the spec,
+// listing each violation so a client can see all of them at once.
 type OpenAPIValidationMessage struct {
 	Message string   `json:"message"`
 	Errors  []string `json:"errors"`

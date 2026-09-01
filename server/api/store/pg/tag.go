@@ -12,6 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// TagCreate implements [store.TagsStore].
 func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -34,6 +35,7 @@ func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
 	return result.ID, nil
 }
 
+// TagConflicts implements [store.TagsStore].
 func (pg *Pg) TagConflicts(ctx context.Context, sc scope.Scope, target *models.TagConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -74,6 +76,7 @@ func (pg *Pg) TagConflicts(ctx context.Context, sc scope.Scope, target *models.T
 	return conflicts, len(conflicts) > 0, nil
 }
 
+// TagList implements [store.TagsStore].
 func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -98,6 +101,7 @@ func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOp
 	return tags, count, nil
 }
 
+// TagResolve implements [store.TagsStore].
 func (pg *Pg) TagResolve(ctx context.Context, sc scope.Scope, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
 	db := pg.GetConnection(ctx)
 
@@ -121,6 +125,7 @@ func (pg *Pg) TagResolve(ctx context.Context, sc scope.Scope, resolver store.Tag
 	return entity.TagToModel(tag), nil
 }
 
+// TagUpdate implements [store.TagsStore].
 func (pg *Pg) TagUpdate(ctx context.Context, tag *models.Tag) error {
 	db := pg.GetConnection(ctx)
 
@@ -139,6 +144,7 @@ func (pg *Pg) TagUpdate(ctx context.Context, tag *models.Tag) error {
 	return nil
 }
 
+// TagPushToTarget implements [store.TagsStore].
 func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTarget, targetID string) error {
 	db := pg.GetConnection(ctx)
 
@@ -184,6 +190,7 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 	return nil
 }
 
+// TagPullFromTarget implements [store.TagsStore].
 func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.TagTarget, targetIDs ...string) error {
 	db := pg.GetConnection(ctx)
 
@@ -230,6 +237,7 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 	return nil
 }
 
+// TagDelete implements [store.TagsStore].
 func (pg *Pg) TagDelete(ctx context.Context, tag *models.Tag) error {
 	db := pg.GetConnection(ctx)
 
@@ -247,6 +255,8 @@ func (pg *Pg) TagDelete(ctx context.Context, tag *models.Tag) error {
 	return fromSQLError(err)
 }
 
+// TagResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func TagResolverToString(resolver store.TagResolver) (string, error) {
 	switch resolver {
 	case store.TagIDResolver:

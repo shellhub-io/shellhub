@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// StatsStore computes the counts shown on the dashboard.
 type StatsStore interface {
 	// GetStats retrieves device and session statistics within the given namespace scope. An
 	// unbounded scope returns instance-wide statistics.

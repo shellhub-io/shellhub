@@ -25,6 +25,8 @@ var PublicKeyFilterFields = query.NewFieldConstraints(map[string][]string{
 	"fingerprint": {"contains", "eq", "ne"},
 })
 
+// SSHKeysService owns a namespace's public keys and the rules restricting which devices and
+// usernames each may reach.
 type SSHKeysService interface {
 	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
@@ -36,6 +38,8 @@ type SSHKeysService interface {
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
 }
 
+// Request is the template context for a key's username rule, so that a rule can be written
+// in terms of the namespace it is evaluated in.
 type Request struct {
 	Namespace string
 }

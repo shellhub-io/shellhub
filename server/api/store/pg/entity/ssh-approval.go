@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// SSHApproval is a row of ssh_approvals, holding one connection waiting for someone to allow
+// or refuse it.
 type SSHApproval struct {
 	bun.BaseModel `bun:"table:ssh_approvals"`
 
@@ -28,6 +30,7 @@ type SSHApproval struct {
 	ExpiresAt    time.Time `bun:"expires_at"`
 }
 
+// SSHApprovalFromModel projects an approval into its row form.
 func SSHApprovalFromModel(model *models.SSHApproval) *SSHApproval {
 	approval := &SSHApproval{
 		Code:         model.Code,
@@ -54,6 +57,7 @@ func SSHApprovalFromModel(model *models.SSHApproval) *SSHApproval {
 	return approval
 }
 
+// SSHApprovalToModel rebuilds an approval from its row.
 func SSHApprovalToModel(e *SSHApproval) *models.SSHApproval {
 	approval := &models.SSHApproval{
 		Code:         e.Code,

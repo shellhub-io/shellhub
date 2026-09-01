@@ -31,10 +31,14 @@ type DeviceStatuser interface {
 	OfflineDevice(ctx context.Context, uid models.UID) error
 }
 
+// Dialer opens connections back to agents over the reverse tunnels they hold open. The
+// device is the listener here; the server is the one dialling.
 type Dialer struct {
 	Manager *Manager
 }
 
+// NewDialer returns a [Dialer] that marks a device offline through devices when its last
+// tunnel closes, and refreshes its liveness through heartbeater while one is held.
 func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	m := NewManager()
 
@@ -73,6 +77,8 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	return &Dialer{Manager: m}
 }
 
+// ErrInvalidArgument is returned when a device UID cannot be parsed into the namespace and
+// device parts the tunnel key is built from.
 var ErrInvalidArgument = errors.New("invalid argument")
 
 // HandshakeTimeout bounds the target's handshake once the stream is open. The

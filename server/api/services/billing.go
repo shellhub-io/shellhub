@@ -72,11 +72,15 @@ type BillingProvider interface {
 // BillingAction represents an action to report to the billing system.
 type BillingAction string
 
+// The namespace actions that are reported to the billing system because they change what is
+// billed.
 const (
 	BillingActionDeviceAccept    BillingAction = "device_accept"
 	BillingActionNamespaceDelete BillingAction = "namespace_delete"
 )
 
+// BillingService gates and reports the actions billing cares about. In the community edition
+// it is a no-op; the cloud edition supplies a real implementation.
 type BillingService interface {
 	// EvaluateBilling reports whether billing lets an SSH connection to the
 	// namespace through, returning ErrBillingBlocked when it does not.

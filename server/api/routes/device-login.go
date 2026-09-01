@@ -8,10 +8,11 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The device login-code routes, relative to the API's base path.
 const (
 	CreateDeviceLoginCodeURL = "/devices/auth/code"
 	GetDeviceAuthStatusURL   = "/devices/auth/status"
-	// NOTE: This path must not start with /api/login, /api/devices/auth or any
+	// ResolveDeviceLoginCodeURL must not start with /api/login, /api/devices/auth or any
 	// other nginx prefix location that disables the auth subrequest; it relies
 	// on the generic /api location forwarding the user claims.
 	ResolveDeviceLoginCodeURL = "/devices/login-code/:code"

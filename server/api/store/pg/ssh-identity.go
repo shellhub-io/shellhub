@@ -12,6 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// SSHIdentityCreate implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentity) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -32,6 +33,7 @@ func (pg *Pg) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentit
 	return e.ID, nil
 }
 
+// SSHIdentityList implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -57,6 +59,7 @@ func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store
 	return identities, count, nil
 }
 
+// SSHIdentityResolve implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
 	db := pg.GetConnection(ctx)
 
@@ -81,6 +84,7 @@ func (pg *Pg) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver s
 	return entity.SSHIdentityToModel(e), nil
 }
 
+// SSHIdentityUpdate implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityUpdate(ctx context.Context, identity *models.SSHIdentity) error {
 	db := pg.GetConnection(ctx)
 
@@ -101,6 +105,7 @@ func (pg *Pg) SSHIdentityUpdate(ctx context.Context, identity *models.SSHIdentit
 	return nil
 }
 
+// SSHIdentityDelete implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityDelete(ctx context.Context, identity *models.SSHIdentity) error {
 	db := pg.GetConnection(ctx)
 
@@ -120,6 +125,7 @@ func (pg *Pg) SSHIdentityDelete(ctx context.Context, identity *models.SSHIdentit
 	return nil
 }
 
+// SSHIdentityTouchLastUsed implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprint string) error {
 	db := pg.GetConnection(ctx)
 
@@ -137,6 +143,7 @@ func (pg *Pg) SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprin
 	return nil
 }
 
+// SSHIdentityTouchReauth implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint string) error {
 	db := pg.GetConnection(ctx)
 
@@ -154,6 +161,7 @@ func (pg *Pg) SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint 
 	return nil
 }
 
+// SSHIdentityConsume implements [store.SSHIdentityStore].
 func (pg *Pg) SSHIdentityConsume(ctx context.Context, tenantID, fingerprint string) (bool, error) {
 	db := pg.GetConnection(ctx)
 

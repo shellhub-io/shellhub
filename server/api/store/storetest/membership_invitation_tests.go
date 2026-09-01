@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestMembershipInvitationCreate exercises MembershipInvitationCreate against the store under test.
 func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -43,6 +44,7 @@ func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 	})
 }
 
+// TestMembershipInvitationResolve exercises MembershipInvitationResolve against the store under test.
 func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -128,6 +130,8 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 	})
 }
 
+// TestMembershipInvitationResolveBySig locks that an invitation is reachable by its signed code, which
+// is what the accept-invite link carries.
 func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -219,6 +223,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 	})
 }
 
+// TestMembershipInvitationUpdate exercises MembershipInvitationUpdate against the store under test.
 func (s *Suite) TestMembershipInvitationUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -267,6 +272,7 @@ func (s *Suite) TestMembershipInvitationUpdate(t *testing.T) {
 	})
 }
 
+// TestMembershipInvitationDelete exercises MembershipInvitationDelete against the store under test.
 func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -312,6 +318,7 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 	})
 }
 
+// TestUserMembershipInvitationList exercises UserMembershipInvitationList against the store under test.
 func (s *Suite) TestUserMembershipInvitationList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -338,6 +345,7 @@ func (s *Suite) TestUserMembershipInvitationList(t *testing.T) {
 	assert.Equal(t, tenantID, invitations[0].TenantID)
 }
 
+// TestNamespaceMembershipInvitationList exercises NamespaceMembershipInvitationList against the store under test.
 func (s *Suite) TestNamespaceMembershipInvitationList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -365,6 +373,8 @@ func (s *Suite) TestNamespaceMembershipInvitationList(t *testing.T) {
 	assert.Len(t, invitations, 2)
 }
 
+// TestNamespaceMembershipInvitationListWithStatusFilter locks that the status filter narrows a namespace's
+// invitations rather than being ignored.
 func (s *Suite) TestNamespaceMembershipInvitationListWithStatusFilter(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -430,6 +440,8 @@ func (s *Suite) TestNamespaceMembershipInvitationListWithStatusFilter(t *testing
 	}
 }
 
+// TestUserInvitationsUpsert locks that inviting the same email twice updates the invitation instead of
+// creating a second one.
 func (s *Suite) TestUserInvitationsUpsert(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -477,6 +489,7 @@ func (s *Suite) TestUserInvitationsUpsert(t *testing.T) {
 	})
 }
 
+// TestUserInvitationGet exercises UserInvitationGet against the store under test.
 func (s *Suite) TestUserInvitationGet(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -507,6 +520,7 @@ func (s *Suite) TestUserInvitationGet(t *testing.T) {
 	})
 }
 
+// TestUserInvitationUpdate exercises UserInvitationUpdate against the store under test.
 func (s *Suite) TestUserInvitationUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

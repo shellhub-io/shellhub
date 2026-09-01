@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// SSHApprovalCreate implements [store.SSHApprovalStore].
 func (pg *Pg) SSHApprovalCreate(ctx context.Context, approval *models.SSHApproval) error {
 	db := pg.GetConnection(ctx)
 
@@ -18,6 +19,7 @@ func (pg *Pg) SSHApprovalCreate(ctx context.Context, approval *models.SSHApprova
 	return nil
 }
 
+// SSHApprovalGet implements [store.SSHApprovalStore].
 func (pg *Pg) SSHApprovalGet(ctx context.Context, code string, now time.Time) (*models.SSHApproval, error) {
 	db := pg.GetConnection(ctx)
 
@@ -33,6 +35,7 @@ func (pg *Pg) SSHApprovalGet(ctx context.Context, code string, now time.Time) (*
 	return entity.SSHApprovalToModel(approval), nil
 }
 
+// SSHApprovalDecide implements [store.SSHApprovalStore].
 func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -56,6 +59,7 @@ func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.S
 	return affected == 1, nil
 }
 
+// SSHApprovalCleanup implements [store.SSHApprovalStore].
 func (pg *Pg) SSHApprovalCleanup(ctx context.Context, before time.Time) (int64, error) {
 	db := pg.GetConnection(ctx)
 

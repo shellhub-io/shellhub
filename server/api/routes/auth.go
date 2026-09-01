@@ -12,6 +12,8 @@ import (
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 )
 
+// The authentication routes. Each has a V2 spelling under /auth; the older paths remain
+// because deployed agents and scripts still call them.
 const (
 	AuthDeviceURL            = "/devices/auth"
 	AuthDeviceURLV2          = "/auth/device"
@@ -23,6 +25,8 @@ const (
 	AuthMFAURL               = "/auth/mfa"
 )
 
+// AuthDevice authenticates an agent and enrols its device if the namespace has not seen it
+// before, returning the token the agent then holds.
 func (h *Handler) AuthDevice(c *gateway.Context) error {
 	var req requests.DeviceAuth
 	if err := c.Bind(&req); err != nil {
@@ -45,6 +49,8 @@ func (h *Handler) AuthDevice(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// AuthLocalUser authenticates a user by password, returning a token or, when the account has
+// a second factor, the challenge to complete first.
 func (h *Handler) AuthLocalUser(c *gateway.Context) error {
 	req := new(requests.AuthLocalUser)
 
@@ -80,6 +86,8 @@ func (h *Handler) AuthLocalUser(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// CreateUserToken issues a token for a user without their password. It is reachable only
+// internally, so that the SSH gateway can act on a user's behalf.
 func (h *Handler) CreateUserToken(c *gateway.Context) error {
 	req := new(requests.CreateUserToken)
 
@@ -99,6 +107,8 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// AuthPublicKey authenticates by SSH key, which is how the SSH gateway checks a key the
+// client offered before opening a session.
 func (h *Handler) AuthPublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {

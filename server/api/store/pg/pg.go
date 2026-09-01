@@ -17,15 +17,19 @@ import (
 
 type queryOptions struct{}
 
+// Pg is the PostgreSQL implementation of [store.Store].
 type Pg struct {
 	driver  *bun.DB
 	options *queryOptions
 }
 
+// URI assembles a PostgreSQL connection string from its parts.
 func URI(host, port, user, password, db string) string {
 	return fmt.Sprintf("postgres://%s:%s@%s/%s", user, password, net.JoinHostPort(host, port), db)
 }
 
+// New opens the store at uri and applies each option. It pings before returning, so a
+// server that starts has a database it can actually reach.
 func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, error) {
 	config, err := pgxpool.ParseConfig(uri)
 	if err != nil {
@@ -54,6 +58,7 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 	return pg, nil
 }
 
+// Driver exposes the underlying bun DB, for tests and for the enterprise build's own queries.
 func (pg *Pg) Driver() *bun.DB {
 	return pg.driver
 }

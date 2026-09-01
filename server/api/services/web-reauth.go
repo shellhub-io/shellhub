@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
+// WebReauthService re-checks a logged-in user's identity before a sensitive action, so that a
+// stolen session alone is not enough to perform one.
 type WebReauthService interface {
 	// WebReauthVerify validates the step-up factor for the logged-in user and, on
 	// success, stamps the re-auth freshness marker. Community verifies the

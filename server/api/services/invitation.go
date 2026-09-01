@@ -15,6 +15,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// InvitationService owns membership invitations, from issuing an invite code through to the
+// invitee accepting it, whether or not they already have an account.
 type InvitationService interface {
 	// ResolveInvitation resolves a pending invitation from its invite code, returning the
 	// namespace, the (real or placeholder) user, their email, and account status so the

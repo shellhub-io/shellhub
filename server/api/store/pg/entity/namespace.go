@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Namespace is a row of namespaces. The model's TenantID is the id column, and the device
+// counters are maintained by their own operations rather than by a full-row update.
 type Namespace struct {
 	bun.BaseModel `bun:"table:namespaces"`
 
@@ -26,6 +28,8 @@ type Namespace struct {
 	DevicesRemovedCount  int64 `bun:"devices_removed_count,skipupdate"`
 }
 
+// NamespaceSettings is embedded into the namespaces row rather than being its own table, so a
+// namespace and its settings are read in one query.
 type NamespaceSettings struct {
 	MaxDevices             int    `bun:"max_devices"`
 	SessionRecord          bool   `bun:"record_sessions"`
@@ -34,6 +38,8 @@ type NamespaceSettings struct {
 	SSHLegacyAllowed       bool   `bun:"ssh_legacy_allowed"`
 }
 
+// NamespaceFromModel projects a namespace into its row form, defaulting an unset type to
+// personal.
 func NamespaceFromModel(model *models.Namespace) *Namespace {
 	namespaceType := string(model.Type)
 	if namespaceType == "" {
@@ -75,6 +81,7 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 	return namespace
 }
 
+// NamespaceToModel rebuilds a namespace from its row.
 func NamespaceToModel(entity *Namespace) *models.Namespace {
 	namespace := &models.Namespace{
 		TenantID:             entity.ID,

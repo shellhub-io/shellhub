@@ -1,5 +1,7 @@
 package entity
 
+// Entities lists every model bun must know about, so that relations and test fixtures resolve.
+// A new table is invisible to both until it is added here.
 func Entities() []any {
 	return []any{
 		(*DeviceTag)(nil),

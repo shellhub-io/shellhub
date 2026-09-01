@@ -14,6 +14,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// NamespaceCreate implements [store.NamespaceStore].
 func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
 	namespace.CreatedAt = clock.Now()
 
@@ -92,6 +93,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	return namespace.TenantID, nil
 }
 
+// NamespaceConflicts implements [store.NamespaceStore].
 func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -130,6 +132,7 @@ func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceCo
 	return conflicts, len(conflicts) > 0, nil
 }
 
+// NamespaceList implements [store.NamespaceStore].
 func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -155,6 +158,7 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 	return namespaces, count, nil
 }
 
+// NamespaceResolve implements [store.NamespaceStore].
 func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceResolver, val string) (*models.Namespace, error) {
 	db := pg.GetConnection(ctx)
 
@@ -178,6 +182,7 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	return entity.NamespaceToModel(ns), nil
 }
 
+// NamespaceGetDeviceLimit implements [store.NamespaceStore].
 func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
 	db := pg.GetConnection(ctx)
 
@@ -198,6 +203,7 @@ func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (mod
 	return limit, nil
 }
 
+// NamespaceGetMembers implements [store.NamespaceStore].
 func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -229,6 +235,7 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...s
 	return members, count, nil
 }
 
+// NamespaceGetPreferred implements [store.NamespaceStore].
 func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
 	db := pg.GetConnection(ctx)
 
@@ -248,6 +255,7 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 	return entity.NamespaceToModel(ns), nil
 }
 
+// NamespaceUpdate implements [store.NamespaceStore].
 func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
 	db := pg.GetConnection(ctx)
 
@@ -274,6 +282,7 @@ func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) 
 	return nil
 }
 
+// NamespaceIncrementDeviceCount implements [store.NamespaceStore].
 func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error {
 	db := pg.GetConnection(ctx)
 
@@ -304,6 +313,7 @@ func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope,
 	return nil
 }
 
+// NamespaceSyncDeviceCounts implements [store.NamespaceStore].
 func (pg *Pg) NamespaceSyncDeviceCounts(ctx context.Context) error {
 	db := pg.GetConnection(ctx)
 
@@ -344,6 +354,7 @@ func (pg *Pg) NamespaceSyncDeviceCounts(ctx context.Context) error {
 	return nil
 }
 
+// NamespaceDelete implements [store.NamespaceStore].
 func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) error {
 	deletedCount, err := pg.NamespaceDeleteMany(ctx, []string{namespace.TenantID})
 	switch {
@@ -356,6 +367,7 @@ func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) 
 	}
 }
 
+// NamespaceDeleteMany implements [store.NamespaceStore].
 func (pg *Pg) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error) {
 	db := pg.GetConnection(ctx)
 	fn := pg.namespaceDeleteManyFn(ctx, tenantIDs)
@@ -434,6 +446,8 @@ func namespaceExprPreferredOrder() string {
 	return "CASE WHEN namespace.id = users.preferred_namespace_id THEN 0 ELSE 1 END"
 }
 
+// NamespaceResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func NamespaceResolverToString(resolver store.NamespaceResolver) (string, error) {
 	switch resolver {
 	case store.NamespaceTenantIDResolver:

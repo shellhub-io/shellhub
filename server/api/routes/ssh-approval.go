@@ -7,10 +7,10 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The SSH approval routes. Create and status are internal endpoints the SSH gateway calls;
+// get, confirm and reject require a user token (the approving user must be logged in) and
+// are authorized in the service against the target namespace.
 const (
-	// Create and status are internal endpoints the SSH gateway calls; get,
-	// confirm and reject require a user token (the approving user must be logged
-	// in) and are authorized in the service against the target namespace.
 	GetSSHApprovalURL     = "/ssh-approvals/:code"
 	ConfirmSSHApprovalURL = "/ssh-approvals/:code/confirm"
 	RejectSSHApprovalURL  = "/ssh-approvals/:code/reject"

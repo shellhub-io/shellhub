@@ -7,6 +7,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Tag is a row of tags. A tag belongs to a namespace, so the same name may exist in several.
 type Tag struct {
 	bun.BaseModel `bun:"table:tags"`
 
@@ -19,6 +20,7 @@ type Tag struct {
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 }
 
+// DeviceTag joins a device to a tag.
 type DeviceTag struct {
 	bun.BaseModel `bun:"table:device_tags"`
 	DeviceID      string    `bun:"device_id,pk"`
@@ -29,6 +31,7 @@ type DeviceTag struct {
 	Tag    *Tag    `bun:"rel:belongs-to,join:tag_id=id"`
 }
 
+// PublicKeyTag joins a public key to a tag.
 type PublicKeyTag struct {
 	bun.BaseModel        `bun:"table:public_key_tags"`
 	PublicKeyFingerprint string    `bun:"public_key_fingerprint,pk"`
@@ -40,6 +43,7 @@ type PublicKeyTag struct {
 	Tag       *Tag       `bun:"rel:belongs-to,join:tag_id=id"`
 }
 
+// TagFromModel projects a tag into its row form.
 func TagFromModel(model *models.Tag) *Tag {
 	return &Tag{
 		ID:          model.ID,
@@ -50,6 +54,7 @@ func TagFromModel(model *models.Tag) *Tag {
 	}
 }
 
+// TagToModel rebuilds a tag from its row.
 func TagToModel(entity *Tag) *models.Tag {
 	return &models.Tag{
 		ID:        entity.ID,
@@ -60,10 +65,12 @@ func TagToModel(entity *Tag) *models.Tag {
 	}
 }
 
+// NewDeviceTag returns the join row binding tagID to deviceID.
 func NewDeviceTag(tagID, deviceID string) *DeviceTag {
 	return &DeviceTag{TagID: tagID, DeviceID: deviceID}
 }
 
+// NewPublicKeyTag returns the join row binding tagID to publicKeyID.
 func NewPublicKeyTag(tagID, fingerprint, namespaceID string) *PublicKeyTag {
 	return &PublicKeyTag{TagID: tagID, PublicKeyFingerprint: fingerprint, PublicKeyNamespaceID: namespaceID}
 }

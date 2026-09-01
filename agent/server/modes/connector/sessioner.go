@@ -13,6 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ErrUserNotFound is returned when the session carries no authenticated user, which means
+// the authenticator did not run or did not store its result.
 var ErrUserNotFound = errors.New("user not found on context")
 
 var _ modes.Sessioner = (*Sessioner)(nil)

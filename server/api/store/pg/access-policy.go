@@ -12,6 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// AccessPolicyCreate implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -44,6 +45,7 @@ func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.Acces
 	return e.ID, nil
 }
 
+// AccessPolicyList implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -69,6 +71,7 @@ func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...stor
 	return accessPolicies, count, nil
 }
 
+// AccessPolicyResolve implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
 	db := pg.GetConnection(ctx)
 
@@ -94,6 +97,7 @@ func (pg *Pg) AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver 
 	return entity.AccessPolicyToModel(e), nil
 }
 
+// AccessPolicyUpdate implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.AccessPolicy) error {
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
@@ -138,6 +142,7 @@ func (pg *Pg) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.Acces
 	})
 }
 
+// AccessPolicyDelete implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyDelete(ctx context.Context, accessPolicy *models.AccessPolicy) error {
 	db := pg.GetConnection(ctx)
 
@@ -159,6 +164,8 @@ func (pg *Pg) AccessPolicyDelete(ctx context.Context, accessPolicy *models.Acces
 	return nil
 }
 
+// AccessPolicyResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func AccessPolicyResolverToString(resolver store.AccessPolicyResolver) (string, error) {
 	switch resolver {
 	case store.AccessPolicyIDResolver:

@@ -8,8 +8,11 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// SessionResolver names the field a session is looked up by.
 type SessionResolver uint
 
+// The fields a session can be resolved by. The zero value is not one, so an unset resolver
+// cannot silently mean the first.
 const (
 	SessionUIDResolver SessionResolver = iota + 1
 )
@@ -23,6 +26,8 @@ type ExpiredSession struct {
 	Recorded bool
 }
 
+// SessionStore persists session records, the events streamed against them, and the retention
+// sweep that removes both.
 type SessionStore interface {
 	// SessionList retrieves a list of sessions based on the provided filters and pagination settings.
 	// It returns the list of sessions, the total count of matching documents, and an error if any.
