@@ -11,7 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/sethvargo/go-envconfig v1.4.3
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
-	github.com/sirupsen/logrus v1.10.0
+	github.com/sirupsen/logrus v1.10.1
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0
 )
