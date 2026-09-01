@@ -5,6 +5,7 @@ description: Open a terminal from the browser or from your own SSH client.
 ---
 
 import Shot from '../components/Shot.astro';
+import Clip from "../components/Clip.astro";
 
 # Connecting to a Device
 
@@ -14,7 +15,7 @@ Two ways in. The browser needs nothing installed; a native client works with no 
 
 Open the device in the console and click the terminal button.
 
-![Device connecting](/img/manual/device-connect.gif)
+<Clip name="device-connect" alt="Device connecting" />
 
 The web terminal runs over a WebSocket to the server and out through the agent's existing
 connection. Nothing is installed and nothing is configured.
