@@ -12,6 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// GetStats implements [store.StatsStore].
 func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, error) {
 	db := pg.GetConnection(ctx)
 
@@ -55,6 +56,7 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 	return stats, nil
 }
 
+// CountRegisteredDevices implements [store.StatsStore].
 func (pg *Pg) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, error) {
 	db := pg.GetConnection(ctx)
 

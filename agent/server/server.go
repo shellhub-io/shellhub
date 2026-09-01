@@ -19,6 +19,8 @@ const (
 	SFTPSubsystemName = "sftp"
 )
 
+// Server is the agent's SSH server. It does not listen on a public port: the connections it
+// serves arrive over the tunnel the agent holds open to the ShellHub server.
 type Server struct {
 	sshd              *gliderssh.Server
 	api               client.Client
@@ -53,6 +55,7 @@ const (
 	ChannelDirectTcpip string = "direct-tcpip"
 )
 
+// Feature is a bit set of the optional capabilities a server is willing to serve.
 type Feature uint
 
 const (
@@ -186,18 +189,23 @@ func (s *Server) sessionRequestCallback(session gliderssh.Session, requestType s
 	return true
 }
 
+// HandleConn serves conn as an SSH connection. It is how the tunnel hands a session over.
 func (s *Server) HandleConn(conn net.Conn) {
 	s.sshd.HandleConn(conn)
 }
 
+// SetDeviceName records the name the server knows this device by, for session bookkeeping.
+// It is set after enrolment, because the name is assigned by the server.
 func (s *Server) SetDeviceName(name string) {
 	s.deviceName = name
 }
 
+// SetContainerID records the container sessions should target in connector mode.
 func (s *Server) SetContainerID(id string) {
 	s.ContainerID = id
 }
 
+// CloseSession tears down the session with the given id, if it is still open.
 func (s *Server) CloseSession(id string) {
 	if session, ok := s.Sessions.Load(id); ok {
 		if conn, ok := session.(net.Conn); ok {
@@ -208,6 +216,8 @@ func (s *Server) CloseSession(id string) {
 	}
 }
 
+// ListenAndServe listens on the configured address. It is used only by tests and by direct,
+// non-tunnelled access; normal traffic reaches the server through [Server.HandleConn].
 func (s *Server) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
 }

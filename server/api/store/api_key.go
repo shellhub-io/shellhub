@@ -7,13 +7,18 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// APIKeyResolver names the field an API key is looked up by.
 type APIKeyResolver uint
 
+// The fields an API key can be resolved by. The zero value is not one, so an unset resolver
+// cannot silently mean the first.
 const (
 	APIKeyIDResolver APIKeyResolver = iota + 1
 	APIKeyNameResolver
 )
 
+// APIKeyStore persists API keys. Only a key's hash is stored, so a lookup by key means a
+// lookup by that hash.
 type APIKeyStore interface {
 	// APIKeyCreate creates an API key with the provided data. Returns the inserted ID and an error if any.
 	APIKeyCreate(ctx context.Context, APIKey *models.APIKey) (insertedID string, err error)

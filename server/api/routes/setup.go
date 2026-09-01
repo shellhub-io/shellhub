@@ -7,10 +7,13 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The instance setup route, relative to the API's base path.
 const (
 	SetupEndpoint = "/setup"
 )
 
+// Setup creates the first user and namespace. It is reachable unauthenticated, and refuses
+// once the instance has been set up.
 func (h *Handler) Setup(c *gateway.Context) error {
 	var req requests.Setup
 

@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The Access Policy routes, relative to the API's base path.
 const (
 	ListAccessPoliciesURL = "/access-policies"
 	GetAccessPolicyURL    = "/access-policies/:id"
@@ -16,6 +17,7 @@ const (
 	DeleteAccessPolicyURL = "/access-policies/:id"
 )
 
+// ListAccessPolicies serves the policy list for the caller's namespace.
 func (h *Handler) ListAccessPolicies(c *gateway.Context) error {
 	var tenant string
 	if c.Tenant() != nil {
@@ -32,6 +34,7 @@ func (h *Handler) ListAccessPolicies(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
+// GetAccessPolicy serves a single policy by id.
 func (h *Handler) GetAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyGet
 	if err := c.Bind(&req); err != nil {
@@ -54,6 +57,7 @@ func (h *Handler) GetAccessPolicy(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
+// CreateAccessPolicy adds a policy to the caller's namespace.
 func (h *Handler) CreateAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyCreate
 	if err := c.Bind(&req); err != nil {
@@ -76,6 +80,7 @@ func (h *Handler) CreateAccessPolicy(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
+// UpdateAccessPolicy replaces a policy's rules.
 func (h *Handler) UpdateAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyUpdate
 	if err := c.Bind(&req); err != nil {
@@ -98,6 +103,7 @@ func (h *Handler) UpdateAccessPolicy(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
+// DeleteAccessPolicy removes a policy, after which it no longer grants any access.
 func (h *Handler) DeleteAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyDelete
 	if err := c.Bind(&req); err != nil {

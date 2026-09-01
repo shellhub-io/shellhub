@@ -10,6 +10,8 @@ import (
 // ErrLayer is the errors' level for store's error.
 const ErrLayer = "store"
 
+// The store's failure codes. A service maps them to its own errors, so no HTTP status is
+// decided at this layer.
 const (
 	ErrCodeNoDocument = iota + 1
 	ErrCodeDuplicated
@@ -18,6 +20,7 @@ const (
 	ErrCodeConstraint
 )
 
+// The store's failures, each carrying the layer and code above.
 var (
 	ErrDuplicate        = errors.New("document duplicate", ErrLayer, ErrCodeDuplicated)
 	ErrNoDocuments      = errors.New("no documents", ErrLayer, ErrCodeNoDocument)

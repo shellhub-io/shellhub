@@ -7,10 +7,10 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The device pairing routes. Create and status are unauthenticated (the code is the secret)
+// and must be covered by the auth-off /api/devices/pairing nginx location; accept and
+// prepare require a user token and have their own regex locations.
 const (
-	// NOTE: Create and status are unauthenticated (the code is the secret) and
-	// must be covered by the auth-off /api/devices/pairing nginx location;
-	// accept and prepare require a user token and have their own regex locations.
 	CreateDevicePairingURL    = "/devices/pairing"
 	PrepareDevicePairingURL   = "/devices/pairing/prepare"
 	GetDevicePairingStatusURL = "/devices/pairing/:code/status"

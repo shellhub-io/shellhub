@@ -8,13 +8,18 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// InstallKeyResolver names the field an install key is looked up by.
 type InstallKeyResolver uint
 
+// The fields an install key can be resolved by. The zero value is not one, so an unset
+// resolver cannot silently mean the first.
 const (
 	InstallKeyIDResolver InstallKeyResolver = iota + 1
 	InstallKeyNameResolver
 )
 
+// InstallKeyStore persists install keys, their usage counters, and the record of which
+// devices each enrolled.
 type InstallKeyStore interface {
 	// InstallKeyCreate creates a install key with the provided data. Returns the inserted ID and an error if any.
 	InstallKeyCreate(ctx context.Context, installKey *models.InstallKey) (insertedID string, err error)

@@ -14,6 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Target is what a caller wants the freshly dialled connection for. Implementations run the
+// handshake the agent expects for that purpose before handing the connection back.
 type Target interface {
 	prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error)
 }

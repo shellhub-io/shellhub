@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestPublicKeyResolve exercises PublicKeyResolve against the store under test.
 func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -57,6 +58,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 	})
 }
 
+// TestPublicKeyList exercises PublicKeyList against the store under test.
 func (s *Suite) TestPublicKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -82,6 +84,7 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 	})
 }
 
+// TestPublicKeyCreate exercises PublicKeyCreate against the store under test.
 func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -142,6 +145,7 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	})
 }
 
+// TestPublicKeyUpdate exercises PublicKeyUpdate against the store under test.
 func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -200,6 +204,7 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 	})
 }
 
+// TestPublicKeyDelete exercises PublicKeyDelete against the store under test.
 func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

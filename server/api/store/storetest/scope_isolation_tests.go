@@ -20,6 +20,8 @@ import (
 // Each subtest also asserts the positive case against the owning namespace, so a query that returns
 // nothing for an unrelated reason (a broken predicate, a missing fixture) cannot pass by accident.
 
+// TestScopeIsolationDeviceResolve locks that DeviceResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationDeviceResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -38,6 +40,8 @@ func (s *Suite) TestScopeIsolationDeviceResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationDeviceList locks that DeviceList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationDeviceList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -58,6 +62,8 @@ func (s *Suite) TestScopeIsolationDeviceList(t *testing.T) {
 	assert.Empty(t, devices)
 }
 
+// TestScopeIsolationSessionResolve locks that SessionResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationSessionResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -77,6 +83,8 @@ func (s *Suite) TestScopeIsolationSessionResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationTagResolve locks that TagResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationTagResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -95,6 +103,8 @@ func (s *Suite) TestScopeIsolationTagResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationTagConflicts locks that TagConflicts answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationTagConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -115,6 +125,8 @@ func (s *Suite) TestScopeIsolationTagConflicts(t *testing.T) {
 	assert.Empty(t, conflicts)
 }
 
+// TestScopeIsolationInstallKeyResolve locks that InstallKeyResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -146,6 +158,8 @@ func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 	assert.Equal(t, other, got.TenantID)
 }
 
+// TestScopeIsolationInstallKeyList locks that InstallKeyList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -189,6 +203,8 @@ func installKeyNames(keys []models.InstallKey) []string {
 	return names
 }
 
+// TestScopeIsolationInstallKeyConflicts locks that InstallKeyConflicts answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -217,6 +233,8 @@ func (s *Suite) TestScopeIsolationInstallKeyConflicts(t *testing.T) {
 	assert.False(t, has)
 }
 
+// TestScopeIsolationInstallKeyResolveSystem locks that InstallKeyResolveSystem answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyResolveSystem(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -235,6 +253,8 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystem(t *testing.T) {
 	assert.NotEqual(t, ownerKey.TenantID, otherKey.TenantID)
 }
 
+// TestScopeIsolationInstallKeyEventList locks that InstallKeyEventList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyEventList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -274,6 +294,8 @@ func (s *Suite) TestScopeIsolationInstallKeyEventList(t *testing.T) {
 	assert.Empty(t, events)
 }
 
+// TestScopeIsolationAPIKeyList locks that APIKeyList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationAPIKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -294,6 +316,8 @@ func (s *Suite) TestScopeIsolationAPIKeyList(t *testing.T) {
 	assert.Empty(t, keys)
 }
 
+// TestScopeIsolationPublicKeyList locks that PublicKeyList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationPublicKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -314,6 +338,8 @@ func (s *Suite) TestScopeIsolationPublicKeyList(t *testing.T) {
 	assert.Empty(t, keys)
 }
 
+// TestScopeIsolationNamespaceGetMembers locks that NamespaceGetMembers answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationNamespaceGetMembers(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -338,6 +364,8 @@ func (s *Suite) TestScopeIsolationNamespaceGetMembers(t *testing.T) {
 	assert.Empty(t, members)
 }
 
+// TestScopeIsolationMembershipInvitationResolve locks that MembershipInvitationResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationMembershipInvitationResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -365,6 +393,8 @@ func (s *Suite) TestScopeIsolationMembershipInvitationResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationNamespaceMembershipInvitationList locks that NamespaceMembershipInvitationList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationNamespaceMembershipInvitationList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -394,6 +424,8 @@ func (s *Suite) TestScopeIsolationNamespaceMembershipInvitationList(t *testing.T
 	assert.Empty(t, invitations)
 }
 
+// TestScopeIsolationGetStats locks that GetStats answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationGetStats(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -459,6 +491,8 @@ func (s *Suite) TestScopeRejectsUnconstructedScope(t *testing.T) {
 	assert.Empty(t, devices)
 }
 
+// TestScopeIsolationAPIKeyConflicts locks that APIKeyConflicts answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationAPIKeyConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -477,6 +511,8 @@ func (s *Suite) TestScopeIsolationAPIKeyConflicts(t *testing.T) {
 	assert.False(t, has)
 }
 
+// TestScopeIsolationInstallKeyResolveSystemPairing locks that InstallKeyResolveSystemPairing answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyResolveSystemPairing(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -497,6 +533,8 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystemPairing(t *testing.T) {
 	assert.ErrorIs(t, err, store.ErrInvalidScope)
 }
 
+// TestScopeIsolationInstallKeyEventStampDecision locks that InstallKeyEventStampDecision answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -544,6 +582,8 @@ func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 		store.ErrInvalidScope)
 }
 
+// TestScopeIsolationMembershipWrites locks that MembershipWrites answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -576,6 +616,8 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 		store.ErrInvalidScope)
 }
 
+// TestScopeIsolationNamespaceIncrementDeviceCount locks that NamespaceIncrementDeviceCount answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationNamespaceIncrementDeviceCount(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -599,6 +641,8 @@ func (s *Suite) TestScopeIsolationNamespaceIncrementDeviceCount(t *testing.T) {
 		store.ErrInvalidScope)
 }
 
+// TestScopeIsolationDeviceConflicts locks that DeviceConflicts answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationDeviceConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -617,6 +661,8 @@ func (s *Suite) TestScopeIsolationDeviceConflicts(t *testing.T) {
 	assert.False(t, has)
 }
 
+// TestScopeIsolationTagList locks that TagList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationTagList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -637,6 +683,8 @@ func (s *Suite) TestScopeIsolationTagList(t *testing.T) {
 	assert.Empty(t, tags)
 }
 
+// TestScopeIsolationSessionList locks that SessionList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationSessionList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -658,6 +706,8 @@ func (s *Suite) TestScopeIsolationSessionList(t *testing.T) {
 	assert.Empty(t, sessions)
 }
 
+// TestScopeIsolationAPIKeyResolve locks that APIKeyResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationAPIKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -676,6 +726,8 @@ func (s *Suite) TestScopeIsolationAPIKeyResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationPublicKeyResolve locks that PublicKeyResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationPublicKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -694,6 +746,8 @@ func (s *Suite) TestScopeIsolationPublicKeyResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationAccessPolicyList locks that AccessPolicyList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationAccessPolicyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -731,6 +785,8 @@ func accessPolicyContains(policies []models.AccessPolicy, name string) bool {
 	return false
 }
 
+// TestScopeIsolationAccessPolicyResolve locks that AccessPolicyResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationAccessPolicyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -758,6 +814,8 @@ func (s *Suite) TestScopeIsolationAccessPolicyResolve(t *testing.T) {
 	assert.Nil(t, got)
 }
 
+// TestScopeIsolationSSHIdentityList locks that SSHIdentityList answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationSSHIdentityList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -789,6 +847,8 @@ func (s *Suite) TestScopeIsolationSSHIdentityList(t *testing.T) {
 	assert.Empty(t, identities)
 }
 
+// TestScopeIsolationSSHIdentityResolve locks that SSHIdentityResolve answers within the owning namespace and returns
+// nothing when bounded to another.
 func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

@@ -8,6 +8,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// APIKey is a row of api_keys. The model's ID is the key's SHA256 digest, stored as
+// key_digest: the plaintext is never persisted, so the digest is the identity.
 type APIKey struct {
 	bun.BaseModel `bun:"table:api_keys"`
 
@@ -21,6 +23,7 @@ type APIKey struct {
 	ExpiresIn   int64     `bun:"expires_in,nullzero"`
 }
 
+// APIKeyFromModel projects an API key into its row form.
 func APIKeyFromModel(model *models.APIKey) *APIKey {
 	return &APIKey{
 		Name:        model.Name,
@@ -34,6 +37,7 @@ func APIKeyFromModel(model *models.APIKey) *APIKey {
 	}
 }
 
+// APIKeyToModel rebuilds an API key from its row.
 func APIKeyToModel(entity *APIKey) *models.APIKey {
 	return &models.APIKey{
 		ID:        entity.KeyDigest,

@@ -7,14 +7,18 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// UserResolver names the field a user is looked up by.
 type UserResolver uint
 
+// The fields a user can be resolved by. The zero value is not one, so an unset resolver
+// cannot silently mean the first.
 const (
 	UserIDResolver UserResolver = iota + 1
 	UserEmailResolver
 	UserUsernameResolver
 )
 
+// UserStore persists accounts, their credentials and their preferences.
 type UserStore interface {
 	// UserList retrieves all users from the database, returning the users, the
 	// total count, and an error, if any.

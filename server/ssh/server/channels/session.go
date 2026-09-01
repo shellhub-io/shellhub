@@ -11,17 +11,24 @@ import (
 )
 
 const (
+	// ShellRequestType asks the device to start the user's login shell.
+	//
 	// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
 	// application program, or a subsystem with a host-independent name.  Only one of these requests can succeed per
 	// channel
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 	ShellRequestType = "shell"
+	// ExecRequestType asks the device to run one command instead of a shell.
+	//
 	// This message will request that the server start the execution of the given command.  The 'command' string may
 	// contain a path.  Normal precautions MUST be taken to prevent the execution of unauthorized commands.
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 	ExecRequestType = "exec"
+	// SubsystemRequestType asks the device to start a named subsystem, which for ShellHub means
+	// SFTP.
+	//
 	// This last form executes a predefined subsystem.  It is expected that these will include a general file transfer
 	// mechanism, and possibly other features.  Implementations may also allow configuring more such mechanisms.  As
 	// the user's shell is usually used to execute the subsystem, it is advisable for the subsystem protocol to have a
@@ -31,6 +38,9 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 	SubsystemRequestType = "subsystem"
+	// PtyRequestType asks the device to allocate a terminal, which is what makes the session
+	// interactive rather than a plain pipe.
+	//
 	//  A pseudo-terminal can be allocated for the session by sending the following message.
 	//
 	// The 'encoded terminal modes' are described in Section 8.  Zero dimension parameters MUST be ignored.  The
@@ -39,16 +49,22 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.2
 	PtyRequestType = "pty-req"
+	// WindowChangeRequestType carries a resize of the client's terminal to the device.
+	//
 	// When the window (terminal) size changes on the client side, it MAY send a message to the other side to inform it
 	// of the new dimensions.
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.7
 	WindowChangeRequestType = "window-change"
+	// ExitStatusRequest carries the command's exit code back to the client.
+	//
 	//  When the command running at the other end terminates, the following message can be sent to return the exit
 	//  status of the command. Returning the status is RECOMMENDED.
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.10
 	ExitStatusRequest = "exit-status"
+	// ExitSignalRequest carries the signal that killed the command back to the client.
+	//
 	//  The remote command may also terminate violently due to a signal. Such a condition can be indicated by the
 	//  following message.  A zero 'exit_status' usually means that the command terminated successfully.
 	//
@@ -56,6 +72,8 @@ const (
 	ExitSignalRequest = "exit-signal"
 )
 
+// AuthRequestOpenSSHRequest is the request a client sends to enable agent forwarding.
+//
 // A client may request agent forwarding for a previously opened session using the following channel request. This
 // request is sent after the channel has been opened, but before a [ShellRequestType], command or
 // [SubsystemRequestType] has been executed.
@@ -63,6 +81,8 @@ const (
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.1
 const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
 
+// AuthRequestOpenSSHChannel is the channel the server opens to reach a forwarded agent.
+//
 // After a client has requested that a session have agent forwarding enabled, the server later may request a connection
 // to the forwarded agent. The server does this by requesting a dedicated channel to communicate with the client's
 // agent.

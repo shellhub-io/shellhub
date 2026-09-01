@@ -163,6 +163,10 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.InstallKey != ""
 }
 
+// LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
+// variables, falling back to the .env file next to the binary when one is present.
+//
+// The second return value carries the environment as parsed, for callers that log it.
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
@@ -194,6 +198,11 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	return cfg, nil, nil
 }
 
+// Agent is a device's connection to a ShellHub server: it authenticates, keeps the device
+// record current, and serves the SSH sessions the server routes to it.
+//
+// Use [NewAgentWithConfig] to build one, [Agent.Initialize] to authenticate, and
+// [Agent.Listen] to serve.
 type Agent struct {
 	config     *Config
 	pubKey     *rsa.PublicKey
@@ -225,6 +234,7 @@ func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*A
 	}, mode)
 }
 
+// Reasons [NewAgentWithConfig] rejects a configuration, and why enrolment cannot start.
 var (
 	ErrNewAgentWithConfigEmptyServerAddress   = errors.New("address is empty")
 	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
@@ -448,6 +458,8 @@ func (a *Agent) probeServerInfo() error {
 	return err
 }
 
+// ErrNoIdentityAndHostname is returned when the device can name itself neither by MAC nor by
+// hostname, so the server would have nothing to identify it by.
 var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
 
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
@@ -552,11 +564,15 @@ func (a *Agent) Close() error {
 	return (*l).Close()
 }
 
+// The transport protocols an agent can speak to the server. V1 tunnels HTTP over the
+// connection; V2 multiplexes streams by protocol name.
 const (
 	TransportV1 = 1
 	TransportV2 = 2
 )
 
+// Listen serves connections until ctx is cancelled, using the transport named by the
+// configuration.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 

@@ -7,11 +7,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// TimeVal mirrors the kernel's struct timeval for this architecture's word size.
 type TimeVal struct {
 	Sec  int32 // Seconds since epoch
 	Usec int32 // Microseconds
 }
 
+// Utmpx is one login accounting record, laid out to match utmp(5) byte for byte so that who,
+// w and last can read what the agent writes.
 type Utmpx struct {
 	Type     int16      // UserProcess or DeadProcess
 	Padding  [2]byte    // Padding to align rest of struct

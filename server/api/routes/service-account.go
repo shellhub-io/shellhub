@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// The service account routes, relative to the API's base path.
 const (
 	ListServiceAccountsURL  = "/service-accounts"
 	CreateServiceAccountURL = "/service-accounts"

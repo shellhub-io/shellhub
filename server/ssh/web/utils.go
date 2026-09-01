@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// Credentials is what the browser supplies to log in to a device. Exactly one of the password
+// and the key is used, depending on the method the device accepts.
 type Credentials struct {
 	// Device is the device what the session is open.
 	Device string `json:"device"`
@@ -85,6 +87,8 @@ type Dimensions struct {
 	Rows uint16 `json:"rows"`
 }
 
+// Info is the client-supplied context recorded against the session — its originating IP,
+// which the browser cannot be trusted for and which the handler overrides.
 type Info struct {
 	IP string `json:"ip"`
 }

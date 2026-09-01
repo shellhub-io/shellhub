@@ -44,6 +44,8 @@ func fingerprintFromPEM(pemKey string) string {
 	return ssh.FingerprintSHA256(sshPub)
 }
 
+// InstallKeyEvent is a row of install_key_events, recording one use of an install key and what
+// was decided about it.
 type InstallKeyEvent struct {
 	bun.BaseModel `bun:"table:install_key_events"`
 
@@ -71,6 +73,7 @@ type InstallKeyEvent struct {
 	IsCurrent    bool   `bun:"is_current,scanonly"`
 }
 
+// InstallKeyEventFromModel projects an event into its row form.
 func InstallKeyEventFromModel(model *models.InstallKeyEvent) *InstallKeyEvent {
 	event := &InstallKeyEvent{
 		ID:             model.ID,
@@ -99,6 +102,7 @@ func InstallKeyEventFromModel(model *models.InstallKeyEvent) *InstallKeyEvent {
 	return event
 }
 
+// InstallKeyEventToModel rebuilds an event from its row.
 func InstallKeyEventToModel(entity *InstallKeyEvent) *models.InstallKeyEvent {
 	event := &models.InstallKeyEvent{
 		ID:             entity.ID,

@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// TenantFromContext returns the namespace the request acts on, or nil when it acts on none.
 func TenantFromContext(ctx context.Context) *models.Tenant {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
 		if tenant := c.Tenant(); tenant != nil {
@@ -24,6 +25,8 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 	return nil
 }
 
+// UsernameFromContext returns the authenticated username, or nil when the request is
+// anonymous or authenticated by an API key.
 func UsernameFromContext(ctx context.Context) *models.Username {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
 		if username := c.Username(); username != nil {
@@ -38,6 +41,8 @@ func UsernameFromContext(ctx context.Context) *models.Username {
 	return nil
 }
 
+// IDFromContext returns the authenticated user's ID, or nil when the request carries no user
+// — an API key authenticates a namespace, not a person.
 func IDFromContext(ctx context.Context) *models.ID {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
 		if id := c.ID(); id != nil {

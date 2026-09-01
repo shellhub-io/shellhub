@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// AccessPolicyService answers whether a namespace's Access Policies permit a connection.
 type AccessPolicyService interface {
 	// Authorize decides whether the user may reach the device as the given login,
 	// connecting from sourceIP, under the namespace's Access Policies. It is

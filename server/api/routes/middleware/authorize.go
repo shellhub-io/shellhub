@@ -9,6 +9,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
+// Authorize refuses the request unless the identity resolved by authentication holds the
+// permission declared on the route.
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		gCtx, ok := gateway.From(c)

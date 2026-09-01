@@ -19,6 +19,8 @@ var (
 	ErrPathTraversal = errors.New("path escapes base directory")
 )
 
+// GeneratePrivateKey writes a new 2048-bit RSA key to filename in PEM form, creating the
+// directory if needed. The file is written readable only by its owner.
 func GeneratePrivateKey(filename string) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -54,6 +56,8 @@ func GeneratePrivateKey(filename string) error {
 	return f.Sync()
 }
 
+// ReadPublicKey loads a PEM-encoded private key from filename and returns its public half.
+// It reports [ErrPemDecode] when the file holds no PEM block.
 func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
 	data, err := os.ReadFile(filename) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
 	if err != nil {
@@ -73,6 +77,7 @@ func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
 	return &key.PublicKey, nil
 }
 
+// EncodePublicKeyToPem renders key in the PEM form the server expects at enrolment.
 func EncodePublicKeyToPem(key *rsa.PublicKey) []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",

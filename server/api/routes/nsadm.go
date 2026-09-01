@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The namespace and membership routes, relative to the API's base path.
 const (
 	ListNamespaceURL           = "/namespaces"
 	CreateNamespaceURL         = "/namespaces"
@@ -26,11 +27,13 @@ const (
 	EditSSHAccessModeURL       = "/namespaces/ssh-access-mode/:tenant"
 )
 
+// The path parameter names these routes bind by.
 const (
 	ParamNamespaceTenant   = "tenant"
 	ParamNamespaceMemberID = "uid"
 )
 
+// GetNamespaceList serves the namespaces the caller belongs to.
 func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 	req := new(requests.NamespaceList)
 
@@ -64,6 +67,7 @@ func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, namespaces)
 }
 
+// CreateNamespace creates a namespace owned by the caller.
 func (h *Handler) CreateNamespace(c *gateway.Context) error {
 	req := new(requests.NamespaceCreate)
 
@@ -83,6 +87,7 @@ func (h *Handler) CreateNamespace(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
+// GetNamespace serves one namespace by tenant ID.
 func (h *Handler) GetNamespace(c *gateway.Context) error {
 	var req requests.NamespaceGet
 	if err := c.Bind(&req); err != nil {
@@ -112,6 +117,7 @@ func (h *Handler) GetNamespace(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, ns)
 }
 
+// ListNamespaceMembers serves who belongs to a namespace and in what role.
 func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
 	req := new(requests.MemberList)
 
@@ -135,6 +141,7 @@ func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, members)
 }
 
+// DeleteNamespace removes a namespace and everything scoped to it.
 func (h *Handler) DeleteNamespace(c *gateway.Context) error {
 	var req requests.NamespaceDelete
 	if err := c.Bind(&req); err != nil {
@@ -152,6 +159,7 @@ func (h *Handler) DeleteNamespace(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// EditNamespace changes a namespace's own attributes, not its membership.
 func (h *Handler) EditNamespace(c *gateway.Context) error {
 	req := new(requests.NamespaceEdit)
 
@@ -171,6 +179,7 @@ func (h *Handler) EditNamespace(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// AddNamespaceMember invites or adds a member in the requested role.
 func (h *Handler) AddNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceAddMember)
 
@@ -190,6 +199,7 @@ func (h *Handler) AddNamespaceMember(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// RemoveNamespaceMember removes another member from the namespace.
 func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceRemoveMember)
 
@@ -209,6 +219,8 @@ func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// LeaveNamespace removes the caller from the namespace. It is separate from removing a member
+// because leaving needs no permission over others.
 func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 	req := new(requests.LeaveNamespace)
 
@@ -231,6 +243,7 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 	}
 }
 
+// EditNamespaceMember changes a member's role.
 func (h *Handler) EditNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceUpdateMember)
 
@@ -249,6 +262,7 @@ func (h *Handler) EditNamespaceMember(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// EditSSHAccessMode switches the namespace between key-based and identity-based SSH access.
 func (h *Handler) EditSSHAccessMode(c *gateway.Context) error {
 	var req requests.EditSSHAccessMode
 	if err := c.Bind(&req); err != nil {
@@ -266,6 +280,7 @@ func (h *Handler) EditSSHAccessMode(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// EditSessionRecordStatus turns session recording on or off for the namespace.
 func (h *Handler) EditSessionRecordStatus(c *gateway.Context) error {
 	var req requests.SessionEditRecordStatus
 	if err := c.Bind(&req); err != nil {

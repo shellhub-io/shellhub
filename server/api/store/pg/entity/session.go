@@ -11,6 +11,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Session is a row of sessions — the record of one SSH connection, kept after the connection
+// itself has ended.
 type Session struct {
 	bun.BaseModel `bun:"table:sessions"`
 
@@ -43,6 +45,7 @@ type Session struct {
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 }
 
+// SessionFromModel projects a session into its row form.
 func SessionFromModel(model *models.Session) *Session {
 	sessionType := model.Type
 	if sessionType == "" {
@@ -72,6 +75,7 @@ func SessionFromModel(model *models.Session) *Session {
 	return session
 }
 
+// SessionToModel rebuilds a session from its row.
 func SessionToModel(entity *Session) *models.Session {
 	session := &models.Session{
 		UID:           strings.TrimSpace(entity.ID),
@@ -106,6 +110,8 @@ func SessionToModel(entity *Session) *models.Session {
 	return session
 }
 
+// ActiveSession is a row of active_sessions, holding only the liveness of a session. It is a
+// separate table because it is written on every keep-alive, while the session row is not.
 type ActiveSession struct {
 	bun.BaseModel `bun:"table:active_sessions"`
 
@@ -118,6 +124,7 @@ type ActiveSession struct {
 	Session *Session `bun:"rel:belongs-to,join:session_id=id"`
 }
 
+// ActiveSessionFromModel projects a liveness record into its row form, stamping the current time.
 func ActiveSessionFromModel(model *models.ActiveSession) *ActiveSession {
 	return &ActiveSession{
 		SessionID: string(model.UID),
@@ -126,6 +133,8 @@ func ActiveSessionFromModel(model *models.ActiveSession) *ActiveSession {
 	}
 }
 
+// ActiveSessionToModel rebuilds a liveness record from its row, taking the namespace from the
+// session relation when it was loaded.
 func ActiveSessionToModel(entity *ActiveSession) *models.ActiveSession {
 	activeSession := &models.ActiveSession{
 		UID:      models.UID(strings.TrimSpace(entity.SessionID)),
@@ -139,6 +148,8 @@ func ActiveSessionToModel(entity *ActiveSession) *models.ActiveSession {
 	return activeSession
 }
 
+// SessionEvent is a row of session_events — one thing that happened during a session, which for
+// a recorded session includes its output.
 type SessionEvent struct {
 	bun.BaseModel `bun:"table:session_events"`
 
@@ -152,6 +163,7 @@ type SessionEvent struct {
 	Session *Session `bun:"rel:belongs-to,join:session_id=id"`
 }
 
+// SessionEventFromModel projects an event into its row form.
 func SessionEventFromModel(model *models.SessionEvent) *SessionEvent {
 	event := &SessionEvent{
 		SessionID: model.Session,
@@ -169,6 +181,7 @@ func SessionEventFromModel(model *models.SessionEvent) *SessionEvent {
 	return event
 }
 
+// SessionEventToModel rebuilds an event from its row.
 func SessionEventToModel(entity *SessionEvent) *models.SessionEvent {
 	event := &models.SessionEvent{
 		Session:   entity.SessionID,

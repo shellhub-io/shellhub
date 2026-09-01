@@ -8,6 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// DeviceAcceptable selects how the acceptable flag is computed for the devices a query
+// returns. It depends on the namespace's limit, so it cannot be a stored column.
 type DeviceAcceptable uint
 
 const (
@@ -20,8 +22,11 @@ const (
 	DeviceAcceptableAsFalse
 )
 
+// DeviceResolver names the field a device is looked up by.
 type DeviceResolver uint
 
+// The fields a device can be resolved by. The zero value is not one, so an unset resolver
+// cannot silently mean the first.
 const (
 	DeviceUIDResolver DeviceResolver = iota + 1
 	DeviceHostnameResolver
@@ -32,6 +37,7 @@ const (
 	DevicePublicKeyResolver
 )
 
+// DeviceStore persists devices and the counters a namespace's device limit is enforced from.
 type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)

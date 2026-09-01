@@ -15,6 +15,8 @@ import (
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
 
+// DockerCompose is a running test stack: the started services, the HTTP client used to talk to
+// them, the environment they were given, and the hook that tears them down.
 type DockerCompose struct {
 	t *testing.T
 
@@ -39,6 +41,7 @@ func (dc *DockerCompose) R(ctx context.Context) *resty.Request {
 	return dc.client.R().SetContext(ctx)
 }
 
+// JWT makes every subsequent request from [DockerCompose.R] authenticate as the bearer of jwt.
 func (dc *DockerCompose) JWT(jwt string) {
 	dc.client.SetAuthScheme("Bearer")
 	dc.client.SetAuthToken(jwt)

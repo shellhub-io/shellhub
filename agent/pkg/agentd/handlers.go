@@ -223,6 +223,7 @@ func sshCloseHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	}
 }
 
+// The V1 tunnel routes, in the "METHOD://path" form [tunnel.TunnelV1.Handle] parses.
 const (
 	HandleSSHOpenV1   = "GET:///ssh/:id"
 	HandleSSHCloseV1  = "GET:///ssh/close/:id"

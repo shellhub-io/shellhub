@@ -12,11 +12,14 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// Recorder is an [io.Writer] that turns everything written to a seat into session events, so
+// that a recorded session can be replayed later.
 type Recorder struct {
 	session session.EventWriter
 	seat    int
 }
 
+// NewRecorder returns a writer recording seat's output into session.
 func NewRecorder(session session.EventWriter, seat int) (io.Writer, error) {
 	return &Recorder{
 		session: session,

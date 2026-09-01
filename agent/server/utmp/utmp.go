@@ -13,11 +13,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// ExitStatus is the exit record of a utmp entry. ShellHub never populates it, but the field
+// must be present for the record to have the layout the C library expects.
 type ExitStatus struct {
 	ETermination int16 // Process temination status - not used
 	EExit        int16 // Process exit status - not used
 }
 
+// The accounting files, and the entry types written to them, as defined by utmp(5).
 const (
 	UtmpxFile   = "/var/run/utmp"
 	WtmpxFile   = "/var/log/wtmp"

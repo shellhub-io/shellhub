@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestGetStats locks the counts the dashboard reads.
 func (s *Suite) TestGetStats(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

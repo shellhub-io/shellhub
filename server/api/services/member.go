@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// MemberService owns who belongs to a namespace and in what role.
 type MemberService interface {
 	// EditNamespace updates a namespace for the specified requests.NamespaceEdit#Tenant.
 	// It returns the namespace with the updated fields and an error, if any.

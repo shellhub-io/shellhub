@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// NamespaceCreateMembership implements [store.MemberStore].
 func (pg *Pg) NamespaceCreateMembership(ctx context.Context, sc scope.Scope, membership *models.Member) error {
 	db := pg.GetConnection(ctx)
 
@@ -27,6 +28,7 @@ func (pg *Pg) NamespaceCreateMembership(ctx context.Context, sc scope.Scope, mem
 	return nil
 }
 
+// NamespaceUpdateMembership implements [store.MemberStore].
 func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
 	db := pg.GetConnection(ctx)
 
@@ -49,6 +51,7 @@ func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, sc scope.Scope, mem
 	return nil
 }
 
+// NamespaceDeleteMembership implements [store.MemberStore].
 func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
 	db := pg.GetConnection(ctx)
 

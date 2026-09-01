@@ -14,6 +14,8 @@ type ctxKey string
 
 const ctxAdminRoute ctxKey = "admin-route"
 
+// Context is echo's request context extended with the service layer and with the identity the
+// authentication middleware resolved. Handlers take one of these instead of echo's own.
 type Context struct {
 	service any
 	*echo.Context
@@ -34,6 +36,7 @@ func (c *Context) isAdminRoute() bool {
 
 const contextKey = "gateway-context"
 
+// NewContext wraps c, binding service as the one its handlers will reach.
 func NewContext(service any, c *echo.Context) *Context {
 	return &Context{service: service, Context: c}
 }
@@ -64,6 +67,8 @@ func From(c *echo.Context) (*Context, bool) {
 	return gCtx, ok
 }
 
+// Service returns the service layer bound to this request. Callers assert it to the concrete
+// interface they need, which is what lets community and enterprise share these handlers.
 func (c *Context) Service() any {
 	return c.service
 }
@@ -139,6 +144,7 @@ func (c *Context) ID() *models.ID {
 	return nil
 }
 
+// Ctx returns the request's [context.Context], which is cancelled when the client goes away.
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
 }

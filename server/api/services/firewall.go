@@ -38,6 +38,7 @@ type FirewallEvaluator interface {
 	AllowsConnection(ctx context.Context, conn models.FirewallConnection) error
 }
 
+// FirewallService answers whether a namespace's firewall rules permit a connection.
 type FirewallService interface {
 	// EvaluateFirewall reports whether the firewall lets conn through, returning
 	// ErrFirewallBlocked when it does not.

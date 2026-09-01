@@ -29,6 +29,9 @@ func CheckCredentialSwitch() error {
 	return nil
 }
 
+// NewCmd builds the process a session runs as u. Unlike the native build it enters the host's
+// namespaces through nsenter, because the agent runs in a container while the session must
+// land on the host.
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	groups, err := osauth.ListGroups(u.Username)
 	if err != nil {

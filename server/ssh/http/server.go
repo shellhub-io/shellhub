@@ -13,10 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Message is the JSON body returned to an agent whose tunnel request was refused.
 type Message struct {
 	Message string `json:"message"`
 }
 
+// NewMessageFromError renders err as the body of a refusal.
 func NewMessageFromError(err error) Message {
 	return Message{
 		Message: err.Error(),
@@ -30,6 +32,8 @@ type Config struct {
 	RequireAcceptedTunnel bool
 }
 
+// ErrDeviceTunnelDial is returned when the device holds a tunnel but the connection over it
+// could not be opened, which is distinct from the device being offline.
 var ErrDeviceTunnelDial = errors.New("failed to connect to device")
 
 var upgrader = websocket.Upgrader{

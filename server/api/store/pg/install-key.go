@@ -13,6 +13,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// InstallKeyCreate implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyCreate(ctx context.Context, installKey *models.InstallKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -25,6 +26,7 @@ func (pg *Pg) InstallKeyCreate(ctx context.Context, installKey *models.InstallKe
 	return installKey.ID, nil
 }
 
+// InstallKeyConflicts implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -74,6 +76,7 @@ func (pg *Pg) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *m
 	return conflicts, len(conflicts) > 0, nil
 }
 
+// InstallKeyList implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -101,6 +104,7 @@ func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.
 	return installKeys, count, nil
 }
 
+// InstallKeyResolve implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, val string, opts ...store.QueryOption) (*models.InstallKey, error) {
 	db := pg.GetConnection(ctx)
 
@@ -123,10 +127,12 @@ func (pg *Pg) InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver st
 	return entity.InstallKeyToModel(installKey), nil
 }
 
+// InstallKeyResolveSystem implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyResolveSystem(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
 	return pg.installKeyResolveSystem(ctx, sc, models.InstallKeyTypeLegacy)
 }
 
+// InstallKeyResolveSystemPairing implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyResolveSystemPairing(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
 	return pg.installKeyResolveSystem(ctx, sc, models.InstallKeyTypePairing)
 }
@@ -152,6 +158,7 @@ func (pg *Pg) installKeyResolveSystem(ctx context.Context, sc scope.Scope, keyTy
 	return entity.InstallKeyToModel(installKey), nil
 }
 
+// InstallKeyUpdate implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyUpdate(ctx context.Context, installKey *models.InstallKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -170,6 +177,7 @@ func (pg *Pg) InstallKeyUpdate(ctx context.Context, installKey *models.InstallKe
 	return nil
 }
 
+// InstallKeyIncrementUsage implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyIncrementUsage(ctx context.Context, installKey *models.InstallKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -192,6 +200,7 @@ func (pg *Pg) InstallKeyIncrementUsage(ctx context.Context, installKey *models.I
 	return nil
 }
 
+// InstallKeyDecrementUsage implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyDecrementUsage(ctx context.Context, installKey *models.InstallKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -213,6 +222,7 @@ func (pg *Pg) InstallKeyDecrementUsage(ctx context.Context, installKey *models.I
 	return nil
 }
 
+// InstallKeyEventCreate implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyEventCreate(ctx context.Context, event *models.InstallKeyEvent) error {
 	db := pg.GetConnection(ctx)
 
@@ -227,6 +237,7 @@ func (pg *Pg) InstallKeyEventCreate(ctx context.Context, event *models.InstallKe
 	return nil
 }
 
+// InstallKeyEventStampDecision implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error {
 	db := pg.GetConnection(ctx)
 
@@ -256,6 +267,7 @@ func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, sc scope.Scope, 
 	return nil
 }
 
+// InstallKeyEventList implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -289,6 +301,7 @@ func (pg *Pg) InstallKeyEventList(ctx context.Context, sc scope.Scope, keyDigest
 	return events, count, nil
 }
 
+// EnrollmentCallbackRedeem implements [store.InstallKeyStore].
 func (pg *Pg) EnrollmentCallbackRedeem(ctx context.Context, jti string, at time.Time) (bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -308,6 +321,7 @@ func (pg *Pg) EnrollmentCallbackRedeem(ctx context.Context, jti string, at time.
 	return affected > 0, nil
 }
 
+// EnrollmentCallbackCleanup implements [store.InstallKeyStore].
 func (pg *Pg) EnrollmentCallbackCleanup(ctx context.Context, before time.Time) (int64, error) {
 	db := pg.GetConnection(ctx)
 
@@ -322,6 +336,8 @@ func (pg *Pg) EnrollmentCallbackCleanup(ctx context.Context, before time.Time) (
 	return res.RowsAffected()
 }
 
+// InstallKeyResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func InstallKeyResolverToString(resolver store.InstallKeyResolver) (string, error) {
 	switch resolver {
 	case store.InstallKeyIDResolver:

@@ -11,6 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// PublicKeyCreate implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -39,6 +40,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 	return e.Fingerprint, nil
 }
 
+// PublicKeyList implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -64,6 +66,7 @@ func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.Q
 	return publicKeys, count, nil
 }
 
+// PublicKeyUpdate implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
@@ -108,6 +111,7 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 	})
 }
 
+// PublicKeyResolve implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyResolve(ctx context.Context, sc scope.Scope, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
 	db := pg.GetConnection(ctx)
 
@@ -132,6 +136,7 @@ func (pg *Pg) PublicKeyResolve(ctx context.Context, sc scope.Scope, resolver sto
 	return entity.PublicKeyToModel(a), nil
 }
 
+// PublicKeyDelete implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -153,6 +158,8 @@ func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) 
 	return nil
 }
 
+// PublicKeyResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func PublicKeyResolverToString(resolver store.PublicKeyResolver) (string, error) {
 	switch resolver {
 	case store.PublicKeyFingerprintResolver:

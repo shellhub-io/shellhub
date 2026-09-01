@@ -33,6 +33,8 @@ type devicePairing struct {
 	PreauthBy       string `json:"preauth_by,omitempty"`
 }
 
+// DevicePairingService issues and redeems pre-authorized pairing codes, which let a device
+// join a namespace already accepted instead of waiting in the pending list.
 type DevicePairingService interface {
 	// PrepareDevicePairing mints a short-lived, single-use pre-authorized pairing
 	// code for a namespace. A logged-in member with the device-accept permission

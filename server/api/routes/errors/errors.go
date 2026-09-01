@@ -17,10 +17,13 @@ const (
 	ErrCodeUnauthorized
 )
 
+// ErrDataInvalidEntity carries which fields failed validation and why, so the UI can mark
+// them individually rather than showing one message for the whole form.
 type ErrDataInvalidEntity struct {
 	Fields map[string]string `json:"fields"`
 }
 
+// The route layer's own failures, raised before a request reaches a service.
 var (
 	ErrUnprocessableEntity = errors.New("unprocessable entity", ErrLayer, ErrCodeUnprocessableEntity)
 	ErrInvalidEntity       = errors.New("invalid entity", ErrLayer, ErrCodeInvalidEntity)

@@ -27,6 +27,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// Data is what the server resolved about a session before opening it: who is connecting, to
+// which device, in which namespace.
 type Data struct {
 	Target *target.Target
 	// SSHID is the combination of device's name and namespace name.
@@ -128,6 +130,13 @@ func (c *Client) Close() error {
 	return nil
 }
 
+// Session is one SSH connection from a client to a device, and everything the server needs to
+// mediate it: the two ends, the session record the API holds, and the events streamed to it.
+//
+// A session moves through the states in [State] in order, and carries one or more seats — a
+// seat being a single shell or exec on the device, so that a multiplexed client shows up as
+// one session rather than several.
+//
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
 	// UID is the session's UID.
@@ -609,6 +618,8 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 	}
 }
 
+// ErrDialUnknown is returned when a device announces a transport version the server has no
+// dial procedure for, which happens when an agent is newer than the server.
 var ErrDialUnknown = errors.New("unknown protocol version")
 
 // Dial establishes the underlying transport to the target device. For V1
@@ -644,6 +655,9 @@ func (s *Session) checkLicense(ctx context.Context) error {
 	return err
 }
 
+// Evaluate decides whether the session is allowed to proceed, applying the licence, the
+// firewall rules and the namespace's own restrictions. It runs after the device is dialled
+// and before the client is joined to it.
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	if envs.IsEnterprise() {
 		if err := s.checkLicense(ctx); err != nil {
@@ -824,6 +838,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
+// NewSeat allocates a seat for a new shell or exec within this session, returning its id.
 func (s *Session) NewSeat() (int, error) {
 	return s.seats.NewSeat()
 }
@@ -893,6 +908,7 @@ func Event[D any](sess EventWriter, t string, data []byte, seat int) {
 	sess.Event(t, d, seat)
 }
 
+// KeepAlive tells the API the session is still live, so that it is not reaped as stale.
 func (s *Session) KeepAlive(ctx context.Context) error {
 	if err := s.service.KeepAliveSession(ctx, models.UID(s.UID)); err != nil {
 		log.WithError(err).

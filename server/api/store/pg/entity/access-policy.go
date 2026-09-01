@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// AccessPolicy is a row of access_policies. TenantID on the model is namespace_id here, and
+// the policy's tags are a join table rather than a column.
 type AccessPolicy struct {
 	bun.BaseModel `bun:"table:access_policies"`
 
@@ -27,6 +29,8 @@ type AccessPolicy struct {
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
 }
 
+// AccessPolicyTag joins a policy to a tag. It is declared because bun needs the join model
+// registered, even though nothing reads it directly.
 type AccessPolicyTag struct {
 	bun.BaseModel  `bun:"table:access_policy_tags"`
 	AccessPolicyID string    `bun:"access_policy_id,pk"`
@@ -37,10 +41,13 @@ type AccessPolicyTag struct {
 	Tag          *Tag          `bun:"rel:belongs-to,join:tag_id=id"`
 }
 
+// NewAccessPolicyTag returns the join row binding tagID to accessPolicyID.
 func NewAccessPolicyTag(tagID, accessPolicyID string) *AccessPolicyTag {
 	return &AccessPolicyTag{TagID: tagID, AccessPolicyID: accessPolicyID}
 }
 
+// AccessPolicyFromModel projects a policy into its row form, flattening the subject into its
+// type and value columns.
 func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 	accessPolicy := &AccessPolicy{
 		ID:             model.ID,
@@ -74,6 +81,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 	return accessPolicy
 }
 
+// AccessPolicyToModel rebuilds a policy from its row.
 func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 	accessPolicy := &models.AccessPolicy{
 		ID:        entity.ID,

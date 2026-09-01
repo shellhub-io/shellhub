@@ -7,6 +7,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// SSHApprovalStore persists pending SSH approvals, which are short-lived by design: an
+// approval that nobody acts on expires rather than waiting indefinitely.
 type SSHApprovalStore interface {
 	// SSHApprovalCreate stores a pending SSH login approval.
 	SSHApprovalCreate(ctx context.Context, approval *models.SSHApproval) error

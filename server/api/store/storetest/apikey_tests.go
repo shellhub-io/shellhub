@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestAPIKeyCreate exercises APIKeyCreate against the store under test.
 func (s *Suite) TestAPIKeyCreate(t *testing.T) {
 	t.Run("succeeds", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
@@ -21,6 +22,8 @@ func (s *Suite) TestAPIKeyCreate(t *testing.T) {
 	})
 }
 
+// TestAPIKeyConflicts locks which fields APIKeyConflicts reports as already taken, and that it
+// is bounded to the namespace asking.
 func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -87,6 +90,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 	})
 }
 
+// TestAPIKeyResolve exercises APIKeyResolve against the store under test.
 func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -164,6 +168,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 	})
 }
 
+// TestAPIKeyList exercises APIKeyList against the store under test.
 func (s *Suite) TestAPIKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -212,6 +217,7 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 	})
 }
 
+// TestAPIKeyUpdate exercises APIKeyUpdate against the store under test.
 func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -251,6 +257,7 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 	})
 }
 
+// TestAPIKeyDelete exercises APIKeyDelete against the store under test.
 func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -287,6 +294,7 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 	})
 }
 
+// TestAPIKeyDeleteAllByCreator locks that removing a user takes the keys they created with them.
 func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

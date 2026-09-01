@@ -9,6 +9,8 @@ import (
 	"github.com/uptrace/bun/migrate"
 )
 
+// Migrate runs the pending migrations at startup, so a deployment does not need a separate
+// migration step.
 func Migrate() Option {
 	return func(ctx context.Context, db *bun.DB) error {
 		log.Info("starting database migration")

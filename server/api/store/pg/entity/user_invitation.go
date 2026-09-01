@@ -21,6 +21,7 @@ type UserInvitation struct {
 	UpdatedAt   time.Time `bun:"updated_at"`
 }
 
+// UserInvitationFromModel projects an invitation into its row form.
 func UserInvitationFromModel(model *models.UserInvitation) *UserInvitation {
 	return &UserInvitation{
 		ID:          model.ID,
@@ -32,6 +33,7 @@ func UserInvitationFromModel(model *models.UserInvitation) *UserInvitation {
 	}
 }
 
+// UserInvitationToModel rebuilds an invitation from its row.
 func UserInvitationToModel(e *UserInvitation) *models.UserInvitation {
 	return &models.UserInvitation{
 		ID:          e.ID,

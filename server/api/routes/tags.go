@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The tag routes, relative to the API's base path. The URLOld* spellings are kept because
+// deployed clients still call them.
 const (
 	URLGetTags           = "/tags"
 	URLCreateTag         = "/tags"
@@ -28,6 +30,7 @@ const (
 	URLOldPullTagFromDevice = "/namespaces/:tenant/devices/:uid/tags/:name"
 )
 
+// CreateTag adds a tag to the namespace.
 func (h *Handler) CreateTag(c *gateway.Context) error {
 	req := new(requests.CreateTag)
 
@@ -49,6 +52,7 @@ func (h *Handler) CreateTag(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// GetTags serves the namespace's tags.
 func (h *Handler) GetTags(c *gateway.Context) error {
 	req := new(requests.ListTags)
 
@@ -87,6 +91,7 @@ func (h *Handler) GetTags(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
+// UpdateTag renames a tag, which renames it everywhere it is attached.
 func (h *Handler) UpdateTag(c *gateway.Context) error {
 	req := new(requests.UpdateTag)
 
@@ -105,6 +110,7 @@ func (h *Handler) UpdateTag(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// DeleteTag removes a tag and detaches it from everything carrying it.
 func (h *Handler) DeleteTag(c *gateway.Context) error {
 	req := new(requests.DeleteTag)
 
@@ -123,6 +129,7 @@ func (h *Handler) DeleteTag(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// PushTagToDevice attaches an existing tag to a device.
 func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 	req := new(requests.PushTag)
 
@@ -143,6 +150,7 @@ func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// PullTagFromDevice detaches a tag from a device, leaving the tag itself in place.
 func (h *Handler) PullTagFromDevice(c *gateway.Context) error {
 	req := new(requests.PullTag)
 

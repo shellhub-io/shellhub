@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTagCreate exercises TagCreate against the store under test.
 func (s *Suite) TestTagCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -31,6 +32,7 @@ func (s *Suite) TestTagCreate(t *testing.T) {
 	})
 }
 
+// TestTagConflicts locks which tag fields are reported as already taken.
 func (s *Suite) TestTagConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -85,6 +87,7 @@ func (s *Suite) TestTagConflicts(t *testing.T) {
 	})
 }
 
+// TestTagList exercises TagList against the store under test.
 func (s *Suite) TestTagList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -137,6 +140,7 @@ func (s *Suite) TestTagList(t *testing.T) {
 	})
 }
 
+// TestTagResolve exercises TagResolve against the store under test.
 func (s *Suite) TestTagResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -194,6 +198,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 	})
 }
 
+// TestTagUpdate exercises TagUpdate against the store under test.
 func (s *Suite) TestTagUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -238,6 +243,7 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 	})
 }
 
+// TestTagPushToTarget locks attaching a tag to a device or key.
 func (s *Suite) TestTagPushToTarget(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -305,6 +311,7 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 	})
 }
 
+// TestTagPullFromTarget locks detaching a tag while leaving the tag itself in place.
 func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -402,6 +409,7 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 	})
 }
 
+// TestTagDelete exercises TagDelete against the store under test.
 func (s *Suite) TestTagDelete(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

@@ -13,6 +13,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 )
 
+// DeviceCreate implements [store.DeviceStore].
 func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -26,6 +27,7 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	return e.ID, nil
 }
 
+// DeviceConflicts implements [store.DeviceStore].
 func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
@@ -64,6 +66,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *model
 	return conflicts, len(conflicts) > 0, nil
 }
 
+// DeviceList implements [store.DeviceStore].
 func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -100,6 +103,7 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 	return devices, count, nil
 }
 
+// DeviceListExpiredEphemeral implements [store.DeviceStore].
 func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, error) {
 	db := pg.GetConnection(ctx)
 
@@ -123,6 +127,7 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	return devices, nil
 }
 
+// DeviceResolve implements [store.DeviceStore].
 func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, val string, opts ...store.QueryOption) (*models.Device, error) {
 	db := pg.GetConnection(ctx)
 
@@ -157,6 +162,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.
 	return entity.DeviceToModel(d), nil
 }
 
+// DeviceUpdate implements [store.DeviceStore].
 func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	db := pg.GetConnection(ctx)
 
@@ -175,6 +181,7 @@ func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	return nil
 }
 
+// DeviceSetCustomField implements [store.DeviceStore].
 func (pg *Pg) DeviceSetCustomField(ctx context.Context, uid, key, value string) error {
 	db := pg.GetConnection(ctx)
 
@@ -194,6 +201,7 @@ func (pg *Pg) DeviceSetCustomField(ctx context.Context, uid, key, value string) 
 	return nil
 }
 
+// DeviceDeleteCustomField implements [store.DeviceStore].
 func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) error {
 	db := pg.GetConnection(ctx)
 
@@ -213,6 +221,7 @@ func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) erro
 	return nil
 }
 
+// DeviceHeartbeat implements [store.DeviceStore].
 func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) (int64, error) {
 	db := pg.GetConnection(ctx)
 
@@ -231,6 +240,7 @@ func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.T
 	return r.RowsAffected()
 }
 
+// DeviceOffline implements [store.DeviceStore].
 func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error {
 	db := pg.GetConnection(ctx)
 
@@ -250,6 +260,7 @@ func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time
 	return nil
 }
 
+// DeviceDelete implements [store.DeviceStore].
 func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 	deletedCount, err := pg.DeviceDeleteMany(ctx, []string{device.UID})
 	switch {
@@ -262,6 +273,7 @@ func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 	}
 }
 
+// DeviceDeleteMany implements [store.DeviceStore].
 func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error) {
 	db := pg.GetConnection(ctx)
 	fn := pg.deviceDeleteManyFn(ctx, uids)
@@ -353,6 +365,8 @@ func deviceExprUnnestIDs(ids []string) (string, any) {
 	return "(SELECT unnest(?::varchar[]) as id) as _data", pgdialect.Array(ids)
 }
 
+// DeviceResolverToString returns the column resolver selects, reporting
+// [store.ErrResolverNotFound] for one this store does not implement.
 func DeviceResolverToString(resolver store.DeviceResolver) (string, error) {
 	switch resolver {
 	case store.DeviceUIDResolver:

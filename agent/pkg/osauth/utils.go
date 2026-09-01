@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// User is one entry of a Unix passwd file, with the hash from shadow when it was readable.
 type User struct {
 	UID      uint32 // The user ID of the account.
 	GID      uint32 // The group ID of the account.

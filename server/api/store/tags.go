@@ -8,15 +8,22 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// TagResolver names the field a tag is looked up by.
 type TagResolver uint
 
+// The fields a tag can be resolved by. The zero value is not one, so an unset resolver cannot
+// silently mean the first.
 const (
 	TagIDResolver TagResolver = iota + 1
 	TagNameResolver
 )
 
+// TagTarget is a kind of thing a tag can be attached to. The enterprise build adds its own
+// through [RegisterTagTarget], so this list is not closed.
 type TagTarget int
 
+// The targets the community edition tags. The zero value is not one, so an unset target
+// cannot silently mean devices.
 const (
 	TagTargetDevice TagTarget = iota + 1
 	TagTargetPublicKey
@@ -36,12 +43,14 @@ func RegisterTagTarget(t TagTarget) {
 	extraTagTargets = append(extraTagTargets, t)
 }
 
+// TagTargets returns the built-in targets followed by any the enterprise build registered.
 func TagTargets() []TagTarget {
 	targets := []TagTarget{TagTargetDevice, TagTargetPublicKey}
 
 	return append(targets, extraTagTargets...)
 }
 
+// TagsStore persists tags and their attachment to devices and public keys.
 type TagsStore interface {
 	// TagCreate creates new tag.
 	//

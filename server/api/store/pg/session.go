@@ -13,6 +13,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// SessionList implements [store.SessionStore].
 func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -56,6 +57,7 @@ func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.Que
 	return sessions, count, nil
 }
 
+// SessionResolve implements [store.SessionStore].
 func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	db := pg.GetConnection(ctx)
 
@@ -90,6 +92,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store
 	return entity.SessionToModel(e), nil
 }
 
+// SessionCreate implements [store.SessionStore].
 func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -119,6 +122,7 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 	return e.ID, nil
 }
 
+// SessionUpdate implements [store.SessionStore].
 func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error {
 	db := pg.GetConnection(ctx)
 
@@ -148,6 +152,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 	return nil
 }
 
+// ActiveSessionCreate implements [store.SessionStore].
 func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) error {
 	db := pg.GetConnection(ctx)
 
@@ -163,6 +168,7 @@ func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) 
 	return nil
 }
 
+// ActiveSessionResolve implements [store.SessionStore].
 func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionResolver, value string) (*models.ActiveSession, error) {
 	db := pg.GetConnection(ctx)
 
@@ -182,6 +188,7 @@ func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionRe
 	return entity.ActiveSessionToModel(e), nil
 }
 
+// ActiveSessionUpdate implements [store.SessionStore].
 func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
 	db := pg.GetConnection(ctx)
 
@@ -203,6 +210,7 @@ func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.Act
 	return nil
 }
 
+// ActiveSessionDelete implements [store.SessionStore].
 func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
@@ -232,6 +240,7 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 	})
 }
 
+// SessionEventsCreate implements [store.SessionStore].
 func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error {
 	db := pg.GetConnection(ctx)
 
@@ -245,6 +254,7 @@ func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEven
 	return nil
 }
 
+// SessionEventsCreateMany implements [store.SessionStore].
 func (pg *Pg) SessionEventsCreateMany(ctx context.Context, events []models.SessionEvent) error {
 	if len(events) == 0 {
 		return nil
@@ -266,6 +276,7 @@ func (pg *Pg) SessionEventsCreateMany(ctx context.Context, events []models.Sessi
 	return nil
 }
 
+// SessionEventsList implements [store.SessionStore].
 func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
 	db := pg.GetConnection(ctx)
 
@@ -300,6 +311,7 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 	return events, count, nil
 }
 
+// SessionEventsDelete implements [store.SessionStore].
 func (pg *Pg) SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
 	db := pg.GetConnection(ctx)
 
@@ -315,6 +327,7 @@ func (pg *Pg) SessionEventsDelete(ctx context.Context, uid models.UID, seat int,
 	return nil
 }
 
+// SessionUpdateDeviceUID implements [store.SessionStore].
 func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	db := pg.GetConnection(ctx)
 
@@ -339,6 +352,7 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 	return nil
 }
 
+// SessionListExpired implements [store.SessionStore].
 func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error) {
 	if limit <= 0 {
 		return []store.ExpiredSession{}, nil
@@ -368,6 +382,7 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 	return sessions, nil
 }
 
+// SessionDeleteMany implements [store.SessionStore].
 func (pg *Pg) SessionDeleteMany(ctx context.Context, uids []string) (int64, error) {
 	if len(uids) == 0 {
 		return 0, nil

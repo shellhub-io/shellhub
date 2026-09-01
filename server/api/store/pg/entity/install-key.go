@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// InstallKey is a row of install_keys. It holds both the key's digest and an encrypted copy of
+// the plaintext, because an install key can be revealed again after it is created.
 type InstallKey struct {
 	bun.BaseModel `bun:"table:install_keys"`
 
@@ -37,6 +39,7 @@ type InstallKey struct {
 	ExpiresAt          *time.Time `bun:"expires_at,nullzero"`
 }
 
+// InstallKeyFromModel projects an install key into its row form.
 func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 	allowedMACs := model.AllowedMACs
 	if allowedMACs == nil {
@@ -82,6 +85,7 @@ func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 	}
 }
 
+// InstallKeyToModel rebuilds an install key from its row.
 func InstallKeyToModel(entity *InstallKey) *models.InstallKey {
 	return &models.InstallKey{
 		ID:                 entity.KeyDigest,

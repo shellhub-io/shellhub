@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The registration and invitation routes, relative to the API's base path.
 const (
 	RegisterUserURL                      = "/register"
 	URLResolveInvitation                 = "/invitations/resolve"
@@ -44,6 +45,9 @@ func (h *Handler) RegisterUser(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// ResolveInvitation serves what an invite code stands for, so the accept page can route the
+// invitee to sign up, log in, or accept. It is reachable unauthenticated: the code is the
+// credential.
 func (h *Handler) ResolveInvitation(c *gateway.Context) error {
 	req := new(requests.ResolveInvitation)
 
@@ -63,6 +67,8 @@ func (h *Handler) ResolveInvitation(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+// GenerateInvitationLink returns a fresh link for an existing invitation, for an inviter who
+// needs to send it again.
 func (h *Handler) GenerateInvitationLink(c *gateway.Context) error {
 	req := new(requests.GenerateInvitationLink)
 
@@ -82,6 +88,7 @@ func (h *Handler) GenerateInvitationLink(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"link": link})
 }
 
+// AcceptInvite joins the caller to the namespace the invitation names.
 func (h *Handler) AcceptInvite(c *gateway.Context) error {
 	req := new(requests.AcceptInvite)
 
@@ -100,6 +107,7 @@ func (h *Handler) AcceptInvite(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// GetUserMembershipInvitationList serves the invitations awaiting the caller.
 func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 	req := new(requests.UserMembershipInvitationList)
 
@@ -130,6 +138,7 @@ func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, invitations)
 }
 
+// GetNamespaceMembershipInvitationList serves the invitations a namespace has outstanding.
 func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error {
 	req := new(requests.NamespaceMembershipInvitationList)
 
@@ -160,6 +169,7 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 	return c.JSON(http.StatusOK, invitations)
 }
 
+// CancelMembershipInvitation withdraws an invitation, invalidating its code.
 func (h *Handler) CancelMembershipInvitation(c *gateway.Context) error {
 	req := new(requests.CancelMembershipInvitation)
 

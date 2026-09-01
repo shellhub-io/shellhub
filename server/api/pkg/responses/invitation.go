@@ -17,16 +17,22 @@ type ResolveInvitation struct {
 	Status   string `json:"status"`
 }
 
+// MembershipInvitationNamespace is the namespace an invitation is to, reduced to what an
+// invitee may see before accepting.
 type MembershipInvitationNamespace struct {
 	TenantID string `json:"tenant_id"`
 	Name     string `json:"name"`
 }
 
+// MembershipInvitationUser is the invitee, reduced to what the inviter may see.
 type MembershipInvitationUser struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
 }
 
+// MembershipInvitation is an invitation as returned by the API. It is a narrower view than
+// the stored model: the invitation token is not part of it, and InviteURL is set only for
+// the response to creating one.
 type MembershipInvitation struct {
 	InvitedBy       string                            `json:"invited_by"`
 	CreatedAt       time.Time                         `json:"created_at"`
@@ -43,6 +49,7 @@ type MembershipInvitation struct {
 	InviteURL string `json:"invite_url,omitempty"`
 }
 
+// MembershipInvitationFromModel projects a stored invitation into its API form.
 func MembershipInvitationFromModel(m *models.MembershipInvitation) *MembershipInvitation {
 	return &MembershipInvitation{
 		InvitedBy:       m.InvitedBy,

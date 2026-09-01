@@ -22,6 +22,7 @@ func (s *Suite) TestUserConflictsRemoved(t *testing.T) {
 	assert.False(t, ok, "UserStore.UserConflicts must be removed from the interface")
 }
 
+// TestUserList exercises UserList against the store under test.
 func (s *Suite) TestUserList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -44,6 +45,7 @@ func (s *Suite) TestUserList(t *testing.T) {
 	})
 }
 
+// TestUserResolve exercises UserResolve against the store under test.
 func (s *Suite) TestUserResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -111,6 +113,7 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	})
 }
 
+// TestUserCreate exercises UserCreate against the store under test.
 func (s *Suite) TestUserCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -150,6 +153,8 @@ func (s *Suite) TestUserCreate(t *testing.T) {
 	}
 }
 
+// TestUserCreatePasswordRoundTrip locks that a password survives storage and still verifies, so a hashing
+// change cannot silently lock every account out.
 func (s *Suite) TestUserCreatePasswordRoundTrip(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -230,6 +235,7 @@ func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 	})
 }
 
+// TestUserUpdate exercises UserUpdate against the store under test.
 func (s *Suite) TestUserUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -262,6 +268,7 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 	})
 }
 
+// TestUserDelete exercises UserDelete against the store under test.
 func (s *Suite) TestUserDelete(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

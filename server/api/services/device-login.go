@@ -18,6 +18,8 @@ type deviceLoginCode struct {
 	TenantID string `json:"tenant_id"`
 }
 
+// DeviceLoginCodeService issues the short-lived codes an agent prints so that a person can
+// accept the device from a browser without copying its UID.
 type DeviceLoginCodeService interface {
 	// CreateDeviceLoginCode generates a short-lived code that the agent prints as an
 	// accept-device URL. The code maps back to the device's UID and tenant; any

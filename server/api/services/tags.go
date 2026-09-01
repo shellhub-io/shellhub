@@ -24,6 +24,7 @@ var TagSortFields = query.NewFieldSet(
 	"updated_at",
 )
 
+// TagsService owns tags, which are namespace-scoped labels attached to devices and keys.
 type TagsService interface {
 	// CreateTag creates a new tag in the specified tenant namespace.
 	//

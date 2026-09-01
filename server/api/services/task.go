@@ -15,6 +15,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// When the background jobs run. They are spread across the night so that a small instance
+// does not run all of them at once.
 const (
 	CronDeviceCleanup             = worker.CronSpec("0 2 * * *")
 	CronNamespaceDeviceCountSync  = worker.CronSpec("0 3 * * *")

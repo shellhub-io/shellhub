@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// SSHIdentityResolver names the field an SSH identity is looked up by.
 type SSHIdentityResolver int
 
 const (
@@ -17,6 +18,7 @@ const (
 	SSHIdentityFingerprintResolver
 )
 
+// SSHIdentityStore persists the enrolled public keys that identify a person to a device.
 type SSHIdentityStore interface {
 	// SSHIdentityList retrieves enrolled SSH identities scoped to a namespace.
 	SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.SSHIdentity, int, error)

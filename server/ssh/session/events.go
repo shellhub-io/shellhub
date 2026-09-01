@@ -40,6 +40,9 @@ type Events struct {
 	dropped atomic.Uint64
 }
 
+// NewEvents returns a buffered stream of session events for session, delivered through
+// service. The buffer is bounded: when it fills, events are dropped and counted rather than
+// blocking the session they describe.
 func NewEvents(session string, service services.Service) *Events {
 	return &Events{
 		session: session,

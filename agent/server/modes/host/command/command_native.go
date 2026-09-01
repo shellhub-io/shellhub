@@ -54,6 +54,9 @@ func CheckCredentialSwitch() error {
 	return nil
 }
 
+// NewCmd builds the process a session runs as u, with the environment and supplementary
+// groups the account is entitled to. A group lookup failure leaves the set empty rather
+// than failing the session.
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	groups, err := osauth.ListGroups(u.Username)
 	if err != nil {

@@ -8,6 +8,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// MembershipInvitation is a row of membership_invitations. It may name an email that has no
+// account yet, so the user relation is optional.
 type MembershipInvitation struct {
 	bun.BaseModel `bun:"table:membership_invitations"`
 
@@ -29,6 +31,7 @@ type MembershipInvitation struct {
 	UserInvitation *UserInvitation `bun:"rel:belongs-to,join:user_id=id"`
 }
 
+// MembershipInvitationFromModel projects an invitation into its row form.
 func MembershipInvitationFromModel(model *models.MembershipInvitation) *MembershipInvitation {
 	role := string(model.Role)
 	if role == "" {
@@ -56,6 +59,7 @@ func MembershipInvitationFromModel(model *models.MembershipInvitation) *Membersh
 	}
 }
 
+// MembershipInvitationToModel rebuilds an invitation from its row.
 func MembershipInvitationToModel(entity *MembershipInvitation) *models.MembershipInvitation {
 	invitation := &models.MembershipInvitation{
 		ID:              entity.ID,

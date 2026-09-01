@@ -654,6 +654,8 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	})
 }
 
+// TestNamespaceSyncDeviceCounts locks that the cached per-status device counts are rebuilt to match the
+// devices actually present.
 func (s *Suite) TestNamespaceSyncDeviceCounts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

@@ -7,6 +7,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// MembershipInvitationStore persists invitations to join a namespace, including those issued
+// to an email that has no account yet.
 type MembershipInvitationStore interface {
 	// MembershipInvitationCreate creates a new membership invitation.
 	MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error

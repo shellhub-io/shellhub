@@ -7,6 +7,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// SSHIdentity is a row of ssh_identities, binding a public key to a person within a namespace.
 type SSHIdentity struct {
 	bun.BaseModel `bun:"table:ssh_identities"`
 
@@ -27,6 +28,7 @@ type SSHIdentity struct {
 	User *User `bun:"rel:belongs-to,join:user_id=id"`
 }
 
+// SSHIdentityFromModel projects an identity into its row form.
 func SSHIdentityFromModel(model *models.SSHIdentity) *SSHIdentity {
 	return &SSHIdentity{
 		ID:           model.ID,
@@ -45,6 +47,7 @@ func SSHIdentityFromModel(model *models.SSHIdentity) *SSHIdentity {
 	}
 }
 
+// SSHIdentityToModel rebuilds an identity from its row.
 func SSHIdentityToModel(e *SSHIdentity) *models.SSHIdentity {
 	identity := &models.SSHIdentity{
 		ID:           e.ID,

@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// UserInvitationsUpsert implements [store.UserInvitationStore].
 func (pg *Pg) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
 	db := pg.GetConnection(ctx)
 
@@ -41,6 +42,7 @@ func (pg *Pg) UserInvitationsUpsert(ctx context.Context, email string) (string, 
 	return result.ID, nil
 }
 
+// UserInvitationGet implements [store.UserInvitationStore].
 func (pg *Pg) UserInvitationGet(ctx context.Context, resolver store.UserInvitationResolver, value string) (*models.UserInvitation, error) {
 	db := pg.GetConnection(ctx)
 
@@ -61,6 +63,7 @@ func (pg *Pg) UserInvitationGet(ctx context.Context, resolver store.UserInvitati
 	return entity.UserInvitationToModel(e), nil
 }
 
+// UserInvitationUpdate implements [store.UserInvitationStore].
 func (pg *Pg) UserInvitationUpdate(ctx context.Context, invitation *models.UserInvitation) error {
 	db := pg.GetConnection(ctx)
 

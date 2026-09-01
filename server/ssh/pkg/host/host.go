@@ -2,10 +2,12 @@ package host
 
 import "net"
 
+// Host is the address half of a connection, with the port discarded.
 type Host struct {
 	Host string
 }
 
+// NewHost splits the host out of a host:port address.
 func NewHost(address string) (*Host, error) {
 	host, _, err := net.SplitHostPort(address)
 	if err != nil {

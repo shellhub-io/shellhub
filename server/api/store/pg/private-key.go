@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
+// PrivateKeyCreate implements [store.PrivateKeyStore].
 func (pg *Pg) PrivateKeyCreate(ctx context.Context, privateKey *models.PrivateKey) error {
 	db := pg.GetConnection(ctx)
 
@@ -20,6 +21,7 @@ func (pg *Pg) PrivateKeyCreate(ctx context.Context, privateKey *models.PrivateKe
 	return nil
 }
 
+// PrivateKeyGet implements [store.PrivateKeyStore].
 func (pg *Pg) PrivateKeyGet(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
 	db := pg.GetConnection(ctx)
 

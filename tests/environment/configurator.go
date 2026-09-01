@@ -17,6 +17,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
+// DockerComposeConfigurator collects the environment a test stack needs before it is brought
+// up. Ports and network names are randomised so that concurrent test binaries do not collide.
 type DockerComposeConfigurator struct {
 	envs map[string]string
 	t    *testing.T

@@ -6,6 +6,8 @@ import (
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 )
 
+// Handler holds what every route needs: the service layer to call, the authenticator that
+// guards them, and the upgrader for the routes that become WebSockets.
 type Handler struct {
 	service svc.Service
 	// WebSocketUpgrader is used to turns a HTTP request into WebSocketUpgrader connection.
@@ -14,6 +16,7 @@ type Handler struct {
 	authn *routesmiddleware.Authenticator
 }
 
+// NewHandler returns a handler serving over s, upgrading WebSocket routes with w.
 func NewHandler(s svc.Service, w websocket.Upgrader) *Handler {
 	return &Handler{
 		service:           s,

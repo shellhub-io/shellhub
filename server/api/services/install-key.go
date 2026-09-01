@@ -136,6 +136,8 @@ func (s *service) decryptInstallKey(encoded string) (string, error) {
 	return string(plaintext), nil
 }
 
+// InstallKeyService manages the keys an agent presents to enrol itself. Unlike an API key,
+// an install key is also kept encrypted so an operator can read it back.
 type InstallKeyService interface {
 	// CreateInstallKey creates a new install key for the specified namespace. It generates a random key,
 	// stores its SHA256 hash plus an encrypted-at-rest copy, and returns the plaintext key once. It

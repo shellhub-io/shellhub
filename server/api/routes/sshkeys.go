@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The public key routes, relative to the API's base path.
 const (
 	GetPublicKeysURL   = "/sshkeys/public-keys"
 	CreatePublicKeyURL = "/sshkeys/public-keys"
@@ -18,10 +19,12 @@ const (
 	DeletePublicKeyURL = "/sshkeys/public-keys/:fingerprint"
 )
 
+// The path parameter name these routes bind by.
 const (
 	ParamPublicKeyFingerprint = "fingerprint"
 )
 
+// GetPublicKeys serves the namespace's public keys.
 func (h *Handler) GetPublicKeys(c *gateway.Context) error {
 	req := new(requests.ListPublicKeys)
 
@@ -55,6 +58,7 @@ func (h *Handler) GetPublicKeys(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
+// CreatePublicKey adds a public key, with the device and username rules restricting it.
 func (h *Handler) CreatePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyCreate
 	if err := c.Bind(&req); err != nil {
@@ -79,6 +83,7 @@ func (h *Handler) CreatePublicKey(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// UpdatePublicKey changes a key's name or its restriction rules, not the key material.
 func (h *Handler) UpdatePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyUpdate
 	if err := c.Bind(&req); err != nil {
@@ -102,6 +107,7 @@ func (h *Handler) UpdatePublicKey(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// DeletePublicKey revokes a key by fingerprint.
 func (h *Handler) DeletePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyDelete
 	if err := c.Bind(&req); err != nil {

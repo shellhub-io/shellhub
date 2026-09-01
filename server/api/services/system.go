@@ -16,6 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SystemService reports what the instance is and how to join it — the only service with
+// operations reachable before authentication.
 type SystemService interface {
 	// GetSystemInfo retrieves the instance's information
 	GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error)

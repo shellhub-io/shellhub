@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// PublicKey is a row of public_keys. Its restriction rules are stored as columns here, not as
+// the nested filter the model exposes.
 type PublicKey struct {
 	bun.BaseModel `bun:"table:public_keys"`
 
@@ -22,6 +24,7 @@ type PublicKey struct {
 	Tags []*Tag `bun:"m2m:public_key_tags,join:PublicKey=Tag"`
 }
 
+// PublicKeyFromModel projects a public key into its row form, flattening its filter.
 func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
 	publicKey := &PublicKey{
 		NamespaceID:    model.TenantID,
@@ -50,6 +53,7 @@ func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
 	return publicKey
 }
 
+// PublicKeyToModel rebuilds a public key from its row, restoring the nested filter.
 func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
 	publicKey := &models.PublicKey{
 		TenantID:    entity.NamespaceID,

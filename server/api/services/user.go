@@ -10,6 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
+// UserService owns accounts and the credentials attached to them: registration, profile
+// changes, password recovery and deletion.
 type UserService interface {
 	// RegisterUser creates a user account. When the registration carries a valid invitation (an
 	// invite code or a pending user_invitation for the email), it completes the invited account
