@@ -1,0 +1,4 @@
+# The site is served from docsv2.shellhub.io until it takes over docs.shellhub.io.
+# Indexing it there would put two copies of the same documentation in the results.
+User-agent: *
+Disallow: /

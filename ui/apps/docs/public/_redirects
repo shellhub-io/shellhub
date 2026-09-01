@@ -1,0 +1,100 @@
+# Where the previous documentation's pages went. The site it replaced had 68 indexed URLs
+# and the console still links six of them, so every one of them lands on the page that now
+# covers the same ground rather than on a 404 or on the home page.
+
+# Install methods
+/overview/supported-platforms/          /get-started/install                       301
+/overview/supported-platforms/buildroot /get-started/install/buildroot             301
+/overview/supported-platforms/freebsd   /get-started/install/freebsd               301
+/overview/supported-platforms/snap      /get-started/install/snap                  301
+/overview/supported-platforms/wsl       /get-started/install/wsl                   301
+/overview/supported-platforms/yocto     /get-started/install/yocto                 301
+
+# What ShellHub is
+/overview/concepts                      /about/how-shellhub-works                  301
+/overview/editions                      /about/editions                            301
+/overview/faq                           /about/faq                                 301
+/overview/features                      /about/editions                            301
+/overview/getting-started/              /get-started                               301
+/overview/getting-started/cloud         /get-started                               301
+
+# Self-hosting
+/self-hosted/                           /selfhosted/quickstart                     301
+/self-hosted/administration             /selfhosted/administration                 301
+/self-hosted/configuring                /selfhosted/environment-variables          301
+/self-hosted/deploying                  /selfhosted/quickstart                     301
+/self-hosted/reference                  /selfhosted/environment-variables          301
+/self-hosted/troubleshooting            /selfhosted/troubleshooting                301
+/self-hosted/upgrading                  /selfhosted/upgrade                        301
+
+# Devices
+/user-guides/                           /manage/devices                            301
+/user-guides/devices/adding             /get-started/enrolling-devices             301
+/user-guides/devices/connecting         /connect                                   301
+/user-guides/devices/tagging%20devices  /manage/devices/tags                       301
+/user-guides/devices/tunnels            /connect/port-forwarding                   301
+
+# The legacy access model, and where it is going
+/user-guides/firewall/                  /manage/access-control/firewall-rules      301
+/user-guides/firewall/create            /manage/access-control/firewall-rules      301
+/user-guides/firewall/policies          /manage/access-control/firewall-rules      301
+/user-guides/security/publickey-authentication  /manage/access-control/public-keys 301
+
+# Namespaces
+/user-guides/namespaces/                              /manage/namespaces           301
+/user-guides/namespaces/connection-announcment        /manage/settings             301
+/user-guides/namespaces/retrieving-your-tenant-id     /manage/namespaces           301
+/user-guides/namespaces/switching                     /manage/namespaces           301
+
+# Sessions
+/user-guides/sessions/introduction      /manage/sessions                           301
+/user-guides/sessions/session-recording /manage/session-recording                  301
+
+# Account and team
+/user-guides/settings/account/mfa/about-mfa      /manage/team/multi-factor-authentication  301
+/user-guides/settings/account/mfa/configure-mfa  /manage/team/multi-factor-authentication  301
+/user-guides/settings/account/mfa/logging-in     /manage/team/multi-factor-authentication  301
+/user-guides/settings/account/mfa/recovery-access /manage/team/multi-factor-authentication 301
+/user-guides/settings/namespace/api-keys/        /api/api-keys                     301
+/user-guides/settings/namespace/api-keys/create  /api/api-keys                     301
+/user-guides/settings/namespace/api-keys/delete  /api/api-keys                     301
+/user-guides/settings/namespace/api-keys/update  /api/api-keys                     301
+/user-guides/settings/namespace/api-keys/use     /api/api-keys                     301
+/user-guides/settings/namespace/members/         /manage/team                      301
+/user-guides/settings/namespace/members/accept-invite /manage/team                 301
+/user-guides/settings/namespace/members/edit     /manage/team/user-roles           301
+/user-guides/settings/namespace/members/invite   /manage/team                      301
+/user-guides/settings/namespace/members/remove   /manage/team                      301
+/user-guides/settings/namespace/members/roles    /manage/team/user-roles           301
+
+# Authentication, which the old site kept under an admin section
+/admin-guides/                                        /manage/team                 301
+/admin-guides/authentication/local/                   /manage/team                 301
+/admin-guides/authentication/local/configuring        /manage/team                 301
+/admin-guides/authentication/local/enabling-method    /manage/team                 301
+/admin-guides/authentication/saml/                    /manage/team/single-sign-on  301
+/admin-guides/authentication/saml/authentication      /manage/team/single-sign-on  301
+/admin-guides/authentication/saml/configuring/        /manage/team/single-sign-on  301
+/admin-guides/authentication/saml/configuring/disabling             /manage/team/single-sign-on 301
+/admin-guides/authentication/saml/configuring/enabling-manual       /manage/team/single-sign-on 301
+/admin-guides/authentication/saml/configuring/enabling-with-metadata /manage/team/single-sign-on 301
+/admin-guides/authentication/saml/mapping             /manage/team/single-sign-on  301
+/admin-guides/authentication/saml/signed_authn_requests /manage/team/single-sign-on 301
+
+# Developers
+/developers/agent/configuring   /get-started/agent-configuration                   301
+/developers/agent/installing    /get-started/install                               301
+/developers/development         /get-started/install/build-from-source             301
+/developers/openapi/            /api/openapi                                       301
+/developers/openapi/api-reference /api/openapi                                     301
+
+# The old site's own search page has no counterpart: the palette is on every page here.
+/search                         /                                                  301
+
+# Anything else under the old site's sections. Scoped to those prefixes rather than a bare
+# /*, which would be evaluated ahead of the site's own pages and redirect the home to itself.
+/overview/*                     /about/editions                                    301
+/user-guides/*                  /manage/devices                                    301
+/admin-guides/*                 /manage/team                                       301
+/self-hosted/*                  /selfhosted/quickstart                             301
+/developers/*                   /api                                               301

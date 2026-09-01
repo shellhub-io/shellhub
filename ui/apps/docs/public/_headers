@@ -1,0 +1,11 @@
+# Astro fingerprints everything it emits under /_astro, and an image is replaced by
+# capturing it again under the same name rather than edited in place.
+/_astro/*
+  cache-control: public, max-age=31536000, immutable
+
+/img/*
+  cache-control: public, max-age=31536000, immutable
+
+/*
+  x-content-type-options: nosniff
+  referrer-policy: strict-origin-when-cross-origin
