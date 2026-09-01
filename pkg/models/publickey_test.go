@@ -34,6 +34,24 @@ func TestPublicKeyFilterMatches(t *testing.T) {
 			expectedMatch: false,
 		},
 		{
+			description:   "hostname regexp does not match a device name that merely contains it",
+			filter:        PublicKeyFilter{Hostname: "staging"},
+			device:        &Device{Name: "notstaging"},
+			expectedMatch: false,
+		},
+		{
+			description:   "hostname regexp does not match a device name it only prefixes",
+			filter:        PublicKeyFilter{Hostname: "staging"},
+			device:        &Device{Name: "staging-db"},
+			expectedMatch: false,
+		},
+		{
+			description:   "hostname regexp matches the device name it names in full",
+			filter:        PublicKeyFilter{Hostname: "staging"},
+			device:        &Device{Name: "staging"},
+			expectedMatch: true,
+		},
+		{
 			description:   "invalid hostname regexp returns an error",
 			filter:        PublicKeyFilter{Hostname: "["},
 			device:        &Device{Name: "web-01"},
