@@ -70,6 +70,8 @@ func TestMain_smoke(t *testing.T) {
 		req, reqErr := http.NewRequestWithContext(t.Context(), http.MethodGet, baseURL+"/internal/whatever", nil)
 		require.NoError(t, reqErr)
 
+		req.Host = "localhost"
+
 		resp, err = client.Do(req)
 		if err == nil {
 			break
@@ -89,4 +91,17 @@ func TestMain_smoke(t *testing.T) {
 	defer resp.Body.Close() //nolint:errcheck
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	unknown, err := http.NewRequestWithContext(t.Context(), http.MethodGet, baseURL+"/info", nil)
+	require.NoError(t, err)
+
+	unknown.Host = "a.name.this.gateway.does.not.serve"
+
+	refused, err := client.Do(unknown)
+	require.NoError(t, err)
+
+	defer refused.Body.Close() //nolint:errcheck
+
+	assert.Equal(t, http.StatusNotFound, refused.StatusCode,
+		"an unserved Host must be refused rather than answered with an empty 200, which an agent reads as ShellHub")
 }
