@@ -516,7 +516,13 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
 
         const created = document.createElement("dialog");
         created.className = "shot-zoom";
-        created.innerHTML = '<img alt="">';
+        created.innerHTML =
+          '<button class="shot-zoom-close" type="button" aria-label="Close">' +
+          '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" ' +
+          'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
+          "</button><img alt=\"\">";
+        // Any click closes: the image fills the dialog, so anything else would
+        // leave the obvious target inert.
         created.addEventListener("click", () => created.close());
         created.addEventListener("close", () => document.body.classList.remove(OPEN));
         document.body.append(created);
@@ -526,7 +532,7 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
 
       // A markdown image is not a control, so it reaches neither the tab order nor
       // Enter. The <Shot> frame is already a button and needs none of this.
-      document.querySelectorAll(".prose img").forEach((image) => {
+      document.querySelectorAll(".prose img:not([data-shot-zoom] img)").forEach((image) => {
         image.tabIndex = 0;
         image.setAttribute("role", "button");
         image.setAttribute("aria-label", `Enlarge: ${image.alt}`);
@@ -534,7 +540,7 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
 
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
-        if (!event.target.matches(".prose img")) return;
+        if (!event.target.matches(".prose img:not([data-shot-zoom] img)")) return;
 
         event.preventDefault();
         event.target.click();

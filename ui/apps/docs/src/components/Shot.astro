@@ -29,12 +29,6 @@ const label = alt ?? id;
 ---
 <figure class="shot">
   <button class="shot-frame" type="button" data-shot-zoom aria-label={`Enlarge: ${label}`}>
-    <span class="shot-bar">
-      <span class="shot-route">{route}</span>
-      <svg class="shot-grow" viewBox="0 0 12 12" aria-hidden="true">
-        <path d="M7 1h4v4M11 1 7 5M5 11H1V7M1 11l4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-      </svg>
-    </span>
     <img src={shotImageHref(id)} alt={label} loading="lazy" />
   </button>
 </figure>
@@ -48,7 +42,6 @@ const label = alt ?? id;
     display: block;
     width: 100%;
     padding: 0;
-    text-align: left;
     background: rgb(var(--c-surface));
     border: 1px solid rgb(var(--c-border));
     border-radius: 0.5rem;
@@ -65,31 +58,6 @@ const label = alt ?? id;
   .shot-frame:focus-visible {
     outline: 2px solid rgb(var(--color-primary-rgb));
     outline-offset: 2px;
-  }
-
-  /* The route the screenshot was taken at: where this lives in the console. */
-  .shot-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.4rem 0.7rem;
-    border-bottom: 1px solid rgb(var(--c-border));
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.6875rem;
-    line-height: 1;
-    color: rgb(var(--c-text-muted));
-  }
-
-  .shot-grow {
-    width: 0.75rem;
-    height: 0.75rem;
-    flex: none;
-    opacity: 0.6;
-  }
-
-  .shot-frame:hover .shot-grow {
-    opacity: 1;
   }
 
   .shot-frame img {
