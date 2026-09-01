@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { extname, join } from "node:path";
 import { SHOTS_DIR, shotImageFile } from "./paths";
 
+/** Which of `ids` have no PNG on disk yet. */
 export function missingShotImages(publicDir: string, ids: string[]): string[] {
   return ids.filter((id) => !existsSync(join(publicDir, shotImageFile(id))));
 }
@@ -70,6 +71,7 @@ export function unreferencedImages(publicDir: string, outDir: string): string[] 
   return orphans.sort();
 }
 
+/** Delete files under `publicDir`, tolerating ones already gone. */
 export function removeImages(publicDir: string, files: string[]): void {
   for (const file of files) rmSync(join(publicDir, file), { force: true });
 }
@@ -86,6 +88,7 @@ const DEV: unique symbol = Symbol.for("@shellhub/docs:shots:dev");
 
 type Host = typeof globalThis & { [DEV]?: { publicDir: string } };
 
+/** Hand the dev server the public directory the render-time check reads. */
 export function serveShotsInDev(publicDir: string): void {
   (globalThis as Host)[DEV] = { publicDir };
 }

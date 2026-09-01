@@ -1,7 +1,9 @@
 import { isDeepStrictEqual } from "node:util";
 
+/** Which edition a shot needs the instance to be running. */
 export type ShotEdition = "ce" | "enterprise";
 
+/** How the capture finds an element: by role and name, text, or test id. */
 export interface ShotSelector {
   role?: string;
   name?: string;
@@ -9,10 +11,12 @@ export interface ShotSelector {
   testId?: string;
 }
 
+/** A step the capture performs before the picture is taken. */
 export interface ShotInteraction {
   click?: ShotSelector;
 }
 
+/** The browser size a shot is taken at. */
 export interface ShotViewport {
   width: number;
   height: number;
@@ -29,6 +33,7 @@ export interface ShotDeclaration {
   before?: ShotInteraction[];
 }
 
+/** One shot in the manifest, with the pages that declared it. */
 export interface ManifestShot {
   id: string;
   route: string;
@@ -39,11 +44,14 @@ export interface ManifestShot {
   usedBy: string[];
 }
 
+/** The whole shot list, as the capture tool reads it. */
 export interface ShotManifest {
   shots: ManifestShot[];
 }
 
+/** The viewport a shot is taken at unless it asks for another. */
 export const DEFAULT_VIEWPORT: ShotViewport = { width: 1440, height: 900 };
+/** The edition assumed when a shot does not name one. */
 export const DEFAULT_EDITION: ShotEdition = "ce";
 
 type Capture = Omit<ManifestShot, "usedBy">;

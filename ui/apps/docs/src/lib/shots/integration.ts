@@ -13,6 +13,11 @@ import { collectShots, resetShots } from "./registry";
 
 const MANIFEST_PATH = ".astro/shots.json";
 
+/**
+ * The Astro integration that writes the manifest and guards the image
+ * directory: it collects what the pages declared, and reports an id with no
+ * image and an image no page asks for.
+ */
 export function shots(): AstroIntegration {
   let root = "";
   let publicDir = "";
