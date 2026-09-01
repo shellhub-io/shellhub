@@ -50,7 +50,7 @@ func (h *Handler) UpdateUserPassword(c *gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdatePasswordUser(c.Ctx(), req.ID, req.CurrentPassword, req.NewPassword); err != nil {
+	if err := h.service.UpdatePasswordUser(c.Ctx(), req.UserID, req.CurrentPassword, req.NewPassword); err != nil {
 		return err
 	}
 

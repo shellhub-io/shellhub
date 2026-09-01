@@ -23,7 +23,7 @@ type UpdateUser struct {
 
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
 type UserPasswordUpdate struct {
-	UserParam
+	UserID          string `header:"X-ID" validate:"required"`
 	CurrentPassword string `json:"current_password" validate:"required,min=5,max=32,nefield=NewPassword"`
 	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
 }

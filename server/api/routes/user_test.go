@@ -153,29 +153,22 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	cases := []struct {
 		title             string
-		uid               string
 		updatePayloadMock requests.UserPasswordUpdate
 		requiredMocks     func(updatePayloadMock requests.UserPasswordUpdate)
 		expectedStatus    int
 	}{
 		{
-			title: "fails when bind fails to validate uid",
-			uid:   "123",
+			title: "fails when validate because the password fields are missing",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID: "123",
 			},
 			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			title: "fails when validate because the tag does not have a min of 5 characters",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "fail",
 				NewPassword:     "new_password",
 			},
@@ -184,11 +177,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when validate because the tag does not have a max of 32 characters",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 				NewPassword:     "new_password",
 			},
@@ -197,11 +187,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when validate because the tag does not have a min of 5 characters",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "new_password",
 				NewPassword:     "fail",
 			},
@@ -210,11 +197,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when validate because the tag does not have a max of 32 characters",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "new_password",
 				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 			},
@@ -223,11 +207,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when validate because have a duplicate password",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				NewPassword:     "duplicate",
 				CurrentPassword: "duplicate",
 			},
@@ -236,11 +217,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when current password does not match",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "wrong_password",
 				NewPassword:     "new_password",
 			},
@@ -251,11 +229,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "fails when try to updating a password an existing user",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "old_password",
 				NewPassword:     "new_password",
 			},
@@ -266,11 +241,8 @@ func TestUpdateUserPassword(t *testing.T) {
 		},
 		{
 			title: "success when try to updating a password an existing user",
-			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
+				UserID:          "123",
 				CurrentPassword: "old_password",
 				NewPassword:     "new_password",
 			},
@@ -290,8 +262,9 @@ func TestUpdateUserPassword(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, fmt.Sprintf("/api/users/%s/password", tc.uid), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users/path-id-ignored/password", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-ID", tc.updatePayloadMock.UserID)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
@@ -302,5 +275,36 @@ func TestUpdateUserPassword(t *testing.T) {
 		})
 	}
 
+	mock.AssertExpectations(t)
+}
+
+func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
+	mock := mocks.NewMockService(t)
+
+	const sessionID = "session-user-id"
+	const attackerTargetID = "victim-user-id"
+
+	mock.On("UpdatePasswordUser", gomock.Anything, sessionID, "old_password", "new_password").
+		Return(nil).Once()
+
+	payload := requests.UserPasswordUpdate{
+		CurrentPassword: "old_password",
+		NewPassword:     "new_password",
+	}
+
+	jsonData, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, fmt.Sprintf("/api/users/%s/password", attackerTargetID), strings.NewReader(string(jsonData)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-ID", sessionID)
+	req.Header.Set("X-Role", authorizer.RoleObserver.String())
+
+	rec := httptest.NewRecorder()
+
+	e := NewRouter(mock)
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 	mock.AssertExpectations(t)
 }
