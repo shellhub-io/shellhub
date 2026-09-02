@@ -40,7 +40,11 @@ export interface SidebarSection {
  * superseded pages stay on disk and are retired from navigation here instead. Their content lives
  * on, reorganized, under the journey-shaped tree the sidebar actually exposes.
  */
-export const PAGES_NOT_IN_NAV: string[] = ["/"];
+export const PAGES_NOT_IN_NAV: string[] = [
+  "/",
+  // Served when nothing matches, so it is reached by mistake rather than by navigation.
+  "/404",
+];
 
 /**
  * Flattens a nested item tree to the entries that actually resolve to a page, dropping the group
