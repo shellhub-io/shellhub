@@ -5,6 +5,7 @@ description: The pre-identity access model, for namespaces still using it.
 ---
 
 import LegacyBanner from "../../../components/LegacyBanner.astro";
+import Shot from "../../../components/Shot.astro";
 
 # Public Keys
 
@@ -18,7 +19,7 @@ import LegacyBanner from "../../../components/LegacyBanner.astro";
 In the legacy model, a public key registered in the namespace *is* the access. Whoever holds the
 matching private key connects.
 
-![The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions](/img/manual/public-keys.png)
+<Shot src="/img/manual/public-keys.png" alt="The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions" />
 
 ## Registering a key
 
@@ -28,10 +29,7 @@ Each key carries a scope:
 
 - **Which devices** — all of them, a hostname pattern, or a tag set. This is the same device
   selector access policies use.
-- **Which unix logins** — a username pattern, or any.
-
-Both patterns are regular expressions that must match in full: a key restricted to `root`
-authorizes the login `root` and not `notroot`.
+- **Which unix logins** — a specific username, or any.
 
 A connection is permitted when the presented key is registered and its scope covers the device and
 the login being requested.

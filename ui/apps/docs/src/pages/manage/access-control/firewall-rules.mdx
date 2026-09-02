@@ -7,6 +7,7 @@ description: The legacy restriction layer, matching on source IP, hostname and u
 import LegacyBanner from "../../../components/LegacyBanner.astro";
 import EditionBanner from "../../../components/EditionBanner.astro";
 import Callout from "../../../components/Callout.astro";
+import Shot from "../../../components/Shot.astro";
 
 # Firewall Rules
 
@@ -24,11 +25,11 @@ Firewall rules restrict what public keys otherwise permit. Where a key says "thi
 these devices as these users", a firewall rule says "and not from there, not as that, not to
 that one".
 
-![The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns](/img/manual/firewall-rules.png)
+<Shot src="/img/manual/firewall-rules.png" alt="The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns" />
 
 ## Anatomy
 
-![The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields](/img/manual/firewall-add-rule.png)
+<Shot src="/img/manual/firewall-add-rule.png" alt="The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields" />
 
 | Field | Meaning |
 |---|---|
@@ -38,9 +39,6 @@ that one".
 | Source IP | Which client addresses the rule matches |
 | Username | Which unix login the rule matches |
 | Device filter | Which devices — all, a hostname pattern, or tags |
-
-Source IP, username and hostname are regular expressions, and each must match its value in full: a
-username of `root` matches the login `root` and not `notroot`.
 
 ## Priority, and why it is the hard part
 

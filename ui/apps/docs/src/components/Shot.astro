@@ -9,28 +9,64 @@ import type {
 import { shotImageHref } from "../lib/shots/paths";
 import { recordShot } from "../lib/shots/registry";
 
+/**
+ * A picture of the product, however it was made.
+ *
+ * Three kinds exist and they used to be written three ways, each with its own frame and its own
+ * behaviour on click. They are one tag now, and the source says which kind it is:
+ *
+ *   <Shot id="device-list" route="/devices" />   captured from a running instance
+ *   <Shot src="/img/manual/mfa-setup.png" />     a file somebody made by hand
+ *   <Shot clip="mfa-enable" />                   a recorded interaction, played as video
+ *
+ * Only the first declares anything to the capture pipeline; the other two are files that exist
+ * already. All three get the same frame, the same ceiling on size, and enlarge on click.
+ */
 interface Props {
-  id: string;
-  route: string;
+  /** A captured screenshot: the id the pipeline photographs it under. Requires `route`. */
+  id?: string;
+  /** An existing image, by path. */
+  src?: string;
+  /** A recorded interaction: the basename of the .webm and .mp4 pair under /img/manual. */
+  clip?: string;
+  alt?: string;
+  /** Capture coordinates, read by the capture pass rather than by this component. */
+  route?: string;
   of?: ShotSelector;
   viewport?: ShotViewport;
-  alt?: string;
   edition?: ShotEdition;
   before?: ShotInteraction[];
 }
 
-const { id, route, of, viewport, alt, edition, before } = Astro.props;
+const { id, src, clip, alt, route, of, viewport, edition, before } = Astro.props;
 
-recordShot({ id, route, of, viewport, edition, before, page: Astro.url.pathname });
+if ([id, src, clip].filter(Boolean).length !== 1) {
+  throw new Error("<Shot> takes exactly one of id, src or clip");
+}
 
-warnMissingShotImageInDev(id);
+if (id) {
+  if (!route) throw new Error(`<Shot id="${id}"> needs a route to be captured at`);
 
-const label = alt ?? id;
+  recordShot({ id, route, of, viewport, edition, before, page: Astro.url.pathname });
+  warnMissingShotImageInDev(id);
+}
+
+const label = alt ?? id ?? clip ?? "";
+const source = id ? shotImageHref(id) : src;
 ---
 <figure class="shot">
-  <button class="shot-frame" type="button" data-shot-zoom aria-label={`Enlarge: ${label}`}>
-    <img src={shotImageHref(id)} alt={label} loading="lazy" />
-  </button>
+  {clip ? (
+    <div class:list={["shot-frame", "manual"]}>
+      <video autoplay loop muted playsinline aria-label={label}>
+        <source src={`/img/manual/${clip}.webm`} type="video/webm" />
+        <source src={`/img/manual/${clip}.mp4`} type="video/mp4" />
+      </video>
+    </div>
+  ) : (
+    <button class:list={["shot-frame", id ? "capture" : "manual"]} type="button" data-shot-zoom aria-label={`Enlarge: ${label}`}>
+      <img src={source} alt={label} loading="lazy" />
+    </button>
+  )}
 </figure>
 
 <style>
@@ -38,36 +74,49 @@ const label = alt ?? id;
     margin: 1.75rem 0;
   }
 
+  /* The frame follows the picture rather than the column, so a narrow one does not sit in a
+     wide box of empty surface. */
   .shot-frame {
     display: block;
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
     padding: 0;
     background: rgb(var(--c-surface));
     border: 1px solid rgb(var(--c-border));
     border-radius: 0.5rem;
     overflow: hidden;
-    cursor: zoom-in;
     transition: border-color 0.15s ease;
   }
 
-  .shot-frame:hover,
-  .shot-frame:focus-visible {
+  button.shot-frame {
+    cursor: zoom-in;
+  }
+
+  button.shot-frame:hover,
+  button.shot-frame:focus-visible {
     border-color: rgb(var(--color-primary-rgb));
   }
 
-  .shot-frame:focus-visible {
+  button.shot-frame:focus-visible {
     outline: 2px solid rgb(var(--color-primary-rgb));
     outline-offset: 2px;
   }
 
-  /* Same ceiling the prose puts on an image: a tall screenshot should not cost a screenful. */
-  .shot-frame img {
+  .shot-frame :is(img, video) {
     display: block;
     max-width: 100%;
     max-height: 30rem;
     width: auto;
     height: auto;
     margin-inline: auto;
+  }
+
+  /* A capture is a whole window, so its interface is already small and it earns the column.
+     A file made by hand is usually a crop of one dialog, and at that width the interface
+     inside it outgrows the text around it. */
+  .shot-frame.manual {
+    max-width: min(100%, 34rem);
   }
 
   @media (prefers-reduced-motion: reduce) {

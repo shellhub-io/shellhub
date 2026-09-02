@@ -619,35 +619,6 @@ html {
 
 .prose td .badge-deprecated { margin-left: 0; }
 
-/* A screenshot sits on the same near-black the page uses, so it needs an edge of
-   its own to read as a picture rather than as part of the page. A <Shot> brings its
-   own frame, so its image is excluded rather than framed twice. */
-.prose img:not([data-shot-zoom] img) {
-  display: block;
-  /* A portrait screenshot at column width is a screenful of dialog. Cap the height and let the
-     width follow, so every picture takes about as much of the page as it is worth; clicking one
-     still opens it at full size. */
-  max-width: 100%;
-  max-height: 30rem;
-  width: auto;
-  height: auto;
-  margin-inline: auto;
-  background: rgb(var(--c-surface));
-  border: 1px solid rgb(var(--c-border));
-  border-radius: 0.5rem;
-  cursor: zoom-in;
-}
-
-.prose img:not([data-shot-zoom] img):hover,
-.prose img:not([data-shot-zoom] img):focus-visible {
-  border-color: rgb(var(--color-primary-rgb));
-}
-
-.prose img:not([data-shot-zoom] img):focus-visible {
-  outline: 2px solid rgb(var(--color-primary-rgb));
-  outline-offset: 2px;
-}
-
 /* The design system resets `dialog` with `all: unset`, which takes the browser's
    `dialog:not([open]) { display: none }` with it: a closed dialog would keep
    sitting over the page. */
