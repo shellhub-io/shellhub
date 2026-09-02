@@ -49,6 +49,9 @@ const (
 	APIKeyNameTag = "api-key_name"
 	// APIKeyExpiresAtTag contains the rule to validate an API key's expiration value.
 	APIKeyExpiresAtTag = "api-key_expires-at" //nolint:gosec // G101: not a credential, this is a validator tag name
+	// InstanceAPIKeyExpiresAtTag contains the rule to validate an instance API key's expiration
+	// value. It is the API key rule without -1: an instance key must always expire.
+	InstanceAPIKeyExpiresAtTag = "instance-api-key_expires-at"
 	// MemberRoleTag contains the rule to validate a namespace member's role.
 	MemberRoleTag = "member_role"
 )
@@ -118,6 +121,19 @@ var Rules = []Rule{
 			return expiresAt == -1 || expiresAt == 30 || expiresAt == 60 || expiresAt == 90 || expiresAt == 365
 		},
 		Error: errors.New("expires_at must be in [ -1 30 60 90 365 ]"),
+	},
+	{
+		Tag: InstanceAPIKeyExpiresAtTag,
+		Handler: func(field validator.FieldLevel) bool {
+			if !field.Field().CanInt() {
+				return false
+			}
+
+			expiresAt := field.Field().Int()
+
+			return expiresAt == 30 || expiresAt == 60 || expiresAt == 90 || expiresAt == 365
+		},
+		Error: errors.New("expires_at must be in [ 30 60 90 365 ]"),
 	},
 	{
 		Tag: MemberRoleTag,

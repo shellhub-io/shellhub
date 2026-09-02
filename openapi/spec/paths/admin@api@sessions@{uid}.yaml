@@ -10,7 +10,7 @@ get:
     - sessions
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to get a session.
@@ -32,7 +32,7 @@ post:
     - sessions
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:

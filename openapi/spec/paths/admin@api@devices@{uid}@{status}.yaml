@@ -8,7 +8,7 @@ patch:
     - enterprise
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   parameters:
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
     - $ref: ../components/parameters/path/deviceStatusPath.yaml

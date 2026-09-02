@@ -1,0 +1,12 @@
+allOf:
+  - type: object
+    properties:
+      id:
+        type: string
+        description: |
+          The plaintext key, prefixed with `sh_admin_`. It is returned here and nowhere else: the
+          server stores only its digest, so a key that is lost must be revoked and replaced.
+        example: sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159
+    required:
+      - id
+  - $ref: ./instanceAPIKey.yaml

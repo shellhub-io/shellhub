@@ -1,0 +1,105 @@
+get:
+  operationId: listInstanceAPIKeys
+  summary: List instance API keys
+  description: |
+    List every instance API key. The plaintext key is never returned: a key is identified by its
+    name alone once created.
+  tags:
+    - admin
+    - instance-api-keys
+    - cloud
+    - enterprise
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: Instance API keys' list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        example: asc
+        default: desc
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success to get the instance API keys.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/instanceAPIKey.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createInstanceAPIKey
+  summary: Create an instance API key
+  description: |
+    Mint an instance API key. The response carries the plaintext key, which is the only time it is
+    available: the server keeps only its digest.
+
+    This route cannot be authenticated with an API key, so a leaked instance key cannot mint
+    successors that would outlive its revocation.
+  tags:
+    - admin
+    - instance-api-keys
+    - cloud
+    - enterprise
+  security:
+    - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+            - expires_at
+          properties:
+            name:
+              description: |
+                The key's name, unique across the instance. Between 3 and 20 characters, letters,
+                numbers, `-` and `_`.
+              type: string
+              example: billing-export
+            expires_at:
+              description: |
+                Days until the key expires. Unlike a namespace API key, an instance API key must
+                expire.
+              type: integer
+              enum:
+                - 30
+                - 60
+                - 90
+                - 365
+              example: 30
+  responses:
+    '200':
+      description: Success to create the instance API key.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/instanceAPIKeyCreated.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

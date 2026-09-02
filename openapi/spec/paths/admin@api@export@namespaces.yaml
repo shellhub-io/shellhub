@@ -10,7 +10,7 @@ get:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   parameters:
     - name: filter
       description: |

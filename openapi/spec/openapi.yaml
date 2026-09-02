@@ -29,6 +29,14 @@ components:
       description: |
         An API key is an alternative to the standard JWT authentication.
         Authentication with this method is namespace-related and is not tied to any user.
+    instance-api-key:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: |
+        An instance API key authenticates as an instance administrator. It carries no namespace
+        and no role, is accepted only under `/admin/api`, and its plaintext is prefixed with
+        `sh_admin_`.
 tags:
   - name: internal
     description: Requests executed internally by ShellHub server.
@@ -54,6 +62,15 @@ tags:
     description: Routes related to enrolled SSH key identities (identity access mode).
   - name: service-accounts
     description: Routes related to service accounts (non-human SSH principals).
+  - name: instance-api-keys
+    description: |
+      An instance API key authenticates as an instance administrator rather than as a member of a
+      namespace. It carries no namespace and no role, is accepted only under `/admin/api`, and its
+      plaintext is prefixed with `sh_admin_`.
+
+      A key always expires, and it stops working as soon as the administrator who created it is no
+      longer an instance administrator. Instance API key routes cannot themselves be authenticated
+      with an API key.
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -366,6 +383,10 @@ paths:
     $ref: paths/admin@api@stats.yaml
   /admin/api/license:
     $ref: paths/admin@api@license.yaml
+  /admin/api/instance-api-keys:
+    $ref: paths/admin@api@instance-api-keys.yaml
+  /admin/api/instance-api-keys/{name}:
+    $ref: paths/admin@api@instance-api-keys@{name}.yaml
   /admin/api/auth/token/{id}:
     $ref: paths/admin@api@auth@token@{id}.yaml
   /admin/api/export/namespaces:
