@@ -1,71 +1,29 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: OpenAPI Specification
-description: Read the API in a browser, and generate a client from the right spec.
+description: The specification for each edition, to read or to generate a client from.
 ---
-
-import Callout from "../../components/Callout.astro";
 
 # OpenAPI Specification
 
-The REST API is described by an OpenAPI specification. Each edition has its own, published as a
-file you can read, diff, or hand to a generator.
-
-## The published specifications
+The REST API is described by an OpenAPI specification. [API Reference](/api/reference) renders it
+in the browser; the files below are the same thing, to diff or to hand to a generator.
 
 | Edition | Specification |
 |---|---|
-| **Community** | [community-openapi.yaml](https://shellhub-openapi-files.nyc3.digitaloceanspaces.com/community-openapi.yaml) |
-| **Cloud** | [cloud-openapi.yaml](https://shellhub-openapi-files.nyc3.digitaloceanspaces.com/cloud-openapi.yaml) |
-| **Enterprise** | [enterprise-openapi.yaml](https://shellhub-openapi-files.nyc3.digitaloceanspaces.com/enterprise-openapi.yaml) |
+| **Community** | [community-openapi.yaml](/openapi/community-openapi.yaml) |
+| **Cloud** | [cloud-openapi.yaml](/openapi/cloud-openapi.yaml) |
+| **Enterprise** | [enterprise-openapi.yaml](/openapi/enterprise-openapi.yaml) |
 
-These are the customer specifications: routes under `/admin` and `/internal` are gone, and so is
-everything an API key cannot call. Each release republishes them, so they describe the current
-release rather than whatever is on `master`.
-
-## Reading it in a browser
-
-The files above open in any OpenAPI viewer. A server running with `SHELLHUB_ENV=development` also
-renders its own specification at `/openapi/customer.html`, and the full one, `/admin` and
-`/internal` included, at `/openapi/`.
-
-<Callout variant="warning" title="That route is development-only">
-The gateway registers it when `SHELLHUB_ENV=development`, so no production server serves it —
-including the one you connect to.
-</Callout>
-
-The full specifications are also in the repository under `openapi/spec/`, one per edition. Read
-past the `/admin` and `/internal` routes there: they are not yours to call.
-
-## Which one to generate a client from
-
-The customer one. It is the same source with a filter applied: routes under `/admin` and
-`/internal` are dropped, operations an API key cannot use are dropped, anything marked
-`x-internal` is dropped, and the JWT scheme is stripped so the only credential in the document is
-the one you actually hold.
-
-Generate from the full spec and you get methods for routes your key cannot call and your server
-may not even have.
-
-**Use the one matching your edition.** Editions expose different routes: a Community server has no
-MFA, firewall rule, or web endpoint routes at all, and a client generated for the wrong edition
-produces methods that return 404. That is not a permission failure — the routes are not
-registered. See [Editions](/about/editions).
-
-## Generating a client
-
-Any OpenAPI generator works:
-
-```bash
-$ openapi-generator-cli generate \
-    -i community-openapi.yaml \
-    -g python \
-    -o ./shellhub-client
-```
+**Take the one matching your edition.** Editions expose different routes: a Community server has
+no MFA, firewall rule, or web endpoint routes at all, so a client generated from the wrong file
+produces methods that answer 404. That is not a permission problem — the route is not there. See
+[Editions](/about/editions).
 
 Authentication is the `X-API-Key` header — see [API Authentication](/api).
 
 ## Where to go next
 
+- [API Reference](/api/reference) — Every route, per edition.
 - [API Authentication](/api) — Getting a credential in.
 - [API Keys](/api/api-keys) — Creating one.

@@ -1,0 +1,234 @@
+---
+import { GithubIcon, ShellHubLogo } from "@shellhub/design-system/primitives";
+import { websiteUrl } from "../../data/links";
+
+/**
+ * The API reference, rendered from the specification this site publishes.
+ *
+ * It stands outside the documentation layout: Redoc brings its own two-column reading surface
+ * and wants the window, which the column prose is set in cannot give it. The document is read
+ * in the browser, so the page stays a few kilobytes, and it is served from here rather than
+ * fetched across origins.
+ */
+const REDOC = "https://cdn.redoc.ly/redoc/v2.5.0/bundles/redoc.standalone.js";
+
+const editions = [
+  { id: "community", label: "Community" },
+  { id: "cloud", label: "Cloud" },
+  { id: "enterprise", label: "Enterprise" },
+];
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Reference - ShellHub Docs</title>
+    <meta name="description" content="Every route an API key can call, per edition." />
+    <link rel="icon" href="/favicon.ico" />
+    <style is:inline>
+      /* Redoc renders its own light surface, so this page does not load the documentation
+         stylesheet: it would bring the dark body and the prose type Redoc has no use for.
+         The few colours the bar needs are the design system's, written out. */
+      :root {
+        --bar-bg: #18191b;
+        --bar-surface: #1e2127;
+        --bar-border: #2c2f36;
+        --bar-text: #e1e4ea;
+        --bar-muted: #8b8f99;
+        --bar-primary: #667acc;
+      }
+
+      body {
+        margin: 0;
+        background: #fff;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        height: 3.5rem;
+        padding: 0 1.5rem;
+        background: var(--bar-bg);
+        border-bottom: 1px solid var(--bar-border);
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        font-size: 0.8125rem;
+      }
+
+      header .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      header .logo svg {
+        display: block;
+        height: 2.25rem;
+        width: auto;
+      }
+
+      /* The same pill the documentation header carries, so this page reads as part of it. */
+      header .tag {
+        padding: 0.1rem 0.5rem;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--bar-primary);
+        background: color-mix(in srgb, var(--bar-primary) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--bar-primary) 25%, transparent);
+        border-radius: 0.25rem;
+      }
+
+      header .tag:hover {
+        background: color-mix(in srgb, var(--bar-primary) 18%, transparent);
+      }
+
+      header .editions {
+        display: flex;
+        gap: 0.4rem;
+        margin: 0 auto;
+      }
+
+      header .editions button {
+        padding: 0.3rem 0.8rem;
+        font: inherit;
+        color: var(--bar-muted);
+        background: var(--bar-surface);
+        border: 1px solid var(--bar-border);
+        border-radius: 0.375rem;
+        cursor: pointer;
+      }
+
+      header .editions button:hover {
+        color: var(--bar-text);
+      }
+
+      header .editions button[aria-pressed="true"] {
+        color: var(--bar-text);
+        border-color: var(--bar-primary);
+      }
+
+      header .actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      header .download {
+        color: var(--bar-muted);
+        text-decoration: none;
+      }
+
+      header .download:hover {
+        color: var(--bar-text);
+      }
+
+      header .github {
+        display: flex;
+        color: var(--bar-muted);
+      }
+
+      header .github svg {
+        width: 1rem;
+        height: 1rem;
+        fill: currentColor;
+      }
+
+      header .github:hover {
+        color: var(--bar-text);
+      }
+
+      .loading {
+        padding: 2rem 1.25rem;
+        color: #666;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="brand">
+        <a href={websiteUrl} class="logo" aria-label="ShellHub">
+          <ShellHubLogo />
+        </a>
+        <a href="/" class="tag">Docs</a>
+      </div>
+
+      <div class="editions" role="group" aria-label="Edition">
+        {editions.map((edition, i) => (
+          <button type="button" data-edition={edition.id} aria-pressed={i === 0}>
+            {edition.label}
+          </button>
+        ))}
+      </div>
+
+      <div class="actions">
+        <a class="download" id="download" href="/openapi/community-openapi.yaml" download>
+          Download YAML
+        </a>
+        <a
+          href="https://github.com/shellhub-io/shellhub"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View ShellHub on GitHub"
+          class="github"
+        >
+          <GithubIcon />
+        </a>
+      </div>
+    </header>
+
+    <div id="redoc"><p class="loading">Loading the specification…</p></div>
+
+
+    <script define:vars={{ REDOC }}>
+      const container = document.getElementById("redoc");
+      const download = document.getElementById("download");
+      const buttons = [...document.querySelectorAll("[data-edition]")];
+
+      function select(edition) {
+        buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.edition === edition)));
+        download.href = `/openapi/${edition}-openapi.yaml`;
+        history.replaceState(null, "", `?edition=${edition}`);
+
+        Redoc.init(
+          `/openapi/${edition}-openapi.yaml`,
+          {
+            hideDownloadButton: true,
+            nativeScrollbars: true,
+            theme: {
+              colors: { primary: { main: "#667ACC" } },
+              typography: {
+                fontFamily: '"IBM Plex Sans", sans-serif',
+                code: { fontFamily: '"IBM Plex Mono", monospace' },
+              },
+            },
+          },
+          container,
+        );
+      }
+
+      const script = document.createElement("script");
+      script.src = REDOC;
+      script.onload = () => {
+        const wanted = new URLSearchParams(location.search).get("edition");
+        select(buttons.some((b) => b.dataset.edition === wanted) ? wanted : "community");
+        buttons.forEach((b) => b.addEventListener("click", () => select(b.dataset.edition)));
+      };
+      script.onerror = () => {
+        container.innerHTML =
+          '<p class="loading">The viewer failed to load. The specifications are linked on the ' +
+          '<a href="/api/openapi">OpenAPI page</a>.</p>';
+      };
+      document.head.append(script);
+    </script>
+  </body>
+</html>

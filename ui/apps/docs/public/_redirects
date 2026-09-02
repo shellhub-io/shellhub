@@ -86,7 +86,7 @@
 /developers/agent/installing    /get-started/install                               301
 /developers/development         /get-started/install/build-from-source             301
 /developers/openapi/            /api/openapi                                       301
-/developers/openapi/api-reference /api/openapi                                     301
+/developers/openapi/api-reference /api/reference                                   301
 
 # The old site's own search page has no counterpart: the palette is on every page here.
 /search                         /                                                  301
