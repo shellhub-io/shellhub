@@ -527,25 +527,11 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
         return created;
       }
 
-      // A markdown image is not a control, so it reaches neither the tab order nor
-      // Enter. The <Shot> frame is already a button and needs none of this.
-      document.querySelectorAll(".prose img:not([data-shot-zoom] img)").forEach((image) => {
-        image.tabIndex = 0;
-        image.setAttribute("role", "button");
-        image.setAttribute("aria-label", `Enlarge: ${image.alt}`);
-      });
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        if (!event.target.matches(".prose img:not([data-shot-zoom] img)")) return;
-
-        event.preventDefault();
-        event.target.click();
-      });
-
       document.addEventListener("click", (event) => {
         const frame = event.target.closest("[data-shot-zoom]");
-        const source = frame ? frame.querySelector("img") : event.target.closest(".prose img");
+        if (!frame) return;
+
+        const source = frame.querySelector("img");
         if (!source) return;
 
         const zoom = zoomDialog();

@@ -5,7 +5,7 @@ description: Add a second factor to console sign-in.
 ---
 
 import EditionBanner from "../../../components/EditionBanner.astro";
-import Clip from "../../../components/Clip.astro";
+import Shot from "../../../components/Shot.astro";
 
 # Multi-Factor Authentication
 
@@ -28,27 +28,27 @@ of it.
 
 From your profile's Security section.
 
-<Clip name="mfa-enable" alt="The Profile page Security section with the Enable MFA option" />
+<Shot clip="mfa-enable" alt="The Profile page Security section with the Enable MFA option" />
 
 Scan the QR code with an authenticator app:
 
-![MFA QR Code waiting to be scanned](/img/manual/mfa-setup.png)
+<Shot src="/img/manual/mfa-setup.png" alt="MFA QR Code waiting to be scanned" />
 
 Then confirm with a code from the app. From then on, sign-in asks for one:
 
-![Login requiring 6-digit code](/img/manual/mfa-login.png)
+<Shot src="/img/manual/mfa-login.png" alt="Login requiring 6-digit code" />
 
 ## Recovery codes
 
 Setup produces a set of recovery codes. Save them somewhere that is not the phone holding the
 authenticator.
 
-![Recovery codes screen](/img/manual/mfa-recovery-codes.png)
+<Shot src="/img/manual/mfa-recovery-codes.png" alt="Recovery codes screen" />
 
 Each is single use, and they are the way back in when the authenticator is lost. Lose both and
 recovery becomes a support matter.
 
-![Recovery mail](/img/manual/mfa-recovery-mail.png)
+<Shot src="/img/manual/mfa-recovery-mail.png" alt="Recovery mail" />
 
 ## What MFA covers
 
