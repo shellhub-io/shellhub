@@ -74,9 +74,9 @@ get:
     '200':
       description: Success to play a session's record.
       content:
-        application/json:
+        text/plain:
           schema:
-            $ref: ../components/schemas/recordedSessionResponse.yaml
+            type: string
     '400':
       $ref: ../components/responses/400.yaml
     '404':
