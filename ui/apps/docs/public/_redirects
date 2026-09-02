@@ -55,11 +55,11 @@
 /user-guides/settings/account/mfa/configure-mfa  /manage/team/multi-factor-authentication  301
 /user-guides/settings/account/mfa/logging-in     /manage/team/multi-factor-authentication  301
 /user-guides/settings/account/mfa/recovery-access /manage/team/multi-factor-authentication 301
-/user-guides/settings/namespace/api-keys/        /api/api-keys                     301
-/user-guides/settings/namespace/api-keys/create  /api/api-keys                     301
-/user-guides/settings/namespace/api-keys/delete  /api/api-keys                     301
-/user-guides/settings/namespace/api-keys/update  /api/api-keys                     301
-/user-guides/settings/namespace/api-keys/use     /api/api-keys                     301
+/user-guides/settings/namespace/api-keys/        /api                              301
+/user-guides/settings/namespace/api-keys/create  /api                              301
+/user-guides/settings/namespace/api-keys/delete  /api                              301
+/user-guides/settings/namespace/api-keys/update  /api                              301
+/user-guides/settings/namespace/api-keys/use     /api                              301
 /user-guides/settings/namespace/members/         /manage/team                      301
 /user-guides/settings/namespace/members/accept-invite /manage/team                 301
 /user-guides/settings/namespace/members/edit     /manage/team/user-roles           301
@@ -85,11 +85,15 @@
 /developers/agent/configuring   /get-started/agent-configuration                   301
 /developers/agent/installing    /get-started/install                               301
 /developers/development         /get-started/install/build-from-source             301
-/developers/openapi/            /api/openapi                                       301
+/developers/openapi/            /api                                               301
 /developers/openapi/api-reference /api/reference                                   301
 
 # The old site's own search page has no counterpart: the palette is on every page here.
 /search                         /                                                  301
+
+# Pages this documentation itself has retired since it was published.
+/api/api-keys                   /api#creating-a-key                                301
+/api/openapi                    /api#the-specification                             301
 
 # Anything else under the old site's sections. Scoped to those prefixes rather than a bare
 # /*, which would be evaluated ahead of the site's own pages and redirect the home to itself.

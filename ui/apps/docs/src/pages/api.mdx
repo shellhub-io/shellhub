@@ -1,53 +1,103 @@
 ---
 layout: ../layouts/DocsLayout.astro
-title: API Authentication
-description: How to authenticate against the ShellHub REST API.
+title: REST API
+description: Authenticate, create the key automation holds, and find the specification.
 ---
 
-# API Authentication
+import Callout from "../components/Callout.astro";
 
-ShellHub exposes a REST API. Two credentials get you in, and they behave differently.
+# REST API
 
-## API key
+ShellHub exposes a REST API. [API Reference](/api/reference) is every route it has; this page is
+how you get in and what a credential can do once you are.
 
-A header:
+## Authenticating
+
+Two credentials work, and they are for different things.
+
+An **API key** goes in a header:
 
 ```bash
 $ curl -H "X-API-Key: <your-api-key>" https://cloud.shellhub.io/api/devices
 ```
 
-An API key resolves to an identity carrying a tenant and a role. It is the credential for
-automation — it does not expire on a timer, and it belongs to a namespace rather than a browser
-session.
+It resolves to an identity carrying a namespace and a role. It does not expire on a timer, and it
+belongs to the namespace rather than to a browser session.
 
-See [API Keys](/api/api-keys).
-
-## Bearer token
-
-A JWT from signing in:
+A **bearer token** is the JWT from signing in:
 
 ```bash
 $ curl -H "Authorization: Bearer <token>" https://cloud.shellhub.io/api/devices
 ```
 
-Tokens come in two kinds: a **user** token, from a person signing in, and a **device** token,
-which an agent uses.
+Tokens come in two kinds: a user token, from a person signing in, and a device token, which an
+agent uses. For user tokens the role is re-read from the store on every request rather than
+trusted from the token, so a role change takes effect immediately.
 
-For user tokens, the role and admin flag are re-fetched from the store on **every request** rather
-than trusted from the token. A role change takes effect immediately, without waiting for the token
-to expire.
-
-## Which to use
-
-Anything unattended should hold an **API key**. A script driving a bearer token has to handle
-sign-in and expiry, and if it does that with a person's credentials it breaks when that person
+**Anything unattended should hold an API key.** A script driving a bearer token has to handle
+sign-in and expiry, and if it does that with a person's credentials it breaks the day that person
 leaves.
 
-## When a credential is not accepted
+## Creating a key
 
-An unresolvable credential produces **no identity** rather than an error, so a protected route
-answers `401` — the same answer whether the key does not exist, has expired, or was never valid.
-That is deliberate: the API does not tell an unauthenticated caller which of those it was.
+From the console, under **Namespace → API Keys**. A key has:
+
+| Field | Meaning |
+|---|---|
+| **Name** | Unique within the namespace. How you identify it later |
+| **Role** | `administrator`, `operator`, or `observer` |
+| **Expiry** | Optional. A key with no expiry never expires |
+
+The name is the only external identifier — the internal id is a hash and is never returned. Name
+keys for what they do: `ci-deploy`, `inventory-sync`, not `key1`.
+
+<Callout variant="warning">
+A key's role must be **equal to or less than the role of whoever created it**. An operator cannot
+mint an administrator key. That constraint is what stops key creation from being a privilege
+escalation path.
+</Callout>
+
+Give a key the least role that does the job, and set an expiry where you can. Most integrations
+only read, an observer key is enough, and a key with a deadline stops mattering on its own if
+somebody forgets it exists. See [User Roles](/manage/team/user-roles).
+
+## What a key cannot do
+
+Some routes refuse API keys regardless of role:
+
+- Namespace membership operations
+- Install key management
+- MFA
+- User management
+
+These are human-only flows. The refusal is structural, not a permission you can grant.
+
+## A key is not an SSH identity
+
+The distinction catches people.
+
+| | API key | SSH identity |
+|---|---|---|
+| Used for | The REST API and MCP | SSH connections |
+| Looks like | A token in a header | A public key |
+| Governed by | Roles and permissions | [Access policies](/manage/access-control/access-policies) |
+
+**An API key cannot open an SSH session, and an SSH identity cannot call the API.** Automation
+doing both needs both: a key for the REST calls, and a
+[service account](/manage/access-control/service-accounts) holding an SSH identity for the
+connections.
+
+## Rotating a key
+
+Create the new key, move consumers to it, then delete the old one. Name them so you can tell them
+apart mid-rotation — `ci-deploy-2026` rather than editing in place. Deleting takes effect
+immediately, and anything still using the old key starts getting `401`.
+
+## When a credential is refused
+
+An unresolvable credential produces no identity rather than an error, so a protected route answers
+`401` — the same answer whether the key does not exist, has expired, or was never valid. The API
+does not tell an unauthenticated caller which of those it was.
 
 So a `401` means "this credential is not usable", not "this credential does not exist".
 
@@ -60,26 +110,24 @@ $ curl -H "X-API-KEY: $KEY" \
     "https://cloud.shellhub.io/api/devices?page=1&per_page=100"
 ```
 
-## What API keys cannot do
+## The specification
 
-A number of routes refuse API keys outright, regardless of the key's role:
+[API Reference](/api/reference) renders it in the browser. The files are the same thing, to diff
+or to hand to a generator:
 
-- Namespace membership operations
-- Install key management
-- MFA
-- User management
+| Edition | Specification |
+|---|---|
+| **Community** | [community-openapi.yaml](/openapi/community-openapi.yaml) |
+| **Cloud** | [cloud-openapi.yaml](/openapi/cloud-openapi.yaml) |
+| **Enterprise** | [enterprise-openapi.yaml](/openapi/enterprise-openapi.yaml) |
 
-These are human-only flows. The refusal is structural, not a permission you can grant.
-
-## Roles apply
-
-An API key carries a role, and it is subject to exactly the same permission checks a user with
-that role would be. A key with the observer role can read and connect, and nothing else.
-
-See [User Roles](/manage/team/user-roles).
+**Take the one matching your edition.** Editions expose different routes: a Community server has
+no MFA, firewall rule, or web endpoint routes at all, so a client generated from the wrong file
+produces methods that answer 404. That is not a permission problem — the route is not there. See
+[Editions](/about/editions).
 
 ## Where to go next
 
-- [API Keys](/api/api-keys) — Creating and scoping them.
-- [OpenAPI Specification](/api/openapi) — The full endpoint reference.
+- [API Reference](/api/reference) — Every route, per edition.
 - [MCP Server](/api/mcp) — The same API, for AI agents.
+- [Service Accounts](/manage/access-control/service-accounts) — The SSH-side credential.
