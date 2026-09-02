@@ -327,6 +327,7 @@ export const sidebar: SidebarSection[] = [
         featured: true,
       },
       { label: "Install Key Webhook", href: "/api/install-key-webhook" },
+      { label: "API Reference", href: "/api/reference" },
       { label: "OpenAPI Specification", href: "/api/openapi" },
       {
         label: "MCP Server",

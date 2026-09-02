@@ -4,8 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "npm run openapi && astro dev --force",
+    "build": "npm run openapi && astro build",
+    "openapi": "redocly bundle community-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/community-openapi.yaml && redocly bundle cloud-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/cloud-openapi.yaml && redocly bundle enterprise-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/enterprise-openapi.yaml",
     "shots": "./scripts/capture-shots.sh",
     "preview": "astro preview",
     "test": "vitest run --passWithNoTests",
@@ -19,5 +20,8 @@
     "@astrojs/sitemap": "^3.7.4",
     "@shellhub/design-system": "*",
     "astro": "^7.2.10"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.31.5"
   }
 }
