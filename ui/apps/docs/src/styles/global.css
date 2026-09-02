@@ -624,6 +624,14 @@ html {
    own frame, so its image is excluded rather than framed twice. */
 .prose img:not([data-shot-zoom] img) {
   display: block;
+  /* A portrait screenshot at column width is a screenful of dialog. Cap the height and let the
+     width follow, so every picture takes about as much of the page as it is worth; clicking one
+     still opens it at full size. */
+  max-width: 100%;
+  max-height: 30rem;
+  width: auto;
+  height: auto;
+  margin-inline: auto;
   background: rgb(var(--c-surface));
   border: 1px solid rgb(var(--c-border));
   border-radius: 0.5rem;

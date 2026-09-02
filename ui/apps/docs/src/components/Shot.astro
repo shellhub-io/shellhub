@@ -60,9 +60,14 @@ const label = alt ?? id;
     outline-offset: 2px;
   }
 
+  /* Same ceiling the prose puts on an image: a tall screenshot should not cost a screenful. */
   .shot-frame img {
     display: block;
-    width: 100%;
+    max-width: 100%;
+    max-height: 30rem;
+    width: auto;
+    height: auto;
+    margin-inline: auto;
   }
 
   @media (prefers-reduced-motion: reduce) {
