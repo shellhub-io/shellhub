@@ -115,6 +115,7 @@ jobs:
           version: v2.11.3
           args: --timeout 2m ${{ matrix.lint_args }} ./...
           skip-cache: true
+          verify: false
 
       - name: Set SHELLHUB_DATABASE for integration tests
         if: matrix.project == 'tests' && matrix.database != '' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
