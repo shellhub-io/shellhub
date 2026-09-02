@@ -48,8 +48,11 @@ subject already excludes them by exact match.
 | Selector | Behavior |
 |---|---|
 | All devices | Every device in the namespace, including ones enrolled later |
-| Hostname | A regular expression against the device name, like `^prod-.*$` |
+| Hostname | A regular expression matched against the whole device name, like `prod-.*` |
 | Tags | Devices carrying the selected tags |
+
+A hostname pattern must match the name in full: `staging` covers the device named `staging`, and
+neither `staging-db` nor `notstaging`. Write `staging.*` to cover a family of names.
 
 Prefer tags. A tag is a decision recorded when the device enrolls; a hostname pattern is a bet
 that names stay consistent.

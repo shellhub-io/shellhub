@@ -39,6 +39,9 @@ that one".
 | Username | Which unix login the rule matches |
 | Device filter | Which devices — all, a hostname pattern, or tags |
 
+Source IP, username and hostname are regular expressions, and each must match its value in full: a
+username of `root` matches the login `root` and not `notroot`.
+
 ## Priority, and why it is the hard part
 
 Rules are evaluated in priority order and the first match decides. That makes the rule set
