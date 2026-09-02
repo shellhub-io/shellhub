@@ -19,6 +19,7 @@ import (
 // a credential into an identity.
 type AuthnService interface {
 	AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error)
+	AuthInstanceAPIKey(ctx context.Context, key string) (*models.InstanceAPIKey, error)
 	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error)
 	GetUserAdmin(ctx context.Context, userID string) (bool, error)
 	PublicKey() *rsa.PublicKey
@@ -135,6 +136,23 @@ func (a *Authenticator) isAnonymous(c *echo.Context) bool {
 // when a credential was presented and could not be honoured.
 func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
+		if strings.HasPrefix(key, models.InstanceAPIKeyPrefix) {
+			if !strings.HasPrefix(c.Path(), adminAPIPrefix) {
+				return nil, nil
+			}
+
+			if _, err := a.service.AuthInstanceAPIKey(c.Request().Context(), key); err != nil {
+				log.WithError(err).Warn("failed to resolve the instance API key")
+
+				return nil, nil
+			}
+
+			return &gateway.Identity{
+				APIKey: key,
+				Admin:  true,
+			}, nil
+		}
+
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
 		if err != nil {
 			log.WithError(err).Warn("failed to resolve the API key")

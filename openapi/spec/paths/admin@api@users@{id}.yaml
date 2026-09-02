@@ -16,7 +16,7 @@ delete:
     - users
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       $ref: ../components/responses/200.yaml
@@ -34,7 +34,7 @@ put:
     - users
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:
@@ -76,7 +76,7 @@ get:
     - users
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to get a user.

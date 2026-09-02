@@ -11,6 +11,7 @@ func Entities() []any {
 		(*AccessPolicy)(nil),
 		(*APIKey)(nil),
 		(*Device)(nil),
+		(*InstanceAPIKey)(nil),
 		(*Membership)(nil),
 		(*Namespace)(nil),
 		(*PrivateKey)(nil),

@@ -150,6 +150,8 @@ var (
 	ErrSameTags                        = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrInstanceAPIKeyNotFound          = errors.New("InstanceAPIKey not found", ErrLayer, ErrCodeNotFound)
+	ErrInstanceAPIKeyDuplicated        = errors.New("InstanceAPIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstallKeyNotFound              = errors.New("InstallKey not found", ErrLayer, ErrCodeNotFound)
 	ErrInstallKeyDuplicated            = errors.New("InstallKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstallKeyForbidden             = errors.New("the legacy install key cannot be modified", ErrLayer, ErrCodeForbidden)
@@ -241,6 +243,23 @@ func NewErrAPIKeyInvalid(name string) error {
 // NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.
 func NewErrAPIKeyDuplicated(conflicts []string) error {
 	return NewErrDuplicated(ErrAPIKeyDuplicated, conflicts, nil)
+}
+
+// NewErrInstanceAPIKeyNotFound returns an error when the instance API key is not found.
+func NewErrInstanceAPIKeyNotFound(name string, next error) error {
+	return NewErrNotFound(ErrInstanceAPIKeyNotFound, name, next)
+}
+
+// NewErrInstanceAPIKeyInvalid reports that an instance API key did not authenticate. It carries no
+// detail about which check failed, so a caller cannot tell an unknown key from an expired one or
+// from one whose creator was demoted.
+func NewErrInstanceAPIKeyInvalid(name string) error {
+	return NewErrAuthInvalid(map[string]any{"instance-api-key": name}, nil)
+}
+
+// NewErrInstanceAPIKeyDuplicated returns an error when the instance API key name is taken.
+func NewErrInstanceAPIKeyDuplicated(conflicts []string) error {
+	return NewErrDuplicated(ErrInstanceAPIKeyDuplicated, conflicts, nil)
 }
 
 // NewErrInstallKeyNotFound returns an error when the InstallKey is not found.

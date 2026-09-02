@@ -8,7 +8,7 @@ get:
     - users
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   parameters:
     - name: id
       description: User's ID

@@ -449,6 +449,74 @@ func (_c *MockService_AuthDevice_Call) RunAndReturn(run func(ctx context.Context
 	return _c
 }
 
+// AuthInstanceAPIKey provides a mock function for the type MockService
+func (_mock *MockService) AuthInstanceAPIKey(ctx context.Context, key string) (*models.InstanceAPIKey, error) {
+	ret := _mock.Called(ctx, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthInstanceAPIKey")
+	}
+
+	var r0 *models.InstanceAPIKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.InstanceAPIKey, error)); ok {
+		return returnFunc(ctx, key)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.InstanceAPIKey); ok {
+		r0 = returnFunc(ctx, key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.InstanceAPIKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_AuthInstanceAPIKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthInstanceAPIKey'
+type MockService_AuthInstanceAPIKey_Call struct {
+	*mock.Call
+}
+
+// AuthInstanceAPIKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+func (_e *MockService_Expecter) AuthInstanceAPIKey(ctx any, key any) *MockService_AuthInstanceAPIKey_Call {
+	return &MockService_AuthInstanceAPIKey_Call{Call: _e.mock.On("AuthInstanceAPIKey", ctx, key)}
+}
+
+func (_c *MockService_AuthInstanceAPIKey_Call) Run(run func(ctx context.Context, key string)) *MockService_AuthInstanceAPIKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AuthInstanceAPIKey_Call) Return(apiKey *models.InstanceAPIKey, err error) *MockService_AuthInstanceAPIKey_Call {
+	_c.Call.Return(apiKey, err)
+	return _c
+}
+
+func (_c *MockService_AuthInstanceAPIKey_Call) RunAndReturn(run func(ctx context.Context, key string) (*models.InstanceAPIKey, error)) *MockService_AuthInstanceAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AuthIsCacheToken provides a mock function for the type MockService
 func (_mock *MockService) AuthIsCacheToken(ctx context.Context, tenant string, id string) (bool, error) {
 	ret := _mock.Called(ctx, tenant, id)
@@ -1368,6 +1436,74 @@ func (_c *MockService_CreateInstallKey_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// CreateInstanceAPIKey provides a mock function for the type MockService
+func (_mock *MockService) CreateInstanceAPIKey(ctx context.Context, req *requests.CreateInstanceAPIKey) (*responses.CreateInstanceAPIKey, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateInstanceAPIKey")
+	}
+
+	var r0 *responses.CreateInstanceAPIKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateInstanceAPIKey) (*responses.CreateInstanceAPIKey, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateInstanceAPIKey) *responses.CreateInstanceAPIKey); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses.CreateInstanceAPIKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateInstanceAPIKey) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateInstanceAPIKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateInstanceAPIKey'
+type MockService_CreateInstanceAPIKey_Call struct {
+	*mock.Call
+}
+
+// CreateInstanceAPIKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.CreateInstanceAPIKey
+func (_e *MockService_Expecter) CreateInstanceAPIKey(ctx any, req any) *MockService_CreateInstanceAPIKey_Call {
+	return &MockService_CreateInstanceAPIKey_Call{Call: _e.mock.On("CreateInstanceAPIKey", ctx, req)}
+}
+
+func (_c *MockService_CreateInstanceAPIKey_Call) Run(run func(ctx context.Context, req *requests.CreateInstanceAPIKey)) *MockService_CreateInstanceAPIKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.CreateInstanceAPIKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.CreateInstanceAPIKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateInstanceAPIKey_Call) Return(res *responses.CreateInstanceAPIKey, err error) *MockService_CreateInstanceAPIKey_Call {
+	_c.Call.Return(res, err)
+	return _c
+}
+
+func (_c *MockService_CreateInstanceAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateInstanceAPIKey) (*responses.CreateInstanceAPIKey, error)) *MockService_CreateInstanceAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateNamespace provides a mock function for the type MockService
 func (_mock *MockService) CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, namespace)
@@ -2265,6 +2401,63 @@ func (_c *MockService_DeleteDeviceCustomField_Call) Return(err error) *MockServi
 }
 
 func (_c *MockService_DeleteDeviceCustomField_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeviceDeleteCustomField) error) *MockService_DeleteDeviceCustomField_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteInstanceAPIKey provides a mock function for the type MockService
+func (_mock *MockService) DeleteInstanceAPIKey(ctx context.Context, req *requests.DeleteInstanceAPIKey) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteInstanceAPIKey")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.DeleteInstanceAPIKey) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteInstanceAPIKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteInstanceAPIKey'
+type MockService_DeleteInstanceAPIKey_Call struct {
+	*mock.Call
+}
+
+// DeleteInstanceAPIKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.DeleteInstanceAPIKey
+func (_e *MockService_Expecter) DeleteInstanceAPIKey(ctx any, req any) *MockService_DeleteInstanceAPIKey_Call {
+	return &MockService_DeleteInstanceAPIKey_Call{Call: _e.mock.On("DeleteInstanceAPIKey", ctx, req)}
+}
+
+func (_c *MockService_DeleteInstanceAPIKey_Call) Run(run func(ctx context.Context, req *requests.DeleteInstanceAPIKey)) *MockService_DeleteInstanceAPIKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.DeleteInstanceAPIKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.DeleteInstanceAPIKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteInstanceAPIKey_Call) Return(err error) *MockService_DeleteInstanceAPIKey_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteInstanceAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeleteInstanceAPIKey) error) *MockService_DeleteInstanceAPIKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4447,6 +4640,80 @@ func (_c *MockService_ListInstallKeys_Call) Return(installKeys []models.InstallK
 }
 
 func (_c *MockService_ListInstallKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstallKey) ([]models.InstallKey, int, error)) *MockService_ListInstallKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListInstanceAPIKeys provides a mock function for the type MockService
+func (_mock *MockService) ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInstanceAPIKeys")
+	}
+
+	var r0 []models.InstanceAPIKey
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstanceAPIKey) []models.InstanceAPIKey); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.InstanceAPIKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListInstanceAPIKey) int); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListInstanceAPIKey) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListInstanceAPIKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstanceAPIKeys'
+type MockService_ListInstanceAPIKeys_Call struct {
+	*mock.Call
+}
+
+// ListInstanceAPIKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListInstanceAPIKey
+func (_e *MockService_Expecter) ListInstanceAPIKeys(ctx any, req any) *MockService_ListInstanceAPIKeys_Call {
+	return &MockService_ListInstanceAPIKeys_Call{Call: _e.mock.On("ListInstanceAPIKeys", ctx, req)}
+}
+
+func (_c *MockService_ListInstanceAPIKeys_Call) Run(run func(ctx context.Context, req *requests.ListInstanceAPIKey)) *MockService_ListInstanceAPIKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListInstanceAPIKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListInstanceAPIKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListInstanceAPIKeys_Call) Return(apiKeys []models.InstanceAPIKey, count int, err error) *MockService_ListInstanceAPIKeys_Call {
+	_c.Call.Return(apiKeys, count, err)
+	return _c
+}
+
+func (_c *MockService_ListInstanceAPIKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error)) *MockService_ListInstanceAPIKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }

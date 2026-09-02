@@ -15,7 +15,7 @@ put:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:
