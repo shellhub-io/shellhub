@@ -15,14 +15,13 @@ import (
 // The authentication routes. Each has a V2 spelling under /auth; the older paths remain
 // because deployed agents and scripts still call them.
 const (
-	AuthDeviceURL            = "/devices/auth"
-	AuthDeviceURLV2          = "/auth/device"
-	AuthLocalUserURL         = "/login"
-	AuthLocalUserURLV2       = "/auth/user"
-	AuthUserTokenInternalURL = "/auth/token/:id"     //nolint:gosec
-	AuthUserTokenPublicURL   = "/auth/token/:tenant" //nolint:gosec
-	AuthPublicKeyURL         = "/auth/ssh"
-	AuthMFAURL               = "/auth/mfa"
+	AuthDeviceURL          = "/devices/auth"
+	AuthDeviceURLV2        = "/auth/device"
+	AuthLocalUserURL       = "/login"
+	AuthLocalUserURLV2     = "/auth/user"
+	AuthUserTokenPublicURL = "/auth/token/:tenant" //nolint:gosec
+	AuthPublicKeyURL       = "/auth/ssh"
+	AuthMFAURL             = "/auth/mfa"
 )
 
 // AuthDevice authenticates an agent and enrols its device if the namespace has not seen it
