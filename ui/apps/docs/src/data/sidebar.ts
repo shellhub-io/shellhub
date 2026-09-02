@@ -44,6 +44,9 @@ export const PAGES_NOT_IN_NAV: string[] = [
   "/",
   // Served when nothing matches, so it is reached by mistake rather than by navigation.
   "/404",
+  // The API reference is the specification rendered full-window, outside this layout. It is
+  // reached from the REST API page rather than listed beside pages that read like pages.
+  "/api/reference",
 ];
 
 /**
@@ -317,18 +320,11 @@ export const sidebar: SidebarSection[] = [
     icon: PuzzlePieceIcon,
     items: [
       {
-        label: "API Authentication",
+        label: "REST API",
         href: "/api",
         featured: true,
       },
-      {
-        label: "API Keys",
-        href: "/api/api-keys",
-        featured: true,
-      },
       { label: "Install Key Webhook", href: "/api/install-key-webhook" },
-      { label: "API Reference", href: "/api/reference" },
-      { label: "OpenAPI Specification", href: "/api/openapi" },
       {
         label: "MCP Server",
         href: "/api/mcp",
