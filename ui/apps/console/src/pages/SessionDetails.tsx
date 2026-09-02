@@ -22,10 +22,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useGetSession } from "@/client/api";
-import {
-  useCloseSession,
-  useDeleteSessionRecording,
-} from "../hooks/useSessionMutations";
+import { useClsoeSession } from "@/client/api";
+import { useDeleteSessionRecording } from "../hooks/useSessionMutations";
 import { useSessionRecording } from "../hooks/useSessionRecording";
 import SessionPlayerDialog from "./sessions/SessionPlayerDialog";
 import CopyButton from "../components/common/CopyButton";
@@ -250,7 +248,7 @@ function DurationStat({
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
   const { data: session, isLoading, error } = useGetSession(uid ?? "");
-  const closeSession = useCloseSession();
+  const closeSession = useClsoeSession();
   const deleteRecording = useDeleteSessionRecording();
   const {
     logs: sessionLogs,

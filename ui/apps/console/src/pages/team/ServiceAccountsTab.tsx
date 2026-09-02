@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { CpuChipIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
-import { useListServiceAccounts } from "@/client/api";
-import { useDeleteServiceAccount } from "@/hooks/useServiceAccountMutations";
+import { useListServiceAccounts, useDeleteServiceAccount } from "@/client/api";
 import { type ServiceAccount } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";

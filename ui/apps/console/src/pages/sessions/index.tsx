@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSessions } from "@/hooks/useSessions";
-import { useCloseSession } from "@/hooks/useSessionMutations";
+import { useClsoeSession } from "@/client/api";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { isRecordingSupported, readRecording } from "@/utils/recordings";
@@ -78,7 +78,7 @@ export default function Sessions() {
     page: params.page,
     perPage: PER_PAGE,
   });
-  const closeSession = useCloseSession();
+  const closeSession = useClsoeSession();
   const navigate = useNavigate();
   const premium = isEnterpriseOrCloud();
   const [playTarget, setPlayTarget] = useState<string | null>(null);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDeleteUser } from "@/hooks/useAdminUserMutations";
+import { useAdminDeleteUser } from "@/client/api";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface DeleteUserDialogProps {
@@ -18,7 +18,7 @@ export default function DeleteUserDialog({
   user,
   onDeleted,
 }: DeleteUserDialogProps) {
-  const deleteUser = useDeleteUser();
+  const deleteUser = useAdminDeleteUser();
   const [error, setError] = useState("");
 
   return (

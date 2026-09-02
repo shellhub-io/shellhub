@@ -27,7 +27,7 @@ import {
   useCreateCustomer,
   useDetachPaymentMethod,
   useSetDefaultPaymentMethod,
-} from "@/hooks/useBilling";
+} from "@/client/api";
 import { useGetCustomer } from "@/client/api";
 import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";

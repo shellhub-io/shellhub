@@ -10,17 +10,18 @@ import {
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import type { MemberView, MembershipInvitation } from "@/client";
+import {
+  useRemoveNamespaceMember,
+  useApproveUser,
+  useCancelMembershipInvitation,
+  useGenerateInvitationLink,
+} from "@/client/api";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useNamespaceMembers,
   type NamespaceMember,
 } from "@/hooks/useNamespaces";
 import { useNamespaceInvitations } from "@/hooks/useInvitations";
-import { useRemoveMember, useApproveMember } from "@/hooks/useMemberMutations";
-import {
-  useCancelMembershipInvitation,
-  useGenerateInvitationLink,
-} from "@/hooks/useInvitationMutations";
 import { isSdkError } from "@/api/errors";
 import { isInvitationExpired } from "@/utils/invitations";
 import { formatDateShort } from "@/utils/date";
@@ -104,8 +105,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     enabled: true,
   });
 
-  const removeMember = useRemoveMember();
-  const approveMember = useApproveMember();
+  const removeMember = useRemoveNamespaceMember();
+  const approveMember = useApproveUser();
   const cancelInvitation = useCancelMembershipInvitation();
   const regenerateInvitation = useGenerateInvitationLink();
 

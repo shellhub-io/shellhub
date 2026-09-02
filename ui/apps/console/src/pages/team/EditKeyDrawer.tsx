@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
+import { useApiKeyUpdate } from "@/client/api";
 import { type ApiKey } from "@/client";
 import FormDrawer from "@/components/common/FormDrawer";
 import { FormInputField } from "@/components/common/fields/rhf";
@@ -25,7 +25,7 @@ function EditKeyDrawer({
   onClose: () => void;
   apiKey: ApiKey | null;
 }) {
-  const updateKey = useUpdateApiKey();
+  const updateKey = useApiKeyUpdate();
   const defaults = useMemo(() => buildEditKeyDefaults(apiKey), [apiKey]);
   const form = useDrawerForm(open, editKeySchema, defaults);
   const { control, setError, clearErrors } = form;

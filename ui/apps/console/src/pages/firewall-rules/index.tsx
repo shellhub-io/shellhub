@@ -19,7 +19,7 @@ import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
-import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
+import { useDeleteFirewallRule } from "@/client/api";
 import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import RuleDrawer from "./RuleDrawer";
@@ -42,7 +42,9 @@ export default function FirewallRules() {
   const { params, setPage, setSearch } =
     usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
 
-  const { rules, totalCount, isLoading } = useFirewallRules({ page: params.page });
+  const { rules, totalCount, isLoading } = useFirewallRules({
+    page: params.page,
+  });
   const deleteRule = useDeleteFirewallRule();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
@@ -62,7 +64,8 @@ export default function FirewallRules() {
     setDeleteError(null);
     try {
       await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
-      if (rules.length === 1 && params.page > 1 && !params.search) setPage(params.page - 1);
+      if (rules.length === 1 && params.page > 1 && !params.search)
+        setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(

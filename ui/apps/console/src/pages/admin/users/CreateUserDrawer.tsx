@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { useCreateUser } from "@/hooks/useAdminUserMutations";
+import { useCreateUserAdmin } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import FormDrawer from "@/components/common/FormDrawer";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -25,7 +25,7 @@ export default function CreateUserDrawer({
   open,
   onClose,
 }: CreateUserDrawerProps) {
-  const createUser = useCreateUser();
+  const createUser = useCreateUserAdmin();
 
   const schema = useMemo(() => userSchema("create"), []);
   const defaults = useMemo(() => buildUserDefaults(), []);
@@ -36,12 +36,15 @@ export default function CreateUserDrawer({
   const onValid = async (values: UserFormValues) => {
     clearErrors("root");
     try {
-      await createUser.mutateAsync({ body: buildUserPayload("create", values) });
+      await createUser.mutateAsync({
+        body: buildUserPayload("create", values),
+      });
       onClose();
     } catch (err) {
-      const message = isSdkError(err) && err.status === 409
-        ? "A user with this email or username already exists."
-        : "Failed to create user. Please try again.";
+      const message =
+        isSdkError(err) && err.status === 409
+          ? "A user with this email or username already exists."
+          : "Failed to create user. Please try again.";
 
       setError("root", { message });
     }

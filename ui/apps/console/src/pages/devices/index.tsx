@@ -20,10 +20,8 @@ import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "@/components/common/TagsPopover";
-import {
-  useAddDeviceTag,
-  useRemoveDeviceTag,
-} from "@/hooks/useDeviceMutations";
+import { usePullTagFromDevice } from "@/client/api";
+import { useAddDeviceTag } from "@/hooks/useDeviceMutations";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import {
@@ -99,7 +97,7 @@ export default function Devices() {
   );
 
   const addDeviceTag = useAddDeviceTag();
-  const removeDeviceTag = useRemoveDeviceTag();
+  const removeDeviceTag = usePullTagFromDevice();
   const runDeviceAction = useDeviceActionRunner();
   const deviceActions = useActionDialog();
   const { requestAction: requestDeviceAction } = deviceActions;

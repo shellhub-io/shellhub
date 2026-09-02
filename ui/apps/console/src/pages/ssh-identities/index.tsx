@@ -21,7 +21,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useListSshIdentities } from "@/client/api";
-import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
+import { useDeleteSshIdentity } from "@/client/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -76,7 +76,7 @@ export default function SSHIdentities() {
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isCurrentBrowser = (i: SshIdentity) =>
     i.source === "browser" && i.fingerprint === browserKeyFingerprint;
-  const deleteIdentity = useDeleteSSHIdentity();
+  const deleteIdentity = useDeleteSshIdentity();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SshIdentity | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SshIdentity | null>(null);

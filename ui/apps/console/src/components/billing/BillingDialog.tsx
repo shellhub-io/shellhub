@@ -6,7 +6,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
-import { useCreateSubscription } from "@/hooks/useBilling";
+import { useCreateSubscription } from "@/client/api";
 import { useGetSubscription } from "@/client/api";
 import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";

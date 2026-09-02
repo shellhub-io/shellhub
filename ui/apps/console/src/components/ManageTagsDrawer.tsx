@@ -2,11 +2,7 @@ import { useState, useRef, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTags } from "../hooks/useTags";
-import {
-  useCreateTag,
-  useUpdateTag,
-  useDeleteTag,
-} from "../hooks/useTagMutations";
+import { useCreateTag, useUpdateTag, useDeleteTag } from "@/client/api";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
 import {
@@ -250,7 +246,12 @@ export default function ManageTagsDrawer({
                           void handleRename(tag.name, true);
                         }}
 
-                        className={cn("w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all", editNameChanged && !editNameValid ? "border-accent-red/50 focus:ring-accent-red/20" : "border-primary/50 focus:ring-primary/20")}
+                        className={cn(
+                          "w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all",
+                          editNameChanged && !editNameValid
+                            ? "border-accent-red/50 focus:ring-accent-red/20"
+                            : "border-primary/50 focus:ring-primary/20",
+                        )}
                       />
                       {editNameChanged && !editNameValid && (
                         <p className="mt-1 text-2xs text-accent-red">

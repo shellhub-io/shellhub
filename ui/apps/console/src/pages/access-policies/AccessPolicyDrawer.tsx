@@ -22,12 +22,12 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import { useListServiceAccounts } from "@/client/api";
-import { useTags } from "@/hooks/useTags";
 import {
+  useListServiceAccounts,
   useCreateAccessPolicy,
   useUpdateAccessPolicy,
-} from "@/hooks/useAccessPolicyMutations";
+} from "@/client/api";
+import { useTags } from "@/hooks/useTags";
 import type { AccessPolicy, AccessPolicyRequest } from "@/client";
 import { ROLES } from "@/pages/team/helpers";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";

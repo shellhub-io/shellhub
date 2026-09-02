@@ -23,8 +23,11 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useListAccessPolicies, useListServiceAccounts } from "@/client/api";
-import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
+import {
+  useListAccessPolicies,
+  useListServiceAccounts,
+  useDeleteAccessPolicy,
+} from "@/client/api";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";

@@ -20,8 +20,7 @@ import {
   NamespaceCreateForm,
   CommunityInstructions,
 } from "@/components/common/CreateNamespace";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
-import { useAcceptDevicePairing } from "@/hooks/useDeviceCode";
+import { useAcceptDevice, useAcceptDevicePairing } from "@/client/api";
 import { useResolveDeviceLoginCode } from "@/client/api";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";

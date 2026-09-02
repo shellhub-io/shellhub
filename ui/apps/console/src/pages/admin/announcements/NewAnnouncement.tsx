@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm, useController, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAdminCreateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
+import { useCreateAnnouncement } from "@/client/api";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { FormInputField } from "@/components/common/fields/rhf";
@@ -19,7 +19,7 @@ import {
  */
 export default function NewAnnouncement() {
   const navigate = useNavigate();
-  const createAnnouncement = useAdminCreateAnnouncement();
+  const createAnnouncement = useCreateAnnouncement();
 
   const form = useForm<AnnouncementFormValues>({
     mode: "onChange",

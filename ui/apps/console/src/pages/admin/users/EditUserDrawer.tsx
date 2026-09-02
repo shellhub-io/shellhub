@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useUpdateUser } from "@/hooks/useAdminUserMutations";
+import { useAdminUpdateUser } from "@/client/api";
 import { useAuthStore } from "@/stores/authStore";
 import { isSdkError } from "@/api/errors";
 import FormDrawer from "@/components/common/FormDrawer";
@@ -27,7 +27,7 @@ export default function EditUserDrawer({
   onClose,
   user,
 }: EditUserDrawerProps) {
-  const updateUser = useUpdateUser();
+  const updateUser = useAdminUpdateUser();
   const currentUserId = useAuthStore((s) => s.userId);
 
   const schema = useMemo(() => userSchema("edit"), []);

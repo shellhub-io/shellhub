@@ -4,10 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useWebEndpoints } from "@/hooks/useWebEndpoints";
-import {
-  useCreateWebEndpoint,
-  useDeleteWebEndpoint,
-} from "@/hooks/useWebEndpointMutations";
+import { useCreateWebEndpoint, useDeleteWebEndpoint } from "@/client/api";
 import type { Webendpoint } from "@/client";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";

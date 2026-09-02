@@ -7,10 +7,10 @@ import {
 import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
-  useCreateSSHIdentity,
-  useRenameSSHIdentity,
-} from "@/hooks/useSSHIdentityMutations";
-import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
+  useCreateSshIdentity,
+  useRenameSshIdentity,
+  useCreateServiceAccount,
+} from "@/client/api";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import type { SshIdentity } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
@@ -47,8 +47,8 @@ function IdentityDrawer({
   editIdentity: SshIdentity | null;
   onClose: () => void;
 }) {
-  const createIdentity = useCreateSSHIdentity();
-  const renameIdentity = useRenameSSHIdentity();
+  const createIdentity = useCreateSshIdentity();
+  const renameIdentity = useRenameSshIdentity();
   const createServiceAccount = useCreateServiceAccount();
   const canCreateServiceAccount = useHasPermission("serviceAccount:create");
   const browserKeyFingerprint = useBrowserKeyFingerprint();

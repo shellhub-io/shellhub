@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAdminDeleteAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
+import { useDeleteAnnouncement } from "@/client/api";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface DeleteAnnouncementDialogProps {
@@ -19,7 +19,7 @@ export default function DeleteAnnouncementDialog({
   announcement,
   onDeleted,
 }: DeleteAnnouncementDialogProps) {
-  const deleteAnnouncement = useAdminDeleteAnnouncement();
+  const deleteAnnouncement = useDeleteAnnouncement();
   const [error, setError] = useState("");
 
   return (

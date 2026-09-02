@@ -9,8 +9,8 @@ import {
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import { useGetContainer } from "@/client/api";
+import { useUpdateContainer } from "@/client/api";
 import {
-  useRenameContainer,
   useAddContainerTag,
   useRemoveContainerTag,
 } from "../hooks/useContainerMutations";
@@ -59,7 +59,7 @@ export default function ContainerDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
 
-  const renameMutation = useRenameContainer();
+  const renameMutation = useUpdateContainer();
   const addTagMutation = useAddContainerTag();
   const removeTagMutation = useRemoveContainerTag();
   const containerActions = useActionDialog({
