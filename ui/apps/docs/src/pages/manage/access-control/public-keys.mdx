@@ -28,7 +28,10 @@ Each key carries a scope:
 
 - **Which devices** — all of them, a hostname pattern, or a tag set. This is the same device
   selector access policies use.
-- **Which unix logins** — a specific username, or any.
+- **Which unix logins** — a username pattern, or any.
+
+Both patterns are regular expressions that must match in full: a key restricted to `root`
+authorizes the login `root` and not `notroot`.
 
 A connection is permitted when the presented key is registered and its scope covers the device and
 the login being requested.

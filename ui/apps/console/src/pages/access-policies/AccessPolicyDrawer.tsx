@@ -488,7 +488,7 @@ function AccessPolicyDrawer({
         ? `devices tagged ${selectedTags.join(", ")}`
         : "devices";
     if (filterOption === "hostname")
-      return `devices matching /${hostname || "…"}/`;
+      return `devices matching ${hostname || "…"}`;
     return "all devices";
   };
   const loginLabel = (): string =>
@@ -574,7 +574,7 @@ function AccessPolicyDrawer({
       )
     ) : (
       <Pill icon={<ClipboardDocumentListIcon className="w-3.5 h-3.5" />}>
-        <span className="font-mono">/{hostname || "…"}/</span>
+        <span className="font-mono">{hostname || "…"}</span>
       </Pill>
     );
 
@@ -832,11 +832,11 @@ function AccessPolicyDrawer({
                         setFilterOption("hostname");
                         setHostname(e.target.value);
                       }}
-                      placeholder="^prod-.*$"
+                      placeholder="prod-.*"
                       className="w-full px-3 py-2 bg-bg border border-border rounded-lg text-sm font-mono text-text-primary placeholder:text-text-muted outline-none focus:border-primary/60"
                     />
                     <p className="px-1 pt-2 text-2xs text-text-muted">
-                      A regexp matched against device hostnames.
+                      A regexp matched against the whole device name.
                     </p>
                   </div>
                 )}

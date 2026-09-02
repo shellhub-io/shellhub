@@ -6,7 +6,7 @@ description: |
 type: object
 properties:
   hostname:
-    description: Regex matched against the device's name.
+    description: Regexp matched against the whole device name.
     type: string
     example: .*
   tags:
