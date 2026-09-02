@@ -10,6 +10,7 @@ import {
   MegaphoneIcon,
   Cog6ToothIcon,
   KeyIcon,
+  LockClosedIcon,
   DocumentCheckIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
@@ -90,6 +91,11 @@ const settingsGroup: NavGroup = {
       to: "/admin/settings/authentication",
       label: "Authentication",
       icon: <KeyIcon className={navIcon} />,
+    },
+    {
+      to: "/admin/instance-api-keys",
+      label: "Instance API Keys",
+      icon: <LockClosedIcon className={navIcon} />,
     },
     {
       to: "/admin/license",

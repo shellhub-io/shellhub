@@ -69,6 +69,9 @@ const AdminDevices = lazy(() => import("./pages/admin/devices"));
 const AdminDeviceDetails = lazy(
   () => import("./pages/admin/devices/AdminDeviceDetails"),
 );
+const AdminInstanceApiKeys = lazy(
+  () => import("./pages/admin/instance-api-keys/InstanceApiKeys"),
+);
 const AdminFirewallRules = lazy(() => import("./pages/admin/firewall-rules"));
 const AdminFirewallRuleDetails = lazy(
   () => import("./pages/admin/firewall-rules/AdminFirewallRuleDetails"),
@@ -206,6 +209,10 @@ export default function App() {
                     <Route
                       path="/admin/sessions/:uid"
                       element={<AdminSessionDetails />}
+                    />
+                    <Route
+                      path="/admin/instance-api-keys"
+                      element={<AdminInstanceApiKeys />}
                     />
                     <Route
                       path="/admin/settings/authentication"

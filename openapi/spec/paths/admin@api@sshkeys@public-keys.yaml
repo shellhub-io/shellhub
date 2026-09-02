@@ -7,7 +7,7 @@ get:
     - public-keys
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   parameters:
     - $ref: ../components/parameters/query/filterQuery.yaml
     - $ref: ../components/parameters/query/pageQuery.yaml
@@ -35,7 +35,7 @@ post:
     - public-keys
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:

@@ -8,6 +8,21 @@ api-key:
   in: header
   name: X-API-KEY
   description: |
-    Send your API key in the `X-API-KEY` header. An API key belongs to a single
-    namespace and is not tied to a user. Create one in the ShellHub console under
-    **Namespace → API Keys**.
+    Send your API key in the `X-API-KEY` header. A namespace API key belongs to a
+    single namespace and is not tied to a user, and is never accepted on the admin
+    surface. Create one in the ShellHub console under **Namespace → API Keys**.
+
+    For automating the admin surface, see `instance-api-key` instead.
+instance-api-key:
+  type: apiKey
+  in: header
+  name: X-API-KEY
+  description: |
+    Send your instance API key in the `X-API-KEY` header. An instance API key
+    authenticates as an instance administrator, carries no namespace and no role,
+    and is accepted only under `/admin/api`. Its plaintext is prefixed with
+    `sh_admin_`.
+
+    A key stops working when it expires or when the administrator who created it
+    is no longer an instance administrator. Create one in the admin panel under
+    **Instance API Keys**.

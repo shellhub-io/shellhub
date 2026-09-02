@@ -3153,6 +3153,301 @@ func (_c *MockStore_InstallKeyUpdate_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// InstanceAPIKeyCreate provides a mock function for the type MockStore
+func (_mock *MockStore) InstanceAPIKeyCreate(ctx context.Context, apiKey *models.InstanceAPIKey) (string, error) {
+	ret := _mock.Called(ctx, apiKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstanceAPIKeyCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.InstanceAPIKey) (string, error)); ok {
+		return returnFunc(ctx, apiKey)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.InstanceAPIKey) string); ok {
+		r0 = returnFunc(ctx, apiKey)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.InstanceAPIKey) error); ok {
+		r1 = returnFunc(ctx, apiKey)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_InstanceAPIKeyCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstanceAPIKeyCreate'
+type MockStore_InstanceAPIKeyCreate_Call struct {
+	*mock.Call
+}
+
+// InstanceAPIKeyCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - apiKey *models.InstanceAPIKey
+func (_e *MockStore_Expecter) InstanceAPIKeyCreate(ctx any, apiKey any) *MockStore_InstanceAPIKeyCreate_Call {
+	return &MockStore_InstanceAPIKeyCreate_Call{Call: _e.mock.On("InstanceAPIKeyCreate", ctx, apiKey)}
+}
+
+func (_c *MockStore_InstanceAPIKeyCreate_Call) Run(run func(ctx context.Context, apiKey *models.InstanceAPIKey)) *MockStore_InstanceAPIKeyCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.InstanceAPIKey
+		if args[1] != nil {
+			arg1 = args[1].(*models.InstanceAPIKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyCreate_Call) Return(insertedID string, err error) *MockStore_InstanceAPIKeyCreate_Call {
+	_c.Call.Return(insertedID, err)
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyCreate_Call) RunAndReturn(run func(ctx context.Context, apiKey *models.InstanceAPIKey) (string, error)) *MockStore_InstanceAPIKeyCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InstanceAPIKeyDelete provides a mock function for the type MockStore
+func (_mock *MockStore) InstanceAPIKeyDelete(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstanceAPIKeyDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_InstanceAPIKeyDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstanceAPIKeyDelete'
+type MockStore_InstanceAPIKeyDelete_Call struct {
+	*mock.Call
+}
+
+// InstanceAPIKeyDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockStore_Expecter) InstanceAPIKeyDelete(ctx any, name any) *MockStore_InstanceAPIKeyDelete_Call {
+	return &MockStore_InstanceAPIKeyDelete_Call{Call: _e.mock.On("InstanceAPIKeyDelete", ctx, name)}
+}
+
+func (_c *MockStore_InstanceAPIKeyDelete_Call) Run(run func(ctx context.Context, name string)) *MockStore_InstanceAPIKeyDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyDelete_Call) Return(err error) *MockStore_InstanceAPIKeyDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyDelete_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockStore_InstanceAPIKeyDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InstanceAPIKeyList provides a mock function for the type MockStore
+func (_mock *MockStore) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.InstanceAPIKey, int, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, opts)
+	} else {
+		tmpRet = _mock.Called(ctx)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstanceAPIKeyList")
+	}
+
+	var r0 []models.InstanceAPIKey
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.InstanceAPIKey, int, error)); ok {
+		return returnFunc(ctx, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.InstanceAPIKey); ok {
+		r0 = returnFunc(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.InstanceAPIKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_InstanceAPIKeyList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstanceAPIKeyList'
+type MockStore_InstanceAPIKeyList_Call struct {
+	*mock.Call
+}
+
+// InstanceAPIKeyList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) InstanceAPIKeyList(ctx any, opts ...any) *MockStore_InstanceAPIKeyList_Call {
+	return &MockStore_InstanceAPIKeyList_Call{Call: _e.mock.On("InstanceAPIKeyList",
+		append([]any{ctx}, opts...)...)}
+}
+
+func (_c *MockStore_InstanceAPIKeyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_InstanceAPIKeyList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 1 {
+			variadicArgs = args[1].([]store.QueryOption)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyList_Call) Return(apiKeys []models.InstanceAPIKey, count int, err error) *MockStore_InstanceAPIKeyList_Call {
+	_c.Call.Return(apiKeys, count, err)
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.InstanceAPIKey, int, error)) *MockStore_InstanceAPIKeyList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InstanceAPIKeyResolve provides a mock function for the type MockStore
+func (_mock *MockStore) InstanceAPIKeyResolve(ctx context.Context, resolver store.InstanceAPIKeyResolver, value string, opts ...store.QueryOption) (*models.InstanceAPIKey, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, resolver, value, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, resolver, value)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstanceAPIKeyResolve")
+	}
+
+	var r0 *models.InstanceAPIKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.InstanceAPIKeyResolver, string, ...store.QueryOption) (*models.InstanceAPIKey, error)); ok {
+		return returnFunc(ctx, resolver, value, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.InstanceAPIKeyResolver, string, ...store.QueryOption) *models.InstanceAPIKey); ok {
+		r0 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.InstanceAPIKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.InstanceAPIKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_InstanceAPIKeyResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstanceAPIKeyResolve'
+type MockStore_InstanceAPIKeyResolve_Call struct {
+	*mock.Call
+}
+
+// InstanceAPIKeyResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resolver store.InstanceAPIKeyResolver
+//   - value string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) InstanceAPIKeyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_InstanceAPIKeyResolve_Call {
+	return &MockStore_InstanceAPIKeyResolve_Call{Call: _e.mock.On("InstanceAPIKeyResolve",
+		append([]any{ctx, resolver, value}, opts...)...)}
+}
+
+func (_c *MockStore_InstanceAPIKeyResolve_Call) Run(run func(ctx context.Context, resolver store.InstanceAPIKeyResolver, value string, opts ...store.QueryOption)) *MockStore_InstanceAPIKeyResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.InstanceAPIKeyResolver
+		if args[1] != nil {
+			arg1 = args[1].(store.InstanceAPIKeyResolver)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyResolve_Call) Return(instanceAPIKey *models.InstanceAPIKey, err error) *MockStore_InstanceAPIKeyResolve_Call {
+	_c.Call.Return(instanceAPIKey, err)
+	return _c
+}
+
+func (_c *MockStore_InstanceAPIKeyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.InstanceAPIKeyResolver, value string, opts ...store.QueryOption) (*models.InstanceAPIKey, error)) *MockStore_InstanceAPIKeyResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MembershipInvitationCreate provides a mock function for the type MockStore
 func (_mock *MockStore) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	ret := _mock.Called(ctx, invitation)

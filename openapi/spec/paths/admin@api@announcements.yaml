@@ -8,7 +8,7 @@ get:
     - enterprise
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   parameters:
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
@@ -49,7 +49,7 @@ post:
     - enterprise
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:

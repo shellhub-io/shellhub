@@ -88,6 +88,13 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestAPIKeyDelete(t)
 	})
 
+	t.Run("InstanceAPIKeyStore", func(t *testing.T) {
+		s.TestInstanceAPIKeyCreate(t)
+		s.TestInstanceAPIKeyResolve(t)
+		s.TestInstanceAPIKeyList(t)
+		s.TestInstanceAPIKeyDelete(t)
+	})
+
 	t.Run("InstallKeyStore", func(t *testing.T) {
 		s.TestInstallKeyEventCreate(t)
 		s.TestInstallKeyEventList(t)

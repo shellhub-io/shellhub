@@ -8,7 +8,7 @@ get:
     - stats
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to get stats about the ShellHub instance

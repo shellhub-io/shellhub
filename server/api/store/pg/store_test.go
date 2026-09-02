@@ -104,6 +104,15 @@ func TestPgStore(t *testing.T) {
 		suite.TestAPIKeyDeleteAllByCreator(t)
 	})
 
+	runSubSuite(t, "InstanceAPIKeyStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
+		suite.TestInstanceAPIKeyCreate(t)
+		suite.TestInstanceAPIKeyResolve(t)
+		suite.TestInstanceAPIKeyList(t)
+		suite.TestInstanceAPIKeyDelete(t)
+	})
+
 	runSubSuite(t, "InstallKeyStore", func(t *testing.T, suite *storetest.Suite) {
 		t.Helper()
 

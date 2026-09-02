@@ -1,0 +1,34 @@
+delete:
+  operationId: deleteInstanceAPIKey
+  summary: Revoke an instance API key
+  description: |
+    Revoke an instance API key. It takes effect immediately: anything still presenting the key
+    starts receiving `401`.
+
+    This route cannot be authenticated with an API key.
+  tags:
+    - admin
+    - instance-api-keys
+    - cloud
+    - enterprise
+  security:
+    - jwt: []
+  parameters:
+    - name: name
+      description: The instance API key's name.
+      schema:
+        type: string
+        example: billing-export
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success to revoke the instance API key.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

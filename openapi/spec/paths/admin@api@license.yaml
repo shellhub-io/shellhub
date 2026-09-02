@@ -8,7 +8,7 @@ get:
     - license
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to get data.
@@ -402,7 +402,7 @@ post:
     - license
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       multipart/form-data:

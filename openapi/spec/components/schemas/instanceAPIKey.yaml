@@ -1,0 +1,38 @@
+type: object
+properties:
+  name:
+    type: string
+    description: |
+      The name of the instance API key. This serves as an "external ID" since the plaintext key is
+      never returned after creation. It is unique across the instance.
+    example: billing-export
+  created_by:
+    description: |
+      The ID of the instance administrator who created the key. The key stops authenticating when
+      that user is no longer an instance administrator.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  created_at:
+    type: string
+    description: The UTC date when the key was created.
+    format: date-time
+    example: '2026-05-01T00:00:00Z'
+  updated_at:
+    type: string
+    description: The UTC date when the key was last updated.
+    format: date-time
+    example: '2026-05-01T00:00:00Z'
+  expires_at:
+    type: string
+    description: |
+      The UTC date when the key expires. Always set: an instance API key cannot be created without
+      an expiration date.
+    format: date-time
+    example: '2026-05-31T00:00:00Z'
+required:
+  - name
+  - created_by
+  - created_at
+  - updated_at
+  - expires_at

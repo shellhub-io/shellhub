@@ -60,6 +60,15 @@ tags:
     description: Routes related to announcements resource
   - name: mfa
     description: Routes related to MFA
+  - name: instance-api-keys
+    description: |
+      An instance API key authenticates as an instance administrator rather than as a member of a
+      namespace. It carries no namespace and no role, is accepted only under `/admin/api`, and its
+      plaintext is prefixed with `sh_admin_`.
+
+      A key always expires, and it stops working as soon as the administrator who created it is no
+      longer an instance administrator. Instance API key routes cannot themselves be authenticated
+      with an API key.
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -185,6 +194,10 @@ paths:
     $ref: paths/admin@api@stats.yaml
   /admin/api/license:
     $ref: paths/admin@api@license.yaml
+  /admin/api/instance-api-keys:
+    $ref: paths/admin@api@instance-api-keys.yaml
+  /admin/api/instance-api-keys/{name}:
+    $ref: paths/admin@api@instance-api-keys@{name}.yaml
   /admin/api/auth/token/{id}:
     $ref: paths/admin@api@auth@token@{id}.yaml
   /admin/api/export/namespaces:

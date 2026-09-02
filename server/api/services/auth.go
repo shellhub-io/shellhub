@@ -78,6 +78,15 @@ type AuthService interface {
 	// authenticating at once.
 	AuthAPIKey(ctx context.Context, key string) (apiKey *models.APIKey, err error)
 
+	// AuthInstanceAPIKey authenticates the given key as an instance administrator, returning its
+	// instance API key document. Unlike [AuthService.AuthAPIKey] it resolves to no namespace and no
+	// role: the caller is the instance administrator who created the key.
+	//
+	// It returns an error when the key does not exist, when it has expired, or when the user who
+	// created it is no longer an instance administrator, so a demotion revokes every key that user
+	// minted.
+	AuthInstanceAPIKey(ctx context.Context, key string) (apiKey *models.InstanceAPIKey, err error)
+
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }

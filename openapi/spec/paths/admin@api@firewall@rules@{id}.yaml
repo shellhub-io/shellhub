@@ -15,7 +15,7 @@ get:
     - firewall
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to get firewall rule.
@@ -37,7 +37,7 @@ put:
     - firewall
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   requestBody:
     content:
       application/json:
@@ -70,7 +70,7 @@ delete:
     - firewall
   security:
     - jwt: []
-    - api-key: []
+    - instance-api-key: []
   responses:
     '200':
       description: Success to delete a firewall rule.

@@ -637,3 +637,63 @@ func (s *Suite) CreatePrivateKey(t *testing.T, opts ...PrivateKeyOption) string 
 
 	return key.Fingerprint
 }
+
+// InstanceAPIKeyOption allows customization of test instance API keys
+type InstanceAPIKeyOption func(*models.InstanceAPIKey)
+
+// WithInstanceAPIKeyName sets the name
+func WithInstanceAPIKeyName(name string) InstanceAPIKeyOption {
+	return func(key *models.InstanceAPIKey) {
+		key.Name = name
+	}
+}
+
+// WithInstanceAPIKeyCreatedBy sets the creating user
+func WithInstanceAPIKeyCreatedBy(userID string) InstanceAPIKeyOption {
+	return func(key *models.InstanceAPIKey) {
+		key.CreatedBy = userID
+	}
+}
+
+// WithInstanceAPIKeyExpiresAt sets the expiration date
+func WithInstanceAPIKeyExpiresAt(expiresAt time.Time) InstanceAPIKeyOption {
+	return func(key *models.InstanceAPIKey) {
+		key.ExpiresAt = expiresAt
+	}
+}
+
+// CreateInstanceAPIKey creates an instance API key with default or customized values.
+// Returns the generated key ID (SHA256 hash of the prefixed plain key).
+// If the creating user is not provided via options, one is created.
+func (s *Suite) CreateInstanceAPIKey(t *testing.T, opts ...InstanceAPIKeyOption) string {
+	t.Helper()
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	plainKey := models.InstanceAPIKeyPrefix + uuid.Generate()
+	keySum := sha256.Sum256([]byte(plainKey))
+	hashedKey := hex.EncodeToString(keySum[:])
+
+	key := &models.InstanceAPIKey{
+		ID:        hashedKey,
+		Name:      "instance_apikey_" + uniqueHex(t, 16),
+		CreatedBy: "",
+		CreatedAt: clock.Now(),
+		UpdatedAt: clock.Now(),
+		ExpiresAt: clock.Now().AddDate(0, 0, 30),
+	}
+
+	for _, opt := range opts {
+		opt(key)
+	}
+
+	if key.CreatedBy == "" {
+		key.CreatedBy = s.CreateUser(t)
+	}
+
+	keyID, err := st.InstanceAPIKeyCreate(ctx, key)
+	require.NoError(t, err)
+	require.NotEmpty(t, keyID)
+
+	return key.ID
+}

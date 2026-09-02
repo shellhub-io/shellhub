@@ -53,6 +53,7 @@ type Service interface {
 	SetupService
 	SystemService
 	APIKeyService
+	InstanceAPIKeyService
 	InstallKeyService
 	FirewallService
 	LicenseService
