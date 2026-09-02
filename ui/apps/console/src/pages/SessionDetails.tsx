@@ -21,7 +21,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import { useSession } from "../hooks/useSession";
+import { useGetSession } from "@/client/api";
 import {
   useCloseSession,
   useDeleteSessionRecording,
@@ -249,7 +249,7 @@ function DurationStat({
  */
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
-  const { session, isLoading, error } = useSession(uid!);
+  const { data: session, isLoading, error } = useGetSession(uid ?? "");
   const closeSession = useCloseSession();
   const deleteRecording = useDeleteSessionRecording();
   const {

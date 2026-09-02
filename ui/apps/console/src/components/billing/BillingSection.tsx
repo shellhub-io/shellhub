@@ -11,7 +11,8 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace } from "@/hooks/useNamespaces";
-import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
+import { useOpenBillingPortal } from "@/hooks/useBilling";
+import { useGetSubscription } from "@/client/api";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
 import type { BillingStatus } from "@/client";
@@ -194,7 +195,9 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   const { namespace } = useNamespace(tenantId ?? "");
   const billing = namespace?.billing;
   const hasSubscription = !!billing?.customer_id && !!billing?.subscription?.id;
-  const { subscription, isLoading } = useSubscription(hasSubscription);
+  const { data: subscription, isLoading } = useGetSubscription({
+    query: { enabled: hasSubscription },
+  });
   const openPortal = useOpenBillingPortal();
   const invalidate = useInvalidateByIds(
     "getCustomer",

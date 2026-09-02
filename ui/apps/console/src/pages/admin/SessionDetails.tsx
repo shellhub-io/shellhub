@@ -5,7 +5,7 @@ import {
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
+import { useGetSessionAdmin } from "@/client/api";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InfoItem from "@/components/common/InfoItem";
 import { formatDateFull } from "@/utils/date";
@@ -44,7 +44,13 @@ function BoolField({
  */
 export default function AdminSessionDetails() {
   const { uid = "" } = useParams<{ uid: string }>();
-  const { session, isLoading, error } = useAdminSessionDetail(uid);
+  const {
+    data: session,
+    isLoading,
+    error,
+  } = useGetSessionAdmin(uid, {
+    query: { staleTime: 60_000, refetchOnWindowFocus: false, retry: 1 },
+  });
 
   if (isLoading) {
     return <PageLoader label="Loading session" padding="fill" />;

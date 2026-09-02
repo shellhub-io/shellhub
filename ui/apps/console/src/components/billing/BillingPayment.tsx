@@ -25,10 +25,10 @@ import { useAuthStore } from "@/stores/authStore";
 import {
   useAttachPaymentMethod,
   useCreateCustomer,
-  useCustomer,
   useDetachPaymentMethod,
   useSetDefaultPaymentMethod,
 } from "@/hooks/useBilling";
+import { useGetCustomer } from "@/client/api";
 import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
@@ -104,10 +104,10 @@ function BillingPaymentInner({
   const { namespace, refetch: refetchNamespace } = useNamespace(tenantId ?? "");
   const hasCustomer = !!namespace?.billing?.customer_id;
   const {
-    customer,
+    data: customer,
     isLoading: customerLoading,
     refetch: refetchCustomer,
-  } = useCustomer(hasCustomer);
+  } = useGetCustomer({ query: { enabled: hasCustomer } });
 
   const createCustomer = useCreateCustomer();
   const attachPm = useAttachPaymentMethod();

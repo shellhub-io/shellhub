@@ -21,10 +21,8 @@ import {
   CommunityInstructions,
 } from "@/components/common/CreateNamespace";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
-import {
-  useResolveDeviceCode,
-  useAcceptDevicePairing,
-} from "@/hooks/useDeviceCode";
+import { useAcceptDevicePairing } from "@/hooks/useDeviceCode";
+import { useResolveDeviceLoginCode } from "@/client/api";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -69,10 +67,12 @@ export default function AcceptDeviceFlow({
 
   const [code, setCode] = useState(initialCode);
   const {
-    device,
+    data: device,
     isLoading: isResolving,
     isError,
-  } = useResolveDeviceCode(code);
+  } = useResolveDeviceLoginCode(code, {
+    query: { enabled: !!code, retry: false, staleTime: Infinity },
+  });
 
   const acceptDevice = useAcceptDevice();
   const acceptPairing = useAcceptDevicePairing();
@@ -86,7 +86,8 @@ export default function AcceptDeviceFlow({
   );
   const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
   const canSubscribeInAuth = useHasPermission("billing:subscribe");
-  const canSubscribe = canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
+  const canSubscribe =
+    canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 
   const finish = (b: Branch) => {
     clearPendingDeviceCode();

@@ -8,7 +8,7 @@ import {
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useContainer } from "../hooks/useContainer";
+import { useGetContainer } from "@/client/api";
 import {
   useRenameContainer,
   useAddContainerTag,
@@ -43,7 +43,13 @@ export default function ContainerDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { container, isLoading, error } = useContainer(uid ?? "");
+  const {
+    data: container,
+    isLoading,
+    error,
+  } = useGetContainer(uid ?? "", {
+    query: { enabled: !!uid },
+  });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);

@@ -22,7 +22,7 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
+import { useListServiceAccounts } from "@/client/api";
 import { useTags } from "@/hooks/useTags";
 import {
   useCreateAccessPolicy,
@@ -365,7 +365,7 @@ function AccessPolicyDrawer({
     (m): m is NamespaceMember =>
       !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
   );
-  const { serviceAccounts } = useServiceAccounts();
+  const { data: serviceAccounts = [] } = useListServiceAccounts();
   const roleMemberCount = (role: string) =>
     members.filter((m) => String(m.role) === role).length;
 

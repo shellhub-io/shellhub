@@ -20,7 +20,7 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useSSHIdentities } from "@/hooks/useSSHIdentities";
+import { useListSshIdentities } from "@/client/api";
 import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
 import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
@@ -70,7 +70,9 @@ const EXPIRY_TONE: Record<IdentityStatusTone, string> = {
 export default function SSHIdentities() {
   const userId = useAuthStore((s) => s.userId);
 
-  const { identities, isLoading } = useSSHIdentities(true);
+  const { data: identities = [], isLoading } = useListSshIdentities({
+    all: true,
+  });
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isCurrentBrowser = (i: SshIdentity) =>
     i.source === "browser" && i.fingerprint === browserKeyFingerprint;
@@ -246,7 +248,10 @@ export default function SSHIdentities() {
           <div className="flex justify-end">
             <Dropdown portal placement="bottom-end">
               <Dropdown.Trigger>
-                <IconButton variant="ghost" aria-label={`Actions for ${i.name}`}>
+                <IconButton
+                  variant="ghost"
+                  aria-label={`Actions for ${i.name}`}
+                >
                   <EllipsisVerticalIcon className="w-4 h-4" />
                 </IconButton>
               </Dropdown.Trigger>

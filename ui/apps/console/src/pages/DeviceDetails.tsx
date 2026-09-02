@@ -8,7 +8,7 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useDevice } from "../hooks/useDevice";
+import { useGetDevice } from "@/client/api";
 import { useActionDialog } from "../hooks/useActionDialog";
 import {
   useRenameDevice,
@@ -47,7 +47,13 @@ export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { device, isLoading, error } = useDevice(uid ?? "");
+  const {
+    data: device,
+    isLoading,
+    error,
+  } = useGetDevice(uid ?? "", {
+    query: { enabled: !!uid },
+  });
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { installKeys } = useInstallKeys({ perPage: 100 });

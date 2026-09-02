@@ -10,7 +10,7 @@ import {
   Card,
   Spinner,
 } from "@shellhub/design-system/primitives";
-import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
+import { useInstallKeyReveal } from "@/client/api";
 import { type InstallKey } from "@/client";
 import { installKeyDisplayName } from "./helpers";
 import CopyButton from "@/components/common/CopyButton";
@@ -48,10 +48,14 @@ export default function RevealInstallKeyDialog({
     setRevealed(false);
   }
 
-  const { key, isLoading, error } = useRevealInstallKey(
-    hasSecret ? name : null,
-    revealed,
-  );
+  const {
+    data: revealData,
+    isLoading,
+    error,
+  } = useInstallKeyReveal(name ?? "", {
+    query: { enabled: hasSecret && !!name && revealed, gcTime: 0 },
+  });
+  const key = revealData?.key ?? "";
 
   return (
     <BaseDialog

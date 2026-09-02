@@ -1,6 +1,7 @@
 import NoticeBanner from "@/components/common/NoticeBanner";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useGetStats } from "@/client/api";
+import { useAuthStore } from "@/stores/authStore";
 
 /**
  * Warns when the namespace is at or near its licensed device limit, before an enrolment starts
@@ -12,11 +13,17 @@ export default function DeviceLimitBanner() {
     isLoading: licenseLoading,
     isError: licenseError,
   } = useAdminLicense();
+  const isAdmin = useAuthStore((s) => s.isAdmin);
   const {
-    stats,
+    data: stats,
     isLoading: statsLoading,
     isError: statsError,
-  } = useAdminStats();
+  } = useGetStats({
+    query: {
+      enabled: isAdmin,
+      staleTime: 5 * 60_000,
+    },
+  });
 
   const cap = license?.features.devices;
   const registered = stats?.registered_devices;
