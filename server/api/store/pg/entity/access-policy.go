@@ -12,19 +12,18 @@ import (
 type AccessPolicy struct {
 	bun.BaseModel `bun:"table:access_policies"`
 
-	ID             string    `bun:"id,pk,type:uuid"`
-	NamespaceID    string    `bun:"namespace_id"`
-	CreatedAt      time.Time `bun:"created_at"`
-	UpdatedAt      time.Time `bun:"updated_at"`
-	Name           string    `bun:"name"`
-	SubjectType    string    `bun:"subject_type"`
-	SubjectValue   string    `bun:"subject_value"`
-	FilterHostname string    `bun:"filter_hostname"`
-	Logins         []string  `bun:"logins,array"`
-	SourceIP       []string  `bun:"source_ip,array"`
-	RequireReauth  bool      `bun:"require_reauth"`
-	ReauthPeriod   *int      `bun:"reauth_period"`
-	Action         string    `bun:"action"`
+	ID            string    `bun:"id,pk,type:uuid"`
+	NamespaceID   string    `bun:"namespace_id"`
+	CreatedAt     time.Time `bun:"created_at"`
+	UpdatedAt     time.Time `bun:"updated_at"`
+	Name          string    `bun:"name"`
+	SubjectType   string    `bun:"subject_type"`
+	SubjectValue  string    `bun:"subject_value"`
+	Logins        []string  `bun:"logins,array"`
+	SourceIP      []string  `bun:"source_ip,array"`
+	RequireReauth bool      `bun:"require_reauth"`
+	ReauthPeriod  *int      `bun:"reauth_period"`
+	Action        string    `bun:"action"`
 
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
 }
@@ -50,20 +49,19 @@ func NewAccessPolicyTag(tagID, accessPolicyID string) *AccessPolicyTag {
 // type and value columns.
 func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 	accessPolicy := &AccessPolicy{
-		ID:             model.ID,
-		NamespaceID:    model.TenantID,
-		CreatedAt:      model.CreatedAt,
-		UpdatedAt:      model.UpdatedAt,
-		Name:           model.Name,
-		SubjectType:    string(model.Subject.Type),
-		SubjectValue:   model.Subject.Value,
-		FilterHostname: model.Filter.Hostname,
-		Logins:         model.Logins,
-		SourceIP:       model.SourceIP,
-		RequireReauth:  model.RequireReauth,
-		ReauthPeriod:   model.ReauthPeriod,
-		Action:         string(model.Action),
-		Tags:           []*Tag{},
+		ID:            model.ID,
+		NamespaceID:   model.TenantID,
+		CreatedAt:     model.CreatedAt,
+		UpdatedAt:     model.UpdatedAt,
+		Name:          model.Name,
+		SubjectType:   string(model.Subject.Type),
+		SubjectValue:  model.Subject.Value,
+		Logins:        model.Logins,
+		SourceIP:      model.SourceIP,
+		RequireReauth: model.RequireReauth,
+		ReauthPeriod:  model.ReauthPeriod,
+		Action:        string(model.Action),
+		Tags:          []*Tag{},
 	}
 
 	if len(model.Filter.Tags) > 0 {
@@ -94,7 +92,6 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 			Value: entity.SubjectValue,
 		},
 		Filter: models.PublicKeyFilter{
-			Hostname: entity.FilterHostname,
 			Taggable: models.Taggable{
 				Tags: []models.Tag{},
 			},

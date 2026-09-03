@@ -8,7 +8,7 @@ properties:
   subject:
     $ref: accessPolicySubject.yaml
   filter:
-    $ref: publicKeyFilterRequest.yaml
+    $ref: accessPolicyFilterRequest.yaml
   logins:
     $ref: accessPolicyLogins.yaml
   source_ip:
