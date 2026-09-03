@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
-	"sort"
 	"strconv"
-	"sync"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -29,6 +28,9 @@ const (
 	ShapeList Shape = "list"
 	// ShapeNone answers with 200 and no body.
 	ShapeNone Shape = "none"
+	// ShapeLegacy is a handler that still writes its own response through the gateway [Context].
+	// It declares its address and its guards like any other route; only its body has yet to move.
+	ShapeLegacy Shape = "legacy"
 )
 
 // OneHandler answers with a single value. It is a function of its inputs: it does not know that
@@ -43,61 +45,90 @@ type ListHandler[T, R any] func(ctx context.Context, sc scope.Scope, actor Actor
 // NoneHandler answers with success alone.
 type NoneHandler[T any] func(ctx context.Context, sc scope.Scope, actor Actor, req *T) error
 
-// One registers handler as a route answering with a JSON body.
-func One[T, R any](handler OneHandler[T, R], options ...RouteOption) echo.HandlerFunc {
-	declaration := declare(handler, ShapeOne, options)
+// Route is a handler and the claim its registration is about to make. It is not yet a route the
+// router serves: it has no address until [GET] and its siblings mount it, which is what completes
+// the declaration.
+type Route struct {
+	declaration Declaration
+	build       func(Declaration) echo.HandlerFunc
+}
 
-	return func(c *echo.Context) error {
-		in, err := prepare[T](c, declaration)
-		if err != nil {
-			return err
-		}
+// One answers with a JSON body.
+func One[T, R any](handler OneHandler[T, R]) Route {
+	return Route{
+		declaration: Declaration{Handler: handlerName(handler), Shape: ShapeOne},
+		build: func(declaration Declaration) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				in, err := prepare[T](c, declaration)
+				if err != nil {
+					return err
+				}
 
-		res, err := handler(in.ctx, in.scope, in.actor, in.req)
-		if err != nil {
-			return err
-		}
+				res, err := handler(in.ctx, in.scope, in.actor, in.req)
+				if err != nil {
+					return err
+				}
 
-		return c.JSON(http.StatusOK, res)
+				return c.JSON(http.StatusOK, res)
+			}
+		},
 	}
 }
 
-// List registers handler as a route answering with a JSON body and the total-count header.
-func List[T, R any](handler ListHandler[T, R], options ...RouteOption) echo.HandlerFunc {
-	declaration := declare(handler, ShapeList, options)
+// List answers with a JSON body and the total-count header.
+func List[T, R any](handler ListHandler[T, R]) Route {
+	return Route{
+		declaration: Declaration{Handler: handlerName(handler), Shape: ShapeList},
+		build: func(declaration Declaration) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				in, err := prepare[T](c, declaration)
+				if err != nil {
+					return err
+				}
 
-	return func(c *echo.Context) error {
-		in, err := prepare[T](c, declaration)
-		if err != nil {
-			return err
-		}
+				res, count, err := handler(in.ctx, in.scope, in.actor, in.req)
+				if err != nil {
+					return err
+				}
 
-		res, count, err := handler(in.ctx, in.scope, in.actor, in.req)
-		if err != nil {
-			return err
-		}
+				c.Response().Header().Set(totalCountHeader, strconv.Itoa(count))
 
-		c.Response().Header().Set(totalCountHeader, strconv.Itoa(count))
-
-		return c.JSON(http.StatusOK, res)
+				return c.JSON(http.StatusOK, res)
+			}
+		},
 	}
 }
 
-// None registers handler as a route answering with 200 and no body.
-func None[T any](handler NoneHandler[T], options ...RouteOption) echo.HandlerFunc {
-	declaration := declare(handler, ShapeNone, options)
+// None answers with 200 and no body.
+func None[T any](handler NoneHandler[T]) Route {
+	return Route{
+		declaration: Declaration{Handler: handlerName(handler), Shape: ShapeNone},
+		build: func(declaration Declaration) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				in, err := prepare[T](c, declaration)
+				if err != nil {
+					return err
+				}
 
-	return func(c *echo.Context) error {
-		in, err := prepare[T](c, declaration)
-		if err != nil {
-			return err
-		}
+				if err := handler(in.ctx, in.scope, in.actor, in.req); err != nil {
+					return err
+				}
 
-		if err := handler(in.ctx, in.scope, in.actor, in.req); err != nil {
-			return err
-		}
+				return c.NoContent(http.StatusOK)
+			}
+		},
+	}
+}
 
-		return c.NoContent(http.StatusOK)
+// Handler adapts a handler that still writes its own response, so that it can be mounted and
+// declared like any other route. It fails the request when no gateway [Context] was installed,
+// which means the route was registered outside the gateway's group.
+func Handler(next func(*Context) error) Route {
+	return Route{
+		declaration: Declaration{Handler: handlerName(next), Shape: ShapeLegacy},
+		build: func(_ Declaration) echo.HandlerFunc {
+			return adapt(next)
+		},
 	}
 }
 
@@ -146,41 +177,105 @@ func prepare[T any](c *echo.Context, declaration Declaration) (inputs[T], error)
 	return inputs[T]{ctx: gCtx.Ctx(), scope: sc, actor: actor, req: req}, nil
 }
 
-// RouteOption declares an exception to the two rules every route follows: it is bounded to a
-// namespace, and it is performed by an actor.
-type RouteOption func(*Declaration)
+// RouteOption states one claim a route's registration makes, and returns the guard that enforces
+// it — or nil when the claim is enforced by the wrapper rather than by a middleware. Options are
+// applied in the order they are written, and their guards run in that same order.
+type RouteOption func(*Declaration) echo.MiddlewareFunc
 
 // Unbounded declares that the route deliberately reads across namespaces, and records why that is
 // safe. The reason is a required argument, so breadth cannot arrive by omission — only by someone
 // typing why.
 func Unbounded(reason string) RouteOption {
-	return func(d *Declaration) {
+	return func(d *Declaration) echo.MiddlewareFunc {
 		d.Unbounded, d.UnboundedReason = true, reason
+
+		return nil
 	}
 }
 
 // Anonymous declares that the route deliberately carries no actor, and records why that is safe.
 // It is independent of [Unbounded]: a device authenticating with its own token is bounded to a
 // namespace and still carries no actor.
+//
+// The claim frees the handler from needing an actor; it does not open the route. What lets the
+// request past the credential check is the authenticator's allowlist, and the route table's tests
+// are what hold the two to the same answer.
 func Anonymous(reason string) RouteOption {
-	return func(d *Declaration) {
+	return func(d *Declaration) echo.MiddlewareFunc {
 		d.Anonymous, d.AnonymousReason = true, reason
+
+		return nil
 	}
 }
 
-// Declaration is what one route registration claims about itself: the shape it answers with, and
-// any exception it takes to the default rules.
+// Requires declares the permission the route demands of the caller's role, and installs the guard
+// that enforces it. Declaring and enforcing are the same act here, so the declaration is evidence
+// of what the route does rather than a description of it.
+func Requires(permission authorizer.Permission) RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.Permission, d.RequiresPermission = permission, true
+
+		return RequiresPermission(permission)
+	}
+}
+
+// NoAPIKey declares that the route is closed to API keys, and installs the guard that refuses
+// one. It is for the routes that must be performed by a person: an API key authenticates a
+// namespace, and names nobody to hold responsible for the act.
+func NoAPIKey() RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.BlocksAPIKey = true
+
+		return BlockAPIKey
+	}
+}
+
+// Guard installs a middleware the declaration says nothing about. It is what the guards that are
+// not claims — the tenant check, the legacy authorize middleware — are written with, and it runs
+// in the position it is written in, among the guards the other options install.
+func Guard(middleware echo.MiddlewareFunc) RouteOption {
+	return func(_ *Declaration) echo.MiddlewareFunc {
+		return middleware
+	}
+}
+
+// Declaration is what one route registration claims about itself: where it is mounted, the shape
+// it answers with, the authority it demands, and any exception it takes to the default rules.
+//
+// It is complete only once the route is mounted, because the address is the mounting's answer and
+// not the registration's.
 type Declaration struct {
 	// Handler is the fully qualified name of the wrapped function, which is what ties a claim back
 	// to the code it is about.
 	Handler string
 	Shape   Shape
 
+	// Method and Path are the address the router mounted the route at, with any group prefix
+	// applied. It is the same string the router reports and the authenticator matches on.
+	Method string
+	Path   string
+
+	// Permission is what the route demands of the caller's role. The zero value is a real
+	// permission, so RequiresPermission is what tells it apart from a route demanding none.
+	Permission         authorizer.Permission
+	RequiresPermission bool
+
+	// BlocksAPIKey reports whether the route refuses a request authenticated by an API key. The
+	// refusal is about the credential and not the authority: a key carrying a role that holds the
+	// route's permission is refused all the same.
+	BlocksAPIKey bool
+
 	Unbounded       bool
 	UnboundedReason string
 
 	Anonymous       bool
 	AnonymousReason string
+}
+
+// Address returns the route's method and path as the router and the authenticator both spell it,
+// which is the key a claim is joined to a route by.
+func (d Declaration) Address() string {
+	return d.Method + " " + d.Path
 }
 
 func (d Declaration) resolveScope(c *Context) (scope.Scope, error) {
@@ -201,41 +296,6 @@ func (d Declaration) resolveActor(c *Context) (Actor, error) {
 	}
 
 	return Actor{}, routes.NewErrUnauthorized(nil)
-}
-
-var declarations = struct {
-	sync.Mutex
-	set map[Declaration]struct{}
-}{set: make(map[Declaration]struct{})}
-
-func declare(handler any, shape Shape, options []RouteOption) Declaration {
-	d := Declaration{Handler: handlerName(handler), Shape: shape}
-	for _, option := range options {
-		option(&d)
-	}
-
-	declarations.Lock()
-	defer declarations.Unlock()
-
-	declarations.set[d] = struct{}{}
-
-	return d
-}
-
-// Declarations returns every claim the route tables built in this process have made, ordered by
-// handler name.
-func Declarations() []Declaration {
-	declarations.Lock()
-	defer declarations.Unlock()
-
-	all := make([]Declaration, 0, len(declarations.set))
-	for d := range declarations.set {
-		all = append(all, d)
-	}
-
-	sort.Slice(all, func(i, j int) bool { return all[i].Handler < all[j].Handler })
-
-	return all
 }
 
 func handlerName(handler any) string {
