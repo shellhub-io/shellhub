@@ -20,8 +20,9 @@ A policy granting `tag:production` to the operator role covers every device carr
 including devices that do not exist yet. Tag a new machine `production` and the grant applies. No
 policy is edited, nobody is added to a list.
 
-The alternative is selecting devices by a hostname pattern, which works but is a bet that names
-stay consistent. A tag is a decision recorded at enrollment. Prefer tags.
+Tags are the only device selector an access policy has, besides matching every device. The
+legacy public key ACL and firewall rules can still select by a hostname pattern, but that is a
+bet that names stay consistent — a tag is a decision recorded at enrollment.
 
 ## Applying them
 
@@ -67,8 +68,8 @@ policy is deleted with it.
 
 <Callout variant="danger" title="Deleting a tag widens the policies that filtered on it">
 The tag is dropped from the policy along with everything else, and a policy left with no tags
-and no hostname pattern has an empty device filter — which matches **every device in the
-namespace**. An allow that covered one group of machines now covers all of them, silently, with
+has an empty device filter — which matches **every device in the namespace**. An allow that
+covered one group of machines now covers all of them, silently, with
 no edit to the policy and nothing in the list to show it. Before deleting a tag, open
 [Access Policies](/manage/access-control/access-policies) and check which ones filter on it.
 </Callout>
