@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { paginatedResponse } from "@/tests/sdk";
 import RecentSessionsTable from "../RecentSessionsTable";
-import type { Device, Session } from "@/client";
+import type { Device, Session } from "@/client/model";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 

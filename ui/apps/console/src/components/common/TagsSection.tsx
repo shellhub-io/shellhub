@@ -2,17 +2,15 @@ import { useState } from "react";
 import { TagIcon, XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
-import { useTags } from "@/hooks/useTags";
+import { useTagNames } from "@/hooks/useTags";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { LABEL_BASE } from "@/utils/styles";
 
 interface TagsSectionProps {
   uid: string;
   tags: string[];
-  addTag: (opts: { path: { uid: string; name: string } }) => Promise<unknown>;
-  removeTag: (opts: {
-    path: { uid: string; name: string };
-  }) => Promise<unknown>;
+  addTag: (opts: { uid: string; name: string }) => Promise<unknown>;
+  removeTag: (opts: { uid: string; name: string }) => Promise<unknown>;
 }
 
 /**
@@ -25,8 +23,7 @@ export default function TagsSection({
   removeTag,
 }: TagsSectionProps) {
   const canEditTags = useHasPermission("tag:edit");
-  const { tags: tagObjects } = useTags();
-  const allTags = tagObjects.map((t) => t.name);
+  const { names: allTags } = useTagNames();
   const [input, setInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [open, setOpen] = useState(false);
@@ -55,7 +52,7 @@ export default function TagsSection({
 
     setAdding(true);
     try {
-      await addTag({ path: { uid, name: tag } });
+      await addTag({ uid, name: tag });
       setInput("");
       setOpen(false);
     } catch (e) {
@@ -70,7 +67,7 @@ export default function TagsSection({
   const handleRemove = async (tag: string) => {
     setError(null);
     try {
-      await removeTag({ path: { uid, name: tag } });
+      await removeTag({ uid, name: tag });
     } catch (e) {
       const status = isSdkError(e) ? e.status : undefined;
       if (status === 403) setError("You don't have permission to remove tags.");

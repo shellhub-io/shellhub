@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
-import type { GetLicenseResponse } from "@/client";
+import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 import { useAuthStore } from "@/stores/authStore";
 import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import DeviceLimitBanner from "../DeviceLimitBanner";

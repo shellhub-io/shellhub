@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { MfaGenerate } from "@/client";
+import type { MfaGenerate } from "@/client/model";
 import { mockSdkResponse } from "@/tests/sdk";
 import MfaEnableDrawer from "../MfaEnableDrawer";
 

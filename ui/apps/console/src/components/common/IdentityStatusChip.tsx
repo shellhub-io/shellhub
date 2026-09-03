@@ -3,7 +3,7 @@ import {
   sshIdentityStatus,
   type IdentityStatusTone,
 } from "@/utils/sshIdentity";
-import type { SshIdentity } from "@/client";
+import type { SshIdentity } from "@/client/model";
 
 const TONE: Record<IdentityStatusTone, string> = {
   dead: "bg-text-muted/10 text-text-muted",

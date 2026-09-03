@@ -3,7 +3,7 @@ import {
   useCreateNamespace,
   useSwitchNamespace,
 } from "@/hooks/useNamespaceMutations";
-import { getNamespaces } from "@/client";
+import { getNamespaces } from "@/client/api";
 import { isEnterpriseOrCloud } from "@/env";
 import { isSdkError } from "@/api/errors";
 import {
@@ -121,12 +121,11 @@ export function CommunityInstructions() {
 
   useEffect(() => {
     const check = async () => {
-      const result = await getNamespaces({
-        query: { page: 1, per_page: 1 },
-        throwOnError: true,
-      }).catch(nullOnFailure);
+      const result = await getNamespaces({ page: 1, per_page: 1 }).catch(
+        nullOnFailure,
+      );
 
-      const first = result?.data[0];
+      const first = result?.[0];
       if (first) {
         setReady(true);
         setTenantId(first.tenant_id);

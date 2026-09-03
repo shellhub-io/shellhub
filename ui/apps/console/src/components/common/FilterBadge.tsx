@@ -1,4 +1,4 @@
-import { Tag } from "@/client";
+import { Tag } from "@/client/model";
 import { Badge } from "@shellhub/design-system/primitives";
 import {
   TagIcon,

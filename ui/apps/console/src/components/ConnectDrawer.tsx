@@ -14,7 +14,7 @@ import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useCreateSSHIdentity } from "../hooks/useSSHIdentityMutations";
+import { useCreateSshIdentity } from "@/client/api";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {
   ensureBrowserKey,
@@ -25,7 +25,7 @@ import {
 import { BROWSER_KEY_QUERY_KEY } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
 import { isAlreadyEnrolled } from "../utils/sshIdentity";
-import { listSshIdentitiesOptions } from "../client";
+import { getListSshIdentitiesQueryOptions } from "@/client/api";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
@@ -155,7 +155,7 @@ export default function ConnectDrawer({
 
   const tenant = useAuthStore((s) => s.tenant);
   const userId = useAuthStore((s) => s.userId);
-  const createIdentity = useCreateSSHIdentity();
+  const createIdentity = useCreateSshIdentity();
   const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
@@ -233,7 +233,7 @@ export default function ConnectDrawer({
   ) => {
     try {
       await createIdentity.mutateAsync({
-        body: { name, data: key.publicKeyLine, source: "browser" },
+        data: { name, data: key.publicKeyLine, source: "browser" },
       });
     } catch (err: unknown) {
       if (!isAlreadyEnrolled(err)) throw err;
@@ -270,7 +270,7 @@ export default function ConnectDrawer({
       let registered: boolean;
       try {
         const identities = await queryClient.fetchQuery(
-          listSshIdentitiesOptions({}),
+          getListSshIdentitiesQueryOptions(),
         );
         registered = identities.some((i) => i.fingerprint === key.fingerprint);
       } catch {

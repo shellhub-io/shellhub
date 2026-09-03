@@ -1,12 +1,12 @@
 import { Card } from "@shellhub/design-system/primitives";
-import { useCustomer } from "@/hooks/useBilling";
+import { useGetCustomer } from "@/client/api";
 import BillingIcon from "./BillingIcon";
 
 /**
  * The checkout summary: what will be charged, and to which card.
  */
 export default function BillingCheckout() {
-  const { customer } = useCustomer();
+  const { data: customer } = useGetCustomer();
   const defaultPm = customer?.payment_methods?.find((pm) => pm.default);
 
   return (

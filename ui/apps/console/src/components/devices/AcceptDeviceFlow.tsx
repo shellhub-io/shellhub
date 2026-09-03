@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
-import type { ResolveDeviceLoginCodeResponse } from "@/client";
+import type { ResolveDeviceLoginCode200 as ResolveDeviceLoginCodeResponse } from "@/client/model";
 import { useAuthStore } from "@/stores/authStore";
 import {
   clearPendingDeviceCode,
@@ -20,11 +20,11 @@ import {
   NamespaceCreateForm,
   CommunityInstructions,
 } from "@/components/common/CreateNamespace";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import {
-  useResolveDeviceCode,
+  useAcceptDevice,
   useAcceptDevicePairing,
-} from "@/hooks/useDeviceCode";
+  useResolveDeviceLoginCode,
+} from "@/client/api";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -69,10 +69,12 @@ export default function AcceptDeviceFlow({
 
   const [code, setCode] = useState(initialCode);
   const {
-    device,
+    data: device,
     isLoading: isResolving,
     isError,
-  } = useResolveDeviceCode(code);
+  } = useResolveDeviceLoginCode(code, {
+    query: { enabled: !!code, retry: false, staleTime: Infinity },
+  });
 
   const acceptDevice = useAcceptDevice();
   const acceptPairing = useAcceptDevicePairing();
@@ -86,7 +88,8 @@ export default function AcceptDeviceFlow({
   );
   const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
   const canSubscribeInAuth = useHasPermission("billing:subscribe");
-  const canSubscribe = canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
+  const canSubscribe =
+    canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 
   const finish = (b: Branch) => {
     clearPendingDeviceCode();
@@ -133,7 +136,7 @@ export default function AcceptDeviceFlow({
     setActionError("");
     try {
       if (!device.uid) return;
-      await acceptDevice.mutateAsync({ path: { uid: device.uid } });
+      await acceptDevice.mutateAsync({ uid: device.uid });
       finish({ kind: "success", device });
     } catch (err) {
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
@@ -145,8 +148,8 @@ export default function AcceptDeviceFlow({
     setActionError("");
     try {
       const data = await acceptPairing.mutateAsync({
-        path: { code },
-        body: { tenant_id: selectedTenant },
+        code,
+        data: { tenant_id: selectedTenant },
       });
       finish({
         kind: "pairing-success",
