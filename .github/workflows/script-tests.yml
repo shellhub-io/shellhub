@@ -72,3 +72,38 @@ jobs:
           fi
           docker run --rm -v "$PWD:/src" -w /src "$image" \
             sh -c 'apk add --no-cache bats jq >/dev/null && bats tests/ui/gen-config.bats'
+
+  install-sh:
+    name: install.sh
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install bats
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+
+      # No paths filter: install.sh is served from server/api/services/system.go
+      # and drives the agent, so a change on either side can break it without
+      # the script itself appearing in the diff.
+      - name: Lint install.sh
+        run: shellcheck -s sh -S warning install.sh
+
+      - name: Run install.sh tests
+        run: bats install.bats shellhub-agent-wrapper.bats
+
+      # The runner's /bin/sh is dash. Users curl|sh this script onto whatever
+      # they have, so run the same suite where /bin/sh is busybox ash. Read the
+      # version out of the agent's Dockerfile so an alpine bump is covered by
+      # the same guard.
+      - name: Run install.sh tests on busybox
+        run: |
+          version=$(sed -n 's/^ARG ALPINE_VERSION=\(.*\)$/\1/p' agent/Dockerfile)
+          if [ -z "$version" ]; then
+            echo "could not read ALPINE_VERSION from agent/Dockerfile" >&2
+            exit 1
+          fi
+          docker run --rm -v "$PWD:/src" -w /src "alpine:$version" \
+            sh -c 'apk add --no-cache bats >/dev/null && bats install.bats shellhub-agent-wrapper.bats'
