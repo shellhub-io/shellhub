@@ -2,14 +2,15 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { type Role } from "../utils/permission";
 import {
-  login as loginSdk,
+  getLoginUrl,
   getUserInfo,
   updateUser as updateUserSdk,
   deleteUser as deleteUserSdk,
-  authMfa,
-  mfaRecover,
-  type UserOrigin,
-} from "../client";
+  authMFA,
+  getMfaRecoverUrl,
+} from "@/client/api";
+import type { UserAuth, UserOrigin } from "@/client/model";
+import { fetchWithHeaders } from "@/api/customInstance";
 import { queryClient } from "../api/queryClient";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
@@ -87,12 +88,12 @@ export const useAuthStore = create<AuthState>()(
       login: async (username: string, password: string) => {
         set({ loading: true, mfaToken: null });
         try {
-          const { data, response } = await loginSdk({
-            body: { username, password },
-            throwOnError: true,
-          });
+          const { data, headers } = await fetchWithHeaders<UserAuth>(
+            getLoginUrl(),
+            { method: "POST", body: JSON.stringify({ username, password }) },
+          );
 
-          const mfaToken = response.headers.get("x-mfa-token");
+          const mfaToken = headers.get("x-mfa-token");
 
           if (mfaToken) {
             set({
@@ -130,7 +131,7 @@ export const useAuthStore = create<AuthState>()(
       loginWithToken: async (token: string) => {
         set({ loading: true, token });
         try {
-          const { data } = await getUserInfo({ throwOnError: true });
+          const data = await getUserInfo();
           set({
             user: data.user,
             userId: data.id,
@@ -161,8 +162,7 @@ export const useAuthStore = create<AuthState>()(
 
       fetchUser: async () => {
         try {
-          const { data } = await getUserInfo({ throwOnError: true });
-          const user = data;
+          const user = await getUserInfo();
           set({
             user: user.user,
             username: user.user,
@@ -185,19 +185,19 @@ export const useAuthStore = create<AuthState>()(
       },
 
       updateProfile: async (data) => {
-        await updateUserSdk({ body: data, throwOnError: true });
+        await updateUserSdk(data);
         await get().fetchUser();
       },
 
       updatePassword: async (currentPassword, newPassword) => {
         await updateUserSdk({
-          body: { current_password: currentPassword, password: newPassword },
-          throwOnError: true,
+          current_password: currentPassword,
+          password: newPassword,
         });
       },
 
       deleteUser: async () => {
-        await deleteUserSdk({ throwOnError: true });
+        await deleteUserSdk();
         get().logout();
         window.location.replace("/login");
       },
@@ -210,10 +210,7 @@ export const useAuthStore = create<AuthState>()(
 
         set({ loading: true, error: null });
         try {
-          const { data } = await authMfa({
-            body: { token: mfaToken, code },
-            throwOnError: true,
-          });
+          const data = await authMFA({ token: mfaToken, code });
           set({
             token: data.token,
             user: data.user,
@@ -241,13 +238,18 @@ export const useAuthStore = create<AuthState>()(
 
         set({ loading: true, error: null });
         try {
-          const { data, response } = await mfaRecover({
-            body: { identifier: username, recovery_code: code },
-            throwOnError: true,
-          });
+          const { data: userData, headers } = await fetchWithHeaders<UserAuth>(
+            getMfaRecoverUrl(),
+            {
+              method: "POST",
+              body: JSON.stringify({
+                identifier: username,
+                recovery_code: code,
+              }),
+            },
+          );
 
-          const userData = data;
-          const expiresAt = response.headers.get("x-expires-at") || "";
+          const expiresAt = headers.get("x-expires-at") || "";
 
           let expiryValue: number | null = null;
           if (expiresAt) {

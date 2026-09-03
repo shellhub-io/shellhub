@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Device } from "@/client";
+import type { Device } from "@/client/model";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 
 function makeDevice(tags: unknown): Device {

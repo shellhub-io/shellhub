@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { getUserTokenAdmin } from "../client";
+import { getUserTokenAdmin } from "@/client/api";
 
 /**
  * Signs an admin in as another user. Tracks the id in flight so a row can show its own spinner,
@@ -16,11 +16,8 @@ export function useLoginAsUser() {
     setLoadingId(userId);
     setErrorId(null);
     try {
-      const { data } = await getUserTokenAdmin({
-        path: { id: userId },
-        throwOnError: true,
-      });
-      if (data?.token) {
+      const data = await getUserTokenAdmin(userId);
+      if (data.token) {
         window.open(
           `/login?token=${encodeURIComponent(data.token)}`,
           "_blank",

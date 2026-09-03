@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { requestResetMfa, resetMfa } from "../client";
+import { requestResetMFA, resetMFA } from "@/client/api";
 import { useAuthStore } from "./authStore";
 
 interface MfaResetState {
@@ -32,10 +32,7 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
   requestMfaReset: async (identifier: string) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await requestResetMfa({
-        body: { identifier },
-        throwOnError: true,
-      });
+      const data = await requestResetMFA({ identifier });
       set({
         mfaResetToken: data.token,
         mfaResetIdentifier: identifier,
@@ -62,13 +59,9 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
 
     set({ loading: true, error: null });
     try {
-      const { data } = await resetMfa({
-        path: { "user-id": mfaResetToken },
-        body: {
-          main_email_code: mainEmailCode,
-          recovery_email_code: recoveryEmailCode,
-        },
-        throwOnError: true,
+      const data = await resetMFA(mfaResetToken, {
+        main_email_code: mainEmailCode,
+        recovery_email_code: recoveryEmailCode,
       });
 
       useAuthStore.setState({

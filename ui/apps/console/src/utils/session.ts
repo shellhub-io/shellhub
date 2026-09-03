@@ -1,4 +1,4 @@
-import type { Session } from "../client";
+import type { Session } from "@/client/model";
 
 /**
  * The badge for a session, derived from the event types it recorded: an SFTP transfer, a single

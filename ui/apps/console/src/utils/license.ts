@@ -1,5 +1,5 @@
 import { formatExpiry } from "./date";
-import type { GetLicenseResponse } from "../client";
+import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 
 /**
  * Formats a license timestamp. -1 is the sentinel for a boundary already passed, and renders as
