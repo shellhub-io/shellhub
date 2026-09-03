@@ -27,6 +27,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/eslint-plugin": "^1.1.44",
     "autoprefixer": "^10.4.20",
+    "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.22.0",
     "eslint-plugin-jsdoc": "^64.3.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -51,9 +52,13 @@
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-hook-form": "8.0.0-beta.3",
     "react-router-dom": "^7.18.0"
   },
   "overrides": {
-    "js-yaml": "^4.3.2"
+    "js-yaml": "^4.3.2",
+    "@hookform/resolvers": {
+      "react-hook-form": "$react-hook-form"
+    }
   }
 }
