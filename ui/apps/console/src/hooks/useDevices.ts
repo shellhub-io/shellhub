@@ -1,13 +1,7 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getDevices as getDevicesSdk,
-  getDevicesQueryKey,
-  type GetDevicesData,
-  type DeviceStatus,
-  type Device as GeneratedDevice,
-} from "../client";
-import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { useGetDevices } from "@/client/api";
+import type { DeviceStatus, GetDevicesParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
 import { toBase64Json } from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 
@@ -66,29 +60,26 @@ export function useDevices({
   sortBy = "last_seen",
   orderBy = "desc",
 }: UseDevicesParams = {}) {
-  const query: GetDevicesData["query"] = { page, per_page: perPage };
-  if (status) query.status = status;
+  const params: GetDevicesParams = {
+    page,
+    per_page: perPage,
+    sort_by: sortBy,
+    order_by: orderBy,
+  };
+  if (status) params.status = status;
   if (search || filterTags.length > 0)
-    query.filter = buildFilter(search, filterTags);
-  query.sort_by = sortBy;
-  query.order_by = orderBy;
+    params.filter = buildFilter(search, filterTags);
 
-  const options = { query };
-
-  const result = useQuery<PaginatedResult<GeneratedDevice>>({
-    queryKey: getDevicesQueryKey(options),
-    queryFn: paginatedQueryFn(getDevicesSdk, options),
-    enabled,
-  });
+  const result = useGetDevices(params, { query: { enabled } });
 
   const devices = useMemo(
-    () => result.data?.data.map(normalizeDeviceTags) ?? [],
+    () => (result.data ?? []).map(normalizeDeviceTags),
     [result.data],
   );
 
   return {
     devices,
-    totalCount: result.data?.totalCount ?? 0,
+    totalCount: totalCount(result.data),
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

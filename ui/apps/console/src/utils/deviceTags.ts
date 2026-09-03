@@ -1,4 +1,4 @@
-import type { Device } from "@/client";
+import type { Device } from "@/client/model";
 
 /** A device whose tags are flattened to plain names, the shape the console renders. */
 export type TaggedDevice = Omit<Device, "tags"> & { tags: string[] };

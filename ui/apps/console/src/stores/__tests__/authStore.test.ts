@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useAuthStore } from "../authStore";
-import type { UserAuth } from "@/client";
+import type { UserAuth } from "@/client/model";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 import { mockUserAuth } from "@/tests/factories";
 

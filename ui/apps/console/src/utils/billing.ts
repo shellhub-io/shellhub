@@ -1,4 +1,4 @@
-import type { BillingStatus, NamespaceBilling } from "@/client";
+import type { BillingStatus, NamespaceBilling } from "@/client/model";
 
 const ACTIVE_STATUSES = new Set<BillingStatus>([
   "active",

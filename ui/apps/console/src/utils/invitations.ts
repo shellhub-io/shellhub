@@ -1,4 +1,4 @@
-import type { MembershipInvitation } from "@/client";
+import type { MembershipInvitation } from "@/client/model";
 import { toBase64Json } from "@/utils/encoding";
 
 /**

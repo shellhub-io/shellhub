@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getSessionRecord } from "@/client";
+import { getSessionRecord } from "@/client/api";
 
 /**
  * Fetches a session recording on demand. Not a query: a recording is large and only wanted when
@@ -14,14 +14,7 @@ export function useSessionRecording() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data } = await getSessionRecord({
-        path: { uid, seat: 0 },
-        parseAs: "text",
-        throwOnError: true,
-      });
-      const recording: unknown = data;
-      if (typeof recording !== "string") throw new Error("recording is not text");
-
+      const recording = await getSessionRecord(uid, 0);
       setLogs(recording);
       return true;
     } catch {

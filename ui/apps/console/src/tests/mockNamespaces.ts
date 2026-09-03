@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 import { getNamespaces, getNamespace } from "@/client/sdk.gen";
 import { paginatedResponse, mockSdkResponse } from "./sdk";
 import { mockNamespace } from "./factories";

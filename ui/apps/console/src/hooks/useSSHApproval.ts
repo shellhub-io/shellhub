@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getSshApproval } from "@/client";
-import { isSdkError } from "@/api/errors";
+import { useEffect, useRef, useState } from "react";
 import {
-  useConfirmSSHApproval,
-  useRejectSSHApproval,
-} from "./useSSHIdentityMutations";
+  getSshApproval,
+  useConfirmSshApproval,
+  useRejectSshApproval,
+} from "@/client/api";
+import { isSdkError } from "@/api/errors";
 
 /**
  * Drives the SSH login approval modal: fetch the request the gateway is holding
@@ -57,8 +57,8 @@ export function useSSHApproval(code: string) {
   const [deciding, setDeciding] = useState(false);
   const [actionError, setActionError] = useState("");
   const expiresAtRef = useRef(0);
-  const confirmMutation = useConfirmSSHApproval();
-  const rejectMutation = useRejectSSHApproval();
+  const confirmMutation = useConfirmSshApproval();
+  const rejectMutation = useRejectSshApproval();
 
   useEffect(() => {
     let cancelled = false;
@@ -71,10 +71,7 @@ export function useSSHApproval(code: string) {
 
       setPhase("loading");
       try {
-        const { data } = await getSshApproval({
-          path: { code },
-          throwOnError: true,
-        });
+        const data = await getSshApproval(code);
         if (cancelled) return;
 
         setDetails({
@@ -132,35 +129,32 @@ export function useSSHApproval(code: string) {
     return () => window.clearInterval(id);
   }, [phase]);
 
-  const decide = useCallback(
-    async (decision: "confirm" | "reject") => {
-      if (!code || deciding) return false;
-      setDeciding(true);
-      setActionError("");
-      try {
-        const mutation =
-          decision === "confirm" ? confirmMutation : rejectMutation;
-        await mutation.mutateAsync({ path: { code } });
-        setPhase(decision === "confirm" ? "confirmed" : "rejected");
+  const decide = async (decision: "confirm" | "reject") => {
+    if (!code || deciding) return false;
+    setDeciding(true);
+    setActionError("");
+    try {
+      const mutation =
+        decision === "confirm" ? confirmMutation : rejectMutation;
+      await mutation.mutateAsync({ code });
+      setPhase(decision === "confirm" ? "confirmed" : "rejected");
 
-        return true;
-      } catch (err) {
-        if (isSdkError(err) && err.status === 404) {
-          setPhase("expired");
-          return false;
-        }
-        setActionError("Something went wrong. Please try again.");
-
+      return true;
+    } catch (err) {
+      if (isSdkError(err) && err.status === 404) {
+        setPhase("expired");
         return false;
-      } finally {
-        setDeciding(false);
       }
-    },
-    [code, deciding, confirmMutation, rejectMutation],
-  );
+      setActionError("Something went wrong. Please try again.");
 
-  const confirm = useCallback(() => decide("confirm"), [decide]);
-  const reject = useCallback(() => decide("reject"), [decide]);
+      return false;
+    } finally {
+      setDeciding(false);
+    }
+  };
+
+  const confirm = () => decide("confirm");
+  const reject = () => decide("reject");
 
   return {
     phase,
@@ -169,7 +163,7 @@ export function useSSHApproval(code: string) {
     totalSeconds,
     confirm,
     reject,
-    markConfirmed: useCallback(() => setPhase("confirmed"), []),
+    markConfirmed: () => setPhase("confirmed"),
     deciding,
     actionError,
   };

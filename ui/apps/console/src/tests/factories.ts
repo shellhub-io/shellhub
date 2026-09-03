@@ -5,8 +5,8 @@ import type {
   Customer,
   Device,
   FirewallRulesResponse,
-  GetLicenseResponse,
-  GetStatusDevicesResponse,
+  GetLicense200 as GetLicenseResponse,
+  GetStatusDevices200 as GetStatusDevicesResponse,
   InstallKey,
   MembershipInvitation,
   Namespace,
@@ -18,7 +18,7 @@ import type {
   Tag,
   UserAuth,
   Webendpoint,
-} from "@/client";
+} from "@/client/model";
 
 /**
  * Builds a signed-in user for a test. Every field has a value, so a case names only what it is about
