@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
-import { getInfo } from "@/client";
+import { getInfo } from "@/client/api";
 import { isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@shellhub/design-system/primitives";
@@ -19,8 +19,8 @@ export default function SetupGuard() {
   useEffect(() => {
     if (isCloudEdition) return;
 
-    getInfo({ throwOnError: true })
-      .then(({ data }) => setSetupDone(data.setup))
+    getInfo()
+      .then((data) => setSetupDone(data.setup))
       .catch(() => setSetupDone(true))
       .finally(() => setLoading(false));
   }, [isCloudEdition, location.pathname]);

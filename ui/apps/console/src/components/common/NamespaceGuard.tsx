@@ -4,7 +4,9 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
+import { useGetNamespaceToken } from "@/client/api";
+import { useNamespaces } from "@/hooks/useNamespaces";
+import { useAuthStore } from "@/stores/authStore";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
@@ -78,7 +80,17 @@ function FetchErrorPage({
  * not. Everything below assumes a tenant, so this is where that assumption is established.
  */
 export default function NamespaceGuard() {
-  useInitRole();
+  const tenant = useAuthStore((s) => s.tenant) ?? "";
+  const { data: tokenData } = useGetNamespaceToken(tenant, {
+    query: { enabled: !!tenant },
+  });
+  useEffect(() => {
+    if (!tokenData || !tenant) return;
+    useAuthStore
+      .getState()
+      .setSession({ token: tokenData.token, tenant, role: tokenData.role });
+  }, [tokenData, tenant]);
+
   const { namespaces, isLoading, error, refetch } = useNamespaces();
   const apiReachable = useConnectivityStore((s) => s.apiReachable);
   const { pathname } = useLocation();

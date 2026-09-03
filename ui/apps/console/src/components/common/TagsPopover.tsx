@@ -7,16 +7,14 @@ import {
 } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
-import { useTags } from "@/hooks/useTags";
+import { useTagNames } from "@/hooks/useTags";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
 interface TagsPopoverProps {
   uid: string;
   tags: string[];
-  addTag: (opts: { path: { uid: string; name: string } }) => Promise<unknown>;
-  removeTag: (opts: {
-    path: { uid: string; name: string };
-  }) => Promise<unknown>;
+  addTag: (opts: { uid: string; name: string }) => Promise<unknown>;
+  removeTag: (opts: { uid: string; name: string }) => Promise<unknown>;
   onFilterTag: (tag: string) => void;
   editLabel?: string;
 }
@@ -32,8 +30,7 @@ export default function TagsPopover({
   onFilterTag,
   editLabel = "Manage tags",
 }: TagsPopoverProps) {
-  const { tags: tagObjects } = useTags();
-  const allTags = tagObjects.map((t) => t.name);
+  const { names: allTags } = useTagNames();
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,7 +50,7 @@ export default function TagsPopover({
     setLoading(true);
     setError(null);
     try {
-      await addTag({ path: { uid, name: tag } });
+      await addTag({ uid, name: tag });
       setInput("");
     } catch (e) {
       const status = isSdkError(e) ? e.status : undefined;
@@ -68,7 +65,7 @@ export default function TagsPopover({
     setLoading(true);
     setError(null);
     try {
-      await removeTag({ path: { uid, name: tag } });
+      await removeTag({ uid, name: tag });
     } catch (e) {
       const status = isSdkError(e) ? e.status : undefined;
       if (status === 403) setError("You don't have permission to remove tags.");

@@ -1,12 +1,8 @@
 import { useState, useRef, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useTags } from "../hooks/useTags";
-import {
-  useCreateTag,
-  useUpdateTag,
-  useDeleteTag,
-} from "../hooks/useTagMutations";
+import { useCreateTag, useUpdateTag, useDeleteTag } from "@/client/api";
+import { useTagNames } from "@/hooks/useTags";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
 import {
@@ -38,7 +34,7 @@ export default function ManageTagsDrawer({
   onTagRenamed?: (oldName: string, newName: string) => void;
   onTagDeleted?: (name: string) => void;
 }) {
-  const { tags, isLoading } = useTags();
+  const { names: tags, isLoading } = useTagNames();
   const createTag = useCreateTag();
   const updateTag = useUpdateTag();
   const deleteTag = useDeleteTag();
@@ -67,7 +63,7 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await createTag.mutateAsync({ body: { name: newName.trim() } });
+      await createTag.mutateAsync({ data: { name: newName.trim() } });
       setNewName("");
     } catch (err: unknown) {
       if (isSdkError(err) && err.status === 409) {
@@ -105,8 +101,8 @@ export default function ManageTagsDrawer({
     setError(null);
     try {
       await updateTag.mutateAsync({
-        path: { name: currentName },
-        body: { name: trimmed },
+        name: currentName,
+        data: { name: trimmed },
       });
       skipBlurRef.current = true;
       setEditName("");
@@ -123,7 +119,7 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await deleteTag.mutateAsync({ path: { name } });
+      await deleteTag.mutateAsync({ name });
       setDeletingTag(null);
       onTagDeleted?.(name);
     } catch {
@@ -222,10 +218,10 @@ export default function ManageTagsDrawer({
             <div className="divide-y divide-border/60">
               {tags.map((tag) => (
                 <div
-                  key={tag.name}
+                  key={tag}
                   className="group flex items-center gap-2 px-6 py-2.5 hover:bg-hover-subtle transition-colors"
                 >
-                  {editingTag === tag.name ? (
+                  {editingTag === tag ? (
                     <div className="flex-1">
                       <input
                         type="text"
@@ -234,7 +230,7 @@ export default function ManageTagsDrawer({
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             skipBlurRef.current = true;
-                            void handleRename(tag.name);
+                            void handleRename(tag);
                           }
                           if (e.key === "Escape") {
                             skipBlurRef.current = true;
@@ -247,10 +243,15 @@ export default function ManageTagsDrawer({
                             skipBlurRef.current = false;
                             return;
                           }
-                          void handleRename(tag.name, true);
+                          void handleRename(tag, true);
                         }}
 
-                        className={cn("w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all", editNameChanged && !editNameValid ? "border-accent-red/50 focus:ring-accent-red/20" : "border-primary/50 focus:ring-primary/20")}
+                        className={cn(
+                          "w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all",
+                          editNameChanged && !editNameValid
+                            ? "border-accent-red/50 focus:ring-accent-red/20"
+                            : "border-primary/50 focus:ring-primary/20",
+                        )}
                       />
                       {editNameChanged && !editNameValid && (
                         <p className="mt-1 text-2xs text-accent-red">
@@ -266,18 +267,18 @@ export default function ManageTagsDrawer({
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium">
                         <TagIcon className="w-3 h-3" strokeWidth={2} />
-                        {tag.name}
+                        {tag}
                       </span>
                     </div>
                   )}
-                  {editingTag !== tag.name && (
+                  {editingTag !== tag && (
                     <div className="flex items-center gap-0.5 shrink-0">
                       <IconButton
                         variant="ghost"
                         title="Rename"
                         onClick={() => {
-                          setEditingTag(tag.name);
-                          setEditName(tag.name);
+                          setEditingTag(tag);
+                          setEditName(tag);
                         }}
                       >
                         <PencilSquareIcon className="w-3.5 h-3.5" />
@@ -285,7 +286,7 @@ export default function ManageTagsDrawer({
                       <IconButton
                         variant="danger"
                         title="Delete"
-                        onClick={() => setDeletingTag(tag.name)}
+                        onClick={() => setDeletingTag(tag)}
                       >
                         <TrashIcon className="w-3.5 h-3.5" />
                       </IconButton>

@@ -11,10 +11,13 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace } from "@/hooks/useNamespaces";
-import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
+import {
+  useGetSubscription,
+  useCreateBillingPortalSession,
+} from "@/client/api";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
-import type { BillingStatus } from "@/client";
+import type { BillingStatus } from "@/client/model";
 import { cn } from "@shellhub/design-system/cn";
 import { Button } from "@shellhub/design-system/primitives";
 
@@ -194,8 +197,16 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   const { namespace } = useNamespace(tenantId ?? "");
   const billing = namespace?.billing;
   const hasSubscription = !!billing?.customer_id && !!billing?.subscription?.id;
-  const { subscription, isLoading } = useSubscription(hasSubscription);
-  const openPortal = useOpenBillingPortal();
+  const { data: subscription, isLoading } = useGetSubscription({
+    query: { enabled: hasSubscription },
+  });
+  const openPortal = useCreateBillingPortalSession({
+    mutation: {
+      onSuccess: (data) => {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      },
+    },
+  });
   const invalidate = useInvalidateByIds(
     "getCustomer",
     "getSubscription",

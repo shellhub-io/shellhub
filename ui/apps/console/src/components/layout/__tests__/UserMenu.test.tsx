@@ -5,7 +5,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { mockSdkResponse } from "@/tests/sdk";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 import UserMenu from "../UserMenu";
 
 const sdk = vi.hoisted(() =>

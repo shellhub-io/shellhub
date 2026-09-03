@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Dropdown } from "@shellhub/design-system/primitives";
-import { useTags } from "@/hooks/useTags";
+import { useTagNames } from "@/hooks/useTags";
 
 /**
  * The tag filter above a list. Selecting several narrows to devices carrying all of them, which
@@ -26,8 +26,7 @@ function TagFilterDropdown({
   onClearAll: () => void;
   onManageTags?: () => void;
 }) {
-  const { tags: tagObjects } = useTags();
-  const allTags = tagObjects.map((t) => t.name);
+  const { names: allTags } = useTagNames();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -115,7 +114,12 @@ function TagFilterDropdown({
                     )}
                   </span>
                   <span
-                    className={cn("truncate", active ? "text-primary font-medium" : "text-text-secondary")}
+                    className={cn(
+                      "truncate",
+                      active
+                        ? "text-primary font-medium"
+                        : "text-text-secondary",
+                    )}
                   >
                     {tag}
                   </span>

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { getConfig } from "@/env";
-import { useLatestAnnouncement } from "@/hooks/useLatestAnnouncement";
+import { useListAnnouncements, useGetAnnouncement } from "@/client/api";
 import AnnouncementModal from "./AnnouncementModal";
-import type { Announcement } from "@/client";
+import type { Announcement } from "@/client/model";
 
 const STORAGE_KEY = "announcement";
 
@@ -34,7 +34,15 @@ export default function AnnouncementModalTrigger() {
 }
 
 function AnnouncementModalInner() {
-  const { announcement } = useLatestAnnouncement();
+  const { data: latestList = [] } = useListAnnouncements({
+    page: 1,
+    per_page: 1,
+    order_by: "desc",
+  });
+  const latestUuid = latestList[0]?.uuid ?? "";
+  const { data: announcement } = useGetAnnouncement(latestUuid, {
+    query: { enabled: !!latestUuid },
+  });
   const [dismissed, setDismissed] = useState(false);
 
   const show =
@@ -50,6 +58,10 @@ function AnnouncementModalInner() {
   if (!show || !announcement) return null;
 
   return (
-    <AnnouncementModal open={show} onClose={handleClose} announcement={announcement} />
+    <AnnouncementModal
+      open={show}
+      onClose={handleClose}
+      announcement={announcement}
+    />
   );
 }

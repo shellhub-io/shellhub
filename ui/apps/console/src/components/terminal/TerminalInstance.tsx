@@ -4,7 +4,8 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Buffer } from "buffer";
-import { createWebSshSession, type CreateWebSshSessionData } from "@/client";
+import { createWebSshSession } from "@/client/api";
+import type { CreateWebSshSessionBody } from "@/client/model";
 import { generateSignature } from "@/utils/sshKeys";
 import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -87,7 +88,7 @@ export default function TerminalInstance({
       updateStatus("connecting");
 
       const shared = { device: session.deviceUid, username: session.username };
-      const body: CreateWebSshSessionData["body"] = session.fingerprint
+      const body: CreateWebSshSessionBody = session.fingerprint
         ? {
             ...shared,
             fingerprint: session.fingerprint,
@@ -97,10 +98,7 @@ export default function TerminalInstance({
 
       let token: string;
       try {
-        const { data } = await createWebSshSession({
-          body,
-          throwOnError: true,
-        });
+        const data = await createWebSshSession(body);
         token = data.token;
       } catch {
         if (cancelled) return;
@@ -258,7 +256,9 @@ export default function TerminalInstance({
             case WS_KIND.ERROR: {
               lastError = true;
               updateStatus("disconnected");
-              setError(resolveError(msg.data, session.deviceUid, isIdentityMode));
+              setError(
+                resolveError(msg.data, session.deviceUid, isIdentityMode),
+              );
               break;
             }
             case WS_KIND.SESSION: {

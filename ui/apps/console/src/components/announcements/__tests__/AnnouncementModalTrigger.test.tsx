@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Announcement } from "@/client";
+import type { Announcement } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { mockAnnouncement, mockAnnouncementFull } from "@/tests/factories";
