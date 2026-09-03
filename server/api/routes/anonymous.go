@@ -15,10 +15,12 @@ func registerAnonymousRoutes(authn *routesmiddleware.Authenticator, edition envs
 	}
 
 	allow(http.MethodPost, AuthLocalUserURL)
+	allow(http.MethodPost, AuthLocalUserURLV2)
 	allow(http.MethodPost, RegisterUserURL)
 
 	allow(http.MethodPost, AuthDeviceURL)
 	allow(http.MethodPost, AuthDeviceChallengeURL)
+	allow(http.MethodPost, AuthDeviceURLV2)
 
 	allow(http.MethodPost, CreateDevicePairingURL)
 	allow(http.MethodGet, GetDevicePairingStatusURL)
