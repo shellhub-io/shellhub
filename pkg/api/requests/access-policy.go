@@ -1,11 +1,9 @@
 package requests
 
-// AccessPolicyFilter selects the devices an access policy applies to. It is
-// either a hostname regexp or a set of tags, never both, mirroring the
-// public-key filter shape.
+// AccessPolicyFilter selects the devices an access policy applies to, by
+// tags. Empty (or omitted) matches every device.
 type AccessPolicyFilter struct {
-	Hostname string   `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
-	Tags     []string `json:"tags,omitempty" validate:"required_without=Hostname"`
+	Tags []string `json:"tags,omitempty"`
 }
 
 // AccessPolicySubject identifies who an access policy grants access to.
@@ -34,7 +32,7 @@ type AccessPolicyGet struct {
 type AccessPolicyCreate struct {
 	Name          string              `json:"name" validate:"required"`
 	Subject       AccessPolicySubject `json:"subject" validate:"required"`
-	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
+	Filter        AccessPolicyFilter  `json:"filter"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
 	Action        string              `json:"action" validate:"omitempty,oneof=allow deny"`
@@ -48,7 +46,7 @@ type AccessPolicyUpdate struct {
 	AccessPolicyIDParam
 	Name          string              `json:"name" validate:"required"`
 	Subject       AccessPolicySubject `json:"subject" validate:"required"`
-	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
+	Filter        AccessPolicyFilter  `json:"filter"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
 	Action        string              `json:"action" validate:"omitempty,oneof=allow deny"`

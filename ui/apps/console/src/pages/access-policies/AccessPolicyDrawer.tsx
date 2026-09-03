@@ -6,7 +6,6 @@ import {
   ShieldCheckIcon,
   TagIcon,
   CommandLineIcon,
-  ClipboardDocumentListIcon,
   ExclamationCircleIcon,
   CheckIcon,
   ChevronDownIcon,
@@ -36,7 +35,7 @@ import Drawer from "@/components/common/Drawer";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 
 type SubjectType = "all-members" | "role" | "user" | "service-account";
-type FilterOption = "all" | "hostname" | "tags";
+type FilterOption = "all" | "tags";
 
 const ANY_LOGIN = ["*"];
 function isAnyLogin(v: string[]): boolean {
@@ -376,7 +375,6 @@ function AccessPolicyDrawer({
   const [userValue, setUserValue] = useState<string>("");
   const [saValue, setSaValue] = useState<string>("");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
-  const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [logins, setLogins] = useState<string[]>(ANY_LOGIN);
   const [sourceIP, setSourceIP] = useState<string[]>([]);
@@ -393,13 +391,8 @@ function AccessPolicyDrawer({
   const [devTab, setDevTab] = useState<FilterOption>("all");
 
   useResetOnOpen(open, () => {
-    const filterInit: FilterOption = editPolicy
-      ? editPolicy.filter.tags.length > 0
-        ? "tags"
-        : editPolicy.filter.hostname && editPolicy.filter.hostname !== ".*"
-          ? "hostname"
-          : "all"
-      : "all";
+    const filterInit: FilterOption =
+      editPolicy && editPolicy.filter.tags.length > 0 ? "tags" : "all";
     const editValue = editPolicy?.subject.value ?? "";
     const editIsServiceAccount =
       editPolicy?.subject.type === "user" &&
@@ -426,11 +419,6 @@ function AccessPolicyDrawer({
     setWhoTab(subjInit === "all-members" ? "role" : subjInit);
     setFilterOption(filterInit);
     setDevTab(filterInit);
-    setHostname(
-      editPolicy && filterInit === "hostname"
-        ? (editPolicy.filter.hostname ?? "")
-        : "",
-    );
     setSelectedTags(
       editPolicy && filterInit === "tags"
         ? editPolicy.filter.tags.map((t) => t.name)
@@ -454,10 +442,9 @@ function AccessPolicyDrawer({
     return { type: "all-members", value: "" };
   };
   const buildFilter = (): AccessPolicyRequest["filter"] => {
-    if (filterOption === "hostname" && hostname) return { hostname };
     if (filterOption === "tags" && selectedTags.length > 0)
       return { tags: selectedTags };
-    return { hostname: ".*" };
+    return {};
   };
   const reauthApplies = subjectType !== "service-account";
 
@@ -465,7 +452,6 @@ function AccessPolicyDrawer({
     !name.trim() ||
     (subjectType === "user" && !userValue) ||
     (subjectType === "service-account" && !saValue) ||
-    (filterOption === "hostname" && !hostname.trim()) ||
     (filterOption === "tags" &&
       (selectedTags.length === 0 || selectedTags.length > 3)) ||
     logins.length === 0 ||
@@ -487,8 +473,6 @@ function AccessPolicyDrawer({
       return selectedTags.length
         ? `devices tagged ${selectedTags.join(", ")}`
         : "devices";
-    if (filterOption === "hostname")
-      return `devices matching ${hostname || "…"}`;
     return "all devices";
   };
   const loginLabel = (): string =>
@@ -560,22 +544,16 @@ function AccessPolicyDrawer({
   const devTrigger =
     filterOption === "all" ? (
       <Pill icon={<DevicesIcon className="w-3.5 h-3.5" />}>All devices</Pill>
-    ) : filterOption === "tags" ? (
-      selectedTags.length ? (
-        <>
-          {selectedTags.map((t) => (
-            <Pill key={t} icon={<TagIcon className="w-3.5 h-3.5" />}>
-              {t}
-            </Pill>
-          ))}
-        </>
-      ) : (
-        <span className="text-sm text-text-muted">Pick tags…</span>
-      )
+    ) : selectedTags.length ? (
+      <>
+        {selectedTags.map((t) => (
+          <Pill key={t} icon={<TagIcon className="w-3.5 h-3.5" />}>
+            {t}
+          </Pill>
+        ))}
+      </>
     ) : (
-      <Pill icon={<ClipboardDocumentListIcon className="w-3.5 h-3.5" />}>
-        <span className="font-mono">{hostname || "…"}</span>
-      </Pill>
+      <span className="text-sm text-text-muted">Pick tags…</span>
     );
 
   return (
@@ -768,14 +746,14 @@ function AccessPolicyDrawer({
             {(close) => (
               <div className="p-2">
                 <div className="flex gap-1 px-1 pb-2">
-                  {(["all", "tags", "hostname"] as const).map((o) => (
+                  {(["all", "tags"] as const).map((o) => (
                     <button
                       key={o}
                       type="button"
                       className={TABBTN(devTab === o)}
                       onClick={() => setDevTab(o)}
                     >
-                      {o === "all" ? "All" : o === "tags" ? "Tags" : "Hostname"}
+                      {o === "all" ? "All" : "Tags"}
                     </button>
                   ))}
                 </div>
@@ -821,22 +799,6 @@ function AccessPolicyDrawer({
                     )}
                     <p className="px-2 pt-1 text-2xs text-text-muted">
                       Up to 3 tags · any match.
-                    </p>
-                  </div>
-                )}
-                {devTab === "hostname" && (
-                  <div className="p-1">
-                    <input
-                      value={hostname}
-                      onChange={(e) => {
-                        setFilterOption("hostname");
-                        setHostname(e.target.value);
-                      }}
-                      placeholder="prod-.*"
-                      className="w-full px-3 py-2 bg-bg border border-border rounded-lg text-sm font-mono text-text-primary placeholder:text-text-muted outline-none focus:border-primary/60"
-                    />
-                    <p className="px-1 pt-2 text-2xs text-text-muted">
-                      A regexp matched against the whole device name.
                     </p>
                   </div>
                 )}

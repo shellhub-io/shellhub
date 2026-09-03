@@ -7,7 +7,6 @@ import {
   UserIcon,
   CpuChipIcon,
   GlobeAltIcon,
-  ServerIcon,
   CommandLineIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -151,13 +150,6 @@ function DevicesCell({ policy }: { policy: AccessPolicy }) {
           <Chip title={rest.map((t) => t.name).join(", ")}>+{rest.length}</Chip>
         )}
       </span>
-    );
-  }
-  if (policy.filter.hostname && policy.filter.hostname !== ".*") {
-    return (
-      <Chip mono icon={<ServerIcon className={CHIP_ICON} strokeWidth={2} />}>
-        {policy.filter.hostname}
-      </Chip>
     );
   }
   return (
@@ -388,7 +380,7 @@ export default function AccessPolicies() {
             {
               icon: <TagIcon className="w-5 h-5" />,
               title: "Device Scoping",
-              description: "Target devices by hostname pattern or by tags.",
+              description: "Target all devices, or scope to specific tags.",
             },
             {
               icon: <CommandLineIcon className="w-5 h-5" />,

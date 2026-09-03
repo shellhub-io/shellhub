@@ -382,7 +382,7 @@ func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPo
 }
 
 func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.PublicKeyFilter, error) {
-	filter := models.PublicKeyFilter{Hostname: reqFilter.Hostname}
+	var filter models.PublicKeyFilter
 
 	if len(reqFilter.Tags) == 0 {
 		return filter, nil
