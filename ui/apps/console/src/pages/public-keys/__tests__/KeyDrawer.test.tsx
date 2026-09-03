@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import KeyDrawer from "../KeyDrawer";
-import type { PublicKeyResponse } from "@/client";
+import type { PublicKeyResponse } from "@/client/model";
 import type { KeyFormValues } from "../keySchema";
 import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";

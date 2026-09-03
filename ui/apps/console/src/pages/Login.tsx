@@ -19,7 +19,7 @@ import { getSafeRedirect, resolvePostLoginRedirect } from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
-import { getInfo, getSamlAuthUrl } from "../client";
+import { getInfo, getSamlAuthUrl } from "@/client/api";
 import {
   FormInputField,
   FormPasswordField,
@@ -103,7 +103,7 @@ export default function Login() {
 
   useEffect(() => {
     void getInfo()
-      .then(({ data }) => setAuthentication(data?.authentication ?? null))
+      .then((data) => setAuthentication(data?.authentication ?? null))
       .catch(() => setAuthentication(null));
   }, []);
 
@@ -138,7 +138,7 @@ export default function Login() {
   const handleSsoLogin = async () => {
     setSsoLoading(true);
     try {
-      const { data } = await getSamlAuthUrl({ throwOnError: true });
+      const data = await getSamlAuthUrl();
       window.location.replace(data.url);
     } catch {
       setError("Failed to retrieve SSO login URL. Please try again.");

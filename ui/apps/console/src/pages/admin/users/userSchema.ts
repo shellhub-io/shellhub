@@ -3,7 +3,7 @@ import type {
   UserAdminCreateRequest,
   UserAdminResponse,
   UserAdminUpdateRequest,
-} from "@/client";
+} from "@/client/model";
 import {
   MAX_NAMESPACES_ERROR,
   isMaxNamespacesValid,

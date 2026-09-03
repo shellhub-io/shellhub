@@ -1,6 +1,6 @@
 import { ClockIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import StatusChip from "./StatusChip";
 import {
   getKeyBlockers,

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 import EditNamespaceDrawer from "../EditNamespaceDrawer";
 
 const sdk = vi.hoisted(() =>

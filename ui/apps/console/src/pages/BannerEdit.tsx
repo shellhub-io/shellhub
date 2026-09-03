@@ -4,7 +4,7 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useNamespace } from "../hooks/useNamespaces";
 import type { Namespace } from "../hooks/useNamespaces";
-import { useEditNamespace } from "../hooks/useNamespaceMutations";
+import { useEditNamespace } from "@/client/api";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import { Button } from "@shellhub/design-system/primitives";
@@ -31,12 +31,13 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     setError("");
     try {
       await editNs.mutateAsync({
-        path: { tenant: ns.tenant_id },
-        body: {
+        tenant: ns.tenant_id,
+        data: {
           settings: {
             connection_announcement: text,
             session_record: ns.settings?.session_record ?? false,
             ssh_access_mode: ns.settings?.ssh_access_mode ?? "legacy",
+            ssh_legacy_allowed: ns.settings?.ssh_legacy_allowed ?? false,
           },
         },
       });

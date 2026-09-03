@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { Button, Card } from "@shellhub/design-system/primitives";
-import { type InstallKeyEvent } from "@/client";
+import { type InstallKeyEvent } from "@/client/model";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import { LABEL } from "@/utils/styles";

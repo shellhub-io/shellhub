@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
-import { useInstallKeys } from "@/hooks/useInstallKeys";
+import { useInstallKeyList } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import InstallKeysTable from "./InstallKeysTable";
@@ -30,9 +31,10 @@ export default function InstallKeys() {
     defaults: INSTALL_KEY_LIST_DEFAULTS,
   });
   const page = params.page;
-  const { installKeys, totalCount, isLoading } = useInstallKeys({ page });
+  const { data: installKeys = [], isLoading } = useInstallKeyList({ page, per_page: 10, sort_by: "created_at", order_by: "desc" });
+  const total = totalCount(installKeys);
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InstallKey | null>(null);
@@ -74,7 +76,7 @@ export default function InstallKeys() {
             data={installKeys}
             page={page}
             totalPages={totalPages}
-            totalCount={totalCount}
+            totalCount={total}
             noCustomKeys={noCustomKeys}
             onPageChange={setPage}
             onCreate={() => setCreateOpen(true)}

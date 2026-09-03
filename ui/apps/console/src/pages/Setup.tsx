@@ -7,7 +7,7 @@ import {
   ExclamationCircleIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { setup } from "../client";
+import { setup } from "@/client/api";
 import { getConfig, isCommunity } from "../env";
 import { useAuthStore } from "@/stores/authStore";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
@@ -119,15 +119,12 @@ export default function Setup() {
 
     let token: string | undefined;
     try {
-      const { data } = await setup({
-        body: {
-          name: values.name,
-          username: values.username,
-          namespace: values.namespace,
-          email: values.email,
-          password: values.password,
-        },
-        throwOnError: true,
+      const data = await setup({
+        name: values.name,
+        username: values.username,
+        namespace: values.namespace,
+        email: values.email,
+        password: values.password,
       });
       token = data.token;
     } catch (err: unknown) {

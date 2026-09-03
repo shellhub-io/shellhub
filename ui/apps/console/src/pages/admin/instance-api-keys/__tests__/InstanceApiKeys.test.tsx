@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import InstanceApiKeys from "../InstanceApiKeys";
-import type { InstanceApiKey } from "@/client";
+import type { InstanceAPIKey } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 
 const sdk = vi.hoisted(() =>
   mockSdkGen({
-    listInstanceApiKeys: vi.fn(),
-    createInstanceApiKey: vi.fn(),
-    deleteInstanceApiKey: vi.fn(),
+    listInstanceAPIKeys: vi.fn(),
+    createInstanceAPIKey: vi.fn(),
+    deleteInstanceAPIKey: vi.fn(),
   }),
 );
 
@@ -19,9 +19,9 @@ vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
-function mockInstanceApiKey(
-  overrides: Partial<InstanceApiKey> = {},
-): InstanceApiKey {
+function mockInstanceAPIKey(
+  overrides: Partial<InstanceAPIKey> = {},
+): InstanceAPIKey {
   return {
     name: "billing-export",
     created_by: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
@@ -34,10 +34,10 @@ function mockInstanceApiKey(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.listInstanceApiKeys.mockResolvedValue(
-    paginatedResponse([mockInstanceApiKey()]),
+  sdk.listInstanceAPIKeys.mockResolvedValue(
+    paginatedResponse([mockInstanceAPIKey()]),
   );
-  sdk.deleteInstanceApiKey.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.deleteInstanceAPIKey.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderPage() {
@@ -62,9 +62,9 @@ describe("InstanceApiKeys", () => {
 
   it("shows the plaintext key once after creating one", async () => {
     const user = userEvent.setup();
-    sdk.createInstanceApiKey.mockResolvedValue(
+    sdk.createInstanceAPIKey.mockResolvedValue(
       mockSdkResponse({
-        ...mockInstanceApiKey({ name: "license-sync" }),
+        ...mockInstanceAPIKey({ name: "license-sync" }),
         id: "sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159",
       }),
     );
@@ -126,7 +126,7 @@ describe("InstanceApiKeys", () => {
     await user.click(screen.getByRole("button", { name: /^revoke$/i }));
 
     await waitFor(() => {
-      expect(sdk.deleteInstanceApiKey).toHaveBeenCalledWith(
+      expect(sdk.deleteInstanceAPIKey).toHaveBeenCalledWith(
         expect.objectContaining({ path: { name: "billing-export" } }),
       );
     });

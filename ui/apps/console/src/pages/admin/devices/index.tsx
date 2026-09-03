@@ -1,14 +1,15 @@
 import { useNavigate, Link } from "react-router-dom";
-import {
-  CpuChipIcon,
-} from "@heroicons/react/24/outline";
+import { CpuChipIcon } from "@heroicons/react/24/outline";
 import { Callout } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { useGetDevicesAdmin } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import {
-  useAdminDevices,
-  type NormalizedDevice,
-} from "@/hooks/useAdminDevices";
-import type { DeviceStatus } from "@/client";
+  normalizeDeviceTags,
+  type TaggedDevice as NormalizedDevice,
+} from "@/utils/deviceTags";
+import { toBase64Json } from "@/utils/encoding";
+import type { DeviceStatus, GetDevicesAdminParams } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
@@ -50,7 +51,7 @@ const SORT_FIELDS = [
   { field: "status", initialOrder: "desc" as const },
 ];
 
-type SortField = typeof VALID_SORT_FIELDS[number];
+type SortField = (typeof VALID_SORT_FIELDS)[number];
 
 type AdminDevicesParams = {
   page: number;
@@ -104,16 +105,30 @@ export default function AdminDevices() {
 
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
 
-  const { devices, totalCount, isLoading, error } = useAdminDevices({
+  const requestParams: GetDevicesAdminParams = {
     page: params.page,
-    perPage: PER_PAGE,
-    search: debouncedSearch,
-    status: params.status,
-    sortBy: params.sortField,
-    orderBy: params.sortOrder,
-  });
+    per_page: PER_PAGE,
+    sort_by: params.sortField,
+    order_by: params.sortOrder,
+  };
+  if (debouncedSearch) {
+    requestParams.filter = toBase64Json([
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: debouncedSearch },
+      },
+    ]);
+  }
+  if (params.status) requestParams.status = params.status;
+  const {
+    data: rawDevices = [],
+    isLoading,
+    error,
+  } = useGetDevicesAdmin(requestParams);
+  const devices = rawDevices.map(normalizeDeviceTags);
+  const total = totalCount(rawDevices);
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<NormalizedDevice>[] = [
     {
@@ -220,7 +235,12 @@ export default function AdminDevices() {
               role="tab"
               aria-selected={params.status === tab.value}
               onClick={() => setFilter("status", tab.value)}
-              className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", params.status === tab.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
+              className={cn(
+                "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+                params.status === tab.value
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-text-muted hover:text-text-secondary border border-transparent",
+              )}
             >
               {tab.label}
             </button>
@@ -249,7 +269,7 @@ export default function AdminDevices() {
         loadingMessage="Loading devices..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="device"
         onPageChange={setPage}
         onRowClick={(device) => void navigate(`/admin/devices/${device.uid}`)}

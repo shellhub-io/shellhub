@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
 import { useAuthStore } from "@/stores/authStore";
-import type { UserAdminResponse } from "@/client";
+import type { UserAdminResponse } from "@/client/model";
 import EditUserDrawer from "../EditUserDrawer";
 
 const sdk = vi.hoisted(() =>

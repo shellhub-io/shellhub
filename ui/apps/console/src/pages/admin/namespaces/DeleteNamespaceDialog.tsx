@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
+import { useDeleteNamespaceAdmin } from "@/client/api";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface DeleteNamespaceDialogProps {
@@ -19,7 +19,7 @@ export default function DeleteNamespaceDialog({
   namespace,
   onDeleted,
 }: DeleteNamespaceDialogProps) {
-  const deleteNamespace = useAdminDeleteNamespace();
+  const deleteNamespace = useDeleteNamespaceAdmin();
   const [error, setError] = useState("");
 
   return (
@@ -34,7 +34,7 @@ export default function DeleteNamespaceDialog({
         setError("");
         try {
           await deleteNamespace.mutateAsync({
-            path: { tenant: namespace.tenant_id },
+            tenant: namespace.tenant_id,
           });
           onClose();
           onDeleted?.();

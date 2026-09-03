@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ApiKeysTab from "../ApiKeysTab";
-import type { ApiKey } from "@/client";
+import type { ApiKey } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { LocationProbe } from "@/tests/LocationProbe";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";

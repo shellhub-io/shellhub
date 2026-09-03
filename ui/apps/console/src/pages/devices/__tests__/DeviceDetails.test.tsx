@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import type { Device } from "@/client";
+import type { Device } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import {

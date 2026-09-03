@@ -7,7 +7,8 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminDevice } from "@/hooks/useAdminDevices";
+import { useGetDeviceAdmin } from "@/client/api";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import DistroIcon from "@/components/common/DistroIcon";
 import PlatformBadge from "@/components/common/PlatformBadge";
@@ -23,8 +24,14 @@ import { Card } from "@shellhub/design-system/primitives";
  * One device, seen from the admin area, including which namespace it belongs to.
  */
 export default function AdminDeviceDetails() {
-  const { uid } = useParams<{ uid: string }>();
-  const { data: device, isLoading, error } = useAdminDevice(uid ?? "");
+  const { uid = "" } = useParams<{ uid: string }>();
+  const {
+    data: device,
+    isLoading,
+    error,
+  } = useGetDeviceAdmin(uid, {
+    query: { enabled: !!uid, select: normalizeDeviceTags },
+  });
 
   if (isLoading) {
     return <PageLoader label="Loading device details" />;

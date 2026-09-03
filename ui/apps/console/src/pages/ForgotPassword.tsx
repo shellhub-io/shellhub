@@ -7,7 +7,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
-import { recoverPassword } from "../client";
+import { recoverPassword } from "@/client/api";
 import FormInputField from "@/components/common/fields/rhf/FormInputField";
 import {
   forgotPasswordResolver,
@@ -36,10 +36,9 @@ export default function ForgotPassword() {
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
 
-    await recoverPassword({
-      body: { username: values.account },
-      throwOnError: true,
-    }).catch(silenceToPreventAccountEnumeration);
+    await recoverPassword({ username: values.account }).catch(
+      silenceToPreventAccountEnumeration,
+    );
 
     setLoading(false);
     setSent(true);

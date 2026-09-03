@@ -5,7 +5,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import AdminDeviceDetails from "../AdminDeviceDetails";
-import type { Device } from "@/client";
+import type { Device } from "@/client/model";
 
 const sdk = vi.hoisted(() =>
   mockSdkGen({

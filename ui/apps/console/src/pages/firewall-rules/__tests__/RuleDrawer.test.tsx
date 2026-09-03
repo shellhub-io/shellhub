@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RuleDrawer from "../RuleDrawer";
-import type { FirewallRulesResponse } from "@/client";
+import type { FirewallRulesResponse } from "@/client/model";
 import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockFirewallRule } from "@/tests/factories";

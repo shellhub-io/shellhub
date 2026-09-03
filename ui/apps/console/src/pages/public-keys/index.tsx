@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { usePublicKeys } from "@/hooks/usePublicKeys";
+import { useGetPublicKeys } from "@/client/api";
+import type { GetPublicKeysParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
+import { useDeletePublicKey } from "@/client/api";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -24,7 +27,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { PublicKeyResponse as PublicKey } from "@/client";
+import { PublicKeyResponse as PublicKey } from "@/client/model";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
@@ -111,10 +114,17 @@ export default function PublicKeys() {
     });
 
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
-  const { publicKeys, totalCount, isLoading } = usePublicKeys({
-    page: params.page,
-    search: debouncedSearch,
-  });
+  const requestParams: GetPublicKeysParams = { page: params.page, per_page: 10 };
+  if (debouncedSearch) {
+    requestParams.filter = toBase64Json([
+      { type: "operator", params: { name: "or" } },
+      { type: "property", params: { name: "name", operator: "contains", value: debouncedSearch } },
+      { type: "operator", params: { name: "or" } },
+      { type: "property", params: { name: "fingerprint", operator: "contains", value: debouncedSearch } },
+    ]);
+  }
+  const { data: publicKeys = [], isLoading } = useGetPublicKeys(requestParams);
+  const total = totalCount(publicKeys);
   const deleteKey = useDeletePublicKey();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
@@ -134,7 +144,7 @@ export default function PublicKeys() {
     setDeleteError(null);
     try {
       await deleteKey.mutateAsync({
-        path: { fingerprint: deleteTarget.fingerprint },
+        fingerprint: deleteTarget.fingerprint,
       });
       if (publicKeys.length === 1 && params.page > 1) setPage(params.page - 1);
       closeDelete();
@@ -158,7 +168,7 @@ export default function PublicKeys() {
     setEditTarget(null);
   };
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<PublicKey>[] = [
     {
@@ -317,7 +327,7 @@ export default function PublicKeys() {
         loadingMessage="Loading public keys..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="key"
         onPageChange={setPage}
         emptyMessage={
