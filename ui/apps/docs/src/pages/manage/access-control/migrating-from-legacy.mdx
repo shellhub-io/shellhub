@@ -45,8 +45,9 @@ policy needs a real subject, with the addresses as a restriction on top. This is
 semantic difference in the migration, and anyone relying on IP-based grants will feel it.
 
 **4. Write the allows.** Start from roles rather than individuals, so the grant keeps working as
-people join and leave. Select devices by [tag](/manage/devices/tags) rather than hostname pattern
-where you can.
+people join and leave. Access policies select devices by [tag](/manage/devices/tags) only, not by
+hostname pattern — a firewall rule that filtered by hostname needs the matching devices tagged
+before you can carry it across.
 
 **5. Decide where re-authentication belongs.** Production and privileged logins are the usual
 candidates. Off is the default and the right choice nearly everywhere else.

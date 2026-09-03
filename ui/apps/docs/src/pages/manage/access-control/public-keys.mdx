@@ -27,8 +27,8 @@ On the **Public Keys** page, paste an OpenSSH public key and give it a name.
 
 Each key carries a scope:
 
-- **Which devices** — all of them, a hostname pattern, or a tag set. This is the same device
-  selector access policies use.
+- **Which devices** — all of them, a hostname pattern, or a tag set. Access policies use the same
+  filter, minus the hostname pattern — tags or all devices only.
 - **Which unix logins** — a specific username, or any.
 
 A connection is permitted when the presented key is registered and its scope covers the device and
