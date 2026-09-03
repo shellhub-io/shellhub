@@ -200,7 +200,7 @@ podman_install() {
     shift 1
     ;;
   *)
-    echo "❌ Invalid mode: $2"
+    echo "❌ Invalid mode: $1"
     exit 1
     ;;
   esac
@@ -262,7 +262,7 @@ docker_install() {
     echo "📥 Downloading ShellHub container image..."
 
     {
-      docker pull -q "$AGENT_IMAGE"
+      $SUDO docker pull -q "$AGENT_IMAGE"
     } || {
       echo "❌ Failed to download shellhub container image."
       exit 1
@@ -288,7 +288,7 @@ docker_install() {
     shift 1
     ;;
   *)
-    echo "❌ Invalid mode: $2"
+    echo "❌ Invalid mode: $1"
     exit 1
     ;;
   esac
