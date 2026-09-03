@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useForm } from "react-hook-form";
 import { Button } from "@shellhub/design-system/primitives";
-import { updateRecoverPassword } from "@/client";
+import { updateRecoverPassword } from "@/client/api";
 import { updatePasswordResolver } from "./setup/updatePasswordResolver";
 import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
 import { FormPasswordField } from "@/components/common/fields/rhf";
@@ -36,11 +36,7 @@ export default function UpdatePassword() {
     setError("");
     setLoading(true);
     try {
-      await updateRecoverPassword({
-        path: { uid },
-        body: { token, password: values.password },
-        throwOnError: true,
-      });
+      await updateRecoverPassword(uid, { token, password: values.password });
       void navigate("/login", {
         state: { notice: "Password updated successfully. Please sign in." },
       });

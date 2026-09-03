@@ -1,5 +1,5 @@
 import { ArrowPathIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import { type InstallKeyEvent } from "@/client";
+import { type InstallKeyEvent } from "@/client/model";
 import { formatDateFull } from "@/utils/date";
 import { type Column } from "@/components/common/DataTable";
 import DistroIcon from "@/components/common/DistroIcon";

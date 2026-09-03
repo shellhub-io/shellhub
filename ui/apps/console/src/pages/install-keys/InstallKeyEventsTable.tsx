@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useInstallKeyEvents } from "@/hooks/useInstallKeyEvents";
+import { useInstallKeyHistory } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { useActionDialog } from "@/hooks/useActionDialog";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import DataTable from "@/components/common/DataTable";
@@ -27,11 +28,11 @@ export default function InstallKeyEventsTable({ id }: { id: string }) {
     () => getInstallKeyEventColumns(deviceActions.requestAction),
     [deviceActions.requestAction],
   );
-  const { events, totalCount, isLoading, error } = useInstallKeyEvents({
+  const { data: events = [], isLoading, error } = useInstallKeyHistory(
     id,
-    page,
-    perPage: PER_PAGE,
-  });
+    { page, per_page: PER_PAGE, sort_by: "created_at", order_by: "desc" },
+  );
+  const total = totalCount(events);
 
   if (error) {
     return (
@@ -57,8 +58,8 @@ export default function InstallKeyEventsTable({ id }: { id: string }) {
         loadingMessage="Loading activity..."
         emptyMessage={EMPTY_MESSAGE}
         page={page}
-        totalPages={pageCount(totalCount, PER_PAGE)}
-        totalCount={totalCount}
+        totalPages={pageCount(total, PER_PAGE)}
+        totalCount={total}
         itemLabel="registration"
         onPageChange={setPage}
       />

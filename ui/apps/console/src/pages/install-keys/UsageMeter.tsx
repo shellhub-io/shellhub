@@ -1,5 +1,5 @@
 import { cn } from "@shellhub/design-system/cn";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import { getKeyBlockers, getUsageInfo, type UsageInfo } from "./helpers";
 
 function formatLabel(usage: UsageInfo): string {

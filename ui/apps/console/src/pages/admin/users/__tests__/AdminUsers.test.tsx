@@ -9,7 +9,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import AdminUsers from "../index";
-import type { UserAdminResponse } from "@/client";
+import type { UserAdminResponse } from "@/client/model";
 import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";

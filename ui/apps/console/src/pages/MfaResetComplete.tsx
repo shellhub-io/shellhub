@@ -5,7 +5,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { resetMfa } from "../client";
+import { resetMFA } from "@/client/api";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
@@ -34,13 +34,9 @@ export default function MfaResetComplete() {
     setError(null);
 
     try {
-      const { data } = await resetMfa({
-        path: { "user-id": userId },
-        body: {
-          main_email_code: otpMain.getValue(),
-          recovery_email_code: otpRecovery.getValue(),
-        },
-        throwOnError: true,
+      const data = await resetMFA(userId, {
+        main_email_code: otpMain.getValue(),
+        recovery_email_code: otpRecovery.getValue(),
       });
 
       useAuthStore.setState({

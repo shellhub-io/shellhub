@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ShieldExclamationIcon,
@@ -10,9 +9,10 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import SearchField from "@/components/common/fields/SearchField";
-import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
+import { useGetFirewallRulesAdmin } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import { type FirewallRulesResponse as FirewallRule } from "@/client/model";
 import { Badge, Callout } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
@@ -35,24 +35,29 @@ export default function AdminFirewallRules() {
   const { params, setPage, setSearch } =
     usePaginatedListState<AdminFirewallRulesParams>({ defaults: DEFAULTS });
 
-  const { rules, totalCount, isLoading, error } = useAdminFirewallRules({
+  const {
+    data: rules = [],
+    isLoading,
+    error,
+  } = useGetFirewallRulesAdmin({
     page: params.page,
-    perPage: PER_PAGE,
+    per_page: PER_PAGE,
   });
+  const total = totalCount(rules);
 
-  const filtered = useMemo(() => {
-    if (!params.search) return rules;
-    const q = params.search.toLowerCase();
-    return rules.filter(
-      (r) =>
-        r.action.toLowerCase().includes(q) ||
-        r.source_ip.toLowerCase().includes(q) ||
-        r.username.toLowerCase().includes(q) ||
-        String(r.priority).includes(q),
-    );
-  }, [rules, params.search]);
+  const filtered = params.search
+    ? rules.filter((r) => {
+        const q = params.search.toLowerCase();
+        return (
+          r.action.toLowerCase().includes(q) ||
+          r.source_ip.toLowerCase().includes(q) ||
+          r.username.toLowerCase().includes(q) ||
+          String(r.priority).includes(q)
+        );
+      })
+    : rules;
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<FirewallRule>[] = [
     {
@@ -164,7 +169,7 @@ export default function AdminFirewallRules() {
         {...(!params.search && {
           page: params.page,
           totalPages,
-          totalCount,
+          totalCount: total,
           itemLabel: "rule",
           onPageChange: setPage,
         })}

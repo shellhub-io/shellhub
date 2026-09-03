@@ -6,9 +6,9 @@ import {
 import {
   getAuthenticationSettings,
   configureLocalAuthentication,
-  configureSamlAuthentication,
-} from "@/client";
-import type { GetAuthenticationSettingsResponse } from "@/client";
+  configureSAMLAuthentication,
+} from "@/client/api";
+import type { GetAuthenticationSettings200 as GetAuthenticationSettingsResponse } from "@/client/model";
 import { isSdkError } from "@/api/errors";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
@@ -44,9 +44,7 @@ export default function AdminAuthentication() {
     let cancelled = false;
     void (async () => {
       try {
-        const { data } = await getAuthenticationSettings({
-          throwOnError: true,
-        });
+        const data = await getAuthenticationSettings();
         if (!cancelled) setSettings(data);
       } catch {
         if (!cancelled) setError("Failed to load authentication settings.");
@@ -63,10 +61,7 @@ export default function AdminAuthentication() {
     setTogglingLocal(true);
     setError(null);
     try {
-      await configureLocalAuthentication({
-        body: { enable: !settings?.local?.enabled },
-        throwOnError: true,
-      });
+      await configureLocalAuthentication({ enable: !settings?.local?.enabled });
       refresh();
     } catch (err) {
       setError(
@@ -87,13 +82,10 @@ export default function AdminAuthentication() {
     setTogglingSaml(true);
     setError(null);
     try {
-      await configureSamlAuthentication({
-        body: {
-          enable: false,
-          idp: { entity_id: "", binding: {}, certificate: "" },
-          sp: {},
-        },
-        throwOnError: true,
+      await configureSAMLAuthentication({
+        enable: false,
+        idp: { entity_id: "", binding: {}, certificate: "" },
+        sp: {},
       });
       refresh();
     } catch (err) {

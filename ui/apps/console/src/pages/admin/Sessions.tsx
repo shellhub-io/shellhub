@@ -7,8 +7,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { Callout } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminSessions } from "@/hooks/useAdminSessions";
-import type { Session } from "@/client";
+import { useGetSessionsAdmin } from "@/client/api";
+import { totalCount } from "@/api/pagination";
+import type { Session } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
@@ -30,13 +31,18 @@ export default function AdminSessions() {
   const { params, setPage } = usePaginatedListState<AdminSessionsParams>({
     defaults: DEFAULTS,
   });
-  const { sessions, totalCount, isLoading, error } = useAdminSessions({
+  const {
+    data: sessions = [],
+    isLoading,
+    error,
+  } = useGetSessionsAdmin({
     page: params.page,
-    perPage: PER_PAGE,
+    per_page: PER_PAGE,
   });
+  const total = totalCount(sessions);
   const navigate = useNavigate();
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<Session>[] = [
     {
@@ -180,7 +186,7 @@ export default function AdminSessions() {
         loadingMessage="Loading sessions..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="session"
         onPageChange={setPage}
         onRowClick={(s) => void navigate(`/admin/sessions/${s.uid}`)}

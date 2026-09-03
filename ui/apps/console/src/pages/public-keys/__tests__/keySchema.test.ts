@@ -6,7 +6,7 @@ import {
   type KeyFormValues,
   type KeyMode,
 } from "../keySchema";
-import type { PublicKeyResponse } from "@/client";
+import type { PublicKeyResponse } from "@/client/model";
 
 function makeValues(overrides: Partial<KeyFormValues> = {}): KeyFormValues {
   return {

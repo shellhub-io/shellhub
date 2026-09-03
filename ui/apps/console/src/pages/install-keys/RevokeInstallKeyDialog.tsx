@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
+import { useInstallKeyUpdate } from "@/client/api";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
 
@@ -16,7 +16,7 @@ export default function RevokeInstallKeyDialog({
   installKey: InstallKey | null;
   onRevoked: () => void;
 }) {
-  const updateKey = useUpdateInstallKey();
+  const updateKey = useInstallKeyUpdate();
   const [confirmText, setConfirmText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -33,8 +33,8 @@ export default function RevokeInstallKeyDialog({
     setError(null);
     try {
       await updateKey.mutateAsync({
-        path: { key: installKey.name },
-        body: { revoked: true },
+        key: installKey.name,
+        data: { revoked: true },
       });
       onRevoked();
     } catch {

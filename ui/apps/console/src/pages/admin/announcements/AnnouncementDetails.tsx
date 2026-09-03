@@ -6,7 +6,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
+import { useGetAnnouncementAdmin } from "@/client/api";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
@@ -23,13 +23,13 @@ const LABEL =
  * One announcement as published, with the ways to edit or delete it.
  */
 export default function AnnouncementDetails() {
-  const { uuid } = useParams<{ uuid: string }>();
+  const { uuid = "" } = useParams<{ uuid: string }>();
   const navigate = useNavigate();
   const {
     data: announcement,
     isLoading,
     error,
-  } = useAdminAnnouncement(uuid ?? "");
+  } = useGetAnnouncementAdmin(uuid, { query: { enabled: !!uuid } });
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) {

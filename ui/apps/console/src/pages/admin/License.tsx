@@ -16,7 +16,7 @@ import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useUploadLicense } from "@/hooks/useUploadLicense";
+import { useSendLicense } from "@/client/api";
 import {
   formatLicenseTimestamp,
   formatDeviceCount,
@@ -25,7 +25,7 @@ import {
   validateLicenseFile,
   getLicenseAlertConfig,
 } from "@/utils/license";
-import type { GetLicenseResponse } from "@/client";
+import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
@@ -202,7 +202,7 @@ function LicenseFeatures({
 }
 
 function LicenseUpload() {
-  const upload = useUploadLicense();
+  const upload = useSendLicense();
   const [file, setFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
@@ -242,7 +242,7 @@ function LicenseUpload() {
     if (!file || validationError) return;
     setFeedback(null);
     try {
-      await upload.mutateAsync({ body: { file } });
+      await upload.mutateAsync({ data: { file } });
       setFeedback({
         type: "success",
         message: "License uploaded successfully.",

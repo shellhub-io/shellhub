@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import InstallKeyActionsMenu from "./InstallKeyActionsMenu";
 import EditInstallKeyDrawer from "./EditInstallKeyDrawer";
 import RevokeInstallKeyDialog from "./RevokeInstallKeyDialog";

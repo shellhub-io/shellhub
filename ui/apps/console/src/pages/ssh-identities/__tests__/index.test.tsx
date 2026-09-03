@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SSHIdentities from "../index";
-import type { SshIdentity } from "@/client";
+import type { SshIdentity } from "@/client/model";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";

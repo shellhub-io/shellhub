@@ -3,12 +3,15 @@ import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useWebEndpoints } from "@/hooks/useWebEndpoints";
 import {
+  useListWebEndpoints,
   useCreateWebEndpoint,
   useDeleteWebEndpoint,
-} from "@/hooks/useWebEndpointMutations";
-import type { Webendpoint } from "@/client";
+} from "@/client/api";
+import type { ListWebEndpointsParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
+import { toBase64Json } from "@/utils/encoding";
+import type { Webendpoint } from "@/client/model";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -383,7 +386,7 @@ function EndpointDrawer({
       const domain = tlsDomain.trim();
       const hasTlsConfig = tlsEnabled || domain !== "";
       await createEndpoint.mutateAsync({
-        body: {
+        data: {
           uid: device.uid,
           host: host.trim(),
           port: portNum,
@@ -839,10 +842,25 @@ function WebEndpointsContent() {
     SEARCH_DEBOUNCE_MS,
   );
 
-  const { webEndpoints, totalCount, isLoading } = useWebEndpoints({
+  const requestParams: ListWebEndpointsParams = {
     page: params.page,
-    addressFilter: debouncedSearch,
-  });
+    per_page: 10,
+  };
+  if (debouncedSearch) {
+    requestParams.filter = toBase64Json([
+      {
+        type: "property",
+        params: {
+          name: "address",
+          operator: "contains",
+          value: debouncedSearch,
+        },
+      },
+    ]);
+  }
+  const { data: webEndpoints = [], isLoading } =
+    useListWebEndpoints(requestParams);
+  const total = totalCount(webEndpoints);
   const deleteEndpoint = useDeleteWebEndpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -861,7 +879,7 @@ function WebEndpointsContent() {
     setDeleteError(null);
     try {
       await deleteEndpoint.mutateAsync({
-        path: { address: deleteTarget.address },
+        address: deleteTarget.address,
       });
       if (webEndpoints.length === 1 && params.page > 1)
         setPage(params.page - 1);
@@ -881,10 +899,10 @@ function WebEndpointsContent() {
     setDrawerOpen(false);
   };
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
   const isSearching = debouncedSearch.length > 0;
-  const isTrulyEmpty = !isLoading && !isSearching && totalCount === 0;
-  const isNoResults = !isLoading && isSearching && totalCount === 0;
+  const isTrulyEmpty = !isLoading && !isSearching && total === 0;
+  const isNoResults = !isLoading && isSearching && total === 0;
 
   return (
     <>
@@ -1009,7 +1027,7 @@ function WebEndpointsContent() {
               <Pagination
                 page={params.page}
                 totalPages={totalPages}
-                totalCount={totalCount}
+                totalCount={total}
                 itemLabel="endpoint"
                 onPageChange={setPage}
               />

@@ -8,12 +8,15 @@ import {
   CheckIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminUsers } from "@/hooks/useAdminUsers";
-import { useApproveAccountRequest } from "@/hooks/useAdminAccountRequestMutations";
+import { useGetUsers } from "@/client/api";
+import type { GetUsersParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
+import { toBase64Json } from "@/utils/encoding";
+import { useApproveUser } from "@/client/api";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import type { UserAdminResponse } from "@/client";
+import type { UserAdminResponse } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -65,15 +68,28 @@ export default function AdminUsers() {
     loadingId: loginAsId,
     errorId: loginAsError,
   } = useLoginAsUser();
-  const approve = useApproveAccountRequest();
+  const approve = useApproveUser();
 
-  const { users, totalCount, isLoading, error } = useAdminUsers({
+  const requestParams: GetUsersParams = {
     page: params.page,
-    perPage: PER_PAGE,
-    search: debouncedSearch,
-  });
+    per_page: PER_PAGE,
+  };
+  if (debouncedSearch) {
+    requestParams.filter = toBase64Json([
+      {
+        type: "property",
+        params: {
+          name: "username",
+          operator: "contains",
+          value: debouncedSearch,
+        },
+      },
+    ]);
+  }
+  const { data: users = [], isLoading, error } = useGetUsers(requestParams);
+  const total = totalCount(users);
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<UserAdminResponse>[] = [
     {
@@ -222,7 +238,7 @@ export default function AdminUsers() {
         loadingMessage="Loading users..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="user"
         onPageChange={setPage}
         onRowClick={(user) => void navigate(`/admin/users/${user.id}`)}
@@ -268,7 +284,7 @@ export default function AdminUsers() {
           if (!approveTarget) return;
           setApproveError("");
           try {
-            await approve.mutateAsync({ path: { id: approveTarget.id } });
+            await approve.mutateAsync({ id: approveTarget.id });
             setApproveTarget(null);
           } catch {
             setApproveError("Failed to approve the account. Please try again.");
