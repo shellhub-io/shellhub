@@ -49,9 +49,9 @@ written.
 
 **Fix it by narrowing the deny, not by adding allows.** No allow can win against a deny.
 
-Also check for a deny that cannot be evaluated — a malformed regular expression in a hostname
-filter, or an invalid CIDR in a source IP. A deny that cannot be evaluated **fails closed**, which
-means a typo in a deny policy refuses connections it was never meant to match.
+Also check for a deny that cannot be evaluated — an invalid CIDR in a source IP. A deny that
+cannot be evaluated **fails closed**, which means a typo in a deny policy refuses connections it
+was never meant to match.
 
 ## 3. Does any allow actually cover this?
 
@@ -66,9 +66,8 @@ is covered by the starter policy. See [Members](/manage/team).
 need a policy naming them. See
 [Service Accounts](/manage/access-control/service-accounts).
 
-**Does the filter cover this device?** A hostname filter is a regular expression against the
-device name — `prod-` does not match `prod-01` unless written as a pattern that does. A tag filter
-matches only devices actually carrying the tag; check the device has it.
+**Does the filter cover this device?** A tag filter matches only devices actually carrying the
+tag; check the device has it.
 
 **Does it cover this login?** A policy granting `deploy` does not permit `ssh root@…`. Check the
 username in the SSHID, not just the device.

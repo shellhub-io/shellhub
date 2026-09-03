@@ -44,20 +44,14 @@ consulted at all.
 
 ### `filter`
 
-Which devices the policy covers. A hostname pattern **or** a tag set — the two are mutually
-exclusive:
+Which devices the policy covers:
 
 | Form | Behavior |
 |---|---|
-| `hostname` | A regular expression matched against the whole device name |
 | `tags` | Matches a device carrying any of the listed tags |
 | *(empty)* | **Matches every device** |
 
-A hostname pattern must match the name in full: `staging` covers the device named `staging`, and
-neither `staging-db` nor `notstaging`.
-
-An empty filter is how you write "all devices". It is the same device selector the legacy public
-key ACL uses.
+An empty filter is how you write "all devices".
 
 ### `logins`
 
