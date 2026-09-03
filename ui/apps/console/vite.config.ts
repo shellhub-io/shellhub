@@ -18,7 +18,11 @@ function healthcheck(): Plugin {
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
     nodePolyfills({
       include: ["buffer", "crypto", "stream"],
     }),
