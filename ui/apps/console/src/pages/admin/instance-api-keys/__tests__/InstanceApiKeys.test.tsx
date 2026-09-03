@@ -83,7 +83,7 @@ describe("InstanceApiKeys", () => {
     ).toBeInTheDocument();
   });
 
-  it("refuses to submit until an expiry is chosen", async () => {
+  it("opens with the shortest expiry already selected", async () => {
     const user = userEvent.setup();
 
     renderPage();
@@ -91,14 +91,15 @@ describe("InstanceApiKeys", () => {
     await user.click(
       await screen.findByRole("button", { name: /generate key/i }),
     );
+
+    const expiry = screen.getByRole("radiogroup", { name: /expiration/i });
+    expect(within(expiry).getByRole("radio", { name: /30 days/i })).toBeChecked();
+
     await user.type(await screen.findByLabelText(/name/i), "license-sync");
 
-    const submit = screen.getByRole("button", { name: /^generate$/i });
-    expect(submit).toBeDisabled();
-
-    await user.click(screen.getByRole("radio", { name: /30 days/i }));
-
-    await waitFor(() => expect(submit).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^generate$/i })).toBeEnabled(),
+    );
   });
 
   it("offers no never-expires option", async () => {

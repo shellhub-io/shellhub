@@ -52,8 +52,6 @@ function GenerateInstanceKeyDrawer({
   useResetOnOpen(open, () => setGeneratedKey(""));
 
   const onValid = async (values: GenerateInstanceKeyFormValues) => {
-    if (!values.expiresAt) return;
-
     clearErrors("root");
     try {
       const result = await createKey.mutateAsync({

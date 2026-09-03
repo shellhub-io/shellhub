@@ -22,10 +22,7 @@ export const generateInstanceKeySchema = z.object({
       /^[a-zA-Z0-9_-]{3,20}$/,
       "Name must be 3-20 characters: letters, numbers, - and _ only.",
     ),
-  expiresAt: z.enum(["30", "60", "90", "365"]).optional(),
-}).refine((values) => values.expiresAt !== undefined, {
-  message: "Choose how long this key should live.",
-  path: ["expiresAt"],
+  expiresAt: z.enum(["30", "60", "90", "365"]),
 });
 
 /**
@@ -36,20 +33,18 @@ export type GenerateInstanceKeyFormValues = z.infer<
 >;
 
 /**
- * What the form starts as. The expiry is deliberately unset, so choosing how long an
- * instance-wide credential lives is a decision rather than a default the form made.
+ * What the form starts as. The expiry opens on the shortest option, matching the namespace key
+ * drawer, so the group is never in the empty state that reads as "selecting this is optional".
  */
 export const GENERATE_INSTANCE_KEY_DEFAULTS: GenerateInstanceKeyFormValues = {
   name: "",
-  expiresAt: undefined,
+  expiresAt: "30",
 };
 
 /**
  * A chosen expiry, once the form has been validated.
  */
-export type InstanceKeyExpiry = NonNullable<
-  GenerateInstanceKeyFormValues["expiresAt"]
->;
+export type InstanceKeyExpiry = GenerateInstanceKeyFormValues["expiresAt"];
 
 /**
  * Builds the create request body, converting the radio group's string back into the number the
