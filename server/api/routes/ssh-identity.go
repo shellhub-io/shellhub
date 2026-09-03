@@ -96,8 +96,9 @@ func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, identity)
 }
 
-// DeleteSSHIdentity revokes an identity. Revoking one's own needs the enroll
-// permission; revoking another member's needs the manage permission.
+// DeleteSSHIdentity revokes an identity. The route admits a caller holding either
+// SSH identity permission; which of the two they hold is what decides whether the
+// service lets them revoke another member's identity or only their own.
 func (h *Handler) DeleteSSHIdentity(c *gateway.Context) error {
 	req := new(requests.SSHIdentityDelete)
 	if err := c.Bind(req); err != nil {
@@ -113,13 +114,8 @@ func (h *Handler) DeleteSSHIdentity(c *gateway.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
-	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
-		return c.NoContent(http.StatusForbidden)
-	}
-
 	req.UserID = userID
-	req.Manage = manage
+	req.Manage = c.Role().HasPermission(authorizer.SSHIdentityManage)
 	if c.Tenant() != nil {
 		req.TenantID = c.Tenant().ID
 	}
