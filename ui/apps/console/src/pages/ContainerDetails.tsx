@@ -8,12 +8,12 @@ import {
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useContainer } from "../hooks/useContainer";
 import {
-  useRenameContainer,
-  useAddContainerTag,
-  useRemoveContainerTag,
-} from "../hooks/useContainerMutations";
+  useGetContainer,
+  useUpdateContainer,
+  usePullTagFromContainer,
+} from "@/client/api";
+import { useAddContainerTag } from "../hooks/useContainerMutations";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
@@ -43,7 +43,13 @@ export default function ContainerDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { container, isLoading, error } = useContainer(uid ?? "");
+  const {
+    data: container,
+    isLoading,
+    error,
+  } = useGetContainer(uid ?? "", {
+    query: { enabled: !!uid },
+  });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
@@ -53,9 +59,9 @@ export default function ContainerDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
 
-  const renameMutation = useRenameContainer();
+  const renameMutation = useUpdateContainer();
   const addTagMutation = useAddContainerTag();
-  const removeTagMutation = useRemoveContainerTag();
+  const removeTagMutation = usePullTagFromContainer();
   const containerActions = useActionDialog({
     onSuccess: (operation) => {
       if (operation === "remove") void navigate("/containers");

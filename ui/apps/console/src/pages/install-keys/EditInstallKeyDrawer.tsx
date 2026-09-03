@@ -3,8 +3,8 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
-import { type InstallKey, type InstallKeyUpdate } from "@/client";
+import { useInstallKeyUpdate } from "@/client/api";
+import { type InstallKey, type InstallKeyUpdate } from "@/client/model";
 import {
   getRemainingDays,
   isSystemKey,
@@ -29,7 +29,7 @@ function EditInstallKeyDrawer({
   installKey: InstallKey | null;
   onClose: () => void;
 }) {
-  const updateKey = useUpdateInstallKey();
+  const updateKey = useInstallKeyUpdate();
   const open = installKey !== null;
   const isSystem = installKey ? isSystemKey(installKey) : false;
   const [name, setName] = useState("");
@@ -150,7 +150,7 @@ function EditInstallKeyDrawer({
             ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
           };
 
-      await updateKey.mutateAsync({ path: { key: installKey.name }, body });
+      await updateKey.mutateAsync({ key: installKey.name, data: body });
       onClose();
     } catch (err) {
       if (isSdkError(err) && err.status === 409) {

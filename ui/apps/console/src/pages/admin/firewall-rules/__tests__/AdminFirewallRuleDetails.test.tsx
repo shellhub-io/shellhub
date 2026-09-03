@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
-import type { FirewallRulesResponse } from "@/client";
+import type { FirewallRulesResponse } from "@/client/model";
 import AdminFirewallRuleDetails from "../AdminFirewallRuleDetails";
 
 const sdk = vi.hoisted(() =>

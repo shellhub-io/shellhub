@@ -8,7 +8,8 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
+import { useGetNamespaceAdmin } from "@/client/api";
+import { NamespaceMembersItem } from "@/client/model";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
@@ -27,17 +28,17 @@ import {
 
 const ZERO_DATE = "0001-01-01T00:00:00Z";
 
-type Member = NonNullable<
-  NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]
->[number];
-
 /**
  * One namespace, seen from the admin area: its members, its devices and its limits.
  */
 export default function NamespaceDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: namespace, isLoading, error } = useAdminNamespace(id ?? "");
+  const {
+    data: namespace,
+    isLoading,
+    error,
+  } = useGetNamespaceAdmin(id, { query: { enabled: !!id } });
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -63,7 +64,7 @@ export default function NamespaceDetails() {
     (namespace.devices_pending_count || 0) +
     (namespace.devices_rejected_count || 0);
 
-  const memberColumns: Column<Member>[] = [
+  const memberColumns: Column<NamespaceMembersItem>[] = [
     {
       key: "email",
       header: "Email",
@@ -235,7 +236,7 @@ export default function NamespaceDetails() {
             Members ({namespace.members?.length || 0})
           </h3>
         </div>
-        <DataTable<Member>
+        <DataTable<NamespaceMembersItem>
           columns={memberColumns}
           data={namespace.members ?? []}
           rowKey={(m, i) => m.id || m.email || `member-${i}`}

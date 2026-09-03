@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import AdminAnnouncements from "../index";
-import type { AnnouncementShort } from "@/client";
+import type { AnnouncementShort } from "@/client/model";
 import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockAnnouncement } from "@/tests/factories";

@@ -6,10 +6,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useApiKeys } from "@/hooks/useApiKeys";
-import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
+import { useApiKeyList, useApiKeyDelete } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { useTableSort } from "@/hooks/useTableSort";
-import { type ApiKey } from "@/client";
+import { type ApiKey } from "@/client/model";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -43,13 +43,15 @@ function ApiKeysTab() {
     defaultField: "created_at",
     onSortChange: () => setPage(1),
   });
-  const { apiKeys, totalCount, isLoading } = useApiKeys({
+  const { data: apiKeys = [], isLoading } = useApiKeyList({
     page,
-    sortBy,
-    orderBy,
+    per_page: 10,
+    sort_by: sortBy,
+    order_by: orderBy,
   });
+  const total = totalCount(apiKeys);
 
-  const deleteKey = useDeleteApiKey();
+  const deleteKey = useApiKeyDelete();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
@@ -64,7 +66,7 @@ function ApiKeysTab() {
     if (!deleteTarget) return;
     setDeleteError(null);
     try {
-      await deleteKey.mutateAsync({ path: { key: deleteTarget.name } });
+      await deleteKey.mutateAsync({ key: deleteTarget.name });
       if (apiKeys.length === 1 && page > 1) setPage(page - 1);
       closeDelete();
     } catch (err) {
@@ -74,7 +76,7 @@ function ApiKeysTab() {
     }
   };
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<ApiKey>[] = [
     {
@@ -116,7 +118,10 @@ function ApiKeysTab() {
         const expired = isExpired(key.expires_in);
         return (
           <span
-            className={cn("text-xs", expired ? "text-accent-red" : "text-text-secondary")}
+            className={cn(
+              "text-xs",
+              expired ? "text-accent-red" : "text-text-secondary",
+            )}
           >
             {formatExpiry(key.expires_in)}
           </span>
@@ -158,8 +163,8 @@ function ApiKeysTab() {
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-text-muted">
-          {totalCount} key
-          {totalCount !== 1 ? "s" : ""}
+          {total} key
+          {total !== 1 ? "s" : ""}
         </p>
         <RestrictedAction action="apiKey:create">
           <Button

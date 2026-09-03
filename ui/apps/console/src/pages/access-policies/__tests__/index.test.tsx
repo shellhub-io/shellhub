@@ -5,7 +5,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
 import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import type { AccessPolicy } from "@/client";
+import type { AccessPolicy } from "@/client/model";
 import AccessPolicies from "../index";
 
 const sdk = vi.hoisted(() =>

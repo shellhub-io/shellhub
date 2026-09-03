@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
-import { type ApiKey } from "@/client";
+import { useApiKeyUpdate } from "@/client/api";
+import { type ApiKey } from "@/client/model";
 import FormDrawer from "@/components/common/FormDrawer";
 import { FormInputField } from "@/components/common/fields/rhf";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -25,7 +25,7 @@ function EditKeyDrawer({
   onClose: () => void;
   apiKey: ApiKey | null;
 }) {
-  const updateKey = useUpdateApiKey();
+  const updateKey = useApiKeyUpdate();
   const defaults = useMemo(() => buildEditKeyDefaults(apiKey), [apiKey]);
   const form = useDrawerForm(open, editKeySchema, defaults);
   const { control, setError, clearErrors } = form;
@@ -35,8 +35,8 @@ function EditKeyDrawer({
     clearErrors("root");
     try {
       await updateKey.mutateAsync({
-        path: { key: apiKey.name },
-        body: buildEditKeyBody(values),
+        key: apiKey.name,
+        data: buildEditKeyBody(values),
       });
       onClose();
     } catch (err: unknown) {

@@ -10,7 +10,7 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminUser } from "@/hooks/useAdminUsers";
+import { useGetUser } from "@/client/api";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import UserStatusChip from "./UserStatusChip";
@@ -40,10 +40,13 @@ function formatMaxNamespaces(value: number): string {
  * One user, seen from the admin area: their namespaces, their status, and the actions on them.
  */
 export default function UserDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, isLoading, error } = useAdminUser(id ?? "");
-  const user = data;
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useGetUser(id, { query: { enabled: !!id } });
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);

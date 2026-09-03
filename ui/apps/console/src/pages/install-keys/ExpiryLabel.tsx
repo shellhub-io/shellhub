@@ -1,6 +1,6 @@
 import { ClockIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import { getExpiryInfo, getKeyBlockers } from "./helpers";
 import { cn } from "@shellhub/design-system/cn";
 

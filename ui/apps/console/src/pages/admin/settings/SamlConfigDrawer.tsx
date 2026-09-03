@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
 import { KeyIcon, ChevronDownIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { configureSamlAuthentication } from "@/client";
+import { configureSAMLAuthentication } from "@/client/api";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { cn } from "@shellhub/design-system/cn";
@@ -51,10 +51,7 @@ export default function SamlConfigDrawer({
   const onSubmit = async (values: SamlFormValues) => {
     clearErrors("root");
     try {
-      await configureSamlAuthentication({
-        body: buildSamlBody(values),
-        throwOnError: true,
-      });
+      await configureSAMLAuthentication(buildSamlBody(values));
       onSaved();
       onClose();
     } catch {

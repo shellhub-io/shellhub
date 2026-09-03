@@ -8,7 +8,7 @@ import {
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import type { Info, UserAuth } from "@/client";
+import type { Info, UserAuth } from "@/client/model";
 import { mockUserAuth } from "@/tests/factories";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";

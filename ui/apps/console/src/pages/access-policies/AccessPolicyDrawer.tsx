@@ -21,13 +21,13 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
-import { useTags } from "@/hooks/useTags";
 import {
+  useListServiceAccounts,
   useCreateAccessPolicy,
   useUpdateAccessPolicy,
-} from "@/hooks/useAccessPolicyMutations";
-import type { AccessPolicy, AccessPolicyRequest } from "@/client";
+} from "@/client/api";
+import { useTagNames } from "@/hooks/useTags";
+import type { AccessPolicy, AccessPolicyRequest } from "@/client/model";
 import { ROLES } from "@/pages/team/helpers";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
@@ -354,8 +354,7 @@ function AccessPolicyDrawer({
 }) {
   const { tenant: tenantId } = useAuthStore();
   const { namespace } = useNamespace(tenantId ?? "");
-  const { tags: allTagObjects } = useTags();
-  const allTags = allTagObjects.map((t) => t.name);
+  const { names: allTags } = useTagNames();
   const createPolicy = useCreateAccessPolicy();
   const updatePolicy = useUpdateAccessPolicy();
   const isEdit = !!editPolicy;
@@ -364,7 +363,7 @@ function AccessPolicyDrawer({
     (m): m is NamespaceMember =>
       !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
   );
-  const { serviceAccounts } = useServiceAccounts();
+  const { data: serviceAccounts = [] } = useListServiceAccounts();
   const roleMemberCount = (role: string) =>
     members.filter((m) => String(m.role) === role).length;
 
@@ -501,9 +500,9 @@ function AccessPolicyDrawer({
     };
     try {
       if (isEdit && editPolicy) {
-        await updatePolicy.mutateAsync({ path: { id: editPolicy.id }, body });
+        await updatePolicy.mutateAsync({ id: editPolicy.id, data: body });
       } else {
-        await createPolicy.mutateAsync({ body });
+        await createPolicy.mutateAsync({ data: body });
       }
       onClose();
     } catch (err: unknown) {

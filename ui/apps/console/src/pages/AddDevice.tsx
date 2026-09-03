@@ -21,8 +21,7 @@ import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer"
 import { isSystemKey } from "@/pages/install-keys/helpers";
 import { modeInfo } from "@/pages/install-keys/constants";
 import { METHODS, type Method } from "@/pages/install/methods";
-import { useInstallKeys } from "@/hooks/useInstallKeys";
-import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
+import { useInstallKeyList, useInstallKeyReveal } from "@/client/api";
 import InputField from "@/components/common/fields/InputField";
 import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
@@ -116,16 +115,22 @@ export default function AddDevice() {
 
   const origin = window.location.origin;
 
-  const { installKeys } = useInstallKeys({ perPage: 50 });
+  const { data: installKeys = [] } = useInstallKeyList({
+    page: 1,
+    per_page: 50,
+    sort_by: "created_at",
+    order_by: "desc",
+  });
   const usableKeys = installKeys.filter(
     (k) => !isSystemKey(k) && !k.revoked && !k.disabled,
   );
   const selectedKey =
     usableKeys.find((k) => k.name === selectedKeyName) ?? usableKeys[0];
-  const { key: revealedKey } = useRevealInstallKey(
-    aud === "fleet" ? (selectedKey?.name ?? null) : null,
-    aud === "fleet",
-  );
+  const revealKeyName = aud === "fleet" ? selectedKey?.name : undefined;
+  const { data: revealData } = useInstallKeyReveal(revealKeyName ?? "", {
+    query: { enabled: !!revealKeyName, gcTime: 0 },
+  });
+  const revealedKey = revealData?.key ?? "";
 
   const codeless = aud === "machine" && CODELESS_METHODS.includes(method);
 

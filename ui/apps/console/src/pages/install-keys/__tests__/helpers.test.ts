@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import {
   getExpiryInfo,
   getKeyBlockers,

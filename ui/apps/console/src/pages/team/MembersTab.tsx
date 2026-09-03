@@ -9,18 +9,20 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import type { MemberView, MembershipInvitation } from "@/client";
-import { useAuthStore } from "@/stores/authStore";
+import type { MemberView, MembershipInvitation } from "@/client/model";
 import {
-  useNamespaceMembers,
-  type NamespaceMember,
-} from "@/hooks/useNamespaces";
-import { useNamespaceInvitations } from "@/hooks/useInvitations";
-import { useRemoveMember, useApproveMember } from "@/hooks/useMemberMutations";
-import {
+  useRemoveNamespaceMember,
+  useApproveUser,
   useCancelMembershipInvitation,
   useGenerateInvitationLink,
-} from "@/hooks/useInvitationMutations";
+} from "@/client/api";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  useListNamespaceMembers,
+  useGetNamespaceMembershipInvitationList,
+} from "@/client/api";
+import { invitationStatusFilter } from "@/utils/invitations";
+import type { NamespaceMember } from "@/hooks/useNamespaces";
 import { isSdkError } from "@/api/errors";
 import { isInvitationExpired } from "@/utils/invitations";
 import { formatDateShort } from "@/utils/date";
@@ -94,18 +96,17 @@ function cancelErrorMessage(err: unknown): string {
  * them.
  */
 function MembersTab({ tenantId }: { tenantId: string }) {
-  const { members: memberViews, isLoading: membersLoading } =
-    useNamespaceMembers(tenantId);
+  const { data: memberViews = [], isLoading: membersLoading } =
+    useListNamespaceMembers(tenantId, { page: 1, per_page: 100 }, { query: { enabled: !!tenantId } });
 
-  const { invitations } = useNamespaceInvitations({
+  const { data: invitations = [] } = useGetNamespaceMembershipInvitationList(
     tenantId,
-    status: "pending",
-    perPage: 100,
-    enabled: true,
-  });
+    { filter: invitationStatusFilter("pending"), page: 1, per_page: 100 },
+    { query: { enabled: !!tenantId } },
+  );
 
-  const removeMember = useRemoveMember();
-  const approveMember = useApproveMember();
+  const removeMember = useRemoveNamespaceMember();
+  const approveMember = useApproveUser();
   const cancelInvitation = useCancelMembershipInvitation();
   const regenerateInvitation = useGenerateInvitationLink();
 
@@ -135,7 +136,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     setRemoveError(null);
     try {
       await removeMember.mutateAsync({
-        path: { tenant: tenantId, uid: removeTarget.id },
+        tenant: tenantId,
+        uid: removeTarget.id,
       });
       closeRemove();
     } catch (err) {
@@ -303,7 +305,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                 aria-label="Approve account"
                 loading={approveMember.isPending}
                 onClick={() =>
-                  m.id && approveMember.mutate({ path: { id: m.id } })
+                  m.id && approveMember.mutate({ id: m.id })
                 }
               >
                 <CheckIcon className="w-4 h-4" />
@@ -428,7 +430,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
           setCancelError(null);
           try {
             await cancelInvitation.mutateAsync({
-              path: { tenant: tenantId, "user-id": cancelTarget.user.id },
+              tenant: tenantId,
+              userId: cancelTarget.user.id,
             });
             setCancelTarget(null);
           } catch (err) {
@@ -462,8 +465,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
           setRegenError(null);
           try {
             await regenerateInvitation.mutateAsync({
-              path: { tenant: tenantId },
-              body: {
+              tenant: tenantId,
+              data: {
                 email: regenTarget.user.email,
                 role: regenTarget.role,
               },
