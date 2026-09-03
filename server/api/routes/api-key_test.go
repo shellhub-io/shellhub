@@ -307,6 +307,7 @@ func TestListAPIKey(t *testing.T) {
 			description: "success",
 			headers: map[string]string{
 				"Content-Type": "application/json",
+				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
@@ -365,6 +366,7 @@ func TestListAPIKey(t *testing.T) {
 			description: "success when page and per_page are invalid",
 			headers: map[string]string{
 				"Content-Type": "application/json",
+				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
@@ -423,6 +425,7 @@ func TestListAPIKey(t *testing.T) {
 			description: "success when order_by is an empty string",
 			headers: map[string]string{
 				"Content-Type": "application/json",
+				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
@@ -479,6 +482,7 @@ func TestListAPIKey(t *testing.T) {
 			description: "success when sort_by is an empty string",
 			headers: map[string]string{
 				"Content-Type": "application/json",
+				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},

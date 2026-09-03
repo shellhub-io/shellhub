@@ -1,14 +1,14 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The install key routes, relative to the API's base path.
@@ -45,39 +45,8 @@ func (h *Handler) CreateInstallKey(c *gateway.Context) error {
 }
 
 // ListInstallKeys serves the namespace's install keys, without their plaintext.
-func (h *Handler) ListInstallKeys(c *gateway.Context) error {
-	req := new(requests.ListInstallKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.InstallKeySortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListInstallKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, res)
+func (h *Handler) ListInstallKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListInstallKey) ([]models.InstallKey, int, error) {
+	return h.service.ListInstallKeys(ctx, req)
 }
 
 // UpdateInstallKey changes a key's name, expiry or the device attributes it pre-assigns.
@@ -140,37 +109,6 @@ func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 }
 
 // HistoryInstallKey serves the record of what a key has been used for.
-func (h *Handler) HistoryInstallKey(c *gateway.Context) error {
-	req := new(requests.ListInstallKeyEvents)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.InstallKeyEventSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	events, count, err := h.service.ListInstallKeyEvents(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, events)
+func (h *Handler) HistoryInstallKey(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListInstallKeyEvents) ([]models.InstallKeyEvent, int, error) {
+	return h.service.ListInstallKeyEvents(ctx, req)
 }

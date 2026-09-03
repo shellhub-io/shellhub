@@ -838,25 +838,25 @@ func TestService_DeleteTag(t *testing.T) {
 }
 
 func TestListTags(t *testing.T) {
-	t.Run("TagFilterFields rejects any field and operator", func(t *testing.T) {
-		assert.False(t, TagFilterFields.Allows("name", "eq"))
-		assert.False(t, TagFilterFields.Allows("name", "contains"))
-		assert.False(t, TagFilterFields.Allows("unknown", "eq"))
+	t.Run("the filter contract rejects any field and operator", func(t *testing.T) {
+		assert.False(t, TagQuery.Filter.Allows("name", "eq"))
+		assert.False(t, TagQuery.Filter.Allows("name", "contains"))
+		assert.False(t, TagQuery.Filter.Allows("unknown", "eq"))
 	})
 
-	t.Run("TagSortFields allows name", func(t *testing.T) {
-		assert.True(t, TagSortFields.Allows("name"))
+	t.Run("the sort contract allows name", func(t *testing.T) {
+		assert.True(t, TagQuery.Sort.Allows("name"))
 	})
 
-	t.Run("TagSortFields allows created_at", func(t *testing.T) {
-		assert.True(t, TagSortFields.Allows("created_at"))
+	t.Run("the sort contract allows created_at", func(t *testing.T) {
+		assert.True(t, TagQuery.Sort.Allows("created_at"))
 	})
 
-	t.Run("TagSortFields allows updated_at", func(t *testing.T) {
-		assert.True(t, TagSortFields.Allows("updated_at"))
+	t.Run("the sort contract allows updated_at", func(t *testing.T) {
+		assert.True(t, TagQuery.Sort.Allows("updated_at"))
 	})
 
-	t.Run("TagSortFields rejects unknown field", func(t *testing.T) {
-		assert.False(t, TagSortFields.Allows("unknown"))
+	t.Run("the sort contract rejects unknown field", func(t *testing.T) {
+		assert.False(t, TagQuery.Sort.Allows("unknown"))
 	})
 }
