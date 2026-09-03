@@ -1,0 +1,10 @@
+description: Access policy's device filter. Empty or omitted matches every device.
+type: object
+properties:
+  tags:
+    description: Tags the policy matches devices by.
+    type: array
+    items:
+      type: string
+    minItems: 0
+    maxItems: 3

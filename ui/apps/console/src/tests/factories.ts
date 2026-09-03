@@ -271,7 +271,7 @@ export function mockAccessPolicy(
     id: "policy-1",
     name: "default-policy",
     subject: { type: "all-members", value: "" },
-    filter: { hostname: ".*", tags: [] },
+    filter: { tags: [] },
     logins: ["root"],
     source_ip: [],
     action: "allow",
