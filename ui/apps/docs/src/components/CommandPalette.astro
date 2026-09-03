@@ -1,0 +1,110 @@
+---
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { sidebar, flattenItems } from "../data/sidebar";
+
+const allItems = sidebar.flatMap(section =>
+  flattenItems(section.items).map(item => ({
+    label: item.label,
+    href: item.href,
+    section: section.label,
+  }))
+);
+
+const rawPath = Astro.url.pathname.replace(/\/$/, "");
+const currentPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+---
+
+<div class="cmd-palette" id="cmd-palette">
+  <div class="cmd-overlay" id="cmd-overlay"></div>
+  <div class="cmd-dialog">
+    <div class="cmd-input-row">
+      <MagnifyingGlassIcon className="cmd-search-icon" aria-hidden="true" />
+      <input type="text" class="cmd-input" id="cmd-input" placeholder="Search documentation..." autocomplete="off" spellcheck="false" />
+      <kbd class="cmd-esc">esc</kbd>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<script define:vars={{ allItems, currentPath }}>
+  const palette = document.getElementById("cmd-palette");
+  const overlay = document.getElementById("cmd-overlay");
+  const input = document.getElementById("cmd-input");
+  const results = document.getElementById("cmd-results");
+
+  let selectedIdx = 0;
+  let filtered = allItems;
+
+  function open() {
+    palette.classList.add("cmd-open");
+    input.value = "";
+    selectedIdx = 0;
+    render(allItems);
+    requestAnimationFrame(() => input.focus());
+  }
+
+  function close() { palette.classList.remove("cmd-open"); }
+
+  function select(idx) {
+    results.querySelector(".cmd-item--sel")?.classList.remove("cmd-item--sel");
+    selectedIdx = idx;
+    const el = results.querySelector(`[data-i="${idx}"]`);
+    el?.classList.add("cmd-item--sel");
+    el?.scrollIntoView({ block: "nearest" });
+  }
+
+  function render(items) {
+    filtered = items;
+    let section = "";
+    let html = "";
+    items.forEach((item, i) => {
+      if (item.section !== section) {
+        section = item.section;
+        html += `<div class="cmd-section">${section}</div>`;
+      }
+      const sel = i === selectedIdx ? " cmd-item--sel" : "";
+      const cur = item.href.replace(/\/$/, "") === currentPath ? " cmd-item--cur" : "";
+      html += `<a href="${item.href}" class="cmd-item${sel}${cur}" data-i="${i}">
+        <span>${item.label}</span>
+        ${cur ? '<span class="cmd-badge">current</span>' : ""}
+      </a>`;
+    });
+    results.innerHTML = html || '<div class="cmd-empty">No results</div>';
+    results.querySelector(".cmd-item--sel")?.scrollIntoView({ block: "nearest" });
+  }
+
+  function filter(q) {
+    q = q.toLowerCase().trim();
+    if (!q) return render(allItems);
+    selectedIdx = 0;
+    render(allItems.filter(it =>
+      it.label.toLowerCase().includes(q) ||
+      it.section.toLowerCase().includes(q) ||
+      it.href.toLowerCase().includes(q)
+    ));
+  }
+
+  document.getElementById("cmd-trigger")?.addEventListener("click", open);
+  document.getElementById("hero-search")?.addEventListener("click", open);
+  overlay?.addEventListener("click", close);
+
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      palette.classList.contains("cmd-open") ? close() : open();
+    }
+    if (!palette.classList.contains("cmd-open")) return;
+    if (e.key === "Escape") { close(); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); select(Math.min(selectedIdx + 1, filtered.length - 1)); }
+    if (e.key === "ArrowUp") { e.preventDefault(); select(Math.max(selectedIdx - 1, 0)); }
+    if (e.key === "Enter" && filtered[selectedIdx]) { e.preventDefault(); window.location.href = filtered[selectedIdx].href; }
+  });
+
+  input?.addEventListener("input", (e) => filter(e.target.value));
+  results?.addEventListener("mouseover", (e) => {
+    const item = e.target.closest(".cmd-item");
+    if (!item) return;
+    const idx = parseInt(item.dataset.i);
+    if (idx !== selectedIdx) select(idx);
+  });
+</script>

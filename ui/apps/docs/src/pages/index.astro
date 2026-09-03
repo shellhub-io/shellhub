@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { sidebar, flattenItems } from "../data/sidebar";
 import { websiteUrl, docsUrl } from "../data/links";
+import CommandPalette from "../components/CommandPalette.astro";
 
 const sections = sidebar.map(section => ({
   label: section.label,
@@ -15,11 +16,6 @@ const sections = sidebar.map(section => ({
   icon: section.icon,
   items: flattenItems(section.items).filter(item => item.featured),
 }));
-
-// Flatten all items for command palette
-const allItems = sidebar.flatMap(section =>
-  flattenItems(section.items).map(item => ({ ...item, section: section.label }))
-);
 ---
 
 <html lang="en">
@@ -125,112 +121,6 @@ const allItems = sidebar.flatMap(section =>
 
     <Footer app="docs" websiteUrl={websiteUrl} docsUrl={docsUrl} />
 
-    <!-- Command Palette -->
-    <div class="cmd-palette" id="cmd-palette">
-      <div class="cmd-overlay" id="cmd-overlay"></div>
-      <div class="cmd-dialog">
-        <div class="cmd-input-row">
-          <MagnifyingGlassIcon className="cmd-search-icon" aria-hidden="true" />
-          <input type="text" class="cmd-input" id="cmd-input" placeholder="Search documentation..." autocomplete="off" spellcheck="false" />
-          <kbd class="cmd-esc">esc</kbd>
-        </div>
-        <div class="cmd-results" id="cmd-results"></div>
-      </div>
-    </div>
-
-    <script define:vars={{ allItems }}>
-      const currentPath = window.location.pathname.replace(/\/$/, "");
-
-      const palette = document.getElementById("cmd-palette");
-      const overlay = document.getElementById("cmd-overlay");
-      const input = document.getElementById("cmd-input");
-      const results = document.getElementById("cmd-results");
-      const trigger = document.getElementById("cmd-trigger");
-      const heroSearch = document.getElementById("hero-search");
-
-      let selectedIdx = 0;
-      let filtered = allItems;
-
-      function open() {
-        palette.classList.add("cmd-open");
-        input.value = "";
-        selectedIdx = 0;
-        render(allItems);
-        requestAnimationFrame(() => input.focus());
-      }
-
-      function close() {
-        palette.classList.remove("cmd-open");
-      }
-
-      function render(items) {
-        filtered = items;
-        let section = "";
-        let html = "";
-
-        items.forEach((item, i) => {
-          if (item.section !== section) {
-            section = item.section;
-            html += `<div class="cmd-section">${section}</div>`;
-          }
-          const sel = i === selectedIdx ? " cmd-item--sel" : "";
-          html += `<a href="${item.href}" class="cmd-item${sel}" data-i="${i}">
-            <span>${item.label}</span>
-          </a>`;
-        });
-
-        results.innerHTML = html || '<div class="cmd-empty">No results</div>';
-        const selEl = results.querySelector(".cmd-item--sel");
-        selEl?.scrollIntoView({ block: "nearest" });
-      }
-
-      function filter(q) {
-        q = q.toLowerCase().trim();
-        if (!q) return render(allItems);
-        selectedIdx = 0;
-        render(allItems.filter(it =>
-          it.label.toLowerCase().includes(q) ||
-          it.section.toLowerCase().includes(q) ||
-          it.href.toLowerCase().includes(q)
-        ));
-      }
-
-      trigger?.addEventListener("click", open);
-      heroSearch?.addEventListener("click", open);
-      overlay?.addEventListener("click", close);
-
-      document.addEventListener("keydown", (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-          e.preventDefault();
-          palette.classList.contains("cmd-open") ? close() : open();
-        }
-        if (!palette.classList.contains("cmd-open")) return;
-        if (e.key === "Escape") { close(); return; }
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          selectedIdx = Math.min(selectedIdx + 1, filtered.length - 1);
-          render(filtered);
-        }
-        if (e.key === "ArrowUp") {
-          e.preventDefault();
-          selectedIdx = Math.max(selectedIdx - 1, 0);
-          render(filtered);
-        }
-        if (e.key === "Enter" && filtered[selectedIdx]) {
-          e.preventDefault();
-          window.location.href = filtered[selectedIdx].href;
-        }
-      });
-
-      input?.addEventListener("input", (e) => filter(e.target.value));
-
-      results?.addEventListener("mouseover", (e) => {
-        const item = e.target.closest(".cmd-item");
-        if (item) {
-          selectedIdx = parseInt(item.dataset.i);
-          render(filtered);
-        }
-      });
-    </script>
+    <CommandPalette />
   </body>
 </html>
