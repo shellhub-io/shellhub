@@ -1,24 +1,17 @@
 package gateway
 
 import (
+	"slices"
+
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // RequiresPermission refuses the request with 403 unless the role the request authenticated with
-// holds permission. It answers 403 rather than 401 because the caller is known and simply not
-// allowed; a request carrying no credential at all never reaches it.
+// holds permission. It is [RequiresAnyPermission] naming one.
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c *echo.Context) error {
-			if ctx, ok := From(c); !ok || !ctx.Role().HasPermission(permission) {
-				return routes.NewErrForbidden(nil)
-			}
-
-			return next(c)
-		}
-	}
+	return RequiresAnyPermission(permission)
 }
 
 // BlockAPIKey refuses with 403 a request that authenticated with an API key. It reads the header
@@ -30,5 +23,28 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		return next(c)
+	}
+}
+
+// RequiresAnyPermission refuses the request with 403 unless the role the request authenticated
+// with holds at least one of permissions. Naming none refuses every request, so the programming
+// error fails closed rather than admitting every caller.
+//
+// It answers 403 rather than 401 because the caller is known and simply not allowed; a request
+// carrying no credential at all never reaches it.
+func RequiresAnyPermission(permissions ...authorizer.Permission) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			ctx, ok := From(c)
+			if !ok {
+				return routes.NewErrForbidden(nil)
+			}
+
+			if !slices.ContainsFunc(permissions, ctx.Role().HasPermission) {
+				return routes.NewErrForbidden(nil)
+			}
+
+			return next(c)
+		}
 	}
 }
