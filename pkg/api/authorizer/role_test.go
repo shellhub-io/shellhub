@@ -141,6 +141,7 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.BillingRemovePaymentMethod,
 				authorizer.BillingCancelSubscription,
 				authorizer.BillingCreateSubscription,
+				authorizer.BillingGetCustomer,
 				authorizer.BillingGetSubscription,
 				authorizer.APIKeyCreate,
 				authorizer.APIKeyUpdate,
