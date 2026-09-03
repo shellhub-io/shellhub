@@ -28,29 +28,35 @@ const (
 	installKeyMaxEphemeralTimeout = 10
 )
 
-// InstallKeySortFields is the set of field names accepted in the sort_by query parameter when
-// listing install keys. The row also holds the key ciphertext and the webhook signing secret,
-// neither of which the response carries and neither of which a sort must order by.
-var InstallKeySortFields = query.NewFieldSet(
-	"name",
-	"mode",
-	"type",
-	"used_times",
-	"last_used_at",
-	"created_at",
-	"updated_at",
-	"expires_at",
-)
+// InstallKeyQuery is the query contract the install key list accepts. The row also holds the key
+// ciphertext and the webhook signing secret, neither of which the response carries and neither of
+// which a sort must order by.
+var InstallKeyQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"name",
+		"mode",
+		"type",
+		"used_times",
+		"last_used_at",
+		"created_at",
+		"updated_at",
+		"expires_at",
+	),
+	DefaultSort: query.Sorter{By: "created_at", Order: query.OrderDesc},
+}
 
-// InstallKeyEventSortFields is the set of field names accepted in the sort_by query parameter
-// when listing an install key's history.
-var InstallKeyEventSortFields = query.NewFieldSet(
-	"hostname",
-	"source_ip",
-	"decided_status",
-	"decided_at",
-	"created_at",
-)
+// InstallKeyEventQuery is the query contract an install key's history accepts. The history takes no
+// filter, and the row holds nothing the response omits.
+var InstallKeyEventQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"hostname",
+		"source_ip",
+		"decided_status",
+		"decided_at",
+		"created_at",
+	),
+	DefaultSort: query.Sorter{By: "created_at", Order: query.OrderDesc},
+}
 
 func installKeyExpiry(days *int) *time.Time {
 	if days == nil {
