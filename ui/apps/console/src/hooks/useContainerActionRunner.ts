@@ -1,26 +1,20 @@
 import { useCallback } from "react";
-import {
-  useUpdateContainerStatus,
-  useRemoveContainer,
-} from "@/hooks/useContainerMutations";
+import { useUpdateContainerStatus, useDeleteContainer } from "@/client/api";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
-/**
- * Runs the confirmation dialog's chosen operation against a container, so the dialog does not
- * have to know which mutation each operation maps to.
- */
+/** Maps action-dialog operations to container mutations. */
 export function useContainerActionRunner() {
   const status = useUpdateContainerStatus();
-  const remove = useRemoveContainer();
+  const remove = useDeleteContainer();
 
   return useCallback(
     async (entity: EntityBase, operation: EntityOperation) => {
       if (operation === "remove") {
-        await remove.mutateAsync({ path: { uid: entity.uid } });
+        await remove.mutateAsync({ uid: entity.uid });
         return;
       }
 
-      await status.mutateAsync({ path: { uid: entity.uid, status: operation } });
+      await status.mutateAsync({ uid: entity.uid, status: operation });
     },
     [status, remove],
   );

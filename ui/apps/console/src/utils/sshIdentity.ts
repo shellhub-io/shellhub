@@ -1,7 +1,7 @@
 import { differenceInDays } from "date-fns";
 import { formatDateFull, formatDateShort } from "@/utils/date";
 import { isSdkError } from "@/api/errors";
-import type { SshIdentity } from "@/client";
+import type { SshIdentity } from "@/client/model";
 
 /**
  * Whether an enroll failure means the key is already an identity. The endpoint
