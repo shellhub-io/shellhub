@@ -13,7 +13,7 @@ import {
 import BaseDialog from "@/components/common/BaseDialog";
 import { formatDateShort } from "@/utils/date";
 import { isAllowedUrl } from "@/utils/url";
-import type { Announcement } from "@/client";
+import type { Announcement } from "@/client/model";
 import "@/styles/announcement-prose.css";
 
 interface AnnouncementContentProps {

@@ -3,7 +3,7 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { disableMfa } from "@/client";
+import { disableMFA } from "@/client/api";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
@@ -66,24 +66,15 @@ export default function MfaDisableDialog({
     try {
       if (mode === "totp") {
         if (!otp.isComplete) return;
-        await disableMfa({
-          body: { code: otp.getValue() },
-          throwOnError: true,
-        });
+        await disableMFA({ code: otp.getValue() });
       } else if (mode === "recovery") {
         if (!recoveryCode.trim()) return;
-        await disableMfa({
-          body: { recovery_code: recoveryCode },
-          throwOnError: true,
-        });
+        await disableMFA({ recovery_code: recoveryCode });
       } else if (mode === "email-reset") {
         if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
-        await disableMfa({
-          body: {
-            main_email_code: otpMainEmail.getValue(),
-            recovery_email_code: otpRecoveryEmail.getValue(),
-          },
-          throwOnError: true,
+        await disableMFA({
+          main_email_code: otpMainEmail.getValue(),
+          recovery_email_code: otpRecoveryEmail.getValue(),
         });
       }
 

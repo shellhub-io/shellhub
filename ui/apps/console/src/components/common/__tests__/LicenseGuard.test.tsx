@@ -5,7 +5,7 @@ import type { ComponentType, ReactNode } from "react";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import type { GetLicenseResponse } from "@/client";
+import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import LicenseGuard from "../LicenseGuard";
 
