@@ -3,7 +3,7 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
+import { useInstallKeyUpdate } from "@/client/api";
 import { type InstallKey, type InstallKeyUpdate } from "@/client";
 import {
   getRemainingDays,
@@ -29,7 +29,7 @@ function EditInstallKeyDrawer({
   installKey: InstallKey | null;
   onClose: () => void;
 }) {
-  const updateKey = useUpdateInstallKey();
+  const updateKey = useInstallKeyUpdate();
   const open = installKey !== null;
   const isSystem = installKey ? isSystemKey(installKey) : false;
   const [name, setName] = useState("");

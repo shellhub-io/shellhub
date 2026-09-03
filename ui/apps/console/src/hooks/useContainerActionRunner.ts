@@ -1,8 +1,5 @@
 import { useCallback } from "react";
-import {
-  useUpdateContainerStatus,
-  useRemoveContainer,
-} from "@/hooks/useContainerMutations";
+import { useUpdateContainerStatus, useDeleteContainer } from "@/client/api";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
 /**
@@ -11,7 +8,7 @@ import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
  */
 export function useContainerActionRunner() {
   const status = useUpdateContainerStatus();
-  const remove = useRemoveContainer();
+  const remove = useDeleteContainer();
 
   return useCallback(
     async (entity: EntityBase, operation: EntityOperation) => {
@@ -20,7 +17,9 @@ export function useContainerActionRunner() {
         return;
       }
 
-      await status.mutateAsync({ path: { uid: entity.uid, status: operation } });
+      await status.mutateAsync({
+        path: { uid: entity.uid, status: operation },
+      });
     },
     [status, remove],
   );

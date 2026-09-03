@@ -3,7 +3,7 @@ import { isSdkError } from "@/api/errors";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Card, Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateApiKey } from "@/hooks/useApiKeyMutations";
+import { useApiKeyCreate } from "@/client/api";
 import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
 import {
@@ -34,7 +34,7 @@ function GenerateKeyDrawer({
   open: boolean;
   onClose: () => void;
 }) {
-  const createKey = useCreateApiKey();
+  const createKey = useApiKeyCreate();
   const form = useDrawerForm(open, generateKeySchema, GENERATE_KEY_DEFAULTS);
   const {
     control,

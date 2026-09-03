@@ -22,10 +22,8 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import {
-  useChoiceDevices,
-  useSuggestedDevices,
-} from "@/hooks/useDeviceChooser";
+import { useChoiceDevices } from "@/client/api";
+import { useSuggestedDevices } from "@/hooks/useDeviceChooser";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
 import { cn } from "@shellhub/design-system/cn";
@@ -412,7 +410,9 @@ const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
         onKeyDown={onKeyDown}
         className={cn(
           "relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md",
-          selected ? "text-text-primary" : "text-text-muted hover:text-text-secondary",
+          selected
+            ? "text-text-primary"
+            : "text-text-muted hover:text-text-secondary",
           disabled && "opacity-40 cursor-not-allowed hover:text-text-muted",
         )}
       >

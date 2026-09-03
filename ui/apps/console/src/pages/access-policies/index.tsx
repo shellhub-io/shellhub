@@ -23,10 +23,12 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useAccessPolicies } from "@/hooks/useAccessPolicies";
-import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
+import {
+  useListAccessPolicies,
+  useListServiceAccounts,
+  useDeleteAccessPolicy,
+} from "@/client/api";
 import { useNamespace } from "@/hooks/useNamespaces";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -213,10 +215,10 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
  * firewall pages in namespaces using identity access mode.
  */
 export default function AccessPolicies() {
-  const { policies, isLoading } = useAccessPolicies();
+  const { data: policies = [], isLoading } = useListAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const { serviceAccounts } = useServiceAccounts();
+  const { data: serviceAccounts = [] } = useListServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
 
   const members = ns?.members ?? [];

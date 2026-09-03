@@ -8,9 +8,9 @@ import {
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useContainer } from "../hooks/useContainer";
+import { useGetContainer } from "@/client/api";
+import { useUpdateContainer } from "@/client/api";
 import {
-  useRenameContainer,
   useAddContainerTag,
   useRemoveContainerTag,
 } from "../hooks/useContainerMutations";
@@ -43,7 +43,13 @@ export default function ContainerDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { container, isLoading, error } = useContainer(uid ?? "");
+  const {
+    data: container,
+    isLoading,
+    error,
+  } = useGetContainer(uid ?? "", {
+    query: { enabled: !!uid },
+  });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
@@ -53,7 +59,7 @@ export default function ContainerDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
 
-  const renameMutation = useRenameContainer();
+  const renameMutation = useUpdateContainer();
   const addTagMutation = useAddContainerTag();
   const removeTagMutation = useRemoveContainerTag();
   const containerActions = useActionDialog({

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
+import { useUpdateNamespaceMember } from "@/client/api";
 import { type NamespaceMember } from "@/hooks/useNamespaces";
 import FormDrawer from "@/components/common/FormDrawer";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -25,7 +25,7 @@ function EditMemberDrawer({
   tenantId: string;
   member: NamespaceMember | null;
 }) {
-  const updateRole = useUpdateMemberRole();
+  const updateRole = useUpdateNamespaceMember();
   const defaults = useMemo(() => buildMemberRoleDefaults(member), [member]);
   const form = useDrawerForm(open, editRoleSchema, defaults);
 

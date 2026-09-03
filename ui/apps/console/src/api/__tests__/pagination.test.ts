@@ -1,36 +1,49 @@
 import { describe, it, expect, vi } from "vitest";
 import { paginatedQueryFn } from "../pagination";
+import * as customInstanceModule from "../customInstance";
 
-function mockSdkFn(data: unknown[], headers: Record<string, string>) {
-  return vi.fn().mockResolvedValue({
-    data,
-    response: { headers: new Headers(headers) },
-  });
-}
+vi.mock("../customInstance", () => ({
+  fetchWithHeaders: vi.fn(),
+}));
+
+const mockFetchWithHeaders = vi.mocked(customInstanceModule.fetchWithHeaders);
 
 describe("paginatedQueryFn", () => {
   it("returns data and totalCount from X-Total-Count header", async () => {
     const devices = [{ uid: "1" }, { uid: "2" }];
-    const sdkFn = mockSdkFn(devices, { "X-Total-Count": "42" });
+    mockFetchWithHeaders.mockResolvedValue({
+      data: devices,
+      headers: new Headers({ "X-Total-Count": "42" }),
+    });
 
-    const queryFn = paginatedQueryFn(sdkFn, { query: { page: 1 } });
-    const result = await queryFn();
+    const queryFn = paginatedQueryFn("/api/devices");
+    const result = await queryFn({ signal: AbortSignal.abort() });
 
     expect(result).toEqual({ data: devices, totalCount: 42 });
-    expect(sdkFn).toHaveBeenCalledWith({ query: { page: 1 }, throwOnError: true });
+    expect(mockFetchWithHeaders).toHaveBeenCalledWith("/api/devices", {
+      method: "GET",
+      signal: expect.any(AbortSignal),
+    });
   });
 
   it("defaults totalCount to 0 when header is missing", async () => {
-    const sdkFn = mockSdkFn([], {});
+    mockFetchWithHeaders.mockResolvedValue({
+      data: [],
+      headers: new Headers(),
+    });
 
-    const result = await paginatedQueryFn(sdkFn, {})();
+    const result = await paginatedQueryFn("/api/devices")({
+      signal: AbortSignal.abort(),
+    });
 
     expect(result.totalCount).toBe(0);
   });
 
-  it("propagates SDK errors thrown with throwOnError", async () => {
-    const sdkFn = vi.fn().mockRejectedValue(new Error("network failure"));
+  it("propagates fetch errors", async () => {
+    mockFetchWithHeaders.mockRejectedValue(new Error("network failure"));
 
-    await expect(paginatedQueryFn(sdkFn, {})()).rejects.toThrow("network failure");
+    await expect(
+      paginatedQueryFn("/api/devices")({ signal: AbortSignal.abort() }),
+    ).rejects.toThrow("network failure");
   });
 });

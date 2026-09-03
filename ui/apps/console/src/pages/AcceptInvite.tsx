@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
-import { useAcceptInvite } from "@/hooks/useInvitationMutations";
+import { useAcceptInvite } from "@/client/api";
 import { useResolveInvitation } from "@/hooks/useInvitations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";

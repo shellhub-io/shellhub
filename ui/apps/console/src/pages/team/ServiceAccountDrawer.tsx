@@ -3,7 +3,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
+import { useCreateServiceAccount } from "@/client/api";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";

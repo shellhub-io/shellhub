@@ -9,7 +9,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
-import { useApproveAccountRequest } from "@/hooks/useAdminAccountRequestMutations";
+import { useApproveUser } from "@/client/api";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
@@ -65,7 +65,7 @@ export default function AdminUsers() {
     loadingId: loginAsId,
     errorId: loginAsError,
   } = useLoginAsUser();
-  const approve = useApproveAccountRequest();
+  const approve = useApproveUser();
 
   const { users, totalCount, isLoading, error } = useAdminUsers({
     page: params.page,

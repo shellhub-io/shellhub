@@ -4,7 +4,7 @@ import { useForm, useController, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MegaphoneIcon } from "@heroicons/react/24/outline";
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
-import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
+import { useUpdateAnnouncement } from "@/client/api";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { FormInputField } from "@/components/common/fields/rhf";
@@ -29,7 +29,7 @@ export default function EditAnnouncement() {
     isLoading: isFetching,
     error: fetchError,
   } = useAdminAnnouncement(uuid ?? "");
-  const updateAnnouncement = useAdminUpdateAnnouncement();
+  const updateAnnouncement = useUpdateAnnouncement();
 
   const values = useMemo<AnnouncementFormValues>(
     () => ({

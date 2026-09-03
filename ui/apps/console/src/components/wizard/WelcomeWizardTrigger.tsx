@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { GetStatusDevicesResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
-import { useStats } from "@/hooks/useStats";
+import { useGetStatusDevices } from "@/client/api";
 import { hasAcceptedDevices } from "@/utils/stats";
 import { hasSeenWelcome, markWelcomeSeen } from "@/utils/welcomeState";
 import WelcomeWizard from "./WelcomeWizard";
@@ -28,7 +28,7 @@ import { isWizardDemo } from "./demo";
  */
 export default function WelcomeWizardTrigger() {
   const tenant = useAuthStore((s) => s.tenant);
-  const { stats, refetch } = useStats();
+  const { data: stats, refetch } = useGetStatusDevices();
 
   if (!stats || !tenant) return null;
 

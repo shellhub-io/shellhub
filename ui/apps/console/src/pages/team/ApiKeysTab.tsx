@@ -7,7 +7,7 @@ import {
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useApiKeys } from "@/hooks/useApiKeys";
-import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
+import { useApiKeyDelete } from "@/client/api";
 import { useTableSort } from "@/hooks/useTableSort";
 import { type ApiKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -49,7 +49,7 @@ function ApiKeysTab() {
     orderBy,
   });
 
-  const deleteKey = useDeleteApiKey();
+  const deleteKey = useApiKeyDelete();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
@@ -116,7 +116,10 @@ function ApiKeysTab() {
         const expired = isExpired(key.expires_in);
         return (
           <span
-            className={cn("text-xs", expired ? "text-accent-red" : "text-text-secondary")}
+            className={cn(
+              "text-xs",
+              expired ? "text-accent-red" : "text-text-secondary",
+            )}
           >
             {formatExpiry(key.expires_in)}
           </span>

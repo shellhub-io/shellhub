@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
-import {
-  useSetDeviceCustomField,
-  useDeleteDeviceCustomField,
-} from "@/hooks/useDeviceMutations";
+import { useSetDeviceCustomField, useDeleteDeviceCustomField } from "@/client/api";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
 const LABEL =

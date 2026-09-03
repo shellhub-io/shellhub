@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
+import { useInstallKeyUpdate } from "@/client/api";
 import { type InstallKey } from "@/client";
 
 /**
@@ -7,7 +7,7 @@ import { type InstallKey } from "@/client";
  * reversible, which is what distinguishes it from revoking.
  */
 export function useToggleInstallKey() {
-  const updateKey = useUpdateInstallKey();
+  const updateKey = useInstallKeyUpdate();
   const [error, setError] = useState<string | null>(null);
 
   const toggle = async (key: InstallKey) => {
@@ -18,9 +18,7 @@ export function useToggleInstallKey() {
         body: { disabled: !key.disabled },
       });
     } catch {
-      setError(
-        `Failed to ${key.disabled ? "enable" : "disable"} Install Key.`,
-      );
+      setError(`Failed to ${key.disabled ? "enable" : "disable"} Install Key.`);
     }
   };
 

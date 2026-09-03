@@ -2,7 +2,7 @@ import { useState } from "react";
 import { usePublicKeys } from "@/hooks/usePublicKeys";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
+import { useDeletePublicKey } from "@/client/api";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";

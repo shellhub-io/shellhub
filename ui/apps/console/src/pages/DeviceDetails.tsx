@@ -8,13 +8,13 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useDevice } from "../hooks/useDevice";
-import { useActionDialog } from "../hooks/useActionDialog";
 import {
-  useRenameDevice,
-  useAddDeviceTag,
-  useRemoveDeviceTag,
-} from "../hooks/useDeviceMutations";
+  useGetDevice,
+  useUpdateDevice,
+  usePullTagFromDevice,
+} from "@/client/api";
+import { useActionDialog } from "../hooks/useActionDialog";
+import { useAddDeviceTag } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useInstallKeys } from "../hooks/useInstallKeys";
 import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
@@ -47,7 +47,13 @@ export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { device, isLoading, error } = useDevice(uid ?? "");
+  const {
+    data: device,
+    isLoading,
+    error,
+  } = useGetDevice(uid ?? "", {
+    query: { enabled: !!uid },
+  });
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { installKeys } = useInstallKeys({ perPage: 100 });
@@ -56,10 +62,10 @@ export default function DeviceDetails() {
   );
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
-  const renameMutation = useRenameDevice();
+  const renameMutation = useUpdateDevice();
   const canRename = useHasPermission("device:rename");
   const addTagMutation = useAddDeviceTag();
-  const removeTagMutation = useRemoveDeviceTag();
+  const removeTagMutation = usePullTagFromDevice();
   const actionsController = useActionDialog({
     onSuccess: (operation) => {
       if (operation === "remove") void navigate("/devices");

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { CpuChipIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
-import { useDeleteServiceAccount } from "@/hooks/useServiceAccountMutations";
+import { useListServiceAccounts, useDeleteServiceAccount } from "@/client/api";
 import { type ServiceAccount } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -15,7 +14,7 @@ import ServiceAccountDrawer from "./ServiceAccountDrawer";
  * The service accounts tab: the non-human identities in the namespace.
  */
 function ServiceAccountsTab() {
-  const { serviceAccounts, isLoading } = useServiceAccounts();
+  const { data: serviceAccounts = [], isLoading } = useListServiceAccounts();
   const deleteAccount = useDeleteServiceAccount();
 
   const [createOpen, setCreateOpen] = useState(false);

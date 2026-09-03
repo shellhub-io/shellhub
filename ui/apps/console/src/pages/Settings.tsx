@@ -17,12 +17,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { isSdkError } from "../api/errors";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useAccessPolicies } from "../hooks/useAccessPolicies";
+import { useListAccessPolicies } from "@/client/api";
+import { useEditNamespace, useSetSshAccessMode } from "@/client/api";
 import {
-  useEditNamespace,
   useDeleteNamespace,
   useLeaveNamespace,
-  useSetSshAccessMode,
 } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
@@ -322,7 +321,7 @@ function BannerPreview({
 export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const { policies } = useAccessPolicies();
+  const { data: policies = [] } = useListAccessPolicies();
   const editNs = useEditNamespace();
   const setSshAccessMode = useSetSshAccessMode();
   const [editNameOpen, setEditNameOpen] = useState(false);

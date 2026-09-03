@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
+import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
+import { useAcceptDevice } from "@/client/api";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { isSubscriptionBlocked } from "@/utils/billing";

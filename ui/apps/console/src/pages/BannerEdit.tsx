@@ -4,7 +4,7 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useNamespace } from "../hooks/useNamespaces";
 import type { Namespace } from "../hooks/useNamespaces";
-import { useEditNamespace } from "../hooks/useNamespaceMutations";
+import { useEditNamespace } from "@/client/api";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import { Button } from "@shellhub/design-system/primitives";

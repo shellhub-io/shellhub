@@ -1,8 +1,5 @@
 import { useWatch } from "react-hook-form";
-import {
-  useCreateFirewallRule,
-  useUpdateFirewallRule,
-} from "@/hooks/useFirewallRuleMutations";
+import { useCreateFirewallRule, useUpdateFirewallRule } from "@/client/api";
 import type { FirewallRulesResponse } from "@/client";
 import RadioCard from "@/components/common/fields/RadioCard";
 import {

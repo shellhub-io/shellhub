@@ -6,7 +6,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
-import { useCreateSubscription, useSubscription } from "@/hooks/useBilling";
+import { useCreateSubscription } from "@/client/api";
+import { useGetSubscription } from "@/client/api";
 import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
@@ -36,7 +37,9 @@ export default function BillingDialog({
   const [hasDefault, setHasDefault] = useState(false);
   const [error, setError] = useState("");
   const createSubscription = useCreateSubscription();
-  const { refetch: refetchSubscription } = useSubscription(false);
+  const { refetch: refetchSubscription } = useGetSubscription({
+    query: { enabled: false },
+  });
 
   const goNext = useCallback(
     () => startTransition(() => setStep((s) => s + 1)),

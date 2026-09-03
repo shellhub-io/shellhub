@@ -22,12 +22,12 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
-import { useTags } from "@/hooks/useTags";
 import {
+  useListServiceAccounts,
   useCreateAccessPolicy,
   useUpdateAccessPolicy,
-} from "@/hooks/useAccessPolicyMutations";
+} from "@/client/api";
+import { useTags } from "@/hooks/useTags";
 import type { AccessPolicy, AccessPolicyRequest } from "@/client";
 import { ROLES } from "@/pages/team/helpers";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
@@ -365,7 +365,7 @@ function AccessPolicyDrawer({
     (m): m is NamespaceMember =>
       !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
   );
-  const { serviceAccounts } = useServiceAccounts();
+  const { data: serviceAccounts = [] } = useListServiceAccounts();
   const roleMemberCount = (role: string) =>
     members.filter((m) => String(m.role) === role).length;
 

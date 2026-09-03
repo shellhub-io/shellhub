@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
+import { useEditNamespaceAdmin } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import FormDrawer from "@/components/common/FormDrawer";
 import {
@@ -35,7 +35,7 @@ export default function EditNamespaceDrawer({
   onClose,
   namespace,
 }: EditNamespaceDrawerProps) {
-  const editNamespace = useAdminEditNamespace();
+  const editNamespace = useEditNamespaceAdmin();
 
   const schema = useMemo(
     () => editNamespaceSchema(namespace?.name ?? ""),

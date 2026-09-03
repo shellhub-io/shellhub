@@ -12,7 +12,7 @@ import {
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useGetStats } from "@/client/api";
 import PageLoader from "@/components/common/PageLoader";
 
 /**
@@ -20,10 +20,12 @@ import PageLoader from "@/components/common/PageLoader";
  */
 export default function AdminDashboard() {
   const {
-    stats: statsData,
+    data: statsData,
     isLoading: statsLoading,
     isError: statsError,
-  } = useAdminStats();
+  } = useGetStats({
+    query: { staleTime: 5 * 60_000, refetchOnWindowFocus: false, retry: 1 },
+  });
 
   if (statsLoading) {
     return <PageLoader label="Loading dashboard statistics" padding="fill" />;

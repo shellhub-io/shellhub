@@ -3,7 +3,7 @@ import { CheckIcon, TicketIcon } from "@heroicons/react/24/outline";
 import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateInstallKey } from "@/hooks/useInstallKeyMutations";
+import { useInstallKeyCreate } from "@/client/api";
 import { buildInstallCommand } from "@/utils/installCommand";
 import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
@@ -34,7 +34,7 @@ function CreateInstallKeyDrawer({
   onClose: () => void;
   onCreated?: (name: string) => void;
 }) {
-  const createKey = useCreateInstallKey();
+  const createKey = useInstallKeyCreate();
   const [name, setName] = useState("");
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");

@@ -4,7 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useWatch } from "react-hook-form";
 import { Card, Button } from "@shellhub/design-system/primitives";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
-import { useGenerateInvitationLink } from "@/hooks/useInvitationMutations";
+import { useGenerateInvitationLink } from "@/client/api";
 import Drawer from "@/components/common/Drawer";
 import CopyButton from "@/components/common/CopyButton";
 import { FormInputField } from "@/components/common/fields/rhf";
@@ -72,11 +72,19 @@ function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
         return;
       }
 
-      const sdkErrorHandlers: Partial<Record<number, { name: "email" | "root"; message: string }>> = {
+      const sdkErrorHandlers: Partial<
+        Record<number, { name: "email" | "root"; message: string }>
+      > = {
         400: { name: "email", message: "Invalid email or role." },
-        403: { name: "root", message: "You don't have permission to invite members." },
+        403: {
+          name: "root",
+          message: "You don't have permission to invite members.",
+        },
         404: { name: "email", message: "No account exists for this email." },
-        409: { name: "email", message: "This user is already a member or has a pending invitation." },
+        409: {
+          name: "email",
+          message: "This user is already a member or has a pending invitation.",
+        },
       };
 
       const sdkError = sdkErrorHandlers[err.status] ?? {

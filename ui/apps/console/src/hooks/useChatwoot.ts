@@ -9,7 +9,7 @@ import {
 import { getConfig, isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
-import { useSupportIdentifier } from "@/hooks/useSupportIdentifier";
+import { useGetNamespaceSupport } from "@/client/api";
 import { hasActiveSubscription } from "@/utils/billing";
 import {
   falseSnapshot,
@@ -75,10 +75,15 @@ export function useChatwoot(): ChatwootHandle {
   const hasCloudConfig =
     !!config.chatwootWebsiteToken && !!config.chatwootBaseUrl;
 
-  const { identifier, isError: identifierError } = useSupportIdentifier(
-    tenant,
-    isCloudEdition && hasCloudConfig && hasActiveBilling,
-  );
+  const { data: supportData, isError: identifierError } =
+    useGetNamespaceSupport(tenant ?? "", {
+      query: {
+        enabled:
+          isCloudEdition && hasCloudConfig && hasActiveBilling && !!tenant,
+        retry: 1,
+      },
+    });
+  const identifier = supportData?.identifier ?? null;
 
   const widgetReady = useSyncExternalStore(
     subscribeChatwootState,

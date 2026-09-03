@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getSshApproval } from "@/client";
+import { getSshApproval } from "@/client/api";
 import { isSdkError } from "@/api/errors";
-import {
-  useConfirmSSHApproval,
-  useRejectSSHApproval,
-} from "./useSSHIdentityMutations";
+import { useConfirmSshApproval, useRejectSshApproval } from "@/client/api";
 
 /**
  * Drives the SSH login approval modal: fetch the request the gateway is holding
@@ -57,8 +54,8 @@ export function useSSHApproval(code: string) {
   const [deciding, setDeciding] = useState(false);
   const [actionError, setActionError] = useState("");
   const expiresAtRef = useRef(0);
-  const confirmMutation = useConfirmSSHApproval();
-  const rejectMutation = useRejectSSHApproval();
+  const confirmMutation = useConfirmSshApproval();
+  const rejectMutation = useRejectSshApproval();
 
   useEffect(() => {
     let cancelled = false;

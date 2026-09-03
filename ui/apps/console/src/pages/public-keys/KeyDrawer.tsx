@@ -8,10 +8,7 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@shellhub/design-system/primitives";
-import {
-  useCreatePublicKey,
-  useUpdatePublicKey,
-} from "@/hooks/usePublicKeyMutations";
+import { useCreatePublicKey, useUpdatePublicKey } from "@/client/api";
 import type { PublicKeyResponse } from "@/client";
 import RadioCard from "@/components/common/fields/RadioCard";
 import FormDrawer from "@/components/common/FormDrawer";

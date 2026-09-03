@@ -14,7 +14,7 @@ import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useCreateSSHIdentity } from "../hooks/useSSHIdentityMutations";
+import { useCreateSshIdentity } from "@/client/api";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {
   ensureBrowserKey,
@@ -155,7 +155,7 @@ export default function ConnectDrawer({
 
   const tenant = useAuthStore((s) => s.tenant);
   const userId = useAuthStore((s) => s.userId);
-  const createIdentity = useCreateSSHIdentity();
+  const createIdentity = useCreateSshIdentity();
   const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
