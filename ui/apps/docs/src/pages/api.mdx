@@ -21,8 +21,9 @@ An **API key** goes in a header:
 $ curl -H "X-API-Key: <your-api-key>" https://cloud.shellhub.io/api/devices
 ```
 
-It resolves to an identity carrying a namespace and a role. It does not expire on a timer, and it
-belongs to the namespace rather than to a browser session.
+It resolves to an identity carrying a namespace and a role. It belongs to the namespace rather
+than to a browser session, and its expiry is one you set at creation rather than a session lifetime
+the server imposes.
 
 A **bearer token** is the JWT from signing in:
 
@@ -40,7 +41,7 @@ leaves.
 
 ## Creating a key
 
-From the console, under **Namespace → API Keys**. A key has:
+From the console, under **Team → API Keys**. A key has:
 
 | Field | Meaning |
 |---|---|
@@ -50,6 +51,10 @@ From the console, under **Namespace → API Keys**. A key has:
 
 The name is the only external identifier — the internal id is a hash and is never returned. Name
 keys for what they do: `ci-deploy`, `inventory-sync`, not `key1`.
+
+A key is scoped to the one namespace it was created in. It reaches nothing in another namespace,
+and it is not accepted on the instance administration surface under `/admin/api`, which takes a
+credential of its own.
 
 <Callout variant="warning">
 A key's role must be **equal to or less than the role of whoever created it**. An operator cannot
