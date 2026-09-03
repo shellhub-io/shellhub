@@ -122,8 +122,11 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// AuthPublicKey authenticates by SSH key, which is how the SSH gateway checks a key the
-// client offered before opening a session.
+// AuthPublicKey signs the payload with the private key the given fingerprint names, which is
+// how an agent proves to a device that the request reaching it came through ShellHub. The
+// fingerprint is the whole lookup: no namespace bounds it. It returns the bind or validation error
+// for a malformed body, ErrPublicKeyNotFound when no key carries the fingerprint, and the parse or
+// signing error when the stored key cannot sign.
 func (h *Handler) AuthPublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {
