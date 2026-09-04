@@ -66,6 +66,7 @@ export default function NamespaceSelector({
         <Dropdown.Trigger>
           <button
             type="button"
+            data-testid="namespace-selector"
             aria-label={
               isAdminContext
                 ? "Admin Console"
