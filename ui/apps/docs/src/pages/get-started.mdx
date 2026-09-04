@@ -47,22 +47,24 @@ and is only needed when the two differ. See [Enrolling Devices](/get-started/enr
 
 ## 2. Accept the device
 
-Open the console. The device appears under **Devices**, on the **Pending** tab.
+The device is registered, not yet in the namespace. What decides is the install key it registered
+with — and a device that registered with only a tenant ID falls to the namespace's default key.
+Leave that key on manual review and the device waits in its activity for you.
 
-<Shot clip="device-pending" alt="ShellHub Devices page on the Pending tab where new devices await acceptance" />
+<Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
 
-Accept it, and it moves to the accepted list and comes online.
+Accept it and it joins the namespace and comes online.
 
-A device landing in **Pending** is the default for a plain tenant-only enrollment. If you are
-adding devices at any volume you will want them accepted automatically — that is what
-[Install Keys](/manage/devices/install-keys) are for.
+Deciding one device at a time is fine for one device. For a fleet, a key in automatic mode accepts
+them as they register and tags them on the way in — see
+[Install Keys](/manage/devices/install-keys).
 
 ## 3. Connect
 
 From the console, open the device and click the terminal button. That is the whole flow — no
 client, no key to arrange.
 
-<Shot clip="device-connect" alt="Device connecting" />
+<Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the ways to open a session on it" />
 
 From your own machine, use the device's SSHID:
 

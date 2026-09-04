@@ -1,63 +1,71 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
 title: Accepting Devices
-description: Work the pending list, and stop needing to.
+description: Decide which registered devices join the namespace, and set up not having to.
 ---
 
 import Shot from "../../../components/Shot.astro";
 
 # Accepting Devices
 
-A device that enrolls with nothing but a tenant ID lands in **Pending** and waits for a human.
+Registering does not put a device in the namespace. Something still has to decide, and what
+decides is the install key the device registered with.
 
-<Shot clip="device-pending" alt="ShellHub Devices page on the Pending tab where new devices await acceptance" />
+## The key decides
 
-Accept it and it joins the namespace. Reject it and it does not.
+An install key carries a mode, and the mode is the decision:
 
-## Why the pending list exists
+| Mode | What it does |
+|---|---|
+| Automatic | Accepts every device that registers with the key |
+| Manual | Leaves the device pending, for you to review |
+| Webhook | Asks your endpoint, at registration, to accept, reject or leave it pending |
+| MAC allowlist | Accepts a device whose MAC is on the list, and rejects the rest |
 
-A tenant ID is not a secret in any meaningful sense — it is visible in the console, it goes into
-install commands, it ends up in scripts. Anything that learns it can enroll a device.
+A device that registers with only a tenant ID and no key is not an exception to this: it falls to
+the namespace's **default key**, and that key's mode decides what happens to it. Disable the
+default key and those registrations stop being accepted at all — the server refuses them outright
+rather than parking them.
 
-The pending list is the check on that. Enrollment gets a device *into the queue*; a member decides
-whether it gets into the namespace.
+This is the part worth setting up before a fleet arrives. A key in automatic mode also applies its
+tags as devices register, so they turn up already sorted; one in manual mode is a decision per
+device, which is fine for one and a bad afternoon for fifty.
 
-## When it stops working
+## Where a decision waits
 
-For one device this is fine. For fifty it is a bad afternoon, and for devices coming off a
-production line it is impossible — nobody is watching a console when a unit at a customer site
-powers on for the first time.
+A device left pending waits in the activity of the key it registered with.
 
-That is what [install keys](/manage/devices/install-keys) are for. A key in `automatic` mode
-accepts devices as they enroll, and applies tags at the same time, so the fleet arrives already
-sorted.
+<Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
 
-The pending list does not go away; it stops being the only path.
+Each entry carries what the agent reported — MAC address, source IP, architecture, agent version
+— whether this is a new registration or the same device registering again, and the accept or
+reject itself.
+
+Accepting from a device's own page does the same thing, and is how you decide on one you arrived
+at from somewhere else.
 
 ## Deciding what to accept
 
-The pending entry shows what the agent reported: hostname, OS, architecture, agent version, and
-when it appeared.
+What you have is what the agent said about itself. A hostname you did not choose, or an
+architecture that does not match anything you deploy, is worth understanding before accepting.
 
-If something is there you do not recognize, that information is what you have. A hostname you did
-not choose and an OS that does not match your fleet is worth investigating before accepting —
-and rejecting costs nothing, since a legitimate device can be re-enrolled.
+Rejecting costs little: a device that should be there can register again.
 
 ## Rejecting and removing
 
-**Rejected** refuses the device but keeps the record, so you can see it was refused.
+**Rejected** refuses the device and keeps the record, so the refusal is visible later.
 
 **Removed** deletes it from the namespace.
 
-Neither stops the agent. If it is still running and configured, it will enroll again. To retire a
+Neither stops the agent. If it is still running and configured, it registers again. To retire a
 device, stop its agent first.
 
 ## Ephemeral devices
 
-An install key can mark the devices it enrolls as ephemeral, for machines that are genuinely
-temporary — CI runners, short-lived instances — so they do not accumulate in the list forever.
+An install key can mark what it enrolls as ephemeral, for machines that are genuinely temporary —
+CI runners, short-lived instances — so they do not accumulate.
 
 ## Where to go next
 
-- [Install Keys](/manage/devices/install-keys) — Automatic acceptance, tags, webhooks, allowlists.
-- [Enrolling Devices](/get-started/enrolling-devices) — All four enrollment paths.
+- [Install Keys](/manage/devices/install-keys) — Modes, tags, webhooks and allowlists in full.
+- [Enrolling Devices](/get-started/enrolling-devices) — How a device registers in the first place.
