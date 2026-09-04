@@ -159,6 +159,7 @@ function NavGroupItem({
   const isChildActive =
     !disabled && group.children.some((c) => currentPath.startsWith(c.to));
   const align = expanded ? "" : "justify-center";
+  const isGroupActive = isChildActive || (expanded && isOpen);
 
   return (
     <div>
@@ -166,7 +167,7 @@ function NavGroupItem({
         type="button"
         onClick={disabled ? undefined : onToggle}
         title={expanded ? undefined : group.label}
-        aria-expanded={disabled ? undefined : isOpen}
+        aria-expanded={disabled ? undefined : isGroupActive}
         aria-disabled={disabled || undefined}
         className={cn(
           "w-full",
@@ -188,7 +189,7 @@ function NavGroupItem({
               <ChevronDownIcon
                 className={cn(
                   "w-3.5 h-3.5 transition-transform duration-200",
-                  isOpen && "rotate-180",
+                  isGroupActive && "rotate-180",
                 )}
                 strokeWidth={2}
               />
@@ -196,7 +197,7 @@ function NavGroupItem({
           </>
         ) : null}
       </button>
-      {!disabled && expanded && isOpen ? (
+      {!disabled && expanded && isGroupActive ? (
         <div className="ml-5 mt-0.5 space-y-0.5 border-l border-border pl-3">
           {group.children.map((child) => (
             <NavLink
