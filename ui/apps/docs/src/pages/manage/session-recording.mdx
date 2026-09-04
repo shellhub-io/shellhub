@@ -38,7 +38,7 @@ you mean".
 
 It is a namespace setting.
 
-<Shot clip="session-recording-enable" alt="Session recording playback" />
+<Shot id="session-recording" route="/settings" of={{ role: "group", name: "Session Recording" }} alt="The Session Recording setting, switched on" />
 
 It applies to new sessions. Sessions already running are unaffected.
 
@@ -46,7 +46,7 @@ It applies to new sessions. Sessions already running are unaffected.
 
 From the session's detail page.
 
-<Shot clip="session-play" alt="Session recording playback" />
+<Shot id="session-player" route="/sessions/:session" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Play Recording" } }]} alt="A recorded session replaying, with the terminal and the playback controls" />
 
 The player replays the terminal in real time — what was typed, what was displayed, and the timing
 between them.
