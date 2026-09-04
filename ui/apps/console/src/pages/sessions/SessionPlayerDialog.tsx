@@ -19,7 +19,12 @@ export default function SessionPlayerDialog({
   if (!open) return null;
 
   return (
-    <div className="absolute inset-0 z-overlay flex flex-col bg-[#121314]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Session recording"
+      className="absolute inset-0 z-overlay flex flex-col bg-[#121314]"
+    >
       <IconButton
         onClick={onClose}
         aria-label="Close"
