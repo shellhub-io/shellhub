@@ -5,6 +5,7 @@ description: When a login pauses for a confirmation in the browser, and how the 
 ---
 
 import Callout from "../../../components/Callout.astro";
+import Shot from "../../../components/Shot.astro";
 
 # Login Approvals
 
@@ -44,6 +45,8 @@ stock client with nothing installed:
 
 There is nothing to type. Open the link, approve, and the handshake finishes into an ordinary
 session.
+
+<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
 
 **The identity is created for whoever approves, not for whoever was connecting.** Approve a
 stranger's key and you have handed them a key that connects as you, with session records in
@@ -87,6 +90,8 @@ That distinction is the whole point:
   setting.
 
 An identity that has never re-authenticated is always challenged.
+
+<Shot id="login-reauth" route="/ssh-identities/confirm/:reauth" of={{ role: "dialog" }} alt="The re-authentication screen for a key already known, confirming a login rather than creating an identity" />
 
 The window is measured against the identity's **last re-authenticated** timestamp, which moves
 only on a successful re-authentication — not on ordinary use.
