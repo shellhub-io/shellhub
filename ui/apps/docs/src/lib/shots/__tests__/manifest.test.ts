@@ -69,7 +69,10 @@ describe("buildManifest", () => {
 
     it("keeps explicit values over the defaults", () => {
       const manifest = buildManifest([
-        declare({ viewport: { width: 800, height: 600 }, edition: "enterprise" }),
+        declare({
+          viewport: { width: 800, height: 600 },
+          edition: "enterprise",
+        }),
       ]);
 
       expect(manifest.shots[0]).toMatchObject({
@@ -92,6 +95,13 @@ describe("buildManifest", () => {
 
       expect(manifest.shots[0]).not.toHaveProperty("of");
       expect(manifest.shots[0]).not.toHaveProperty("before");
+      expect(manifest.shots[0]).not.toHaveProperty("accessMode");
+    });
+
+    it("preserves an access mode the author declared", () => {
+      const manifest = buildManifest([declare({ accessMode: "legacy" })]);
+
+      expect(manifest.shots[0]).toMatchObject({ accessMode: "legacy" });
     });
   });
 

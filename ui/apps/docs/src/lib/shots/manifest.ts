@@ -3,6 +3,14 @@ import { isDeepStrictEqual } from "node:util";
 /** Which edition a shot needs the instance to be running. */
 export type ShotEdition = "ce" | "enterprise";
 
+/**
+ * Which SSH access mode a shot needs the browsed namespace to be in. Every namespace the
+ * demo creates is born "identity" and can never leave it (see pkg/models/namespace.go), so
+ * "legacy" points the capture at the one namespace the demo grandfathers in on purpose -
+ * the only place a legacy-mode screen exists to photograph at all.
+ */
+export type ShotAccessMode = "legacy";
+
 /** How the capture finds an element: by role and name, text, or test id. */
 export interface ShotSelector {
   role?: string;
@@ -30,6 +38,7 @@ export interface ShotDeclaration {
   of?: ShotSelector;
   viewport?: ShotViewport;
   edition?: ShotEdition;
+  accessMode?: ShotAccessMode;
   before?: ShotInteraction[];
 }
 
@@ -40,6 +49,7 @@ export interface ManifestShot {
   viewport: ShotViewport;
   edition: ShotEdition;
   of?: ShotSelector;
+  accessMode?: ShotAccessMode;
   before?: ShotInteraction[];
   usedBy: string[];
 }
@@ -65,6 +75,7 @@ function toCapture(declaration: ShotDeclaration): Capture {
   };
 
   if (declaration.of) capture.of = declaration.of;
+  if (declaration.accessMode) capture.accessMode = declaration.accessMode;
   if (declaration.before) capture.before = declaration.before;
 
   return capture;
