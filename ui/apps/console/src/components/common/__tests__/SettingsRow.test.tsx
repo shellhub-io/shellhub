@@ -83,4 +83,19 @@ describe("SettingsRow", () => {
     );
     expect(screen.queryByTestId("badge-node")).not.toBeInTheDocument();
   });
+
+  it("exposes the row as a labelled group, for scoping a screenshot to it", () => {
+    render(
+      <SettingsRow
+        icon={<svg />}
+        title="Two-Factor Auth"
+        description="Protect your account."
+      >
+        <button type="button">Enable</button>
+      </SettingsRow>,
+    );
+    expect(
+      screen.getByRole("group", { name: "Two-Factor Auth" }),
+    ).toBeInTheDocument();
+  });
 });
