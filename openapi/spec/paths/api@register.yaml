@@ -59,7 +59,17 @@ post:
             - email_marketing
   responses:
     '200':
-      description: User registered successfully
+      description: |
+        Invitation-based registration where the user is auto-confirmed.
+        Returns session credentials so the client can log in immediately.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '204':
+      description: |
+        Open registration completed. The account requires email confirmation
+        before the user can log in.
     '400':
       $ref: ../components/responses/400.yaml
     '401':
