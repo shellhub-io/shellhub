@@ -29,7 +29,7 @@ $ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 The **Tenant ID** is an immutable UUID generated when the namespace is created. It is what devices,
 API keys and sessions actually reference.
 
-<Shot clip="namespace-copy-tenant-id" alt="Namespace Settings page showing the Tenant ID being copied" />
+<Shot id="tenant-id" route="/settings" of={{ role: "group", name: "Tenant ID" }} alt="The Tenant ID setting, with the control that copies it" />
 
 Renaming a namespace changes every SSHID for it. Anything with a stored SSHID — an SSH config
 alias, an Ansible inventory, a script — breaks. The tenant ID does not change, so agent
@@ -37,7 +37,7 @@ configuration is unaffected.
 
 ## Creating one
 
-<Shot clip="namespace-create" alt="Switching namespaces" />
+<Shot id="namespace-create" route="/devices" of={{ role: "dialog" }} edition="enterprise" before={[{ click: { testId: "namespace-selector" } }, { click: { text: "Create namespace" } }]} alt="The Create a Namespace dialog, asking for a name" />
 
 <EditionBanner>
 Creating a namespace is on **Cloud** and **Enterprise**. Community is single-namespace: the one
@@ -53,7 +53,7 @@ overhead of a second workspace.
 
 ## Switching
 
-<Shot clip="namespace-switch" alt="Switching namespaces" />
+<Shot id="namespace-switch" route="/devices" before={[{ click: { testId: "namespace-selector" } }]} alt="The namespace selector open, listing the namespaces this account belongs to" />
 
 Membership is per namespace, and so is your role — you can be an administrator in one and an
 observer in another.
@@ -69,7 +69,7 @@ A namespace born in identity mode can never leave it. See
 
 ## Deleting
 
-<Shot clip="namespace-delete" alt="Deleting namespaces" />
+<Shot id="namespace-delete" route="/settings" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Delete" } }]} alt="The Delete Namespace dialog, which asks for the namespace name before it will proceed" />
 
 Deleting takes the devices, identities, policies and history with it. Only the owner can do it —
 an administrator cannot.
