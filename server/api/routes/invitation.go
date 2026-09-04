@@ -44,7 +44,7 @@ func (h *Handler) RegisterUser(c *gateway.Context) error {
 		return c.JSON(http.StatusOK, authInfo)
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // ResolveInvitation serves what an invite code stands for, so the accept page can route the
