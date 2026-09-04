@@ -4,6 +4,8 @@ title: Migrating from the Legacy Model
 description: Move a namespace from public keys and firewall rules to identities and access policies.
 ---
 
+import Shot from "../../../components/Shot.astro";
+
 # Migrating from the Legacy Model
 
 Namespaces created before identity-based access default to the legacy model: a public key grants
@@ -55,6 +57,8 @@ candidates. Off is the default and the right choice nearly everywhere else.
 ## Switching
 
 Change the namespace's SSH access mode in the console settings.
+
+<Shot id="ssh-access-mode" route="/settings" of={{ role: "group", name: "SSH access mode" }} accessMode="legacy" alt="The SSH access mode setting, toggled between Legacy and Identity" />
 
 If the namespace has no policies at the moment you switch, ShellHub seeds one — **Owner access**,
 granting the owner every login on every device — so default deny cannot lock the owner out.
