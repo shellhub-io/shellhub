@@ -130,16 +130,25 @@ export const sidebar: SidebarSection[] = [
             href: "/get-started/install/standalone",
           },
           { label: "WSL", href: "/get-started/install/wsl" },
-          { label: "FreeBSD", href: "/get-started/install/freebsd" },
+        ],
+      },
+      {
+        label: "Additional Platforms",
+        items: [
           {
             label: "Raspberry Pi",
             href: "/get-started/install/raspberry-pi",
           },
-          { label: "Buildroot", href: "/get-started/install/buildroot" },
           { label: "Yocto Project", href: "/get-started/install/yocto" },
+          { label: "Buildroot", href: "/get-started/install/buildroot" },
+          { label: "FreeBSD", href: "/get-started/install/freebsd" },
           {
             label: "Building from Source",
             href: "/get-started/install/build-from-source",
+          },
+          {
+            label: "Agent Configuration",
+            href: "/get-started/agent-configuration",
           },
         ],
       },
@@ -147,10 +156,6 @@ export const sidebar: SidebarSection[] = [
         label: "Enrolling Devices",
         href: "/get-started/enrolling-devices",
         featured: true,
-      },
-      {
-        label: "Agent Configuration",
-        href: "/get-started/agent-configuration",
       },
     ],
   },
