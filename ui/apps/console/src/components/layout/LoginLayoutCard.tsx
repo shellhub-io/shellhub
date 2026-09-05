@@ -13,6 +13,7 @@ export default function LoginLayoutCard({
 }) {
   return (
     <div
+      data-testid="login-card"
       className={cn(
         "w-full max-w-md bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up",
         className,
