@@ -10,6 +10,12 @@ import Tabs from "../components/Tabs.astro";
 
 # Onboarding Guide
 
+<Callout variant="info">
+This guide covers **ShellHub Cloud**, the hosted version. To run it on your own infrastructure,
+follow the [Self-Hosting Quickstart](/selfhosted/quickstart) first and then come back — from the
+account onwards everything here is the same, at your own address.
+</Callout>
+
 By the end of this page you will have a device you can open a terminal on from anywhere, and a
 colleague who can open one too — on the devices you chose, as the logins you chose.
 
@@ -17,8 +23,8 @@ Nothing is installed on your side, and nothing on the device listens for inbound
 
 ## Create your account
 
-<Tabs items={["Cloud", "Self-hosted", "Invited"]}>
-<Fragment slot="cloud">
+<Tabs items={["Signing up", "Invited"]}>
+<Fragment slot="signing-up">
 
 1. [Sign up](https://cloud.shellhub.io/sign-up) with a name, a username, an email and a password.
 2. Click the link that arrives by email. Until you do, signing in returns you to the confirmation
@@ -30,18 +36,6 @@ Nothing is installed on your side, and nothing on the device listens for inbound
 
 A namespace is what devices join and what your team shares. Its name is part of every address you
 use to reach a device, so keep it short and lowercase.
-
-</Fragment>
-<Fragment slot="self-hosted">
-
-1. Bring the server up with the [Self-Hosting Quickstart](/selfhosted/quickstart).
-2. Open its address. Until the first account exists, every path redirects to `/setup`.
-3. Fill in the account and the namespace — one screen creates both.
-
-That first account is the instance's superadmin. On Community its namespace is *the* namespace:
-the server refuses to create a second. See [Editions](/about/editions).
-
-Then use your own address wherever the rest of this page says `cloud.shellhub.io`.
 
 </Fragment>
 <Fragment slot="invited">
@@ -79,7 +73,7 @@ $ curl -sSf https://cloud.shellhub.io/install.sh | sh
 ```
 
 The script is served by the server it registers with, which renders the address into it on the
-way out — there is nothing to point at anything.
+way out — there is nothing to point at anything, and nothing to change if you self-host.
 
 Left on **Auto Detect** the installer picks: Docker, then Podman, then Snap, then WSL, then a
 native binary under systemd. To choose yourself, see [Choosing a Method](/get-started/install).
@@ -122,7 +116,14 @@ The code lives ten minutes, and a device has one at a time. If it expires, run
 
 <Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the ways to open a session on it" />
 
-That is the whole flow — no client to install, no key to arrange, nothing opened on the device.
+Nothing to install, no key to arrange, nothing opened on the device. Two things made that work
+without asking you for anything, and they are worth knowing before the next step:
+
+- Your namespace was born with one **access policy**, *Owner access*, granting you every login on
+  every device. It is the only one there — everybody else starts with nothing.
+- The browser generated an SSH key of its own and enrolled it as an **identity** on the spot. It
+  could, because you are signed in to the console: the session already says who you are. The key
+  is held so it cannot be exported, works only in that browser, and dies with its site data.
 
 ### Connect from your own machine
 
@@ -135,16 +136,33 @@ $ ssh <username>@<namespace>.<device>@cloud.shellhub.io
 
 <Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
 
-The first connection from a key ShellHub has not seen is parked for a member to approve, and
-approving binds that key to your account for good — see
-[Login Approvals](/manage/access-control/login-approvals).
+This first one stops rather than connecting. An SSH client offers a key and nothing more, so the
+server has no session to tell it whose key that is — the browser's shortcut is not available here.
+It parks the login and asks a member to approve it in the console.
+
+3. Approve it. The key becomes an identity bound to your account, and every later connection with
+   it goes straight through — a stock OpenSSH client, no wrapper, no approval each time.
+
+<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
+
+So there are two questions being answered, every time anyone connects: **who you are**, which is
+the identity behind the key, and **what you may reach**, which is the policy. The web terminal
+answers the first for you; a policy has to answer the second, and that is the next section.
+
+<Callout variant="info">
+For anything unattended, enrol the key before its first run rather than after. Nobody is
+watching a console to approve a pipeline at 3am — see
+[SSH Identities](/manage/access-control/ssh-identities).
+</Callout>
 
 ## Give your team access
 
-Being a member of a namespace grants no access to any device. Access comes from policies, and a
-new member matches none of them: they can sign in, see the namespace, and connect to nothing.
+You had *Owner access* waiting for you. Nobody else gets one: being a member of a namespace
+grants no access to any device, and a new member matches no policy at all. They can sign in, see
+the namespace, and connect to nothing.
 
-That is on purpose. Access is something you grant, not something that arrives with the invitation.
+That is on purpose. Access is something you grant, not something that arrives with the
+invitation.
 
 ### Invite a member
 
