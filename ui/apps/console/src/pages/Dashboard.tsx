@@ -7,6 +7,7 @@ import {
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useStats } from "@/hooks/useStats";
+import { useContainers } from "@/hooks/useContainers";
 import { hasAnyDevices } from "@/utils/stats";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
@@ -24,9 +25,13 @@ export default function Dashboard() {
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading, error: statsError } = useStats();
 
-  if (statsLoading) return null;
+  const looksEmpty = !statsError && !!stats && !hasAnyDevices(stats);
+  const { totalCount: containerCount, isLoading: containersLoading } =
+    useContainers({ perPage: 1, enabled: looksEmpty });
 
-  if (!statsError && stats && !hasAnyDevices(stats) && currentNamespace) {
+  if (statsLoading || (looksEmpty && containersLoading)) return null;
+
+  if (looksEmpty && containerCount === 0 && currentNamespace) {
     return <WelcomeScreen namespaceName={currentNamespace.name} />;
   }
 
