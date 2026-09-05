@@ -49,6 +49,7 @@ const (
 	BillingRemovePaymentMethod
 	BillingCancelSubscription
 	BillingCreateSubscription
+	BillingGetCustomer
 	BillingGetPaymentMethod
 	BillingGetSubscription
 
@@ -204,6 +205,7 @@ var ownerPermissions = []Permission{
 	BillingRemovePaymentMethod,
 	BillingCancelSubscription,
 	BillingCreateSubscription,
+	BillingGetCustomer,
 	BillingGetSubscription,
 
 	APIKeyCreate,
