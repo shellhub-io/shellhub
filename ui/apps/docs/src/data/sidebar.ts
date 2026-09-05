@@ -110,7 +110,7 @@ export const sidebar: SidebarSection[] = [
     icon: RocketLaunchIcon,
     items: [
       {
-        label: "Onboarding Guide",
+        label: "Quickstart",
         href: "/get-started",
         featured: true,
       },
