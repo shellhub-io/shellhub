@@ -152,11 +152,6 @@ export const sidebar: SidebarSection[] = [
           },
         ],
       },
-      {
-        label: "Enrolling Devices",
-        href: "/get-started/enrolling-devices",
-        featured: true,
-      },
     ],
   },
   {
