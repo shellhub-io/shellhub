@@ -37,6 +37,20 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		assert.Equal(t, 1, stats.PendingDevices)
 	})
 
+	t.Run("counts pending devices without pending containers", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenant), WithDeviceStatus("pending"))
+		s.CreateDevice(t, WithTenantID(tenant), WithDeviceStatus("pending"), WithDevicePlatform("connector"))
+
+		stats, err := st.GetStats(ctx, scope.MustBounded(tenant))
+		require.NoError(t, err)
+		require.NotNil(t, stats)
+
+		assert.Equal(t, 1, stats.PendingDevices)
+	})
+
 	t.Run("succeeds with specific tenantID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

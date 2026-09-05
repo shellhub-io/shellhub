@@ -98,7 +98,8 @@ func buildRegisteredDevicesQuery(db bun.IDB) *bun.SelectQuery {
 func buildPendingDevicesQuery(db bun.IDB) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("status = ?", "pending")
+		Where("status = ?", "pending").
+		Where("platform <> ?", "connector")
 }
 
 func buildRejectedDevicesQuery(db bun.IDB) *bun.SelectQuery {

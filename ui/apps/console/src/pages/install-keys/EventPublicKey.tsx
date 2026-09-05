@@ -4,7 +4,7 @@ import { type InstallKeyEvent } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import { LABEL } from "@/utils/styles";
-import KeyValueChip from "./KeyValueChip";
+import KeyValueChip from "@/components/common/KeyValueChip";
 
 /**
  * The registered device's key fingerprint, shown inline in the row; clicking it opens the full device

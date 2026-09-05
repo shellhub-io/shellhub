@@ -38,6 +38,7 @@ interface UseContainersParams {
   filterTags?: string[];
   sortBy?: string;
   orderBy?: "asc" | "desc";
+  enabled?: boolean;
 }
 
 /**
@@ -51,6 +52,7 @@ export function useContainers({
   filterTags = [],
   sortBy = "last_seen",
   orderBy = "desc",
+  enabled = true,
 }: UseContainersParams = {}) {
   const query: GetContainersData["query"] = { page, per_page: perPage };
   if (status) query.status = status;
@@ -64,6 +66,7 @@ export function useContainers({
   const result = useQuery<PaginatedResult<Device>>({
     queryKey: getContainersQueryKey(options),
     queryFn: paginatedQueryFn(getContainersSdk, options),
+    enabled,
   });
 
   const containers = useMemo(

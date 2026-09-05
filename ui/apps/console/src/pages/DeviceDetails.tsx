@@ -16,8 +16,7 @@ import {
   useRemoveDeviceTag,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useInstallKeys } from "../hooks/useInstallKeys";
-import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
+import { useEnrollmentSource } from "@/hooks/useEnrollmentSource";
 import { DeprecatedBadge } from "@/pages/install-keys/StatusChip";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
@@ -48,9 +47,9 @@ export default function DeviceDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { device, isLoading, error } = useDevice(uid ?? "");
+  const enrollment = useEnrollmentSource(device?.install_key_id);
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const { installKeys } = useInstallKeys({ perPage: 100 });
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
@@ -107,11 +106,6 @@ export default function DeviceDetails() {
 
   const nsName = currentNamespace?.name ?? "";
   const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
-
-  const enrollment = resolveEnrollmentSource(
-    device.install_key_id,
-    installKeys,
-  );
 
   const tags: string[] = Array.isArray(device.tags)
     ? device.tags.map((t) =>
