@@ -21,10 +21,11 @@ The script behind it is served by the server it will register with, which writes
 into it on the way out — port included. Fetch it from your own server and you get one that
 registers there, with nothing to pass.
 
-## Install instructions
+## Platforms
 
-The installer picks one of these for you. Follow a page directly to run it yourself, or to see
-what the method does on the machine.
+The installer picks one of these by looking at the machine, in this order: Docker, Podman, Snap,
+WSL, then a native binary. Follow a page to see what the method leaves on the machine, or to run
+it yourself.
 
 - [Docker](/get-started/install/docker) — The agent in a container, on any host with a daemon.
 - [Podman](/get-started/install/podman) — The same, without a daemon running as root.
@@ -33,21 +34,7 @@ what the method does on the machine.
   container runtime.
 - [WSL](/get-started/install/wsl) — Ubuntu under Windows Subsystem for Linux.
 
-### The order it tries
-
-| Order | Method | Chosen when |
-|---|---|---|
-| 1 | [Docker](/get-started/install/docker) | Docker is present and usable rootful |
-| 2 | [Podman](/get-started/install/podman) | Podman is present and usable rootful |
-| 3 | [Snap](/get-started/install/snap) | The `snap` command is present |
-| 4 | [WSL](/get-started/install/wsl) | WSL 2 with Ubuntu |
-| 5 | [Standalone](/get-started/install/standalone) | Nothing above matched — native binary under systemd |
-
-To force one, set `INSTALL_METHOD`:
-
-```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
-```
+Architectures are detected: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
 
 ## Additional platforms
 
@@ -65,35 +52,10 @@ machines the one-liner cannot reach.
 - [Building from Source](/get-started/install/build-from-source) — For a platform nothing above
   covers, or to run an agent you built.
 
-## What the installer configures
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `SERVER_ADDRESS` | the instance that served the script | Which server the agent talks to |
-| `TENANT_ID` | — | Which namespace to join. Deprecated |
-| `INSTALL_KEY` | — | Which namespace to join, and how it is accepted |
-| `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
-| `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
-| `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
-| `SKIP_BOOT_RESTART_CHECK` | — | Set to `1` to install under Podman without `podman-restart.service` |
-
-Set `SERVER_ADDRESS` only to point somewhere other than where the script came from.
-
-`<domain>/kickstart.sh` serves the same script, under the name it was published as before.
-
-The rendered script can also carry `?tenant_id=`, `?preferred_hostname=` and
-`?preferred_identity=` as defaults; an explicit variable on the command line still wins.
-
-Architectures are detected: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
-
-## Building the agent into an image
-
-Everything above assumes a machine that already boots and has a shell you can pipe into. A
-product image has neither at the point the decision is made, so the agent goes in at build time
-instead — and it goes in from a tree ShellHub maintains, not from a recipe you write.
-
-Two things change once the agent ships inside an image, and both decide whether a production run
-arrives as a fleet or as a problem.
+The first three build the agent into an image, which is a different problem from installing onto
+a machine that already boots: there is no shell to pipe into at the point the decision is made.
+Two things change with it, and both decide whether a production run arrives as a fleet or as a
+problem.
 
 **Enrollment has to happen with nobody present.** There is no console to open and no link to
 click on a unit coming off a line, so the image carries an
