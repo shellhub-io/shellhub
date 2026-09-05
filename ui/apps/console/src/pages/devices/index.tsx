@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -7,7 +7,6 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useActionDialog } from "@/hooks/useActionDialog";
 import PageHeader from "@/components/common/PageHeader";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
@@ -24,8 +23,6 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
 } from "@/hooks/useDeviceMutations";
-import ActionDialog from "@/components/common/ActionDialog";
-import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import {
   PlusIcon,
   TagIcon,
@@ -39,38 +36,26 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-const VALID_STATUSES = ["accepted", "pending", "rejected"] as const;
-
-/** Stable module-level constant — avoids a new object identity every render,
- *  which would invalidate the `update` useCallback in usePaginatedListState. */
-const CONSTRAINTS = { status: VALID_STATUSES } as const;
-
-type ValidStatus = (typeof VALID_STATUSES)[number];
-
-const statusTabs: { label: string; value: ValidStatus }[] = [
-  { label: "Accepted", value: "accepted" },
-  { label: "Pending", value: "pending" },
-  { label: "Rejected", value: "rejected" },
+const relatedPages: { label: string; to: string }[] = [
+  { label: "Pending", to: "/pending-devices" },
+  { label: "Install Keys", to: "/install-keys" },
 ];
 
 type DevicesParams = {
   page: number;
   search: string;
-  status: ValidStatus;
   tags: string[];
 };
 
 const DEFAULTS: DevicesParams = {
   page: 1,
   search: "",
-  status: "accepted",
   tags: [],
 };
 
@@ -81,17 +66,10 @@ type SortField = "name" | "last_seen";
  * filter state held in the URL so a view can be shared.
  */
 export default function Devices() {
-  const {
-    params,
-    setPage,
-    setSearch,
-    setFilter,
-    setArrayFilter,
-    mapArrayFilter,
-  } = usePaginatedListState<DevicesParams>({
-    defaults: DEFAULTS,
-    constraints: CONSTRAINTS,
-  });
+  const { params, setPage, setSearch, setArrayFilter, mapArrayFilter } =
+    usePaginatedListState<DevicesParams>({
+      defaults: DEFAULTS,
+    });
 
   const debouncedSearch = useDebouncedValue(
     params.search.trim(),
@@ -100,9 +78,6 @@ export default function Devices() {
 
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
-  const runDeviceAction = useDeviceActionRunner();
-  const deviceActions = useActionDialog();
-  const { requestAction: requestDeviceAction } = deviceActions;
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
     name: string;
@@ -117,7 +92,7 @@ export default function Devices() {
   const { devices, totalCount, isLoading, error, refetch } = useDevices({
     page: params.page,
     perPage: PER_PAGE,
-    status: params.status,
+    status: "accepted",
     search: debouncedSearch,
     filterTags: params.tags,
     sortBy,
@@ -130,18 +105,6 @@ export default function Devices() {
 
   const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
-
-  const visibleTabs = statusTabs.filter((tab) => tab.value === "accepted");
-
-  const handleStatusChange = (newStatus: ValidStatus) => {
-    setFilter("status", newStatus);
-  };
-
-  useEffect(() => {
-    if (params.status !== "accepted") {
-      setFilter("status", "accepted");
-    }
-  }, [params.status, setFilter]);
 
   const addFilterTag = useCallback(
     (tag: string) => {
@@ -161,7 +124,7 @@ export default function Devices() {
   };
 
   const columns = useMemo<Column<NormalizedDevice>[]>(() => {
-    const baseColumns: Column<NormalizedDevice>[] = [
+    const [hostnameColumn, ...detailColumns]: Column<NormalizedDevice>[] = [
       {
         key: "name",
         header: "Hostname",
@@ -207,163 +170,80 @@ export default function Devices() {
       },
     ];
 
-    if (params.status === "accepted") {
-      return [
-        {
-          key: "online",
-          header: "",
-          headerClassName: "w-12",
-          render: (device) => <OnlineDot online={device.online} />,
-        },
-        baseColumns[0], // hostname
-        {
-          key: "sshid",
-          header: "SSHID",
-          render: (device) => {
-            const sshid = nsName
-              ? buildSshid(nsName, device.name)
-              : device.uid.substring(0, 8);
-            return (
-              <div className="flex items-center gap-1">
-                <code
-                  className="text-2xs font-mono text-text-muted truncate max-w-[220px]"
-                  title={sshid}
-                >
-                  {sshid}
-                </code>
-                <CopyButton text={sshid} />
-              </div>
-            );
-          },
-        },
-        ...baseColumns.slice(1), // os, tags, last_seen
-        {
-          key: "connect",
-          header: "",
-          headerClassName: "w-20",
-          render: (device) =>
-            device.online ? (
-              <RestrictedAction action="device:connect">
-                <Button
-                  variant="successSoft"
-                  size="sm"
-                  icon={
-                    <ChevronDoubleRightIcon
-                      className="w-3 h-3"
-                      strokeWidth={2}
-                    />
-                  }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const existing = useTerminalStore
-                      .getState()
-                      .sessions.find((s) => s.deviceUid === device.uid);
-                    if (existing) {
-                      useTerminalStore.getState().restore(existing.id);
-                    } else {
-                      const sshid = nsName
-                        ? buildSshid(nsName, device.name)
-                        : device.uid;
-                      setConnectTarget({
-                        uid: device.uid,
-                        name: device.name,
-                        sshid,
-                      });
-                    }
-                  }}
-                >
-                  Connect
-                </Button>
-              </RestrictedAction>
-            ) : (
-              <span className="text-2xs text-text-muted/30 font-mono">
-                Offline
-              </span>
-            ),
-        },
-      ];
-    }
-
-    if (params.status === "pending") {
-      return [
-        ...baseColumns,
-        {
-          key: "actions",
-          header: "Actions",
-          headerClassName: "text-right",
-          render: (device) => (
-            <div className="flex items-center justify-end gap-1.5">
-              <RestrictedAction action="device:accept">
-                <Button
-                  variant="successSoft"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    requestDeviceAction(device, "accept");
-                  }}
-                >
-                  Accept
-                </Button>
-              </RestrictedAction>
-              <RestrictedAction action="device:reject">
-                <Button
-                  variant="warningSoft"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    requestDeviceAction(device, "reject");
-                  }}
-                >
-                  Reject
-                </Button>
-              </RestrictedAction>
-            </div>
-          ),
-        },
-      ];
-    }
-
     return [
-      ...baseColumns,
       {
-        key: "actions",
-        header: "Actions",
-        headerClassName: "text-right",
-        render: (device) => (
-          <div className="flex items-center justify-end gap-1.5">
-            <RestrictedAction action="device:accept">
+        key: "online",
+        header: "",
+        headerClassName: "w-12",
+        render: (device) => <OnlineDot online={device.online} />,
+      },
+      hostnameColumn,
+      {
+        key: "sshid",
+        header: "SSHID",
+        render: (device) => {
+          const sshid = nsName
+            ? buildSshid(nsName, device.name)
+            : device.uid.substring(0, 8);
+          return (
+            <div className="flex items-center gap-1">
+              <code
+                className="text-2xs font-mono text-text-muted truncate max-w-[220px]"
+                title={sshid}
+              >
+                {sshid}
+              </code>
+              <CopyButton text={sshid} />
+            </div>
+          );
+        },
+      },
+      ...detailColumns,
+      {
+        key: "connect",
+        header: "",
+        headerClassName: "w-20",
+        render: (device) =>
+          device.online ? (
+            <RestrictedAction action="device:connect">
               <Button
                 variant="successSoft"
                 size="sm"
+                icon={
+                  <ChevronDoubleRightIcon className="w-3 h-3" strokeWidth={2} />
+                }
                 onClick={(e) => {
                   e.stopPropagation();
-                  requestDeviceAction(device, "accept");
+                  const existing = useTerminalStore
+                    .getState()
+                    .sessions.find((s) => s.deviceUid === device.uid);
+                  if (existing) {
+                    useTerminalStore.getState().restore(existing.id);
+                  } else {
+                    const sshid = nsName
+                      ? buildSshid(nsName, device.name)
+                      : device.uid;
+                    setConnectTarget({
+                      uid: device.uid,
+                      name: device.name,
+                      sshid,
+                    });
+                  }
                 }}
               >
-                Accept
+                Connect
               </Button>
             </RestrictedAction>
-            <RestrictedAction action="device:remove">
-              <Button
-                variant="dangerSoft"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  requestDeviceAction(device, "remove");
-                }}
-              >
-                Remove
-              </Button>
-            </RestrictedAction>
-          </div>
-        ),
+          ) : (
+            <span className="text-2xs text-text-muted/30 font-mono">
+              Offline
+            </span>
+          ),
       },
     ];
   }, [
-    params.status,
     nsName,
     addFilterTag,
-    requestDeviceAction,
     addDeviceTag.mutateAsync,
     removeDeviceTag.mutateAsync,
   ]);
@@ -391,30 +271,19 @@ export default function Devices() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
         <div className="flex items-center gap-3">
           <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
-            {visibleTabs.map((tab) => (
-              <button
-                type="button"
-                key={tab.value}
-                onClick={() => handleStatusChange(tab.value)}
-                className={cn(
-                  "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
-                  params.status === tab.value
-                    ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent",
-                )}
+            <span className="h-full inline-flex items-center px-3.5 text-xs font-medium rounded bg-primary/15 text-primary border border-primary/25">
+              Accepted
+            </span>
+            {relatedPages.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="h-full inline-flex items-center gap-1 px-3.5 text-xs font-medium rounded border border-transparent text-text-muted transition-all duration-150 hover:text-primary hover:bg-primary/10"
               >
-                {tab.label}
-              </button>
+                {link.label}
+                <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
+              </Link>
             ))}
-            {/* Acceptance moved to the install-keys area, so the tab that used to be Pending now
-                navigates there instead of filtering (the arrow signals it leaves the list). */}
-            <Link
-              to="/install-keys"
-              className="h-full inline-flex items-center gap-1 px-3.5 text-xs font-medium rounded border border-transparent text-text-muted transition-all duration-150 hover:text-primary hover:bg-primary/10"
-            >
-              Install Keys
-              <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
-            </Link>
           </div>
         </div>
 
@@ -502,17 +371,6 @@ export default function Devices() {
           </div>
         }
       />
-
-      {deviceActions.action && (
-        <ActionDialog
-          key={deviceActions.actionKey}
-          action={deviceActions.action}
-          onClose={deviceActions.close}
-          onSuccess={deviceActions.handleSuccess}
-          entityType="device"
-          runAction={runDeviceAction}
-        />
-      )}
 
       <ConnectDrawer
         open={!!connectTarget}

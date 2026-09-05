@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import type { UseActionDialogResult } from "@/hooks/useActionDialog";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice, mockNamespace } from "@/tests/factories";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
@@ -88,22 +87,6 @@ vi.mock("@/components/common/TagsPopover", () => ({
   ),
 }));
 
-vi.mock("@/components/common/ActionDialog", () => ({
-  default: () => null,
-}));
-
-const mockRequestAction = vi.fn();
-const mockDeviceActionsController: UseActionDialogResult = {
-  action: undefined,
-  actionKey: "closed",
-  requestAction: mockRequestAction,
-  close: vi.fn(),
-  handleSuccess: vi.fn(),
-};
-vi.mock("@/hooks/useActionDialog", () => ({
-  useActionDialog: vi.fn(() => mockDeviceActionsController),
-}));
-
 vi.mock("@/components/common/RestrictedAction", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -133,7 +116,6 @@ beforeEach(() => {
   sdk.pullTagFromDevice.mockResolvedValue(mockSdkResponse(undefined));
   mockNavigate.mockReset();
   mockManageTagsDrawer.mockReset();
-  mockRequestAction.mockReset();
 });
 
 describe("Devices list", () => {
@@ -145,20 +127,29 @@ describe("Devices list", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders the Accepted tab and the Install Keys link, not the pending/rejected tabs", async () => {
+    it("shows the list is the accepted devices, with no status to switch", async () => {
       renderPage();
-      expect(
-        await screen.findByRole("button", { name: "Accepted" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("link", { name: "Install Keys" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: "Pending" }),
-      ).not.toBeInTheDocument();
+
+      expect(await screen.findByText("Accepted")).toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Rejected" }),
       ).not.toBeInTheDocument();
+    });
+
+    it("links out to the pending queue", async () => {
+      renderPage();
+
+      expect(
+        await screen.findByRole("link", { name: "Pending" }),
+      ).toHaveAttribute("href", "/pending-devices");
+    });
+
+    it("links out to the install keys", async () => {
+      renderPage();
+
+      expect(
+        await screen.findByRole("link", { name: "Install Keys" }),
+      ).toHaveAttribute("href", "/install-keys");
     });
 
     it("renders the search input", async () => {
@@ -278,12 +269,12 @@ describe("Devices list", () => {
   });
 
   describe("URL hydration — URL params seed page state on mount", () => {
-    it("passes status from URL to the SDK", async () => {
-      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+    it("always asks for accepted devices, whatever the URL says", async () => {
+      renderPage(["/?status=pending"]);
       await waitFor(() => {
         expect(sdk.getDevices).toHaveBeenCalledWith(
           expect.objectContaining({
-            query: expect.objectContaining({ status: "pending" }),
+            query: expect.objectContaining({ status: "accepted" }),
           }),
         );
       });
@@ -312,23 +303,12 @@ describe("Devices list", () => {
       });
     });
 
-    it("falls back to status=accepted and page=1 when URL has no params", async () => {
+    it("defaults to accepted devices and page 1 when the URL has no params", async () => {
       renderPage(["/"]);
       await waitFor(() => {
         expect(sdk.getDevices).toHaveBeenCalledWith(
           expect.objectContaining({
             query: expect.objectContaining({ status: "accepted", page: 1 }),
-          }),
-        );
-      });
-    });
-
-    it("falls back to status=accepted for an invalid status value", async () => {
-      renderPage(["/?status=invalid"]);
-      await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "accepted" }),
           }),
         );
       });
