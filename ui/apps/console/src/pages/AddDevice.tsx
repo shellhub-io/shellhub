@@ -71,9 +71,8 @@ const INITIAL_VISIBLE = 3;
  * pending list. */
 const CODELESS_METHODS: Method[] = ["auto", "docker", "podman"];
 
-/* Two audiences, following the pattern the field has settled on (Tailscale,
- * NetBird): you pick who you're adding, and the mechanism follows. "This
- * machine" installs clean and confirms in the browser; "Fleet" bakes a reusable
+/* Two audiences, because the mechanism follows from who is being added: one
+ * machine installs clean and confirms in the browser; a fleet bakes a reusable
  * install key into many machines. */
 type Audience = "machine" | "fleet";
 
