@@ -6,6 +6,7 @@ description: Get an account, install the agent on a device, and open your first 
 
 import Callout from "../components/Callout.astro";
 import Shot from '../components/Shot.astro';
+import Tabs from "../components/Tabs.astro";
 
 # Onboarding Guide
 
@@ -14,21 +15,48 @@ with.
 
 ## 0. Get an account and a namespace
 
-A namespace is what devices join and what your team shares. Everything below assumes one.
+A namespace is what devices join and what your team shares. Its name is part of every address
+you use to reach a device, so it is worth a moment: short, lowercase, no dots.
 
-**On Cloud**, [sign up](https://cloud.shellhub.io/sign-up) and confirm your email. Signing up
-creates the account, not the namespace — the console asks for one the first time you sign in,
-and holds there until it has it. Pick a short lowercase name: it appears in every address you
-use to reach a device.
+<Tabs items={["Cloud", "Self-hosted", "Invited"]}>
+<Fragment slot="cloud">
 
-**Self-hosting**, bring the server up with the
-[Self-Hosting Quickstart](/selfhosted/quickstart). Its setup screen creates the first account
-and its namespace together, and that account is the instance's superadmin. Then use your own
-address wherever this page says `cloud.shellhub.io`.
+[Sign up](https://cloud.shellhub.io/sign-up) with a name, a username, an email and a password,
+then click the link that arrives by email. Until you do, signing in returns you to the
+confirmation screen.
 
-**Invited to someone's namespace**, the invitation is the account: open the link, set a
-password, and you are in a namespace already. Skip to step 1 — or to step 3, if devices are
-there waiting for you.
+Signing up creates the account and not the namespace. The first time you sign in the console
+asks for one, and holds there until it has it — there is nothing else to reach without a
+namespace.
+
+<Shot id="create-namespace" route="/devices" account="no-namespace" of={{ testId: "create-namespace" }} frame="band" alt="The screen that asks a new account to name its first namespace" />
+
+Type a name and you land on an empty dashboard, as the owner of it.
+
+</Fragment>
+<Fragment slot="self-hosted">
+
+Bring the server up with the [Self-Hosting Quickstart](/selfhosted/quickstart). Until the first
+account exists every path on it redirects to `/setup`, which asks for the account and the
+namespace on one screen and creates both together.
+
+That first account is the instance's superadmin, and on Community its namespace is *the*
+namespace — the server refuses to create a second. See [Editions](/about/editions).
+
+Then use your own address wherever the rest of this page says `cloud.shellhub.io`.
+
+</Fragment>
+<Fragment slot="invited">
+
+The invitation is the account. Open the link, set a password, and you are in a namespace
+somebody else owns, with whatever role they gave you.
+
+Nothing to create, so skip to step 1 — or straight to step 3, if there are devices in there
+already. What you are allowed to do with them is a matter of that role and of the namespace's
+access policies; see [User Roles](/manage/team/user-roles).
+
+</Fragment>
+</Tabs>
 
 ## 1. Install the agent
 
