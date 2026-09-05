@@ -38,6 +38,7 @@ const AccessPolicies = lazy(() => import("./pages/access-policies"));
 const SSHIdentities = lazy(() => import("./pages/ssh-identities"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
+const Install = lazy(() => import("./pages/install"));
 const SSHApproval = lazy(() => import("./pages/SSHApproval"));
 const Team = lazy(() => import("./pages/team"));
 const InstallKeys = lazy(() => import("./pages/install-keys"));
@@ -123,6 +124,9 @@ export default function App() {
                 />
               </Route>
               <Route path="/accept-device" element={<AcceptDevice />} />
+              {/* Public: the install command needs no account to be useful, and the
+                  docs link straight at it. */}
+              <Route path="/install" element={<Install />} />
               {isCloud() && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -1,24 +1,18 @@
-import { useState, type JSX } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useAuthStore } from "../stores/authStore";
 import {
-  ArchiveBoxIcon,
   ArrowTopRightOnSquareIcon,
   BookOpenIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-  CommandLineIcon,
   ComputerDesktopIcon,
-  CpuChipIcon,
-  CubeIcon,
   InformationCircleIcon,
   KeyIcon,
   PlusIcon,
   ServerStackIcon,
-  SparklesIcon,
-  WrenchIcon,
 } from "@heroicons/react/24/outline";
 import CopyButton from "../components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
@@ -26,6 +20,7 @@ import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer";
 import { isSystemKey } from "@/pages/install-keys/helpers";
 import { modeInfo } from "@/pages/install-keys/constants";
+import { METHODS, type Method } from "@/pages/install/methods";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
 import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
 import InputField from "@/components/common/fields/InputField";
@@ -36,31 +31,9 @@ import { LABEL_BASE } from "@/utils/styles";
 import {
   Button,
   Card,
-  DockerIcon,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-
-type Method =
-  | "auto"
-  | "docker"
-  | "podman"
-  | "snap"
-  | "standalone"
-  | "wsl"
-  | "yocto"
-  | "buildroot"
-  | "freebsd";
-
-interface MethodInfo {
-  id: Method;
-  label: string;
-  tag?: string;
-  description: string;
-  icon: JSX.Element;
-  manual?: boolean;
-  docsUrl?: string;
-}
 
 const INITIAL_VISIBLE = 3;
 
@@ -104,81 +77,6 @@ const MODE_OUTCOME: Record<string, string> = {
   webhook: "decided by your integrator",
   allowlist: "accepted if its MAC is allowed",
 };
-
-const METHODS: MethodInfo[] = [
-  {
-    id: "auto",
-    label: "Auto Detect",
-    tag: "Recommended",
-    description:
-      "Automatically detects Docker, Snap, or Standalone and uses the best available method.",
-    icon: <SparklesIcon className="w-5 h-5" />,
-  },
-  {
-    id: "docker",
-    label: "Docker",
-    description:
-      "Run the agent as a Docker container. Requires Docker daemon running on the host.",
-    icon: <DockerIcon className="w-5 h-5" />,
-  },
-  {
-    id: "standalone",
-    label: "Standalone",
-    description:
-      "Install directly using runc and systemd. No container runtime required.",
-    icon: <ServerStackIcon className="w-5 h-5" />,
-  },
-  {
-    id: "podman",
-    label: "Podman",
-    description:
-      "Alternative to Docker with rootless container capabilities. Requires Podman daemon.",
-    icon: <CubeIcon className="w-5 h-5" />,
-  },
-  {
-    id: "snap",
-    label: "Snap",
-    description:
-      "Easy installation via Snap store with automatic updates. Requires snapd service.",
-    icon: <ArchiveBoxIcon className="w-5 h-5" />,
-  },
-  {
-    id: "wsl",
-    label: "WSL",
-    description:
-      "Optimized for Windows Subsystem for Linux 2 with systemd and mirrored networking.",
-    icon: <ComputerDesktopIcon className="w-5 h-5" />,
-  },
-  {
-    id: "yocto",
-    label: "Yocto Project",
-    tag: "Manual",
-    description:
-      "For embedded Linux systems built with the Yocto build system.",
-    manual: true,
-    docsUrl: "https://docs.shellhub.io/overview/supported-platforms/yocto",
-    icon: <CpuChipIcon className="w-5 h-5" />,
-  },
-  {
-    id: "buildroot",
-    label: "Buildroot",
-    tag: "Manual",
-    description: "For embedded Linux systems built with Buildroot toolchain.",
-    manual: true,
-    docsUrl: "https://docs.shellhub.io/overview/supported-platforms/buildroot",
-    icon: <WrenchIcon className="w-5 h-5" />,
-  },
-  {
-    id: "freebsd",
-    label: "FreeBSD",
-    tag: "Manual",
-    description:
-      "For FreeBSD systems. Requires ports tree and manual compilation.",
-    manual: true,
-    docsUrl: "https://docs.shellhub.io/overview/supported-platforms/freebsd",
-    icon: <CommandLineIcon className="w-5 h-5" />,
-  },
-];
 
 /**
  * How to add a device: the install command, the install key, and the alternatives. The command
