@@ -47,17 +47,43 @@ and is only needed when the two differ. See [Enrolling Devices](/get-started/enr
 
 ## 2. Accept the device
 
-The device is registered, not yet in the namespace. What decides is the install key it registered
-with — and a device that registered with only a tenant ID falls to the namespace's default key.
-Leave that key on manual review and the device waits in its activity for you.
+Give the agent nothing and it pairs. The installer finishes by asking the server for a code,
+printing it, and waiting:
 
-<Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
+```
+To accept this device, open the ShellHub console and enter this code:
 
-Accept it and it joins the namespace and comes online.
+      4KQP-7M2X
 
-Deciding one device at a time is fine for one device. For a fleet, a key in automatic mode accepts
-them as they register and tags them on the way in — see
-[Install Keys](/manage/devices/install-keys).
+Enter it at https://cloud.shellhub.io/accept-device, or open the link:
+
+  https://cloud.shellhub.io/accept-device?code=4KQP7M2X
+
+Waiting for acceptance... (code expires in 10 minutes)
+```
+
+On a machine with a desktop the browser opens by itself. On a server, open the link from
+wherever you are, or type the code into the console.
+
+Either way the same page opens. It shows what the device reported about itself — hostname,
+operating system, MAC address — and asks which namespace it joins. Check that it is the machine
+you think it is, then accept.
+
+<Shot id="accept-device" route="/accept-device?code=:paircode" of={{ testId: "login-card" }} frame="band" alt="The accept page for a paired device, showing what it reported about itself and the namespace it will join" />
+
+The agent is still waiting on the device. Accepting ends that wait: it joins the namespace,
+connects, and there is no second command to run.
+
+The code lives ten minutes, and a device has one at a time — asking for another invalidates the
+last. If it expires before you get to it:
+
+```bash
+$ sudo shellhub-agent login    # native install
+$ shellhub-agent login         # container install
+```
+
+For a machine nobody is standing at, an [install key](/manage/devices/install-keys) replaces this
+step entirely: the key's mode decides, so a fleet arrives accepted and tagged instead of asking.
 
 ## 3. Connect
 
