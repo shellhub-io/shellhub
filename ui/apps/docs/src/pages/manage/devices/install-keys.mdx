@@ -126,10 +126,19 @@ ran.
 A key in manual mode, and a key whose webhook deferred, leaves devices waiting. They are reviewed
 on the key's activity page rather than in the device list.
 
+<Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
+
 Each row is one enrollment attempt: which device, the MAC address, the source address, the
 architecture, the agent version, whether the device was new or enrolling again, and how it was
 resolved. A pending row carries **Accept** and **Reject** beside it. A device that was rejected can
 still be accepted later.
+
+What you have to decide on is what the agent said about itself. A hostname you did not choose, or
+an architecture that does not match anything you deploy, is worth understanding before accepting.
+Rejecting costs little — a device that should be there can enroll again.
+
+Accepting from a device's own page does the same thing, and is how you decide on one you arrived
+at from somewhere else.
 
 This is the audit trail for enrollment. When a device turns up that you did not expect, this is
 where you find out which key let it in.
@@ -185,4 +194,3 @@ A key in an image is a credential you shipped. Anyone with the image has it.
 
 - [Install Key Webhook](/api/install-key-webhook) — The contract, if your endpoint decides.
 - [Tags](/manage/devices/tags) — What the key applies, and why it matters.
-- [Accepting Devices](/manage/devices/accepting) — The manual path this replaces.

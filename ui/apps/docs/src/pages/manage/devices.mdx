@@ -23,7 +23,8 @@ Every machine running an agent appears under **Devices**.
 | `unused` | Registered but never used |
 
 Only accepted devices can be connected to. A device sitting in pending is not broken — it is
-waiting for somebody. See [Accepting Devices](/manage/devices/accepting).
+waiting for somebody, on the activity of the key it enrolled with — see
+[Install Keys](/manage/devices/install-keys#reviewing-a-pending-enrollment).
 
 ## Online and offline
 
@@ -74,16 +75,17 @@ architecture, agent version, when it was last seen.
 The agent version is the first thing to check when something behaves oddly on one device and not
 another.
 
-## Removing a device
+## Rejecting and removing
 
-Removing it from the namespace does not stop the agent. If the agent is still running with the
-same key and configuration, it re-enrolls — and depending on how it enrolls, may come straight
-back.
+**Rejected** refuses the device and keeps the record, so the refusal is still visible later.
+**Removed** deletes it from the namespace.
+
+Neither stops the agent. If it is still running with the same key and configuration, it
+re-enrolls — and depending on how it enrolls, may come straight back.
 
 To retire a device properly: stop the agent on it, *then* remove it here.
 
 ## Where to go next
 
-- [Accepting Devices](/manage/devices/accepting) — Working the pending list.
 - [Tags](/manage/devices/tags) — Grouping devices so policies can select them.
 - [Install Keys](/manage/devices/install-keys) — Enrolling without a manual step.

@@ -198,7 +198,6 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/devices",
             featured: true,
           },
-          { label: "Accepting Devices", href: "/manage/devices/accepting" },
           { label: "Install Keys", href: "/manage/devices/install-keys" },
           { label: "Tags", href: "/manage/devices/tags" },
           {
