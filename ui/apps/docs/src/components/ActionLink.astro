@@ -1,0 +1,75 @@
+---
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+
+/**
+ * The one thing a page wants the reader to go and do, as a control rather than a sentence.
+ *
+ * Sparingly: a page with two of these has neither. Ordinary links stay links — this is for the
+ * destination the page exists to send people to.
+ */
+interface Props {
+  href: string;
+  /** Set false when the destination is inside the docs. */
+  external?: boolean;
+}
+
+const { href, external = true } = Astro.props;
+---
+
+<p class="action-link-row">
+  <a
+    href={href}
+    class="action-link"
+    target={external ? "_blank" : undefined}
+    rel={external ? "noopener noreferrer" : undefined}
+  >
+    <slot />
+    {external && (
+      <ArrowTopRightOnSquareIcon
+        className="action-link-icon"
+        strokeWidth={2}
+        aria-hidden="true"
+      />
+    )}
+  </a>
+</p>
+
+<style>
+  .action-link-row {
+    margin: 1.75rem 0;
+  }
+
+  /* The design system's primary button, in the plain CSS this app is written in: solid
+     primary, white on it, and the glow that marks the one action a screen is offering. */
+  .action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    background: rgb(var(--color-primary-rgb));
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: 0 10px 15px -3px rgba(var(--color-primary-rgb), 0.3);
+    transition: all 0.3s;
+  }
+
+  .action-link:hover {
+    background: rgba(var(--color-primary-rgb), 0.9);
+    box-shadow: 0 20px 25px -5px rgba(var(--color-primary-rgb), 0.4);
+  }
+
+  .action-link:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-rgb));
+    outline-offset: 2px;
+  }
+
+  .action-link-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    opacity: 0.8;
+  }
+</style>
