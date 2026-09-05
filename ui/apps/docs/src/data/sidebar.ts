@@ -10,8 +10,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 /**
- * One entry in the docs navigation. An item with no href is a group heading and carries its
- * children in items; featured promotes it onto the section landing page.
+ * One entry in the docs navigation. An item with items is a group; one with an href is a page.
+ * An entry with both is a group whose heading is itself a page — the overview that introduces
+ * what is under it, so the heading a reader clicks on goes somewhere instead of only opening.
+ * featured promotes an entry onto the section landing page.
  */
 export interface SidebarItem {
   label: string;
@@ -51,17 +53,19 @@ export const PAGES_NOT_IN_NAV: string[] = [
 
 /**
  * Flattens a nested item tree to the entries that actually resolve to a page, dropping the group
- * headings on the way down. Used wherever the tree has to be walked as a list — search, the
- * previous/next links, the link check.
+ * headings that are only headings. Used wherever the tree has to be walked as a list — search,
+ * the previous/next links, the link check.
+ *
+ * A group that is also a page yields itself first and then its children, which is the order it
+ * reads in: previous/next walks into the overview before the pages it introduces.
  */
 export function flattenItems(
   items: SidebarItem[],
 ): { label: string; href: string; featured?: boolean }[] {
-  return items.flatMap((item) =>
-    item.href
-      ? [{ label: item.label, href: item.href, featured: item.featured }]
-      : flattenItems(item.items ?? []),
-  );
+  return items.flatMap((item) => [
+    ...(item.href ? [{ label: item.label, href: item.href, featured: item.featured }] : []),
+    ...flattenItems(item.items ?? []),
+  ]);
 }
 
 /**
@@ -110,18 +114,14 @@ export const sidebar: SidebarSection[] = [
     icon: RocketLaunchIcon,
     items: [
       {
-        label: "Onboarding Guide",
+        label: "Quickstart",
         href: "/get-started",
         featured: true,
       },
       {
         label: "Install the Agent",
+        href: "/get-started/install",
         items: [
-          {
-            label: "Choosing a Method",
-            href: "/get-started/install",
-            featured: true,
-          },
           { label: "Docker", href: "/get-started/install/docker" },
           { label: "Podman", href: "/get-started/install/podman" },
           { label: "Snap", href: "/get-started/install/snap" },
@@ -130,27 +130,27 @@ export const sidebar: SidebarSection[] = [
             href: "/get-started/install/standalone",
           },
           { label: "WSL", href: "/get-started/install/wsl" },
-          { label: "FreeBSD", href: "/get-started/install/freebsd" },
+        ],
+      },
+      {
+        label: "Additional Platforms",
+        items: [
           {
             label: "Raspberry Pi",
             href: "/get-started/install/raspberry-pi",
           },
-          { label: "Buildroot", href: "/get-started/install/buildroot" },
           { label: "Yocto Project", href: "/get-started/install/yocto" },
+          { label: "Buildroot", href: "/get-started/install/buildroot" },
+          { label: "FreeBSD", href: "/get-started/install/freebsd" },
           {
             label: "Building from Source",
             href: "/get-started/install/build-from-source",
           },
+          {
+            label: "Agent Configuration",
+            href: "/get-started/agent-configuration",
+          },
         ],
-      },
-      {
-        label: "Enrolling Devices",
-        href: "/get-started/enrolling-devices",
-        featured: true,
-      },
-      {
-        label: "Agent Configuration",
-        href: "/get-started/agent-configuration",
       },
     ],
   },
@@ -198,7 +198,6 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/devices",
             featured: true,
           },
-          { label: "Accepting Devices", href: "/manage/devices/accepting" },
           { label: "Install Keys", href: "/manage/devices/install-keys" },
           { label: "Tags", href: "/manage/devices/tags" },
           {

@@ -18,7 +18,7 @@ there and waits to be accepted. It is not broken; it is queued.
 
 Accept it and it comes online. To stop needing to, use an
 [install key](/manage/devices/install-keys). See
-[Accepting Devices](/manage/devices/accepting).
+[Install Keys](/manage/devices/install-keys#reviewing-a-pending-enrollment).
 
 ## Is the agent running?
 
@@ -51,7 +51,7 @@ address by accident.
 **`SHELLHUB_TENANT_ID`** — required for Snap and standalone installs. Optional for Docker and
 Podman, which fall back to pairing mode when it is absent — so a container install with no tenant
 is not misconfigured, it is waiting to be paired. Run `shellhub-agent login` on the host. See
-[Enrolling Devices](/get-started/enrolling-devices).
+[How a device enrols](/manage/devices#how-a-device-enrols).
 
 A typo'd variable name is ignored silently, which is a particularly quiet way to fail. Check the
 spelling against [Agent Configuration](/get-started/agent-configuration).
@@ -132,6 +132,6 @@ metadata addresses.
 
 ## Where to go next
 
-- [Enrolling Devices](/get-started/enrolling-devices) — The four enrollment paths.
+- [Managing Devices](/manage/devices) — The three ways a device enrols.
 - [Agent Configuration](/get-started/agent-configuration) — Every variable and its real name.
 - [Connection Denied](/manage/access-control/connection-denied) — The device is there but refuses you.

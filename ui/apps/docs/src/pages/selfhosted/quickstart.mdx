@@ -105,30 +105,11 @@ page never gets past it. Leave `SHELLHUB_ONBOARDING_URL=` empty in `.env.overrid
 
 ## 6. Connect a device
 
-Install the agent on something. Fetch the script from your own server and it registers
-there — the address is rendered into the script as the server hands it over, so there is
-nothing to pass:
+Nothing from here on is specific to self-hosting. The [Quickstart](/get-started) installs the
+agent, accepts the device, opens a terminal on it and gives your team access to it.
 
-```bash
-$ curl -sSf https://shellhub.example.com/install.sh | sh
-```
-
-The script installs the agent and stops on a link:
-
-```
-To accept this device, open the ShellHub console and enter this code:
-      J38E-SWDV
-Enter it at https://shellhub.example.com/accept-device, or open the link:
-  https://shellhub.example.com/accept-device?code=J38ESWDV
-Waiting for acceptance... (code expires in 10 minutes)
-```
-
-Open it, accept the device, and the script finishes with **Device accepted. The agent will connect
-automatically.** The device is in the namespace, online.
-
-From here on nothing is specific to self-hosting: [Connecting to a Device](/connect) opens a
-session on it, and the first connection from a key the namespace has not seen prints a link in
-the terminal rather than opening a session — see [SSH Identities](/manage/access-control/ssh-identities).
+Skip its account section — the setup screen just did that — and use your own address wherever it
+says `cloud.shellhub.io`.
 
 ## Managing the stack
 

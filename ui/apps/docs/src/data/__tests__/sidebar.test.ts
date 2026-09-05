@@ -67,17 +67,18 @@ describe("flattenItems", () => {
       ]);
     });
 
-    it("short-circuits on href when an item has both href and items (href wins, children dropped)", () => {
+    it("yields a group that is also a page before the pages under it", () => {
       const items: SidebarItem[] = [
         {
-          label: "Ambiguous",
-          href: "/ambiguous",
-          items: [{ label: "Orphaned Child", href: "/orphaned" }],
+          label: "Overview",
+          href: "/overview",
+          items: [{ label: "Child", href: "/overview/child" }],
         },
       ];
 
       expect(flattenItems(items)).toEqual([
-        { label: "Ambiguous", href: "/ambiguous", featured: undefined },
+        { label: "Overview", href: "/overview", featured: undefined },
+        { label: "Child", href: "/overview/child", featured: undefined },
       ]);
     });
   });
@@ -138,14 +139,14 @@ describe("flattenItems", () => {
       }
     });
 
-    it("no item has both href and items — the group 1 short-circuit edge-case does not appear in production data", () => {
+    it("a group carrying an href has children too — otherwise it is a page pretending to be a group", () => {
       for (const section of sidebar) {
         for (const item of walkItems(section.items)) {
-          const hasBoth = item.href !== undefined && item.items !== undefined;
+          if (item.href === undefined || item.items === undefined) continue;
           expect(
-            hasBoth,
-            `item "${item.label}" in section "${section.label}" must not have both href and items`,
-          ).toBe(false);
+            item.items.length,
+            `item "${item.label}" in section "${section.label}" has an href and an empty items array`,
+          ).toBeGreaterThan(0);
         }
       }
     });

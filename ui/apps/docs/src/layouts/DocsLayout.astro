@@ -110,7 +110,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
               <div class="grid grid-rows-[1fr] transition-[grid-template-rows] duration-[250ms] ease-in-out data-[collapsed=true]:grid-rows-[0fr]" data-section-items={sectionId} data-collapsed={isCollapsed ? "true" : "false"}>
               <ul class="list-none p-0 m-0 overflow-hidden border-l border-white/[0.06]">
                 {section.items.map((item) => {
-                  if (item.href) {
+                  if (item.href && !item.items) {
                     const isActive = currentPath === item.href.replace(/\/$/, "");
                     return (
                       <li>
@@ -129,19 +129,48 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
                     );
                   }
                   const groupId = item.label.toLowerCase().replace(/\s+/g, "-");
-                  const hasActivePage = (item.items ?? []).some((child: any) =>
-                    currentPath === child.href.replace(/\/$/, "")
-                  );
+                  const hasActivePage =
+                    (item.href && currentPath === item.href.replace(/\/$/, "")) ||
+                    (item.items ?? []).some((child: any) =>
+                      currentPath === child.href.replace(/\/$/, "")
+                    );
                   return (
                     <li>
-                      <button
-                        class="group/grp flex items-center justify-between w-full text-[13.5px] text-text-secondary cursor-pointer transition-colors duration-150 hover:text-text-primary py-[6px] pl-3 -ml-px border-l-2 border-transparent"
-                        data-group={groupId}
-                        aria-expanded={hasActivePage ? "true" : "false"}
-                      >
-                        <span>{item.label}</span>
-                        <ChevronRightIcon className="w-3 h-3 opacity-30 shrink-0 transition-transform duration-200 group-aria-expanded/grp:rotate-90" strokeWidth={2.5} aria-hidden="true" />
-                      </button>
+                      {item.href ? (
+                        /* Two controls rather than one: the heading goes to its own page and the
+                           chevron opens what is under it. A link wrapping a button, or a button
+                           wrapping a link, is one control that has to guess which was meant. */
+                        <div class="group/grp flex items-center justify-between w-full pl-3 -ml-px border-l-2 border-transparent" data-group-row={groupId} aria-expanded={hasActivePage ? "true" : "false"}>
+                          <a
+                            href={item.href}
+                            class:list={[
+                              "block flex-1 text-[13.5px] no-underline py-[6px] transition-colors duration-150",
+                              currentPath === item.href.replace(/\/$/, "")
+                                ? "text-text-primary font-medium"
+                                : "text-text-secondary hover:text-text-primary",
+                            ]}
+                          >
+                            {item.label}
+                          </a>
+                          <button
+                            class="flex items-center py-[6px] pl-2 cursor-pointer text-text-secondary hover:text-text-primary transition-colors duration-150"
+                            data-group={groupId}
+                            aria-expanded={hasActivePage ? "true" : "false"}
+                            aria-label={`${hasActivePage ? "Collapse" : "Expand"} ${item.label}`}
+                          >
+                            <ChevronRightIcon className="w-3 h-3 opacity-30 shrink-0 transition-transform duration-200 group-aria-expanded/grp:rotate-90" strokeWidth={2.5} aria-hidden="true" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          class="group/grp flex items-center justify-between w-full text-[13.5px] text-text-secondary cursor-pointer transition-colors duration-150 hover:text-text-primary py-[6px] pl-3 -ml-px border-l-2 border-transparent"
+                          data-group={groupId}
+                          aria-expanded={hasActivePage ? "true" : "false"}
+                        >
+                          <span>{item.label}</span>
+                          <ChevronRightIcon className="w-3 h-3 opacity-30 shrink-0 transition-transform duration-200 group-aria-expanded/grp:rotate-90" strokeWidth={2.5} aria-hidden="true" />
+                        </button>
+                      )}
                       <ul
                         class="list-none p-0 m-0 overflow-hidden max-h-[500px] opacity-100 transition-[max-height,opacity] duration-200 ease-in-out data-[collapsed=true]:max-h-0 data-[collapsed=true]:opacity-0 border-l border-white/[0.06] ml-3"
                         data-group-items={groupId}
@@ -255,9 +284,14 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         const items = document.querySelector(`[data-group-items="${groupId}"]`);
         if (!items) return;
 
+        // The chevron rotates off an ancestor's aria-expanded, which is the button itself for a
+        // heading that only opens, and the row around it for one that is also a link.
+        const row = document.querySelector(`[data-group-row="${groupId}"]`);
+
         function toggle(collapsed) {
           items.setAttribute("data-collapsed", collapsed ? "true" : "false");
           btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+          row?.setAttribute("aria-expanded", collapsed ? "false" : "true");
         }
 
         btn.addEventListener("click", () => {

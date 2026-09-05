@@ -1,9 +1,10 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Managing Devices
-description: The device list, what the statuses mean, and how devices are identified.
+description: How devices enrol, what the statuses mean, and what identifies one.
 ---
 
+import Deprecated from '../../components/Deprecated.astro';
 import Shot from '../../components/Shot.astro';
 
 # Managing Devices
@@ -11,6 +12,27 @@ import Shot from '../../components/Shot.astro';
 Every machine running an agent appears under **Devices**.
 
 <Shot id="device-list" route="/devices" of={{ role: "main" }} before={[{ click: { role: "button", name: "Sort by Hostname" } }]} alt="ShellHub Devices page listing accepted devices" />
+
+## How a device enrols
+
+Installing the agent is half of it. The other half is the device joining a namespace, and what
+the agent was given at install decides both how it joins and whether anybody has to act on it.
+
+| Given | Lands | Good for |
+|---|---|---|
+| Nothing | Accepted, once somebody opens the link it prints | A device in front of you |
+| An [install key](/manage/devices/install-keys) | Whatever the key's mode says | Fleets, images, production |
+| A tenant ID | Pending, for review | <Deprecated /> |
+
+Given nothing, the agent pairs: it asks the server for a code, prints it with a link, and waits
+for somebody to accept it in the browser. That is the path the
+[Quickstart](/get-started) walks, and the one to use for a machine you are standing at.
+
+An install key is the answer at any volume. It names the namespace on its own and its mode
+decides acceptance, so a fleet arrives accepted and tagged instead of arriving as a queue.
+
+A tenant ID also names the namespace, and is the older way of doing it. It always leaves the
+device pending, which is workable for one device and not for fifty. Nothing new should use it.
 
 ## Statuses
 
@@ -23,7 +45,8 @@ Every machine running an agent appears under **Devices**.
 | `unused` | Registered but never used |
 
 Only accepted devices can be connected to. A device sitting in pending is not broken — it is
-waiting for somebody. See [Accepting Devices](/manage/devices/accepting).
+waiting for somebody, on the activity of the key it enrolled with — see
+[Install Keys](/manage/devices/install-keys#reviewing-a-pending-enrollment).
 
 ## Online and offline
 
@@ -74,16 +97,17 @@ architecture, agent version, when it was last seen.
 The agent version is the first thing to check when something behaves oddly on one device and not
 another.
 
-## Removing a device
+## Rejecting and removing
 
-Removing it from the namespace does not stop the agent. If the agent is still running with the
-same key and configuration, it re-enrolls — and depending on how it enrolls, may come straight
-back.
+**Rejected** refuses the device and keeps the record, so the refusal is still visible later.
+**Removed** deletes it from the namespace.
+
+Neither stops the agent. If it is still running with the same key and configuration, it
+re-enrolls — and depending on how it enrolls, may come straight back.
 
 To retire a device properly: stop the agent on it, *then* remove it here.
 
 ## Where to go next
 
-- [Accepting Devices](/manage/devices/accepting) — Working the pending list.
 - [Tags](/manage/devices/tags) — Grouping devices so policies can select them.
 - [Install Keys](/manage/devices/install-keys) — Enrolling without a manual step.
