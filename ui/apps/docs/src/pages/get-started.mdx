@@ -18,20 +18,27 @@ If you are self-hosting, bring a server up first with the
 
 ## 1. Install the agent
 
-On the device you want to reach:
+The console builds the command for you. **Devices** → **Add Device** asks two things: whether
+this is one machine or a fleet, and how the agent should be installed.
+
+<Shot id="add-device" route="/devices/add" of={{ role: "main" }} alt="The Add Device screen, with the audience and install method chosen and the command it built" />
+
+Copy what it gives you and run it on the device you want to reach. For one machine on a host
+with Docker, Podman, or systemd, that is:
 
 ```bash
 $ curl -sSf https://cloud.shellhub.io/install.sh | sh
 ```
 
-The installer looks at the machine and picks a method — Docker, Podman, Snap, WSL, or a native
-binary under systemd — in that order. If you would rather choose, or the auto-detection picked
-something you did not want, see [Choosing a Method](/get-started/install).
+The script is served by the server it registers with, which renders the address into it on the
+way out, so there is nothing to point at anything.
 
-That is the whole command. The script is served by the server it registers with, which
-renders the address into it on the way out, so there is nothing to point at anything.
+Left on **Auto Detect** the installer inspects the machine and picks: Docker, then Podman, then
+Snap, then WSL, then a native binary under systemd. To choose yourself, or to know what it
+picked, see [Choosing a Method](/get-started/install).
 
-For a machine nobody is standing at, add an [install key](/manage/devices/install-keys):
+Choosing **Fleet** puts an install key in the command instead, which is what you want for
+anything unattended — the key decides acceptance and applies its tags as devices arrive:
 
 ```bash
 $ curl -sSf https://cloud.shellhub.io/install.sh | \
