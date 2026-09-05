@@ -1,7 +1,7 @@
 ---
 layout: ../layouts/DocsLayout.astro
 title: Onboarding Guide
-description: Install the agent on a device, accept it into your namespace, and open your first terminal.
+description: Get an account, install the agent on a device, and open your first terminal on it.
 ---
 
 import Callout from "../components/Callout.astro";
@@ -9,12 +9,26 @@ import Shot from '../components/Shot.astro';
 
 # Onboarding Guide
 
-This is the short path from nothing to a terminal on a device. It takes three steps, and the
-first two happen on the device.
+The short path from nothing to a terminal on a device. Three steps, plus an account to do them
+with.
 
-If you are self-hosting, bring a server up first with the
-[Self-Hosting Quickstart](/selfhosted/quickstart) and use its address wherever this page says
-`cloud.shellhub.io`.
+## 0. Get an account and a namespace
+
+A namespace is what devices join and what your team shares. Everything below assumes one.
+
+**On Cloud**, [sign up](https://cloud.shellhub.io/sign-up) and confirm your email. Signing up
+creates the account, not the namespace — the console asks for one the first time you sign in,
+and holds there until it has it. Pick a short lowercase name: it appears in every address you
+use to reach a device.
+
+**Self-hosting**, bring the server up with the
+[Self-Hosting Quickstart](/selfhosted/quickstart). Its setup screen creates the first account
+and its namespace together, and that account is the instance's superadmin. Then use your own
+address wherever this page says `cloud.shellhub.io`.
+
+**Invited to someone's namespace**, the invitation is the account: open the link, set a
+password, and you are in a namespace already. Skip to step 1 — or to step 3, if devices are
+there waiting for you.
 
 ## 1. Install the agent
 
@@ -37,14 +51,9 @@ Left on **Auto Detect** the installer inspects the machine and picks: Docker, th
 Snap, then WSL, then a native binary under systemd. To choose yourself, or to know what it
 picked, see [Choosing a Method](/get-started/install).
 
-Choosing **Fleet** puts an install key in the command instead, which is what you want for
-anything unattended — the key decides acceptance and applies its tags as devices arrive:
-
-```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | \
-    INSTALL_KEY=<your-install-key> \
-    sh
-```
+Leave it on **One device** for now. **Fleet** is the same screen with an install key baked into
+the command, and it changes what happens in step 2 — that is the path to take once one device
+works.
 
 <Callout variant="info">
 Fetch the script from your own server and the agent registers there instead —
@@ -94,25 +103,22 @@ step entirely: the key's mode decides, so a fleet arrives accepted and tagged in
 
 ## 3. Connect
 
-From the console, open the device and click the terminal button. That is the whole flow — no
-client, no key to arrange.
+Open the device in the console and click the terminal button. That is the whole flow — no client
+to install, no key to arrange.
 
 <Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the ways to open a session on it" />
 
-From your own machine, use the device's SSHID:
+To use your own SSH client instead, the device's page carries its address, with a copy button:
 
 ```bash
 $ ssh <username>@<namespace>.<device>@cloud.shellhub.io
 ```
 
-The device details page shows the SSHID with a copy button.
-
 <Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
 
-The first time you connect with a native client, ShellHub will not recognize the key you offer.
-It parks the login and asks a member to approve it in the console. Approving binds that key to
-your account, and every later connection with it goes straight through — no approval, no wrapper.
-See [Login Approvals](/manage/access-control/login-approvals).
+The first connection from a key ShellHub has not seen is parked for a member to approve, and
+approving binds that key to your account for good — see
+[Login Approvals](/manage/access-control/login-approvals).
 
 ## What to do next
 
