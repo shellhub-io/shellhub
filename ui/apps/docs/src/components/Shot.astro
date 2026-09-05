@@ -2,6 +2,7 @@
 import { warnMissingShotImageInDev } from "../lib/shots/check";
 import type {
   ShotAccessMode,
+  ShotAccount,
   ShotEdition,
   ShotFrame,
   ShotInteraction,
@@ -39,11 +40,13 @@ interface Props {
   edition?: ShotEdition;
   /** The SSH access mode the browsed namespace must be in. Omit for the ordinary one. */
   accessMode?: ShotAccessMode;
+  /** The situation the signed-in account must be in. Omit for the ordinary one. */
+  account?: ShotAccount;
   frame?: ShotFrame;
   before?: ShotInteraction[];
 }
 
-const { id, src, clip, alt, route, of, viewport, edition, accessMode, frame, before } = Astro.props;
+const { id, src, clip, alt, route, of, viewport, edition, accessMode, account, frame, before } = Astro.props;
 
 if ([id, src, clip].filter(Boolean).length !== 1) {
   throw new Error("<Shot> takes exactly one of id, src or clip");
@@ -52,7 +55,7 @@ if ([id, src, clip].filter(Boolean).length !== 1) {
 if (id) {
   if (!route) throw new Error(`<Shot id="${id}"> needs a route to be captured at`);
 
-  recordShot({ id, route, of, viewport, edition, accessMode, frame, before, page: Astro.url.pathname });
+  recordShot({ id, route, of, viewport, edition, accessMode, account, frame, before, page: Astro.url.pathname });
   warnMissingShotImageInDev(id);
 }
 
