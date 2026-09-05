@@ -123,8 +123,13 @@ ran.
 
 ## Reviewing a pending enrollment
 
-A key in manual mode, and a key whose webhook deferred, leaves devices waiting. They are reviewed
-on the key's activity page rather than in the device list.
+A key in manual mode, and a key whose webhook deferred, leaves devices waiting. **Pending** in the
+sidebar lists every device waiting on a decision, whichever key enrolled it, and names that key on
+each row. The dashboard's pending count links to it.
+
+<Shot id="pending-devices" route="/pending-devices" of={{ role: "main" }} alt="The Pending page listing devices awaiting review, each with the install key that enrolled it and an accept or reject" />
+
+To see one key on its own — every device it enrolled, decided or not — open that key's activity.
 
 <Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
 
