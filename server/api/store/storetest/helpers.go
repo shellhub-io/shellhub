@@ -187,6 +187,14 @@ func WithDeviceStatus(status models.DeviceStatus) DeviceOption {
 	}
 }
 
+// WithDevicePlatform sets the device platform, which is what distinguishes a container
+// (platform "connector") from a plain device.
+func WithDevicePlatform(platform string) DeviceOption {
+	return func(d *models.Device) {
+		d.Info.Platform = platform
+	}
+}
+
 // WithDevicePublicKey sets the device public key
 func WithDevicePublicKey(publicKey string) DeviceOption {
 	return func(d *models.Device) {

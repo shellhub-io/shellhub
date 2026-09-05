@@ -34,7 +34,9 @@ get:
                 type: integer
                 minimum: 0
               pending_devices:
-                description: Number of pending devices.
+                description: >-
+                  Number of devices awaiting a decision, excluding containers, so the count
+                  matches the device list it is read alongside.
                 type: integer
                 minimum: 0
               rejected_devices:
