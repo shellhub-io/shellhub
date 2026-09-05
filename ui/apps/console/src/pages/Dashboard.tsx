@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import {
   ClockIcon,
   Squares2X2Icon,
@@ -24,17 +23,12 @@ export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading, error: statsError } = useStats();
-  const navigate = useNavigate();
 
   if (statsLoading) return null;
 
   if (!statsError && stats && !hasAnyDevices(stats) && currentNamespace) {
     return <WelcomeScreen namespaceName={currentNamespace.name} />;
   }
-
-  const goToPending = () => {
-    void navigate("/devices?status=pending");
-  };
 
   return (
     <div>
@@ -88,8 +82,8 @@ export default function Dashboard() {
             icon={<ClockIcon className="w-7 h-7" />}
             title="Pending Devices"
             value={stats?.pending_devices ?? "--"}
-            linkLabel="View pending"
-            onClick={goToPending}
+            linkLabel="Review pending"
+            linkTo="/pending-devices"
             accent="text-accent-yellow"
           />
         </div>

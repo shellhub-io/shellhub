@@ -529,10 +529,10 @@ export default function AddDevice() {
           <div className="text-xs text-text-secondary leading-relaxed">
             After installing, your device will appear in the{" "}
             <Link
-              to="/devices?status=pending"
+              to="/pending-devices"
               className="text-primary font-medium hover:text-primary/80 transition-colors"
             >
-              Pending tab
+              pending list
             </Link>{" "}
             and must be accepted before you can connect to it.
           </div>
