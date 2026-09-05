@@ -31,30 +31,18 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// BlockAPIKey blocks request using API keys to continue.
+// BlockAPIKey blocks request using API keys to continue. It is [gateway.BlockAPIKey] under the
+// name its callers outside this repository still use; a route in this one states the claim with
+// [gateway.NoAPIKey] on the line that mounts it.
 func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		if key := c.Request().Header.Get("X-API-Key"); key != "" {
-			return c.NoContent(http.StatusForbidden)
-		}
-
-		return next(c)
-	}
+	return gateway.BlockAPIKey(next)
 }
 
-// RequiresPermission reports whether the client has the specified permission.
-// If not, it returns an [http.StatusForbidden] response. Otherwise, it executes
-// the next handler.
+// RequiresPermission reports whether the client has the specified permission. It is
+// [gateway.RequiresPermission] under the name its callers outside this repository still use; a
+// route in this one states the claim with [gateway.Requires] on the line that mounts it.
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c *echo.Context) error {
-			if ctx, ok := gateway.From(c); !ok || !ctx.Role().HasPermission(permission) {
-				return c.NoContent(http.StatusForbidden)
-			}
-
-			return next(c)
-		}
-	}
+	return gateway.RequiresPermission(permission)
 }
 
 // RequiresTenant enforces that the caller's tenant scope matches the tenant
