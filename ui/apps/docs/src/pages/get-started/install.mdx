@@ -4,6 +4,7 @@ title: Install the Agent
 description: Every way to put the agent on a machine, and how the installer picks one for you.
 ---
 
+import ActionLink from "../../components/ActionLink.astro";
 import Callout from "../../components/Callout.astro";
 
 # Install the Agent
@@ -14,15 +15,11 @@ which is what makes the machine reachable without anything listening on it.
 If you are setting up your first device, the [Quickstart](/get-started) walks the whole path.
 This page is the reference for the install itself.
 
-One command covers almost every machine:
+<ActionLink href="https://cloud.shellhub.io/install">Install ShellHub</ActionLink>
 
-```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | sh
-```
-
-The script is served by the server it will register with, which writes its own address into it on
-the way out — port included. Fetch it from your own server and you get a script that registers
-there, with nothing to pass.
+The script behind it is served by the server it will register with, which writes its own address
+into it on the way out — port included. Fetch it from your own server and you get one that
+registers there, with nothing to pass.
 
 ## Install instructions
 
