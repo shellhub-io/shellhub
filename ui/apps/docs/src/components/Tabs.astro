@@ -1,0 +1,169 @@
+---
+/**
+ * One thing to do, done differently depending on where you are. The panels are
+ * alternatives to each other, so only one is worth reading and the rest are noise
+ * until you need them.
+ *
+ * A panel is filled through a named slot, the name being its label slugged:
+ *
+ *   <Tabs items={["Cloud", "Self-hosted"]}>
+ *     <Fragment slot="cloud">...</Fragment>
+ *     <Fragment slot="self-hosted">...</Fragment>
+ *   </Tabs>
+ *
+ * Every panel renders, and the script hides the ones not selected. Hiding them in
+ * the HTML instead would make the page depend on script to be readable at all, and
+ * lose the panels to a reader that never runs it - including the one indexing it.
+ */
+interface Props {
+  items: string[];
+  /** Which label starts selected. Defaults to the first. */
+  initial?: string;
+}
+
+const { items, initial } = Astro.props;
+
+const slug = (label: string) =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const group = Math.random().toString(36).slice(2, 8);
+const selected = initial && items.includes(initial) ? initial : items[0];
+---
+
+<div class="tabs" data-tabs>
+  <div class="tabs-list" role="tablist">
+    {
+      items.map((label) => (
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${group}-${slug(label)}`}
+          aria-controls={`panel-${group}-${slug(label)}`}
+          aria-selected={label === selected ? "true" : "false"}
+          tabindex={label === selected ? 0 : -1}
+        >
+          {label}
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    items.map((label) => (
+      <section
+        role="tabpanel"
+        id={`panel-${group}-${slug(label)}`}
+        aria-labelledby={`tab-${group}-${slug(label)}`}
+        data-selected={label === selected ? "" : undefined}
+      >
+        <p class="tabs-fallback-label">{label}</p>
+        <slot name={slug(label)} />
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .tabs {
+    margin: 1.5rem 0;
+  }
+
+  /* Until the script runs every panel is showing, and a row of tabs above them
+     would be describing a selection that is not happening yet. */
+  .tabs-list {
+    display: none;
+    gap: 0.25rem;
+    border-bottom: 1px solid rgb(var(--c-border));
+    margin-bottom: 1.25rem;
+  }
+
+  .tabs[data-ready] .tabs-list {
+    display: flex;
+  }
+
+  .tabs[data-ready] .tabs-fallback-label {
+    display: none;
+  }
+
+  .tabs[data-ready] [role="tabpanel"]:not([data-selected]) {
+    display: none;
+  }
+
+  .tabs-list button {
+    appearance: none;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 0.5rem 0.85rem;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--c-text-muted));
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+  }
+
+  .tabs-list button:hover {
+    color: rgb(var(--c-text-primary));
+  }
+
+  .tabs-list button[aria-selected="true"] {
+    color: rgb(var(--color-primary-rgb));
+    border-bottom-color: rgb(var(--color-primary-rgb));
+  }
+
+  .tabs-list button:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-rgb));
+    outline-offset: -2px;
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+
+  /* The first thing in a panel sits against the tab row, which is already a rule
+     with space under it. */
+  [role="tabpanel"] > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  [role="tabpanel"] > :global(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .tabs-fallback-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((tabs) => {
+    const buttons = [...tabs.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...tabs.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+
+    const select = (index: number, focus = false) => {
+      buttons.forEach((button, i) => {
+        button.setAttribute("aria-selected", String(i === index));
+        button.tabIndex = i === index ? 0 : -1;
+      });
+      panels.forEach((panel, i) => panel.toggleAttribute("data-selected", i === index));
+      if (focus) buttons[index]?.focus();
+    };
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", () => select(index));
+      button.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        select((index + step + buttons.length) % buttons.length, true);
+      });
+    });
+
+    tabs.dataset.ready = "";
+  });
+</script>
