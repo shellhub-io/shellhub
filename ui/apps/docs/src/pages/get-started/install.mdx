@@ -38,34 +38,48 @@ Architectures are detected: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
 
 ## Additional platforms
 
-These do not go through the installer at all. Each is a different route onto the machine, for
-machines the one-liner cannot reach.
+The installer assumes a machine that already exists, with somebody — or a provisioning script —
+running a command on it. These are not that command with a different flag.
 
-- [Raspberry Pi](/get-started/install/raspberry-pi) — The installer, then the device key removed
-  before imaging the card.
-- [Yocto Project](/get-started/install/yocto) — The `meta-shellhub` OpenEmbedded layer, baked into
-  a product image.
+Yocto and Buildroot are embedded build systems: the agent goes into the product image while the
+image is being built, before there is a machine to run anything on, and whoever does it is
+building the firmware rather than using it. FreeBSD has its own packaging. Building from source
+is you producing the binary.
+
+- [Raspberry Pi](/get-started/install/raspberry-pi) — A card image that enrols itself on first
+  boot.
+- [Yocto Project](/get-started/install/yocto) — The `meta-shellhub` OpenEmbedded layer, so the
+  agent is in the image the build produces.
 - [Buildroot](/get-started/install/buildroot) — The ShellHub external tree, same idea.
 - [FreeBSD](/get-started/install/freebsd) — The
-  [ShellHub ports tree](https://github.com/shellhub-io/ports). The installer refuses FreeBSD
-  deliberately.
+  [ShellHub ports tree](https://github.com/shellhub-io/ports).
 - [Building from Source](/get-started/install/build-from-source) — For a platform nothing above
-  covers, or to run an agent you built.
+  covers, or to run an agent you built yourself.
 
-The first three build the agent into an image, which is a different problem from installing onto
-a machine that already boots: there is no shell to pipe into at the point the decision is made.
-Two things change with it, and both decide whether a production run arrives as a fleet or as a
-problem.
+Shipping the agent inside an image raises two questions that installing onto a machine never
+does.
 
-**Enrollment has to happen with nobody present.** There is no console to open and no link to
-click on a unit coming off a line, so the image carries an
-[install key](/manage/devices/install-keys) and units are accepted as they come online, with
-their tags already set. A tenant ID would leave the whole run pending.
+### How does a unit enrol with nobody there?
 
-**The device key must be absent from the image and writable on the device.** The agent generates
-it when the file is missing. A key baked into the image gives every unit the same identity — one
-device that appears to move between machines — and a key path that is read-only or volatile gives
-a new device on every boot.
+A unit coming off a line has no console to open and no link to click. The image carries an
+[install key](/manage/devices/install-keys) instead: units enrol with it and are accepted as they
+come online, tags already set. A tenant ID would leave the whole run pending for somebody to work
+through by hand.
+
+### Where does the device key come from?
+
+A device is identified by a key the agent holds — not by its hostname, not by its MAC address.
+The agent generates that key the first time it starts, if it does not already have one.
+
+Which means the generation has to happen on the unit, not in the image:
+
+- A key already **in the image** is the same key on every unit written from it. The whole run
+  shows up as a single device that appears to move between machines.
+- A key the unit **cannot keep** — storage that is read-only, or wiped on reboot — is generated
+  again on every boot. One unit shows up as a new device each time it starts.
+
+Which file holds it, and how to point the agent somewhere else, is in
+[Agent Configuration](/get-started/agent-configuration).
 
 ## Uninstalling
 
