@@ -37,12 +37,18 @@ import { cn } from "@shellhub/design-system/cn";
 
 const INITIAL_VISIBLE = 3;
 
-/* Methods that run the agent in a container support a tenant-less install: the
- * agent boots without credentials, mints its own pairing code at runtime and
- * prints an accept URL for the browser, so nothing sensitive rides on the
- * command line. Other methods still take a tenant and land the device in the
- * pending list. */
-const CODELESS_METHODS: Method[] = ["auto", "docker", "podman"];
+/* Methods that support a tenant-less install: the agent boots without
+ * credentials, mints its own pairing code at runtime and prints an accept URL
+ * for the browser, so nothing sensitive rides on the command line. Snap is the
+ * exception the installer enforces (require_tenant), and WSL is here because it
+ * installs through the standalone path. */
+const CODELESS_METHODS: Method[] = [
+  "auto",
+  "docker",
+  "podman",
+  "standalone",
+  "wsl",
+];
 
 /* Two audiences, because the mechanism follows from who is being added: one
  * machine installs clean and confirms in the browser; a fleet bakes a reusable
