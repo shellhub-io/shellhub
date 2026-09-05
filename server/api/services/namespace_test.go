@@ -1602,24 +1602,24 @@ func TestDeleteNamespace(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-func TestNamespaceFilterFields(t *testing.T) {
+func TestNamespaceQuery(t *testing.T) {
 	t.Run("name field allows contains, eq and ne operators", func(t *testing.T) {
-		assert.True(t, NamespaceFilterFields.Allows("name", "contains"))
-		assert.True(t, NamespaceFilterFields.Allows("name", "eq"))
-		assert.True(t, NamespaceFilterFields.Allows("name", "ne"))
+		assert.True(t, NamespaceQuery.Filter.Allows("name", "contains"))
+		assert.True(t, NamespaceQuery.Filter.Allows("name", "eq"))
+		assert.True(t, NamespaceQuery.Filter.Allows("name", "ne"))
 	})
 
 	t.Run("type field allows eq and ne operators", func(t *testing.T) {
-		assert.True(t, NamespaceFilterFields.Allows("type", "eq"))
-		assert.True(t, NamespaceFilterFields.Allows("type", "ne"))
+		assert.True(t, NamespaceQuery.Filter.Allows("type", "eq"))
+		assert.True(t, NamespaceQuery.Filter.Allows("type", "ne"))
 	})
 
 	t.Run("type field does not allow contains operator", func(t *testing.T) {
-		assert.False(t, NamespaceFilterFields.Allows("type", "contains"))
+		assert.False(t, NamespaceQuery.Filter.Allows("type", "contains"))
 	})
 
 	t.Run("unknown field is rejected", func(t *testing.T) {
-		assert.False(t, NamespaceFilterFields.Allows("unknown", "eq"))
+		assert.False(t, NamespaceQuery.Filter.Allows("unknown", "eq"))
 	})
 
 	t.Run("namespaceFilterColumns maps type to scope", func(t *testing.T) {

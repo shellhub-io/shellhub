@@ -13,20 +13,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// SessionFilterFields maps each filter field the session list endpoint accepts
-// to the set of operators valid for it.
+// SessionQuery is the query contract the session list accepts. The list takes no sort.
 //
 // "closed" and "active" are boolean-typed; only the "bool" operator is
 // permitted. Allowing "eq" on a boolean column lets a string value
 // (e.g. "true") bypass validation but fail at the Postgres level with
 // "operator does not exist: boolean = text", producing a 500 instead of 400.
-var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
-	"device_uid": {"eq", "ne"},
-	"closed":     {"bool"},
-	"active":     {"bool"},
-},
-	"active",
-)
+var SessionQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"device_uid": {"eq", "ne"},
+		"closed":     {"bool"},
+		"active":     {"bool"},
+	},
+		"active",
+	),
+}
 
 // SessionService owns SSH session records and their recordings — the history of who reached
 // which device, and what was seen on screen.

@@ -1,14 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	log "github.com/sirupsen/logrus"
 )
 
 // The public key routes, relative to the API's base path.
@@ -25,37 +24,8 @@ const (
 )
 
 // GetPublicKeys serves the namespace's public keys.
-func (h *Handler) GetPublicKeys(c *gateway.Context) error {
-	req := new(requests.ListPublicKeys)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode public keys list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.PublicKeyFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	req.Paginator.Normalize()
-
-	list, count, err := h.service.ListPublicKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, list)
+func (h *Handler) GetPublicKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListPublicKeys) ([]models.PublicKey, int, error) {
+	return h.service.ListPublicKeys(ctx, req)
 }
 
 // CreatePublicKey adds a public key, with the device and username rules restricting it.
