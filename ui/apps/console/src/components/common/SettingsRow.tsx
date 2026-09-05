@@ -19,7 +19,11 @@ export default function SettingsRow({
   children,
 }: SettingsRowProps) {
   return (
-    <div className="flex items-center justify-between gap-6 px-5 py-4">
+    <div
+      role="group"
+      aria-label={title}
+      className="flex items-center justify-between gap-6 px-5 py-4"
+    >
       <div className="flex items-start gap-3 min-w-0 flex-1">
         <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
           {icon}

@@ -19,7 +19,7 @@ import Shot from "../../../components/Shot.astro";
 In the legacy model, a public key registered in the namespace *is* the access. Whoever holds the
 matching private key connects.
 
-<Shot src="/img/manual/public-keys.png" alt="The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions" />
+<Shot id="public-keys" route="/sshkeys/public-keys" of={{ role: "main" }} accessMode="legacy" alt="The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions" />
 
 ## Registering a key
 

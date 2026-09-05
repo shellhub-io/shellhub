@@ -3,6 +3,31 @@ import { isDeepStrictEqual } from "node:util";
 /** Which edition a shot needs the instance to be running. */
 export type ShotEdition = "ce" | "enterprise";
 
+/**
+ * Which SSH access mode a shot needs the browsed namespace to be in. Every namespace the
+ * demo creates is born "identity" and can never leave it (see pkg/models/namespace.go), so
+ * "legacy" points the capture at the one namespace the demo grandfathers in on purpose -
+ * the only place a legacy-mode screen exists to photograph at all.
+ */
+export type ShotAccessMode = "legacy";
+
+/**
+ * Which account a shot has to be signed in as. The capture signs in once, as an account
+ * that owns everything the demo staged - which is the wrong account for a screen that only
+ * exists before you have anything. Naming the situation rather than a person keeps the
+ * fixture out of the docs, the same way accessMode does.
+ */
+export type ShotAccount = "no-namespace";
+
+/**
+ * How a shot is framed. A target that covers what it opened over - a dialog, a drawer - is
+ * recognised by the capture and framed on a band of that page, so the picture is not a
+ * cut-out whose own rounded corners fight the corners the docs draw. A card that only looks
+ * like one - the accept-device screen, centred on the ambient background - cannot be told
+ * apart from ordinary content, so it says so here.
+ */
+export type ShotFrame = "band";
+
 /** How the capture finds an element: by role and name, text, or test id. */
 export interface ShotSelector {
   role?: string;
@@ -30,6 +55,9 @@ export interface ShotDeclaration {
   of?: ShotSelector;
   viewport?: ShotViewport;
   edition?: ShotEdition;
+  accessMode?: ShotAccessMode;
+  account?: ShotAccount;
+  frame?: ShotFrame;
   before?: ShotInteraction[];
 }
 
@@ -40,6 +68,9 @@ export interface ManifestShot {
   viewport: ShotViewport;
   edition: ShotEdition;
   of?: ShotSelector;
+  accessMode?: ShotAccessMode;
+  account?: ShotAccount;
+  frame?: ShotFrame;
   before?: ShotInteraction[];
   usedBy: string[];
 }
@@ -65,6 +96,9 @@ function toCapture(declaration: ShotDeclaration): Capture {
   };
 
   if (declaration.of) capture.of = declaration.of;
+  if (declaration.accessMode) capture.accessMode = declaration.accessMode;
+  if (declaration.account) capture.account = declaration.account;
+  if (declaration.frame) capture.frame = declaration.frame;
   if (declaration.before) capture.before = declaration.before;
 
   return capture;

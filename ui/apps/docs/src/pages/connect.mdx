@@ -14,7 +14,7 @@ Two ways in. The browser needs nothing installed; a native client works with no 
 
 Open the device in the console and click the terminal button.
 
-<Shot clip="device-connect" alt="Device connecting" />
+<Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the ways to open a session on it" />
 
 The web terminal runs over a WebSocket to the server and out through the agent's existing
 connection. Nothing is installed and nothing is configured.

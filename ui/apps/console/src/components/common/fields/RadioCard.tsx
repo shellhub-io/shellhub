@@ -36,6 +36,7 @@ export default function RadioCard<T extends string>({
         name={name}
         value={value}
         checked={selected}
+        aria-label={label}
         onChange={() => onChange(value)}
         className="sr-only"
       />

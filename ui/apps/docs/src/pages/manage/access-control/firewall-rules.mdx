@@ -25,11 +25,11 @@ Firewall rules restrict what public keys otherwise permit. Where a key says "thi
 these devices as these users", a firewall rule says "and not from there, not as that, not to
 that one".
 
-<Shot src="/img/manual/firewall-rules.png" alt="The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns" />
+<Shot id="firewall-rules" route="/firewall-rules" of={{ role: "main" }} accessMode="legacy" edition="enterprise" alt="The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns" />
 
 ## Anatomy
 
-<Shot src="/img/manual/firewall-add-rule.png" alt="The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields" />
+<Shot id="firewall-add-rule" route="/firewall-rules" of={{ role: "dialog" }} accessMode="legacy" edition="enterprise" before={[{ click: { role: "button", name: "Add Rule" } }]} alt="The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields" />
 
 | Field | Meaning |
 |---|---|
