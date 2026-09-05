@@ -1,23 +1,42 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: Choosing an Install Method
-description: How the installer picks a method, and when to override it.
+title: Install the Agent
+description: Every way to put the agent on a machine, and how the installer picks one for you.
 ---
 
 import Callout from "../../components/Callout.astro";
 
-# Choosing an Install Method
+# Install the Agent
 
-One command covers almost every case:
+The agent is what a device runs. It opens one outbound connection to the server and keeps it,
+which is what makes the machine reachable without anything listening on it.
+
+If you are setting up your first device, the [Quickstart](/get-started) walks the whole path.
+This page is the reference for the install itself.
+
+One command covers almost every machine:
 
 ```bash
 $ curl -sSf https://cloud.shellhub.io/install.sh | sh
 ```
 
-The installer inspects the machine and picks a method. This page is for when you want to know
-what it picked, or want to pick differently.
+The script is served by the server it will register with, which writes its own address into it on
+the way out — port included. Fetch it from your own server and you get a script that registers
+there, with nothing to pass.
 
-## The order it tries
+## Install instructions
+
+The installer picks one of these for you. Follow a page directly to run it yourself, or to see
+what the method does on the machine.
+
+- [Docker](/get-started/install/docker) — The agent in a container, on any host with a daemon.
+- [Podman](/get-started/install/podman) — The same, without a daemon running as root.
+- [Snap](/get-started/install/snap) — For Ubuntu and anything else carrying snapd.
+- [Standalone Binary](/get-started/install/standalone) — A native binary under systemd, no
+  container runtime.
+- [WSL](/get-started/install/wsl) — Ubuntu under Windows Subsystem for Linux.
+
+### The order it tries
 
 | Order | Method | Chosen when |
 |---|---|---|
@@ -33,30 +52,42 @@ To force one, set `INSTALL_METHOD`:
 $ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
 ```
 
-## What it configures
+## Additional platforms
+
+These do not go through the installer at all. Each is a different route onto the machine, for
+machines the one-liner cannot reach.
+
+- [Raspberry Pi](/get-started/install/raspberry-pi) — The installer, then the device key removed
+  before imaging the card.
+- [Yocto Project](/get-started/install/yocto) — The `meta-shellhub` OpenEmbedded layer, baked into
+  a product image.
+- [Buildroot](/get-started/install/buildroot) — The ShellHub external tree, same idea.
+- [FreeBSD](/get-started/install/freebsd) — The
+  [ShellHub ports tree](https://github.com/shellhub-io/ports). The installer refuses FreeBSD
+  deliberately.
+- [Building from Source](/get-started/install/build-from-source) — For a platform nothing above
+  covers, or to run an agent you built.
+
+## What the installer configures
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `SERVER_ADDRESS` | the instance that served the script | Which server the agent talks to |
 | `TENANT_ID` | — | Which namespace to join. Deprecated |
+| `INSTALL_KEY` | — | Which namespace to join, and how it is accepted |
 | `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
 | `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
 | `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
 | `SKIP_BOOT_RESTART_CHECK` | — | Set to `1` to install under Podman without `podman-restart.service` |
 
-`SERVER_ADDRESS` is filled in for you. The script is served by the server, not from a
-repository, and the server writes its own address into it on the way out — port included — so
-fetching `https://your.server/install.sh` gives you a script that registers with your server.
-Set the variable only to point somewhere other than where the script came from.
+Set `SERVER_ADDRESS` only to point somewhere other than where the script came from.
 
 `<domain>/kickstart.sh` serves the same script, under the name it was published as before.
 
 The rendered script can also carry `?tenant_id=`, `?preferred_hostname=` and
 `?preferred_identity=` as defaults; an explicit variable on the command line still wins.
 
-## Architectures
-
-Detected automatically: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
+Architectures are detected: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
 
 ## Building the agent into an image
 
@@ -64,30 +95,18 @@ Everything above assumes a machine that already boots and has a shell you can pi
 product image has neither at the point the decision is made, so the agent goes in at build time
 instead — and it goes in from a tree ShellHub maintains, not from a recipe you write.
 
-| Build system | What you add | Page |
-|---|---|---|
-| Yocto | The `meta-shellhub` OpenEmbedded layer | [Yocto Project](/get-started/install/yocto) |
-| Buildroot | The ShellHub external tree | [Buildroot](/get-started/install/buildroot) |
-| Raspberry Pi OS | The installer, then the device key removed before imaging | [Raspberry Pi](/get-started/install/raspberry-pi) |
-
-Two things change once the agent ships inside an image, and both decide whether a production
-run arrives as a fleet or as a problem.
+Two things change once the agent ships inside an image, and both decide whether a production run
+arrives as a fleet or as a problem.
 
 **Enrollment has to happen with nobody present.** There is no console to open and no link to
 click on a unit coming off a line, so the image carries an
 [install key](/manage/devices/install-keys) and units are accepted as they come online, with
 their tags already set. A tenant ID would leave the whole run pending.
 
-**The device key must be absent from the image and writable on the device.** The agent
-generates it when the file is missing. A key baked into the image gives every unit the same
-identity — one device that appears to move between machines — and a key path that is read-only
-or volatile gives a new device on every boot.
-
-<Callout variant="info" title="FreeBSD is not the installer's job either">
-It is refused deliberately. Use the
-[ShellHub ports tree](https://github.com/shellhub-io/ports) — see
-[FreeBSD](/get-started/install/freebsd).
-</Callout>
+**The device key must be absent from the image and writable on the device.** The agent generates
+it when the file is missing. A key baked into the image gives every unit the same identity — one
+device that appears to move between machines — and a key path that is read-only or volatile gives
+a new device on every boot.
 
 ## Uninstalling
 
