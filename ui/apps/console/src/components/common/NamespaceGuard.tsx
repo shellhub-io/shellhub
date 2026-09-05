@@ -112,9 +112,9 @@ export default function NamespaceGuard() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <MinimalHeader />
-        <div className="flex-1 flex">
+        <main className="flex-1 flex">
           <CreateNamespace />
-        </div>
+        </main>
       </div>
     );
   }
