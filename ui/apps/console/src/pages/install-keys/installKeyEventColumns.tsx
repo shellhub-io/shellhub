@@ -6,7 +6,7 @@ import DistroIcon from "@/components/common/DistroIcon";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 import EventPublicKey from "./EventPublicKey";
 import InstallKeyEventReview from "./InstallKeyEventReview";
-import KeyValueChip from "./KeyValueChip";
+import KeyValueChip from "@/components/common/KeyValueChip";
 import StatusChip from "./StatusChip";
 
 /**

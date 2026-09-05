@@ -15,7 +15,7 @@ import InstallKeyEventsTable from "./InstallKeyEventsTable";
 import InstallKeyActions from "./InstallKeyActions";
 import RevealInstallKeyDialog from "./RevealInstallKeyDialog";
 import StatusChip from "./StatusChip";
-import KeyValueChip from "./KeyValueChip";
+import KeyValueChip from "@/components/common/KeyValueChip";
 import UsageMeter from "./UsageMeter";
 import { modeInfo } from "./constants";
 import { installKeyDisplayName, isPairingKey } from "./helpers";
