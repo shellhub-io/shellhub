@@ -1,6 +1,6 @@
 ---
 layout: ../layouts/DocsLayout.astro
-title: Onboarding Guide
+title: Quickstart
 description: Create an account, reach your first device from anywhere, and let a colleague reach it too.
 ---
 
@@ -8,12 +8,12 @@ import Callout from "../components/Callout.astro";
 import Shot from '../components/Shot.astro';
 import Tabs from "../components/Tabs.astro";
 
-# Onboarding Guide
+# Quickstart
 
 <Callout variant="info">
-This guide covers **ShellHub Cloud**, the hosted version. To run it on your own infrastructure,
-follow the [Self-Hosting Quickstart](/selfhosted/quickstart) first and then come back — from the
-account onwards everything here is the same, at your own address.
+This covers **ShellHub Cloud**, the hosted version. To run it on your own infrastructure, stand a
+server up with the [Self-Hosting Quickstart](/selfhosted/quickstart) first and then come back —
+from the account onwards everything here is the same, at your own address.
 </Callout>
 
 By the end of this page you will have a device you can open a terminal on from anywhere, and a
@@ -127,21 +127,23 @@ without asking you for anything, and they are worth knowing before the next step
 
 ### Connect from your own machine
 
-1. Copy the device's address from its page.
+1. Copy the device's **SSHID** from the device list — the column carries a copy button, and the
+   device's own page has the same thing.
 2. Use it as the host with any SSH client:
 
 ```bash
 $ ssh <username>@<namespace>.<device>@cloud.shellhub.io
 ```
 
-<Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
+The SSHID is what makes one address enough: the namespace and the device sit in the hostname, so
+an ordinary client reaches the right machine through the one server that is listening.
 
-This first one stops rather than connecting. An SSH client offers a key and nothing more, so the
-server has no session to tell it whose key that is — the browser's shortcut is not available here.
-It parks the login and asks a member to approve it in the console.
+This first connection stops rather than opening. A client offers a key and nothing else, so the
+server has no session telling it whose key that is — the browser's shortcut is not available out
+here. It parks the login and asks a member to approve it in the console.
 
 3. Approve it. The key becomes an identity bound to your account, and every later connection with
-   it goes straight through — a stock OpenSSH client, no wrapper, no approval each time.
+   it goes straight through — stock OpenSSH, no wrapper, no approval each time.
 
 <Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
 
