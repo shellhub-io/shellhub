@@ -11,6 +11,15 @@ export type ShotEdition = "ce" | "enterprise";
  */
 export type ShotAccessMode = "legacy";
 
+/**
+ * How a shot is framed. A target that covers what it opened over - a dialog, a drawer - is
+ * recognised by the capture and framed on a band of that page, so the picture is not a
+ * cut-out whose own rounded corners fight the corners the docs draw. A card that only looks
+ * like one - the accept-device screen, centred on the ambient background - cannot be told
+ * apart from ordinary content, so it says so here.
+ */
+export type ShotFrame = "band";
+
 /** How the capture finds an element: by role and name, text, or test id. */
 export interface ShotSelector {
   role?: string;
@@ -39,6 +48,7 @@ export interface ShotDeclaration {
   viewport?: ShotViewport;
   edition?: ShotEdition;
   accessMode?: ShotAccessMode;
+  frame?: ShotFrame;
   before?: ShotInteraction[];
 }
 
@@ -50,6 +60,7 @@ export interface ManifestShot {
   edition: ShotEdition;
   of?: ShotSelector;
   accessMode?: ShotAccessMode;
+  frame?: ShotFrame;
   before?: ShotInteraction[];
   usedBy: string[];
 }
@@ -76,6 +87,7 @@ function toCapture(declaration: ShotDeclaration): Capture {
 
   if (declaration.of) capture.of = declaration.of;
   if (declaration.accessMode) capture.accessMode = declaration.accessMode;
+  if (declaration.frame) capture.frame = declaration.frame;
   if (declaration.before) capture.before = declaration.before;
 
   return capture;
