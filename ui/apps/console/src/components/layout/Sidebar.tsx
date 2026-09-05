@@ -8,6 +8,7 @@ import {
   KeyIcon,
   Cog6ToothIcon,
   UsersIcon,
+  ClockIcon,
   CpuChipIcon,
   CommandLineIcon,
   LockClosedIcon,
@@ -43,6 +44,11 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
       to: "/devices",
       label: "Devices",
       icon: <CpuChipIcon className={navIcon} />,
+    },
+    {
+      to: "/pending-devices",
+      label: "Pending",
+      icon: <ClockIcon className={navIcon} />,
     },
     {
       to: "/containers",

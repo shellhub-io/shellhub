@@ -39,6 +39,7 @@ const SSHIdentities = lazy(() => import("./pages/ssh-identities"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
 const Install = lazy(() => import("./pages/install"));
+const PendingDevices = lazy(() => import("./pages/PendingDevices"));
 const SSHApproval = lazy(() => import("./pages/SSHApproval"));
 const Team = lazy(() => import("./pages/team"));
 const InstallKeys = lazy(() => import("./pages/install-keys"));
@@ -235,6 +236,7 @@ export default function App() {
                   />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/devices" element={<Devices />} />
+                  <Route path="/pending-devices" element={<PendingDevices />} />
                   <Route path="/devices/add" element={<AddDevice />} />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
                   <Route path="/containers" element={<Containers />} />
