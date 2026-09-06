@@ -113,20 +113,6 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 		return nil, ErrFindPublicKey
 	}
 
-	usernameOK, err := service.EvaluateKeyUsername(ctx, key, creds.Username)
-	if err != nil {
-		return nil, ErrEvaluatePublicKey
-	}
-
-	filterOK, err := service.EvaluateKeyFilter(ctx, key, *device)
-	if err != nil {
-		return nil, ErrEvaluatePublicKey
-	}
-
-	if !usernameOK || !filterOK {
-		return nil, ErrForbiddenPublicKey
-	}
-
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
 	if err != nil {
 		return nil, ErrDataPublicKey
@@ -225,6 +211,10 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		}
 
 		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		if creds.isPublicKey() || creds.PublicKey != "" {
+			return ErrForbiddenPublicKey
+		}
 
 		return ErrAuthentication
 	}
