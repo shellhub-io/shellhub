@@ -13,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
-	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -101,37 +100,29 @@ func (p *publicKeyAuth) Offer(session *Session) error {
 		}
 	}
 
+	ctx := context.Background()
 	fingerprint := gossh.FingerprintLegacyMD5(p.pk)
 
-	magic, err := gossh.NewPublicKey(&magickey.GetReference().PublicKey)
+	key, err := session.service.GetPublicKey(ctx, fingerprint, session.Device.TenantID)
 	if err != nil {
 		return err
 	}
 
-	if gossh.FingerprintLegacyMD5(magic) != fingerprint {
-		ctx := context.Background()
-
-		key, err := session.service.GetPublicKey(ctx, fingerprint, session.Device.TenantID)
-		if err != nil {
-			return err
-		}
-
-		usernameOK, err := session.service.EvaluateKeyUsername(ctx, key, session.Data.Target.Username)
-		if err != nil {
-			return ErrEvaluatePublicKey
-		}
-
-		filterOK, err := session.service.EvaluateKeyFilter(ctx, key, *session.Device)
-		if err != nil {
-			return ErrEvaluatePublicKey
-		}
-
-		if !usernameOK || !filterOK {
-			return ErrEvaluatePublicKey
-		}
+	usernameOK, err := session.service.EvaluateKeyUsername(ctx, key, session.Data.Target.Username)
+	if err != nil {
+		return ErrEvaluatePublicKey
 	}
 
-	return err
+	filterOK, err := session.service.EvaluateKeyFilter(ctx, key, *session.Device)
+	if err != nil {
+		return ErrEvaluatePublicKey
+	}
+
+	if !usernameOK || !filterOK {
+		return ErrEvaluatePublicKey
+	}
+
+	return nil
 }
 
 type passwordAuth struct {
