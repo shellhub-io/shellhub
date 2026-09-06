@@ -14,7 +14,6 @@ var (
 	ErrWebData                 = errors.New("failed to get the data to connect to device")
 	ErrFindDevice              = errors.New("failed to find the device")
 	ErrFindPublicKey           = errors.New("failed to get the public key from the server")
-	ErrEvaluatePublicKey       = errors.New("failed to evaluate the public key in the server")
 	ErrForbiddenPublicKey      = errors.New("failed to use the public key for this action")
 	ErrDataPublicKey           = errors.New("failed to parse the public key data")
 	ErrPty                     = errors.New("failed to request the pty to agent")
