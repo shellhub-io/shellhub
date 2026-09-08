@@ -72,6 +72,15 @@ func NewFieldConstraints(entries map[string][]string, virtualBools ...string) Fi
 	}
 }
 
+// Names reports whether the field is one the constraints allow filtering on at all, whatever the
+// operator. It separates a field nobody may filter on from one this operator may not be used with,
+// which [FieldConstraints.Allows] answers as one.
+func (c FieldConstraints) Names(name string) bool {
+	_, ok := c.operators[name]
+
+	return ok
+}
+
 // Allows reports whether operator is valid for the given field name.
 func (c FieldConstraints) Allows(name, operator string) bool {
 	ops, ok := c.operators[name]
@@ -110,10 +119,13 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 	return nil
 }
 
-// ValidateFilters returns [ErrFilterPropertyInvalid] if any property filter
-// references a (field, operator) pair not in constraints, carries a
-// non-primitive Value, or exceeds the configured size limits. Operator
-// filters (and/or) are left to the store to parse.
+// ValidateFilters returns a [FilterError] naming what it refused and the node it refused:
+// [ErrFilterTooManyItems] past [MaxFilterItems], [ErrFilterPropertyInvalid] for a field the
+// constraints do not name, [ErrFilterOperatorInvalid] for an operator that field does not accept,
+// [ErrFilterValueInvalid] for a value that is not primitive or is of a type the operator cannot
+// compare, [ErrFilterValueTooLarge] for one of an acceptable type that exceeds the size limits, and
+// [ErrFilterShapeInvalid] for a property node whose params are not one. Operator filters (and/or)
+// are left to the store to parse.
 //
 // Equality on a virtual bool-backed field (see [FieldConstraints.IsVirtualBoolField]) accepts
 // anything bool-convertible, because ParseFilterProperty intercepts those before any column is
@@ -125,7 +137,7 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 	}
 
 	if len(filters.Data) > MaxFilterItems {
-		return ErrFilterPropertyInvalid
+		return rejectFilter(ErrFilterTooManyItems)
 	}
 
 	for _, f := range filters.Data {
@@ -135,29 +147,37 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 
 		prop, ok := f.Params.(*FilterProperty)
 		if !ok {
-			return ErrFilterPropertyInvalid
+			return rejectFilter(ErrFilterShapeInvalid)
+		}
+
+		if !constraints.Names(prop.Name) {
+			return rejectField(ErrFilterPropertyInvalid, prop.Name)
 		}
 
 		if !constraints.Allows(prop.Name, prop.Operator) {
-			return ErrFilterPropertyInvalid
+			return rejectOperator(ErrFilterOperatorInvalid, prop.Name, prop.Operator)
 		}
 
-		if !isPrimitive(prop.Value) || !isValueWithinLimits(prop.Value) {
-			return ErrFilterPropertyInvalid
+		if !isPrimitive(prop.Value) {
+			return rejectField(ErrFilterValueInvalid, prop.Name)
+		}
+
+		if !isValueWithinLimits(prop.Value) {
+			return rejectField(ErrFilterValueTooLarge, prop.Name)
 		}
 
 		if prop.Operator == "bool" && !isBoolConvertible(prop.Value) {
-			return ErrFilterPropertyInvalid
+			return rejectField(ErrFilterValueInvalid, prop.Name)
 		}
 
 		if prop.Operator == "eq" || prop.Operator == "ne" {
 			if constraints.IsVirtualBoolField(prop.Name) {
 				if !isBoolConvertible(prop.Value) {
-					return ErrFilterPropertyInvalid
+					return rejectField(ErrFilterValueInvalid, prop.Name)
 				}
 			} else {
 				if _, ok := prop.Value.(string); !ok {
-					return ErrFilterPropertyInvalid
+					return rejectField(ErrFilterValueInvalid, prop.Name)
 				}
 			}
 		}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFieldSet_Allows(t *testing.T) {
@@ -94,9 +95,11 @@ func TestValidateFilters(t *testing.T) {
 	}, "online" /* virtual bool fields */)
 
 	cases := []struct {
-		name    string
-		filters *Filters
-		wantErr error
+		name         string
+		filters      *Filters
+		wantErr      error
+		wantField    string
+		wantOperator string
 	}{
 		{
 			name:    "nil filters",
@@ -134,42 +137,48 @@ func TestValidateFilters(t *testing.T) {
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "tenant_id", Operator: "eq", Value: "x"}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterPropertyInvalid,
+			wantField: "tenant_id",
 		},
 		{
 			name: "operator not allowed for field",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "contains", Value: "x"}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:      ErrFilterOperatorInvalid,
+			wantField:    "status",
+			wantOperator: "contains",
 		},
 		{
 			name: "mongo operator as field",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "$where", Operator: "contains", Value: "x"}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterPropertyInvalid,
+			wantField: "$where",
 		},
 		{
 			name: "nested object as value",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: map[string]any{"$ne": "accepted"}}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "array of objects as value",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []any{map[string]any{"$ne": "accepted"}}}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "wrong params type",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: "not-a-filter-property"},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr: ErrFilterShapeInvalid,
 		},
 		{
 			name: "too many items",
@@ -181,14 +190,15 @@ func TestValidateFilters(t *testing.T) {
 
 				return &Filters{Data: data}
 			}(),
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr: ErrFilterTooManyItems,
 		},
 		{
 			name: "string value over limit",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "eq", Value: strings.Repeat("A", MaxStringValueLen+1)}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueTooLarge,
+			wantField: "name",
 		},
 		{
 			name: "array over length limit",
@@ -202,14 +212,16 @@ func TestValidateFilters(t *testing.T) {
 					return a
 				}()}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueTooLarge,
+			wantField: "name",
 		},
 		{
 			name: "array item string over limit",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: []any{strings.Repeat("A", MaxStringValueLen+1)}}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueTooLarge,
+			wantField: "name",
 		},
 		{
 			name: "bool operator with bool value is accepted",
@@ -237,28 +249,32 @@ func TestValidateFilters(t *testing.T) {
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "bool", Value: "yes"}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "online",
 		},
 		{
 			name: "bool operator with nil value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "bool", Value: nil}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "online",
 		},
 		{
 			name: "eq operator with array value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []any{"a", "b"}}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "ne operator with array value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: []any{"a"}}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "eq operator with scalar string is accepted",
@@ -279,42 +295,48 @@ func TestValidateFilters(t *testing.T) {
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: float64(123)}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "eq operator with bool value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: true}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "ne operator with float64 (JSON number) is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: float64(0)}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "ne operator with bool value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: false}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "eq operator with nil value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: nil}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "ne operator with nil value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: nil}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "status",
 		},
 		{
 			name: "online: eq operator with bool true is accepted",
@@ -349,28 +371,32 @@ func TestValidateFilters(t *testing.T) {
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "eq", Value: "yes"}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "online",
 		},
 		{
 			name: "online: eq operator with nil is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "eq", Value: nil}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "online",
 		},
 		{
 			name: "realclosed (non-virtual): eq with bool value is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "realclosed", Operator: "eq", Value: true}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "realclosed",
 		},
 		{
 			name: "realclosed (non-virtual): eq with float64 (JSON number) is rejected",
 			filters: &Filters{Data: []Filter{
 				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "realclosed", Operator: "eq", Value: float64(1)}},
 			}},
-			wantErr: ErrFilterPropertyInvalid,
+			wantErr:   ErrFilterValueInvalid,
+			wantField: "realclosed",
 		},
 		{
 			name: "realclosed (non-virtual): eq with string value is accepted",
@@ -383,7 +409,19 @@ func TestValidateFilters(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.wantErr, ValidateFilters(tc.filters, allowed))
+			err := ValidateFilters(tc.filters, allowed)
+			if tc.wantErr == nil {
+				require.NoError(t, err)
+
+				return
+			}
+
+			require.ErrorIs(t, err, tc.wantErr)
+
+			var rejection *FilterError
+			require.ErrorAs(t, err, &rejection)
+			assert.Equal(t, tc.wantField, rejection.Field)
+			assert.Equal(t, tc.wantOperator, rejection.Operator)
 		})
 	}
 }
