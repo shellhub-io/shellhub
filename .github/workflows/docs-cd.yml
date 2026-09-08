@@ -1,13 +1,12 @@
 name: Docs CD
 
 on:
+  # No path filter on push. `docs/stable` is moved to the release tag with a force-push, which
+  # carries no dependable list of changed files, so a filtered trigger would skip the release.
   push:
     branches:
       - master
-    paths:
-      - "ui/apps/docs/**"
-      - "ui/packages/design-system/**"
-      - ".github/workflows/docs-cd.yml"
+      - docs/stable
   pull_request:
     paths:
       - "ui/apps/docs/**"
@@ -54,10 +53,12 @@ jobs:
       # no image and an image no page references, instead of quietly rewriting the checkout.
       - name: Build
         working-directory: ui
+        env:
+          PUBLIC_DOCS_CHANNEL: ${{ github.ref_name == 'docs/stable' && 'stable' || 'unreleased' }}
         run: npm run build -w @shellhub/docs
 
-      # A branch other than master publishes to a preview URL rather than to the site, which
-      # is how a documentation change gets read before it is merged.
+      # Only `docs/stable`, the project's production branch, publishes to the site. Every other
+      # branch lands on a preview URL, which is how master and open pull requests get read.
       - name: Deploy to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
