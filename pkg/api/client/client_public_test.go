@@ -137,7 +137,7 @@ func TestGetInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			cli, err := NewClient("https://www.cloud.shellhub.io/")
+			cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries())
 			require.NoError(t, err)
 
 			client, ok := cli.(*client)
@@ -280,7 +280,7 @@ func TestAuthDevice(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			cli, err := NewClient("https://www.cloud.shellhub.io/")
+			cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries())
 			require.NoError(t, err)
 
 			client, ok := cli.(*client)
@@ -489,7 +489,7 @@ func TestAuthPublicKey(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			cli, err := NewClient("https://www.cloud.shellhub.io/")
+			cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries())
 			require.NoError(t, err)
 
 			client, ok := cli.(*client)
