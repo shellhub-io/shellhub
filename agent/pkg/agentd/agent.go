@@ -69,6 +69,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/server"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/connectivity"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -576,7 +577,8 @@ const (
 )
 
 // Listen serves connections until ctx is cancelled, using the transport named by the
-// configuration.
+// configuration. It requires a prior Authorize, whose token it reconnects with and whose logger it
+// reports through.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
@@ -599,11 +601,15 @@ func (a *Agent) listenV1(ctx context.Context) error {
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
+	logger := a.logger.WithField("transport", "tunnel")
+
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
+		tunnelServer := connectivity.NewTracker(logger)
+
 		for {
 			if a.isClosed() {
-				a.logger.Info("Stopped listening for connections")
+				logger.Info("Stopped listening for connections")
 
 				cancel()
 
@@ -612,7 +618,7 @@ func (a *Agent) listenV1(ctx context.Context) error {
 
 			ShellHubConnectV1Path := "/ssh/connection"
 
-			a.logger.Debug("Using tunnel version 1")
+			logger.Debug("Using tunnel version 1")
 
 			listener, err := a.cli.NewReverseListenerV1(
 				ctx,
@@ -620,20 +626,22 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				ShellHubConnectV1Path,
 			)
 			if err != nil {
-				a.logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+				tunnelServer.Lost(err)
 
-				time.Sleep(time.Second * 10)
+				time.Sleep(tunnelReconnectInterval)
 
 				continue
 			}
 			a.listener.Store(&listener)
 
-			a.logger.Info("Server connection established")
+			if !tunnelServer.Recovered() {
+				logger.Info("Server connection established")
+			}
 
 			a.listening <- true
 
 			if err := tun.Listen(ctx, listener); err != nil {
-				a.logger.WithError(err).Error("Tunnel listener exited with error")
+				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
 			a.listening <- false
@@ -654,11 +662,15 @@ func (a *Agent) listenV2(ctx context.Context) error {
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
+	logger := a.logger.WithField("transport", "tunnel")
+
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
+		tunnelServer := connectivity.NewTracker(logger)
+
 		for {
 			if a.isClosed() {
-				a.logger.Info("Stopped listening for connections")
+				logger.Info("Stopped listening for connections")
 
 				cancel()
 
@@ -667,7 +679,7 @@ func (a *Agent) listenV2(ctx context.Context) error {
 
 			ShellHubConnectV2Path := "/agent/connection"
 
-			a.logger.Debug("Using tunnel version 2")
+			logger.Debug("Using tunnel version 2")
 
 			listener, err := a.cli.NewReverseListenerV2(
 				ctx,
@@ -676,20 +688,22 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				client.NewReverseV2ConfigFromMap(a.authData.Config),
 			)
 			if err != nil {
-				a.logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+				tunnelServer.Lost(err)
 
-				time.Sleep(time.Second * 10)
+				time.Sleep(tunnelReconnectInterval)
 
 				continue
 			}
 			a.listener.Store(&listener)
 
-			a.logger.Info("Server connection established")
+			if !tunnelServer.Recovered() {
+				logger.Info("Server connection established")
+			}
 
 			a.listening <- true
 
 			if err := tun.Listen(ctx, listener); err != nil {
-				a.logger.WithError(err).Error("Tunnel listener exited with error")
+				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
 			a.listening <- false
@@ -703,6 +717,8 @@ func (a *Agent) listenV2(ctx context.Context) error {
 
 // AgentPingDefaultInterval is the default time interval between ping on agent.
 const AgentPingDefaultInterval = 10 * time.Minute
+
+const tunnelReconnectInterval = 10 * time.Second
 
 func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 	a.listening = make(chan bool)
