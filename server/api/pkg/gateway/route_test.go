@@ -396,28 +396,70 @@ func TestListHoldsTheQueryToTheContractItsRegistrationNamed(t *testing.T) {
 		assert         func(*testing.T, *probeCall)
 	}{
 		{
-			description:    "refuses a filter naming a field the contract does not allow",
+			description:    "names the field a filter the contract does not allow asked for",
 			target:         "/probe?filter=" + encodeProbeFilter(t, "signature", "contains"),
 			expectedStatus: http.StatusBadRequest,
-			expectedFields: map[string]string{"filter": "is not valid"},
+			expectedFields: map[string]string{"filter": "names an unknown field: signature"},
 		},
 		{
-			description:    "refuses a filter naming an operator the contract does not allow",
+			description:    "names the operator a filter used against a field that does not accept it",
 			target:         "/probe?filter=" + encodeProbeFilter(t, "name", "eq"),
 			expectedStatus: http.StatusBadRequest,
-			expectedFields: map[string]string{"filter": "is not valid"},
+			expectedFields: map[string]string{"filter": "operator eq is not valid for name"},
 		},
 		{
-			description:    "refuses a filter that is not base64",
+			description:    "says a filter is not base64 when it decodes under neither alphabet",
 			target:         "/probe?filter=not-base64!!",
 			expectedStatus: http.StatusBadRequest,
-			expectedFields: map[string]string{"filter": "cannot be decoded"},
+			expectedFields: map[string]string{"filter": "is not valid base64"},
 		},
 		{
-			description:    "refuses a filter larger than the cap",
+			description:    "says a filter is not JSON when it decodes but does not parse",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`not json at all`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is not valid JSON"},
+		},
+		{
+			description:    "separates JSON that parses but is not a filter from JSON that does not parse",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`{"nonsense":true}`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is valid JSON but not a filter"},
+		},
+		{
+			description:    "says a filter node names a type the package does not define",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is valid JSON but not a filter"},
+		},
+		{
+			description:    "blames the size of a value of an acceptable type rather than its type",
+			target:         "/probe?filter=" + encodeProbeFilterValue(t, "name", "contains", strings.Repeat("A", query.MaxStringValueLen+1)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "value exceeds the maximum size for name"},
+		},
+		{
+			description:    "truncates an echoed field name and marks that it truncated it",
+			target:         "/probe?filter=" + encodeProbeFilter(t, strings.Repeat("z", 80), "contains"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "names an unknown field: " + strings.Repeat("z", 64) + "..."},
+		},
+		{
+			description:    "says a filter exceeds the maximum size rather than blaming its contents",
 			target:         "/probe?filter=" + strings.Repeat("A", query.MaxFilterRawBytes+1),
 			expectedStatus: http.StatusBadRequest,
-			expectedFields: map[string]string{"filter": "cannot be decoded"},
+			expectedFields: map[string]string{"filter": "exceeds the maximum size"},
+		},
+		{
+			description:    "says a filter carries too many conditions",
+			target:         "/probe?filter=" + encodeProbeFilters(t, query.MaxFilterItems+1),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "carries too many conditions"},
+		},
+		{
+			description:    "names the field whose value has the wrong type",
+			target:         "/probe?filter=" + encodeProbeFilterValue(t, "name", "contains", map[string]any{"nested": true}),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "value has the wrong type for name"},
 		},
 		{
 			description:    "refuses a sort naming a field the contract does not allow",
@@ -499,13 +541,33 @@ func TestAcceptsRecordsTheContractOnTheDeclaration(t *testing.T) {
 	assert.False(t, accepts["/silent"])
 }
 
-func encodeProbeFilter(t *testing.T, name, operator string) string {
+func encodeProbeFilters(t *testing.T, count int) string {
+	t.Helper()
+
+	data := make([]query.Filter, count)
+	for i := range data {
+		data[i] = query.Filter{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "value"}}
+	}
+
+	encoded, err := json.Marshal(data)
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(encoded)
+}
+
+func encodeProbeFilterValue(t *testing.T, name, operator string, value any) string {
 	t.Helper()
 
 	encoded, err := json.Marshal([]query.Filter{
-		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: name, Operator: operator, Value: "value"}},
+		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: name, Operator: operator, Value: value}},
 	})
 	require.NoError(t, err)
 
 	return base64.RawURLEncoding.EncodeToString(encoded)
+}
+
+func encodeProbeFilter(t *testing.T, name, operator string) string {
+	t.Helper()
+
+	return encodeProbeFilterValue(t, name, operator, "value")
 }
