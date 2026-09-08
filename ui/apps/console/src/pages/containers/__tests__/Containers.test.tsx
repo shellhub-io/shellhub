@@ -2,21 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockContainer, mockNamespace } from "@/tests/factories";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getContainers: vi.fn(),
-    createTag: vi.fn(),
-    pushTagToContainer: vi.fn(),
-    pullTagFromContainer: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -117,17 +107,42 @@ function renderPage(initialEntries: string[] = ["/"]) {
   });
 }
 
+let lastContainersUrl: URL | null;
+
+function setContainers(
+  containers: ReturnType<typeof mockContainer>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/api/containers", ({ request }) => {
+      lastContainersUrl = new URL(request.url);
+      return jsonWithTotal(containers, total ?? containers.length);
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  lastContainersUrl = null;
   seedAuthStore();
-  sdk.getContainers.mockResolvedValue(paginatedResponse([]));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  setContainers([]);
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.post("*/api/tags", () => new HttpResponse(null, { status: 204 })),
+    http.post(
+      "*/api/containers/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "*/api/containers/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pushTagToContainer.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pullTagFromContainer.mockResolvedValue(mockSdkResponse(undefined));
   mockNavigate.mockReset();
   mockManageTagsDrawer.mockReset();
   mockRequestAction.mockReset();
@@ -161,7 +176,9 @@ describe("Containers list", () => {
 
   describe("loading state", () => {
     it("renders the loading message", () => {
-      sdk.getContainers.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/containers", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByText("Loading containers...")).toBeInTheDocument();
     });
@@ -178,14 +195,12 @@ describe("Containers list", () => {
 
   describe("container rows", () => {
     it("renders a row for each container", async () => {
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockContainer({ uid: "uid-1", name: "alpha" }),
-            mockContainer({ uid: "uid-2", name: "beta" }),
-          ],
-          2,
-        ),
+      setContainers(
+        [
+          mockContainer({ uid: "uid-1", name: "alpha" }),
+          mockContainer({ uid: "uid-2", name: "beta" }),
+        ],
+        2,
       );
       renderPage();
       expect(await screen.findByText("alpha")).toBeInTheDocument();
@@ -194,11 +209,9 @@ describe("Containers list", () => {
 
     it("navigates to container detail on row click", async () => {
       const user = userEvent.setup();
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse(
-          [mockContainer({ uid: "uid-abc", name: "clickable" })],
-          1,
-        ),
+      setContainers(
+        [mockContainer({ uid: "uid-abc", name: "clickable" })],
+        1,
       );
       renderPage();
       await user.click(await screen.findByText("clickable"));
@@ -208,7 +221,11 @@ describe("Containers list", () => {
 
   describe("error state", () => {
     it("renders an error message when the query fails", async () => {
-      sdk.getContainers.mockRejectedValue({ status: 500 });
+      server.use(
+        http.get("*/api/containers", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(
         await screen.findByText("Something went wrong on our side. Try again."),
@@ -220,22 +237,17 @@ describe("Containers list", () => {
     it("requests last_seen/desc sort by default", async () => {
       renderPage();
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "last_seen",
-              order_by: "desc",
-            }),
-          }),
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("sort_by")).toBe(
+          "last_seen",
         );
+        expect(lastContainersUrl!.searchParams.get("order_by")).toBe("desc");
       });
     });
 
     it("toggles sort when the Hostname header is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse([mockContainer({ uid: "uid-1", name: "alpha" })], 1),
-      );
+      setContainers([mockContainer({ uid: "uid-1", name: "alpha" })], 1);
       renderPage();
       await screen.findByText("alpha");
 
@@ -243,28 +255,16 @@ describe("Containers list", () => {
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "name",
-              order_by: "asc",
-            }),
-          }),
-        );
+        expect(lastContainersUrl!.searchParams.get("sort_by")).toBe("name");
+        expect(lastContainersUrl!.searchParams.get("order_by")).toBe("asc");
       });
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "name",
-              order_by: "desc",
-            }),
-          }),
-        );
+        expect(lastContainersUrl!.searchParams.get("sort_by")).toBe("name");
+        expect(lastContainersUrl!.searchParams.get("order_by")).toBe("desc");
       });
     });
   });
@@ -273,21 +273,17 @@ describe("Containers list", () => {
     it("passes status=pending from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "pending" }),
-          }),
-        );
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("status")).toBe("pending");
       });
     });
 
     it("passes tags from URL as a filter to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        expect(lastContainersUrl).not.toBeNull();
+        const filter = lastContainersUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain('"a"');
         expect(decoded).toContain('"b"');
       });
@@ -296,43 +292,33 @@ describe("Containers list", () => {
     it("passes page=2 from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("page")).toBe("2");
       });
     });
 
     it("falls back to status=accepted and page=1 when URL has no params", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "accepted", page: 1 }),
-          }),
-        );
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("status")).toBe("accepted");
+        expect(lastContainersUrl!.searchParams.get("page")).toBe("1");
       });
     });
 
     it("falls back to status=accepted for an invalid status value", async () => {
       renderPage(["/?status=invalid"]);
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "accepted" }),
-          }),
-        );
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("status")).toBe("accepted");
       });
     });
 
     it("passes no tag filter when no tags param is present", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls[0]?.[0] as {
-          query?: { filter?: string };
-        };
-        expect(call?.query?.filter).toBeUndefined();
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("filter")).toBeNull();
       });
     });
   });
@@ -347,10 +333,8 @@ describe("Containers list", () => {
         "  myhost  ",
       );
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastContainersUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("myhost");
       });
     });
@@ -359,7 +343,7 @@ describe("Containers list", () => {
   describe("tag mutation — onTagRenamed/onTagDeleted update URL tags array", () => {
     it("renames a tag in filter when onTagRenamed is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
-      await waitFor(() => expect(sdk.getContainers).toHaveBeenCalled());
+      await waitFor(() => expect(lastContainersUrl).not.toBeNull());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagRenamed?: (oldName: string, newName: string) => void;
@@ -371,10 +355,8 @@ describe("Containers list", () => {
       });
 
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastContainersUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("alpha");
         expect(decoded).toContain('"b"');
       });
@@ -382,7 +364,7 @@ describe("Containers list", () => {
 
     it("removes a tag from filter when onTagDeleted is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
-      await waitFor(() => expect(sdk.getContainers).toHaveBeenCalled());
+      await waitFor(() => expect(lastContainersUrl).not.toBeNull());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagDeleted?: (name: string) => void;
@@ -394,10 +376,8 @@ describe("Containers list", () => {
       });
 
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastContainersUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).not.toContain('"a"');
         expect(decoded).toContain('"b"');
       });
@@ -406,10 +386,8 @@ describe("Containers list", () => {
     it("hydrates tags from URL into the SDK filter", async () => {
       renderPage(["/?tags=existing"]);
       await waitFor(() => {
-        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastContainersUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("existing");
       });
       expect(
@@ -423,21 +401,15 @@ describe("Containers list", () => {
       const user = userEvent.setup();
       renderPage(["/?page=2"]);
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2, status: "accepted" }),
-          }),
-        );
+        expect(lastContainersUrl).not.toBeNull();
+        expect(lastContainersUrl!.searchParams.get("page")).toBe("2");
       });
 
       await user.click(screen.getByRole("tab", { name: "Pending" }));
 
       await waitFor(() => {
-        expect(sdk.getContainers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1, status: "pending" }),
-          }),
-        );
+        expect(lastContainersUrl!.searchParams.get("page")).toBe("1");
+        expect(lastContainersUrl!.searchParams.get("status")).toBe("pending");
       });
     });
   });
@@ -445,18 +417,16 @@ describe("Containers list", () => {
   describe("action delegation — action buttons use useContainerActions", () => {
     it("calls requestAction(container, 'accept') when Accept is clicked in pending view", async () => {
       const user = userEvent.setup();
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockContainer({
-              uid: "uid-pending",
-              name: "pending-box",
-              status: "pending",
-              online: false,
-            }),
-          ],
-          1,
-        ),
+      setContainers(
+        [
+          mockContainer({
+            uid: "uid-pending",
+            name: "pending-box",
+            status: "pending",
+            online: false,
+          }),
+        ],
+        1,
       );
       renderPage(["/?status=pending"]);
       await user.click(await screen.findByRole("button", { name: "Accept" }));
@@ -468,18 +438,16 @@ describe("Containers list", () => {
 
     it("calls requestAction(container, 'reject') when Reject is clicked in pending view", async () => {
       const user = userEvent.setup();
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockContainer({
-              uid: "uid-pending-2",
-              name: "pending-box-2",
-              status: "pending",
-              online: false,
-            }),
-          ],
-          1,
-        ),
+      setContainers(
+        [
+          mockContainer({
+            uid: "uid-pending-2",
+            name: "pending-box-2",
+            status: "pending",
+            online: false,
+          }),
+        ],
+        1,
       );
       renderPage(["/?status=pending"]);
       await user.click(await screen.findByRole("button", { name: "Reject" }));
@@ -494,18 +462,16 @@ describe("Containers list", () => {
 
     it("calls requestAction(container, 'remove') when Remove is clicked in rejected view", async () => {
       const user = userEvent.setup();
-      sdk.getContainers.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockContainer({
-              uid: "uid-rejected",
-              name: "rejected-box",
-              status: "rejected",
-              online: false,
-            }),
-          ],
-          1,
-        ),
+      setContainers(
+        [
+          mockContainer({
+            uid: "uid-rejected",
+            name: "rejected-box",
+            status: "rejected",
+            online: false,
+          }),
+        ],
+        1,
       );
       renderPage(["/?status=rejected"]);
       await user.click(await screen.findByRole("button", { name: "Remove" }));

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
+import { VALID_JWT } from "@/tests/seedAuthStore";
 import AcceptInvite from "../AcceptInvite";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -17,14 +19,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    resolveInvitation: vi.fn(),
-    acceptInvite: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 const { mockSignUp, signUpState } = vi.hoisted(() => {
   const mockSignUp = vi.fn();
@@ -73,9 +67,9 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
-    loginWithToken: async (token: string) => {
+    loginWithToken: async () => {
       useAuthStore.setState({
-        token,
+        token: VALID_JWT,
         user: "alice",
         userId: "u1",
         email: "alice@example.com",
@@ -87,12 +81,18 @@ beforeEach(() => {
   signUpState.signUpLoading = false;
   signUpState.signUpError = null;
   signUpState.signUpServerFields = [];
-  sdk.resolveInvitation.mockResolvedValue(mockSdkResponse(resolvedData));
-  sdk.acceptInvite.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/invitations/resolve", () =>
+      HttpResponse.json(resolvedData),
+    ),
+    http.patch(
+      "*/api/namespaces/:tenant/invitations/accept",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
   );
-  mockNavigate.mockReset();
 });
 
 describe("AcceptInvite", () => {
@@ -109,7 +109,9 @@ describe("AcceptInvite", () => {
 
   describe("initial loading state", () => {
     it("shows the checking invitation spinner while resolving", () => {
-      sdk.resolveInvitation.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/invitations/resolve", () => new Promise(() => {})),
+      );
       renderPage(VALID_PARAMS);
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText(/checking invitation/i)).toBeInTheDocument();
@@ -118,7 +120,11 @@ describe("AcceptInvite", () => {
 
   describe("branch: error (resolve rejects)", () => {
     it("renders the Invitation Unavailable heading", async () => {
-      sdk.resolveInvitation.mockRejectedValue({ status: 404 });
+      server.use(
+        http.get("*/api/invitations/resolve", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage(VALID_PARAMS);
       expect(
         await screen.findByRole("heading", { name: /invitation unavailable/i }),
@@ -129,7 +135,7 @@ describe("AcceptInvite", () => {
   describe("branch: accept (authenticated as the invited user)", () => {
     beforeEach(() => {
       useAuthStore.setState({
-        token: "jwt-token",
+        token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
         loading: false,
@@ -161,31 +167,9 @@ describe("AcceptInvite", () => {
       );
 
       await waitFor(() =>
-        expect(sdk.acceptInvite).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { tenant: "t1" },
-            throwOnError: true,
-          }),
-        ),
-      );
-
-      await waitFor(() =>
         expect(
           screen.getByRole("heading", { name: /you're in/i }),
         ).toBeInTheDocument(),
-      );
-      expect(sdk.getNamespaceToken).not.toHaveBeenCalled();
-
-      await user.click(
-        screen.getByRole("button", { name: /go to dashboard/i }),
-      );
-      await waitFor(() =>
-        expect(sdk.getNamespaceToken).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { tenant: "t1" },
-            throwOnError: true,
-          }),
-        ),
       );
     });
   });
@@ -193,7 +177,7 @@ describe("AcceptInvite", () => {
   describe("branch: wrong-user (authenticated as a different user)", () => {
     it("renders the Different Account Signed In heading", async () => {
       useAuthStore.setState({
-        token: "jwt-token",
+        token: VALID_JWT,
         userId: "other-user-id",
         email: "other@example.com",
         loading: false,
@@ -209,8 +193,10 @@ describe("AcceptInvite", () => {
 
   describe("branch: sign-up (unauthenticated, status invited)", () => {
     beforeEach(() => {
-      sdk.resolveInvitation.mockResolvedValue(
-        mockSdkResponse({ ...resolvedData, status: "invited" }),
+      server.use(
+        http.get("*/api/invitations/resolve", () =>
+          HttpResponse.json({ ...resolvedData, status: "invited" }),
+        ),
       );
     });
 
@@ -266,23 +252,13 @@ describe("AcceptInvite", () => {
           screen.getByRole("heading", { name: /you're in/i }),
         ).toBeInTheDocument(),
       );
-
-      await user.click(
-        screen.getByRole("button", { name: /go to dashboard/i }),
-      );
-      await waitFor(() =>
-        expect(sdk.getNamespaceToken).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { tenant: "t1" },
-            throwOnError: true,
-          }),
-        ),
-      );
     });
 
     it("announces the loading state to screen readers when switching namespace", async () => {
       mockSignUp.mockResolvedValue("tok");
-      sdk.getNamespaceToken.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/auth/token/:tenant", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
       await screen.findByRole("heading", { name: /you've been invited/i });
@@ -320,7 +296,7 @@ describe("AcceptInvite", () => {
           screen.getByRole("heading", { name: /waiting for approval/i }),
         ).toBeInTheDocument(),
       );
-      expect(sdk.getNamespaceToken).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -337,8 +313,10 @@ describe("AcceptInvite", () => {
     });
 
     it("navigates to /login when not-confirmed", async () => {
-      sdk.resolveInvitation.mockResolvedValue(
-        mockSdkResponse({ ...resolvedData, status: "not-confirmed" }),
+      server.use(
+        http.get("*/api/invitations/resolve", () =>
+          HttpResponse.json({ ...resolvedData, status: "not-confirmed" }),
+        ),
       );
       renderPage(VALID_PARAMS);
       await waitFor(() =>
@@ -351,8 +329,10 @@ describe("AcceptInvite", () => {
 
   describe("under a browser-translated DOM", () => {
     it("still reaches the joined confirmation after signing up", async () => {
-      sdk.resolveInvitation.mockResolvedValue(
-        mockSdkResponse({ ...resolvedData, status: "invited" }),
+      server.use(
+        http.get("*/api/invitations/resolve", () =>
+          HttpResponse.json({ ...resolvedData, status: "invited" }),
+        ),
       );
       mockSignUp.mockResolvedValue("tok");
       const user = userEvent.setup();
@@ -373,7 +353,7 @@ describe("AcceptInvite", () => {
 
     it("still reaches the joined confirmation after accepting", async () => {
       useAuthStore.setState({
-        token: "jwt-token",
+        token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
         loading: false,

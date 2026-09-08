@@ -2,18 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import PublicKeys from "../index";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockPublicKey } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getPublicKeys: vi.fn(),
-    deletePublicKey: vi.fn(),
-  }),
-);
 
 vi.mock("../KeyDrawer", () => ({
   default: () => null,
@@ -31,6 +25,20 @@ vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
 
+let lastKeysUrl: URL | null;
+
+function setKeys(
+  keys: ReturnType<typeof mockPublicKey>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/api/sshkeys/public-keys", ({ request }) => {
+      lastKeysUrl = new URL(request.url);
+      return jsonWithTotal(keys, total ?? keys.length);
+    }),
+  );
+}
+
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -42,9 +50,15 @@ function renderPage(initialEntries: string[] = ["/"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  lastKeysUrl = null;
   useAuthStore.setState({ role: "owner" });
-  sdk.getPublicKeys.mockResolvedValue(paginatedResponse([mockPublicKey()]));
-  sdk.deletePublicKey.mockResolvedValue(mockSdkResponse(undefined));
+  setKeys([mockPublicKey()]);
+  server.use(
+    http.delete(
+      "*/api/sshkeys/public-keys/:fingerprint",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("PublicKeys — delete error handling", () => {
@@ -61,7 +75,14 @@ describe("PublicKeys — delete error handling", () => {
   }
 
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
-    sdk.deletePublicKey.mockRejectedValue(new Error("Fingerprint in use"));
+    server.use(
+      http.delete("*/api/sshkeys/public-keys/:fingerprint", () =>
+        HttpResponse.json(
+          { message: "Fingerprint in use" },
+          { status: 403 },
+        ),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -75,17 +96,19 @@ describe("PublicKeys — delete error handling", () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows a generic fallback message when the rejection is not an Error", async () => {
-    sdk.deletePublicKey.mockRejectedValue({ status: 500 });
+  it("shows the status code as fallback when the server returns no message", async () => {
+    server.use(
+      http.delete("*/api/sshkeys/public-keys/:fingerprint", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
     await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
 
     await waitFor(() =>
-      expect(
-        within(dialog).getByText(/failed to delete public key/i),
-      ).toBeInTheDocument(),
+      expect(within(dialog).getByText("500")).toBeInTheDocument(),
     );
   });
 
@@ -104,60 +127,48 @@ describe("PublicKeys — delete error handling", () => {
 });
 
 describe("PublicKeys — URL hydration", () => {
-  it("passes page=3 to the SDK when URL has ?page=3", async () => {
+  it("passes page=3 when URL has ?page=3", async () => {
     renderPage(["/?page=3"]);
     await waitFor(() => {
-      expect(sdk.getPublicKeys).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastKeysUrl).not.toBeNull();
+      expect(lastKeysUrl!.searchParams.get("page")).toBe("3");
     });
   });
 
-  it("passes page=1 to the SDK when URL has no page param", async () => {
+  it("passes page=1 when URL has no page param", async () => {
     renderPage(["/"]);
     await waitFor(() => {
-      expect(sdk.getPublicKeys).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastKeysUrl).not.toBeNull();
+      expect(lastKeysUrl!.searchParams.get("page")).toBe("1");
     });
   });
 
   it("passes a filter containing the search term when URL has ?search=mykey", async () => {
     renderPage(["/?search=mykey"]);
     await waitFor(() => {
-      const call = sdk.getPublicKeys.mock.calls.at(-1)?.[0] as {
-        query?: { filter?: string };
-      };
-      const decoded = atob(call?.query?.filter ?? "");
-      expect(decoded).toContain("mykey");
+      expect(lastKeysUrl).not.toBeNull();
+      const filter = lastKeysUrl!.searchParams.get("filter") ?? "";
+      expect(atob(filter)).toContain("mykey");
     });
   });
 
-  it("passes no filter to the SDK when URL has no search param", async () => {
+  it("passes no filter when URL has no search param", async () => {
     renderPage(["/"]);
     await waitFor(() => {
-      const call = sdk.getPublicKeys.mock.calls[0]?.[0] as {
-        query?: { filter?: string };
-      };
-      expect(call?.query?.filter).toBeUndefined();
+      expect(lastKeysUrl).not.toBeNull();
+      expect(lastKeysUrl!.searchParams.get("filter")).toBeNull();
     });
   });
 });
 
 describe("PublicKeys — URL writes", () => {
-  it("passes page=2 to the SDK when the user navigates to page 2", async () => {
+  it("passes page=2 when the user navigates to page 2", async () => {
     const user = userEvent.setup();
-    sdk.getPublicKeys.mockResolvedValue(
-      paginatedResponse(
-        Array.from({ length: 10 }, (_, i) =>
-          mockPublicKey({ fingerprint: `fp-${i}`, name: `key-${i}` }),
-        ),
-        25,
+    setKeys(
+      Array.from({ length: 10 }, (_, i) =>
+        mockPublicKey({ fingerprint: `fp-${i}`, name: `key-${i}` }),
       ),
+      25,
     );
     renderPage();
 
@@ -166,11 +177,7 @@ describe("PublicKeys — URL writes", () => {
     await user.click(screen.getByRole("button", { name: "Next page" }));
 
     await waitFor(() => {
-      expect(sdk.getPublicKeys).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 2 }),
-        }),
-      );
+      expect(lastKeysUrl!.searchParams.get("page")).toBe("2");
     });
   });
 
@@ -186,11 +193,7 @@ describe("PublicKeys — URL writes", () => {
     await user.type(searchInput, "a");
 
     await waitFor(() => {
-      expect(sdk.getPublicKeys).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastKeysUrl!.searchParams.get("page")).toBe("1");
     });
   });
 });

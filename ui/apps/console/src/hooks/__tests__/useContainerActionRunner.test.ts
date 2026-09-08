@@ -1,47 +1,69 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { renderHook } from "@testing-library/react";
-import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useContainerActionRunner } from "../useContainerActionRunner";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    updateContainerStatus: vi.fn(),
-    deleteContainer: vi.fn(),
-  }),
-);
 
 const entity = { uid: "uid-1", name: "my-container" };
 const wrapper = createTestWrapper();
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  sdk.updateContainerStatus.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.deleteContainer.mockResolvedValue(mockSdkResponse(undefined));
+  server.use(
+    http.patch(
+      "*/api/containers/:uid/:status",
+      () => new HttpResponse(null, { status: 200 }),
+    ),
+    http.delete(
+      "*/api/containers/:uid",
+      () => new HttpResponse(null, { status: 200 }),
+    ),
+  );
 });
 
 describe("useContainerActionRunner", () => {
   it("calls updateContainerStatus with accept for accept", async () => {
-    const { result } = renderHook(() => useContainerActionRunner(), { wrapper });
-    await result.current(entity, "accept");
-    expect(sdk.updateContainerStatus).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { uid: "uid-1", status: "accept" } }),
+    let capturedStatus: string | undefined;
+    server.use(
+      http.patch("*/api/containers/:uid/:status", ({ params }) => {
+        capturedStatus = params.status as string;
+        return new HttpResponse(null, { status: 200 });
+      }),
     );
+    const { result } = renderHook(() => useContainerActionRunner(), {
+      wrapper,
+    });
+    await result.current(entity, "accept");
+    expect(capturedStatus).toBe("accept");
   });
 
   it("calls updateContainerStatus with reject for reject", async () => {
-    const { result } = renderHook(() => useContainerActionRunner(), { wrapper });
-    await result.current(entity, "reject");
-    expect(sdk.updateContainerStatus).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { uid: "uid-1", status: "reject" } }),
+    let capturedStatus: string | undefined;
+    server.use(
+      http.patch("*/api/containers/:uid/:status", ({ params }) => {
+        capturedStatus = params.status as string;
+        return new HttpResponse(null, { status: 200 });
+      }),
     );
+    const { result } = renderHook(() => useContainerActionRunner(), {
+      wrapper,
+    });
+    await result.current(entity, "reject");
+    expect(capturedStatus).toBe("reject");
   });
 
   it("calls deleteContainer for remove", async () => {
-    const { result } = renderHook(() => useContainerActionRunner(), { wrapper });
-    await result.current(entity, "remove");
-    expect(sdk.deleteContainer).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { uid: "uid-1" } }),
+    let called = false;
+    server.use(
+      http.delete("*/api/containers/:uid", () => {
+        called = true;
+        return new HttpResponse(null, { status: 200 });
+      }),
     );
+    const { result } = renderHook(() => useContainerActionRunner(), {
+      wrapper,
+    });
+    await result.current(entity, "remove");
+    expect(called).toBe(true);
   });
 });

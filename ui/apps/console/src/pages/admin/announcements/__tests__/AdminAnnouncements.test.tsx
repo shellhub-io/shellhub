@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import AdminAnnouncements from "../index";
 import type { AnnouncementShort } from "@/client/model";
-import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockAnnouncement } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -15,12 +16,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listAnnouncementsAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("../DeleteAnnouncementDialog", () => ({
   default: ({
@@ -54,6 +49,20 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
   },
 }));
 
+let lastRequestUrl: URL | null;
+
+function setAnnouncements(
+  items: ReturnType<typeof mockAnnouncement>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/admin/api/announcements", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(items, total ?? items.length);
+    }),
+  );
+}
+
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -66,8 +75,9 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("AdminAnnouncements", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
-    sdk.listAnnouncementsAdmin.mockResolvedValue(paginatedResponse([]));
+    setAnnouncements([]);
   });
 
   describe("rendering", () => {
@@ -111,13 +121,17 @@ describe("AdminAnnouncements", () => {
 
   describe("loading state", () => {
     it("renders the loading spinner with role='status'", () => {
-      sdk.listAnnouncementsAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/announcements", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
 
     it("renders 'Loading announcements...' text while loading", () => {
-      sdk.listAnnouncementsAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/announcements", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByText("Loading announcements...")).toBeInTheDocument();
     });
@@ -142,53 +156,45 @@ describe("AdminAnnouncements", () => {
 
   describe("announcement rows", () => {
     it("renders a row for each returned announcement", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockAnnouncement({
-            uuid: "uuid-a1b2",
-            title: "Alpha Announcement",
-          }),
-          mockAnnouncement({
-            uuid: "uuid-c3d4",
-            title: "Beta Announcement",
-          }),
-        ]),
-      );
+      setAnnouncements([
+        mockAnnouncement({
+          uuid: "uuid-a1b2",
+          title: "Alpha Announcement",
+        }),
+        mockAnnouncement({
+          uuid: "uuid-c3d4",
+          title: "Beta Announcement",
+        }),
+      ]);
       renderPage();
       expect(await screen.findByText("Alpha Announcement")).toBeInTheDocument();
       expect(screen.getByText("Beta Announcement")).toBeInTheDocument();
     });
 
     it("renders a truncated UUID chip for each row", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockAnnouncement({
-              uuid: "abcdef12-0000-0000-0000-000000000000",
-            }),
-          ],
-          1,
-        ),
+      setAnnouncements(
+        [
+          mockAnnouncement({
+            uuid: "abcdef12-0000-0000-0000-000000000000",
+          }),
+        ],
+        1,
       );
       renderPage();
       expect(await screen.findByText("abcdef12")).toBeInTheDocument();
     });
 
     it("renders a formatted date for each row", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockAnnouncement({ date: "2024-06-01T10:00:00.000Z" }),
-        ]),
-      );
+      setAnnouncements([
+        mockAnnouncement({ date: "2024-06-01T10:00:00.000Z" }),
+      ]);
       renderPage();
       const dateCell = await screen.findByText(/\d{4}/);
       expect(dateCell).toBeInTheDocument();
     });
 
     it("renders an edit button for each row", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "My Announcement" })]),
-      );
+      setAnnouncements([mockAnnouncement({ title: "My Announcement" })]);
       renderPage();
       expect(
         await screen.findByRole("button", { name: "Edit My Announcement" }),
@@ -196,9 +202,7 @@ describe("AdminAnnouncements", () => {
     });
 
     it("renders a delete button for each row", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "My Announcement" })]),
-      );
+      setAnnouncements([mockAnnouncement({ title: "My Announcement" })]);
       renderPage();
       expect(
         await screen.findByRole("button", { name: "Delete My Announcement" }),
@@ -209,16 +213,14 @@ describe("AdminAnnouncements", () => {
   describe("navigation", () => {
     it("navigates to the announcement detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockAnnouncement({
-              uuid: "uuid-nav1",
-              title: "Clickable Announcement",
-            }),
-          ],
-          1,
-        ),
+      setAnnouncements(
+        [
+          mockAnnouncement({
+            uuid: "uuid-nav1",
+            title: "Clickable Announcement",
+          }),
+        ],
+        1,
       );
       renderPage();
 
@@ -230,16 +232,14 @@ describe("AdminAnnouncements", () => {
 
     it("navigates to the edit page when the edit button is clicked", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockAnnouncement({
-              uuid: "uuid-edit1",
-              title: "Editable Announcement",
-            }),
-          ],
-          1,
-        ),
+      setAnnouncements(
+        [
+          mockAnnouncement({
+            uuid: "uuid-edit1",
+            title: "Editable Announcement",
+          }),
+        ],
+        1,
       );
       renderPage();
 
@@ -255,11 +255,9 @@ describe("AdminAnnouncements", () => {
 
     it("does not navigate to the detail page when edit button is clicked", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockAnnouncement({ uuid: "uuid-edit2", title: "Edit Only" }),
-        ]),
-      );
+      setAnnouncements([
+        mockAnnouncement({ uuid: "uuid-edit2", title: "Edit Only" }),
+      ]);
       renderPage();
 
       await user.click(
@@ -283,9 +281,7 @@ describe("AdminAnnouncements", () => {
   describe("delete action", () => {
     it("opens the DeleteAnnouncementDialog when delete button is clicked", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "Target Announcement" })]),
-      );
+      setAnnouncements([mockAnnouncement({ title: "Target Announcement" })]);
       renderPage();
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -303,9 +299,7 @@ describe("AdminAnnouncements", () => {
 
     it("closes the DeleteAnnouncementDialog when cancel is clicked inside it", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "Target Announcement" })]),
-      );
+      setAnnouncements([mockAnnouncement({ title: "Target Announcement" })]);
       renderPage();
 
       await user.click(
@@ -324,9 +318,7 @@ describe("AdminAnnouncements", () => {
 
     it("does not navigate when delete button is clicked (stopPropagation)", async () => {
       const user = userEvent.setup();
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "No Nav Announcement" })]),
-      );
+      setAnnouncements([mockAnnouncement({ title: "No Nav Announcement" })]);
       renderPage();
 
       await user.click(
@@ -340,14 +332,22 @@ describe("AdminAnnouncements", () => {
   });
 
   describe("error state", () => {
-    it("renders an error alert when the SDK returns an error", async () => {
-      sdk.listAnnouncementsAdmin.mockRejectedValue(makeSdkError(500));
+    it("renders an error alert when the API returns an error", async () => {
+      server.use(
+        http.get("*/admin/api/announcements", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
     });
 
     it("renders the error message text", async () => {
-      sdk.listAnnouncementsAdmin.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/announcements", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(
         await screen.findByText("Something went wrong on our side. Try again."),
@@ -357,9 +357,7 @@ describe("AdminAnnouncements", () => {
 
   describe("pagination", () => {
     it("does not render pagination when there is only one page", async () => {
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement()]),
-      );
+      setAnnouncements([mockAnnouncement()]);
       renderPage();
       await screen.findByText("Welcome to ShellHub");
       expect(
@@ -374,9 +372,7 @@ describe("AdminAnnouncements", () => {
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
         mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(manyAnnouncements, 25),
-      );
+      setAnnouncements(manyAnnouncements, 25);
       renderPage();
       expect(
         await screen.findByRole("button", { name: "Previous page" }),
@@ -390,47 +386,37 @@ describe("AdminAnnouncements", () => {
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
         mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(manyAnnouncements, 25),
-      );
+      setAnnouncements(manyAnnouncements, 25);
       renderPage();
       expect(await screen.findByText("25 announcements")).toBeInTheDocument();
     });
   });
 
   describe("URL hydration (usePaginatedListState)", () => {
-    it("passes page=2 to the SDK when URL has ?page=2", async () => {
+    it("passes page=2 to the API when URL has ?page=2", async () => {
       renderPage(["/?page=2"]);
       await waitFor(() => {
-        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
     });
 
-    it("passes page=1 to the SDK when URL has no page param", async () => {
+    it("passes page=1 to the API when URL has no page param", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
 
   describe("URL writes (usePaginatedListState)", () => {
-    it("passes page=2 to the SDK when the user clicks Next page", async () => {
+    it("passes page=2 to the API when the user clicks Next page", async () => {
       const user = userEvent.setup();
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
         mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse(manyAnnouncements, 30),
-      );
+      setAnnouncements(manyAnnouncements, 30);
       renderPage();
 
       await screen.findByText("Ann 0");
@@ -438,11 +424,7 @@ describe("AdminAnnouncements", () => {
       await user.click(screen.getByRole("button", { name: "Next page" }));
 
       await waitFor(() => {
-        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
     });
   });
@@ -451,18 +433,13 @@ describe("AdminAnnouncements", () => {
     it("decrements page from 2 to 1 via URL when deleting the last item on a page", async () => {
       const user = userEvent.setup();
 
-      sdk.listAnnouncementsAdmin.mockResolvedValue(
-        paginatedResponse([mockAnnouncement({ title: "Last Item" })], 11),
-      );
+      setAnnouncements([mockAnnouncement({ title: "Last Item" })], 11);
 
       renderPage(["/?page=2"]);
 
       await waitFor(() => {
-        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
 
       await user.click(
@@ -470,16 +447,13 @@ describe("AdminAnnouncements", () => {
       );
       await waitFor(() => screen.getByRole("dialog"));
 
-      sdk.listAnnouncementsAdmin.mockClear();
+      lastRequestUrl = null;
 
       await user.click(screen.getByRole("button", { name: "Confirm delete" }));
 
       await waitFor(() => {
-        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });

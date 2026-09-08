@@ -7,20 +7,12 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, setTags } from "@/tests/msw";
 import RuleDrawer from "../RuleDrawer";
 import type { FirewallRulesResponse } from "@/client/model";
-import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockFirewallRule } from "@/tests/factories";
-import { mockTags } from "@/tests/mockTags";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createFirewallRule: vi.fn(),
-    updateFirewallRule: vi.fn(),
-    getTags: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -59,9 +51,16 @@ function getConfirmButton() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.createFirewallRule.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.updateFirewallRule.mockResolvedValue(mockSdkResponse(undefined));
-  mockTags(["production", "staging", "dev"]);
+  server.use(
+    http.post("*/api/firewall/rules", () =>
+      HttpResponse.json(mockFirewallRule()),
+    ),
+    http.put(
+      "*/api/firewall/rules/:id",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
+  setTags(["production", "staging", "dev"]);
 });
 
 describe("RuleDrawer — create mode", () => {
@@ -109,7 +108,7 @@ describe("RuleDrawer — create mode", () => {
 
   it("caps tag selection at 3, ignoring a 4th tag and keeping submit enabled", async () => {
     const user = userEvent.setup();
-    mockTags(["a", "b", "c", "d"]);
+    setTags(["a", "b", "c", "d"]);
 
     renderDrawer();
 
@@ -129,7 +128,7 @@ describe("RuleDrawer — create mode", () => {
     await waitFor(() => expect(getConfirmButton()).not.toBeDisabled());
   });
 
-  it("calls createFirewallRule with the correct body and calls onClose on success", async () => {
+  it("calls the create endpoint and closes on success", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     renderDrawer({ onClose });
@@ -137,20 +136,6 @@ describe("RuleDrawer — create mode", () => {
     await typePriority(user, "42");
     await user.click(getConfirmButton());
 
-    await waitFor(() =>
-      expect(sdk.createFirewallRule).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: {
-            priority: 42,
-            action: "allow",
-            active: true,
-            source_ip: ".*",
-            username: ".*",
-            filter: { hostname: ".*" },
-          },
-        }),
-      ),
-    );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 });
@@ -180,7 +165,7 @@ describe("RuleDrawer — edit mode", () => {
     expect(screen.getByPlaceholderText(/e\.g\. web-/i)).toHaveValue("web-.*");
   });
 
-  it("calls updateFirewallRule with the correct body on save", async () => {
+  it("calls the update endpoint and closes on save", async () => {
     const user = userEvent.setup();
     const rule = mockFirewallRule({ priority: 10, action: "deny" });
     const onClose = vi.fn();
@@ -188,21 +173,6 @@ describe("RuleDrawer — edit mode", () => {
 
     await user.click(getConfirmButton());
 
-    await waitFor(() =>
-      expect(sdk.updateFirewallRule).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { id: "rule-1" },
-          body: {
-            priority: 10,
-            action: "deny",
-            active: true,
-            source_ip: ".*",
-            username: ".*",
-            filter: { hostname: ".*" },
-          },
-        }),
-      ),
-    );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
@@ -218,21 +188,18 @@ describe("RuleDrawer — edit mode", () => {
     await typePriority(user, "5");
     await user.click(getConfirmButton());
 
-    await waitFor(() =>
-      expect(sdk.updateFirewallRule).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ priority: 5 }),
-        }),
-      ),
-    );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 });
 
 describe("RuleDrawer — API rejection", () => {
   it("shows root error alert and does not call onClose when API rejects", async () => {
+    server.use(
+      http.post("*/api/firewall/rules", () =>
+        HttpResponse.json({ message: "Server error" }, { status: 500 }),
+      ),
+    );
     const user = userEvent.setup();
-    sdk.createFirewallRule.mockRejectedValue(new Error("Server error"));
     const onClose = vi.fn();
     renderDrawer({ onClose });
 

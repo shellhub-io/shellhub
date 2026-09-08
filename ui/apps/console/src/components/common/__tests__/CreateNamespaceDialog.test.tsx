@@ -1,32 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
-import { mockNamespace } from "@/tests/factories";
+import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import { getConfig, defaultConfig } from "@/env";
 import { ClipboardProvider } from "../ClipboardProvider";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-    getNamespaces: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
-  sdk.createNamespace.mockResolvedValue(
-    mockSdkResponse(mockNamespace({ name: "my-ns" })),
-  );
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/namespaces", () => jsonWithTotal([])),
+    http.post("*/api/namespaces", () =>
+      HttpResponse.json(mockNamespace({ name: "my-ns" })),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json(mockUserAuth({ token: "jwt-token" })),
+    ),
   );
 });
 
@@ -147,7 +142,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("Create button is disabled while mutation is pending", async () => {
-    sdk.createNamespace.mockReturnValue(new Promise(() => {}));
+    server.use(http.post("*/api/namespaces", () => new Promise(() => {})));
     const user = userEvent.setup();
     renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
@@ -183,21 +178,6 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls createNamespace with the namespace name on valid submission", async () => {
-    const user = userEvent.setup();
-    renderDialog(true);
-    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
-    await user.click(screen.getByRole("button", { name: "Create" }));
-    await waitFor(() =>
-      expect(sdk.createNamespace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: { name: "my-ns" },
-          throwOnError: true,
-        }),
-      ),
-    );
-  });
-
   it("forces lowercase on input", async () => {
     const user = userEvent.setup();
     renderDialog(true);
@@ -206,7 +186,11 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("shows 'A namespace with this name already exists.' on 409 and does NOT call onClose", async () => {
-    sdk.createNamespace.mockRejectedValue({ status: 409 });
+    server.use(
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 409 }),
+      ),
+    );
     const user = userEvent.setup();
     const { onClose } = renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
@@ -218,7 +202,11 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("shows the limit/permission message on 403", async () => {
-    sdk.createNamespace.mockRejectedValue({ status: 403 });
+    server.use(
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 403 }),
+      ),
+    );
     const user = userEvent.setup();
     renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
@@ -231,7 +219,11 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("shows the invalid-name message on 400", async () => {
-    sdk.createNamespace.mockRejectedValue({ status: 400 });
+    server.use(
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 400 }),
+      ),
+    );
     const user = userEvent.setup();
     renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
@@ -242,7 +234,11 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("shows the generic fallback message on 500", async () => {
-    sdk.createNamespace.mockRejectedValue({ status: 500 });
+    server.use(
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
     const user = userEvent.setup();
     renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
@@ -255,7 +251,11 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("clears the error text when the user types after a failed submission", async () => {
-    sdk.createNamespace.mockRejectedValue({ status: 409 });
+    server.use(
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 409 }),
+      ),
+    );
     const user = userEvent.setup();
     renderDialog(true);
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");

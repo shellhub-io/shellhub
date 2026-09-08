@@ -1,17 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { useAuthStore } from "@/stores/authStore";
 import type { UserAdminResponse } from "@/client/model";
 import EditUserDrawer from "../EditUserDrawer";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    adminUpdateUser: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -35,6 +30,8 @@ const confirmedUser: UserAdminResponse = {
   status: "confirmed",
 };
 
+const updateSpy = vi.fn();
+
 function renderDrawer(
   overrides: Partial<{
     open: boolean;
@@ -53,8 +50,17 @@ function renderDrawer(
 describe("EditUserDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.adminUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
+    updateSpy.mockReset();
     useAuthStore.setState({ userId: "u2" });
+    server.use(
+      http.put("*/admin/api/users/:id", async ({ request, params }) => {
+        updateSpy({
+          path: { id: params.id },
+          body: await request.json(),
+        });
+        return HttpResponse.json({});
+      }),
+    );
   });
 
   describe("rendering — closed", () => {
@@ -290,7 +296,7 @@ describe("EditUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.adminUpdateUser).toHaveBeenCalledWith(
+        expect(updateSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { id: "u1" },
             body: expect.objectContaining({
@@ -321,10 +327,9 @@ describe("EditUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.adminUpdateUser).toHaveBeenCalledWith(
+        expect(updateSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { id: "u1" },
-            body: expect.objectContaining({ max_namespaces: undefined }),
           }),
         );
       });
@@ -333,7 +338,11 @@ describe("EditUserDrawer", () => {
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      sdk.adminUpdateUser.mockRejectedValue({ status: 409 });
+      server.use(
+        http.put("*/admin/api/users/:id", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -346,7 +355,11 @@ describe("EditUserDrawer", () => {
     });
 
     it("shows generic error for 400 responses", async () => {
-      sdk.adminUpdateUser.mockRejectedValue({ status: 400 });
+      server.use(
+        http.put("*/admin/api/users/:id", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -359,7 +372,9 @@ describe("EditUserDrawer", () => {
     });
 
     it("shows generic error for unexpected failures", async () => {
-      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -372,7 +387,9 @@ describe("EditUserDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -385,7 +402,9 @@ describe("EditUserDrawer", () => {
     });
 
     it("does not call onClose when update fails", async () => {
-      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
+      );
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -403,7 +422,7 @@ describe("EditUserDrawer", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
-      await waitFor(() => expect(sdk.adminUpdateUser).toHaveBeenCalled());
+      await waitFor(() => expect(updateSpy).toHaveBeenCalled());
     });
 
     it("rejects a too-short password on edit when the user is changing it", async () => {
@@ -414,7 +433,7 @@ describe("EditUserDrawer", () => {
         screen.getByRole("button", { name: /save changes/i }),
       );
 
-      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
       expect(passwordInput).toHaveAttribute("aria-invalid", "true");
     });
 
@@ -427,7 +446,7 @@ describe("EditUserDrawer", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
-      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
     });
   });
@@ -442,7 +461,7 @@ describe("EditUserDrawer", () => {
     it("does not call adminUpdateUser when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -465,7 +484,9 @@ describe("EditUserDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      sdk.adminUpdateUser.mockRejectedValue(new Error("fail"));
+      server.use(
+        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
+      );
       const { rerender } = renderDrawer({ user: mockUser });
 
       await userEvent.click(

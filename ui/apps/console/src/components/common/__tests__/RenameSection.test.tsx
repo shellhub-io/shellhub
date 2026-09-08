@@ -3,7 +3,14 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import RenameSection, { type RenameSectionProps } from "../RenameSection";
-import { makeSdkError } from "@/tests/sdk";
+import type { SdkHttpError } from "@/api/errors";
+
+function makeSdkError(status: number): Error & SdkHttpError {
+  return Object.assign(new Error("Request failed"), {
+    status,
+    headers: new Headers(),
+  });
+}
 
 const mockRename = vi
   .fn<RenameSectionProps["rename"]>()
@@ -115,8 +122,8 @@ describe("RenameSection", () => {
       await typeAndSave(user, "  new-name  ");
 
       expect(mockRename).toHaveBeenCalledWith({
-        path: { uid: "abc-123" },
-        body: { name: "new-name" },
+        uid: "abc-123",
+        data: { name: "new-name" },
       });
       expect(
         screen.getByRole("heading", { name: "my-device" }),
@@ -131,8 +138,8 @@ describe("RenameSection", () => {
       await user.type(input, "new-name{Enter}");
 
       expect(mockRename).toHaveBeenCalledWith({
-        path: { uid: "abc-123" },
-        body: { name: "new-name" },
+        uid: "abc-123",
+        data: { name: "new-name" },
       });
     });
 

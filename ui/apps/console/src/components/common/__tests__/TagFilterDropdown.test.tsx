@@ -2,11 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
+import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockTags } from "@/tests/mockTags";
 import TagFilterDropdown from "../TagFilterDropdown";
-
-vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 function renderDropdown(
   overrides: Partial<{
@@ -39,7 +37,7 @@ function renderDropdown(
 describe("TagFilterDropdown", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTags(["alpha", "beta", "gamma"]);
+    setTags(["alpha", "beta", "gamma"]);
   });
 
   describe("trigger button", () => {

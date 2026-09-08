@@ -2,20 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockLicense } from "@/tests/factories";
-import { makeSdkError } from "@/tests/sdk";
 import { getConfig } from "@/env";
 import AdminSidebar from "../AdminSidebar";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getLicense: vi.fn(),
-  }),
-);
 
 vi.mock("../SidebarShell", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -58,8 +52,10 @@ describe("AdminSidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthStore.setState({ isAdmin: true });
-    sdk.getLicense.mockResolvedValue(
-      mockSdkResponse(mockLicense({ expired: false })),
+    server.use(
+      http.get("*/admin/api/license", () =>
+        HttpResponse.json(mockLicense({ expired: false })),
+      ),
     );
     mockGetConfig.mockReturnValue({ ...defaultConfig });
   });
@@ -108,7 +104,11 @@ describe("AdminSidebar", () => {
 
   describe("enterprise admin with expired/no license (cloud=false, isExpired=true)", () => {
     beforeEach(() => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
     });
 
     it("shows the restricted nav with only the License entry", async () => {

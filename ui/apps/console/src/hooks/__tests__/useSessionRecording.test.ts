@@ -1,12 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useSessionRecording } from "../useSessionRecording";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getSessionRecord: vi.fn(),
-  }),
-);
 
 async function fetchLogs(
   result: { current: ReturnType<typeof useSessionRecording> },
@@ -33,41 +29,65 @@ describe("useSessionRecording", () => {
   });
 
   it("reads the recording of seat 0 as text", async () => {
-    sdk.getSessionRecord.mockResolvedValue({ data: "asciicast-content" });
+    let capturedUrl = "";
+    server.use(
+      http.get("*/api/sessions/:uid/records/:seat", ({ request }) => {
+        capturedUrl = new URL(request.url).pathname;
+        return new HttpResponse("asciicast-content", {
+          headers: { "Content-Type": "text/plain" },
+        });
+      }),
+    );
 
     const { result } = renderHook(() => useSessionRecording());
     await fetchLogs(result);
 
-    expect(sdk.getSessionRecord).toHaveBeenCalledWith({
-      path: { uid: "session-1", seat: 0 },
-      parseAs: "text",
-      throwOnError: true,
-    });
+    expect(capturedUrl).toBe("/api/sessions/session-1/records/0");
   });
 
   it("sets isLoading true while fetching and false after", async () => {
-    let resolve!: (value: unknown) => void;
-    sdk.getSessionRecord.mockReturnValue(
-      new Promise((r) => {
-        resolve = r;
-      }),
-    );
+    let resolveHandler!: (r: Response) => void;
+    const handlerReady = new Promise<void>((ready) => {
+      server.use(
+        http.get(
+          "*/api/sessions/:uid/records/:seat",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveHandler = resolve;
+              ready();
+            }),
+        ),
+      );
+    });
 
     const { result } = renderHook(() => useSessionRecording());
 
     act(() => {
       void result.current.fetchLogs("session-1");
     });
+    await handlerReady;
     expect(result.current.isLoading).toBe(true);
 
     await act(async () => {
-      resolve({ data: "log-data" });
+      resolveHandler(
+        new HttpResponse("log-data", {
+          headers: { "Content-Type": "text/plain" },
+        }),
+      );
     });
     expect(result.current.isLoading).toBe(false);
   });
 
   it("returns true and stores logs on success", async () => {
-    sdk.getSessionRecord.mockResolvedValue({ data: "asciicast-content" });
+    server.use(
+      http.get(
+        "*/api/sessions/:uid/records/:seat",
+        () =>
+          new HttpResponse("asciicast-content", {
+            headers: { "Content-Type": "text/plain" },
+          }),
+      ),
+    );
 
     const { result } = renderHook(() => useSessionRecording());
     const ok = await fetchLogs(result);
@@ -78,7 +98,11 @@ describe("useSessionRecording", () => {
   });
 
   it("returns false and sets error on fetch failure", async () => {
-    sdk.getSessionRecord.mockRejectedValue(new Error("Network error"));
+    server.use(
+      http.get("*/api/sessions/:uid/records/:seat", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
 
     const { result } = renderHook(() => useSessionRecording());
     const ok = await fetchLogs(result);
@@ -90,13 +114,26 @@ describe("useSessionRecording", () => {
   });
 
   it("clears logsError at the start of a new fetchLogs call", async () => {
-    sdk.getSessionRecord.mockRejectedValueOnce(new Error("first error"));
-    sdk.getSessionRecord.mockResolvedValue({ data: "log-data" });
+    server.use(
+      http.get("*/api/sessions/:uid/records/:seat", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
 
     const { result } = renderHook(() => useSessionRecording());
 
     await fetchLogs(result);
     expect(result.current.error).toBe("Failed to load recording");
+
+    server.use(
+      http.get(
+        "*/api/sessions/:uid/records/:seat",
+        () =>
+          new HttpResponse("log-data", {
+            headers: { "Content-Type": "text/plain" },
+          }),
+      ),
+    );
 
     await fetchLogs(result);
     expect(result.current.error).toBeNull();
@@ -104,7 +141,15 @@ describe("useSessionRecording", () => {
   });
 
   it("clearLogs resets logs and error without affecting other state", async () => {
-    sdk.getSessionRecord.mockResolvedValue({ data: "asciicast-content" });
+    server.use(
+      http.get(
+        "*/api/sessions/:uid/records/:seat",
+        () =>
+          new HttpResponse("asciicast-content", {
+            headers: { "Content-Type": "text/plain" },
+          }),
+      ),
+    );
 
     const { result } = renderHook(() => useSessionRecording());
     await fetchLogs(result);

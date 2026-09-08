@@ -2,17 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    resolveDeviceLoginCode: vi.fn(),
-    acceptDevicePairing: vi.fn(),
-    acceptDevice: vi.fn(),
-  }),
-);
 
 vi.mock("../WizardStepInstall", () => ({
   default: () => <div data-testid="step-install">Install step</div>,
@@ -60,13 +53,18 @@ import WelcomeWizard from "../WelcomeWizard";
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.resolveDeviceLoginCode.mockResolvedValue(
-    mockSdkResponse({ kind: "pairing", name: "code-device" }),
+  server.use(
+    http.get("*/api/devices/login-code/:code", () =>
+      HttpResponse.json({ kind: "pairing", name: "code-device" }),
+    ),
+    http.post("*/api/devices/pairing/:code/accept", () =>
+      HttpResponse.json({ uid: "code-uid" }),
+    ),
+    http.post(
+      "*/api/devices/:uid/accept",
+      () => new HttpResponse(null, { status: 200 }),
+    ),
   );
-  sdk.acceptDevicePairing.mockResolvedValue(
-    mockSdkResponse({ uid: "code-uid" }),
-  );
-  sdk.acceptDevice.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {

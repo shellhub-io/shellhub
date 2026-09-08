@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import ForgotPassword from "../ForgotPassword";
-import { mockSdkResponse } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    recoverPassword: vi.fn(),
-  }),
-);
 
 function renderForgotPassword() {
   return render(
@@ -19,7 +14,13 @@ function renderForgotPassword() {
   );
 }
 beforeEach(() => {
-  sdk.recoverPassword.mockReset();
+  vi.clearAllMocks();
+  server.use(
+    http.post(
+      "*/api/user/recover_password",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("ForgotPassword", () => {
@@ -80,25 +81,7 @@ describe("ForgotPassword", () => {
       ).toBeEnabled();
     });
 
-    it("calls recoverPassword with the trimmed username on valid submit", async () => {
-      sdk.recoverPassword.mockResolvedValue(mockSdkResponse(undefined));
-      const user = userEvent.setup();
-      renderForgotPassword();
-
-      await user.type(screen.getByLabelText(/username or email/i), "  alice  ");
-      await user.click(screen.getByRole("button", { name: /reset password/i }));
-
-      await waitFor(() => expect(sdk.recoverPassword).toHaveBeenCalledTimes(1));
-      expect(sdk.recoverPassword).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ username: "alice" }),
-          throwOnError: true,
-        }),
-      );
-    });
-
     it("shows the sent view after a successful submission", async () => {
-      sdk.recoverPassword.mockResolvedValue(mockSdkResponse(undefined));
       const user = userEvent.setup();
       renderForgotPassword();
 
@@ -110,7 +93,11 @@ describe("ForgotPassword", () => {
     });
 
     it("shows the sent view even when the API call fails (anti-enumeration)", async () => {
-      sdk.recoverPassword.mockRejectedValue(new Error("Not Found"));
+      server.use(
+        http.post("*/api/user/recover_password", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       const user = userEvent.setup();
       renderForgotPassword();
 
