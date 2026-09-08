@@ -144,7 +144,7 @@ jobs:
           fi
 
       - name: Generate SBOM for '${{ matrix.project }}' image
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           image: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
@@ -153,7 +153,7 @@ jobs:
 
       - name: Generate SBOM for '${{ matrix.project }}' source
         if: matrix.project != 'server-enterprise'
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: shellhub/${{ matrix.project }}
           format: cyclonedx-json
@@ -196,7 +196,7 @@ jobs:
           merge-multiple: true
 
       - name: Attach SBOMs to release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
