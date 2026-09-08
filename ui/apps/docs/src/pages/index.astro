@@ -9,6 +9,7 @@ import {
 import { sidebar, flattenItems } from "../data/sidebar";
 import { websiteUrl, docsUrl } from "../data/links";
 import CommandPalette from "../components/CommandPalette.astro";
+import UnreleasedBanner from "../components/UnreleasedBanner.astro";
 
 const sections = sidebar.map(section => ({
   label: section.label,
@@ -27,6 +28,7 @@ const sections = sidebar.map(section => ({
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="bg-background text-text-primary font-sans antialiased">
+    <UnreleasedBanner />
     <header class="sticky top-0 z-appbar h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10">
       <div class="flex items-center justify-between h-full max-w-7xl mx-auto px-8">
         <div class="flex items-center gap-3">
