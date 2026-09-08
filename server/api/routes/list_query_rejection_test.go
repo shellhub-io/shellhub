@@ -233,7 +233,12 @@ func TestListEndpointsRejectAnUnapprovedFilterField(t *testing.T) {
 
 				values := url.Values{"filter": {filterOn(t, field, "contains", "A")}}
 
-				assertRefusedField(t, serveList(t, svcMock, tc.path, values), "filter")
+				rec := serveList(t, svcMock, tc.path, values)
+				assertRefusedField(t, rec, "filter")
+
+				var body responses.Error
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+				assert.Equal(t, "names an unknown field: "+field, body.Fields["filter"])
 				svcMock.AssertNumberOfCalls(t, tc.serviceCall, 0)
 			})
 		}

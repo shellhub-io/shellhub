@@ -635,10 +635,10 @@ func testWebEndpointListing(t *testing.T, compose *environment.DockerCompose) {
 		value       string
 		reason      string
 	}{
-		{description: "a filter that is not encoded JSON", param: "filter", value: "not a filter", reason: "cannot be decoded"},
-		{description: "a filter on a field it does not take", param: "filter", value: propertyFilter(t, "port", "eq", 8001), reason: "is not valid"},
-		{description: "a filter with an operator its field does not take", param: "filter", value: propertyFilter(t, "device_id", "contains", "0"), reason: "is not valid"},
-		{description: "a sort on a field it does not take", param: "sort_by", value: "device_id", reason: "device_id"},
+		{description: "a filter that is not encoded JSON", param: "filter", value: "not a filter", reason: "is not valid base64"},
+		{description: "a filter on a field it does not take", param: "filter", value: propertyFilter(t, "port", "eq", 8001), reason: "names an unknown field: port"},
+		{description: "a filter with an operator its field does not take", param: "filter", value: propertyFilter(t, "device_id", "contains", "0"), reason: "operator contains is not valid for device_id"},
+		{description: "a sort on a field it does not take", param: "sort_by", value: "device_id", reason: "names an unknown field: device_id"},
 	}
 
 	for _, tc := range refusals {
