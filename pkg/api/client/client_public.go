@@ -33,31 +33,25 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	return requireBody(info)
 }
 
+// AuthDevice registers the device on the server and returns the token the agent authenticates the
+// rest of its calls with.
+//
+// Of the refusals the server can answer with, it retries only the three an operator resolves
+// without touching the device: 404 for a namespace that does not exist yet, and 402 or 403 for a
+// device limit that has been reached. Every other refusal is returned to the caller, whose device
+// is misconfigured in a way that repeating the same request cannot settle. Transport failures, 429
+// and 5xx are left to the client-wide retry condition, which reports them as a server that cannot
+// answer rather than one that refuses the device.
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
 
 	response, err := c.http.R().
-		AddRetryCondition(func(r *resty.Response, _ error) bool {
-			identity := func(mac, hostname string) string {
-				if mac != "" {
-					return mac
-				}
-
-				return hostname
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			if err != nil || r == nil || serverAtFault(r.StatusCode()) {
+				return false
 			}
 
-			if r.IsError() {
-				log.WithFields(log.Fields{
-					"tenant_id":   req.TenantID,
-					"identity":    identity(req.Identity.MAC, req.Hostname),
-					"status_code": r.StatusCode(),
-					"data":        r.String(),
-				}).Warn("failed to authenticate device")
-
-				return true
-			}
-
-			return false
+			return r.IsError() && operatorCanResolve(r.StatusCode())
 		}).
 		SetBody(req).
 		SetResult(&res).
