@@ -96,7 +96,7 @@ func TestGetSessionList(t *testing.T) {
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
-				expectedFields:  map[string]string{"filter": "is not valid"},
+				expectedFields:  map[string]string{"filter": "names an unknown field: username"},
 			},
 		},
 		{
@@ -108,7 +108,7 @@ func TestGetSessionList(t *testing.T) {
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
-				expectedFields:  map[string]string{"filter": "cannot be decoded"},
+				expectedFields:  map[string]string{"filter": "is not valid base64"},
 			},
 		},
 		{
