@@ -3,16 +3,19 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand/v2"
 	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/client/reverser"
+	"github.com/shellhub-io/shellhub/pkg/connectivity"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
@@ -48,6 +51,7 @@ type client struct {
 	port      int
 	http      *resty.Client
 	logger    *log.Logger
+	logEntry  *log.Entry
 	retryWait func() time.Duration
 	reverser  reverser.Reverser
 }
@@ -62,8 +66,11 @@ var ErrParseAddress = errors.New("could not parse the address to the required fo
 //
 // The client retries indefinitely, backing off on the server's Retry-After when it sends one and on
 // a random delay when it does not, so an agent left running against a server that is down reconnects
-// on its own. Body-less requests go out with Content-Length: 0 rather than an empty chunked body,
-// which proxies and request binders handle far more predictably.
+// on its own. An outage costs two log lines, one when the server stops answering and one when it
+// answers again; every attempt in between is logged at debug level.
+//
+// Body-less requests go out with Content-Length: 0 rather than an empty chunked body, which proxies
+// and request binders handle far more predictably.
 func NewClient(address string, opts ...Opt) (Client, error) {
 	uri, err := url.ParseRequestURI(address)
 	if err != nil {
@@ -100,6 +107,34 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 		return serverAtFault(r.StatusCode())
 	})
+	client.http.OnBeforeRequest(func(_ *resty.Client, r *resty.Request) error {
+		if r.Attempt <= 1 {
+			r.SetContext(context.WithValue(r.Context(), firstAttemptAt{}, time.Now())) //nolint:forbidigo // an elapsed-time measurement: how long the server stays away
+		}
+
+		return nil
+	})
+	client.http.AddRetryHook(func(r *resty.Response, err error) {
+		if r == nil {
+			return
+		}
+
+		switch {
+		case r.StatusCode() == 0:
+			connectivity.Lost(client.logEntry, r.Request.Attempt, err)
+		case serverAtFault(r.StatusCode()):
+			connectivity.Lost(client.logEntry, r.Request.Attempt, answer(r))
+		default:
+			connectivity.Refused(client.logEntry, r.Request.Attempt, answer(r))
+		}
+	})
+	client.http.OnSuccess(func(_ *resty.Client, r *resty.Response) {
+		if r.IsError() || r.Request.Attempt <= 1 {
+			return
+		}
+
+		connectivity.Recovered(client.logEntry, r.Request.Attempt, since(r))
+	})
 	client.http.SetRetryAfter(func(_ *resty.Client, r *resty.Response) (time.Duration, error) {
 		switch r.StatusCode() {
 		case http.StatusTooManyRequests, http.StatusServiceUnavailable:
@@ -134,6 +169,8 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 	client.http.SetLogger(&LeveledLogger{client.logger})
 
+	client.logEntry = client.logger.WithField("server_address", uri.String())
+
 	return client, nil
 }
 
@@ -152,4 +189,30 @@ func operatorCanResolve(status int) bool {
 	default:
 		return false
 	}
+}
+
+type firstAttemptAt struct{}
+
+func since(r *resty.Response) time.Duration {
+	startedAt, ok := r.Request.Context().Value(firstAttemptAt{}).(time.Time)
+	if !ok {
+		return 0
+	}
+
+	return time.Since(startedAt)
+}
+
+const maxAnswerBodyLength = 256
+
+func answer(r *resty.Response) error {
+	body := strings.TrimSpace(r.String())
+	if len(body) > maxAnswerBodyLength {
+		body = strings.ToValidUTF8(body[:maxAnswerBodyLength], "") + "..."
+	}
+
+	if body == "" {
+		return errors.New("the server answered " + r.Status())
+	}
+
+	return fmt.Errorf("the server answered %s: %s", r.Status(), body)
 }
