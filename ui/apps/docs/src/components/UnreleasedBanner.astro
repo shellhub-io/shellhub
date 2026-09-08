@@ -1,0 +1,25 @@
+---
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { releasedDocsUrl } from "../data/links";
+
+// Only the build from `docs/stable` describes a version anyone can install. Every other build
+// comes off master, where a page may document a feature that has not shipped in any release.
+const isUnreleasedBuild = import.meta.env.PUBLIC_DOCS_CHANNEL !== "stable";
+---
+
+{isUnreleasedBuild && (
+  <div class="bg-primary-50 border-b border-primary-100 text-text-secondary">
+    <p class="max-w-7xl mx-auto px-8 py-2 text-[12px] text-center">
+      Built from master, may describe features that are not in any release yet.{" "}
+      <a
+        href={releasedDocsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1 align-baseline font-semibold text-primary underline underline-offset-2 hover:no-underline"
+      >
+        Released documentation
+        <ArrowTopRightOnSquareIcon className="w-3 h-3 opacity-80" strokeWidth={2} aria-hidden="true" />
+      </a>
+    </p>
+  </div>
+)}
