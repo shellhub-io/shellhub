@@ -297,6 +297,94 @@ func TestAuthDevice(t *testing.T) {
 	}
 }
 
+func TestAuthDeviceRetriesOnlyWhatAnOperatorCanResolve(t *testing.T) {
+	tests := []struct {
+		description string
+		status      int
+		recovers    bool
+		attempts    int
+	}{
+		{
+			description: "gives up on a request the server calls malformed",
+			status:      http.StatusBadRequest,
+			attempts:    1,
+		},
+		{
+			description: "gives up on a request the server cannot process",
+			status:      http.StatusUnprocessableEntity,
+			attempts:    1,
+		},
+		{
+			description: "gives up when the device is not authorized",
+			status:      http.StatusUnauthorized,
+			attempts:    1,
+		},
+		{
+			description: "gives up when the device conflicts with one already registered",
+			status:      http.StatusConflict,
+			attempts:    1,
+		},
+		{
+			description: "waits for a namespace that does not exist yet",
+			status:      http.StatusNotFound,
+			recovers:    true,
+			attempts:    2,
+		},
+		{
+			description: "waits for a namespace that is at its device limit",
+			status:      http.StatusPaymentRequired,
+			recovers:    true,
+			attempts:    2,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries())
+			require.NoError(t, err)
+
+			client, ok := cli.(*client)
+			require.True(t, ok)
+
+			mock.ActivateNonDefault(client.http.GetClient())
+			defer mock.DeactivateAndReset()
+
+			refusal := mock.NewStringResponder(test.status, `{"message":"the server refused the device"}`)
+			if test.recovers {
+				accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+				refusal = refusal.Then(accepted)
+			}
+
+			mock.RegisterResponder("POST", "/api/devices/auth", refusal)
+
+			response, err := cli.AuthDevice(&models.DeviceAuthRequest{
+				Info: &models.DeviceInfo{ID: "manjaro", PrettyName: "Manjaro", Version: "latest", Arch: "amd64"},
+				DeviceAuth: &models.DeviceAuth{
+					Hostname:  "83-18-77-25-78-0d",
+					Identity:  &models.DeviceIdentity{MAC: "83:18:77:25:78:0d"},
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					PublicKey: "",
+				},
+			})
+
+			if test.recovers {
+				require.NoError(t, err)
+				assert.NotNil(t, response)
+			} else {
+				assert.Nil(t, response)
+				require.Error(t, err)
+			}
+
+			calls := 0
+			for _, count := range mock.GetCallCountInfo() {
+				calls += count
+			}
+
+			assert.Equal(t, test.attempts, calls)
+		})
+	}
+}
+
 func TestAuthPublicKey(t *testing.T) {
 	type Signature struct {
 		Username  string `json:"Username"`

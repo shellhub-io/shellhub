@@ -43,12 +43,13 @@ type Client interface {
 }
 
 type client struct {
-	scheme   string
-	host     string
-	port     int
-	http     *resty.Client
-	logger   *log.Logger
-	reverser reverser.Reverser
+	scheme    string
+	host      string
+	port      int
+	http      *resty.Client
+	logger    *log.Logger
+	retryWait func() time.Duration
+	reverser  reverser.Reverser
 }
 
 // ErrParseAddress is returned by NewClient when the server address is not a URL carrying scheme,
@@ -77,74 +78,44 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		const MinRetryAfterSecs int = 5
 		const MaxRetryAfterSecs int = 65
 
-		t := time.Duration(rand.IntN(MaxRetryAfterSecs-MinRetryAfterSecs)+MinRetryAfterSecs) * time.Second //nolint:gosec
-
-		log.WithFields(log.Fields{
-			"retry_after": t,
-		}).Warn("retrying request after a random time period")
-
-		return t
+		return time.Duration(rand.IntN(MaxRetryAfterSecs-MinRetryAfterSecs)+MinRetryAfterSecs) * time.Second //nolint:gosec
 	}
 
 	client := new(client)
+	client.retryWait = randomWaitTimeSecs
 	client.http = resty.New()
 	client.http.SetRetryCount(math.MaxInt32)
 	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
 	client.http.SetBaseURL(uri.String())
 	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
+		if r == nil {
+			return false
+		}
+
 		var netErr net.Error
 		if errors.As(err, &netErr) {
-			log.WithFields(log.Fields{
-				"url": r.Request.URL,
-			}).WithError(err).Error("network error")
-
 			return true
 		}
 
-		switch {
-		case r.StatusCode() == http.StatusTooManyRequests:
-			log.WithFields(log.Fields{
-				"status_code": r.StatusCode(),
-				"url":         r.Request.URL,
-				"data":        r.String(),
-			}).Warn("too many requests")
-
-			return true
-		case r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented:
-			log.WithFields(log.Fields{
-				"status_code": r.StatusCode(),
-				"url":         r.Request.URL,
-				"data":        r.String(),
-			}).Warn("failed to achieve the server")
-
-			return true
-		}
-
-		return false
+		return serverAtFault(r.StatusCode())
 	})
-	client.http.SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
+	client.http.SetRetryAfter(func(_ *resty.Client, r *resty.Response) (time.Duration, error) {
 		switch r.StatusCode() {
 		case http.StatusTooManyRequests, http.StatusServiceUnavailable:
 			retryAfterHeader := r.Header().Get(RetryAfterHeader)
 			if retryAfterHeader == "" {
-				return randomWaitTimeSecs(), nil
+				return client.retryWait(), nil
 			}
 
 			retryAfterSeconds, err := strconv.Atoi(retryAfterHeader)
 			if err != nil {
-				return randomWaitTimeSecs(), err
+				return client.retryWait(), err
 			}
-
-			log.WithFields(log.Fields{
-				"status":      r.StatusCode(),
-				"retry_after": retryAfterSeconds,
-				"url":         r.Request.URL,
-			}).Warn("retrying request after a defined time period")
 
 			return time.Duration(retryAfterSeconds) * time.Second, nil
 		default:
-			return randomWaitTimeSecs(), nil
+			return client.retryWait(), nil
 		}
 	})
 	client.http.SetRetryMaxWaitTime(MaxRetryWaitTime)
@@ -164,4 +135,21 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.http.SetLogger(&LeveledLogger{client.logger})
 
 	return client, nil
+}
+
+func serverAtFault(status int) bool {
+	if status == http.StatusTooManyRequests {
+		return true
+	}
+
+	return status >= http.StatusInternalServerError && status != http.StatusNotImplemented
+}
+
+func operatorCanResolve(status int) bool {
+	switch status {
+	case http.StatusNotFound, http.StatusPaymentRequired, http.StatusForbidden:
+		return true
+	default:
+		return false
+	}
 }

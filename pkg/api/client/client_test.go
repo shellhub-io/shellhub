@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -134,4 +135,12 @@ func FuzzNewClient(f *testing.F) {
 		_, err := NewClient(address)
 		assert.NoError(t, err)
 	})
+}
+
+func withImmediateRetries() Opt {
+	return func(c *client) error {
+		c.retryWait = func() time.Duration { return time.Millisecond }
+
+		return nil
+	}
 }
