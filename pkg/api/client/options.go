@@ -66,7 +66,8 @@ func WithPort(port int) Opt {
 	}
 }
 
-// WithLogger gives the client somewhere to log. Without it the client stays silent.
+// WithLogger sends the client's own logging, and resty's, through logger. Without it they go to
+// logrus' standard logger, which is where the rest of the agent already writes.
 func WithLogger(logger *logrus.Logger) Opt {
 	return func(c *client) error {
 		c.logger = logger
