@@ -730,6 +730,8 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 	<-a.listening // NOTE: wait for the first connection to start to ping the server.
 	ticker := time.NewTicker(interval)
 
+	authorization := connectivity.NewTracker(a.logger.WithField("transport", "ping"))
+
 	for {
 		if a.isClosed() {
 			return nil
@@ -766,6 +768,10 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			}
 		case <-ticker.C:
 			if err := a.authorize(); err != nil {
+				authorization.Refused(err)
+			} else {
+				authorization.Recovered()
+
 				a.server.SetDeviceName(a.authData.Name)
 			}
 
