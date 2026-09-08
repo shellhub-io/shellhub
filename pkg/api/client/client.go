@@ -149,10 +149,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	})
 	client.http.SetRetryMaxWaitTime(MaxRetryWaitTime)
 
-	if client.logger != nil {
-		client.http.SetLogger(&LeveledLogger{client.logger})
-	}
-
 	client.reverser = NewReverser(client.http.BaseURL)
 
 	for _, opt := range opts {
@@ -160,6 +156,12 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return nil, err
 		}
 	}
+
+	if client.logger == nil {
+		client.logger = log.StandardLogger()
+	}
+
+	client.http.SetLogger(&LeveledLogger{client.logger})
 
 	return client, nil
 }
