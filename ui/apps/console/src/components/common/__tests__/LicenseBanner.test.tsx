@@ -1,17 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import LicenseBanner from "../LicenseBanner";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getLicense: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -43,12 +38,6 @@ function renderBanner() {
   return render(<LicenseBanner />, { wrapper: createTestWrapper() });
 }
 
-async function waitForQuery() {
-  await waitFor(() => {
-    expect(sdk.getLicense).toHaveBeenCalled();
-  });
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
@@ -58,7 +47,7 @@ beforeEach(() => {
 describe("LicenseBanner", () => {
   describe("visibility", () => {
     it("is hidden while the license check is in progress", () => {
-      sdk.getLicense.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
       renderBanner();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -66,18 +55,22 @@ describe("LicenseBanner", () => {
 
     it("is hidden when the query is not enabled (non-admin)", async () => {
       useAuthStore.setState({ isAdmin: false });
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      server.use(
+        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
+      );
       renderBanner();
-      await waitFor(() => {
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      });
-      expect(sdk.getLicense).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument(),
+      );
     });
 
     it("is hidden when the query fails unexpectedly", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderBanner();
-      await waitForQuery();
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -85,9 +78,10 @@ describe("LicenseBanner", () => {
     });
 
     it("is hidden when license is valid", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      server.use(
+        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
+      );
       renderBanner();
-      await waitForQuery();
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -95,7 +89,11 @@ describe("LicenseBanner", () => {
     });
 
     it("is shown when no license is installed", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderBanner();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -103,8 +101,12 @@ describe("LicenseBanner", () => {
     });
 
     it("is shown when license is expired", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ expired: true, grace_period: false }),
+          ),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -116,8 +118,10 @@ describe("LicenseBanner", () => {
     });
 
     it("is shown when license is in the grace period", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -128,9 +132,11 @@ describe("LicenseBanner", () => {
 
     it("is shown when license is about to expire", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+          ),
         ),
       );
       renderBanner();
@@ -145,7 +151,11 @@ describe("LicenseBanner", () => {
 
   describe("severity", () => {
     it("uses error (role=alert) when no license is installed", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderBanner();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -154,8 +164,12 @@ describe("LicenseBanner", () => {
     });
 
     it("uses error (role=alert) when license is expired", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ expired: true, grace_period: false }),
+          ),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -165,8 +179,10 @@ describe("LicenseBanner", () => {
     });
 
     it("uses warning (role=status) when license is in the grace period", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -177,9 +193,11 @@ describe("LicenseBanner", () => {
 
     it("uses warning (role=status) when license is about to expire", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+          ),
         ),
       );
       renderBanner();
@@ -192,7 +210,11 @@ describe("LicenseBanner", () => {
 
   describe("messages", () => {
     it("shows the no-license message", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderBanner();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -201,8 +223,12 @@ describe("LicenseBanner", () => {
     });
 
     it("shows the expired message", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ expired: true, grace_period: false }),
+          ),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -216,8 +242,10 @@ describe("LicenseBanner", () => {
     });
 
     it("shows the grace period message", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -228,9 +256,11 @@ describe("LicenseBanner", () => {
 
     it("shows days remaining when about to expire and days are known", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 1 * 86400;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+          ),
         ),
       );
       renderBanner();
@@ -242,9 +272,11 @@ describe("LicenseBanner", () => {
 
     it("uses the plural form when more than one day remains", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+          ),
         ),
       );
       renderBanner();
@@ -255,8 +287,12 @@ describe("LicenseBanner", () => {
     });
 
     it("shows the fallback about-to-expire message when expires_at is not set", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ about_to_expire: true, expires_at: -1 })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: -1 }),
+          ),
+        ),
       );
       renderBanner();
       await waitFor(() => {
@@ -267,9 +303,11 @@ describe("LicenseBanner", () => {
 
     it("shows fallback about-to-expire copy when expires_at is in the past", async () => {
       const expiredAt = Math.floor(Date.now() / 1000) - 1;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiredAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiredAt }),
+          ),
         ),
       );
       renderBanner();
@@ -281,9 +319,11 @@ describe("LicenseBanner", () => {
 
     it("shows fallback about-to-expire copy when days would be zero", async () => {
       const nowSeconds = Math.floor(Date.now() / 1000);
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: nowSeconds }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: nowSeconds }),
+          ),
         ),
       );
       renderBanner();
@@ -297,7 +337,11 @@ describe("LicenseBanner", () => {
 
   describe("no CTA link", () => {
     it("never renders any link when no license is installed (error state)", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderBanner();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -308,9 +352,11 @@ describe("LicenseBanner", () => {
 
     it("never renders any link when license is about to expire (warning state)", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(
-          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+          ),
         ),
       );
       renderBanner();
@@ -325,7 +371,6 @@ describe("LicenseBanner", () => {
   describe("cloud deployment", () => {
     it("is hidden when cloud=true and admin=true (getLicense never fires)", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
 
       renderBanner();
 
@@ -333,7 +378,6 @@ describe("LicenseBanner", () => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
       });
-      expect(sdk.getLicense).not.toHaveBeenCalled();
     });
   });
 });

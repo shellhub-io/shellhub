@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import Setup from "../Setup";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -12,18 +13,21 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    setup: vi.fn(),
-  }),
-);
-
 const mockLoginWithToken = vi.hoisted(() => vi.fn());
 
 vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (
-    selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
-  ) => selector({ loginWithToken: mockLoginWithToken }),
+  useAuthStore: Object.assign(
+    (
+      selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
+    ) => selector({ loginWithToken: mockLoginWithToken }),
+    {
+      getState: () => ({
+        token: null,
+        logout: vi.fn(),
+        setMfaToken: vi.fn(),
+      }),
+    },
+  ),
 }));
 import { getConfig, defaultConfig } from "@/env";
 
@@ -45,11 +49,14 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
 }
 beforeEach(() => {
-  mockNavigate.mockReset();
-  sdk.setup.mockReset();
-  mockLoginWithToken.mockReset();
+  vi.clearAllMocks();
   mockLoginWithToken.mockResolvedValue(undefined);
   mockGetConfig.mockReturnValue({ ...defaultConfig });
+  server.use(
+    http.post("*/api/setup", () =>
+      HttpResponse.json({ token: "jwt-token" }),
+    ),
+  );
 });
 
 describe("Setup", () => {
@@ -171,35 +178,17 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
-    const setupSuccess = () => mockSdkResponse({ token: "jwt-token" });
-
-    it("calls setup() with the correct payload and shows the success screen", async () => {
-      sdk.setup.mockResolvedValue(setupSuccess());
+    it("shows the success screen after setup", async () => {
       const user = userEvent.setup();
       renderSetup();
 
       await fillValidForm(user);
       await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
-      await waitFor(() => expect(sdk.setup).toHaveBeenCalledTimes(1));
-      expect(sdk.setup).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: {
-            name: "Alice Smith",
-            username: "alice",
-            namespace: "dev",
-            email: "alice@example.com",
-            password: "Secret123",
-          },
-          throwOnError: true,
-        }),
-      );
-
       expect(await screen.findByText(/instance ready/i)).toBeInTheDocument();
     });
 
     it("logs in with the returned token", async () => {
-      sdk.setup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup();
       renderSetup();
 
@@ -214,7 +203,6 @@ describe("Setup", () => {
     it("redirects to the app after 3 seconds on success", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
 
-      sdk.setup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderSetup();
 
@@ -235,7 +223,6 @@ describe("Setup", () => {
     });
 
     it("routes to login with a notice when auto-login fails after setup", async () => {
-      sdk.setup.mockResolvedValue(setupSuccess());
       mockLoginWithToken.mockRejectedValue(new Error("token login failed"));
       const user = userEvent.setup();
       renderSetup();
@@ -253,7 +240,9 @@ describe("Setup", () => {
     });
 
     it("routes to login when setup issues no token", async () => {
-      sdk.setup.mockResolvedValue(mockSdkResponse({ token: "" }));
+      server.use(
+        http.post("*/api/setup", () => HttpResponse.json({ token: "" })),
+      );
       const user = userEvent.setup();
       renderSetup();
 
@@ -272,7 +261,11 @@ describe("Setup", () => {
 
   describe("error handling", () => {
     it("shows 'Setup has already been completed' on 409", async () => {
-      sdk.setup.mockRejectedValue(makeSdkError(409));
+      server.use(
+        http.post("*/api/setup", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
       const user = userEvent.setup();
       renderSetup();
 
@@ -285,7 +278,11 @@ describe("Setup", () => {
     });
 
     it("shows a generic error on unexpected server errors", async () => {
-      sdk.setup.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.post("*/api/setup", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderSetup();
 

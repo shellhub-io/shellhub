@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useSignUpStore } from "@/stores/signUpStore";
 import SignUp from "../SignUp";
-import { mockSdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -12,12 +13,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    registerUser: vi.fn(),
-  }),
-);
 
 function renderSignUp(search = "") {
   return render(
@@ -64,8 +59,7 @@ async function fillValidForm(
 }
 
 beforeEach(() => {
-  mockNavigate.mockReset();
-  sdk.registerUser.mockReset();
+  vi.clearAllMocks();
   useSignUpStore.setState({
     signUpLoading: false,
     signUpError: null,
@@ -73,6 +67,9 @@ beforeEach(() => {
     signUpToken: null,
     signUpTenant: null,
   });
+  server.use(
+    http.post("*/api/register", () => new HttpResponse(null, { status: 204 })),
+  );
 });
 
 describe("SignUp", () => {
@@ -86,41 +83,17 @@ describe("SignUp", () => {
   });
 
   describe("successful submission", () => {
-    it("calls signUp with correct payload including email_marketing when form is valid", async () => {
-      sdk.registerUser.mockResolvedValue(mockSdkResponse({}));
+    it("navigates to confirm-account after valid submission", async () => {
       const user = userEvent.setup();
       renderSignUp();
 
       await fillValidForm(user, { acceptMarketing: true });
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      await waitFor(() => expect(sdk.registerUser).toHaveBeenCalledTimes(1));
-      expect(sdk.registerUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({
-            name: "Alice Smith",
-            username: "alice",
-            email: "alice@example.com",
-            password: "Secret123",
-            email_marketing: true,
-          }),
-        }),
-      );
-    });
-
-    it("calls signUp with email_marketing: false when marketing checkbox is unchecked", async () => {
-      sdk.registerUser.mockResolvedValue(mockSdkResponse({}));
-      const user = userEvent.setup();
-      renderSignUp();
-
-      await fillValidForm(user, { acceptMarketing: false });
-      await user.click(screen.getByRole("button", { name: /create account/i }));
-
-      await waitFor(() => expect(sdk.registerUser).toHaveBeenCalledTimes(1));
-      expect(sdk.registerUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ email_marketing: false }),
-        }),
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining("/confirm-account"),
+        ),
       );
     });
   });
@@ -207,18 +180,24 @@ describe("SignUp", () => {
   });
 
   describe("server field errors", () => {
-    function makeServerFieldError(fields: string[], status = 400) {
-      const body = {
-        message: "user invalid",
-        fields: Object.fromEntries(fields.map((field) => [field, "invalid"])),
-        status,
-      };
-
-      return body as unknown as Error;
+    function setServerFieldError(fields: string[]) {
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json(
+            {
+              message: "user invalid",
+              fields: Object.fromEntries(
+                fields.map((field) => [field, "invalid"]),
+              ),
+            },
+            { status: 400 },
+          ),
+        ),
+      );
     }
 
     it("shows server-side username error on the username field and disables submit", async () => {
-      sdk.registerUser.mockRejectedValue(makeServerFieldError(["username"]));
+      setServerFieldError(["username"]);
       const user = userEvent.setup();
       renderSignUp();
 
@@ -235,7 +214,7 @@ describe("SignUp", () => {
     });
 
     it("shows server-side email error on the email field", async () => {
-      sdk.registerUser.mockRejectedValue(makeServerFieldError(["email"]));
+      setServerFieldError(["email"]);
       const user = userEvent.setup();
       renderSignUp();
 
@@ -248,7 +227,7 @@ describe("SignUp", () => {
     });
 
     it("clears the server field error after the user edits that field", async () => {
-      sdk.registerUser.mockRejectedValue(makeServerFieldError(["username"]));
+      setServerFieldError(["username"]);
       const user = userEvent.setup();
       renderSignUp();
 

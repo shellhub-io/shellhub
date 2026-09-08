@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useSignUpStore } from "../signUpStore";
-import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    registerUser: vi.fn(),
-    resendEmail: vi.fn(),
-    getValidateAccount: vi.fn(),
-  }),
-);
 
 beforeEach(() => {
   useSignUpStore.setState({
@@ -21,54 +14,53 @@ beforeEach(() => {
     resendError: null,
     validationStatus: "idle",
   });
-  vi.clearAllMocks();
 });
 
-function createSdkError(status: number, body?: unknown) {
-  const base = typeof body === "object" && body !== null ? body : {};
-  return Object.assign(base, { status });
-}
+const payload = {
+  name: "Test",
+  email: "t@t.com",
+  username: "test",
+  password: "pass1",
+  email_marketing: false,
+};
 
 describe("signUpStore", () => {
   describe("signUp", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {}); // Suppress expected warn logs during tests
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
     it("sets loading during request", async () => {
-      let resolve: (v: SdkResponse<{ token: string; tenant: string }>) => void;
-      sdk.registerUser.mockReturnValue(
-        new Promise<SdkResponse<{ token: string; tenant: string }>>((r) => {
-          resolve = r;
-        }),
-      );
-
-      const promise = useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
+      let resolveHandler!: (r: Response) => void;
+      const handlerReady = new Promise<void>((ready) => {
+        server.use(
+          http.post(
+            "*/api/register",
+            () =>
+              new Promise<Response>((resolve) => {
+                resolveHandler = resolve;
+                ready();
+              }),
+          ),
+        );
       });
 
+      const promise = useSignUpStore.getState().signUp(payload);
+      await handlerReady;
       expect(useSignUpStore.getState().signUpLoading).toBe(true);
 
-      resolve!(mockSdkResponse({ token: "tok", tenant: "ten" }));
+      resolveHandler(HttpResponse.json({ token: "tok", tenant: "ten" }));
       await promise;
 
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
     });
 
     it("stores token and tenant on success and returns token", async () => {
-      sdk.registerUser.mockResolvedValue(
-        mockSdkResponse({ token: "jwt-token", tenant: "tenant-abc" }),
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json({ token: "jwt-token", tenant: "tenant-abc" }),
+        ),
       );
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBe("jwt-token");
       expect(useSignUpStore.getState().signUpToken).toBe("jwt-token");
@@ -76,15 +68,9 @@ describe("signUpStore", () => {
     });
 
     it("returns null and stores null token when response has no token (normal flow)", async () => {
-      sdk.registerUser.mockResolvedValue(mockSdkResponse({}));
+      server.use(http.post("*/api/register", () => HttpResponse.json({})));
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpToken).toBeNull();
@@ -92,20 +78,19 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpServerFields on a 400 carrying per-field detail and returns null", async () => {
-      sdk.registerUser.mockRejectedValue(
-        createSdkError(400, {
-          message: "user invalid",
-          fields: { username: "required", email: "invalid" },
-        }),
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json(
+            {
+              message: "user invalid",
+              fields: { username: "required", email: "invalid" },
+            },
+            { status: 400 },
+          ),
+        ),
       );
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
@@ -117,20 +102,19 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpServerFields on a 409 carrying per-field detail and returns null", async () => {
-      sdk.registerUser.mockRejectedValue(
-        createSdkError(409, {
-          message: "user duplicated",
-          fields: { username: "duplicated" },
-        }),
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json(
+            {
+              message: "user duplicated",
+              fields: { username: "duplicated" },
+            },
+            { status: 409 },
+          ),
+        ),
       );
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpServerFields).toEqual([
@@ -140,17 +124,13 @@ describe("signUpStore", () => {
     });
 
     it("falls through to the status message when the 400 body carries no fields", async () => {
-      sdk.registerUser.mockRejectedValue(
-        createSdkError(400, { message: "validation error" }),
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json({ message: "validation error" }, { status: 400 }),
+        ),
       );
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
@@ -160,15 +140,9 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpError on non-field errors and returns null", async () => {
-      sdk.registerUser.mockRejectedValue(new Error("network error"));
+      server.use(http.post("*/api/register", () => HttpResponse.error()));
 
-      const result = await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
@@ -183,15 +157,9 @@ describe("signUpStore", () => {
         signUpToken: "old-token",
         signUpTenant: "old-tenant",
       });
-      sdk.registerUser.mockRejectedValue(new Error("network error"));
+      server.use(http.post("*/api/register", () => HttpResponse.error()));
 
-      await useSignUpStore.getState().signUp({
-        name: "Test",
-        email: "t@t.com",
-        username: "test",
-        password: "pass1",
-        email_marketing: false,
-      });
+      await useSignUpStore.getState().signUp(payload);
 
       expect(useSignUpStore.getState().signUpToken).toBeNull();
       expect(useSignUpStore.getState().signUpTenant).toBeNull();
@@ -224,7 +192,12 @@ describe("signUpStore", () => {
 
   describe("resendEmail", () => {
     it("returns true on success", async () => {
-      sdk.resendEmail.mockResolvedValue(mockSdkResponse(undefined));
+      server.use(
+        http.post(
+          "*/api/user/resend_email",
+          () => new HttpResponse(null, { status: 200 }),
+        ),
+      );
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
@@ -234,7 +207,11 @@ describe("signUpStore", () => {
     });
 
     it("returns false and sets resendError on failure", async () => {
-      sdk.resendEmail.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.post("*/api/user/resend_email", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
@@ -246,17 +223,25 @@ describe("signUpStore", () => {
     });
 
     it("sets loading during request", async () => {
-      let resolve: (v: SdkResponse) => void;
-      sdk.resendEmail.mockReturnValue(
-        new Promise<SdkResponse>((r) => {
-          resolve = r;
-        }),
-      );
+      let resolveHandler!: (r: Response) => void;
+      const handlerReady = new Promise<void>((ready) => {
+        server.use(
+          http.post(
+            "*/api/user/resend_email",
+            () =>
+              new Promise<Response>((resolve) => {
+                resolveHandler = resolve;
+                ready();
+              }),
+          ),
+        );
+      });
 
       const promise = useSignUpStore.getState().resendEmail("testuser");
+      await handlerReady;
       expect(useSignUpStore.getState().resendLoading).toBe(true);
 
-      resolve!(mockSdkResponse(undefined));
+      resolveHandler(new HttpResponse(null, { status: 200 }));
       await promise;
 
       expect(useSignUpStore.getState().resendLoading).toBe(false);
@@ -265,7 +250,12 @@ describe("signUpStore", () => {
 
   describe("validateAccount", () => {
     it("transitions to success on 200", async () => {
-      sdk.getValidateAccount.mockResolvedValue(mockSdkResponse(undefined));
+      server.use(
+        http.get(
+          "*/api/user/validation_account",
+          () => new HttpResponse(null, { status: 200 }),
+        ),
+      );
 
       await useSignUpStore.getState().validateAccount("t@t.com", "valid-token");
 
@@ -273,7 +263,11 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed-token on 400 (expired token)", async () => {
-      sdk.getValidateAccount.mockRejectedValue(createSdkError(400));
+      server.use(
+        http.get("*/api/user/validation_account", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
 
       await useSignUpStore
         .getState()
@@ -283,7 +277,11 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed-token on 401 (wrong token)", async () => {
-      sdk.getValidateAccount.mockRejectedValue(createSdkError(401));
+      server.use(
+        http.get("*/api/user/validation_account", () =>
+          HttpResponse.json({}, { status: 401 }),
+        ),
+      );
 
       await useSignUpStore.getState().validateAccount("t@t.com", "wrong-token");
 
@@ -291,7 +289,11 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed on 404 (user not found)", async () => {
-      sdk.getValidateAccount.mockRejectedValue(createSdkError(404));
+      server.use(
+        http.get("*/api/user/validation_account", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
 
       await useSignUpStore
         .getState()
@@ -301,7 +303,11 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed on other errors", async () => {
-      sdk.getValidateAccount.mockRejectedValue(createSdkError(500));
+      server.use(
+        http.get("*/api/user/validation_account", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
 
       await useSignUpStore.getState().validateAccount("t@t.com", "bad-token");
 
@@ -309,7 +315,11 @@ describe("signUpStore", () => {
     });
 
     it("does not update state when the request is aborted", async () => {
-      sdk.getValidateAccount.mockRejectedValue(new Error("aborted"));
+      server.use(
+        http.get("*/api/user/validation_account", () =>
+          HttpResponse.json({}, { status: 200 }),
+        ),
+      );
 
       const controller = new AbortController();
       controller.abort();
@@ -322,19 +332,27 @@ describe("signUpStore", () => {
     });
 
     it("sets processing during request", async () => {
-      let resolve: (v: SdkResponse) => void;
-      sdk.getValidateAccount.mockReturnValue(
-        new Promise<SdkResponse>((r) => {
-          resolve = r;
-        }),
-      );
+      let resolveHandler!: (r: Response) => void;
+      const handlerReady = new Promise<void>((ready) => {
+        server.use(
+          http.get(
+            "*/api/user/validation_account",
+            () =>
+              new Promise<Response>((resolve) => {
+                resolveHandler = resolve;
+                ready();
+              }),
+          ),
+        );
+      });
 
       const promise = useSignUpStore
         .getState()
         .validateAccount("t@t.com", "tok");
+      await handlerReady;
       expect(useSignUpStore.getState().validationStatus).toBe("processing");
 
-      resolve!(mockSdkResponse(undefined));
+      resolveHandler(new HttpResponse(null, { status: 200 }));
       await promise;
     });
   });

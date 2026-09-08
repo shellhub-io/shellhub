@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import ResetPasswordDialog from "../ResetPasswordDialog";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    adminResetUserPassword: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/BaseDialog", async () => ({
   default: (await import("@/tests/mocks")).MockBaseDialog,
@@ -21,11 +16,21 @@ vi.mock("@/components/common/CopyButton", async () => ({
 
 const Wrapper = createTestWrapper();
 
+const resetSpy = vi.fn();
+
+function setResetResponse(password: string) {
+  server.use(
+    http.patch("*/admin/api/users/:id/password/reset", ({ params }) => {
+      resetSpy({ path: { id: params.id } });
+      return HttpResponse.json({ password });
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.adminResetUserPassword.mockResolvedValue(
-    mockSdkResponse({ password: "default-pw" }),
-  );
+  resetSpy.mockReset();
+  setResetResponse("default-pw");
 });
 
 function renderDialog(
@@ -99,21 +104,19 @@ describe("ResetPasswordDialog", () => {
     it("does not call adminResetUserPassword when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.adminResetUserPassword).not.toHaveBeenCalled();
+      expect(resetSpy).not.toHaveBeenCalled();
     });
   });
 
   describe("enable flow — success", () => {
     it("calls adminResetUserPassword with the correct userId when Enable is clicked", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "gen-pass-123" }),
-      );
+      setResetResponse("gen-pass-123");
       renderDialog({ userId: "user-abc" });
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
 
       await waitFor(() =>
-        expect(sdk.adminResetUserPassword).toHaveBeenCalledWith(
+        expect(resetSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { id: "user-abc" },
           }),
@@ -122,9 +125,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("transitions to the result step after successful reset", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "gen-pass-123" }),
-      );
+      setResetResponse("gen-pass-123");
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -135,9 +136,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("displays the generated password in an input field", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "s3cr3t-pw" }),
-      );
+      setResetResponse("s3cr3t-pw");
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -148,9 +147,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders the 'Generated password' labelled input", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "abc" }),
-      );
+      setResetResponse("abc");
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -163,9 +160,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders a Copy button on the result step", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "abc" }),
-      );
+      setResetResponse("abc");
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -178,9 +173,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders a Close button on the result step", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "abc" }),
-      );
+      setResetResponse("abc");
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -193,9 +186,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("calls onClose when Close is clicked on result step", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "abc" }),
-      );
+      setResetResponse("abc");
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -208,7 +199,11 @@ describe("ResetPasswordDialog", () => {
 
   describe("enable flow — error states", () => {
     it("shows specific error message for status 400 (user already has password)", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue({ status: 400 });
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -221,7 +216,11 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("shows generic error message for non-400 errors", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue({ status: 500 });
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -232,7 +231,11 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("shows generic error for non-SDK errors", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.error(),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -243,7 +246,11 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue({ status: 500 });
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -254,7 +261,11 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("stays on the confirm step when there is an error", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue({ status: 500 });
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -266,7 +277,11 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("clears error and stays on confirm step — Enable button is still visible", async () => {
-      sdk.adminResetUserPassword.mockRejectedValue({ status: 500 });
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -280,9 +295,7 @@ describe("ResetPasswordDialog", () => {
 
   describe("state reset on reopen", () => {
     it("resets to confirm step when dialog is closed then reopened", async () => {
-      sdk.adminResetUserPassword.mockResolvedValue(
-        mockSdkResponse({ password: "pw" }),
-      );
+      setResetResponse("pw");
       const { rerender } = renderDialog({ userId: "u1" });
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));

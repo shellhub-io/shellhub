@@ -3,11 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
+import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockTags } from "@/tests/mockTags";
 import FormTagsSelector from "@/components/common/fields/rhf/FormTagsSelector";
-
-vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 interface TagsFormValues extends FieldValues {
   tags: string[];
@@ -48,7 +46,7 @@ function renderForm(props: Parameters<typeof TagsForm>[0] = {}) {
 describe("FormTagsSelector (RHF adapter contract)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTags(["production", "staging", "dev"]);
+    setTags(["production", "staging", "dev"]);
   });
 
   it("renders the tags selector with the given label", () => {

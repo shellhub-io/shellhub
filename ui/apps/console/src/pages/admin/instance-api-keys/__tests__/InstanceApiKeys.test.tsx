@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import InstanceApiKeys from "../InstanceApiKeys";
 import type { InstanceAPIKey } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listInstanceAPIKeys: vi.fn(),
-    createInstanceAPIKey: vi.fn(),
-    deleteInstanceAPIKey: vi.fn(),
-  }),
-);
+import { useAuthStore } from "@/stores/authStore";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
@@ -32,12 +26,21 @@ function mockInstanceAPIKey(
   };
 }
 
+const deleteSpy = vi.fn();
+
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.listInstanceAPIKeys.mockResolvedValue(
-    paginatedResponse([mockInstanceAPIKey()]),
+  deleteSpy.mockReset();
+  useAuthStore.setState({ isAdmin: true });
+  server.use(
+    http.get("*/admin/api/instance-api-keys", () =>
+      jsonWithTotal([mockInstanceAPIKey()], 1),
+    ),
+    http.delete("*/admin/api/instance-api-keys/:name", ({ params }) => {
+      deleteSpy({ path: { name: params.name } });
+      return new HttpResponse(null, { status: 204 });
+    }),
   );
-  sdk.deleteInstanceAPIKey.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderPage() {
@@ -62,11 +65,13 @@ describe("InstanceApiKeys", () => {
 
   it("shows the plaintext key once after creating one", async () => {
     const user = userEvent.setup();
-    sdk.createInstanceAPIKey.mockResolvedValue(
-      mockSdkResponse({
-        ...mockInstanceAPIKey({ name: "license-sync" }),
-        id: "sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159",
-      }),
+    server.use(
+      http.post("*/admin/api/instance-api-keys", () =>
+        HttpResponse.json({
+          ...mockInstanceAPIKey({ name: "license-sync" }),
+          id: "sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159",
+        }),
+      ),
     );
 
     renderPage();
@@ -126,7 +131,7 @@ describe("InstanceApiKeys", () => {
     await user.click(screen.getByRole("button", { name: /^revoke$/i }));
 
     await waitFor(() => {
-      expect(sdk.deleteInstanceAPIKey).toHaveBeenCalledWith(
+      expect(deleteSpy).toHaveBeenCalledWith(
         expect.objectContaining({ path: { name: "billing-export" } }),
       );
     });

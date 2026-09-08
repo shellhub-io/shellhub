@@ -2,18 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { ComponentType, ReactNode } from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import LicenseGuard from "../LicenseGuard";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getLicense: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -67,14 +62,14 @@ beforeEach(() => {
 describe("LicenseGuard", () => {
   describe("isLoading — shows PageLoader", () => {
     it("renders a loading indicator while the license check is in progress", () => {
-      sdk.getLicense.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
       renderGuard(createTestWrapper());
       expect(screen.getByText("Checking license...")).toBeInTheDocument();
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
 
     it("does not render the Outlet while loading", () => {
-      sdk.getLicense.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
       renderGuard(createTestWrapper());
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
@@ -82,7 +77,11 @@ describe("LicenseGuard", () => {
 
   describe("isError — redirects to /admin/license", () => {
     it("navigates to the license page when the query errors", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderGuard(createTestWrapper());
       await waitFor(() => {
         expect(screen.getByText("license page")).toBeInTheDocument();
@@ -93,7 +92,11 @@ describe("LicenseGuard", () => {
 
   describe("no license — redirects to /admin/license", () => {
     it("navigates to the license page when no license is installed", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderGuard(createTestWrapper());
       await waitFor(() => {
         expect(screen.getByText("license page")).toBeInTheDocument();
@@ -104,8 +107,10 @@ describe("LicenseGuard", () => {
 
   describe("isExpired — redirects to /admin/license", () => {
     it("navigates to the license page when the license is expired", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: true })),
+        ),
       );
       renderGuard(createTestWrapper());
       await waitFor(() => {
@@ -117,7 +122,9 @@ describe("LicenseGuard", () => {
 
   describe("valid license — renders Outlet", () => {
     it("renders the child route when the license is valid", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      server.use(
+        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
+      );
       renderGuard(createTestWrapper());
       await waitFor(() => {
         expect(screen.getByText("protected content")).toBeInTheDocument();
@@ -129,14 +136,20 @@ describe("LicenseGuard", () => {
   describe("cloud deployment", () => {
     it("renders the Outlet without calling getLicense when cloud=true", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      let called = false;
+      server.use(
+        http.get("*/admin/api/license", () => {
+          called = true;
+          return HttpResponse.json({}, { status: 400 });
+        }),
+      );
 
       renderGuard(createTestWrapper());
 
       await waitFor(() => {
         expect(screen.getByText("protected content")).toBeInTheDocument();
       });
-      expect(sdk.getLicense).not.toHaveBeenCalled();
+      expect(called).toBe(false);
     });
   });
 });

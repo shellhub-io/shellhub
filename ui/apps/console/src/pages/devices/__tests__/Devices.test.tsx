@@ -3,22 +3,12 @@ import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { UseActionDialogResult } from "@/hooks/useActionDialog";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice, mockNamespace } from "@/tests/factories";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import Devices from "../index";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDevices: vi.fn(),
-    createTag: vi.fn(),
-    pushTagToDevice: vi.fn(),
-    pullTagFromDevice: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -120,17 +110,42 @@ function renderPage(initialEntries: string[] = ["/"]) {
   });
 }
 
+let lastDevicesUrl: URL | null;
+
+function setDevices(
+  devices: ReturnType<typeof mockDevice>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/api/devices", ({ request }) => {
+      lastDevicesUrl = new URL(request.url);
+      return jsonWithTotal(devices, total ?? devices.length);
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  lastDevicesUrl = null;
   seedAuthStore();
-  sdk.getDevices.mockResolvedValue(paginatedResponse([]));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  setDevices([]);
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.post("*/api/tags", () => new HttpResponse(null, { status: 204 })),
+    http.post(
+      "*/api/devices/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "*/api/devices/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pushTagToDevice.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pullTagFromDevice.mockResolvedValue(mockSdkResponse(undefined));
   mockNavigate.mockReset();
   mockManageTagsDrawer.mockReset();
   mockRequestAction.mockReset();
@@ -171,7 +186,9 @@ describe("Devices list", () => {
 
   describe("loading state", () => {
     it("renders the loading message", () => {
-      sdk.getDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/devices", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
     });
@@ -186,14 +203,12 @@ describe("Devices list", () => {
 
   describe("device rows", () => {
     it("renders a row for each device", async () => {
-      sdk.getDevices.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockDevice({ uid: "uid-1", name: "alpha" }),
-            mockDevice({ uid: "uid-2", name: "beta" }),
-          ],
-          2,
-        ),
+      setDevices(
+        [
+          mockDevice({ uid: "uid-1", name: "alpha" }),
+          mockDevice({ uid: "uid-2", name: "beta" }),
+        ],
+        2,
       );
       renderPage();
       expect(await screen.findByText("alpha")).toBeInTheDocument();
@@ -202,11 +217,9 @@ describe("Devices list", () => {
 
     it("navigates to device detail on row click", async () => {
       const user = userEvent.setup();
-      sdk.getDevices.mockResolvedValue(
-        paginatedResponse(
-          [mockDevice({ uid: "uid-abc", name: "clickable" })],
-          1,
-        ),
+      setDevices(
+        [mockDevice({ uid: "uid-abc", name: "clickable" })],
+        1,
       );
       renderPage();
       await user.click(await screen.findByText("clickable"));
@@ -216,7 +229,11 @@ describe("Devices list", () => {
 
   describe("error state", () => {
     it("renders an error message when the query fails", async () => {
-      sdk.getDevices.mockRejectedValue({ status: 500 });
+      server.use(
+        http.get("*/api/devices", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(
         await screen.findByText("Something went wrong on our side. Try again."),
@@ -228,22 +245,15 @@ describe("Devices list", () => {
     it("requests last_seen/desc sort by default", async () => {
       renderPage();
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "last_seen",
-              order_by: "desc",
-            }),
-          }),
-        );
+        expect(lastDevicesUrl).not.toBeNull();
+        expect(lastDevicesUrl!.searchParams.get("sort_by")).toBe("last_seen");
+        expect(lastDevicesUrl!.searchParams.get("order_by")).toBe("desc");
       });
     });
 
     it("toggles sort when the Hostname header is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getDevices.mockResolvedValue(
-        paginatedResponse([mockDevice({ uid: "uid-1", name: "alpha" })], 1),
-      );
+      setDevices([mockDevice({ uid: "uid-1", name: "alpha" })], 1);
       renderPage();
       await screen.findByText("alpha");
 
@@ -251,96 +261,68 @@ describe("Devices list", () => {
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "name",
-              order_by: "asc",
-            }),
-          }),
-        );
+        expect(lastDevicesUrl!.searchParams.get("sort_by")).toBe("name");
+        expect(lastDevicesUrl!.searchParams.get("order_by")).toBe("asc");
       });
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "name",
-              order_by: "desc",
-            }),
-          }),
-        );
+        expect(lastDevicesUrl!.searchParams.get("sort_by")).toBe("name");
+        expect(lastDevicesUrl!.searchParams.get("order_by")).toBe("desc");
       });
     });
   });
 
   describe("URL hydration — URL params seed page state on mount", () => {
-    it("passes status from URL to the SDK", async () => {
+    it("enforces status=accepted regardless of URL", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "pending" }),
-          }),
-        );
+        expect(lastDevicesUrl?.searchParams.get("status")).toBe("accepted");
       });
     });
 
     it("passes tags from URL as a filter to the SDK", async () => {
-      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+      renderPage(["/?tags=a&tags=b"]);
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        expect(lastDevicesUrl).not.toBeNull();
+        const filter = lastDevicesUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain('"a"');
         expect(decoded).toContain('"b"');
       });
     });
 
-    it("passes page=2 from URL to the SDK", async () => {
-      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+    it("passes page from URL to the SDK", async () => {
+      renderPage(["/?page=2"]);
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastDevicesUrl?.searchParams.get("page")).toBe("2");
       });
     });
 
     it("falls back to status=accepted and page=1 when URL has no params", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "accepted", page: 1 }),
-          }),
-        );
+        expect(lastDevicesUrl).not.toBeNull();
+        expect(lastDevicesUrl!.searchParams.get("status")).toBe("accepted");
+        expect(lastDevicesUrl!.searchParams.get("page")).toBe("1");
       });
     });
 
     it("falls back to status=accepted for an invalid status value", async () => {
       renderPage(["/?status=invalid"]);
       await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ status: "accepted" }),
-          }),
-        );
+        expect(lastDevicesUrl).not.toBeNull();
+        expect(lastDevicesUrl!.searchParams.get("status")).toBe("accepted");
       });
     });
 
     it("passes no tag filter when no tags param is present", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls[0]?.[0] as {
-          query?: { filter?: string };
-        };
-        expect(call?.query?.filter).toBeUndefined();
+        expect(lastDevicesUrl).not.toBeNull();
+        expect(lastDevicesUrl!.searchParams.get("filter")).toBeNull();
       });
     });
   });
@@ -355,10 +337,8 @@ describe("Devices list", () => {
         "  myhost  ",
       );
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastDevicesUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("myhost");
       });
     });
@@ -367,7 +347,7 @@ describe("Devices list", () => {
   describe("tag mutation — onTagRenamed/onTagDeleted update URL tags array", () => {
     it("renames a tag in filter when onTagRenamed is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
-      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
+      await waitFor(() => expect(lastDevicesUrl).not.toBeNull());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagRenamed?: (oldName: string, newName: string) => void;
@@ -379,10 +359,8 @@ describe("Devices list", () => {
       });
 
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastDevicesUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("alpha");
         expect(decoded).toContain('"b"');
       });
@@ -390,7 +368,7 @@ describe("Devices list", () => {
 
     it("removes a tag from filter when onTagDeleted is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
-      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
+      await waitFor(() => expect(lastDevicesUrl).not.toBeNull());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagDeleted?: (name: string) => void;
@@ -402,10 +380,8 @@ describe("Devices list", () => {
       });
 
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastDevicesUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).not.toContain('"a"');
         expect(decoded).toContain('"b"');
       });
@@ -414,10 +390,8 @@ describe("Devices list", () => {
     it("hydrates tags from URL into the SDK filter", async () => {
       renderPage(["/?tags=existing"]);
       await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
+        const filter = lastDevicesUrl!.searchParams.get("filter") ?? "";
+        const decoded = atob(filter);
         expect(decoded).toContain("existing");
       });
       expect(

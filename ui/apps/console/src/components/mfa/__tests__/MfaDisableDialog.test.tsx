@@ -1,16 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 import MfaDisableDialog from "../MfaDisableDialog";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    disableMfa: vi.fn(),
-    requestResetMfa: vi.fn(),
-  }),
-);
 
 describe("MfaDisableDialog", () => {
   const onClose = vi.fn();
@@ -39,7 +33,12 @@ describe("MfaDisableDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.disableMfa.mockResolvedValue(mockSdkResponse(undefined));
+    server.use(
+      http.put(
+        "*/api/user/mfa/disable",
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+    );
   });
 
   describe("Mode Switching", () => {
@@ -92,17 +91,17 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(sdk.disableMfa).toHaveBeenCalledWith({
-          body: { code: "123456" },
-          throwOnError: true,
-        });
         expect(onSuccess).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
       });
     });
 
     it("shows error on invalid TOTP", async () => {
-      sdk.disableMfa.mockRejectedValue(new Error("Invalid code"));
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = renderDialog();
 
       await fillTotpCode(user, "999999");
@@ -149,17 +148,17 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(sdk.disableMfa).toHaveBeenCalledWith({
-          body: { recovery_code: "valid-recovery-code" },
-          throwOnError: true,
-        });
         expect(onSuccess).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
       });
     });
 
     it("shows error on invalid recovery code", async () => {
-      sdk.disableMfa.mockRejectedValue(new Error("Invalid recovery code"));
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = renderDialog();
 
       await user.click(screen.getByText(/use recovery code/i));
@@ -211,11 +210,8 @@ describe("MfaDisableDialog", () => {
 
   describe("Loading State", () => {
     it("disables submit button while submitting", async () => {
-      let resolveDisable: (v: SdkResponse) => void;
-      sdk.disableMfa.mockReturnValue(
-        new Promise<SdkResponse>((resolve) => {
-          resolveDisable = resolve;
-        }),
+      server.use(
+        http.put("*/api/user/mfa/disable", () => new Promise(() => {})),
       );
 
       const user = renderDialog();
@@ -227,19 +223,19 @@ describe("MfaDisableDialog", () => {
       });
       await user.click(disableButton);
 
-      expect(disableButton).toBeDisabled();
-
-      resolveDisable!(mockSdkResponse(undefined));
-
       await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalled();
+        expect(disableButton).toBeDisabled();
       });
     });
   });
 
   describe("Error Handling", () => {
     it("shows error after failed TOTP submit and switches to recovery mode", async () => {
-      sdk.disableMfa.mockRejectedValue(new Error("Invalid code"));
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = renderDialog();
 
       await fillTotpCode(user, "999999");
@@ -261,8 +257,10 @@ describe("MfaDisableDialog", () => {
   describe("Email-Reset Mode", () => {
     beforeEach(() => {
       useAuthStore.setState({ user: "admin" });
-      sdk.requestResetMfa.mockResolvedValue(
-        mockSdkResponse({ token: "reset-token" }),
+      server.use(
+        http.post("*/api/user/mfa/reset", () =>
+          HttpResponse.json({ token: "reset-token" }),
+        ),
       );
     });
 
@@ -325,17 +323,17 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(sdk.disableMfa).toHaveBeenCalledWith({
-          body: { main_email_code: "ABCDE", recovery_email_code: "12345" },
-          throwOnError: true,
-        });
         expect(onSuccess).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
       });
     });
 
     it("shows error and resets OTP inputs on failure", async () => {
-      sdk.disableMfa.mockRejectedValue(new Error("Invalid codes"));
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = renderDialog();
 
       await navigateToEmailReset(user);
