@@ -2,12 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
+import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockTags } from "@/tests/mockTags";
 import TagsPopover from "../TagsPopover";
-
-vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 const mockAddTag = vi.fn();
 const mockRemoveTag = vi.fn();
@@ -36,7 +34,7 @@ function renderPopover(
 describe("TagsPopover", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTags([]);
+    setTags([]);
     useAuthStore.setState({ role: "owner" });
   });
 
@@ -183,7 +181,7 @@ describe("TagsPopover", () => {
   describe("adding a tag via suggestion", () => {
     it("calls addTag when a suggestion is clicked", async () => {
       mockAddTag.mockResolvedValue(undefined);
-      mockTags(["production"]);
+      setTags(["production"]);
 
       renderPopover({ tags: [] });
 
@@ -202,7 +200,8 @@ describe("TagsPopover", () => {
 
       await waitFor(() => {
         expect(mockAddTag).toHaveBeenCalledWith({
-          path: { uid: "entity-1", name: "production" },
+          uid: "entity-1",
+          name: "production",
         });
       });
     });
@@ -257,7 +256,8 @@ describe("TagsPopover", () => {
 
       await waitFor(() => {
         expect(mockRemoveTag).toHaveBeenCalledWith({
-          path: { uid: "entity-1", name: "alpha" },
+          uid: "entity-1",
+          name: "alpha",
         });
       });
     });
@@ -266,7 +266,7 @@ describe("TagsPopover", () => {
   describe("error states", () => {
     it("shows an error alert when addTag fails", async () => {
       mockAddTag.mockRejectedValue(new Error("network error"));
-      mockTags(["production"]);
+      setTags(["production"]);
 
       renderPopover({ tags: [] });
 
@@ -290,7 +290,7 @@ describe("TagsPopover", () => {
 
     it("shows permission error when addTag fails with 403", async () => {
       mockAddTag.mockRejectedValue({ status: 403 });
-      mockTags(["production"]);
+      setTags(["production"]);
 
       renderPopover({ tags: [] });
 

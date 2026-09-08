@@ -1,13 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { makeSdkError } from "@/tests/sdk";
-import { mockTags } from "@/tests/mockTags";
 import TagsSection from "../TagsSection";
-
-vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 function renderTagsSection({
   uid = "test-uid",
@@ -17,10 +14,8 @@ function renderTagsSection({
 }: Partial<{
   uid: string;
   tags: string[];
-  addTag: (opts: { path: { uid: string; name: string } }) => Promise<unknown>;
-  removeTag: (opts: {
-    path: { uid: string; name: string };
-  }) => Promise<unknown>;
+  addTag: (opts: { uid: string; name: string }) => Promise<unknown>;
+  removeTag: (opts: { uid: string; name: string }) => Promise<unknown>;
 }> = {}) {
   const finalProps = { uid, tags, addTag, removeTag };
   return {
@@ -43,7 +38,7 @@ describe("TagsSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthStore.setState({ role: "owner" });
-    mockTags(["existing", "shared", "deploy"]);
+    setTags(["existing", "shared", "deploy"]);
   });
 
   describe("rendering", () => {
@@ -89,7 +84,8 @@ describe("TagsSection", () => {
 
       await waitFor(() => {
         expect(addTag).toHaveBeenCalledWith({
-          path: { uid: "test-uid", name: "newtag" },
+          uid: "test-uid",
+          name: "newtag",
         });
       });
       expect(screen.getByLabelText("New tag")).toHaveValue("");
@@ -104,7 +100,8 @@ describe("TagsSection", () => {
 
       await waitFor(() => {
         expect(addTag).toHaveBeenCalledWith({
-          path: { uid: "test-uid", name: "newtag" },
+          uid: "test-uid",
+          name: "newtag",
         });
       });
     });
@@ -140,7 +137,7 @@ describe("TagsSection", () => {
       { status: 400, message: /not a valid tag name/ },
     ])("shows API error for status $status", async ({ status, message }) => {
       renderTagsSection({
-        addTag: vi.fn().mockRejectedValue(makeSdkError(status)),
+        addTag: vi.fn().mockRejectedValue({ status }),
       });
 
       await typeAndSubmit("newtag");
@@ -176,7 +173,8 @@ describe("TagsSection", () => {
 
       await waitFor(() => {
         expect(removeTag).toHaveBeenCalledWith({
-          path: { uid: "test-uid", name: "prod" },
+          uid: "test-uid",
+          name: "prod",
         });
       });
     });
@@ -185,7 +183,7 @@ describe("TagsSection", () => {
       const user = userEvent.setup();
       renderTagsSection({
         tags: ["prod"],
-        removeTag: vi.fn().mockRejectedValue(makeSdkError(403)),
+        removeTag: vi.fn().mockRejectedValue({ status: 403 }),
       });
 
       await user.click(
@@ -247,7 +245,8 @@ describe("TagsSection", () => {
 
       await waitFor(() => {
         expect(addTag).toHaveBeenCalledWith({
-          path: { uid: "test-uid", name: "deploy" },
+          uid: "test-uid",
+          name: "deploy",
         });
       });
     });
@@ -262,7 +261,8 @@ describe("TagsSection", () => {
 
       await waitFor(() => {
         expect(addTag).toHaveBeenCalledWith({
-          path: { uid: "test-uid", name: "deploy" },
+          uid: "test-uid",
+          name: "deploy",
         });
       });
     });

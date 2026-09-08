@@ -2,18 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import SSHIdentities from "../index";
 import type { SshIdentity } from "@/client/model";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
-import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listSshIdentities: vi.fn(),
-  }),
-);
 
 vi.mock("../IdentityDrawer", () => ({ default: () => null }));
 
@@ -43,7 +38,9 @@ function identity(overrides: Partial<SshIdentity> = {}): SshIdentity {
 }
 
 function renderList(identities: SshIdentity[]) {
-  sdk.listSshIdentities.mockResolvedValue(mockSdkResponse(identities));
+  server.use(
+    http.get("*/api/ssh-identities", () => HttpResponse.json(identities)),
+  );
 
   return render(
     <MemoryRouter>
@@ -70,7 +67,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockBrowserKeyFingerprint.mockReturnValue(null);
   useAuthStore.setState({ userId: "user1" });
-  sdk.listSshIdentities.mockResolvedValue(mockSdkResponse([]));
+  server.use(
+    http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+  );
 });
 
 describe("SSHIdentities", () => {

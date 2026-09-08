@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import AdminDevices from "../index";
-import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -15,11 +16,19 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDevicesAdmin: vi.fn(),
-  }),
-);
+let lastRequestUrl: URL | null;
+
+function setDevices(
+  devices: ReturnType<typeof mockDevice>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/admin/api/devices", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(devices, total ?? devices.length);
+    }),
+  );
+}
 
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
@@ -33,8 +42,9 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("AdminDevices", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
-    sdk.getDevicesAdmin.mockResolvedValue(paginatedResponse([]));
+    setDevices([]);
   });
 
   describe("rendering", () => {
@@ -63,7 +73,9 @@ describe("AdminDevices", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading devices..." text', () => {
-      sdk.getDevicesAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/devices", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
@@ -79,21 +91,17 @@ describe("AdminDevices", () => {
 
   describe("device rows", () => {
     it("renders a row for each returned device", async () => {
-      sdk.getDevicesAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockDevice({ uid: "uid-1", name: "device-alpha" }),
-          mockDevice({ uid: "uid-2", name: "device-beta" }),
-        ]),
-      );
+      setDevices([
+        mockDevice({ uid: "uid-1", name: "device-alpha" }),
+        mockDevice({ uid: "uid-2", name: "device-beta" }),
+      ]);
       renderPage();
       expect(await screen.findByText("device-alpha")).toBeInTheDocument();
       expect(screen.getByText("device-beta")).toBeInTheDocument();
     });
 
     it("renders the status chip for each device", async () => {
-      sdk.getDevicesAdmin.mockResolvedValue(
-        paginatedResponse([mockDevice({ status: "pending" })]),
-      );
+      setDevices([mockDevice({ status: "pending" })]);
       renderPage();
       await screen.findByText("my-device");
       expect(screen.getAllByText("Pending").length).toBeGreaterThanOrEqual(2);
@@ -101,11 +109,7 @@ describe("AdminDevices", () => {
 
     it("navigates to the device detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getDevicesAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockDevice({ uid: "uid-abc", name: "clickable-device" }),
-        ]),
-      );
+      setDevices([mockDevice({ uid: "uid-abc", name: "clickable-device" })]);
       renderPage();
 
       await user.click(await screen.findByText("clickable-device"));
@@ -114,8 +118,12 @@ describe("AdminDevices", () => {
   });
 
   describe("error state", () => {
-    it("renders an error alert when the SDK returns an error", async () => {
-      sdk.getDevicesAdmin.mockRejectedValue(makeSdkError(500));
+    it("renders an error alert when the API returns an error", async () => {
+      server.use(
+        http.get("*/admin/api/devices", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
@@ -125,7 +133,7 @@ describe("AdminDevices", () => {
   });
 
   describe("status tab interaction", () => {
-    it("calls SDK — status tab click re-renders without crashing", async () => {
+    it("re-renders without crashing after clicking a status tab", async () => {
       const user = userEvent.setup();
       renderPage();
       await user.click(screen.getByRole("tab", { name: "Accepted" }));
@@ -136,27 +144,17 @@ describe("AdminDevices", () => {
   });
 
   describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes sortBy/orderBy hydrated from URL to the SDK", async () => {
+    it("passes sortBy/orderBy hydrated from URL to the API", async () => {
       renderPage(["/?sortField=name&sortOrder=asc"]);
       await screen.findByText("No devices found");
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "name",
-            order_by: "asc",
-          }),
-        }),
-      );
+      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
+      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("asc");
     });
 
-    it("passes status hydrated from URL to the SDK", async () => {
+    it("passes status hydrated from URL to the API", async () => {
       renderPage(["/?status=accepted"]);
       await screen.findByText("No devices found");
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ status: "accepted" }),
-        }),
-      );
+      expect(lastRequestUrl!.searchParams.get("status")).toBe("accepted");
     });
 
     it("marks the matching status tab as selected when status is in the URL", () => {
@@ -167,35 +165,24 @@ describe("AdminDevices", () => {
       );
     });
 
-    it("passes page hydrated from URL to the SDK", async () => {
+    it("passes page hydrated from URL to the API", async () => {
       renderPage(["/?page=3"]);
       await screen.findByText("No devices found");
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
     });
 
     it("uses defaults when URL params are absent (last_seen/desc, page 1, no status)", async () => {
       renderPage(["/"]);
       await screen.findByText("No devices found");
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "last_seen",
-            order_by: "desc",
-            page: 1,
-          }),
-        }),
-      );
+      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("last_seen");
+      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("desc");
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
 
     it("rejects an invalid status value and falls back to no status filter (All tab selected)", async () => {
       renderPage(["/?status=invalid-status"]);
       await screen.findByText("No devices found");
-      const call = sdk.getDevicesAdmin.mock.calls[0]?.[0];
-      expect(call?.query?.status).toBeUndefined();
+      expect(lastRequestUrl!.searchParams.get("status")).toBeNull();
       expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
         "aria-selected",
         "true",
@@ -209,22 +196,14 @@ describe("AdminDevices", () => {
       renderPage(["/?page=2"]);
       await screen.findByText("No devices found");
 
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 2 }),
-        }),
-      );
-
       await user.click(screen.getByRole("tab", { name: "Accepted" }));
 
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ status: "accepted", page: 1 }),
-        }),
-      );
+      await screen.findByText("No devices found");
+      expect(lastRequestUrl!.searchParams.get("status")).toBe("accepted");
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
 
-    it("clicking a sort column header writes sort to SDK and resets page", async () => {
+    it("clicking a sort column header writes sort to API and resets page", async () => {
       const user = userEvent.setup();
       renderPage(["/?page=3"]);
       await screen.findByText("No devices found");
@@ -233,15 +212,10 @@ describe("AdminDevices", () => {
         screen.getByRole("button", { name: /sort by hostname/i }),
       );
 
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "name",
-            order_by: "asc",
-            page: 1,
-          }),
-        }),
-      );
+      await screen.findByText("No devices found");
+      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
+      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("asc");
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
 
     it("clicking the same sort column again toggles order from asc to desc", async () => {
@@ -253,33 +227,23 @@ describe("AdminDevices", () => {
         screen.getByRole("button", { name: /sort by hostname/i }),
       );
 
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "name",
-            order_by: "desc",
-          }),
-        }),
-      );
+      await screen.findByText("No devices found");
+      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
+      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("desc");
     });
   });
 
   describe("URL writes — default params are omitted from the URL", () => {
-    it("SDK receives page=1 when on the default page", async () => {
+    it("API receives page=1 when on the default page", async () => {
       renderPage(["/"]);
       await screen.findByText("No devices found");
-      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
 
-    it("SDK receives no status when All tab is selected (default)", async () => {
+    it("API receives no status when All tab is selected (default)", async () => {
       renderPage(["/"]);
       await screen.findByText("No devices found");
-      const call = sdk.getDevicesAdmin.mock.calls[0]?.[0];
-      expect(call?.query?.status).toBeUndefined();
+      expect(lastRequestUrl!.searchParams.get("status")).toBeNull();
     });
   });
 });

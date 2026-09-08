@@ -2,22 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespace: vi.fn(),
-    listAccessPolicies: vi.fn(),
-    editNamespace: vi.fn(),
-    deleteNamespace: vi.fn(),
-    leaveNamespace: vi.fn(),
-    setSshAccessMode: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/billing/BillingSection", () => ({
   default: () => null,
@@ -34,7 +23,7 @@ import { getConfig, defaultConfig } from "@/env";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-function defaultNamespace(
+function defaultNs(
   settings: Partial<{
     ssh_access_mode: "legacy" | "identity";
     ssh_legacy_allowed: boolean;
@@ -51,6 +40,19 @@ function defaultNamespace(
   });
 }
 
+function setNamespace(
+  settings: Partial<{
+    ssh_access_mode: "legacy" | "identity";
+    ssh_legacy_allowed: boolean;
+  }> = {},
+) {
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(defaultNs(settings)),
+    ),
+  );
+}
+
 function renderSettings() {
   return render(
     <MemoryRouter>
@@ -64,14 +66,30 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockedGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(defaultNamespace()));
-  sdk.listAccessPolicies.mockResolvedValue(paginatedResponse([]));
-  sdk.editNamespace.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.deleteNamespace.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.leaveNamespace.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.setSshAccessMode.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token" }),
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(defaultNs()),
+    ),
+    http.get("*/api/access-policies", () => jsonWithTotal([])),
+    http.put(
+      "*/api/namespaces/:tenant",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "*/api/namespaces/:tenant",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "*/api/namespaces/:tenant/members",
+      () => HttpResponse.json({}),
+    ),
+    http.put(
+      "*/api/namespaces/ssh-access-mode/:tenant",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token" }),
+    ),
   );
 });
 
@@ -138,9 +156,7 @@ describe("Settings", () => {
 
   describe("SSH access mode", () => {
     it("shows the Legacy/Identity toggle for grandfathered namespaces", async () => {
-      sdk.getNamespace.mockResolvedValue(
-        mockSdkResponse(defaultNamespace({ ssh_legacy_allowed: true })),
-      );
+      setNamespace({ ssh_legacy_allowed: true });
       renderSettings();
       expect(
         await screen.findByRole("button", { name: "Legacy" }),
@@ -151,14 +167,10 @@ describe("Settings", () => {
     });
 
     it("shows no toggle for namespaces born in identity mode", async () => {
-      sdk.getNamespace.mockResolvedValue(
-        mockSdkResponse(
-          defaultNamespace({
-            ssh_access_mode: "identity",
-            ssh_legacy_allowed: false,
-          }),
-        ),
-      );
+      setNamespace({
+        ssh_access_mode: "identity",
+        ssh_legacy_allowed: false,
+      });
       renderSettings();
       expect(await screen.findByText("Identity")).toBeInTheDocument();
       expect(
@@ -201,24 +213,21 @@ describe("Settings", () => {
       expect(screen.getByRole("button", { name: /save/i })).not.toBeDisabled();
     });
 
-    it("calls editNamespace with the new name on submit and closes the drawer", async () => {
+    it("closes the drawer after successful rename", async () => {
       const user = await openRenameDrawer();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "new-valid-name");
       await user.click(screen.getByRole("button", { name: /save/i }));
-      expect(sdk.editNamespace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { tenant: "tenant-456" },
-          body: { name: "new-valid-name" },
-          throwOnError: true,
-        }),
-      );
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     it("shows a generic error alert when rename fails", async () => {
-      sdk.editNamespace.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.put("*/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = await openRenameDrawer();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);

@@ -1,17 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import type { FirewallRulesResponse } from "@/client/model";
 import AdminFirewallRuleDetails from "../AdminFirewallRuleDetails";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getFirewallRuleAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -47,6 +42,14 @@ function makeRule(
   };
 }
 
+function setRule(overrides: Partial<FirewallRulesResponse> = {}) {
+  server.use(
+    http.get("*/admin/api/firewall/rules/:id", () =>
+      HttpResponse.json(makeRule(overrides)),
+    ),
+  );
+}
+
 function renderPage() {
   return render(
     <MemoryRouter>
@@ -59,13 +62,15 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  sdk.getFirewallRuleAdmin.mockResolvedValue(mockSdkResponse(makeRule()));
+  setRule();
 });
 
 describe("AdminFirewallRuleDetails", () => {
   describe("loading state", () => {
     it('announces "Loading firewall rule details" while loading', () => {
-      sdk.getFirewallRuleAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/firewall/rules/:id", () => new Promise(() => {})),
+      );
       renderPage();
       expect(
         screen.getByRole("status", { name: "Loading firewall rule details" }),
@@ -75,7 +80,11 @@ describe("AdminFirewallRuleDetails", () => {
 
   describe("not-found / error state", () => {
     it('renders "Firewall rule not found" when no data and no loading', async () => {
-      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(404));
+      server.use(
+        http.get("*/admin/api/firewall/rules/:id", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
@@ -83,7 +92,11 @@ describe("AdminFirewallRuleDetails", () => {
     });
 
     it('renders "Firewall rule not found" when the query returns an error', async () => {
-      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/firewall/rules/:id", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
@@ -91,7 +104,11 @@ describe("AdminFirewallRuleDetails", () => {
     });
 
     it('renders a "Back to firewall rules" link in the not-found state', async () => {
-      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(404));
+      server.use(
+        http.get("*/admin/api/firewall/rules/:id", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(
@@ -176,9 +193,7 @@ describe("AdminFirewallRuleDetails", () => {
 
   describe("rule data — deny rule", () => {
     it('renders "Deny Rule" as the main heading', async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(makeRule({ action: "deny" })),
-      );
+      setRule({ action: "deny" });
       renderPage();
       await waitFor(() => {
         expect(
@@ -190,9 +205,7 @@ describe("AdminFirewallRuleDetails", () => {
 
   describe("rule data — inactive rule", () => {
     it("renders the Inactive badge", async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(makeRule({ active: false })),
-      );
+      setRule({ active: false });
       renderPage();
       await waitFor(() => {
         expect(screen.getAllByText("Inactive").length).toBeGreaterThanOrEqual(
@@ -204,9 +217,7 @@ describe("AdminFirewallRuleDetails", () => {
 
   describe("rule data — specific IP and username", () => {
     it("renders a specific source IP when not wildcard", async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(makeRule({ source_ip: "10.0.0.5" })),
-      );
+      setRule({ source_ip: "10.0.0.5" });
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("10.0.0.5")).toBeInTheDocument();
@@ -214,9 +225,7 @@ describe("AdminFirewallRuleDetails", () => {
     });
 
     it("renders a specific username when not wildcard", async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(makeRule({ username: "alice" })),
-      );
+      setRule({ username: "alice" });
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("alice")).toBeInTheDocument();
@@ -226,11 +235,7 @@ describe("AdminFirewallRuleDetails", () => {
 
   describe("rule data — device filter", () => {
     it("renders hostname FilterBadge when filter has a specific hostname", async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(
-          makeRule({ filter: { hostname: "my-server", tags: [] } }),
-        ),
-      );
+      setRule({ filter: { hostname: "my-server", tags: [] } });
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("my-server")).toBeInTheDocument();
@@ -238,13 +243,9 @@ describe("AdminFirewallRuleDetails", () => {
     });
 
     it("renders tag FilterBadge when filter has tags", async () => {
-      sdk.getFirewallRuleAdmin.mockResolvedValue(
-        mockSdkResponse(
-          makeRule({
-            filter: { tags: [makeTag("production"), makeTag("web")] },
-          }),
-        ),
-      );
+      setRule({
+        filter: { tags: [makeTag("production"), makeTag("web")] },
+      });
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("production")).toBeInTheDocument();

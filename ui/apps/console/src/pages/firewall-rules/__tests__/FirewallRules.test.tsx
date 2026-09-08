@@ -2,18 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import FirewallRules from "../index";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockFirewallRule } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getFirewallRules: vi.fn(),
-    deleteFirewallRule: vi.fn(),
-  }),
-);
 
 vi.mock("../RuleDrawer", () => ({
   default: () => null,
@@ -38,6 +32,8 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
   };
 });
 
+let lastRulesUrl: URL | null;
+
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -50,11 +46,18 @@ function renderPage(initialEntries: string[] = ["/"]) {
 beforeEach(() => {
   vi.clearAllMocks();
   capturedDataTableProps.length = 0;
+  lastRulesUrl = null;
   useAuthStore.setState({ role: "owner" });
-  sdk.getFirewallRules.mockResolvedValue(
-    paginatedResponse([mockFirewallRule({ priority: 42 })]),
+  server.use(
+    http.get("*/api/firewall/rules", ({ request }) => {
+      lastRulesUrl = new URL(request.url);
+      return jsonWithTotal([mockFirewallRule({ priority: 42 })]);
+    }),
+    http.delete(
+      "*/api/firewall/rules/:id",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.deleteFirewallRule.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("FirewallRules — delete error handling", () => {
@@ -73,7 +76,14 @@ describe("FirewallRules — delete error handling", () => {
   }
 
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
-    sdk.deleteFirewallRule.mockRejectedValue(new Error("Permission denied"));
+    server.use(
+      http.delete("*/api/firewall/rules/:id", () =>
+        HttpResponse.json(
+          { message: "Permission denied" },
+          { status: 403 },
+        ),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -85,17 +95,19 @@ describe("FirewallRules — delete error handling", () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows a generic fallback message when the rejection is not an Error", async () => {
-    sdk.deleteFirewallRule.mockRejectedValue("boom");
+  it("shows the status code as fallback when the server returns no message", async () => {
+    server.use(
+      http.delete("*/api/firewall/rules/:id", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
     await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
 
     await waitFor(() =>
-      expect(
-        within(dialog).getByText(/failed to delete firewall rule/i),
-      ).toBeInTheDocument(),
+      expect(within(dialog).getByText("500")).toBeInTheDocument(),
     );
   });
 
@@ -116,7 +128,18 @@ describe("FirewallRules — delete error handling", () => {
   });
 
   it("clears any previous error when the dialog is cancelled and reopened", async () => {
-    sdk.deleteFirewallRule.mockRejectedValueOnce(new Error("Transient"));
+    let callCount = 0;
+    server.use(
+      http.delete("*/api/firewall/rules/:id", () => {
+        callCount++;
+        if (callCount === 1)
+          return HttpResponse.json(
+            { message: "Transient" },
+            { status: 500 },
+          );
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
     const user = await openDeleteDialog();
     let dialog = await getDialog();
 
@@ -149,25 +172,19 @@ describe("FirewallRules — URL hydration", () => {
     ).toHaveValue("allow");
   });
 
-  it("hydrates page from URL and passes it to the SDK", async () => {
+  it("hydrates page from URL and passes it to the API", async () => {
     renderPage(["/?page=3"]);
     await waitFor(() => {
-      expect(sdk.getFirewallRules).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastRulesUrl).not.toBeNull();
+      expect(lastRulesUrl!.searchParams.get("page")).toBe("3");
     });
   });
 
-  it("passes page=1 to the SDK when URL has no params", async () => {
+  it("passes page=1 when URL has no params", async () => {
     renderPage(["/"]);
     await waitFor(() => {
-      expect(sdk.getFirewallRules).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastRulesUrl).not.toBeNull();
+      expect(lastRulesUrl!.searchParams.get("page")).toBe("1");
     });
   });
 
@@ -176,11 +193,8 @@ describe("FirewallRules — URL hydration", () => {
     renderPage(["/?page=3"]);
 
     await waitFor(() => {
-      expect(sdk.getFirewallRules).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastRulesUrl).not.toBeNull();
+      expect(lastRulesUrl!.searchParams.get("page")).toBe("3");
     });
 
     await user.type(
@@ -191,10 +205,7 @@ describe("FirewallRules — URL hydration", () => {
     );
 
     await waitFor(() => {
-      const calls = sdk.getFirewallRules.mock.calls;
-      const lastCall = calls.at(-1)![0];
-      expect(lastCall).toBeDefined();
-      expect(lastCall?.query?.page).toBe(1);
+      expect(lastRulesUrl!.searchParams.get("page")).toBe("1");
     });
   });
 });

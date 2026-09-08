@@ -26,7 +26,8 @@ import type {
  */
 export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
-    token: "jwt-token",
+    token:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInN1YiI6InRlc3QifQ.fake-sig",
     id: "user-123",
     origin: "local",
     user: "admin",

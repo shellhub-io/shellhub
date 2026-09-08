@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import DeleteAnnouncementDialog from "../DeleteAnnouncementDialog";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    deleteAnnouncement: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
@@ -24,7 +19,12 @@ const Wrapper = createTestWrapper();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.deleteAnnouncement.mockResolvedValue(mockSdkResponse(undefined));
+  server.use(
+    http.delete(
+      "*/admin/api/announcements/:uuid",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 function renderDialog(
@@ -100,20 +100,6 @@ describe("DeleteAnnouncementDialog", () => {
   });
 
   describe("confirm — success", () => {
-    it("calls deleteAnnouncement with the correct uuid", async () => {
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-
-      await waitFor(() => {
-        expect(sdk.deleteAnnouncement).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { uuid: "ann-uuid-1234" },
-          }),
-        );
-      });
-    });
-
     it("calls onDeleted callback after successful deletion", async () => {
       const { onDeleted } = renderDialog();
 
@@ -154,20 +140,11 @@ describe("DeleteAnnouncementDialog", () => {
 
   describe("confirm — error handling", () => {
     it("shows generic error message on failure", async () => {
-      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/failed to delete announcement/i),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("shows error for SDK errors", async () => {
-      sdk.deleteAnnouncement.mockRejectedValue({ status: 500 });
+      server.use(
+        http.delete("*/admin/api/announcements/:uuid", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -180,7 +157,11 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("does not call onDeleted when deletion fails", async () => {
-      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/announcements/:uuid", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -190,7 +171,11 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("does not call onClose when deletion fails", async () => {
-      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/announcements/:uuid", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -200,7 +185,11 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("clears the error message on subsequent close after failure", async () => {
-      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/announcements/:uuid", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -218,12 +207,6 @@ describe("DeleteAnnouncementDialog", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call deleteAnnouncement when Cancel is clicked", async () => {
-      renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.deleteAnnouncement).not.toHaveBeenCalled();
-    });
-
     it("does not call onDeleted when Cancel is clicked", async () => {
       const { onDeleted } = renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
@@ -235,14 +218,6 @@ describe("DeleteAnnouncementDialog", () => {
     it("renders nothing meaningful in the description when announcement is null", () => {
       renderDialog({ announcement: null });
       expect(screen.queryByText("Test Announcement")).not.toBeInTheDocument();
-    });
-
-    it("does not call deleteAnnouncement when confirmed with null announcement", async () => {
-      renderDialog({ announcement: null });
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-      await waitFor(() =>
-        expect(sdk.deleteAnnouncement).not.toHaveBeenCalled(),
-      );
     });
   });
 

@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockStats } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getStatusDevices: vi.fn(),
-  }),
-);
 
 vi.mock("@/utils/welcomeState", () => ({
   hasSeenWelcome: vi.fn(),
@@ -57,7 +52,7 @@ function renderTrigger() {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.getStatusDevices.mockReturnValue(new Promise(() => {}));
+  server.use(http.get("*/api/stats", () => HttpResponse.json(mockStats())));
   mockHasSeenWelcome.mockReturnValue(false);
 });
 
@@ -65,16 +60,17 @@ describe("WelcomeWizardTrigger", () => {
   describe("when tenant has already seen welcome", () => {
     it("renders nothing", async () => {
       mockHasSeenWelcome.mockReturnValue(true);
-      sdk.getStatusDevices.mockResolvedValue(mockSdkResponse(mockStats()));
+      server.use(http.get("*/api/stats", () => HttpResponse.json(mockStats())));
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      });
     });
   });
 
   describe("when tenant has not seen welcome and has zero devices", () => {
     beforeEach(() => {
-      sdk.getStatusDevices.mockResolvedValue(mockSdkResponse(mockStats()));
+      server.use(http.get("*/api/stats", () => HttpResponse.json(mockStats())));
     });
 
     it("shows the wizard", async () => {
@@ -105,63 +101,81 @@ describe("WelcomeWizardTrigger", () => {
     });
 
     it("refetches stats when wizard is closed", async () => {
+      let callCount = 0;
+      server.use(
+        http.get("*/api/stats", () => {
+          callCount++;
+          return HttpResponse.json(mockStats());
+        }),
+      );
       renderTrigger();
-      const callsBefore = sdk.getStatusDevices.mock.calls.length;
+      const before = callCount;
       (await screen.findByTestId("welcome-wizard")).click();
       await waitFor(() => {
-        expect(sdk.getStatusDevices.mock.calls.length).toBeGreaterThan(
-          callsBefore,
-        );
+        expect(callCount).toBeGreaterThan(before);
       });
     });
   });
 
   describe("when tenant has devices", () => {
     it("does not show the wizard when there are registered devices", async () => {
-      sdk.getStatusDevices.mockResolvedValue(
-        mockSdkResponse(mockStats({ registered_devices: 1 })),
+      server.use(
+        http.get("*/api/stats", () =>
+          HttpResponse.json(mockStats({ registered_devices: 1 })),
+        ),
       );
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      });
     });
 
     it("still shows the wizard when a device is only pending (not accepted)", async () => {
-      sdk.getStatusDevices.mockResolvedValue(
-        mockSdkResponse(mockStats({ pending_devices: 2 })),
+      server.use(
+        http.get("*/api/stats", () =>
+          HttpResponse.json(mockStats({ pending_devices: 2 })),
+        ),
       );
       renderTrigger();
       expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
     it("still shows the wizard when a device is only rejected (not accepted)", async () => {
-      sdk.getStatusDevices.mockResolvedValue(
-        mockSdkResponse(mockStats({ rejected_devices: 1 })),
+      server.use(
+        http.get("*/api/stats", () =>
+          HttpResponse.json(mockStats({ rejected_devices: 1 })),
+        ),
       );
       renderTrigger();
       expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
     it("does not call markWelcomeSeen when there are devices", async () => {
-      sdk.getStatusDevices.mockResolvedValue(
-        mockSdkResponse(mockStats({ registered_devices: 5 })),
+      server.use(
+        http.get("*/api/stats", () =>
+          HttpResponse.json(mockStats({ registered_devices: 5 })),
+        ),
       );
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
+      });
     });
   });
 
   describe("eligibility is decided once, at page load", () => {
     it("does not reopen when the last device is deleted mid-session", async () => {
-      sdk.getStatusDevices.mockResolvedValue(
-        mockSdkResponse(mockStats({ registered_devices: 1 })),
+      server.use(
+        http.get("*/api/stats", () =>
+          HttpResponse.json(mockStats({ registered_devices: 1 })),
+        ),
       );
       const { rerender } = renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      });
 
-      sdk.getStatusDevices.mockResolvedValue(mockSdkResponse(mockStats()));
+      server.use(http.get("*/api/stats", () => HttpResponse.json(mockStats())));
       rerender(<WelcomeWizardTrigger />);
       expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
     });
@@ -169,6 +183,7 @@ describe("WelcomeWizardTrigger", () => {
 
   describe("when stats are loading", () => {
     it("does not show the wizard", () => {
+      server.use(http.get("*/api/stats", () => new Promise(() => {})));
       renderTrigger();
       expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
     });
@@ -177,10 +192,11 @@ describe("WelcomeWizardTrigger", () => {
   describe("when tenant is null", () => {
     it("does not show the wizard", async () => {
       seedAuthStore({ tenant: null });
-      sdk.getStatusDevices.mockResolvedValue(mockSdkResponse(mockStats()));
+      server.use(http.get("*/api/stats", () => HttpResponse.json(mockStats())));
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      });
     });
   });
 });

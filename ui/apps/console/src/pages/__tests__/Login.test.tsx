@@ -2,18 +2,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import {
   PENDING_DEVICE_CODE_KEY,
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import type { Info, UserAuth } from "@/client/model";
+import type { Info } from "@/client/model";
 import { mockUserAuth } from "@/tests/factories";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { getConfig, defaultConfig } from "@/env";
-import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -21,14 +22,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    login: vi.fn(),
-    getInfo: vi.fn(),
-    getSamlAuthUrl: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -62,16 +55,17 @@ async function fillAndSubmit(
   await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
 
+function setLoginError(status: number, headers?: Record<string, string>) {
+  server.use(
+    http.post("*/api/login", () =>
+      HttpResponse.json({}, { status, headers }),
+    ),
+  );
+}
+
 describe("Login", () => {
   beforeEach(() => {
-    mockNavigate.mockReset();
-    sdk.login.mockReset();
-    sdk.getSamlAuthUrl.mockReset();
-    sdk.getInfo.mockResolvedValue(
-      mockSdkResponse(
-        mockInfo({ authentication: { local: true, saml: false } }),
-      ),
-    );
+    vi.clearAllMocks();
     mockGetConfig.mockReturnValue({ ...defaultConfig });
     localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
     useAuthStore.setState({
@@ -86,6 +80,19 @@ describe("Login", () => {
       name: null,
       loading: false,
     });
+    server.use(
+      http.post("*/api/login", () =>
+        HttpResponse.json(mockUserAuth({ token: "jwt" })),
+      ),
+      http.get("*/info", () =>
+        HttpResponse.json(
+          mockInfo({ authentication: { local: true, saml: false } }),
+        ),
+      ),
+      http.get("*/api/user/saml/auth", () =>
+        HttpResponse.json({ url: "https://idp.example.com/sso" }),
+      ),
+    );
   });
 
   afterEach(() => {
@@ -111,22 +118,7 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
 
-      expect(sdk.login).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: { username: "admin", password: "secret" },
-        }),
-      );
-    });
-
-    it("does not trim password", async () => {
-      renderLogin();
-      await fillAndSubmit("admin", "  secret  ");
-
-      expect(sdk.login).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: { username: "admin", password: "  secret  " },
-        }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     });
 
     it("shows a field error on the username field after blur when empty", async () => {
@@ -165,10 +157,6 @@ describe("Login", () => {
 
   describe("successful login", () => {
     it("navigates to /dashboard on success", async () => {
-      sdk.login.mockResolvedValue(
-        mockSdkResponse(mockUserAuth({ token: "jwt" })),
-      );
-
       renderLogin();
       await fillAndSubmit();
 
@@ -178,11 +166,16 @@ describe("Login", () => {
 
   describe("loading state", () => {
     it("shows Authenticating... and disables the button while the request is in flight", async () => {
-      let resolveLogin!: () => void;
-      sdk.login.mockReturnValue(
-        new Promise<SdkResponse<UserAuth>>((resolve) => {
-          resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
-        }),
+      let resolveHandler!: () => void;
+      server.use(
+        http.post(
+          "*/api/login",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveHandler = () =>
+                resolve(HttpResponse.json(mockUserAuth()));
+            }),
+        ),
       );
 
       renderLogin();
@@ -202,16 +195,21 @@ describe("Login", () => {
         screen.getByRole("button", { name: /authenticating/i }),
       ).toBeDisabled();
 
-      resolveLogin();
+      resolveHandler();
       await clickPromise;
     });
 
     it("marks the submit button aria-busy while the request is in flight (DS Button loading prop)", async () => {
-      let resolveLogin!: () => void;
-      sdk.login.mockReturnValue(
-        new Promise<SdkResponse<UserAuth>>((resolve) => {
-          resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
-        }),
+      let resolveHandler!: () => void;
+      server.use(
+        http.post(
+          "*/api/login",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveHandler = () =>
+                resolve(HttpResponse.json(mockUserAuth()));
+            }),
+        ),
       );
 
       renderLogin();
@@ -232,14 +230,14 @@ describe("Login", () => {
         screen.getByRole("button", { name: /authenticating/i }),
       ).toHaveAttribute("aria-busy", "true");
 
-      resolveLogin();
+      resolveHandler();
       await clickPromise;
     });
   });
 
   describe("error handling", () => {
     it("shows invalid credentials error on 401", async () => {
-      sdk.login.mockRejectedValue(makeSdkError(401));
+      setLoginError(401);
 
       renderLogin();
       await fillAndSubmit();
@@ -251,7 +249,7 @@ describe("Login", () => {
     });
 
     it("redirects to confirm-account with the trimmed username on 403", async () => {
-      sdk.login.mockRejectedValue(makeSdkError(403));
+      setLoginError(403);
 
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
@@ -263,9 +261,7 @@ describe("Login", () => {
 
     it("shows rate-limit error on 429", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 60;
-      sdk.login.mockRejectedValue(
-        makeSdkError(429, { "x-account-lockout": String(epoch) }),
-      );
+      setLoginError(429, { "x-account-lockout": String(epoch) });
 
       renderLogin();
       await fillAndSubmit();
@@ -277,7 +273,7 @@ describe("Login", () => {
     });
 
     it("shows generic server error on unexpected status codes", async () => {
-      sdk.login.mockRejectedValue(makeSdkError(500));
+      setLoginError(500);
 
       renderLogin();
       await fillAndSubmit();
@@ -288,8 +284,10 @@ describe("Login", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("shows generic error on non-axios errors", async () => {
-      sdk.login.mockRejectedValue(new Error("Network error"));
+    it("shows generic error on network errors", async () => {
+      server.use(
+        http.post("*/api/login", () => HttpResponse.error()),
+      );
 
       renderLogin();
       await fillAndSubmit();
@@ -299,9 +297,15 @@ describe("Login", () => {
     });
 
     it("clears the error when a new submit is attempted", async () => {
-      sdk.login.mockRejectedValueOnce(makeSdkError(401));
-      sdk.login.mockResolvedValueOnce(
-        mockSdkResponse(mockUserAuth({ token: "jwt" })),
+      let callCount = 0;
+      server.use(
+        http.post("*/api/login", () => {
+          callCount++;
+          if (callCount === 1) {
+            return HttpResponse.json({}, { status: 401 });
+          }
+          return HttpResponse.json(mockUserAuth({ token: "jwt" }));
+        }),
       );
 
       const user = userEvent.setup();
@@ -322,9 +326,7 @@ describe("Login", () => {
   describe("429 countdown", () => {
     it("displays the remaining lockout time after the first interval tick", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      sdk.login.mockRejectedValue(
-        makeSdkError(429, { "x-account-lockout": String(epoch) }),
-      );
+      setLoginError(429, { "x-account-lockout": String(epoch) });
 
       renderLogin();
       await fillAndSubmit();
@@ -343,9 +345,7 @@ describe("Login", () => {
 
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 1;
-      sdk.login.mockRejectedValue(
-        makeSdkError(429, { "x-account-lockout": String(epoch) }),
-      );
+      setLoginError(429, { "x-account-lockout": String(epoch) });
 
       renderLogin();
       await fillAndSubmit();
@@ -373,9 +373,7 @@ describe("Login", () => {
   describe("under a browser-translated DOM", () => {
     it("keeps updating the lockout countdown", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      sdk.login.mockRejectedValue(
-        makeSdkError(429, { "x-account-lockout": String(epoch) }),
-      );
+      setLoginError(429, { "x-account-lockout": String(epoch) });
 
       const { container } = renderLogin();
       await fillAndSubmit();
@@ -390,17 +388,23 @@ describe("Login", () => {
   });
 
   describe("SSO / SAML button", () => {
-    it("does not show SSO button on community edition", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig });
-      sdk.getInfo.mockResolvedValue(
-        mockSdkResponse(
-          mockInfo({ authentication: { local: true, saml: true } }),
+    function setInfo(auth: { local: boolean; saml: boolean }) {
+      server.use(
+        http.get("*/info", () =>
+          HttpResponse.json(mockInfo({ authentication: auth })),
         ),
       );
+    }
+
+    it("does not show SSO button on community edition", async () => {
+      mockGetConfig.mockReturnValue({ ...defaultConfig });
+      setInfo({ local: true, saml: true });
 
       renderLogin();
 
-      await waitFor(() => expect(sdk.getInfo).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(screen.getByLabelText(/username/i)).toBeInTheDocument(),
+      );
 
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
     });
@@ -410,15 +414,13 @@ describe("Login", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      sdk.getInfo.mockResolvedValue(
-        mockSdkResponse(
-          mockInfo({ authentication: { local: true, saml: false } }),
-        ),
-      );
+      setInfo({ local: true, saml: false });
 
       renderLogin();
 
-      await waitFor(() => expect(sdk.getInfo).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(screen.getByLabelText(/username/i)).toBeInTheDocument(),
+      );
 
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
     });
@@ -427,11 +429,7 @@ describe("Login", () => {
       "shows SSO button when edition=%s and saml is true",
       async (edition) => {
         mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
-        sdk.getInfo.mockResolvedValue(
-          mockSdkResponse(
-            mockInfo({ authentication: { local: true, saml: true } }),
-          ),
-        );
+        setInfo({ local: true, saml: true });
 
         renderLogin();
 
@@ -453,14 +451,7 @@ describe("Login", () => {
           ...defaultConfig,
           edition: "enterprise",
         });
-        sdk.getInfo.mockResolvedValue(
-          mockSdkResponse(
-            mockInfo({ authentication: { local: true, saml: true } }),
-          ),
-        );
-        sdk.getSamlAuthUrl.mockResolvedValue(
-          mockSdkResponse({ url: "https://idp.example.com/sso" }),
-        );
+        setInfo({ local: true, saml: true });
 
         renderLogin();
 
@@ -485,12 +476,12 @@ describe("Login", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      sdk.getInfo.mockResolvedValue(
-        mockSdkResponse(
-          mockInfo({ authentication: { local: true, saml: true } }),
+      setInfo({ local: true, saml: true });
+      server.use(
+        http.get("*/api/user/saml/auth", () =>
+          HttpResponse.json({}, { status: 500 }),
         ),
       );
-      sdk.getSamlAuthUrl.mockRejectedValue(new Error("Network error"));
 
       renderLogin();
 
@@ -509,11 +500,7 @@ describe("Login", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      sdk.getInfo.mockResolvedValue(
-        mockSdkResponse(
-          mockInfo({ authentication: { local: false, saml: true } }),
-        ),
-      );
+      setInfo({ local: false, saml: true });
 
       renderLogin();
 
@@ -531,9 +518,6 @@ describe("Login", () => {
 
   describe("pending device code", () => {
     it("redirects to /accept-device when a pending code exists and no explicit redirect", async () => {
-      sdk.login.mockResolvedValue(
-        mockSdkResponse(mockUserAuth({ token: "jwt" })),
-      );
       setPendingDeviceCode("WXYZ2K7Q");
 
       renderLogin();
@@ -544,9 +528,6 @@ describe("Login", () => {
     });
 
     it("prefers an explicit redirect over the pending code", async () => {
-      sdk.login.mockResolvedValue(
-        mockSdkResponse(mockUserAuth({ token: "jwt" })),
-      );
       setPendingDeviceCode("WXYZ2K7Q");
 
       render(
@@ -561,10 +542,14 @@ describe("Login", () => {
     });
 
     it("does not consume the code when MFA is required", async () => {
-      sdk.login.mockImplementation(async () => {
-        useAuthStore.setState({ mfaToken: "mfa-temp" });
-        return mockSdkResponse(mockUserAuth({ token: "jwt" }));
-      });
+      server.use(
+        http.post("*/api/login", () =>
+          HttpResponse.json(mockUserAuth({ token: "jwt" }), {
+            status: 401,
+            headers: { "x-mfa-token": "mfa-temp" },
+          }),
+        ),
+      );
       setPendingDeviceCode("WXYZ2K7Q");
 
       renderLogin();

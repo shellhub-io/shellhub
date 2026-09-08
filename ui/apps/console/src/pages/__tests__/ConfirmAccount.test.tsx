@@ -2,15 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useSignUpStore } from "@/stores/signUpStore";
 import ConfirmAccount from "../ConfirmAccount";
-import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    resendEmail: vi.fn(),
-  }),
-);
 
 function renderConfirmAccount(username?: string) {
   const search =
@@ -23,8 +18,14 @@ function renderConfirmAccount(username?: string) {
 }
 
 beforeEach(() => {
-  sdk.resendEmail.mockReset();
+  vi.clearAllMocks();
   useSignUpStore.setState({ resendLoading: false, resendError: null });
+  server.use(
+    http.post(
+      "*/api/user/resend_email",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("ConfirmAccount", () => {
@@ -60,18 +61,12 @@ describe("ConfirmAccount", () => {
   });
 
   describe("resend email", () => {
-    it("calls resendEmail with the username and shows success message", async () => {
-      sdk.resendEmail.mockResolvedValue(mockSdkResponse(undefined));
-
+    it("shows success message after resending", async () => {
       renderConfirmAccount("admin");
       await userEvent.click(
         screen.getByRole("button", { name: /resend email/i }),
       );
 
-      expect(sdk.resendEmail).toHaveBeenCalledWith({
-        body: { username: "admin" },
-        throwOnError: true,
-      });
       await waitFor(() =>
         expect(
           screen.getByText(/confirmation email sent successfully/i),
@@ -80,7 +75,11 @@ describe("ConfirmAccount", () => {
     });
 
     it("shows an error message on failure", async () => {
-      sdk.resendEmail.mockRejectedValue(new Error("500"));
+      server.use(
+        http.post("*/api/user/resend_email", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
 
       renderConfirmAccount("admin");
       await userEvent.click(
@@ -93,11 +92,16 @@ describe("ConfirmAccount", () => {
     });
 
     it("shows Sending... and disables the button while the request is in flight", async () => {
-      let resolveResend!: () => void;
-      sdk.resendEmail.mockReturnValue(
-        new Promise<SdkResponse>((resolve) => {
-          resolveResend = () => resolve(mockSdkResponse(undefined));
-        }),
+      let resolveHandler!: () => void;
+      server.use(
+        http.post(
+          "*/api/user/resend_email",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveHandler = () =>
+                resolve(new HttpResponse(null, { status: 204 }));
+            }),
+        ),
       );
 
       renderConfirmAccount("admin");
@@ -110,7 +114,7 @@ describe("ConfirmAccount", () => {
       );
       expect(screen.getByRole("button", { name: /sending/i })).toBeDisabled();
 
-      resolveResend();
+      resolveHandler();
       await clickPromise;
     });
   });

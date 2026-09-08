@@ -1,17 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import AdminDeviceDetails from "../AdminDeviceDetails";
 import type { Device } from "@/client/model";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDeviceAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -47,6 +42,14 @@ function makeDevice(overrides: Partial<Device> = {}): Device {
   } as Device;
 }
 
+function setDevice(overrides: Partial<Device> = {}) {
+  server.use(
+    http.get("*/admin/api/devices/:uid", () =>
+      HttpResponse.json(makeDevice(overrides)),
+    ),
+  );
+}
+
 function renderPage() {
   return render(
     <MemoryRouter>
@@ -59,13 +62,15 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  sdk.getDeviceAdmin.mockResolvedValue(mockSdkResponse(makeDevice()));
+  setDevice();
 });
 
 describe("AdminDeviceDetails", () => {
   describe("loading state", () => {
     it('announces "Loading device details" while loading', () => {
-      sdk.getDeviceAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/devices/:uid", () => new Promise(() => {})),
+      );
       renderPage();
       expect(
         screen.getByRole("status", { name: "Loading device details" }),
@@ -75,7 +80,11 @@ describe("AdminDeviceDetails", () => {
 
   describe("not-found / error state", () => {
     it('renders "Device not found" when no data and no loading', async () => {
-      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(404));
+      server.use(
+        http.get("*/admin/api/devices/:uid", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("Device not found")).toBeInTheDocument();
@@ -83,7 +92,11 @@ describe("AdminDeviceDetails", () => {
     });
 
     it('renders "Device not found" when the query returns an error', async () => {
-      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/devices/:uid", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("Device not found")).toBeInTheDocument();
@@ -91,7 +104,11 @@ describe("AdminDeviceDetails", () => {
     });
 
     it('renders a "Back to devices" link in the not-found state', async () => {
-      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(404));
+      server.use(
+        http.get("*/admin/api/devices/:uid", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(
@@ -155,9 +172,7 @@ describe("AdminDeviceDetails", () => {
     });
 
     it('renders "No tags" when device has no tags', async () => {
-      sdk.getDeviceAdmin.mockResolvedValue(
-        mockSdkResponse(makeDevice({ tags: [] })),
-      );
+      setDevice({ tags: [] });
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("No tags")).toBeInTheDocument();
@@ -165,11 +180,7 @@ describe("AdminDeviceDetails", () => {
     });
 
     it("renders the public key section when present", async () => {
-      sdk.getDeviceAdmin.mockResolvedValue(
-        mockSdkResponse(
-          makeDevice({ public_key: "ssh-rsa AAAAB3NzaC1yc2E..." }),
-        ),
-      );
+      setDevice({ public_key: "ssh-rsa AAAAB3NzaC1yc2E..." });
       renderPage();
       await waitFor(() => {
         expect(

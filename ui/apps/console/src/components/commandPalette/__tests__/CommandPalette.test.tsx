@@ -2,25 +2,18 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Device } from "@/client/model";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
   mockNamespace,
 } from "@/tests/factories";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
 import type { TerminalSession } from "@/stores/terminalStore";
 
 const { copyMock } = vi.hoisted(() => ({ copyMock: vi.fn() }));
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDevices: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("@/hooks/useCopy", () => ({
   useCopy: () => ({ copy: copyMock, copied: false }),
@@ -67,6 +60,10 @@ function LocationProbe() {
 
 const logoutSpy = vi.fn();
 
+function setDevices(devices: Device[]) {
+  server.use(http.get("*/api/devices", () => jsonWithTotal(devices)));
+}
+
 function renderPalette() {
   return render(
     <>
@@ -82,12 +79,14 @@ describe("CommandPalette", () => {
     vi.clearAllMocks();
     seedAuthStore();
     useAuthStore.setState({ logout: logoutSpy });
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device]));
-    sdk.getNamespace.mockResolvedValue(
-      mockSdkResponse(mockNamespace({ name: "dev" })),
-    );
-    sdk.getNamespaceToken.mockResolvedValue(
-      mockSdkResponse({ token: "jwt-token", role: "owner" }),
+    server.use(
+      http.get("*/api/devices", () => jsonWithTotal([device])),
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockNamespace({ name: "dev" })),
+      ),
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      ),
     );
     copyMock.mockClear();
     useTerminalStore.setState({ sessions: [], reconnectTarget: null });
@@ -201,9 +200,7 @@ describe("CommandPalette", () => {
 
   it("rejects connecting to an offline device and keeps the palette open", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(
-      paginatedResponse([{ ...device, online: false }]),
-    );
+    setDevices([{ ...device, online: false }]);
     renderPalette();
 
     await user.click(await screen.findByText("web-01"));
@@ -215,9 +212,7 @@ describe("CommandPalette", () => {
 
   it("restores an existing session even when the device is offline", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(
-      paginatedResponse([{ ...device, online: false }]),
-    );
+    setDevices([{ ...device, online: false }]);
     useTerminalStore.setState({
       sessions: [
         {
@@ -321,7 +316,7 @@ describe("CommandPalette", () => {
   });
 
   it("lists recent devices between sessions and the full device list", async () => {
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     useRecentDevicesStore.setState({
       byTenant: {
@@ -367,7 +362,7 @@ describe("CommandPalette", () => {
 
   it("connects from a recent device row", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     useRecentDevicesStore.setState({
       byTenant: {
         "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
@@ -397,9 +392,7 @@ describe("CommandPalette", () => {
 
   it("shakes the clicked recent row, not its device duplicate, when offline", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(
-      paginatedResponse([device, { ...device2, online: false }]),
-    );
+    setDevices([device, { ...device2, online: false }]);
     useRecentDevicesStore.setState({
       byTenant: {
         "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
@@ -422,7 +415,7 @@ describe("CommandPalette", () => {
 
   it("moves the highlight down across sections, tracking aria-activedescendant", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     useRecentDevicesStore.setState({
       byTenant: {
@@ -447,7 +440,7 @@ describe("CommandPalette", () => {
 
   it("wraps around at the list ends with ArrowUp/ArrowDown", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     renderPalette();
 
     const input = await screen.findByRole("combobox");
@@ -471,7 +464,7 @@ describe("CommandPalette", () => {
 
   it("jumps to the first and last option with Home and End", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     renderPalette();
 
     const input = await screen.findByRole("combobox");
@@ -495,7 +488,7 @@ describe("CommandPalette", () => {
 
   it("selects the highlighted option after navigating", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
+    setDevices([device, device2]);
     renderPalette();
 
     const input = await screen.findByRole("combobox");
@@ -651,9 +644,7 @@ describe("CommandPalette", () => {
 
   it("disables the menu Connect action for an offline device with no session", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(
-      paginatedResponse([{ ...device, online: false }]),
-    );
+    setDevices([{ ...device, online: false }]);
     renderPalette();
 
     await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
@@ -670,9 +661,7 @@ describe("CommandPalette", () => {
 
   it("keeps the menu Connect enabled for an offline device with an open session", async () => {
     const user = userEvent.setup();
-    sdk.getDevices.mockResolvedValue(
-      paginatedResponse([{ ...device, online: false }]),
-    );
+    setDevices([{ ...device, online: false }]);
     useTerminalStore.setState({
       sessions: [
         {

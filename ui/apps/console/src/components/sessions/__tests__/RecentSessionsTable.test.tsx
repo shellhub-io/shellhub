@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { paginatedResponse } from "@/tests/sdk";
+import { useAuthStore } from "@/stores/authStore";
 import RecentSessionsTable from "../RecentSessionsTable";
 import type { Device, Session } from "@/client/model";
 
@@ -11,23 +13,6 @@ const mockNavigate = vi.hoisted(() => vi.fn());
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
-});
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getSessions: vi.fn(),
-    getSessionsAdmin: vi.fn(),
-  }),
-);
-
-vi.mock("@/stores/authStore", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/stores/authStore")>();
-  return {
-    ...actual,
-    useAuthStore: vi.fn((selector: (s: { isAdmin: boolean }) => unknown) =>
-      selector({ isAdmin: true }),
-    ),
-  };
 });
 
 function makeSession(overrides: Partial<Session> = {}): Session {
@@ -57,8 +42,8 @@ function makeSession(overrides: Partial<Session> = {}): Session {
   };
 }
 
-function mockSessionsResponse(sessions: Session[] = [], totalCount?: number) {
-  return paginatedResponse(sessions, totalCount);
+function mockSessionsHandler(sessions: Session[] = [], total?: number) {
+  return () => jsonWithTotal(sessions, total);
 }
 
 function renderTable(isAdmin = false) {
@@ -70,8 +55,11 @@ function renderTable(isAdmin = false) {
 describe("RecentSessionsTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.getSessions.mockResolvedValue(mockSessionsResponse());
-    sdk.getSessionsAdmin.mockResolvedValue(mockSessionsResponse());
+    useAuthStore.setState({ isAdmin: true });
+    server.use(
+      http.get("*/api/sessions", mockSessionsHandler()),
+      http.get("*/admin/api/sessions", mockSessionsHandler()),
+    );
   });
 
   describe("default (non-admin)", () => {
@@ -87,8 +75,10 @@ describe("RecentSessionsTable", () => {
 
     it("navigates to /sessions/:uid on row click", async () => {
       const user = userEvent.setup();
-      sdk.getSessions.mockResolvedValue(
-        mockSessionsResponse([makeSession({ uid: "s-1" })]),
+      server.use(
+        http.get("*/api/sessions", () =>
+          jsonWithTotal([makeSession({ uid: "s-1" })]),
+        ),
       );
       renderTable();
 
@@ -100,7 +90,9 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device chip with link to /devices/:uid", async () => {
-      sdk.getSessions.mockResolvedValue(mockSessionsResponse([makeSession()]));
+      server.use(
+        http.get("*/api/sessions", () => jsonWithTotal([makeSession()])),
+      );
       renderTable();
 
       await waitFor(() => {
@@ -124,8 +116,10 @@ describe("RecentSessionsTable", () => {
 
     it("navigates to /admin/sessions/:uid on row click", async () => {
       const user = userEvent.setup();
-      sdk.getSessionsAdmin.mockResolvedValue(
-        mockSessionsResponse([makeSession({ uid: "s-2" })]),
+      server.use(
+        http.get("*/admin/api/sessions", () =>
+          jsonWithTotal([makeSession({ uid: "s-2" })]),
+        ),
       );
       renderTable(true);
 
@@ -137,8 +131,8 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device chip with link to /admin/devices/:uid", async () => {
-      sdk.getSessionsAdmin.mockResolvedValue(
-        mockSessionsResponse([makeSession()]),
+      server.use(
+        http.get("*/admin/api/sessions", () => jsonWithTotal([makeSession()])),
       );
       renderTable(true);
 
@@ -152,7 +146,7 @@ describe("RecentSessionsTable", () => {
 
   describe("loading state", () => {
     it("shows loading message while fetching", () => {
-      sdk.getSessions.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/api/sessions", () => new Promise(() => {})));
       renderTable();
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
@@ -160,8 +154,10 @@ describe("RecentSessionsTable", () => {
 
   describe("error state", () => {
     it("renders error callout on fetch failure", async () => {
-      sdk.getSessions.mockRejectedValue(
-        Object.assign(new Error(), { status: 500, headers: new Headers() }),
+      server.use(
+        http.get("*/api/sessions", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
       );
       renderTable();
       await waitFor(() => {
@@ -181,8 +177,10 @@ describe("RecentSessionsTable", () => {
 
   describe("unauthenticated session", () => {
     it("renders warning icon for unauthenticated sessions", async () => {
-      sdk.getSessions.mockResolvedValue(
-        mockSessionsResponse([makeSession({ authenticated: false })]),
+      server.use(
+        http.get("*/api/sessions", () =>
+          jsonWithTotal([makeSession({ authenticated: false })]),
+        ),
       );
       renderTable();
       await waitFor(() => {
@@ -193,8 +191,10 @@ describe("RecentSessionsTable", () => {
 
   describe("session data rendering", () => {
     it("renders session username", async () => {
-      sdk.getSessions.mockResolvedValue(
-        mockSessionsResponse([makeSession({ username: "admin" })]),
+      server.use(
+        http.get("*/api/sessions", () =>
+          jsonWithTotal([makeSession({ username: "admin" })]),
+        ),
       );
       renderTable();
       await waitFor(() => {
@@ -203,10 +203,12 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders session type badge", async () => {
-      sdk.getSessions.mockResolvedValue(
-        mockSessionsResponse([
-          makeSession({ events: { types: ["shell"], seats: [] } }),
-        ]),
+      server.use(
+        http.get("*/api/sessions", () =>
+          jsonWithTotal([
+            makeSession({ events: { types: ["shell"], seats: [] } }),
+          ]),
+        ),
       );
       renderTable();
       await waitFor(() => {
@@ -215,7 +217,9 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device name", async () => {
-      sdk.getSessions.mockResolvedValue(mockSessionsResponse([makeSession()]));
+      server.use(
+        http.get("*/api/sessions", () => jsonWithTotal([makeSession()])),
+      );
       renderTable();
       await waitFor(() => {
         expect(screen.getByText("my-device")).toBeInTheDocument();

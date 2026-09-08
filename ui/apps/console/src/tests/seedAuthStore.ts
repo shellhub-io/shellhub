@@ -1,6 +1,10 @@
 import { useAuthStore } from "@/stores/authStore";
 import { mockUserAuth } from "./factories";
 
+/** JWT that passes `isTokenExpired` — use in tests that need an authenticated customInstance. */
+export const VALID_JWT =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInN1YiI6InRlc3QifQ.fake-sig";
+
 type AuthData = Pick<
   ReturnType<typeof useAuthStore.getState>,
   | "name"
