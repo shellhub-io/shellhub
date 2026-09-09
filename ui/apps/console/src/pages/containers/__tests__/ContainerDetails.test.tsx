@@ -174,33 +174,17 @@ describe("ContainerDetails", () => {
       setContainer();
     });
 
-    it("renders the container name as a heading", async () => {
+    it("renders the container's fields, including the SSHID and online status", async () => {
       renderPage();
       expect(
         await screen.findByRole("heading", { name: "my-container" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders the MAC address", async () => {
-      renderPage();
-      expect(await screen.findByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
-    });
-
-    it("renders the container image", async () => {
-      renderPage();
-      expect(await screen.findByText("Alpine Linux 3.19")).toBeInTheDocument();
-    });
-
-    it("renders the SSHID built from the namespace and container name", async () => {
-      renderPage();
+      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      expect(screen.getByText("Alpine Linux 3.19")).toBeInTheDocument();
       expect(
-        await screen.findByText("my-namespace.my-container@localhost"),
+        screen.getByText("my-namespace.my-container@localhost"),
       ).toBeInTheDocument();
-    });
-
-    it("marks an online container as Online", async () => {
-      renderPage();
-      expect(await screen.findByText("Online")).toBeInTheDocument();
+      expect(screen.getByText("Online")).toBeInTheDocument();
     });
   });
 

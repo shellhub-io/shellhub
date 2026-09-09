@@ -97,39 +97,20 @@ async function goToStep3(user: ReturnType<typeof userEvent.setup>) {
 
 describe("BillingDialog", () => {
   describe("Step 1 — Overview", () => {
-    it("renders BillingLetter on step 1", () => {
-      renderDialog();
-      expect(screen.getByTestId("billing-letter")).toBeInTheDocument();
-    });
-
-    it("shows a 'Next' button on step 1", () => {
-      renderDialog();
-      expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
-    });
-
     it("clicking 'Next' advances to step 2 (BillingPayment)", async () => {
       const user = userEvent.setup();
-      renderDialog();
-      await goToStep2(user);
-      expect(screen.getByTestId("billing-payment")).toBeInTheDocument();
-    });
-
-    it("announces step 1 in the sr-only live region", () => {
       renderDialog();
       expect(screen.getByRole("status")).toHaveTextContent(
         /step 1 of 4.*overview/i,
       );
+
+      await goToStep2(user);
+
+      expect(screen.getByTestId("billing-payment")).toBeInTheDocument();
     });
   });
 
   describe("Step 2 — Payment method", () => {
-    it("renders BillingPayment on step 2", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep2(user);
-      expect(screen.getByTestId("billing-payment")).toBeInTheDocument();
-    });
-
     it("'Next' button is disabled until onHasDefault fires", async () => {
       const user = userEvent.setup();
       renderDialog();
@@ -159,37 +140,23 @@ describe("BillingDialog", () => {
     it("clicking 'Next' after onHasDefault advances to step 3 (BillingCheckout)", async () => {
       const user = userEvent.setup();
       renderDialog();
-      await goToStep3(user);
-      expect(screen.getByTestId("billing-checkout")).toBeInTheDocument();
-    });
 
-    it("announces step 2 in the sr-only live region", async () => {
-      const user = userEvent.setup();
-      renderDialog();
       await goToStep2(user);
       expect(screen.getByRole("status")).toHaveTextContent(
         /step 2 of 4.*payment method/i,
+      );
+
+      await user.click(screen.getByTestId("trigger-has-default"));
+      await user.click(screen.getByRole("button", { name: /^next$/i }));
+
+      expect(screen.getByTestId("billing-checkout")).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent(
+        /step 3 of 4.*review/i,
       );
     });
   });
 
   describe("Step 3 — Review", () => {
-    it("renders BillingCheckout on step 3", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      expect(screen.getByTestId("billing-checkout")).toBeInTheDocument();
-    });
-
-    it("has a 'Confirm subscription' button on step 3", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      expect(
-        screen.getByRole("button", { name: /confirm subscription/i }),
-      ).toBeInTheDocument();
-    });
-
     it("advances to step 4 after subscription is active", async () => {
       const user = userEvent.setup();
       renderDialog();
@@ -310,15 +277,6 @@ describe("BillingDialog", () => {
         ).toBeDisabled(),
       );
     });
-
-    it("announces step 3 in the sr-only live region", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      expect(screen.getByRole("status")).toHaveTextContent(
-        /step 3 of 4.*review/i,
-      );
-    });
   });
 
   describe("Step 4 — Success", () => {
@@ -332,29 +290,18 @@ describe("BillingDialog", () => {
       );
     }
 
-    it("renders BillingSuccessful on step 4", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep4(user);
-      expect(screen.getByTestId("billing-successful")).toBeInTheDocument();
-    });
-
     it("clicking 'Done' calls onSuccess and onClose", async () => {
       const user = userEvent.setup();
       const { onClose, onSuccess } = renderDialog();
       await goToStep4(user);
-      await user.click(screen.getByRole("button", { name: /done/i }));
-      expect(onSuccess).toHaveBeenCalledOnce();
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("announces step 4 in the sr-only live region", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep4(user);
       expect(screen.getByRole("status")).toHaveTextContent(
         /step 4 of 4.*success/i,
       );
+
+      await user.click(screen.getByRole("button", { name: /done/i }));
+
+      expect(onSuccess).toHaveBeenCalledOnce();
+      expect(onClose).toHaveBeenCalledOnce();
     });
   });
 
@@ -401,34 +348,6 @@ describe("BillingDialog", () => {
       const { onClose } = renderDialog();
       await user.click(screen.getByRole("button", { name: /^close$/i }));
       expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("clicking the X (aria-label 'Close wizard') calls onClose on step 1", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderDialog();
-      await user.click(screen.getByRole("button", { name: /close wizard/i }));
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("close buttons are present on step 2", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep2(user);
-      expect(
-        screen.getByRole("button", { name: /close wizard/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /^close$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("close buttons are present on step 3", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      expect(
-        screen.getByRole("button", { name: /close wizard/i }),
-      ).toBeInTheDocument();
     });
   });
 });

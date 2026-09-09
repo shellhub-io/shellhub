@@ -33,13 +33,9 @@ function renderButton() {
 }
 
 describe("StatCard", () => {
-  it("title is visible", () => {
+  it("shows the title and the value", () => {
     renderLink();
     expect(screen.getByText("Online Devices")).toBeInTheDocument();
-  });
-
-  it("value is visible", () => {
-    renderLink();
     expect(screen.getByText("42")).toBeInTheDocument();
   });
 

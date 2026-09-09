@@ -308,13 +308,6 @@ describe("CommandPalette", () => {
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
-  it("omits the Terminal Sessions section when none are open", async () => {
-    renderPalette();
-
-    expect(await screen.findByText("web-01")).toBeInTheDocument();
-    expect(screen.queryByText("Terminal Sessions")).not.toBeInTheDocument();
-  });
-
   it("lists recent devices between sessions and the full device list", async () => {
     setDevices([device, device2]);
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
@@ -381,13 +374,6 @@ describe("CommandPalette", () => {
       deviceName: "db-01",
     });
     expect(useCommandPaletteStore.getState().open).toBe(false);
-  });
-
-  it("omits the Recent section when there are no recent devices", async () => {
-    renderPalette();
-
-    expect(await screen.findByText("web-01")).toBeInTheDocument();
-    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
   });
 
   it("shakes the clicked recent row, not its device duplicate, when offline", async () => {

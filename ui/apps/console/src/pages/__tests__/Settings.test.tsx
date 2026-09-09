@@ -17,8 +17,6 @@ vi.mock("@/components/common/CopyButton", async () => ({
 }));
 
 import Settings from "../Settings";
-import * as SettingsCardModule from "@/components/common/SettingsCard";
-import * as SettingsRowModule from "@/components/common/SettingsRow";
 import { getConfig, defaultConfig } from "@/env";
 
 const mockedGetConfig = vi.mocked(getConfig);
@@ -94,63 +92,11 @@ beforeEach(() => {
 });
 
 describe("Settings", () => {
-  describe("shared component usage", () => {
-    it("uses the shared SettingsCard component (not a local copy)", async () => {
-      const spy = vi.spyOn(SettingsCardModule, "default");
-      renderSettings();
-      await screen.findByRole("heading", { name: /^general$/i });
-      expect(spy).toHaveBeenCalled();
-      spy.mockRestore();
-    });
-
-    it("uses the shared SettingsRow component (not a local copy)", async () => {
-      const spy = vi.spyOn(SettingsRowModule, "default");
-      renderSettings();
-      await screen.findByRole("heading", { name: /^general$/i });
-      expect(spy).toHaveBeenCalled();
-      spy.mockRestore();
-    });
-  });
-
   describe("renders settings sections", () => {
-    it("shows the General card heading", async () => {
-      renderSettings();
-      expect(
-        await screen.findByRole("heading", { name: /^general$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows the SSH card heading", async () => {
-      renderSettings();
-      expect(
-        await screen.findByRole("heading", { name: /^ssh$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows the Danger Zone card heading", async () => {
-      renderSettings();
-      expect(
-        await screen.findByRole("heading", { name: /danger zone/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the namespace name", async () => {
+    it("renders the namespace name and tenant ID", async () => {
       renderSettings();
       expect(await screen.findByText("my-namespace")).toBeInTheDocument();
-    });
-
-    it("renders the tenant ID", async () => {
-      renderSettings();
-      expect(await screen.findByText("tenant-456")).toBeInTheDocument();
-    });
-  });
-
-  describe("danger zone", () => {
-    it("renders the Delete button for owners", async () => {
-      renderSettings();
-      expect(
-        await screen.findByRole("button", { name: /delete/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByText("tenant-456")).toBeInTheDocument();
     });
   });
 

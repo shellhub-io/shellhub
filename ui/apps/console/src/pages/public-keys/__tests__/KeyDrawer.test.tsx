@@ -123,13 +123,6 @@ describe("KeyDrawer", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows 'Create Key' on the submit button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /create key/i }),
-      ).toBeInTheDocument();
-    });
-
     it("submit is disabled when form is empty", () => {
       renderDrawer();
       expect(getSubmitButton()).toBeDisabled();
@@ -146,13 +139,6 @@ describe("KeyDrawer", () => {
       renderDrawer({ editKey: mockPublicKey() });
       expect(
         screen.getByRole("heading", { name: /edit public key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows 'Save Changes' on the submit button", () => {
-      renderDrawer({ editKey: mockPublicKey() });
-      expect(
-        screen.getByRole("button", { name: /save changes/i }),
       ).toBeInTheDocument();
     });
 

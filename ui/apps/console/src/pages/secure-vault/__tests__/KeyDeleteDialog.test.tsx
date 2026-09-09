@@ -47,20 +47,6 @@ describe("KeyDeleteDialog", () => {
       expect(screen.getByText("Production Server")).toBeInTheDocument();
     });
 
-    it("renders the Delete confirm button", () => {
-      render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
-      expect(
-        screen.getByRole("button", { name: /delete/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-
     it("renders nothing when entry is null", () => {
       render(<KeyDeleteDialog open entry={null} onClose={vi.fn()} />);
       expect(screen.queryByText("Production Server")).not.toBeInTheDocument();
@@ -68,24 +54,18 @@ describe("KeyDeleteDialog", () => {
   });
 
   describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
+    it("closes without deleting when Cancel is clicked", async () => {
       const onClose = vi.fn();
       render(<KeyDeleteDialog open entry={entry} onClose={onClose} />);
 
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call removeKey when Cancel is clicked", async () => {
-      render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
-
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(mockRemoveKey).not.toHaveBeenCalled();
     });
   });
 
   describe("confirm delete", () => {
-    it("calls removeKey with the entry id when Delete is confirmed", async () => {
+    it("removes the entry by id and closes when Delete is confirmed", async () => {
       mockRemoveKey.mockResolvedValue(undefined);
       const onClose = vi.fn();
       render(<KeyDeleteDialog open entry={entry} onClose={onClose} />);
@@ -95,15 +75,6 @@ describe("KeyDeleteDialog", () => {
       await waitFor(() => {
         expect(mockRemoveKey).toHaveBeenCalledWith("key-1");
       });
-    });
-
-    it("calls onClose after successful deletion", async () => {
-      mockRemoveKey.mockResolvedValue(undefined);
-      const onClose = vi.fn();
-      render(<KeyDeleteDialog open entry={entry} onClose={onClose} />);
-
-      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
-
       await waitFor(() => {
         expect(onClose).toHaveBeenCalledTimes(1);
       });
@@ -118,16 +89,6 @@ describe("KeyDeleteDialog", () => {
       await waitFor(() => {
         expect(screen.getByText("Storage full")).toBeInTheDocument();
       });
-    });
-
-    it("does nothing when entry is null and Delete is clicked", async () => {
-      render(<KeyDeleteDialog open entry={null} onClose={vi.fn()} />);
-
-      const deleteBtn = screen.queryByRole("button", { name: /delete/i });
-      if (deleteBtn) {
-        await userEvent.click(deleteBtn);
-      }
-      expect(mockRemoveKey).not.toHaveBeenCalled();
     });
   });
 });

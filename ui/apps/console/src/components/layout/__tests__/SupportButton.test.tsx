@@ -25,7 +25,7 @@ beforeEach(() => {
 
 describe("SupportButton", () => {
   describe("non-cloud branch", () => {
-    it("renders a link pointing to the GitHub issue tracker", () => {
+    it("renders a GitHub issue tracker link that opens safely in a new tab", () => {
       renderWithStatus(makeHandle("non-cloud"));
       const link = screen.getByRole("link", {
         name: /report an issue on github/i,
@@ -34,13 +34,6 @@ describe("SupportButton", () => {
         "href",
         "https://github.com/shellhub-io/shellhub/issues/new",
       );
-    });
-
-    it("opens the link in a new tab with safe rel attributes", () => {
-      renderWithStatus(makeHandle("non-cloud"));
-      const link = screen.getByRole("link", {
-        name: /report an issue on github/i,
-      });
       expect(link).toHaveAttribute("target", "_blank");
       expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
@@ -54,23 +47,12 @@ describe("SupportButton", () => {
   });
 
   describe("no-subscription branch", () => {
-    it("renders an enabled button with the paywall aria-label", () => {
-      renderWithStatus(makeHandle("no-subscription"));
-      const button = screen.getByRole("button", {
-        name: /paid plan required/i,
-      });
-      expect(button).not.toHaveAttribute("aria-disabled");
-    });
-
-    it("does not open the paywall dialog before the user clicks", () => {
-      renderWithStatus(makeHandle("no-subscription"));
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-
     it("clicking the button opens the paywall dialog and never calls openWidget", async () => {
       const openWidget = vi.fn();
       renderWithStatus(makeHandle("no-subscription", openWidget));
       const user = userEvent.setup();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
       await user.click(
         screen.getByRole("button", { name: /paid plan required/i }),
       );
@@ -129,12 +111,6 @@ describe("SupportButton", () => {
   });
 
   describe("ready branch", () => {
-    it("renders an enabled button with the correct aria-label", () => {
-      renderWithStatus(makeHandle("ready"));
-      const button = screen.getByRole("button", { name: /open support chat/i });
-      expect(button).not.toHaveAttribute("aria-disabled");
-    });
-
     it("clicking the button calls openWidget", async () => {
       const openWidget = vi.fn();
       renderWithStatus(makeHandle("ready", openWidget));

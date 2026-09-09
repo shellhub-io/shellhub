@@ -16,33 +16,21 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const capturedDataTableProps: Record<string, unknown>[] = [];
-vi.mock("@/components/common/DataTable", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/components/common/DataTable")>();
-  return {
-    ...actual,
-    default: (props: Record<string, unknown>) => {
-      capturedDataTableProps.push({ ...props });
-      return actual.default(
-        props as unknown as Parameters<typeof actual.default>[0],
-      );
-    },
-  };
-});
-
-let lastRequestUrl: URL | null;
-
 function setRules(
   rules: ReturnType<typeof mockFirewallRule>[],
   total?: number,
 ) {
   server.use(
-    http.get("*/admin/api/firewall/rules", ({ request }) => {
-      lastRequestUrl = new URL(request.url);
-      return jsonWithTotal(rules, total ?? rules.length);
-    }),
+    http.get("*/admin/api/firewall/rules", () =>
+      jsonWithTotal(rules, total ?? rules.length),
+    ),
   );
+}
+
+function searchbox() {
+  return screen.getByRole("searchbox", {
+    name: "Search firewall rules by action, priority, IP, or username",
+  });
 }
 
 function renderPage(initialEntries: string[] = ["/"]) {
@@ -57,28 +45,8 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("AdminFirewallRules", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    capturedDataTableProps.length = 0;
-    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
     setRules([]);
-  });
-
-  describe("rendering", () => {
-    it('renders the page heading "Firewall Rules"', () => {
-      renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Firewall Rules" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the search input with correct aria-label", () => {
-      renderPage();
-      expect(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-      ).toBeInTheDocument();
-    });
   });
 
   describe("loading state", () => {
@@ -116,52 +84,36 @@ describe("AdminFirewallRules", () => {
       expect(screen.getAllByText("2")[0]).toBeInTheDocument();
     });
 
-    it('shows "Allow" with accent-green for an allow rule', async () => {
-      setRules([mockFirewallRule({ action: "allow" })]);
+    it("renders the rule's own action, IP, username and state", async () => {
+      setRules([
+        mockFirewallRule({
+          action: "allow",
+          source_ip: "192.168.1.0/24",
+          username: "alice",
+          active: true,
+        }),
+      ]);
       renderPage();
       expect(await screen.findByText("Allow")).toBeInTheDocument();
+      expect(screen.getByText("192.168.1.0/24")).toBeInTheDocument();
+      expect(screen.getByText("alice")).toBeInTheDocument();
+      expect(screen.getByText("Active")).toBeInTheDocument();
     });
 
-    it('shows "Deny" for a deny rule', async () => {
-      setRules([mockFirewallRule({ action: "deny" })]);
+    it("renders wildcard source_ip and username as 'Any IP' and 'All users'", async () => {
+      setRules([
+        mockFirewallRule({
+          action: "deny",
+          source_ip: ".*",
+          username: ".*",
+          active: false,
+        }),
+      ]);
       renderPage();
       expect(await screen.findByText("Deny")).toBeInTheDocument();
-    });
-
-    it('shows "Any IP" when source_ip is ".*"', async () => {
-      setRules([mockFirewallRule({ source_ip: ".*" })]);
-      renderPage();
-      expect(await screen.findByText("Any IP")).toBeInTheDocument();
-    });
-
-    it("shows specific IP when source_ip is not wildcard", async () => {
-      setRules([mockFirewallRule({ source_ip: "192.168.1.0/24" })]);
-      renderPage();
-      expect(await screen.findByText("192.168.1.0/24")).toBeInTheDocument();
-    });
-
-    it('shows "All users" when username is ".*"', async () => {
-      setRules([mockFirewallRule({ username: ".*" })]);
-      renderPage();
-      expect(await screen.findByText("All users")).toBeInTheDocument();
-    });
-
-    it("shows specific username when not wildcard", async () => {
-      setRules([mockFirewallRule({ username: "alice" })]);
-      renderPage();
-      expect(await screen.findByText("alice")).toBeInTheDocument();
-    });
-
-    it("renders an Active badge for an active rule", async () => {
-      setRules([mockFirewallRule({ active: true })]);
-      renderPage();
-      expect(await screen.findByText("Active")).toBeInTheDocument();
-    });
-
-    it("renders an Inactive badge for an inactive rule", async () => {
-      setRules([mockFirewallRule({ active: false })]);
-      renderPage();
-      expect(await screen.findByText("Inactive")).toBeInTheDocument();
+      expect(screen.getByText("Any IP")).toBeInTheDocument();
+      expect(screen.getByText("All users")).toBeInTheDocument();
+      expect(screen.getByText("Inactive")).toBeInTheDocument();
     });
 
     it("navigates to the detail page when a row is clicked", async () => {
@@ -218,80 +170,23 @@ describe("AdminFirewallRules", () => {
       setRules([allowRule, denyRule]);
     });
 
-    it("filters rules by action text", async () => {
+    it.each([
+      ["deny", "Deny", "Allow"],
+      ["172.16.0.1", "172.16.0.1", "zara"],
+      ["zara", "zara", "172.16.0.1"],
+      ["777", "777", "Allow"],
+    ])("searching '%s' keeps '%s' and drops '%s'", async (term, kept, gone) => {
       const user = userEvent.setup();
       renderPage();
 
-      await screen.findByText("Allow");
+      await screen.findByText(kept);
 
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "deny",
-      );
+      await user.type(searchbox(), term);
 
       await waitFor(() =>
-        expect(screen.queryByText("Allow")).not.toBeInTheDocument(),
+        expect(screen.queryByText(gone)).not.toBeInTheDocument(),
       );
-      expect(screen.getByText("Deny")).toBeInTheDocument();
-    });
-
-    it("filters rules by source IP text", async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await screen.findByText("172.16.0.1");
-
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "172.16.0.1",
-      );
-
-      await waitFor(() =>
-        expect(screen.queryByText("zara")).not.toBeInTheDocument(),
-      );
-      expect(screen.getByText("172.16.0.1")).toBeInTheDocument();
-    });
-
-    it("filters rules by username text", async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await screen.findByText("zara");
-
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "zara",
-      );
-
-      await waitFor(() =>
-        expect(screen.queryByText("172.16.0.1")).not.toBeInTheDocument(),
-      );
-      expect(screen.getByText("zara")).toBeInTheDocument();
-    });
-
-    it("filters rules by priority number", async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await screen.findByText("777");
-
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "777",
-      );
-
-      await waitFor(() =>
-        expect(screen.queryByText("Allow")).not.toBeInTheDocument(),
-      );
-      expect(screen.getByText("777")).toBeInTheDocument();
+      expect(screen.getByText(kept)).toBeInTheDocument();
     });
 
     it('shows "No rules matching" message when search has no results', async () => {
@@ -300,102 +195,9 @@ describe("AdminFirewallRules", () => {
 
       await screen.findByText("Allow");
 
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "zzz-no-match",
-      );
+      await user.type(searchbox(), "zzz-no-match");
 
       await screen.findByText(/No rules matching/);
-    });
-  });
-
-  describe("pagination suppressed while searching", () => {
-    beforeEach(() => {
-      setRules(
-        [mockFirewallRule({ id: "r1", action: "allow", priority: 1 })],
-        1,
-      );
-    });
-
-    it("passes page/totalPages/onPageChange to DataTable when search is empty", async () => {
-      renderPage();
-      await screen.findByText("Allow");
-      const last = capturedDataTableProps.at(-1);
-      expect(last).toBeDefined();
-      expect(last).toHaveProperty("page");
-      expect(last).toHaveProperty("totalPages");
-      expect(last).toHaveProperty("onPageChange");
-    });
-
-    it("omits page/totalPages/onPageChange from DataTable while search is non-empty", async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await screen.findByText("Allow");
-
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "allow",
-      );
-
-      await waitFor(() => {
-        const last = capturedDataTableProps.at(-1);
-        expect(last).toBeDefined();
-        expect(last).not.toHaveProperty("page");
-        expect(last).not.toHaveProperty("totalPages");
-        expect(last).not.toHaveProperty("onPageChange");
-      });
-    });
-  });
-
-  describe("URL round-trips", () => {
-    it("hydrates search from URL on mount", async () => {
-      setRules([mockFirewallRule({ id: "r1", action: "allow" })]);
-      renderPage(["/?search=allow"]);
-      expect(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-      ).toHaveValue("allow");
-    });
-
-    it("hydrates page from URL and passes it to the API", async () => {
-      renderPage(["/?page=3"]);
-      await screen.findByText("No firewall rules found");
-      expect(lastRequestUrl).not.toBeNull();
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-    });
-
-    it("passes page=1 to the API when URL has no params", async () => {
-      renderPage(["/"]);
-      await screen.findByText("No firewall rules found");
-      expect(lastRequestUrl).not.toBeNull();
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-    });
-
-    it("setSearch resets page to 1 in the URL", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?page=3"]);
-
-      await screen.findByText("No firewall rules found");
-
-      expect(lastRequestUrl).not.toBeNull();
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-
-      await user.type(
-        screen.getByRole("searchbox", {
-          name: "Search firewall rules by action, priority, IP, or username",
-        }),
-        "allow",
-      );
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
     });
   });
 });

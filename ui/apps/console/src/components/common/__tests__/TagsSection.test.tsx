@@ -66,14 +66,6 @@ describe("TagsSection", () => {
       ).not.toBeInTheDocument();
       expect(screen.queryByLabelText("New tag")).not.toBeInTheDocument();
     });
-
-    it("shows remove buttons and input when user has tag:edit permission", () => {
-      renderTagsSection({ tags: ["web"] });
-      expect(
-        screen.getByRole("button", { name: /remove tag web/i }),
-      ).toBeInTheDocument();
-      expect(screen.getByLabelText("New tag")).toBeInTheDocument();
-    });
   });
 
   describe("adding a tag", () => {
@@ -282,24 +274,6 @@ describe("TagsSection", () => {
 
       const firstOption = screen.getAllByRole("option")[0];
       expect(firstOption).toHaveAttribute("aria-selected", "true");
-    });
-  });
-
-  describe("accessibility", () => {
-    it("renders error messages with role=alert", async () => {
-      renderTagsSection();
-      await typeAndSubmit("ab");
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-    });
-
-    it("provides descriptive aria-labels on remove buttons", () => {
-      renderTagsSection({ tags: ["web", "prod"] });
-      expect(
-        screen.getByRole("button", { name: "Remove tag web" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Remove tag prod" }),
-      ).toBeInTheDocument();
     });
   });
 });

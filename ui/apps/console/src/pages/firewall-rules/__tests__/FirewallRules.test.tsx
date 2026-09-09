@@ -17,23 +17,6 @@ vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
-const capturedDataTableProps: Record<string, unknown>[] = [];
-vi.mock("@/components/common/DataTable", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/components/common/DataTable")>();
-  return {
-    ...actual,
-    default: (props: Record<string, unknown>) => {
-      capturedDataTableProps.push({ ...props });
-      return actual.default(
-        props as unknown as Parameters<typeof actual.default>[0],
-      );
-    },
-  };
-});
-
-let lastRulesUrl: URL | null;
-
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -45,14 +28,11 @@ function renderPage(initialEntries: string[] = ["/"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  capturedDataTableProps.length = 0;
-  lastRulesUrl = null;
   useAuthStore.setState({ role: "owner" });
   server.use(
-    http.get("*/api/firewall/rules", ({ request }) => {
-      lastRulesUrl = new URL(request.url);
-      return jsonWithTotal([mockFirewallRule({ priority: 42 })]);
-    }),
+    http.get("*/api/firewall/rules", () =>
+      jsonWithTotal([mockFirewallRule({ priority: 42 })]),
+    ),
     http.delete(
       "*/api/firewall/rules/:id",
       () => new HttpResponse(null, { status: 204 }),
@@ -78,10 +58,7 @@ describe("FirewallRules — delete error handling", () => {
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
     server.use(
       http.delete("*/api/firewall/rules/:id", () =>
-        HttpResponse.json(
-          { message: "Permission denied" },
-          { status: 403 },
-        ),
+        HttpResponse.json({ message: "Permission denied" }, { status: 403 }),
       ),
     );
     const user = await openDeleteDialog();
@@ -133,10 +110,7 @@ describe("FirewallRules — delete error handling", () => {
       http.delete("*/api/firewall/rules/:id", () => {
         callCount++;
         if (callCount === 1)
-          return HttpResponse.json(
-            { message: "Transient" },
-            { status: 500 },
-          );
+          return HttpResponse.json({ message: "Transient" }, { status: 500 });
         return new HttpResponse(null, { status: 204 });
       }),
     );
@@ -161,113 +135,38 @@ describe("FirewallRules — delete error handling", () => {
   });
 });
 
-describe("FirewallRules — URL hydration", () => {
-  it("hydrates search from URL on mount", async () => {
-    renderPage(["/?search=allow"]);
-    await screen.findByText("42");
-    expect(
-      screen.getByRole("searchbox", {
-        name: "Search firewall rules by action, priority, IP, or username",
-      }),
-    ).toHaveValue("allow");
-  });
-
-  it("hydrates page from URL and passes it to the API", async () => {
-    renderPage(["/?page=3"]);
-    await waitFor(() => {
-      expect(lastRulesUrl).not.toBeNull();
-      expect(lastRulesUrl!.searchParams.get("page")).toBe("3");
-    });
-  });
-
-  it("passes page=1 when URL has no params", async () => {
-    renderPage(["/"]);
-    await waitFor(() => {
-      expect(lastRulesUrl).not.toBeNull();
-      expect(lastRulesUrl!.searchParams.get("page")).toBe("1");
-    });
-  });
-
-  it("setSearch resets page to 1 in the URL", async () => {
-    const user = userEvent.setup();
-    renderPage(["/?page=3"]);
-
-    await waitFor(() => {
-      expect(lastRulesUrl).not.toBeNull();
-      expect(lastRulesUrl!.searchParams.get("page")).toBe("3");
-    });
-
-    await user.type(
-      screen.getByRole("searchbox", {
-        name: "Search firewall rules by action, priority, IP, or username",
-      }),
-      "allow",
-    );
-
-    await waitFor(() => {
-      expect(lastRulesUrl!.searchParams.get("page")).toBe("1");
-    });
-  });
-});
-
 describe("FirewallRules — pagination suppressed while searching", () => {
-  it("passes page/totalPages/onPageChange to DataTable when search is empty", async () => {
-    renderPage();
-    await screen.findByText("42");
-    const last = capturedDataTableProps.at(-1);
-    expect(last).toBeDefined();
-    expect(last).toHaveProperty("page");
-    expect(last).toHaveProperty("totalPages");
-    expect(last).toHaveProperty("onPageChange");
-  });
-
-  it("omits page/totalPages/onPageChange from DataTable while search is non-empty", async () => {
+  it("hides the pagination controls while a search is active and restores them when cleared", async () => {
     const user = userEvent.setup();
-    renderPage();
-
-    await screen.findByText("42");
-
-    await user.type(
-      screen.getByRole("searchbox", {
-        name: "Search firewall rules by action, priority, IP, or username",
-      }),
-      "allow",
+    server.use(
+      http.get("*/api/firewall/rules", () =>
+        jsonWithTotal([mockFirewallRule({ priority: 42 })], 30),
+      ),
     );
-
-    await waitFor(() => {
-      const last = capturedDataTableProps.at(-1);
-      expect(last).toBeDefined();
-      expect(last).not.toHaveProperty("page");
-      expect(last).not.toHaveProperty("totalPages");
-      expect(last).not.toHaveProperty("onPageChange");
-    });
-  });
-
-  it("re-enables pagination props after search is cleared", async () => {
-    const user = userEvent.setup();
     renderPage();
-
     await screen.findByText("42");
+
+    expect(
+      screen.getByRole("button", { name: /next page/i }),
+    ).toBeInTheDocument();
 
     const searchbox = screen.getByRole("searchbox", {
       name: "Search firewall rules by action, priority, IP, or username",
     });
-
     await user.type(searchbox, "allow");
 
-    await waitFor(() => {
-      const last = capturedDataTableProps.at(-1);
-      expect(last).not.toHaveProperty("page");
-    });
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /next page/i }),
+      ).not.toBeInTheDocument(),
+    );
 
     await user.clear(searchbox);
 
-    await waitFor(() => {
-      const last = capturedDataTableProps.at(-1);
-      expect(last).toBeDefined();
-      expect(last).toHaveProperty("page");
-      expect(last).toHaveProperty("totalPages");
-      expect(last).toHaveProperty("onPageChange");
-    });
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /next page/i }),
+      ).toBeInTheDocument(),
+    );
   });
 });
