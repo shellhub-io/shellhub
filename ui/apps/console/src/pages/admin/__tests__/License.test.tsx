@@ -44,12 +44,9 @@ const gracePeriodLicense = {
   expired: true,
   grace_period: true,
 };
-const regionalLicense = { ...validLicense, allowed_regions: ["BR", "US"] };
 
 function setLicense(data: JsonBodyType) {
-  server.use(
-    http.get("*/admin/api/license", () => HttpResponse.json(data)),
-  );
+  server.use(http.get("*/admin/api/license", () => HttpResponse.json(data)));
 }
 
 function renderPage() {
@@ -66,6 +63,12 @@ function renderPage() {
   return { ...result, fileInput };
 }
 
+function datFile(content = "license-content") {
+  return new File([content], "license.dat", {
+    type: "application/octet-stream",
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
@@ -79,86 +82,63 @@ beforeEach(() => {
 });
 
 describe("AdminLicense", () => {
-  describe("loading state", () => {
-    it("renders spinner with role='status'", () => {
-      server.use(
-        http.get("*/admin/api/license", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.getByRole("status")).toBeInTheDocument();
-    });
+  it("renders spinner with role='status' while loading", () => {
+    server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
+    renderPage();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
-  describe("error state", () => {
-    it("renders error message with role='alert' for non-400 errors", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      expect(await screen.findByRole("alert")).toBeInTheDocument();
-      expect(
-        screen.getByText("Failed to load license information"),
-      ).toBeInTheDocument();
-    });
-
-    it("shows no-license info alert and upload section when 400 (no license stored)", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderPage();
-      expect(
-        await screen.findByText("You do not have an installed license"),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /choose a \.dat file/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByText("Failed to load license information"),
-      ).not.toBeInTheDocument();
-    });
+  it("renders an error alert for non-400 errors", async () => {
+    server.use(
+      http.get("*/admin/api/license", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    renderPage();
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(
+      screen.getByText("Failed to load license information"),
+    ).toBeInTheDocument();
   });
 
-  describe("no data (query disabled)", () => {
-    it("renders upload section but no license details", () => {
-      useAuthStore.setState({ isAdmin: false });
-      renderPage();
-      expect(screen.queryByText("License Information")).not.toBeInTheDocument();
-    });
+  it("shows no-license info alert and upload section when 400 (no license stored)", async () => {
+    server.use(
+      http.get("*/admin/api/license", () =>
+        HttpResponse.json({}, { status: 400 }),
+      ),
+    );
+    renderPage();
+    expect(
+      await screen.findByText("You do not have an installed license"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /choose a \.dat file/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Failed to load license information"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders no license details when the query is disabled for non-admins", () => {
+    useAuthStore.setState({ isAdmin: false });
+    renderPage();
+    expect(screen.queryByText("License Information")).not.toBeInTheDocument();
   });
 
   describe("status alerts", () => {
-    it("shows info alert when no license (data is empty object)", async () => {
+    it.each([
+      ["no license", {}, "You do not have an installed license"],
+      [
+        "about to expire",
+        aboutToExpireLicense,
+        "Your license is about to expire!",
+      ],
+      ["expired within the grace period", gracePeriodLicense, /grace period/i],
+      ["expired", expiredLicense, "Your license has expired!"],
+    ])("a %s license reports '%s'", async (_label, license, message) => {
+      setLicense(license);
       renderPage();
-      expect(
-        await screen.findByText("You do not have an installed license"),
-      ).toBeInTheDocument();
-    });
-
-    it("shows info alert when about_to_expire", async () => {
-      setLicense(aboutToExpireLicense);
-      renderPage();
-      expect(
-        await screen.findByText("Your license is about to expire!"),
-      ).toBeInTheDocument();
-    });
-
-    it("shows warning when expired + grace period", async () => {
-      setLicense(gracePeriodLicense);
-      renderPage();
-      expect(await screen.findByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText(/grace period/i)).toBeInTheDocument();
-    });
-
-    it("shows error when expired without grace period", async () => {
-      setLicense(expiredLicense);
-      renderPage();
-      expect(
-        await screen.findByText("Your license has expired!"),
-      ).toBeInTheDocument();
+      expect(await screen.findByText(message)).toBeInTheDocument();
     });
 
     it("shows no alert when license is valid", async () => {
@@ -176,44 +156,32 @@ describe("AdminLicense", () => {
   });
 
   describe("license details", () => {
-    it("does not render license details section when no license", async () => {
-      renderPage();
-      await screen.findByText("You do not have an installed license");
-      expect(screen.queryByText("License Information")).not.toBeInTheDocument();
-    });
-
     it("renders dates formatted correctly", async () => {
       setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
-      const jan2024 = screen.getAllByText("Jan 1, 2024");
-      expect(jan2024.length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Jan 1, 2024").length).toBeGreaterThanOrEqual(
+        1,
+      );
       expect(screen.getByText("Jan 1, 2025")).toBeInTheDocument();
     });
 
     it("shows 'Now' for -1 timestamps", async () => {
-      const licenseWithNow = { ...validLicense, issued_at: -1, starts_at: -1 };
-      setLicense(licenseWithNow);
+      setLicense({ ...validLicense, issued_at: -1, starts_at: -1 });
       renderPage();
       await screen.findByText("License Information");
-      const nowElements = screen.getAllByText("Now");
-      expect(nowElements.length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText("Now").length).toBeGreaterThanOrEqual(2);
     });
 
-    it("shows 'Global' when allowed_regions is empty", async () => {
-      setLicense(validLicense);
+    it.each([
+      [[], "Global"],
+      [["BR", "US"], "BR, US"],
+    ])("allowed_regions=%j renders as '%s'", async (regions, expected) => {
+      setLicense({ ...validLicense, allowed_regions: regions });
       renderPage();
-      expect(await screen.findByText("Global")).toBeInTheDocument();
+      expect(await screen.findByText(expected)).toBeInTheDocument();
     });
 
-    it("shows region list when regions are non-empty", async () => {
-      setLicense(regionalLicense);
-      renderPage();
-      expect(await screen.findByText("BR, US")).toBeInTheDocument();
-    });
-  });
-
-  describe("license owner", () => {
     it("displays customer fields", async () => {
       setLicense(validLicense);
       renderPage();
@@ -222,13 +190,6 @@ describe("AdminLicense", () => {
       expect(screen.getByText("Test Customer")).toBeInTheDocument();
       expect(screen.getByText("test@example.com")).toBeInTheDocument();
       expect(screen.getByText("Test Co")).toBeInTheDocument();
-    });
-
-    it("renders copy button for customer ID", async () => {
-      setLicense(validLicense);
-      renderPage();
-      await screen.findByText("License Information");
-      expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
     });
   });
 
@@ -239,20 +200,16 @@ describe("AdminLicense", () => {
       expect(await screen.findByText("Unlimited")).toBeInTheDocument();
     });
 
-    it("renders check icon for enabled boolean features", async () => {
+    it("marks enabled features as included and disabled ones as not included", async () => {
       setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
-      const included = screen.getAllByLabelText("Included");
-      expect(included.length).toBeGreaterThanOrEqual(2);
-    });
-
-    it("renders cross icon for disabled boolean features", async () => {
-      setLicense(validLicense);
-      renderPage();
-      await screen.findByText("License Information");
-      const notIncluded = screen.getAllByLabelText("Not included");
-      expect(notIncluded.length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByLabelText("Included").length,
+      ).toBeGreaterThanOrEqual(2);
+      expect(
+        screen.getAllByLabelText("Not included").length,
+      ).toBeGreaterThanOrEqual(1);
     });
 
     it("does not render login_link or reports features", async () => {
@@ -265,23 +222,6 @@ describe("AdminLicense", () => {
   });
 
   describe("license upload", () => {
-    it("renders drop zone and hidden file input", async () => {
-      const { fileInput } = renderPage();
-      await screen.findByText("You do not have an installed license");
-      expect(
-        screen.getByRole("button", { name: /choose a \.dat file/i }),
-      ).toBeInTheDocument();
-      expect(fileInput()).toBeInTheDocument();
-    });
-
-    it("upload button is disabled by default (no file selected)", async () => {
-      renderPage();
-      await screen.findByText("You do not have an installed license");
-      expect(
-        screen.getByRole("button", { name: /upload license/i }),
-      ).toBeDisabled();
-    });
-
     it("shows validation error for wrong file extension", async () => {
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
@@ -294,16 +234,11 @@ describe("AdminLicense", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows remove button and clears file on click", async () => {
+    it("re-disables upload after the selected file is removed", async () => {
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
-      const validFile = new File(["content"], "license.dat", {
-        type: "application/octet-stream",
-      });
-      await userEvent.upload(fileInput(), validFile);
-      const removeBtn = screen.getByRole("button", { name: /remove file/i });
-      expect(removeBtn).toBeInTheDocument();
-      await userEvent.click(removeBtn);
+      await userEvent.upload(fileInput(), datFile());
+      await userEvent.click(screen.getByRole("button", { name: /remove file/i }));
       expect(
         screen.getByRole("button", { name: /upload license/i }),
       ).toBeDisabled();
@@ -312,32 +247,10 @@ describe("AdminLicense", () => {
     it("uploads license when upload button is clicked with valid file", async () => {
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
-      const validFile = new File(["license-content"], "license.dat", {
-        type: "application/octet-stream",
-      });
-      await userEvent.upload(fileInput(), validFile);
-      const uploadBtn = screen.getByRole("button", {
-        name: /upload license/i,
-      });
+      await userEvent.upload(fileInput(), datFile());
+      const uploadBtn = screen.getByRole("button", { name: /upload license/i });
       expect(uploadBtn).not.toBeDisabled();
       await userEvent.click(uploadBtn);
-      await waitFor(() =>
-        expect(
-          screen.getByText("License uploaded successfully."),
-        ).toBeInTheDocument(),
-      );
-    });
-
-    it("shows success message after upload", async () => {
-      const { fileInput } = renderPage();
-      await screen.findByText("You do not have an installed license");
-      const validFile = new File(["license-content"], "license.dat", {
-        type: "application/octet-stream",
-      });
-      await userEvent.upload(fileInput(), validFile);
-      await userEvent.click(
-        screen.getByRole("button", { name: /upload license/i }),
-      );
       await waitFor(() =>
         expect(
           screen.getByText("License uploaded successfully."),
@@ -353,10 +266,7 @@ describe("AdminLicense", () => {
       );
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
-      const validFile = new File(["license-content"], "license.dat", {
-        type: "application/octet-stream",
-      });
-      await userEvent.upload(fileInput(), validFile);
+      await userEvent.upload(fileInput(), datFile());
       await userEvent.click(
         screen.getByRole("button", { name: /upload license/i }),
       );

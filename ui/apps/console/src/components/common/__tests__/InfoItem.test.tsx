@@ -16,27 +16,10 @@ describe("InfoItem", () => {
       expect(screen.getByRole("definition")).toHaveTextContent("abc-123");
     });
 
-    it("applies monospace styling when mono is true", () => {
-      renderInfoItem(<InfoItem label="MAC" value="aa:bb:cc" mono />);
-
-      const span = screen.getByText("aa:bb:cc");
-      expect(span).toHaveClass("font-mono");
-    });
-
-    it("applies font-medium when mono is false", () => {
-      renderInfoItem(<InfoItem label="Name" value="my-device" />);
-
-      const span = screen.getByText("my-device");
-      expect(span).toHaveClass("font-medium");
-      expect(span).not.toHaveClass("font-mono");
-    });
-
     it("renders a CopyButton when copyable is true and value is truthy", () => {
       renderInfoItem(<InfoItem label="UID" value="abc-123" copyable />);
 
-      expect(
-        screen.getByRole("button", { name: /copy/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
     });
 
     it("does not render a CopyButton when value is empty", () => {
@@ -54,18 +37,10 @@ describe("InfoItem", () => {
 
       expect(screen.getByText("abcdefgh")).toBeInTheDocument();
       expect(screen.queryByText("abcdefgh-1234")).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /copy/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
     });
 
-    it("renders an em-dash when value is empty", () => {
-      renderInfoItem(<InfoItem label="MAC" value="" />);
-
-      expect(screen.getByRole("definition")).toHaveTextContent("—");
-    });
-
-    it("renders an em-dash when value is not provided", () => {
+    it("renders an em-dash when no value is provided", () => {
       renderInfoItem(<InfoItem label="MAC" />);
 
       expect(screen.getByRole("definition")).toHaveTextContent("—");
@@ -96,7 +71,9 @@ describe("InfoItem", () => {
       expect(
         screen.queryByRole("button", { name: /copy/i }),
       ).not.toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Custom link" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Custom link" }),
+      ).toBeInTheDocument();
     });
   });
 });

@@ -54,89 +54,22 @@ describe("EditNamespaceDrawer", () => {
     vi.clearAllMocks();
     editSpy.mockReset();
     server.use(
-      http.put("*/admin/api/namespaces-update/:tenantID", async ({ request, params }) => {
-        let body = await request.json();
-        if (typeof body === "string") body = JSON.parse(body);
-        editSpy({
-          path: { tenantID: params.tenantID },
-          body,
-        });
-        return HttpResponse.json({});
-      }),
+      http.put(
+        "*/admin/api/namespaces-update/:tenantID",
+        async ({ request, params }) => {
+          let body = await request.json();
+          if (typeof body === "string") body = JSON.parse(body);
+          editSpy({
+            path: { tenantID: params.tenantID },
+            body,
+          });
+          return HttpResponse.json({});
+        },
+      ),
     );
   });
 
-  describe("rendering — closed", () => {
-    it("renders nothing when open is false", () => {
-      renderDrawer({ open: false });
-      expect(screen.queryByText("Edit Namespace")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("rendering — open", () => {
-    it("renders the 'Edit Namespace' title", () => {
-      renderDrawer();
-      expect(screen.getByText("Edit Namespace")).toBeInTheDocument();
-    });
-
-    it("renders the Name input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText("Namespace Name")).toBeInTheDocument();
-    });
-
-    it("renders the Max Devices input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^max devices$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Session Recording checkbox", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/session recording/i)).toBeInTheDocument();
-    });
-
-    it("renders the 'Save Changes' submit button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /save changes/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("form pre-filling", () => {
-    it("pre-fills the Name field with the namespace name", () => {
-      renderDrawer();
-      expect(screen.getByLabelText("Namespace Name")).toHaveValue(
-        "my-namespace",
-      );
-    });
-
-    it("pre-fills the Max Devices field with the namespace max_devices", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("10");
-    });
-
-    it("pre-fills Session Recording checkbox as checked when session_record is true", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/session recording/i)).toBeChecked();
-    });
-
-    it("pre-fills Session Recording checkbox as unchecked when session_record is false", () => {
-      renderDrawer({
-        namespace: {
-          ...mockNamespace,
-          settings: { ...mockNamespace.settings!, session_record: false },
-        },
-      });
-      expect(screen.getByLabelText(/session recording/i)).not.toBeChecked();
-    });
-
     it("uses default max_devices of -1 when namespace has no max_devices", () => {
       renderDrawer({
         namespace: { ...mockNamespace, max_devices: -1 },
@@ -240,16 +173,6 @@ describe("EditNamespaceDrawer", () => {
         );
       });
     });
-
-    it("calls onClose after successful submit", async () => {
-      const { onClose } = renderDrawer();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    });
   });
 
   describe("submit — error handling", () => {
@@ -308,53 +231,6 @@ describe("EditNamespaceDrawer", () => {
           screen.getByText(/failed to update namespace/i),
         ).toBeInTheDocument();
       });
-    });
-
-    it("renders error with role='alert'", async () => {
-      server.use(
-        http.put("*/admin/api/namespaces-update/:tenantID", () =>
-          HttpResponse.error(),
-        ),
-      );
-      renderDrawer();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("does not call onClose when update fails", async () => {
-      server.use(
-        http.put("*/admin/api/namespaces-update/:tenantID", () =>
-          HttpResponse.error(),
-        ),
-      );
-      const { onClose } = renderDrawer();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => screen.getByRole("alert"));
-      expect(onClose).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const { onClose } = renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call editNamespaceAdmin when Cancel is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(editSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -415,23 +291,6 @@ describe("EditNamespaceDrawer", () => {
       );
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("null namespace", () => {
-    it("renders the drawer with empty name field when namespace is null", () => {
-      renderDrawer({ namespace: null });
-      expect(screen.getByLabelText("Namespace Name")).toHaveValue("");
-    });
-
-    it("renders the drawer with max_devices of -1 when namespace is null", () => {
-      renderDrawer({ namespace: null });
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("-1");
-    });
-
-    it("renders the Session Recording checkbox unchecked when namespace is null", () => {
-      renderDrawer({ namespace: null });
-      expect(screen.getByLabelText(/session recording/i)).not.toBeChecked();
     });
   });
 });

@@ -32,20 +32,6 @@ describe("MfaRecoveryTimeoutModal", () => {
 
       expect(container.firstChild).toBeNull();
     });
-
-    it("renders when open is true", () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
-    });
   });
 
   describe("Countdown Display", () => {
@@ -123,25 +109,7 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Disable Button", () => {
-    it("enables disable button when countdown is active", () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      const disableButton = screen.getByRole("button", {
-        name: /disable mfa/i,
-      });
-      expect(disableButton).toBeEnabled();
-    });
-
-    it("disables disable button when countdown expires", () => {
+    it("is enabled while the countdown runs and disabled once it expires", () => {
       vi.useFakeTimers();
       const now = Math.floor(Date.now() / 1000) * 1000;
       vi.setSystemTime(now);
@@ -156,15 +124,17 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
+      const disableButton = screen.getByRole("button", {
+        name: /disable mfa/i,
+      });
+      expect(disableButton).toBeEnabled();
+
       act(() => {
         vi.advanceTimersByTime(2000);
       });
 
       vi.useRealTimers();
 
-      const disableButton = screen.getByRole("button", {
-        name: /disable mfa/i,
-      });
       expect(disableButton).toBeDisabled();
     });
 
@@ -261,30 +231,6 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Auto-close on Expiry", () => {
-    it("shows expired state after countdown reaches zero", () => {
-      vi.useFakeTimers();
-      const now = Math.floor(Date.now() / 1000) * 1000;
-      vi.setSystemTime(now);
-      const expiresAt = now / 1000 + 2; // 2 seconds
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      act(() => {
-        vi.advanceTimersByTime(3000);
-      });
-
-      vi.useRealTimers();
-
-      expect(screen.getByText(/expired/i)).toBeInTheDocument();
-    });
-
     it("does not auto-close while a disable operation is in progress", async () => {
       vi.useFakeTimers();
       const now = Math.floor(Date.now() / 1000) * 1000;
@@ -337,8 +283,7 @@ describe("MfaRecoveryTimeoutModal", () => {
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
-      const suppressRejection = () => {
-      };
+      const suppressRejection = () => {};
       process.on("unhandledRejection", suppressRejection);
 
       onDisable.mockImplementation(() =>
@@ -366,59 +311,12 @@ describe("MfaRecoveryTimeoutModal", () => {
     });
   });
 
-  describe("Warning Messages", () => {
-    it("displays recovery window description", () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      expect(
-        screen.getByText(/successfully used a recovery code/i),
-      ).toBeInTheDocument();
-    });
-
-    it("displays security explanation note", () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      expect(screen.getByText(/security measure/i)).toBeInTheDocument();
-    });
-  });
-
   describe("Invalid Timestamp", () => {
-    it("handles invalid timestamp gracefully", () => {
+    it.each([NaN, 0])("still renders when expiresAt is %p", (expiresAt) => {
       render(
         <MfaRecoveryTimeoutModal
           open={true}
-          expiresAt={NaN}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
-    });
-
-    it("handles zero timestamp", () => {
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={0}
+          expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
         />,

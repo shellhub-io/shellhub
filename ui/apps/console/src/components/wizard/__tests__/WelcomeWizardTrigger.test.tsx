@@ -78,9 +78,12 @@ describe("WelcomeWizardTrigger", () => {
       expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
-    it("does not call markWelcomeSeen when merely closed", async () => {
+    it("hides the wizard when closed without marking it seen", async () => {
       renderTrigger();
       (await screen.findByTestId("welcome-wizard")).click();
+      await waitFor(() => {
+        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      });
       expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
     });
 
@@ -89,14 +92,6 @@ describe("WelcomeWizardTrigger", () => {
       (await screen.findByTestId("wizard-dismiss")).click();
       await waitFor(() => {
         expect(mockMarkWelcomeSeen).toHaveBeenCalledWith("tenant-456");
-      });
-    });
-
-    it("hides the wizard after it is closed", async () => {
-      renderTrigger();
-      (await screen.findByTestId("welcome-wizard")).click();
-      await waitFor(() => {
-        expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
       });
     });
 
@@ -118,7 +113,7 @@ describe("WelcomeWizardTrigger", () => {
   });
 
   describe("when tenant has devices", () => {
-    it("does not show the wizard when there are registered devices", async () => {
+    it("neither shows the wizard nor marks it seen when devices are registered", async () => {
       server.use(
         http.get("*/api/stats", () =>
           HttpResponse.json(mockStats({ registered_devices: 1 })),
@@ -128,39 +123,21 @@ describe("WelcomeWizardTrigger", () => {
       await waitFor(() => {
         expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
       });
+      expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
     });
 
-    it("still shows the wizard when a device is only pending (not accepted)", async () => {
-      server.use(
-        http.get("*/api/stats", () =>
-          HttpResponse.json(mockStats({ pending_devices: 2 })),
-        ),
-      );
-      renderTrigger();
-      expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
-    });
-
-    it("still shows the wizard when a device is only rejected (not accepted)", async () => {
-      server.use(
-        http.get("*/api/stats", () =>
-          HttpResponse.json(mockStats({ rejected_devices: 1 })),
-        ),
-      );
-      renderTrigger();
-      expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
-    });
-
-    it("does not call markWelcomeSeen when there are devices", async () => {
-      server.use(
-        http.get("*/api/stats", () =>
-          HttpResponse.json(mockStats({ registered_devices: 5 })),
-        ),
-      );
-      renderTrigger();
-      await waitFor(() => {
-        expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
-      });
-    });
+    it.each(["pending_devices", "rejected_devices"] as const)(
+      "still shows the wizard when a device is only counted in %s",
+      async (field) => {
+        server.use(
+          http.get("*/api/stats", () =>
+            HttpResponse.json(mockStats({ [field]: 1 })),
+          ),
+        );
+        renderTrigger();
+        expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
+      },
+    );
   });
 
   describe("eligibility is decided once, at page load", () => {

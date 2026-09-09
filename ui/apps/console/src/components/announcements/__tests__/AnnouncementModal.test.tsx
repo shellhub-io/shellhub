@@ -56,82 +56,41 @@ beforeEach(() => {
 });
 
 describe("AnnouncementModal", () => {
-  describe("when open=false", () => {
-    it("renders nothing", () => {
-      renderModal({ open: false });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
+  it("renders nothing when open=false", () => {
+    renderModal({ open: false });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  describe("when open=true", () => {
-    it("renders the dialog element", () => {
-      renderModal();
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
+  it("shows the formatted announcement date", () => {
+    renderModal({
+      announcement: makeAnnouncement({ date: "2024-06-15T12:00:00Z" }),
     });
-
-    it("shows the announcement title", () => {
-      renderModal({
-        announcement: makeAnnouncement({ title: "Big Announcement" }),
-      });
-      expect(screen.getByText("Big Announcement")).toBeInTheDocument();
-    });
-
-    it("shows the formatted announcement date", () => {
-      renderModal({
-        announcement: makeAnnouncement({ date: "2024-06-15T12:00:00Z" }),
-      });
-      expect(screen.getByText("Jun 15, 2024")).toBeInTheDocument();
-    });
-
-    it("renders the close button with correct aria-label", () => {
-      renderModal();
-      expect(
-        screen.getByRole("button", { name: /close announcement/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the 'Got it' button", () => {
-      renderModal();
-      expect(
-        screen.getByRole("button", { name: /got it/i }),
-      ).toBeInTheDocument();
-    });
+    expect(screen.getByText("Jun 15, 2024")).toBeInTheDocument();
   });
 
-  describe("accessibility", () => {
-    it("dialog is labelled by the title element", () => {
-      renderModal({
-        announcement: makeAnnouncement({ title: "My Announcement" }),
-      });
-      const dialog = screen.getByRole("dialog");
-      const labelledById = dialog.getAttribute("aria-labelledby");
-      expect(labelledById).toBeTruthy();
-
-      const titleEl = document.getElementById(labelledById!);
-      expect(titleEl).not.toBeNull();
-      expect(titleEl!.textContent).toBe("My Announcement");
+  it("labels the dialog with the announcement title", () => {
+    renderModal({
+      announcement: makeAnnouncement({ title: "My Announcement" }),
     });
+    const labelledById = screen
+      .getByRole("dialog")
+      .getAttribute("aria-labelledby");
+    expect(labelledById).toBeTruthy();
+
+    const titleEl = document.getElementById(labelledById!);
+    expect(titleEl).not.toBeNull();
+    expect(titleEl!.textContent).toBe("My Announcement");
   });
 
-  describe("close interactions", () => {
-    it("calls onClose when the close button is clicked", async () => {
+  it.each([/close announcement/i, /got it/i])(
+    "calls onClose when the %s button is clicked",
+    async (name) => {
       const user = userEvent.setup();
       const { onClose } = renderModal();
 
-      await user.click(
-        screen.getByRole("button", { name: /close announcement/i }),
-      );
+      await user.click(screen.getByRole("button", { name }));
 
       expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("calls onClose when 'Got it' is clicked", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderModal();
-
-      await user.click(screen.getByRole("button", { name: /got it/i }));
-
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-  });
+    },
+  );
 });

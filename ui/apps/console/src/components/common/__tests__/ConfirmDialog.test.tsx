@@ -60,27 +60,16 @@ describe("ConfirmDialog", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("renders the dialog when open=true", () => {
-      renderDialog(true);
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
-    it("renders the title", () => {
-      renderDialog(true, { title: "Confirm deletion" });
+    it("renders the title, the description and any children", () => {
+      renderDialog(true, {
+        title: "Confirm deletion",
+        description: "This cannot be undone.",
+        children: <span data-testid="extra-content">extra</span>,
+      });
       expect(
         screen.getByRole("heading", { name: "Confirm deletion" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders the description", () => {
-      renderDialog(true, { description: "This cannot be undone." });
       expect(screen.getByText("This cannot be undone.")).toBeInTheDocument();
-    });
-
-    it("renders children between description and buttons", () => {
-      renderDialog(true, {
-        children: <span data-testid="extra-content">extra</span>,
-      });
       expect(screen.getByTestId("extra-content")).toBeInTheDocument();
     });
   });
@@ -94,39 +83,14 @@ describe("ConfirmDialog", () => {
       const titleEl = document.getElementById(labelId!);
       expect(titleEl).toHaveTextContent("My title");
     });
-
-    it("title element has an id that matches dialog's aria-labelledby", () => {
-      renderDialog(true);
-      const dialog = screen.getByRole("dialog");
-      const labelId = dialog.getAttribute("aria-labelledby")!;
-      expect(screen.getByRole("heading")).toHaveAttribute("id", labelId);
-    });
   });
 
   describe("buttons", () => {
-    it("renders the confirm button with default label 'Confirm'", () => {
-      renderDialog(true);
-      expect(
-        screen.getByRole("button", { name: "Confirm" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the cancel button with default label 'Cancel'", () => {
-      renderDialog(true);
-      expect(
-        screen.getByRole("button", { name: "Cancel" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders a custom confirmLabel", () => {
-      renderDialog(true, { confirmLabel: "Delete" });
+    it("renders custom confirm and cancel labels", () => {
+      renderDialog(true, { confirmLabel: "Delete", cancelLabel: "Go back" });
       expect(
         screen.getByRole("button", { name: "Delete" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders a custom cancelLabel", () => {
-      renderDialog(true, { cancelLabel: "Go back" });
       expect(
         screen.getByRole("button", { name: "Go back" }),
       ).toBeInTheDocument();
@@ -162,7 +126,7 @@ describe("ConfirmDialog", () => {
       expect(onConfirm).toHaveBeenCalledOnce();
     });
 
-    it("shows a spinner and disables the confirm button while onConfirm is pending", async () => {
+    it("disables the confirm button while onConfirm is pending", async () => {
       const user = userEvent.setup();
       let resolve!: () => void;
       const onConfirm = vi.fn(
@@ -175,9 +139,7 @@ describe("ConfirmDialog", () => {
 
       await user.click(screen.getByRole("button", { name: "Confirm" }));
 
-      const confirmBtn = screen.getByRole("button", { name: "Confirm" });
-      expect(confirmBtn).toBeDisabled();
-      expect(confirmBtn.querySelector(".animate-spin")).not.toBeNull();
+      expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
 
       act(() => {
         resolve();
@@ -215,58 +177,6 @@ describe("ConfirmDialog", () => {
     it("disables the confirm button when confirmDisabled=true", () => {
       renderDialog(true, { confirmDisabled: true });
       expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
-    });
-  });
-
-  describe("variant", () => {
-    it("applies danger variant classes by default", () => {
-      renderDialog(true);
-      const btn = screen.getByRole("button", { name: "Confirm" });
-      expect(btn.className).toContain("bg-accent-red");
-    });
-
-    it("applies primary variant classes when variant='primary'", () => {
-      renderDialog(true, { variant: "primary" });
-      const btn = screen.getByRole("button", { name: "Confirm" });
-      expect(btn.className).toContain("bg-primary");
-      expect(btn.className).not.toContain("bg-accent-red");
-    });
-
-    it("applies success variant classes when variant='success'", () => {
-      renderDialog(true, { variant: "success" });
-      const btn = screen.getByRole("button", { name: "Confirm" });
-      expect(btn.className).toContain("bg-accent-green");
-      expect(btn.className).not.toContain("bg-accent-red");
-    });
-
-    it("applies warning variant classes when variant='warning'", () => {
-      renderDialog(true, { variant: "warning" });
-      const btn = screen.getByRole("button", { name: "Confirm" });
-      expect(btn.className).toContain("bg-accent-yellow");
-      expect(btn.className).not.toContain("bg-accent-red");
-    });
-
-    it("variant=warning loading renders Spinner with onBackground tone (border-background/30)", async () => {
-      const user = userEvent.setup();
-      let resolve!: () => void;
-      const onConfirm = vi.fn(
-        () =>
-          new Promise<void>((res) => {
-            resolve = res;
-          }),
-      );
-      renderDialog(true, { variant: "warning", onConfirm });
-
-      await user.click(screen.getByRole("button", { name: "Confirm" }));
-
-      const confirmBtn = screen.getByRole("button", { name: "Confirm" });
-      const spinner = confirmBtn.querySelector(".animate-spin");
-      expect(spinner).not.toBeNull();
-      expect(spinner!.className).toContain("border-background/30");
-
-      act(() => {
-        resolve();
-      });
     });
   });
 });

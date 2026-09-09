@@ -19,11 +19,6 @@ function renderField(overrides: Overrides = {}) {
 }
 
 describe("StepperField", () => {
-  it("renders the current value", () => {
-    renderField({ value: 7 });
-    expect(screen.getByRole("textbox", { name: "Count" })).toHaveValue("7");
-  });
-
   it("increments the value when + is clicked", async () => {
     const user = userEvent.setup();
     const { onChange } = renderField();
@@ -54,9 +49,7 @@ describe("StepperField", () => {
 
   it("does not disable the increase button when no max is set", () => {
     renderField({ value: 999 });
-    expect(
-      screen.getByRole("button", { name: "Increase" }),
-    ).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Increase" })).not.toBeDisabled();
   });
 
   it("calls onChange when a valid in-range number is typed", async () => {

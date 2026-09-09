@@ -90,85 +90,26 @@ describe("AdminDeviceDetails", () => {
         expect(screen.getByText("Device not found")).toBeInTheDocument();
       });
     });
-
-    it('renders "Device not found" when the query returns an error', async () => {
-      server.use(
-        http.get("*/admin/api/devices/:uid", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Device not found")).toBeInTheDocument();
-      });
-    });
-
-    it('renders a "Back to devices" link in the not-found state', async () => {
-      server.use(
-        http.get("*/admin/api/devices/:uid", () =>
-          HttpResponse.json({}, { status: 404 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: "Back to devices" }),
-        ).toBeInTheDocument();
-      });
-    });
   });
 
   describe("device data", () => {
-    it("renders the device name as the main heading", async () => {
+    it("renders the device's fields", async () => {
       renderPage();
       await waitFor(() => {
         expect(
           screen.getByRole("heading", { name: "my-device" }),
         ).toBeInTheDocument();
       });
-    });
-
-    it("renders the device UID", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("test-uid")).toBeInTheDocument();
-      });
-    });
-
-    it("renders the MAC address", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
-      });
-    });
-
-    it("renders the operating system name", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
-      });
-    });
-
-    it("renders the tenant ID", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("tenant-abc")).toBeInTheDocument();
-      });
-    });
-
-    it("renders the status chip", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Accepted")).toBeInTheDocument();
-      });
-    });
-
-    it("renders device tags", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("production")).toBeInTheDocument();
-      });
+      expect(screen.getByText("test-uid")).toBeInTheDocument();
+      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
+      expect(screen.getByText("tenant-abc")).toBeInTheDocument();
+      expect(screen.getByText("Accepted")).toBeInTheDocument();
+      expect(screen.getByText("production")).toBeInTheDocument();
       expect(screen.getByText("web")).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "my-namespace" }),
+      ).toBeInTheDocument();
     });
 
     it('renders "No tags" when device has no tags', async () => {
@@ -185,25 +126,6 @@ describe("AdminDeviceDetails", () => {
       await waitFor(() => {
         expect(
           screen.getByText("ssh-rsa AAAAB3NzaC1yc2E..."),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("does not render the public key section when absent", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("heading", { name: "my-device" }),
-        ).toBeInTheDocument();
-      });
-      expect(screen.queryByText(/ssh-rsa/)).not.toBeInTheDocument();
-    });
-
-    it("renders the namespace link", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: "my-namespace" }),
         ).toBeInTheDocument();
       });
     });

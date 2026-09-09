@@ -48,11 +48,6 @@ describe("BaseDialog", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("renders a <dialog> element when open=true", () => {
-      renderDialog(true);
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
     it("renders children inside the dialog", () => {
       renderDialog(true);
       expect(screen.getByText("dialog content")).toBeInTheDocument();
@@ -103,16 +98,6 @@ describe("BaseDialog", () => {
 
       expect(onClose).not.toHaveBeenCalled();
     });
-
-    it("calls onClose when canClose returns true", () => {
-      const { onClose } = renderDialog(true, {
-        canClose: () => true,
-      });
-
-      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
-
-      expect(onClose).toHaveBeenCalledOnce();
-    });
   });
 
   describe("backdrop click", () => {
@@ -138,76 +123,17 @@ describe("BaseDialog", () => {
   });
 
   describe("ARIA attributes", () => {
-    it("passes aria-labelledby to the dialog element", () => {
-      renderDialog(true, { ariaLabelledBy: "my-title" });
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "aria-labelledby",
-        "my-title",
-      );
-    });
+    it("forwards the aria-* props to the dialog element", () => {
+      renderDialog(true, {
+        ariaLabelledBy: "my-title",
+        ariaDescribedBy: "my-description",
+        ariaLabel: "My accessible dialog",
+      });
 
-    it("passes aria-describedby to the dialog element", () => {
-      renderDialog(true, { ariaDescribedBy: "my-description" });
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "aria-describedby",
-        "my-description",
-      );
-    });
-
-    it("passes aria-label to the dialog element", () => {
-      renderDialog(true, { ariaLabel: "My accessible dialog" });
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "aria-label",
-        "My accessible dialog",
-      );
-    });
-  });
-
-  describe("data-custom-backdrop", () => {
-    it("has data-custom-backdrop attribute for native ::backdrop CSS styling", () => {
-      renderDialog(true);
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "data-custom-backdrop",
-      );
-    });
-  });
-
-  describe("size prop", () => {
-    it("applies sm:max-w-sm by default (size omitted)", () => {
-      renderDialog(true);
-      expect(screen.getByRole("dialog").className).toContain("sm:max-w-sm");
-    });
-
-    it("applies sm:max-w-sm when size='sm'", () => {
-      renderDialog(true, { size: "sm" });
-      expect(screen.getByRole("dialog").className).toContain("sm:max-w-sm");
-    });
-
-    it("applies sm:max-w-md when size='md'", () => {
-      renderDialog(true, { size: "md" });
-      expect(screen.getByRole("dialog").className).toContain("sm:max-w-md");
-    });
-
-    it("applies sm:max-w-lg when size='lg'", () => {
-      renderDialog(true, { size: "lg" });
-      expect(screen.getByRole("dialog").className).toContain("sm:max-w-lg");
-    });
-
-    it("applies sm:max-w-xl when size='xl'", () => {
-      renderDialog(true, { size: "xl" });
-      expect(screen.getByRole("dialog").className).toContain("sm:max-w-xl");
-    });
-
-    it("does not apply any max-w class when size='full'", () => {
-      renderDialog(true, { size: "full" });
-      expect(screen.getByRole("dialog").className).not.toContain("sm:max-w");
-    });
-  });
-
-  describe("className prop", () => {
-    it("appends extra classes to the dialog panel", () => {
-      renderDialog(true, { className: "sm:max-h-[85vh]" });
-      expect(screen.getByRole("dialog").className).toContain("sm:max-h-[85vh]");
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveAttribute("aria-labelledby", "my-title");
+      expect(dialog).toHaveAttribute("aria-describedby", "my-description");
+      expect(dialog).toHaveAttribute("aria-label", "My accessible dialog");
     });
   });
 

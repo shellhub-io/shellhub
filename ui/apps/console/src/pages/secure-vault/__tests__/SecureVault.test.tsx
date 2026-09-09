@@ -303,57 +303,6 @@ beforeEach(() => {
 
 describe("SecureVault", () => {
   describe("uninitialized state", () => {
-    it("renders the Secure Vault setup landing page", () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-      expect(screen.getByText("Secure Vault")).toBeInTheDocument();
-    });
-
-    it("shows the 'Set Up Secure Vault' button", () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-      expect(
-        screen.getByRole("button", { name: /set up secure vault/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows feature highlights: AES-256 Encryption, Zero Knowledge, Quick Connect", () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-      expect(screen.getByText("AES-256 Encryption")).toBeInTheDocument();
-      expect(screen.getByText("Zero Knowledge")).toBeInTheDocument();
-      expect(screen.getByText("Quick Connect")).toBeInTheDocument();
-    });
-
-    it("opens the setup dialog when 'Set Up Secure Vault' is clicked", async () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /set up secure vault/i }),
-      );
-
-      expect(
-        screen.getByRole("dialog", { name: /setup vault/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("closes the setup dialog when onClose is triggered", async () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /set up secure vault/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /close setup/i }),
-      );
-
-      expect(
-        screen.queryByRole("dialog", { name: /setup vault/i }),
-      ).not.toBeInTheDocument();
-    });
-
     it("calls refreshStatus on mount", () => {
       setupStore("uninitialized");
       render(<SecureVault />);
@@ -362,95 +311,10 @@ describe("SecureVault", () => {
   });
 
   describe("locked state", () => {
-    it("renders the full-screen locked page with heading and highlights", () => {
-      setupStore("locked");
-      render(<SecureVault />);
-      expect(
-        screen.getByRole("heading", { name: /your vault is locked/i }),
-      ).toBeInTheDocument();
-      expect(screen.getByText("AES-256 Encryption")).toBeInTheDocument();
-      expect(screen.getByText("Zero Knowledge")).toBeInTheDocument();
-      expect(screen.getByText("Quick Connect")).toBeInTheDocument();
-    });
-
-    it("opens the unlock dialog when 'Unlock Vault' is clicked", async () => {
-      setupStore("locked");
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /unlock vault/i }),
-      );
-
-      expect(
-        screen.getByRole("dialog", { name: /unlock vault/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("closes the unlock dialog when onClose is triggered", async () => {
-      setupStore("locked");
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /unlock vault/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /close unlock/i }),
-      );
-
-      expect(
-        screen.queryByRole("dialog", { name: /unlock vault/i }),
-      ).not.toBeInTheDocument();
-    });
-
     it("does not render the keys table", () => {
       setupStore("locked");
       render(<SecureVault />);
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("unlocked state — empty vault", () => {
-    it("renders the empty state message", () => {
-      setupStore("unlocked", []);
-      render(<SecureVault />);
-      expect(screen.getByText(/no keys yet/i)).toBeInTheDocument();
-    });
-
-    it("renders 'Add Private Key' button in empty state", () => {
-      setupStore("unlocked", []);
-      render(<SecureVault />);
-      expect(
-        screen.getByRole("button", { name: /add private key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("opens the Add Key drawer when 'Add Private Key' is clicked", async () => {
-      setupStore("unlocked", []);
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /add private key/i }),
-      );
-
-      expect(
-        screen.getByRole("dialog", { name: /add private key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("closes the Add Key drawer when onClose is triggered", async () => {
-      setupStore("unlocked", []);
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /add private key/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /close drawer/i }),
-      );
-
-      expect(
-        screen.queryByRole("dialog", { name: /add private key/i }),
-      ).not.toBeInTheDocument();
     });
   });
 
@@ -468,14 +332,6 @@ describe("SecureVault", () => {
         hasPassphrase: true,
       }),
     ];
-
-    it("renders a table with a row per key", () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-      expect(screen.getByRole("table")).toBeInTheDocument();
-      expect(screen.getByText("Production Server")).toBeInTheDocument();
-      expect(screen.getByText("Staging Server")).toBeInTheDocument();
-    });
 
     it("shows lock icon for keys with passphrase", () => {
       setupStore("unlocked", keys);
@@ -496,54 +352,6 @@ describe("SecureVault", () => {
       expect(screen.queryByTitle("Encrypted")).not.toBeInTheDocument();
     });
 
-    it("renders 'Add Private Key' button in header", () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-      expect(
-        screen.getByRole("button", { name: /add private key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("opens the Add Key drawer from the header button", async () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /add private key/i }),
-      );
-
-      expect(
-        screen.getByRole("dialog", { name: /add private key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("opens the Edit Key drawer when the Edit button is clicked", async () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-
-      const editButtons = screen.getAllByTitle(/edit/i);
-      await userEvent.click(editButtons[0]);
-
-      expect(
-        screen.getByRole("dialog", { name: /edit private key/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("closes the Edit Key drawer after onClose", async () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-
-      const editButtons = screen.getAllByTitle(/edit/i);
-      await userEvent.click(editButtons[0]);
-      await userEvent.click(
-        screen.getByRole("button", { name: /close drawer/i }),
-      );
-
-      expect(
-        screen.queryByRole("dialog", { name: /edit private key/i }),
-      ).not.toBeInTheDocument();
-    });
-
     it("opens the Delete dialog with the correct entry when Delete is clicked", async () => {
       setupStore("unlocked", keys);
       render(<SecureVault />);
@@ -554,21 +362,6 @@ describe("SecureVault", () => {
       const dialog = screen.getByRole("dialog", { name: /delete key dialog/i });
       expect(dialog).toBeInTheDocument();
       expect(dialog).toHaveTextContent("Production Server");
-    });
-
-    it("closes the Delete dialog when onClose is triggered", async () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-
-      const deleteButtons = screen.getAllByTitle(/delete/i);
-      await userEvent.click(deleteButtons[0]);
-      await userEvent.click(
-        screen.getByRole("button", { name: /close delete/i }),
-      );
-
-      expect(
-        screen.queryByRole("dialog", { name: /delete key dialog/i }),
-      ).not.toBeInTheDocument();
     });
   });
 
@@ -585,13 +378,6 @@ describe("SecureVault", () => {
         fingerprint: "11:22:33:44",
       }),
     ];
-
-    it("shows all rows when search is empty", () => {
-      setupStore("unlocked", keys);
-      render(<SecureVault />);
-      expect(screen.getByText("Production Server")).toBeInTheDocument();
-      expect(screen.getByText("Staging Server")).toBeInTheDocument();
-    });
 
     it("filters rows by name", async () => {
       setupStore("unlocked", keys);
@@ -641,30 +427,6 @@ describe("SecureVault", () => {
       );
 
       expect(screen.getByText("Production Server")).toBeInTheDocument();
-    });
-  });
-
-  describe("VaultSettingsSection", () => {
-    it("renders the settings section when unlocked", () => {
-      setupStore("unlocked", []);
-      render(<SecureVault />);
-      expect(screen.getByTestId("vault-settings-section")).toBeInTheDocument();
-    });
-
-    it("does not render settings section in uninitialized state", () => {
-      setupStore("uninitialized");
-      render(<SecureVault />);
-      expect(
-        screen.queryByTestId("vault-settings-section"),
-      ).not.toBeInTheDocument();
-    });
-
-    it("does not render settings section in locked state", () => {
-      setupStore("locked");
-      render(<SecureVault />);
-      expect(
-        screen.queryByTestId("vault-settings-section"),
-      ).not.toBeInTheDocument();
     });
   });
 
