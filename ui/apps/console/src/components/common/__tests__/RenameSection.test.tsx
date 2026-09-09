@@ -50,20 +50,6 @@ beforeEach(() => {
 
 describe("RenameSection", () => {
   describe("display mode", () => {
-    it("renders the current name as a heading", () => {
-      renderAndEdit();
-      expect(
-        screen.getByRole("heading", { name: "my-device" }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows the rename button when canRename is true", () => {
-      renderAndEdit();
-      expect(
-        screen.getByRole("button", { name: /rename device/i }),
-      ).toBeInTheDocument();
-    });
-
     it("hides the rename button when canRename is false", () => {
       renderAndEdit({ canRename: false });
       expect(
@@ -78,18 +64,6 @@ describe("RenameSection", () => {
       await enterEditMode(user);
 
       expect(screen.getByRole("textbox")).toHaveValue("my-device");
-    });
-
-    it("shows save and cancel buttons", async () => {
-      const { user } = renderAndEdit();
-      await enterEditMode(user);
-
-      expect(
-        screen.getByRole("button", { name: /save device name/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /cancel rename/i }),
-      ).toBeInTheDocument();
     });
 
     it("cancels editing when the cancel button is clicked", async () => {

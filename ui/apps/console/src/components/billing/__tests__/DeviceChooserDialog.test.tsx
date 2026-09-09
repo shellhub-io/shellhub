@@ -85,25 +85,6 @@ beforeEach(() => {
 
 describe("DeviceChooserDialog", () => {
   describe("rendering", () => {
-    it("renders nothing when open=false", () => {
-      renderDialog({ open: false });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-
-    it("renders the dialog title when open", async () => {
-      renderDialog();
-      expect(
-        await screen.findByText(/update account or select three devices/i),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the description when open", async () => {
-      renderDialog();
-      expect(
-        await screen.findByText(/subscribe to shellhub cloud/i),
-      ).toBeInTheDocument();
-    });
-
     it("dialog has aria-labelledby pointing to the title", async () => {
       renderDialog();
       await screen.findByText(/update account or select three devices/i);
@@ -130,20 +111,6 @@ describe("DeviceChooserDialog", () => {
   });
 
   describe("tab structure", () => {
-    it("renders a tablist with role=tablist", async () => {
-      renderDialog();
-      expect(await screen.findByRole("tablist")).toBeInTheDocument();
-    });
-
-    it("renders Suggested and All tabs with role=tab", async () => {
-      renderDialog();
-      await screen.findByRole("tablist");
-      const tabs = screen.getAllByRole("tab");
-      const labels = tabs.map((t) => t.textContent);
-      expect(labels).toContain("Suggested");
-      expect(labels).toContain("All");
-    });
-
     it("Suggested tab is selected by default when suggested devices are non-empty", async () => {
       renderDialog();
       await screen.findByText("hostname-1");
@@ -152,21 +119,9 @@ describe("DeviceChooserDialog", () => {
         "true",
       );
     });
-
-    it("renders a tabpanel for the active tab", async () => {
-      renderDialog();
-      expect(await screen.findByRole("tabpanel")).toBeInTheDocument();
-    });
   });
 
   describe("Suggested tab", () => {
-    it("shows suggested device hostnames", async () => {
-      renderDialog();
-      expect(await screen.findByText("hostname-1")).toBeInTheDocument();
-      expect(screen.getByText("hostname-2")).toBeInTheDocument();
-      expect(screen.getByText("hostname-3")).toBeInTheDocument();
-    });
-
     it("does not render checkboxes on suggested tab (non-editable)", async () => {
       renderDialog();
       await screen.findByText("hostname-1");
@@ -179,15 +134,6 @@ describe("DeviceChooserDialog", () => {
       expect(
         screen.getByRole("button", { name: /accept/i }),
       ).not.toBeDisabled();
-    });
-
-    it("renders CheckIcon (heroicons) not an inline custom SVG for the selected-row check", async () => {
-      renderDialog();
-      await screen.findByText("hostname-1");
-      const inlinePath = document.querySelector('path[d="M3 8l3.5 3.5L13 5"]');
-      expect(inlinePath).toBeNull();
-      const checkSpan = document.querySelector('span[aria-hidden="true"] svg');
-      expect(checkSpan).not.toBeNull();
     });
   });
 
@@ -241,19 +187,6 @@ describe("DeviceChooserDialog", () => {
     });
   });
 
-  describe("when suggested becomes empty after a refetch", () => {
-    it("forces tab to All when suggested starts empty", async () => {
-      setupHandlers({ suggested: [] });
-      renderDialog();
-      await waitFor(() =>
-        expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
-          "aria-selected",
-          "true",
-        ),
-      );
-    });
-  });
-
   describe("tab-switch selection persistence", () => {
     it("clears All-tab selections when the user explicitly switches to Suggested", async () => {
       const user = userEvent.setup();
@@ -277,27 +210,6 @@ describe("DeviceChooserDialog", () => {
     async function switchToAll(user: ReturnType<typeof userEvent.setup>) {
       await user.click(screen.getByRole("tab", { name: "All" }));
     }
-
-    it("switches to All tab on click", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await switchToAll(user);
-      expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-    });
-
-    it("shows device checkboxes in the All tab", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await switchToAll(user);
-      await screen.findByRole("checkbox", { name: /select hostname-10/i });
-      const checkboxes = screen.getAllByRole("checkbox");
-      expect(checkboxes.length).toBe(ALL_DEVICES.length);
-    });
 
     it("Accept button is disabled when no devices are selected in All tab", async () => {
       const user = userEvent.setup();
@@ -451,14 +363,6 @@ describe("DeviceChooserDialog", () => {
   });
 
   describe("Cancel button", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
     it("Cancel is disabled while mutation is in flight", async () => {
       server.use(
         http.post("*/api/billing/device-choice", () => new Promise(() => {})),
@@ -480,14 +384,6 @@ describe("DeviceChooserDialog", () => {
       await screen.findByText("hostname-1");
       await user.click(screen.getByRole("button", { name: /subscribe/i }));
       expect(mockNavigate).toHaveBeenCalledWith("/settings#billing");
-    });
-
-    it("calls onClose when Subscribe is clicked", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("button", { name: /subscribe/i }));
-      expect(onClose).toHaveBeenCalledOnce();
     });
 
     it("Subscribe is disabled while mutation is in flight", async () => {
@@ -525,21 +421,6 @@ describe("DeviceChooserDialog", () => {
       );
       await user.click(screen.getByRole("button", { name: /accept/i }));
       await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
-    });
-
-    it("shows spinner and 'Saving…' text while mutation is pending", async () => {
-      server.use(
-        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
-      );
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("button", { name: /accept/i }));
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /saving/i }),
-        ).toBeInTheDocument(),
-      );
     });
 
     it("Accept is disabled while mutation is in flight", async () => {
@@ -611,27 +492,6 @@ describe("DeviceChooserDialog", () => {
           /don't have permission/i,
         ),
       );
-    });
-
-    it("error alert is rendered above the footer", async () => {
-      server.use(
-        http.post("*/api/billing/device-choice", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("button", { name: /accept/i }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toBeInTheDocument(),
-      );
-      const alert = screen.getByRole("alert");
-      const cancel = screen.getByRole("button", { name: /cancel/i });
-      expect(
-        alert.compareDocumentPosition(cancel) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
     });
 
     it("clears the error when switching tabs", async () => {

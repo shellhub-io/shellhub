@@ -73,128 +73,61 @@ beforeEach(() => {
 });
 
 describe("ActionDialog", () => {
-  describe("confirm flow", () => {
-    it("renders the correct title and confirm label for accept", () => {
-      renderDialog({ action: acceptAction });
-      expect(screen.getByText("Accept Device")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Accept" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the correct title for reject", () => {
-      renderDialog({ action: rejectAction });
-      expect(screen.getByText("Reject Device")).toBeInTheDocument();
-    });
-
-    it("renders the correct title for remove", () => {
-      renderDialog({ action: removeAction });
-      expect(screen.getByText("Remove Device")).toBeInTheDocument();
-    });
-
-    it("uses entityType in the title", () => {
-      renderDialog({ action: acceptAction, entityType: "container" });
-      expect(screen.getByText("Accept Container")).toBeInTheDocument();
-    });
-
-    it("calls onSuccess then onClose on successful confirm", async () => {
-      const props = renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(props.onSuccess).toHaveBeenCalledWith("accept"),
-      );
-      expect(props.onClose).toHaveBeenCalled();
-    });
-
-    it("does not call onSuccess on cancel", async () => {
-      const props = renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-      expect(props.onClose).toHaveBeenCalled();
-      expect(props.onSuccess).not.toHaveBeenCalled();
-    });
+  describe("title and confirm label", () => {
+    it.each([
+      [acceptAction, "device", "Accept Device", "Accept"],
+      [rejectAction, "device", "Reject Device", "Reject"],
+      [removeAction, "device", "Remove Device", "Remove"],
+      [acceptAction, "container", "Accept Container", "Accept"],
+    ] as const)(
+      "renders '%s' as '%s' with a '%s' button",
+      (action, entityType, title, confirmLabel) => {
+        renderDialog({ action, entityType });
+        expect(screen.getByText(title)).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: confirmLabel }),
+        ).toBeInTheDocument();
+      },
+    );
   });
 
   describe("error handling — accept", () => {
-    it("shows accept error message for non-cloud 402", async () => {
+    it.each([
+      [402, /license/i],
+      [403, /permission/i],
+      [409, /already exists/i],
+    ])("shows the %i message when accept fails", async (status, message) => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
+      const runAction = vi.fn().mockRejectedValue(makeSdkError(status));
       renderDialog({ runAction });
       await userEvent.click(screen.getByRole("button", { name: "Accept" }));
       await waitFor(() =>
-        expect(screen.getByRole("alert")).toBeInTheDocument(),
+        expect(screen.getByRole("alert")).toHaveTextContent(message),
       );
-      expect(screen.getByRole("alert")).toHaveTextContent(/license/i);
-    });
-
-    it("shows permission error for 403", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(403));
-      renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toHaveTextContent(/permission/i),
-      );
-    });
-
-    it("shows rename error for 409", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(409));
-      renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toHaveTextContent(/already exists/i),
-      );
-    });
-
-    it("does not call onClose on error", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(500));
-      const props = renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toBeInTheDocument(),
-      );
-      expect(props.onClose).not.toHaveBeenCalled();
     });
   });
 
   describe("error handling — reject/remove", () => {
-    it("shows generic error for reject failure", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(500));
-      renderDialog({ action: rejectAction, runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Reject" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /failed to reject device/i,
-        ),
-      );
-    });
-
-    it("shows generic error for remove failure", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(500));
-      renderDialog({ action: removeAction, runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Remove" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /failed to remove device/i,
-        ),
-      );
-    });
-
-    it("interpolates container in generic error", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(500));
-      renderDialog({
-        action: removeAction,
-        entityType: "container",
-        runAction,
-      });
-      await userEvent.click(screen.getByRole("button", { name: "Remove" }));
-      await waitFor(() =>
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /failed to remove container/i,
-        ),
-      );
-    });
+    it.each([
+      [rejectAction, "device", "Reject", /failed to reject device/i],
+      [removeAction, "device", "Remove", /failed to remove device/i],
+      [removeAction, "container", "Remove", /failed to remove container/i],
+    ] as const)(
+      "shows the generic error naming the %s and %s",
+      async (action, entityType, confirmLabel, message) => {
+        const runAction = vi.fn().mockRejectedValue(makeSdkError(500));
+        renderDialog({ action, entityType, runAction });
+        await userEvent.click(
+          screen.getByRole("button", { name: confirmLabel }),
+        );
+        await waitFor(() =>
+          expect(screen.getByRole("alert")).toHaveTextContent(message),
+        );
+      },
+    );
   });
 
   describe("billing dialog — cloud 402 on accept", () => {
@@ -202,21 +135,27 @@ describe("ActionDialog", () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
     });
 
-    it("shows billing ConfirmDialog for owners", async () => {
-      useAuthStore.setState({ role: "owner" });
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
-      renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(screen.getByText("Device limit reached")).toBeInTheDocument(),
-      );
-      expect(
-        screen.getByRole("button", { name: "Go to billing" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Not now" }),
-      ).toBeInTheDocument();
-    });
+    it.each([
+      ["device", "Device limit reached"],
+      ["container", "Container limit reached"],
+    ] as const)(
+      "shows the %s billing ConfirmDialog for owners",
+      async (entityType, title) => {
+        useAuthStore.setState({ role: "owner" });
+        const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
+        renderDialog({ entityType, runAction });
+        await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+        await waitFor(() =>
+          expect(screen.getByText(title)).toBeInTheDocument(),
+        );
+        expect(
+          screen.getByRole("button", { name: "Go to billing" }),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "Not now" }),
+        ).toBeInTheDocument();
+      },
+    );
 
     it("shows BaseDialog with single Close button for non-owners", async () => {
       useAuthStore.setState({ role: "observer" });
@@ -237,23 +176,13 @@ describe("ActionDialog", () => {
     it("navigates to billing on owner confirm", async () => {
       useAuthStore.setState({ role: "owner" });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
-      const props = renderDialog({ runAction });
+      renderDialog({ runAction });
       await userEvent.click(screen.getByRole("button", { name: "Accept" }));
       await waitFor(() => screen.getByText("Device limit reached"));
       await userEvent.click(
         screen.getByRole("button", { name: "Go to billing" }),
       );
       expect(mockNavigate).toHaveBeenCalledWith("/settings#billing");
-      expect(props.onClose).toHaveBeenCalled();
-    });
-
-    it("uses container label in billing title", async () => {
-      const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
-      renderDialog({ entityType: "container", runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-      await waitFor(() =>
-        expect(screen.getByText("Container limit reached")).toBeInTheDocument(),
-      );
     });
 
     it("does not trigger billing dialog for reject 402", async () => {

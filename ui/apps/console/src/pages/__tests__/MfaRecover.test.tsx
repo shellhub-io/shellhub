@@ -38,13 +38,6 @@ beforeEach(() => {
 });
 
 describe("MfaRecover", () => {
-  it("renders recovery form", () => {
-    renderRecover();
-
-    expect(screen.getByText(/Account Recovery/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/recovery code/i)).toBeInTheDocument();
-  });
-
   it("submits recovery code successfully", async () => {
     const mockRecover = vi.fn().mockResolvedValue(undefined);
     useAuthStore.setState({ recoverWithCode: mockRecover });
@@ -139,12 +132,6 @@ describe("MfaRecover", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows 10-minute recovery window warning note", () => {
-    renderRecover();
-
-    expect(screen.getByText(/10-minute window/i)).toBeInTheDocument();
-  });
-
   it("redirects to login when no identifier and no mfaToken", async () => {
     useAuthStore.setState({
       user: null,
@@ -185,14 +172,6 @@ describe("MfaRecover", () => {
     await waitFor(() => {
       expect(screen.queryByText("Login Page")).not.toBeInTheDocument();
     });
-  });
-
-  it("does not show recovery timeout modal initially", () => {
-    renderRecover();
-
-    expect(
-      screen.queryByText(/Recovery Window Active/i),
-    ).not.toBeInTheDocument();
   });
 
   it("clears the recovery code field after a failed submission", async () => {

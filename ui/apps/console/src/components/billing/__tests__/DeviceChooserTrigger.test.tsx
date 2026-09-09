@@ -211,21 +211,7 @@ describe("DeviceChooserTrigger", () => {
   });
 
   describe("dismissal", () => {
-    it("hides the dialog after dismissal", async () => {
-      const user = userEvent.setup();
-      renderTrigger();
-      expect(
-        await screen.findByTestId("device-chooser-dialog"),
-      ).toBeInTheDocument();
-      await user.click(screen.getByRole("button", { name: /dismiss/i }));
-      await waitFor(() =>
-        expect(
-          screen.queryByTestId("device-chooser-dialog"),
-        ).not.toBeInTheDocument(),
-      );
-    });
-
-    it("does not re-open the dialog after dismissal within the same mount", async () => {
+    it("hides the dialog after dismissal and does not re-open it in the same mount", async () => {
       const user = userEvent.setup();
       const { rerender } = renderTrigger();
       expect(

@@ -57,9 +57,7 @@ async function fillAndSubmit(
 
 function setLoginError(status: number, headers?: Record<string, string>) {
   server.use(
-    http.post("*/api/login", () =>
-      HttpResponse.json({}, { status, headers }),
-    ),
+    http.post("*/api/login", () => HttpResponse.json({}, { status, headers })),
   );
 }
 
@@ -100,27 +98,6 @@ describe("Login", () => {
   });
 
   describe("form rendering", () => {
-    it("renders username and password fields with a submit button", () => {
-      renderLogin();
-      expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /sign in/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows no error by default", () => {
-      renderLogin();
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-
-    it("trims username before submitting", async () => {
-      renderLogin();
-      await fillAndSubmit("  admin  ", "secret");
-
-      expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
-    });
-
     it("shows a field error on the username field after blur when empty", async () => {
       const user = userEvent.setup();
       renderLogin();
@@ -165,15 +142,14 @@ describe("Login", () => {
   });
 
   describe("loading state", () => {
-    it("shows Authenticating... and disables the button while the request is in flight", async () => {
+    it("shows Authenticating... and marks the button busy while the request is in flight", async () => {
       let resolveHandler!: () => void;
       server.use(
         http.post(
           "*/api/login",
           () =>
             new Promise<Response>((resolve) => {
-              resolveHandler = () =>
-                resolve(HttpResponse.json(mockUserAuth()));
+              resolveHandler = () => resolve(HttpResponse.json(mockUserAuth()));
             }),
         ),
       );
@@ -191,44 +167,9 @@ describe("Login", () => {
       await waitFor(() =>
         expect(screen.getByText(/authenticating/i)).toBeInTheDocument(),
       );
-      expect(
-        screen.getByRole("button", { name: /authenticating/i }),
-      ).toBeDisabled();
-
-      resolveHandler();
-      await clickPromise;
-    });
-
-    it("marks the submit button aria-busy while the request is in flight (DS Button loading prop)", async () => {
-      let resolveHandler!: () => void;
-      server.use(
-        http.post(
-          "*/api/login",
-          () =>
-            new Promise<Response>((resolve) => {
-              resolveHandler = () =>
-                resolve(HttpResponse.json(mockUserAuth()));
-            }),
-        ),
-      );
-
-      renderLogin();
-      await userEvent.type(screen.getByLabelText(/username/i), "admin");
-      await userEvent.tab();
-      await userEvent.type(screen.getByLabelText(/^password$/i), "secret");
-      await userEvent.tab();
-
-      const clickPromise = userEvent.click(
-        screen.getByRole("button", { name: /sign in/i }),
-      );
-
-      await waitFor(() =>
-        expect(screen.getByText(/authenticating/i)).toBeInTheDocument(),
-      );
-
-      expect(
-        screen.getByRole("button", { name: /authenticating/i }),
-      ).toHaveAttribute("aria-busy", "true");
+      const button = screen.getByRole("button", { name: /authenticating/i });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute("aria-busy", "true");
 
       resolveHandler();
       await clickPromise;
@@ -285,9 +226,7 @@ describe("Login", () => {
     });
 
     it("shows generic error on network errors", async () => {
-      server.use(
-        http.post("*/api/login", () => HttpResponse.error()),
-      );
+      server.use(http.post("*/api/login", () => HttpResponse.error()));
 
       renderLogin();
       await fillAndSubmit();

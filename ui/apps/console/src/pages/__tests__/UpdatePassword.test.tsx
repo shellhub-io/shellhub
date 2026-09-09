@@ -36,51 +36,28 @@ beforeEach(() => {
 
 describe("UpdatePassword", () => {
   describe("uid/token guard", () => {
-    it("renders an error card with a link when uid and token are missing", () => {
-      renderWithParams("?id=&token=");
+    it.each(["?id=&token=", "?token=tok456", "?id=uid123"])(
+      "renders an error card with a link instead of the form for %s",
+      (search) => {
+        renderWithParams(search);
 
-      expect(screen.getByText(/invalid reset link/i)).toBeInTheDocument();
-      expect(
-        screen.getByRole("link", { name: /request a new reset link/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /update password/i }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("renders an error card when only uid is missing", () => {
-      renderWithParams("?token=tok456");
-
-      expect(screen.getByText(/invalid reset link/i)).toBeInTheDocument();
-    });
-
-    it("renders an error card when only token is missing", () => {
-      renderWithParams("?id=uid123");
-
-      expect(screen.getByText(/invalid reset link/i)).toBeInTheDocument();
-    });
-  });
-
-  describe("validation — no errors before blur", () => {
-    it("shows no password error on initial render", () => {
-      renderWithParams();
-
-      expect(screen.queryByText(/password must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows no mismatch error on initial render", () => {
-      renderWithParams();
-
-      expect(
-        screen.queryByText(/passwords do not match/i),
-      ).not.toBeInTheDocument();
-    });
+        expect(screen.getByText(/invalid reset link/i)).toBeInTheDocument();
+        expect(
+          screen.getByRole("link", { name: /request a new reset link/i }),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: /update password/i }),
+        ).not.toBeInTheDocument();
+      },
+    );
   });
 
   describe("validation — errors appear after blur", () => {
-    it("shows a too-short error after the password field is blurred with a short value", async () => {
+    it("shows a too-short error only after the password field is blurred", async () => {
       const user = userEvent.setup();
       renderWithParams();
+
+      expect(screen.queryByText(/password must be/i)).not.toBeInTheDocument();
 
       await user.type(screen.getByLabelText(/^new password$/i), "abc");
       await user.tab();
@@ -88,9 +65,13 @@ describe("UpdatePassword", () => {
       expect(await screen.findByText(/password must be/i)).toBeInTheDocument();
     });
 
-    it("shows a mismatch error after confirmPassword is blurred with a non-matching value", async () => {
+    it("shows a mismatch error only after confirmPassword is blurred", async () => {
       const user = userEvent.setup();
       renderWithParams();
+
+      expect(
+        screen.queryByText(/passwords do not match/i),
+      ).not.toBeInTheDocument();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
       await user.type(
@@ -106,17 +87,13 @@ describe("UpdatePassword", () => {
   });
 
   describe("submit button gate", () => {
-    it("disables the submit button on initial render", () => {
+    it("enables the submit button only when both password fields contain valid, matching values", async () => {
+      const user = userEvent.setup();
       renderWithParams();
 
       expect(
         screen.getByRole("button", { name: /update password/i }),
       ).toBeDisabled();
-    });
-
-    it("enables the submit button only when both password fields contain valid, matching values", async () => {
-      const user = userEvent.setup();
-      renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
       await user.type(
