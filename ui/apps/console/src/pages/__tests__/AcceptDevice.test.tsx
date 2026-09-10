@@ -126,19 +126,6 @@ describe("AcceptDeviceFlow standalone", () => {
     expect(screen.getByText(/choose where it belongs/i)).toBeInTheDocument();
   });
 
-  it("shows error state on invalid/expired code", async () => {
-    server.use(
-      http.get("*/api/devices/login-code/:code", () =>
-        HttpResponse.json({}, { status: 404 }),
-      ),
-    );
-    renderFlow({ initialCode: "BADCODE1" });
-
-    expect(
-      await screen.findByRole("heading", { name: /invalid or expired code/i }),
-    ).toBeInTheDocument();
-  });
-
   it("shows already-accepted state", async () => {
     setResolveCode(mockDevice({ status: "accepted" }));
     renderFlow();
@@ -174,28 +161,6 @@ describe("AcceptDeviceFlow standalone", () => {
     expect(
       screen.getByRole("heading", { name: /accept this device/i }),
     ).toBeInTheDocument();
-  });
-
-  it("shows dashboard link in missing-code state", () => {
-    renderFlow({ initialCode: "" });
-
-    expect(
-      screen.getByRole("link", { name: /go to dashboard/i }),
-    ).toHaveAttribute("href", "/dashboard");
-  });
-
-  it("shows dashboard link in error state", async () => {
-    server.use(
-      http.get("*/api/devices/login-code/:code", () =>
-        HttpResponse.json({}, { status: 404 }),
-      ),
-    );
-    renderFlow({ initialCode: "BADCODE1" });
-
-    await screen.findByRole("heading", { name: /invalid or expired code/i });
-    expect(
-      screen.getByRole("link", { name: /go to dashboard/i }),
-    ).toHaveAttribute("href", "/dashboard");
   });
 
   it("resets to code form via 'Enter another code' on error", async () => {
@@ -266,36 +231,41 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 });
 
-describe("AcceptDeviceFlow dialog mode", () => {
-  it("shows code entry form when no code provided", () => {
-    renderFlow({ initialCode: "", inDialog: true });
-
-    expect(screen.getByText("Claim a device")).toBeInTheDocument();
-    expect(screen.getAllByRole("textbox")).toHaveLength(8);
-  });
-
-  it("does not show dashboard link in missing-code state", () => {
-    renderFlow({ initialCode: "", inDialog: true });
-
-    expect(
-      screen.queryByRole("link", { name: /go to dashboard/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("does not show dashboard link in error state", async () => {
+describe("AcceptDeviceFlow dashboard link", () => {
+  async function renderDeadEnd(
+    state: "missing-code" | "error",
+    inDialog: boolean,
+  ) {
+    if (state === "missing-code") {
+      renderFlow({ initialCode: "", inDialog });
+      return;
+    }
     server.use(
       http.get("*/api/devices/login-code/:code", () =>
         HttpResponse.json({}, { status: 404 }),
       ),
     );
-    renderFlow({ initialCode: "BADCODE1", inDialog: true });
-
+    renderFlow({ initialCode: "BADCODE1", inDialog });
     await screen.findByRole("heading", { name: /invalid or expired code/i });
-    expect(
-      screen.queryByRole("link", { name: /go to dashboard/i }),
-    ).not.toBeInTheDocument();
-  });
+  }
 
+  it.each([
+    ["missing-code", false, true],
+    ["error", false, true],
+    ["missing-code", true, false],
+    ["error", true, false],
+  ] as const)(
+    "%s state with inDialog=%s offers a dashboard link: %s",
+    async (state, inDialog, offered) => {
+      await renderDeadEnd(state, inDialog);
+      const link = screen.queryByRole("link", { name: /go to dashboard/i });
+      if (offered) expect(link).toHaveAttribute("href", "/dashboard");
+      else expect(link).not.toBeInTheDocument();
+    },
+  );
+});
+
+describe("AcceptDeviceFlow dialog mode", () => {
   it("resets to form via 'Use a different code' on ready state", async () => {
     renderFlow({ inDialog: true });
 

@@ -83,30 +83,19 @@ describe("EmptyState", () => {
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 
-  it("applies the yellow accent to the overline", () => {
+  it.each([
+    ["yellow", "text-accent-yellow/80"],
+    [undefined, "text-primary/80"],
+  ] as const)("accent=%s colours the overline %s", (accent, className) => {
     render(
       <EmptyState
         icon={<svg />}
-        overline="Vault Locked"
-        title="Locked"
-        description="d"
-        accent="yellow"
-      />,
-    );
-    expect(screen.getByText("Vault Locked")).toHaveClass(
-      "text-accent-yellow/80",
-    );
-  });
-
-  it("defaults to the primary accent", () => {
-    render(
-      <EmptyState
-        icon={<svg />}
-        overline="Networking"
+        overline="Overline"
         title="t"
         description="d"
+        accent={accent}
       />,
     );
-    expect(screen.getByText("Networking")).toHaveClass("text-primary/80");
+    expect(screen.getByText("Overline")).toHaveClass(className);
   });
 });

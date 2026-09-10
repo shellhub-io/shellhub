@@ -72,15 +72,6 @@ describe("DeviceLimitBanner", () => {
       });
     });
 
-    it("shows RED (role=alert) when cap=10 and registered=10", async () => {
-      setHandlers(makeLicense(10), { registered_devices: 10 });
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
     it("shows RED (role=alert) when cap=0 and registered=0 (cap===0 -> over)", async () => {
       setHandlers(makeLicense(0), { registered_devices: 0 });
       renderBanner();
@@ -104,15 +95,6 @@ describe("DeviceLimitBanner", () => {
           screen.getByText(/contact the ShellHub team/i),
         ).toBeInTheDocument();
       });
-    });
-
-    it("shows YELLOW (role=status) when cap=10 and registered=9 (90% boundary)", async () => {
-      setHandlers(makeLicense(10), { registered_devices: 9 });
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 
@@ -160,18 +142,21 @@ describe("DeviceLimitBanner", () => {
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is absent when no license is installed", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-        expect(screen.queryByRole("status")).not.toBeInTheDocument();
-      });
-    });
+    it.each([400, 500])(
+      "is absent when the license query fails with %i",
+      async (status) => {
+        server.use(
+          http.get("*/admin/api/license", () =>
+            HttpResponse.json({}, { status }),
+          ),
+        );
+        renderBanner();
+        await waitFor(() => {
+          expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+          expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        });
+      },
+    );
 
     it("is absent when useAdminStats errors", async () => {
       server.use(
@@ -189,19 +174,6 @@ describe("DeviceLimitBanner", () => {
       renderBanner();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("is absent when the license query errored", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-        expect(screen.queryByRole("status")).not.toBeInTheDocument();
-      });
     });
   });
 

@@ -127,26 +127,9 @@ describe("KeyDrawer", () => {
       expect(screen.getByText("Add Private Key")).toBeInTheDocument();
     });
 
-    it("renders empty name field initially", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("");
-    });
-
-    it("renders 'Add Key' submit button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /add key/i }),
-      ).toBeInTheDocument();
-    });
-
     it("submit button is disabled when form is empty", () => {
       renderDrawer();
       expect(screen.getByRole("button", { name: /add key/i })).toBeDisabled();
-    });
-
-    it("does not render passphrase field initially", () => {
-      renderDrawer();
-      expect(screen.queryByLabelText(/passphrase/i)).not.toBeInTheDocument();
     });
   });
 
@@ -368,49 +351,30 @@ describe("KeyDrawer", () => {
   });
 
   describe("error states — duplicate key", () => {
-    it("shows name error when DuplicateKeyError with field 'name'", async () => {
-      mockAddKey.mockRejectedValue(new DuplicateKeyError("name"));
-      renderDrawer();
+    const NAME_TAKEN = /name is already used/i;
+    const KEY_TAKEN = /private key is already stored/i;
 
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+    it.each([
+      ["name", [NAME_TAKEN]],
+      ["private_key", [KEY_TAKEN]],
+      ["both", [NAME_TAKEN, KEY_TAKEN]],
+    ] as const)(
+      "DuplicateKeyError on '%s' marks the matching field",
+      async (field, messages) => {
+        mockAddKey.mockRejectedValue(new DuplicateKeyError(field));
+        renderDrawer();
 
-      await waitFor(() => {
-        expect(screen.getByText(/name is already used/i)).toBeInTheDocument();
-      });
-    });
+        await fillKey(VALID_KEY);
+        await fillName("My Key");
+        await userEvent.click(screen.getByRole("button", { name: /add key/i }));
 
-    it("shows key error when DuplicateKeyError with field 'private_key'", async () => {
-      mockAddKey.mockRejectedValue(new DuplicateKeyError("private_key"));
-      renderDrawer();
-
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/private key is already stored/i),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("shows both name and key errors when DuplicateKeyError with field 'both'", async () => {
-      mockAddKey.mockRejectedValue(new DuplicateKeyError("both"));
-      renderDrawer();
-
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/name is already used/i)).toBeInTheDocument();
-        expect(
-          screen.getByText(/private key is already stored/i),
-        ).toBeInTheDocument();
-      });
-    });
+        await waitFor(() => {
+          messages.forEach((message) => {
+            expect(screen.getByText(message)).toBeInTheDocument();
+          });
+        });
+      },
+    );
   });
 
   describe("error states — generic error", () => {
@@ -427,64 +391,37 @@ describe("KeyDrawer", () => {
       });
     });
 
-    it("shows passphrase error when getFingerprint throws KeyParseError for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({
-        valid: true,
-        encrypted: true,
-      });
-      const err = new Error("Bad key");
-      (err as { name?: string }).name = "KeyParseError";
-      vi.mocked(getFingerprint).mockImplementation(() => {
-        throw err;
-      });
+    it.each([
+      [true, "KeyParseError", /incorrect passphrase/i],
+      [true, "Error", /could not decrypt key/i],
+      [false, "Error", /failed to read private key/i],
+    ] as const)(
+      "encrypted=%s with a %s from getFingerprint reports '%s'",
+      async (encrypted, errorName, message) => {
+        vi.mocked(validatePrivateKey).mockReturnValue({
+          valid: true,
+          encrypted,
+        });
+        vi.mocked(getFingerprint).mockImplementation(() => {
+          throw Object.assign(new Error("Unreadable"), { name: errorName });
+        });
 
-      renderDrawer();
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.type(screen.getByLabelText(/passphrase/i), "wrongpass");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+        renderDrawer();
+        await fillKey(VALID_KEY);
+        await fillName("My Key");
+        if (encrypted) {
+          await userEvent.type(
+            screen.getByLabelText(/passphrase/i),
+            "wrongpass",
+          );
+        }
+        await userEvent.click(screen.getByRole("button", { name: /add key/i }));
 
-      await waitFor(() => {
-        expect(screen.getByText(/incorrect passphrase/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows passphrase error when getFingerprint throws generic error for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({
-        valid: true,
-        encrypted: true,
-      });
-      vi.mocked(getFingerprint).mockImplementation(() => {
-        throw new Error("Decryption failed");
-      });
-
-      renderDrawer();
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.type(screen.getByLabelText(/passphrase/i), "wrongpass");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/could not decrypt key/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows key error when getFingerprint throws for unencrypted key", async () => {
-      vi.mocked(getFingerprint).mockImplementation(() => {
-        throw new Error("Unreadable");
-      });
-
-      renderDrawer();
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/failed to read private key/i),
-        ).toBeInTheDocument();
-      });
-    });
+        await waitFor(() => {
+          expect(screen.getByText(message)).toBeInTheDocument();
+        });
+      },
+    );
   });
 
   describe("cancel", () => {

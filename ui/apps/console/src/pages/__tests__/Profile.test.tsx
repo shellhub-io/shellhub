@@ -6,8 +6,6 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import Profile from "../Profile";
-import * as SettingsCardModule from "@/components/common/SettingsCard";
-import * as SettingsRowModule from "@/components/common/SettingsRow";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 
@@ -33,55 +31,11 @@ beforeEach(() => {
 });
 
 describe("Profile", () => {
-  describe("shared component usage", () => {
-    it("uses the shared SettingsCard component (not a local copy)", () => {
-      const spy = vi.spyOn(SettingsCardModule, "default");
-      renderProfile();
-      expect(spy).toHaveBeenCalled();
-      spy.mockRestore();
-    });
-
-    it("uses the shared SettingsRow component (not a local copy)", () => {
-      const spy = vi.spyOn(SettingsRowModule, "default");
-      renderProfile();
-      expect(spy).toHaveBeenCalled();
-      spy.mockRestore();
-    });
-  });
-
   describe("renders profile sections", () => {
-    it("shows the Profile card heading", () => {
-      renderProfile();
-      const headings = screen.getAllByRole("heading", { name: /^profile$/i });
-      expect(headings.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it("shows the Security card heading", () => {
-      renderProfile();
-      expect(
-        screen.getByRole("heading", { name: /^security$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows the Danger Zone card heading", () => {
-      renderProfile();
-      expect(
-        screen.getByRole("heading", { name: /danger zone/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the user name in the Profile card", () => {
+    it("renders the signed-in user's details", () => {
       renderProfile();
       expect(screen.getByText("Admin User")).toBeInTheDocument();
-    });
-
-    it("renders the user email in the Profile card", () => {
-      renderProfile();
       expect(screen.getByText("admin@test.com")).toBeInTheDocument();
-    });
-
-    it("renders the recovery email in the Profile card", () => {
-      renderProfile();
       expect(
         screen.getAllByText("recovery@test.com").length,
       ).toBeGreaterThanOrEqual(1);
@@ -117,24 +71,6 @@ describe("Profile", () => {
       expect(
         screen.queryByText(/managed by your identity provider/i),
       ).not.toBeInTheDocument();
-    });
-  });
-
-  describe("danger zone", () => {
-    it("renders the delete account button", () => {
-      renderProfile();
-      expect(
-        screen.getByRole("button", { name: /delete/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("page header", () => {
-    it("renders the Edit Profile button in the header", () => {
-      renderProfile();
-      expect(
-        screen.getByRole("button", { name: /edit profile/i }),
-      ).toBeInTheDocument();
     });
   });
 

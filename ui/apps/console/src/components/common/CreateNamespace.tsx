@@ -1,11 +1,8 @@
-import { useState, useEffect, FormEvent } from "react";
-import {
-  useCreateNamespace,
-  useSwitchNamespace,
-} from "@/hooks/useNamespaceMutations";
+import { useState, useEffect } from "react";
+import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
 import { getNamespaces } from "@/client/api";
 import { isEnterpriseOrCloud } from "@/env";
-import { isSdkError } from "@/api/errors";
 import {
   CommandLineIcon,
   SparklesIcon,
@@ -14,10 +11,7 @@ import {
 import AmbientBackground from "./AmbientBackground";
 import CopyButton from "@/components/common/CopyButton";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
-import {
-  NAMESPACE_NAME_MIN_LENGTH,
-  validateNamespaceName,
-} from "@/utils/validation";
+import { NAMESPACE_NAME_MIN_LENGTH } from "@/utils/validation";
 import {
   Button,
   GithubIcon,
@@ -30,68 +24,28 @@ import { nullOnFailure } from "@/utils/failure";
  * so the requirements are visible before the request rather than after it.
  */
 export function NamespaceCreateForm() {
-  const [name, setName] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const createNs = useCreateNamespace();
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const err = validateNamespaceName(name);
-    if (err) {
-      setValidationError(err);
-      return;
-    }
-    setValidationError(null);
-    setSubmitError(null);
-    try {
-      await createNs.mutateAsync(name);
-    } catch (caught) {
-      if (isSdkError(caught)) {
-        if (caught.status === 409) {
-          setSubmitError("A namespace with this name already exists.");
-        } else if (caught.status === 403) {
-          setSubmitError(
-            "You have reached the namespace limit or do not have permission.",
-          );
-        } else if (caught.status === 400) {
-          setSubmitError("The namespace name is invalid.");
-        } else {
-          setSubmitError("An unexpected error occurred. Please try again.");
-        }
-      } else {
-        setSubmitError("An unexpected error occurred. Please try again.");
-      }
-    }
-  };
-
-  const displayError = validationError ?? submitError ?? null;
+  const form = useNamespaceCreateForm();
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
+    <form onSubmit={(e) => void form.submit(e)} className="w-full">
       <div className="flex items-center gap-2">
         <div className="flex-1">
           <NamespaceNameField
             id="create-namespace-name"
-            value={name}
-            onChange={(v) => {
-              setName(v);
-              setValidationError(null);
-              setSubmitError(null);
-              createNs.reset();
-            }}
-            error={displayError}
+            value={form.name}
+            onChange={form.changeName}
+            error={form.error}
           />
         </div>
         <Button
           type="submit"
-          loading={createNs.isPending}
+          loading={form.isPending}
           disabled={
-            createNs.isPending || name.length < NAMESPACE_NAME_MIN_LENGTH
+            form.isPending || form.name.length < NAMESPACE_NAME_MIN_LENGTH
           }
           className="shrink-0"
         >
-          {createNs.isPending ? "Creating..." : "Create"}
+          {form.isPending ? "Creating..." : "Create"}
         </Button>
       </div>
     </form>

@@ -62,168 +62,82 @@ describe("RecentSessionsTable", () => {
     );
   });
 
-  describe("default (non-admin)", () => {
-    it("renders 'View all' link to /sessions", async () => {
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
-          "href",
-          "/sessions",
-        );
-      });
-    });
-
-    it("navigates to /sessions/:uid on row click", async () => {
+  it.each([
+    [false, "*/api/sessions", ""],
+    [true, "*/admin/api/sessions", "/admin"],
+  ] as const)(
+    "isAdmin=%s links View all, the row and the device chip under '%s'",
+    async (isAdmin, endpoint, prefix) => {
       const user = userEvent.setup();
       server.use(
-        http.get("*/api/sessions", () =>
-          jsonWithTotal([makeSession({ uid: "s-1" })]),
-        ),
+        http.get(endpoint, () => jsonWithTotal([makeSession({ uid: "s-1" })])),
       );
-      renderTable();
+      renderTable(isAdmin);
 
       await waitFor(() => {
         expect(screen.getByText("root")).toBeInTheDocument();
       });
+
+      expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
+        "href",
+        `${prefix}/sessions`,
+      );
+      expect(screen.getByText("my-device").closest("a")).toHaveAttribute(
+        "href",
+        `${prefix}/devices/device-1`,
+      );
+
       await user.click(screen.getByText("root"));
-      expect(mockNavigate).toHaveBeenCalledWith("/sessions/s-1");
-    });
+      expect(mockNavigate).toHaveBeenCalledWith(`${prefix}/sessions/s-1`);
+    },
+  );
 
-    it("renders device chip with link to /devices/:uid", async () => {
-      server.use(
-        http.get("*/api/sessions", () => jsonWithTotal([makeSession()])),
-      );
-      renderTable();
+  it("shows loading message while fetching", () => {
+    server.use(http.get("*/api/sessions", () => new Promise(() => {})));
+    renderTable();
+    expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
+  });
 
-      await waitFor(() => {
-        expect(screen.getByText("my-device")).toBeInTheDocument();
-      });
-      const chip = screen.getByText("my-device").closest("a");
-      expect(chip).toHaveAttribute("href", "/devices/device-1");
+  it("renders error callout on fetch failure", async () => {
+    server.use(
+      http.get("*/api/sessions", () => HttpResponse.json({}, { status: 500 })),
+    );
+    renderTable();
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
     });
   });
 
-  describe("admin mode", () => {
-    it("renders 'View all' link to /admin/sessions", async () => {
-      renderTable(true);
-      await waitFor(() => {
-        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
-          "href",
-          "/admin/sessions",
-        );
-      });
-    });
-
-    it("navigates to /admin/sessions/:uid on row click", async () => {
-      const user = userEvent.setup();
-      server.use(
-        http.get("*/admin/api/sessions", () =>
-          jsonWithTotal([makeSession({ uid: "s-2" })]),
-        ),
-      );
-      renderTable(true);
-
-      await waitFor(() => {
-        expect(screen.getByText("root")).toBeInTheDocument();
-      });
-      await user.click(screen.getByText("root"));
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/sessions/s-2");
-    });
-
-    it("renders device chip with link to /admin/devices/:uid", async () => {
-      server.use(
-        http.get("*/admin/api/sessions", () => jsonWithTotal([makeSession()])),
-      );
-      renderTable(true);
-
-      await waitFor(() => {
-        expect(screen.getByText("my-device")).toBeInTheDocument();
-      });
-      const chip = screen.getByText("my-device").closest("a");
-      expect(chip).toHaveAttribute("href", "/admin/devices/device-1");
+  it("shows empty message when no sessions", async () => {
+    renderTable();
+    await waitFor(() => {
+      expect(screen.getByText("No recent sessions")).toBeInTheDocument();
     });
   });
 
-  describe("loading state", () => {
-    it("shows loading message while fetching", () => {
-      server.use(http.get("*/api/sessions", () => new Promise(() => {})));
-      renderTable();
-      expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
+  it("renders warning icon for unauthenticated sessions", async () => {
+    server.use(
+      http.get("*/api/sessions", () =>
+        jsonWithTotal([makeSession({ authenticated: false })]),
+      ),
+    );
+    renderTable();
+    await waitFor(() => {
+      expect(screen.getByTitle("Not authenticated")).toBeInTheDocument();
     });
   });
 
-  describe("error state", () => {
-    it("renders error callout on fetch failure", async () => {
-      server.use(
-        http.get("*/api/sessions", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("empty state", () => {
-    it("shows empty message when no sessions", async () => {
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByText("No recent sessions")).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("unauthenticated session", () => {
-    it("renders warning icon for unauthenticated sessions", async () => {
-      server.use(
-        http.get("*/api/sessions", () =>
-          jsonWithTotal([makeSession({ authenticated: false })]),
-        ),
-      );
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByTitle("Not authenticated")).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("session data rendering", () => {
-    it("renders session username", async () => {
-      server.use(
-        http.get("*/api/sessions", () =>
-          jsonWithTotal([makeSession({ username: "admin" })]),
-        ),
-      );
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByText("admin")).toBeInTheDocument();
-      });
-    });
-
-    it("renders session type badge", async () => {
-      server.use(
-        http.get("*/api/sessions", () =>
-          jsonWithTotal([
-            makeSession({ events: { types: ["shell"], seats: [] } }),
-          ]),
-        ),
-      );
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByText("shell")).toBeInTheDocument();
-      });
-    });
-
-    it("renders device name", async () => {
-      server.use(
-        http.get("*/api/sessions", () => jsonWithTotal([makeSession()])),
-      );
-      renderTable();
-      await waitFor(() => {
-        expect(screen.getByText("my-device")).toBeInTheDocument();
-      });
+  it("renders session type badge", async () => {
+    server.use(
+      http.get("*/api/sessions", () =>
+        jsonWithTotal([
+          makeSession({ events: { types: ["shell"], seats: [] } }),
+        ]),
+      ),
+    );
+    renderTable();
+    await waitFor(() => {
+      expect(screen.getByText("shell")).toBeInTheDocument();
     });
   });
 });

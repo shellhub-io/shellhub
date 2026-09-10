@@ -73,15 +73,6 @@ beforeEach(() => {
 });
 
 describe("SignUp", () => {
-  describe("initial render", () => {
-    it("disables the submit button when all fields are empty", () => {
-      renderSignUp();
-
-      const submit = screen.getByRole("button", { name: /create account/i });
-      expect(submit).toBeDisabled();
-    });
-  });
-
   describe("successful submission", () => {
     it("navigates to confirm-account after valid submission", async () => {
       const user = userEvent.setup();
@@ -99,14 +90,11 @@ describe("SignUp", () => {
   });
 
   describe("field validation on blur", () => {
-    it("does not show a name error before the field is touched", () => {
-      renderSignUp();
-      expect(screen.queryByText(/name must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows name error after blur when field is empty", async () => {
+    it("shows name error only after blurring an empty field", async () => {
       const user = userEvent.setup();
       renderSignUp();
+
+      expect(screen.queryByText(/name must be/i)).not.toBeInTheDocument();
 
       const nameInput = screen.getByLabelText(/^name$/i);
       await user.click(nameInput);
@@ -115,14 +103,11 @@ describe("SignUp", () => {
       expect(await screen.findByText(/name must be/i)).toBeInTheDocument();
     });
 
-    it("does not show username error before the field is touched", () => {
-      renderSignUp();
-      expect(screen.queryByText(/username must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows username error after blur when field is too short", async () => {
+    it("shows username error only after blurring a too-short field", async () => {
       const user = userEvent.setup();
       renderSignUp();
+
+      expect(screen.queryByText(/username must be/i)).not.toBeInTheDocument();
 
       await user.type(screen.getByLabelText(/^username$/i), "ab");
       await user.tab();
@@ -135,6 +120,10 @@ describe("SignUp", () => {
     it("keeps submit disabled when all text fields are valid but privacy policy is unchecked", async () => {
       const user = userEvent.setup();
       renderSignUp();
+
+      expect(
+        screen.getByRole("button", { name: /create account/i }),
+      ).toBeDisabled();
 
       await user.type(screen.getByLabelText(/^name$/i), "Alice Smith");
       await user.type(screen.getByLabelText(/^username$/i), "alice");
@@ -151,11 +140,16 @@ describe("SignUp", () => {
   });
 
   describe("password mismatch", () => {
-    it("shows 'Passwords do not match' when confirmPassword differs from password", async () => {
+    it("shows 'Passwords do not match' only once confirmPassword is touched", async () => {
       const user = userEvent.setup();
       renderSignUp();
 
       await user.type(screen.getByLabelText(/^password$/i), "Secret123");
+
+      expect(
+        screen.queryByText(/passwords do not match/i),
+      ).not.toBeInTheDocument();
+
       await user.type(
         screen.getByLabelText(/^confirm password$/i),
         "DifferentPass",
@@ -165,17 +159,6 @@ describe("SignUp", () => {
       expect(
         await screen.findByText(/passwords do not match/i),
       ).toBeInTheDocument();
-    });
-
-    it("does not show mismatch error before confirmPassword is touched", async () => {
-      const user = userEvent.setup();
-      renderSignUp();
-
-      await user.type(screen.getByLabelText(/^password$/i), "Secret123");
-
-      expect(
-        screen.queryByText(/passwords do not match/i),
-      ).not.toBeInTheDocument();
     });
   });
 

@@ -8,6 +8,8 @@ import type { GetLicense200 as GetLicenseResponse } from "@/client/model";
 import { useAuthStore } from "@/stores/authStore";
 import LicenseBanner from "../LicenseBanner";
 
+const DAY = 86400;
+
 const mockGetConfig = vi.mocked(getConfig);
 
 function makeLicense(
@@ -34,6 +36,26 @@ function makeLicense(
   } as GetLicenseResponse;
 }
 
+function setLicense(overrides: Partial<GetLicenseResponse> = {}) {
+  server.use(
+    http.get("*/admin/api/license", () =>
+      HttpResponse.json(makeLicense(overrides)),
+    ),
+  );
+}
+
+function setNoLicense() {
+  server.use(
+    http.get("*/admin/api/license", () =>
+      HttpResponse.json({}, { status: 400 }),
+    ),
+  );
+}
+
+function nowSeconds() {
+  return Math.floor(Date.now() / 1000);
+}
+
 function renderBanner() {
   return render(<LicenseBanner />, { wrapper: createTestWrapper() });
 }
@@ -45,7 +67,7 @@ beforeEach(() => {
 });
 
 describe("LicenseBanner", () => {
-  describe("visibility", () => {
+  describe("hidden states", () => {
     it("is hidden while the license check is in progress", () => {
       server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
       renderBanner();
@@ -53,331 +75,109 @@ describe("LicenseBanner", () => {
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is hidden when the query is not enabled (non-admin)", async () => {
-      useAuthStore.setState({ isAdmin: false });
-      server.use(
-        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
-      );
-      renderBanner();
-      await waitFor(() =>
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument(),
-      );
-    });
-
-    it("is hidden when the query fails unexpectedly", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
+    it.each([
+      [
+        "the query is not enabled (non-admin)",
+        () => {
+          useAuthStore.setState({ isAdmin: false });
+          setLicense();
+        },
+      ],
+      [
+        "the query fails unexpectedly",
+        () =>
+          server.use(
+            http.get("*/admin/api/license", () =>
+              HttpResponse.json({}, { status: 500 }),
+            ),
+          ),
+      ],
+      ["the license is valid", () => setLicense()],
+      [
+        "the edition is cloud, so getLicense never fires",
+        () =>
+          mockGetConfig.mockReturnValue({
+            ...defaultConfig,
+            edition: "cloud",
+          }),
+      ],
+    ])("is hidden when %s", async (_label, arrange) => {
+      arrange();
       renderBanner();
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
       });
     });
-
-    it("is hidden when license is valid", async () => {
-      server.use(
-        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-        expect(screen.queryByRole("status")).not.toBeInTheDocument();
-      });
-    });
-
-    it("is shown when no license is installed", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("is shown when license is expired", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ expired: true, grace_period: false }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(
-          screen.getByText(/your license has expired\./i),
-        ).toBeInTheDocument();
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("is shown when license is in the grace period", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByText(/grace period/i)).toBeInTheDocument();
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-    });
-
-    it("is shown when license is about to expire", async () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(
-          screen.getByText(/about to expire|expires in/i),
-        ).toBeInTheDocument();
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-    });
   });
 
-  describe("severity", () => {
-    it("uses error (role=alert) when no license is installed", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
+  describe("severity and message", () => {
+    it.each([
+      ["no license is installed", setNoLicense, "alert", /no license installed/i],
+      [
+        "the license is expired",
+        () => setLicense({ expired: true, grace_period: false }),
+        "alert",
+        /your license has expired\. this instance won't function/i,
+      ],
+      [
+        "the license is in the grace period",
+        () => setLicense({ expired: true, grace_period: true }),
+        "status",
+        /grace period/i,
+      ],
+      [
+        "one day remains",
+        () =>
+          setLicense({ about_to_expire: true, expires_at: nowSeconds() + DAY }),
+        "status",
+        /expires in 1 day\b/i,
+      ],
+      [
+        "several days remain",
+        () =>
+          setLicense({
+            about_to_expire: true,
+            expires_at: nowSeconds() + 5 * DAY,
+          }),
+        "status",
+        /expires in 5 days/i,
+      ],
+      [
+        "expires_at is not set",
+        () => setLicense({ about_to_expire: true, expires_at: -1 }),
+        "status",
+        /is about to expire/i,
+      ],
+      [
+        "expires_at is already in the past",
+        () => setLicense({ about_to_expire: true, expires_at: nowSeconds() - 1 }),
+        "status",
+        /is about to expire/i,
+      ],
+      [
+        "the remaining days would round to zero",
+        () => setLicense({ about_to_expire: true, expires_at: nowSeconds() }),
+        "status",
+        /is about to expire/i,
+      ],
+    ] as const)("when %s it is a %s reading '%s'", async (
+      _label,
+      arrange,
+      role,
+      message,
+    ) => {
+      arrange();
       renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
 
-    it("uses error (role=alert) when license is expired", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ expired: true, grace_period: false }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("uses warning (role=status) when license is in the grace period", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-
-    it("uses warning (role=status) when license is about to expire", async () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("messages", () => {
-    it("shows the no-license message", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-        expect(screen.getByText(/no license installed/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows the expired message", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ expired: true, grace_period: false }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-        expect(
-          screen.getByText(
-            /your license has expired\. this instance won't function/i,
-          ),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("shows the grace period message", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: true, grace_period: true })),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.getByText(/grace period/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows days remaining when about to expire and days are known", async () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 1 * 86400;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.getByText(/expires in 1 day\b/i)).toBeInTheDocument();
-      });
-    });
-
-    it("uses the plural form when more than one day remains", async () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.getByText(/expires in 5 days/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows the fallback about-to-expire message when expires_at is not set", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: -1 }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows fallback about-to-expire copy when expires_at is in the past", async () => {
-      const expiredAt = Math.floor(Date.now() / 1000) - 1;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiredAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows fallback about-to-expire copy when days would be zero", async () => {
-      const nowSeconds = Math.floor(Date.now() / 1000);
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: nowSeconds }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-        expect(screen.queryByText(/expires in 0 day/i)).not.toBeInTheDocument();
-        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("no CTA link", () => {
-    it("never renders any link when no license is installed (error state)", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
+      await waitFor(() => expect(screen.getByRole(role)).toBeInTheDocument());
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(
+        screen.queryByRole(role === "alert" ? "status" : "alert"),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/expires in 0 day/i)).not.toBeInTheDocument();
       expect(screen.queryByRole("link")).not.toBeInTheDocument();
       expect(screen.queryByText(/upload license/i)).not.toBeInTheDocument();
-    });
-
-    it("never renders any link when license is about to expire (warning state)", async () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(
-            makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-          ),
-        ),
-      );
-      renderBanner();
-      await waitFor(() => {
-        expect(screen.getByRole("status")).toBeInTheDocument();
-      });
-      expect(screen.queryByRole("link")).not.toBeInTheDocument();
-      expect(screen.queryByText(/upload license/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe("cloud deployment", () => {
-    it("is hidden when cloud=true and admin=true (getLicense never fires)", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-
-      renderBanner();
-
-      await waitFor(() => {
-        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-        expect(screen.queryByRole("status")).not.toBeInTheDocument();
-      });
     });
   });
 });
