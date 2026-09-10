@@ -106,6 +106,8 @@ type InstallKey struct {
 	UsageLimit int `json:"usage_limit"`
 	// UsedTimes is how many devices have enrolled with the key.
 	UsedTimes int `json:"used_times"`
+	// PendingDevices counts the key's devices still awaiting a decision.
+	PendingDevices int `json:"pending_devices"`
 	// LastUsedAt is when a device last enrolled with the key.
 	LastUsedAt *time.Time `json:"last_used_at"`
 	// Ephemeral marks devices enrolled with the key for automatic removal once offline past

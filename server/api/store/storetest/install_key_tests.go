@@ -66,3 +66,58 @@ func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 		assert.Empty(t, got.WebhookURL)
 	})
 }
+
+// TestInstallKeyListPendingDevices verifies the per-key count of enrollments awaiting a decision,
+// which is what tells the keys list which key has something to review.
+func (s *Suite) TestInstallKeyListPendingDevices(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+	tenantID := s.CreateNamespace(t)
+
+	const owner = "00000000-0000-4000-0000-000000000009"
+
+	waitingDigest := "3333333333333333333333333333333333333333333333333333333333333333"
+	_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+		ID:        waitingDigest,
+		Name:      "waiting",
+		TenantID:  tenantID,
+		Mode:      models.InstallKeyModeManual,
+		Reusable:  true,
+		Tags:      []string{},
+		CreatedBy: owner,
+	})
+	require.NoError(t, err)
+
+	settledDigest := "4444444444444444444444444444444444444444444444444444444444444444"
+	_, err = st.InstallKeyCreate(ctx, &models.InstallKey{
+		ID:        settledDigest,
+		Name:      "settled",
+		TenantID:  tenantID,
+		Mode:      models.InstallKeyModeAutomatic,
+		Reusable:  true,
+		Tags:      []string{},
+		CreatedBy: owner,
+	})
+	require.NoError(t, err)
+
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceInstallKey(waitingDigest), WithDeviceStatus(models.DeviceStatusPending))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceInstallKey(waitingDigest), WithDeviceStatus(models.DeviceStatusPending))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceInstallKey(waitingDigest), WithDeviceStatus(models.DeviceStatusAccepted))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceInstallKey(settledDigest), WithDeviceStatus(models.DeviceStatusAccepted))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceInstallKey(settledDigest), WithDeviceStatus(models.DeviceStatusRejected))
+
+	t.Run("counts only the devices a key still owes a decision", func(t *testing.T) {
+		installKeys, _, err := st.InstallKeyList(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+
+		counts := make(map[string]int, len(installKeys))
+		for _, key := range installKeys {
+			counts[key.Name] = key.PendingDevices
+		}
+
+		assert.Equal(t, 2, counts["waiting"])
+		assert.Equal(t, 0, counts["settled"])
+	})
+}

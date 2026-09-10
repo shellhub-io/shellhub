@@ -97,6 +97,7 @@ var Groups = []Group{
 	}},
 	{Name: "InstallKeyStore", Tests: []TestFunc{
 		(*Suite).TestInstallKeyModeRoundTrip,
+		(*Suite).TestInstallKeyListPendingDevices,
 		(*Suite).TestInstallKeyEventCreate,
 		(*Suite).TestInstallKeyEventList,
 	}},
