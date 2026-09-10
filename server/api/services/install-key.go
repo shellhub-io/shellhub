@@ -21,7 +21,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -509,21 +508,9 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		return NewErrInstallKeyForbidden()
 	}
 
-	if err := s.store.InstallKeyIncrementUsage(ctx, key); err != nil {
-		return NewErrInstallKeyForbidden()
-	}
-
-	if err := s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+	return s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 		TenantID: claims.TenantID,
 		UID:      claims.DeviceUID,
 		Status:   string(models.DeviceStatusAccepted),
-	}); err != nil {
-		if releaseErr := s.store.InstallKeyDecrementUsage(ctx, key); releaseErr != nil {
-			log.WithError(releaseErr).WithField("install_key", key.Name).Warn("failed to release reserved install key use")
-		}
-
-		return err
-	}
-
-	return nil
+	})
 }
