@@ -64,31 +64,25 @@ jobs:
         with:
           ref: ${{ steps.pr-ref.outputs.sha || '' }}
 
+      - name: Checkout trusted actions
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: false
+          path: .actions
+
       - name: Determine cloud branch
         id: cloud-branch
         if: github.event_name == 'pull_request_review_comment' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
-        env:
-          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          if [[ -n "$HEAD_REF" ]]; then
-            BRANCH="$HEAD_REF"
-          else
-            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
-              echo "::warning::Failed to resolve PR head ref name, falling back to master"
-              true
-            }
-            BRANCH="${BRANCH:-master}"
-          fi
-          if curl -sf -H "Authorization: Bearer $APP_TOKEN" \
-            "https://api.github.com/repos/shellhub-io/cloud/branches/$BRANCH" > /dev/null 2>&1; then
-            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=master" >> "$GITHUB_OUTPUT"
-          fi
+        uses: ./.actions/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/cloud
+          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          pr-repository: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          token: ${{ steps.app-token.outputs.token }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout cloud (context)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

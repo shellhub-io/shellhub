@@ -1,0 +1,91 @@
+name: Paired branch
+description: >-
+  Resolve the branch of another repository that pairs with this pull request — one named the same
+  as the PR head branch — falling back to a default when there is none.
+
+inputs:
+  repository:
+    description: Repository to look the branch up in, as owner/name.
+    required: true
+  head-ref:
+    description: >-
+      The PR head branch name. Pass an empty string to skip pairing and take the default; a caller
+      that gates pairing on authorization does that.
+    required: false
+    default: ''
+  pr-repository:
+    description: >-
+      Repository holding the pull request, as owner/name. Used to look the head branch up when
+      head-ref is empty because the event payload carries no head — an issue_comment event.
+    required: false
+    default: ''
+  pr-number:
+    description: Pull request number, read together with pr-repository.
+    required: false
+    default: ''
+  default-branch:
+    description: Branch to use when the paired branch does not exist or cannot be probed.
+    required: false
+    default: master
+  token:
+    description: Token authorising the branch probe. Required when the repository is private.
+    required: false
+    default: ''
+  gh-token:
+    description: Token for the gh CLI, used only when looking up the head branch name.
+    required: false
+    default: ''
+
+outputs:
+  ref:
+    description: The paired branch, or the default branch.
+    value: ${{ steps.resolve.outputs.ref }}
+
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+        HEAD_REF: ${{ inputs.head-ref }}
+        PR_REPOSITORY: ${{ inputs.pr-repository }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        TOKEN: ${{ inputs.token }}
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        BRANCH="$HEAD_REF"
+
+        if [[ -z "$BRANCH" && -n "$PR_REPOSITORY" && -n "$PR_NUMBER" ]]; then
+          BRANCH=$(gh pr view "$PR_NUMBER" --repo "$PR_REPOSITORY" --json headRefName --jq '.headRefName') || {
+            echo "::warning::Could not read the head branch of $PR_REPOSITORY#$PR_NUMBER; using $DEFAULT_BRANCH"
+            BRANCH=""
+          }
+        fi
+
+        if [[ -z "$BRANCH" ]]; then
+          echo "ref=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        AUTH=()
+        if [[ -n "$TOKEN" ]]; then
+          AUTH=(-H "Authorization: Bearer $TOKEN")
+        fi
+
+        STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${AUTH[@]}" \
+          "https://api.github.com/repos/$REPOSITORY/branches/$BRANCH")
+
+        case "$STATUS" in
+          200)
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+            ;;
+          404)
+            echo "ref=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+            ;;
+          *)
+            echo "::warning::Probing $REPOSITORY for branch $BRANCH returned HTTP $STATUS; using $DEFAULT_BRANCH"
+            echo "ref=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+            ;;
+        esac
