@@ -28,11 +28,7 @@ import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
-import {
-  Button,
-  Card,
-  WindowChrome,
-} from "@shellhub/design-system/primitives";
+import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 
 const INITIAL_VISIBLE = 3;
@@ -527,14 +523,15 @@ export default function AddDevice() {
         <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
           <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div className="text-xs text-text-secondary leading-relaxed">
-            After installing, your device will appear in the{" "}
+            After installing, your device waits for a decision on the{" "}
             <Link
-              to="/devices?status=pending"
+              to="/install-keys"
               className="text-primary font-medium hover:text-primary/80 transition-colors"
             >
-              Pending tab
+              install key
             </Link>{" "}
-            and must be accepted before you can connect to it.
+            that registered it, and must be accepted before you can connect to
+            it.
           </div>
         </div>
       )}
