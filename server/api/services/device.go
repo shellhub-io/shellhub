@@ -298,6 +298,23 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 	return nil
 }
 
+func (s *service) chargeInstallKeyUse(ctx context.Context, tenantID, installKeyID string) error {
+	if installKeyID == "" {
+		return nil
+	}
+
+	key := &models.InstallKey{ID: installKeyID, TenantID: tenantID}
+	if err := s.store.InstallKeyIncrementUsage(ctx, key); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return ErrInstallKeyExhausted
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.TransactionCb {
 	return func(ctx context.Context) error {
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
@@ -381,6 +398,10 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 				if err := s.validateDeviceAcceptance(ctx, namespace); err != nil {
 					return err
 				}
+			}
+
+			if err := s.chargeInstallKeyUse(ctx, namespace.TenantID, device.InstallKeyID); err != nil {
+				return err
 			}
 		}
 

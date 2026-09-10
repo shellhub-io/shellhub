@@ -156,6 +156,7 @@ var (
 	ErrInstallKeyDuplicated            = errors.New("InstallKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstallKeyForbidden             = errors.New("the legacy install key cannot be modified", ErrLayer, ErrCodeForbidden)
 	ErrInstallKeyInvalidField          = errors.New("install key field is invalid", ErrLayer, ErrCodeInvalid)
+	ErrInstallKeyExhausted             = errors.New("install key usage limit reached", ErrLayer, ErrCodeLimit)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)

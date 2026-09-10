@@ -2371,6 +2371,83 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
+	envstest.SetEdition(t, envs.Community)
+
+	savedHooks := deviceMergeHooks
+	deviceMergeHooks = nil
+	t.Cleanup(func() { deviceMergeHooks = savedHooks })
+
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
+	clockMock.On("Now").Return(now)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
+	clock.DefaultBackend = clockMock
+
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	ctx := context.Background()
+	const tenantID = "00000000-0000-0000-0000-000000000000"
+
+	device := &models.Device{
+		UID:      "keyless",
+		Name:     "keyless",
+		TenantID: tenantID,
+		Status:   models.DeviceStatusPending,
+		Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+	}
+	accepted := *device
+	accepted.Status = models.DeviceStatusAccepted
+	accepted.StatusUpdatedAt = now
+
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID, MaxDevices: -1}, nil).
+		Once()
+	storeMock.
+		On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "keyless").
+		Return(device, nil).
+		Once()
+	queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
+	storeMock.
+		On("DeviceResolve", ctx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
+		Return(nil, store.ErrNoDocuments).
+		Once()
+	storeMock.
+		On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "keyless", mock.AnythingOfType("[]store.QueryOption")).
+		Return(nil, store.ErrNoDocuments).
+		Once()
+	storeMock.On("DeviceUpdate", ctx, &accepted).Return(nil).Once()
+	storeMock.
+		On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(-1)).
+		Return(nil).
+		Once()
+	storeMock.
+		On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, int64(1)).
+		Return(nil).
+		Once()
+	storeMock.
+		On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tenantID), "keyless", models.DeviceStatusAccepted, mock.Anything).
+		Return(nil).
+		Once()
+	storeMock.
+		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+
+	require.NoError(t, service.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+		TenantID: tenantID, UID: "keyless", Status: "accepted",
+	}))
+
+	storeMock.AssertExpectations(t)
+	storeMock.AssertNotCalled(t, "InstallKeyIncrementUsage", mock.Anything, mock.Anything)
+}
+
 func TestDeviceUpdate(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	storeMock := storemock.NewMockStore(t)

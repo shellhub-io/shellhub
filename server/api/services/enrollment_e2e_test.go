@@ -400,7 +400,7 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 }
 
 // TestEnrollmentE2E_CallbackHonorsKeyState proves the deferred-callback accept path mirrors the
-// synchronous accept: it reserves a use against the key's limit and refuses once the key is no longer
+// synchronous accept: it spends a use against the key's limit and refuses once the key is no longer
 // valid, so an outstanding token can't bypass the usage cap or accept with a key revoked after mint.
 func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 	e := setupEnrollmentE2E(t)
@@ -432,7 +432,7 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 		return uid, callbackURL[strings.LastIndex(callbackURL, "/")+1:]
 	}
 
-	t.Run("the callback accept reserves a use against the key limit", func(t *testing.T) {
+	t.Run("the callback accept spends a use against the key limit", func(t *testing.T) {
 		uid, token := enrollDeferred(0x62, "webhook-limit", "aa:bb:cc:dd:ee:62")
 
 		require.NoError(t, e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: "accept"}))
@@ -702,4 +702,51 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	require.NotNil(t, newer.DecidedAt)
 	require.WithinDuration(t, firstDecidedAt, *older.DecidedAt, time.Second, "older event keeps the first accept time")
 	require.WithinDuration(t, secondDecidedAt, *newer.DecidedAt, time.Second, "newer event keeps the second accept time")
+}
+
+// TestEnrollmentE2E_AcceptSpendsAUse covers the accepts a person makes: a use is spent when the
+// device is admitted, not when it registers, and a key at its limit refuses the accept instead of
+// admitting past the cap.
+func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+
+	accept := func(uid string) error {
+		return e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
+			TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
+		})
+	}
+
+	t.Run("manual review spends a use per accept and stops at the limit", func(t *testing.T) {
+		e.installKey(t, digest(0x90), "manual-capped", models.InstallKeyModeManual, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+			k.UsageLimit = 1
+			clearSecret(k)
+		})
+
+		first := e.enroll(t, "aa:bb:cc:dd:90:01", plaintextFor(0x90))
+		second := e.enroll(t, "aa:bb:cc:dd:90:02", plaintextFor(0x90))
+		require.Equal(t, models.DeviceStatusPending, e.status(t, first))
+		require.Equal(t, models.DeviceStatusPending, e.status(t, second))
+		require.Equal(t, 0, e.usedTimes(t, digest(0x90)), "a device waiting on a decision has spent nothing")
+
+		require.NoError(t, accept(first))
+		require.Equal(t, 1, e.usedTimes(t, digest(0x90)))
+
+		require.ErrorIs(t, accept(second), ErrInstallKeyExhausted)
+		require.Equal(t, models.DeviceStatusPending, e.status(t, second), "a refused accept leaves the device in the queue")
+		require.Equal(t, 1, e.usedTimes(t, digest(0x90)), "a refused accept spends nothing")
+	})
+
+	t.Run("accepting a rejected device spends a use", func(t *testing.T) {
+		e.installKey(t, digest(0x91), "allow-capped", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+			k.AllowedMACs = []string{"aa:bb:cc:dd:91:ff"}
+			clearSecret(k)
+		})
+
+		uid := e.enroll(t, "aa:bb:cc:dd:91:01", plaintextFor(0x91))
+		require.Equal(t, models.DeviceStatusRejected, e.status(t, uid))
+		require.Equal(t, 0, e.usedTimes(t, digest(0x91)))
+
+		require.NoError(t, accept(uid))
+		require.Equal(t, 1, e.usedTimes(t, digest(0x91)))
+	})
 }

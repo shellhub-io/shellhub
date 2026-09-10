@@ -123,29 +123,18 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 
 	switch decision {
 	case enrollAccept:
-		if key != nil {
-			if err := s.store.InstallKeyIncrementUsage(ctx, key); err != nil {
-				log.WithError(err).WithField("install_key", key.Name).Warn("install key exhausted; device remains pending")
-
-				return models.DeviceStatusPending
-			}
-		}
-
 		acceptReq := &requests.DeviceUpdateStatus{
 			TenantID: req.TenantID,
 			UID:      uid,
 			Status:   string(models.DeviceStatusAccepted),
 		}
 		if err := s.UpdateDeviceStatus(ctx, acceptReq); err != nil {
-			if key != nil {
-				if releaseErr := s.store.InstallKeyDecrementUsage(ctx, key); releaseErr != nil {
-					log.WithError(releaseErr).WithField("install_key", key.Name).Warn("failed to release reserved install key use")
-				}
-			}
-
-			if errors.Is(err, ErrDeviceLicenseLimit) {
+			switch {
+			case errors.Is(err, ErrInstallKeyExhausted):
+				log.WithError(err).WithField("device_uid", uid).Warn("install key exhausted; device remains pending")
+			case errors.Is(err, ErrDeviceLicenseLimit):
 				log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
-			} else {
+			default:
 				log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
 			}
 

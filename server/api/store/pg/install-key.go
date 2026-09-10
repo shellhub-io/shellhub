@@ -191,28 +191,6 @@ func (pg *Pg) InstallKeyIncrementUsage(ctx context.Context, installKey *models.I
 	return nil
 }
 
-// InstallKeyDecrementUsage implements [store.InstallKeyStore].
-func (pg *Pg) InstallKeyDecrementUsage(ctx context.Context, installKey *models.InstallKey) error {
-	db := pg.GetConnection(ctx)
-
-	r, err := db.NewUpdate().
-		Model((*entity.InstallKey)(nil)).
-		Set("used_times = used_times - 1").
-		Set("updated_at = ?", clock.Now()).
-		Where("key_digest = ? AND namespace_id = ?", installKey.ID, installKey.TenantID).
-		Where("used_times > 0").
-		Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
-	}
-
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 // InstallKeyEventCreate implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyEventCreate(ctx context.Context, event *models.InstallKeyEvent) error {
 	db := pg.GetConnection(ctx)

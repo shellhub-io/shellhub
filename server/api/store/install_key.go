@@ -59,12 +59,6 @@ type InstallKeyStore interface {
 	// [ErrNoDocuments] when the key is already overused, closing the race between concurrent enrollments.
 	InstallKeyIncrementUsage(ctx context.Context, installKey *models.InstallKey) (err error)
 
-	// InstallKeyDecrementUsage returns a use previously reserved by [InstallKeyIncrementUsage] when the
-	// enrollment it was reserved for did not go through (e.g. the accept failed), guarding at zero so a
-	// release never drives the counter negative. It returns [ErrNoDocuments] when there was nothing to
-	// release (counter already at zero).
-	InstallKeyDecrementUsage(ctx context.Context, installKey *models.InstallKey) (err error)
-
 	// InstallKeyEventCreate appends one immutable row to an install key's enrollment history. The store
 	// stamps the event ID and timestamp. It returns an error, if any.
 	InstallKeyEventCreate(ctx context.Context, event *models.InstallKeyEvent) (err error)
