@@ -183,12 +183,39 @@ jobs:
           fetch-depth: 1
           path: cloud
 
+      - name: Determine claude branch
+        id: claude-branch
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ -n "$HEAD_REF" ]]; then
+            BRANCH="$HEAD_REF"
+          else
+            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
+              echo "::warning::Failed to resolve PR head ref name, falling back to master"
+              true
+            }
+            BRANCH="${BRANCH:-master}"
+          fi
+          if curl -sf -H "Authorization: Bearer $APP_TOKEN" \
+            "https://api.github.com/repos/shellhub-io/claude/branches/$BRANCH" > /dev/null 2>&1; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=master" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout claude config
         if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/claude
           token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ steps.claude-branch.outputs.ref }}
           fetch-depth: 1
           path: claude
 
