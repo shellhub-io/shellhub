@@ -7,6 +7,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import {
   mockDevice as mockDeviceFactory,
+  mockInstallKey,
   mockNamespace,
 } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
@@ -169,6 +170,23 @@ describe("DeviceDetails", () => {
     it("renders the operating system", async () => {
       renderPage();
       expect(await screen.findByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
+    });
+
+    it("names the source a keyless device registered through, linked to its activity", async () => {
+      sdk.getDevice.mockResolvedValue(
+        mockSdkResponse(makeDevice({ install_key_id: "legacy-digest" })),
+      );
+      sdk.installKeyList.mockResolvedValue(
+        paginatedResponse([
+          mockInstallKey({ id: "legacy-digest", name: "legacy", type: "legacy" }),
+        ]),
+      );
+
+      renderPage();
+
+      expect(
+        await screen.findByRole("link", { name: "Tenant-only registration" }),
+      ).toHaveAttribute("href", "/install-keys/legacy-digest/activity");
     });
 
     it('renders the "Custom Fields" section label', async () => {

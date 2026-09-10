@@ -16,10 +16,15 @@ export function isPairingKey(key: InstallKey): boolean {
   return key.type === "pairing";
 }
 
+const SYSTEM_SOURCE_NAMES = {
+  legacy: "Tenant-only registration",
+  pairing: "Pairing code",
+} as const;
+
 /** The display name for a key: a friendly label for either system key, else the key's own name. */
 export function installKeyDisplayName(key: InstallKey): string {
-  if (isPairingKey(key)) return "Pairing code";
-  if (isSystemKey(key)) return "Tenant-only registration";
+  if (isPairingKey(key)) return SYSTEM_SOURCE_NAMES.pairing;
+  if (isSystemKey(key)) return SYSTEM_SOURCE_NAMES.legacy;
   return key.name;
 }
 
@@ -46,6 +51,11 @@ export function resolveEnrollmentSource(
   if (isSystemKey(match))
     return isPairingKey(match) ? { kind: "pairing" } : { kind: "legacy" };
   return { kind: "key", name: match.name };
+}
+
+/** The display name for an enrollment source, matching what the keys list calls it. */
+export function enrollmentSourceName(source: EnrollmentSource): string {
+  return source.kind === "key" ? source.name : SYSTEM_SOURCE_NAMES[source.kind];
 }
 
 /** Split a MAC-allowlist textarea into a normalized, deduped list (lowercased, blanks dropped). */
