@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  getLicense,
-  getLicenseQueryKey,
-  type GetLicenseResponse,
-} from "../client";
-import { useAuthStore } from "../stores/authStore";
-import { isSdkError } from "../api/errors";
-import { isCloud } from "../env";
+import { getLicense, getGetLicenseQueryKey } from "@/client/api";
+import type { GetLicense200 } from "@/client/model";
+import { useAuthStore } from "@/stores/authStore";
+import { isSdkError } from "@/api/errors";
+import { isCloud } from "@/env";
 
-export { getLicenseQueryKey };
+export { getGetLicenseQueryKey };
 
-type LicenseData = GetLicenseResponse | null;
+type LicenseData = GetLicense200 | null;
 
 /**
  * The installed licence, or null when there is none. Not run on cloud, where licensing is the
@@ -21,18 +18,17 @@ export function useAdminLicense() {
   const enabled = isAdmin && !isCloud();
 
   const query = useQuery<LicenseData>({
-    queryKey: getLicenseQueryKey(),
-    queryFn: async ({ signal }) => {
+    queryKey: getGetLicenseQueryKey(),
+    queryFn: async () => {
       try {
-        const { data } = await getLicense({ signal, throwOnError: true });
-        return data;
+        return await getLicense();
       } catch (err) {
         if (isSdkError(err) && err.status === 400) return null;
         throw err;
       }
     },
     enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: (count) => count < 1,
     refetchOnWindowFocus: false,
   });

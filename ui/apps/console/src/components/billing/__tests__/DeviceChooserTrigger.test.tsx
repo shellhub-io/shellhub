@@ -2,21 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockStats, mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import type { Edition } from "@/env";
+
 import { getConfig } from "@/env";
 import DeviceChooserTrigger from "../DeviceChooserTrigger";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getStatusDevices: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("../DeviceChooserDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
@@ -56,34 +50,42 @@ function setupMocks({
   seedAuthStore({ role, isAdmin: role === "owner" });
 
   if (statsLoading) {
-    sdk.getStatusDevices.mockReturnValue(new Promise(() => {}));
+    server.use(http.get("*/api/stats", () => new Promise(() => {})));
   } else {
-    sdk.getStatusDevices.mockResolvedValue(
-      mockSdkResponse(mockStats({ registered_devices: registeredDevices })),
+    server.use(
+      http.get("*/api/stats", () =>
+        HttpResponse.json(mockStats({ registered_devices: registeredDevices })),
+      ),
     );
   }
 
   if (nsLoading) {
-    sdk.getNamespace.mockReturnValue(new Promise(() => {}));
+    server.use(
+      http.get("*/api/namespaces/:tenant", () => new Promise(() => {})),
+    );
   } else if (namespaceNull) {
-    sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
+    server.use(
+      http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
+    );
   } else {
-    sdk.getNamespace.mockResolvedValue(
-      mockSdkResponse(
-        mockNamespace({
-          billing: billingActive
-            ? {
-                customer_id: "cus_123",
-                subscription: {
-                  id: "sub_123",
-                  status: "active" as const,
-                  current_period_end: 0,
-                },
-                created_at: "2024-01-01T00:00:00Z",
-                updated_at: "2024-01-01T00:00:00Z",
-              }
-            : null,
-        }),
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(
+          mockNamespace({
+            billing: billingActive
+              ? {
+                  customer_id: "cus_123",
+                  subscription: {
+                    id: "sub_123",
+                    status: "active" as const,
+                    current_period_end: 0,
+                  },
+                  created_at: "2024-01-01T00:00:00Z",
+                  updated_at: "2024-01-01T00:00:00Z",
+                }
+              : null,
+          }),
+        ),
       ),
     );
   }
@@ -91,8 +93,10 @@ function setupMocks({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
   );
   setupMocks();
 });
@@ -119,10 +123,11 @@ describe("DeviceChooserTrigger", () => {
     it("renders nothing", async () => {
       setupMocks({ role: "observer" });
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 
@@ -130,10 +135,11 @@ describe("DeviceChooserTrigger", () => {
     it("renders nothing", async () => {
       setupMocks({ billingActive: true });
       renderTrigger();
-      await waitFor(() => expect(sdk.getNamespace).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 
@@ -141,10 +147,11 @@ describe("DeviceChooserTrigger", () => {
     it("renders nothing — limit is strictly greater than 3", async () => {
       setupMocks({ registeredDevices: 3 });
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 
@@ -181,21 +188,25 @@ describe("DeviceChooserTrigger", () => {
     it("renders nothing — billing is unknown until namespace resolves", async () => {
       setupMocks({ namespaceNull: true, registeredDevices: 4 });
       renderTrigger();
-      await waitFor(() => expect(sdk.getNamespace).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 
   describe("when the stats query settled with an error", () => {
     it("renders nothing — overLimit cannot be evaluated without stats", async () => {
-      sdk.getStatusDevices.mockRejectedValue({ status: 500 });
+      server.use(
+        http.get("*/api/stats", () => HttpResponse.json({}, { status: 500 })),
+      );
       renderTrigger();
-      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 

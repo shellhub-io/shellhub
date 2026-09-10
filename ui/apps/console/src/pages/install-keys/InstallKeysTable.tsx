@@ -8,7 +8,7 @@ import {
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import InstallKeyActionsMenu from "./InstallKeyActionsMenu";

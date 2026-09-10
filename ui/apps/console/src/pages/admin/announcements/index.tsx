@@ -6,12 +6,13 @@ import {
   PencilSquareIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
+import { useListAnnouncementsAdmin } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
-import type { AnnouncementShort } from "@/client";
+import type { AnnouncementShort } from "@/client/model";
 import {
   Badge,
   Button,
@@ -40,14 +41,18 @@ export default function AdminAnnouncements() {
     null,
   );
 
-  const { announcements, totalCount, isLoading, error } = useAdminAnnouncements(
-    {
-      page: params.page,
-      perPage: PER_PAGE,
-    },
-  );
+  const {
+    data: announcements = [],
+    isLoading,
+    error,
+  } = useListAnnouncementsAdmin({
+    page: params.page,
+    per_page: PER_PAGE,
+    order_by: "desc",
+  });
+  const total = totalCount(announcements);
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<AnnouncementShort>[] = [
     {
@@ -142,7 +147,7 @@ export default function AdminAnnouncements() {
         loadingMessage="Loading announcements..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="announcement"
         onPageChange={setPage}
         onRowClick={(a) => void navigate(`/admin/announcements/${a.uuid}`)}

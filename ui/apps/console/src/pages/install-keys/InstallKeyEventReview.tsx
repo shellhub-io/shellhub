@@ -5,7 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDateFull } from "@/utils/date";
-import { type InstallKeyEvent } from "@/client";
+import { type InstallKeyEvent } from "@/client/model";
 import type { RequestDeviceAction } from "./installKeyEventColumns";
 import StatusChip from "./StatusChip";
 

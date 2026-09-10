@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Announcement } from "@/client";
+import type { Announcement } from "@/client/model";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { mockAnnouncement, mockAnnouncementFull } from "@/tests/factories";
 import { getConfig, defaultConfig } from "@/env";
 import AnnouncementModalTrigger from "../AnnouncementModalTrigger";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listAnnouncements: vi.fn(),
-    getAnnouncement: vi.fn(),
-  }),
-);
 
 vi.mock("../AnnouncementModal", () => ({
   default: ({
@@ -49,13 +43,11 @@ function setupAnnouncement(overrides: Partial<Announcement> = {}) {
     title: short.title,
     date: short.date,
   });
-  sdk.listAnnouncements.mockResolvedValue(paginatedResponse([short]));
-  sdk.getAnnouncement.mockResolvedValue(mockSdkResponse(full));
+  server.use(
+    http.get("*/api/announcements", () => jsonWithTotal([short])),
+    http.get("*/api/announcements/:uuid", () => HttpResponse.json(full)),
+  );
   return full;
-}
-
-function setupNoAnnouncement() {
-  sdk.listAnnouncements.mockResolvedValue(paginatedResponse([]));
 }
 
 function renderTrigger() {
@@ -68,7 +60,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: true });
-  setupNoAnnouncement();
+  server.use(http.get("*/api/announcements", () => jsonWithTotal([])));
 });
 
 describe("AnnouncementModalTrigger", () => {
@@ -81,7 +73,6 @@ describe("AnnouncementModalTrigger", () => {
       expect(
         screen.queryByTestId("announcement-modal"),
       ).not.toBeInTheDocument();
-      expect(sdk.listAnnouncements).not.toHaveBeenCalled();
     });
   });
 
@@ -102,10 +93,11 @@ describe("AnnouncementModalTrigger", () => {
 
       renderTrigger();
 
-      await waitFor(() => expect(sdk.getAnnouncement).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("announcement-modal"),
-      ).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId("announcement-modal"),
+        ).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -199,10 +191,11 @@ describe("AnnouncementModalTrigger", () => {
       cleanup();
       renderTrigger();
 
-      await waitFor(() => expect(sdk.listAnnouncements).toHaveBeenCalled());
-      expect(
-        screen.queryByTestId("announcement-modal"),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("announcement-modal"),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 });

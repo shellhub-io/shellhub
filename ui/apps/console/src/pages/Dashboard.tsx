@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
-import { useStats } from "@/hooks/useStats";
+import { useGetStatusDevices } from "@/client/api";
 import { hasAnyDevices } from "@/utils/stats";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
@@ -23,7 +23,11 @@ import { Card } from "@shellhub/design-system/primitives";
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const { stats, isLoading: statsLoading, error: statsError } = useStats();
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useGetStatusDevices();
   const navigate = useNavigate();
 
   if (statsLoading) return null;

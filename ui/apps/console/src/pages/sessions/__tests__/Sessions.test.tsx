@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import Sessions from "../index";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSession } from "@/tests/factories";
 import { LocationProbe } from "@/tests/LocationProbe";
@@ -15,14 +16,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getSessions: vi.fn(),
-    closeSession: vi.fn(),
-    getSessionRecord: vi.fn(),
-  }),
-);
-
 vi.mock("../SessionPlayerDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
@@ -33,6 +26,20 @@ vi.mock("../SessionPlayerDialog", () => ({
       </div>
     ) : null,
 }));
+
+let lastSessionsUrl: URL | null;
+
+function setSessions(
+  sessions: ReturnType<typeof mockSession>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/api/sessions", ({ request }) => {
+      lastSessionsUrl = new URL(request.url);
+      return jsonWithTotal(sessions, total ?? sessions.length);
+    }),
+  );
+}
 
 function renderSessions(initialEntries: string[] = ["/"]) {
   let lastSearch = "";
@@ -52,15 +59,25 @@ function renderSessions(initialEntries: string[] = ["/"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.getSessions.mockResolvedValue(paginatedResponse([]));
-  sdk.closeSession.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.getSessionRecord.mockRejectedValue(new Error("no recording"));
+  lastSessionsUrl = null;
+  setSessions([]);
+  server.use(
+    http.post(
+      "*/api/sessions/:uid/close",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get("*/api/sessions/:uid/records/:seat", () =>
+      HttpResponse.json({}, { status: 404 }),
+    ),
+  );
 });
 
 describe("Sessions", () => {
   describe("initial load", () => {
     it("shows loading state while fetching", () => {
-      sdk.getSessions.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/sessions", () => new Promise(() => {})),
+      );
       renderSessions();
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
@@ -74,9 +91,7 @@ describe("Sessions", () => {
   describe("session row", () => {
     it("navigates to session detail when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "session-abc" })]),
-      );
+      setSessions([mockSession({ uid: "session-abc" })]);
       renderSessions();
 
       await user.click(await screen.findByText("root"));
@@ -88,9 +103,7 @@ describe("Sessions", () => {
   describe("logsError banner", () => {
     it("shows an error banner when fetching recording fails", async () => {
       const user = userEvent.setup();
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "s-1", recorded: true })]),
-      );
+      setSessions([mockSession({ uid: "s-1", recorded: true })]);
       renderSessions();
 
       await user.click(await screen.findByTitle("Play recording"));
@@ -112,27 +125,27 @@ describe("Sessions", () => {
   describe("play recording", () => {
     it("fetches the recording when Play is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getSessionRecord.mockResolvedValue(mockSdkResponse("asciicast-data"));
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          HttpResponse.json("asciicast-data"),
+        ),
       );
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
       renderSessions();
 
       await user.click(await screen.findByTitle("Play recording"));
 
-      expect(sdk.getSessionRecord).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { uid: "session-1", seat: 0 },
-        }),
-      );
+      expect(await screen.findByTestId("player-dialog")).toBeInTheDocument();
     });
 
     it("disables the play button while the recording is loading", async () => {
       const user = userEvent.setup();
-      sdk.getSessionRecord.mockReturnValue(new Promise(() => {}));
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          new Promise(() => {}),
+        ),
       );
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
       renderSessions();
 
       const btn = await screen.findByTitle("Play recording");
@@ -144,9 +157,7 @@ describe("Sessions", () => {
     });
 
     it("does not show the player dialog when there are no logs", async () => {
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
-      );
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
       renderSessions();
       await screen.findByTitle("Play recording");
       expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument();
@@ -154,10 +165,12 @@ describe("Sessions", () => {
 
     it("opens the player after recording loads and closes it on dismiss", async () => {
       const user = userEvent.setup();
-      sdk.getSessionRecord.mockResolvedValue(mockSdkResponse("asciicast-data"));
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          HttpResponse.json("asciicast-data"),
+        ),
       );
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
       renderSessions();
 
       await user.click(await screen.findByTitle("Play recording"));
@@ -172,25 +185,19 @@ describe("Sessions", () => {
   });
 
   describe("URL hydration", () => {
-    it("passes page=3 to the SDK when URL has ?page=3", async () => {
+    it("passes page=3 when URL has ?page=3", async () => {
       renderSessions(["/?page=3"]);
       await waitFor(() => {
-        expect(sdk.getSessions).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 3 }),
-          }),
-        );
+        expect(lastSessionsUrl).not.toBeNull();
+        expect(lastSessionsUrl!.searchParams.get("page")).toBe("3");
       });
     });
 
-    it("passes page=1 to the SDK when URL has no page param", async () => {
+    it("passes page=1 when URL has no page param", async () => {
       renderSessions(["/"]);
       await waitFor(() => {
-        expect(sdk.getSessions).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastSessionsUrl).not.toBeNull();
+        expect(lastSessionsUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
@@ -198,13 +205,11 @@ describe("Sessions", () => {
   describe("URL writes", () => {
     it("writes ?page=2 to the URL when the user navigates to page 2", async () => {
       const user = userEvent.setup();
-      sdk.getSessions.mockResolvedValue(
-        paginatedResponse(
-          Array.from({ length: 10 }, (_, i) =>
-            mockSession({ uid: `s-${i}`, username: `u-${i}` }),
-          ),
-          30,
+      setSessions(
+        Array.from({ length: 10 }, (_, i) =>
+          mockSession({ uid: `s-${i}`, username: `u-${i}` }),
         ),
+        30,
       );
       renderSessions();
 
@@ -213,11 +218,7 @@ describe("Sessions", () => {
       await user.click(screen.getByRole("button", { name: "Next page" }));
 
       await waitFor(() => {
-        expect(sdk.getSessions).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastSessionsUrl!.searchParams.get("page")).toBe("2");
       });
     });
 

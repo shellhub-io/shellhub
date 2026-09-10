@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { PublicKeyRequest, PublicKeyResponse } from "@/client";
+import type { PublicKeyRequest, PublicKeyResponse } from "@/client/model";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import { validateName } from "@/utils/validation";
 

@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import ApiKeysTab from "../ApiKeysTab";
-import type { ApiKey } from "@/client";
+import type { ApiKey } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { LocationProbe } from "@/tests/LocationProbe";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    apiKeyList: vi.fn(),
-    apiKeyDelete: vi.fn(),
-  }),
-);
 
 vi.mock("../GenerateKeyDrawer", () => ({
   default: () => null,
@@ -40,10 +34,27 @@ function mockApiKey(overrides: Partial<ApiKey> = {}): ApiKey {
   };
 }
 
+let lastApiKeysUrl: URL | null;
+
+function setApiKeys(keys: ApiKey[], total?: number) {
+  server.use(
+    http.get("*/api/namespaces/api-key", ({ request }) => {
+      lastApiKeysUrl = new URL(request.url);
+      return jsonWithTotal(keys, total ?? keys.length);
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.apiKeyList.mockResolvedValue(paginatedResponse([mockApiKey()]));
-  sdk.apiKeyDelete.mockResolvedValue(mockSdkResponse(undefined));
+  lastApiKeysUrl = null;
+  setApiKeys([mockApiKey()]);
+  server.use(
+    http.delete(
+      "*/api/namespaces/api-key/:key",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
   useAuthStore.setState({ role: "owner" });
 });
 
@@ -77,7 +88,7 @@ describe("ApiKeysTab — pagination count display", () => {
     const keys = Array.from({ length: 10 }, (_, i) =>
       mockApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
     );
-    sdk.apiKeyList.mockResolvedValue(paginatedResponse(keys, 25));
+    setApiKeys(keys, 25);
 
     renderTab();
     await screen.findByText("key-0");
@@ -92,14 +103,11 @@ describe("ApiKeysTab — sorting", () => {
   it("requests created_at/desc sort by default", async () => {
     renderTab();
     await screen.findByText("prod-key");
-    expect(sdk.apiKeyList).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: expect.objectContaining({
-          sort_by: "created_at",
-          order_by: "desc",
-        }),
-      }),
-    );
+    await waitFor(() => {
+      expect(lastApiKeysUrl).not.toBeNull();
+      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("created_at");
+      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("desc");
+    });
   });
 
   it("toggles sort when the Name header is clicked", async () => {
@@ -109,26 +117,14 @@ describe("ApiKeysTab — sorting", () => {
 
     await user.click(screen.getByRole("button", { name: "Sort by Name" }));
     await waitFor(() => {
-      expect(sdk.apiKeyList).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "name",
-            order_by: "asc",
-          }),
-        }),
-      );
+      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("name");
+      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("asc");
     });
 
     await user.click(screen.getByRole("button", { name: "Sort by Name" }));
     await waitFor(() => {
-      expect(sdk.apiKeyList).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({
-            sort_by: "name",
-            order_by: "desc",
-          }),
-        }),
-      );
+      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("name");
+      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("desc");
     });
   });
 });
@@ -147,7 +143,14 @@ describe("ApiKeysTab — delete error handling", () => {
   }
 
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
-    sdk.apiKeyDelete.mockRejectedValue(new Error("Key is protected"));
+    server.use(
+      http.delete("*/api/namespaces/api-key/:key", () =>
+        HttpResponse.json(
+          { message: "Key is protected" },
+          { status: 403 },
+        ),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -159,17 +162,19 @@ describe("ApiKeysTab — delete error handling", () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows a generic fallback message when the rejection is not an Error", async () => {
-    sdk.apiKeyDelete.mockRejectedValue("boom");
+  it("shows the status code as fallback when the server returns no message", async () => {
+    server.use(
+      http.delete("*/api/namespaces/api-key/:key", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
     await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
 
     await waitFor(() =>
-      expect(
-        within(dialog).getByText(/failed to delete api key/i),
-      ).toBeInTheDocument(),
+      expect(within(dialog).getByText("500")).toBeInTheDocument(),
     );
   });
 
@@ -188,26 +193,21 @@ describe("ApiKeysTab — delete error handling", () => {
 });
 
 describe("ApiKeysTab — URL sync with prefix 'key'", () => {
-  it("hydrates page from ?key.page=3 — SDK receives page 3", async () => {
+  it("hydrates page from ?key.page=3 — API receives page 3", async () => {
     renderTab(["/?key.page=3"]);
     await waitFor(() => {
-      expect(sdk.apiKeyList).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastApiKeysUrl).not.toBeNull();
+      expect(lastApiKeysUrl!.searchParams.get("page")).toBe("3");
     });
   });
 
   it("clicking Next writes key.page=2 to the URL (not bare page=2)", async () => {
     const user = userEvent.setup();
-    sdk.apiKeyList.mockResolvedValue(
-      paginatedResponse(
-        Array.from({ length: 10 }, (_, i) =>
-          mockApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
-        ),
-        25,
+    setApiKeys(
+      Array.from({ length: 10 }, (_, i) =>
+        mockApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
       ),
+      25,
     );
     const { getSearch } = renderTab();
 
@@ -222,14 +222,11 @@ describe("ApiKeysTab — URL sync with prefix 'key'", () => {
     });
   });
 
-  it("does not consume a bare ?page=5 param as key.page — SDK receives page 1", async () => {
+  it("does not consume a bare ?page=5 param as key.page — API receives page 1", async () => {
     renderTab(["/?page=5"]);
     await waitFor(() => {
-      expect(sdk.apiKeyList).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastApiKeysUrl).not.toBeNull();
+      expect(lastApiKeysUrl!.searchParams.get("page")).toBe("1");
     });
   });
 });

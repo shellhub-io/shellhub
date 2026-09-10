@@ -1,4 +1,4 @@
-import type { GetStatusDevicesResponse } from "@/client";
+import type { GetStatusDevices200 as GetStatusDevicesResponse } from "@/client/model";
 
 /** True if the namespace has at least one device in any status. */
 export function hasAnyDevices(stats: GetStatusDevicesResponse | null): boolean {

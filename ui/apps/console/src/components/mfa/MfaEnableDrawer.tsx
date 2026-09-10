@@ -8,7 +8,7 @@ import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
 import Drawer from "../common/Drawer";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { QRCodeDisplay } from "./QRCodeDisplay";
-import { generateMfa, enableMfa, updateUser } from "@/client";
+import { generateMFA, enableMFA, updateUser } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
@@ -66,10 +66,7 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await updateUser({
-        body: { recovery_email: recoveryEmail },
-        throwOnError: true,
-      });
+      await updateUser({ recovery_email: recoveryEmail });
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
@@ -85,7 +82,7 @@ export default function MfaEnableDrawer({
 
   const handleGenerateMfa = async () => {
     try {
-      const { data } = await generateMfa({ throwOnError: true });
+      const data = await generateMFA();
       setQrLink(data.link);
       setSecret(data.secret);
       setRecoveryCodes(data.recovery_codes);
@@ -122,9 +119,10 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await enableMfa({
-        body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes },
-        throwOnError: true,
+      await enableMFA({
+        code: otp.getValue(),
+        secret,
+        recovery_codes: recoveryCodes,
       });
       setStep(4);
     } catch {
@@ -434,7 +432,7 @@ export default function MfaEnableDrawer({
                   <input
                     key={index}
                     ref={(el) => {
-                      (otp.inputRefs.current[index] = el);
+                      otp.inputRefs.current[index] = el;
                     }}
                     type="text"
                     inputMode="numeric"

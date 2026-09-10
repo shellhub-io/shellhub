@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
-import {
-  useSetDeviceCustomField,
-  useDeleteDeviceCustomField,
-} from "@/hooks/useDeviceMutations";
+import { useSetDeviceCustomField, useDeleteDeviceCustomField } from "@/client/api";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
 const LABEL =
@@ -43,8 +40,8 @@ export default function CustomFieldsSection({
     setAdding(true);
     try {
       await setMutation.mutateAsync({
-        path: { uid, key },
-        body: { value },
+        uid, key,
+        data: { value },
       });
       setKeyInput("");
       setValueInput("");
@@ -55,7 +52,7 @@ export default function CustomFieldsSection({
   };
 
   const handleRemove = (key: string) => {
-    deleteMutation.mutate({ path: { uid, key } });
+    deleteMutation.mutate({ uid, key });
   };
 
   return (

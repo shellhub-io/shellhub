@@ -1,7 +1,7 @@
 import { useState, useId } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
+import { useAdminResetUserPassword } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
@@ -23,7 +23,7 @@ export default function ResetPasswordDialog({
   onClose,
   userId,
 }: ResetPasswordDialogProps) {
-  const resetPassword = useResetUserPassword();
+  const resetPassword = useAdminResetUserPassword();
   const [step, setStep] = useState<"confirm" | "result">("confirm");
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export default function ResetPasswordDialog({
   const handleEnable = async () => {
     setError("");
     try {
-      const data = await resetPassword.mutateAsync({ path: { id: userId } });
+      const data = await resetPassword.mutateAsync({ id: userId });
       setGeneratedPassword(data?.password ?? "");
       setStep("result");
     } catch (err) {

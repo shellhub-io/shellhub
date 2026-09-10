@@ -1,21 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import CreateUserDrawer from "../CreateUserDrawer";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createUserAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 const Wrapper = createTestWrapper();
+const createSpy = vi.fn();
 
 function renderDrawer(
   overrides: Partial<{ open: boolean; onClose: () => void }> = {},
@@ -50,7 +46,13 @@ async function fillForm({
 describe("CreateUserDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.createUserAdmin.mockResolvedValue(mockSdkResponse(undefined));
+    createSpy.mockReset();
+    server.use(
+      http.post("*/admin/api/users", async ({ request }) => {
+        createSpy({ body: await request.json() });
+        return HttpResponse.json({});
+      }),
+    );
   });
 
   describe("rendering — closed", () => {
@@ -244,7 +246,7 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+        expect(createSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({
               name: "Alice",
@@ -278,9 +280,9 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+        expect(createSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            body: expect.objectContaining({ max_namespaces: undefined }),
+            body: expect.not.objectContaining({ max_namespaces: expect.anything() }),
           }),
         );
       });
@@ -301,7 +303,7 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+        expect(createSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({ max_namespaces: 0 }),
           }),
@@ -312,7 +314,11 @@ describe("CreateUserDrawer", () => {
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      sdk.createUserAdmin.mockRejectedValue({ status: 409 });
+      server.use(
+        http.post("*/admin/api/users", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
       renderDrawer();
       await fillForm();
 
@@ -326,7 +332,11 @@ describe("CreateUserDrawer", () => {
     });
 
     it("shows generic error for 400 responses", async () => {
-      sdk.createUserAdmin.mockRejectedValue({ status: 400 });
+      server.use(
+        http.post("*/admin/api/users", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderDrawer();
       await fillForm();
 
@@ -340,7 +350,9 @@ describe("CreateUserDrawer", () => {
     });
 
     it("shows generic error for unexpected failures", async () => {
-      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.post("*/admin/api/users", () => HttpResponse.error()),
+      );
       renderDrawer();
       await fillForm();
 
@@ -354,7 +366,9 @@ describe("CreateUserDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.post("*/admin/api/users", () => HttpResponse.error()),
+      );
       renderDrawer();
       await fillForm();
 
@@ -368,7 +382,9 @@ describe("CreateUserDrawer", () => {
     });
 
     it("does not call onClose when creation fails", async () => {
-      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.post("*/admin/api/users", () => HttpResponse.error()),
+      );
       const { onClose } = renderDrawer();
       await fillForm();
 
@@ -418,7 +434,7 @@ describe("CreateUserDrawer", () => {
       expect(submit).toBeDisabled();
       await userEvent.click(submit);
 
-      expect(sdk.createUserAdmin).not.toHaveBeenCalled();
+      expect(createSpy).not.toHaveBeenCalled();
       expect(screen.getByLabelText(/^username$/i)).toHaveAttribute(
         "aria-invalid",
         "true",
@@ -456,7 +472,7 @@ describe("CreateUserDrawer", () => {
     it("does not call createUserAdmin when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.createUserAdmin).not.toHaveBeenCalled();
+      expect(createSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -472,7 +488,9 @@ describe("CreateUserDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      sdk.createUserAdmin.mockRejectedValue(new Error("fail"));
+      server.use(
+        http.post("*/admin/api/users", () => HttpResponse.error()),
+      );
       const { rerender } = renderDrawer();
       await fillForm();
       await userEvent.click(

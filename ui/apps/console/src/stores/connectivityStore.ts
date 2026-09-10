@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getInfo } from "../client";
+import { getInfo } from "@/client/api";
 
 interface ConnectivityState {
   apiReachable: boolean;
@@ -18,7 +18,7 @@ function startPolling() {
 
   const poll = async () => {
     try {
-      await getInfo({ throwOnError: true });
+      await getInfo();
       useConnectivityStore.getState().markUp();
       polling = false;
     } catch {
@@ -40,7 +40,7 @@ export const useConnectivityStore = create<ConnectivityState>()((set) => ({
 
   checkInitial: async () => {
     try {
-      await getInfo({ throwOnError: true });
+      await getInfo();
       set({
         apiReachable: true,
         initialCheckDone: true,

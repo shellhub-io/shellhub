@@ -1,20 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockWebEndpoint } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { paginatedResponse } from "@/tests/sdk";
 import WebEndpoints from "../WebEndpoints";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listWebEndpoints: vi.fn(),
-    deleteWebEndpoint: vi.fn(),
-    createWebEndpoint: vi.fn(),
-    getDevices: vi.fn(),
-  }),
-);
 
 vi.mock("@/hooks/useResetOnOpen");
 
@@ -36,29 +28,44 @@ function renderPage(initialEntries: string[] = ["/"]) {
   });
 }
 
+let lastRequestUrl: URL | null;
+
+function setEndpoints(endpoints: ReturnType<typeof ep>[], total?: number) {
+  server.use(
+    http.get("*/api/web-endpoints", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(endpoints, total ?? endpoints.length);
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  lastRequestUrl = null;
   seedAuthStore();
-  sdk.listWebEndpoints.mockResolvedValue(paginatedResponse([]));
-  sdk.deleteWebEndpoint.mockResolvedValue({ data: undefined });
-  sdk.createWebEndpoint.mockResolvedValue({ data: undefined });
-  sdk.getDevices.mockResolvedValue(paginatedResponse([]));
+  setEndpoints([]);
+  server.use(
+    http.delete(
+      "*/api/web-endpoints/:address",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.post("*/api/web-endpoints", () =>
+      HttpResponse.json(ep("new.example.com")),
+    ),
+    http.get("*/api/devices", () => jsonWithTotal([])),
+  );
   mockUseDebouncedValue.mockImplementation(<T,>(v: T) => v);
 });
 
 describe("WebEndpoints — pagination count / controls decoupling", () => {
   it("shows the endpoint count when totalCount > 0 and only one page exists", async () => {
-    sdk.listWebEndpoints.mockResolvedValue(
-      paginatedResponse([ep("ep1.example.com")], 1),
-    );
+    setEndpoints([ep("ep1.example.com")], 1);
     renderPage();
     expect(await screen.findByText(/1 endpoint/i)).toBeInTheDocument();
   });
 
   it("hides Prev/Next controls when only one page exists", async () => {
-    sdk.listWebEndpoints.mockResolvedValue(
-      paginatedResponse([ep("ep1.example.com")], 1),
-    );
+    setEndpoints([ep("ep1.example.com")], 1);
     renderPage();
     await screen.findByText(/1 endpoint/i);
     expect(
@@ -73,7 +80,7 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
     const endpoints = Array.from({ length: 10 }, (_, i) =>
       ep(`ep${i + 1}.example.com`),
     );
-    sdk.listWebEndpoints.mockResolvedValue(paginatedResponse(endpoints, 15));
+    setEndpoints(endpoints, 15);
     renderPage();
     expect(await screen.findByText(/15 endpoints/i)).toBeInTheDocument();
     expect(
@@ -86,7 +93,7 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
   it("does not show the Pagination nav when there are no endpoints", async () => {
     renderPage();
-    await waitFor(() => expect(sdk.listWebEndpoints).toHaveBeenCalled());
+    await waitFor(() => expect(lastRequestUrl).not.toBeNull());
     expect(screen.queryByText(/0 endpoints/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /previous page/i }),
@@ -95,7 +102,9 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
   it("does not flash a '0 endpoints' count while a search request is in-flight", () => {
     mockUseDebouncedValue.mockReturnValue("some-query");
-    sdk.listWebEndpoints.mockReturnValue(new Promise(() => {}));
+    server.use(
+      http.get("*/api/web-endpoints", () => new Promise(() => {})),
+    );
     renderPage();
     expect(screen.queryByText(/0 endpoints/i)).not.toBeInTheDocument();
     expect(
@@ -106,28 +115,22 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
 describe("WebEndpoints — URL hydration", () => {
   it("passes page=2 and a filter containing the search term from the URL", async () => {
-    sdk.listWebEndpoints.mockResolvedValue(
-      paginatedResponse([ep("ep1.example.com")], 1),
-    );
+    setEndpoints([ep("ep1.example.com")], 1);
     renderPage(["/?page=2&search=myhost"]);
     await waitFor(() => {
-      const call = sdk.listWebEndpoints.mock.calls.at(-1)?.[0] as {
-        query?: { page?: number; filter?: string };
-      };
-      expect(call?.query?.page).toBe(2);
-      const decoded = atob(call?.query?.filter ?? "");
-      expect(decoded).toContain("myhost");
+      expect(lastRequestUrl).not.toBeNull();
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
+      const filter = lastRequestUrl!.searchParams.get("filter") ?? "";
+      expect(atob(filter)).toContain("myhost");
     });
   });
 
   it("falls back to page=1 and no filter when URL has no params", async () => {
     renderPage(["/"]);
     await waitFor(() => {
-      const call = sdk.listWebEndpoints.mock.calls[0]?.[0] as {
-        query?: { page?: number; filter?: string };
-      };
-      expect(call?.query?.page).toBe(1);
-      expect(call?.query?.filter).toBeUndefined();
+      expect(lastRequestUrl).not.toBeNull();
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
+      expect(lastRequestUrl!.searchParams.get("filter")).toBeNull();
     });
   });
 });
@@ -135,9 +138,7 @@ describe("WebEndpoints — URL hydration", () => {
 describe("WebEndpoints — search resets page to 1", () => {
   it("resets to page=1 when a new search term is typed while on page 2", async () => {
     const user = userEvent.setup();
-    sdk.listWebEndpoints.mockResolvedValue(
-      paginatedResponse([ep("ep1.example.com")], 25),
-    );
+    setEndpoints([ep("ep1.example.com")], 25);
     renderPage(["/?page=2"]);
     await screen.findByText(/25 endpoints/i);
 
@@ -145,10 +146,7 @@ describe("WebEndpoints — search resets page to 1", () => {
     await user.type(searchInput, "x");
 
     await waitFor(() => {
-      const lastCall = sdk.listWebEndpoints.mock.calls.at(-1)?.[0] as {
-        query?: { page?: number };
-      };
-      expect(lastCall?.query?.page).toBe(1);
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
   });
 });
@@ -156,11 +154,9 @@ describe("WebEndpoints — search resets page to 1", () => {
 describe("WebEndpoints — page change writes to URL", () => {
   it("calls listWebEndpoints with page=2 after clicking the Next page button", async () => {
     const user = userEvent.setup();
-    sdk.listWebEndpoints.mockResolvedValue(
-      paginatedResponse(
-        Array.from({ length: 10 }, (_, i) => ep(`ep${i + 1}.example.com`)),
-        15,
-      ),
+    setEndpoints(
+      Array.from({ length: 10 }, (_, i) => ep(`ep${i + 1}.example.com`)),
+      15,
     );
     renderPage(["/"]);
     await screen.findByText(/15 endpoints/i);
@@ -168,18 +164,13 @@ describe("WebEndpoints — page change writes to URL", () => {
     await user.click(screen.getByRole("button", { name: /next page/i }));
 
     await waitFor(() => {
-      const lastCall = sdk.listWebEndpoints.mock.calls.at(-1)?.[0] as {
-        query?: { page?: number };
-      };
-      expect(lastCall?.query?.page).toBe(2);
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
     });
   });
 });
 
 async function openEndpointDrawer(user: ReturnType<typeof userEvent.setup>) {
-  sdk.listWebEndpoints.mockResolvedValue(
-    paginatedResponse([ep("ep1.example.com")], 1),
-  );
+  setEndpoints([ep("ep1.example.com")], 1);
   renderPage();
   await user.click(
     await screen.findByRole("button", { name: /new endpoint/i }),

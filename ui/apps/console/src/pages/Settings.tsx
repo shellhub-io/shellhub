@@ -17,13 +17,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { isSdkError } from "../api/errors";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useAccessPolicies } from "../hooks/useAccessPolicies";
 import {
+  useListAccessPolicies,
   useEditNamespace,
-  useDeleteNamespace,
-  useLeaveNamespace,
   useSetSshAccessMode,
-} from "../hooks/useNamespaceMutations";
+  deleteNamespace,
+  leaveNamespace,
+} from "@/client/api";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
@@ -50,6 +50,11 @@ import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 
+function logoutAndRedirect() {
+  useAuthStore.getState().logout();
+  window.location.replace("/login");
+}
+
 function EditNameDrawer({
   open,
   onClose,
@@ -74,8 +79,8 @@ function EditNameDrawer({
     clearErrors("root");
     try {
       await editNs.mutateAsync({
-        path: { tenant: tenantId },
-        body: { name: values.name },
+        tenant: tenantId,
+        data: { name: values.name },
       });
       onClose();
     } catch {
@@ -125,7 +130,6 @@ function DeleteDialog({
   tenantId: string;
   onClose: () => void;
 }) {
-  const deleteNs = useDeleteNamespace();
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
@@ -138,7 +142,8 @@ function DeleteDialog({
       onConfirm={async () => {
         setError("");
         try {
-          await deleteNs.mutateAsync(tenantId);
+          await deleteNamespace(tenantId);
+          logoutAndRedirect();
         } catch (err) {
           setError(
             isSdkError(err) && err.status === 409
@@ -180,7 +185,6 @@ function LeaveDialog({
   tenantId: string;
   onClose: () => void;
 }) {
-  const leaveNs = useLeaveNamespace();
   const [error, setError] = useState("");
 
   return (
@@ -190,7 +194,8 @@ function LeaveDialog({
       onConfirm={async () => {
         setError("");
         try {
-          await leaveNs.mutateAsync(tenantId);
+          await leaveNamespace(tenantId);
+          logoutAndRedirect();
         } catch {
           setError("Failed to leave namespace.");
           throw new Error();
@@ -322,7 +327,7 @@ function BannerPreview({
 export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const { policies } = useAccessPolicies();
+  const { data: policies = [] } = useListAccessPolicies();
   const editNs = useEditNamespace();
   const setSshAccessMode = useSetSshAccessMode();
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -352,12 +357,13 @@ export default function Settings() {
     setTogglingRecord(true);
     editNs.mutate(
       {
-        path: { tenant: tenantId },
-        body: {
+        tenant: tenantId,
+        data: {
           settings: {
             session_record: !sessionRecord,
             connection_announcement: banner,
             ssh_access_mode: sshAccessMode,
+            ssh_legacy_allowed: sshLegacyAllowed,
           },
         },
       },
@@ -370,8 +376,8 @@ export default function Settings() {
     setSwitchingAccessMode(true);
     setSshAccessMode.mutate(
       {
-        path: { tenant: tenantId },
-        body: { ssh_access_mode: mode },
+        tenant: tenantId,
+        data: { ssh_access_mode: mode },
       },
       { onSettled: () => setSwitchingAccessMode(false) },
     );

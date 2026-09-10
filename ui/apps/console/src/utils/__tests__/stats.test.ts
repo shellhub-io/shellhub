@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { hasAnyDevices } from "../stats";
-import type { GetStatusDevicesResponse } from "@/client";
+import type { GetStatusDevices200 as GetStatusDevicesResponse } from "@/client/model";
 
 const emptyStats: GetStatusDevicesResponse = {
   registered_devices: 0,

@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { paginatedResponse, mockSdkResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { defaultConfig, getConfig } from "@/env";
-import NamespaceSelector from "../NamespaceSelector";
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespaces: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
+import NamespaceSelector from "../NamespaceSelector";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -38,10 +32,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
-  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/namespaces", () => jsonWithTotal([])),
+    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
   );
 });
 

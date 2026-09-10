@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { FirewallRulesRequest, FirewallRulesResponse } from "@/client";
+import type { FirewallRulesRequest, FirewallRulesResponse } from "@/client/model";
 
 function isValidRegex(pattern: string): boolean {
   try {

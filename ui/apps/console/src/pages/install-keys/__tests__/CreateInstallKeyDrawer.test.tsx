@@ -1,19 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import CreateInstallKeyDrawer from "../CreateInstallKeyDrawer";
-import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { mockTags } from "@/tests/mockTags";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    installKeyCreate: vi.fn(),
-    getTags: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -40,9 +33,11 @@ describe("CreateInstallKeyDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     seedAuthStore({ tenant: "00000000-0000-4000-0000-000000000000" });
-    mockTags([]);
-    sdk.installKeyCreate.mockResolvedValue(
-      mockSdkResponse({ key: GENERATED_KEY }),
+    server.use(
+      http.get("*/api/tags", () => jsonWithTotal([])),
+      http.post("*/api/namespaces/install-key", () =>
+        HttpResponse.json({ key: GENERATED_KEY }),
+      ),
     );
   });
 

@@ -2,31 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import type { Device } from "@/client";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
+import type { Device } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import {
   mockDevice as mockDeviceFactory,
   mockNamespace,
 } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDevice: vi.fn(),
-    updateDevice: vi.fn(),
-    createTag: vi.fn(),
-    pushTagToDevice: vi.fn(),
-    pullTagFromDevice: vi.fn(),
-    deleteDevice: vi.fn(),
-    setDeviceCustomField: vi.fn(),
-    deleteDeviceCustomField: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-    getTags: vi.fn(),
-    installKeyList: vi.fn(),
-  }),
-);
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (
@@ -112,6 +96,17 @@ function makeDevice(overrides: Partial<Device> = {}): Device {
   });
 }
 
+const setCustomFieldSpy = vi.fn();
+const deleteCustomFieldSpy = vi.fn();
+
+function setDevice(device: Device | null) {
+  server.use(
+    http.get("*/api/devices/:uid", () =>
+      device ? HttpResponse.json(device) : HttpResponse.json(null),
+    ),
+  );
+}
+
 function renderPage() {
   return render(<DeviceDetails />, {
     wrapper: createTestWrapper({ initialEntries: ["/devices/test-uid"] }),
@@ -121,20 +116,47 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.getDevice.mockResolvedValue(mockSdkResponse(null));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  setCustomFieldSpy.mockReset();
+  deleteCustomFieldSpy.mockReset();
+  server.use(
+    http.get("*/api/devices/:uid", () => HttpResponse.json(null)),
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
+    ),
+    http.get("*/api/tags", () => HttpResponse.json([])),
+    http.get("*/api/namespaces/install-key", () => jsonWithTotal([], 0)),
+    http.put("*/api/devices/:uid", () =>
+      new HttpResponse(null, { status: 204 }),
+    ),
+    http.post("*/api/tags", () =>
+      new HttpResponse(null, { status: 204 }),
+    ),
+    http.post("*/api/devices/:uid/tags/:name", () =>
+      new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete("*/api/devices/:uid/tags/:name", () =>
+      new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete("*/api/devices/:uid", () =>
+      new HttpResponse(null, { status: 204 }),
+    ),
+    http.put("*/api/devices/:uid/custom_fields/:key", async ({ request, params }) => {
+      setCustomFieldSpy({
+        path: { uid: params.uid, key: params.key },
+        body: await request.json(),
+      });
+      return new HttpResponse(null, { status: 204 });
+    }),
+    http.delete("*/api/devices/:uid/custom_fields/:key", ({ params }) => {
+      deleteCustomFieldSpy({
+        path: { uid: params.uid, key: params.key },
+      });
+      return new HttpResponse(null, { status: 204 });
+    }),
   );
-  sdk.getTags.mockResolvedValue(mockSdkResponse([]));
-  sdk.installKeyList.mockResolvedValue(paginatedResponse([]));
-  sdk.updateDevice.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pushTagToDevice.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pullTagFromDevice.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.deleteDevice.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.setDeviceCustomField.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.deleteDeviceCustomField.mockResolvedValue(mockSdkResponse(undefined));
   mockRequestAction.mockReset();
   mockNavigate.mockReset();
   capturedOnSuccess = undefined;
@@ -143,7 +165,9 @@ beforeEach(() => {
 describe("DeviceDetails", () => {
   describe("loading state", () => {
     it("renders a spinner while loading", () => {
-      sdk.getDevice.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/devices/:uid", () => new Promise(() => {})),
+      );
       renderPage();
       expect(document.querySelector(".animate-spin")).toBeInTheDocument();
     });
@@ -151,7 +175,7 @@ describe("DeviceDetails", () => {
 
   describe("device data", () => {
     beforeEach(() => {
-      sdk.getDevice.mockResolvedValue(mockSdkResponse(makeDevice()));
+      setDevice(makeDevice());
     });
 
     it("renders the device name as a heading", async () => {
@@ -179,10 +203,8 @@ describe("DeviceDetails", () => {
 
   describe("custom fields section", () => {
     it("renders key-value pairs when custom fields are present", async () => {
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(
-          makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
-        ),
+      setDevice(
+        makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
       );
       renderPage();
       expect(await screen.findByText("env:")).toBeInTheDocument();
@@ -192,9 +214,7 @@ describe("DeviceDetails", () => {
     });
 
     it("renders the add form inputs", async () => {
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ custom_fields: {} })),
-      );
+      setDevice(makeDevice({ custom_fields: {} }));
       renderPage();
       expect(await screen.findByPlaceholderText("key")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("value")).toBeInTheDocument();
@@ -202,9 +222,7 @@ describe("DeviceDetails", () => {
 
     it("shows delete confirmation when the remove button is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ custom_fields: { env: "production" } })),
-      );
+      setDevice(makeDevice({ custom_fields: { env: "production" } }));
       renderPage();
       await screen.findByText("env:");
 
@@ -220,9 +238,7 @@ describe("DeviceDetails", () => {
 
     it("hides the confirmation when 'No' is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ custom_fields: { env: "production" } })),
-      );
+      setDevice(makeDevice({ custom_fields: { env: "production" } }));
       renderPage();
       await screen.findByText("env:");
 
@@ -237,12 +253,10 @@ describe("DeviceDetails", () => {
 
     it("calls deleteDeviceCustomField when 'Yes' is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(
-          makeDevice({
-            custom_fields: { env: "production", owner: "team-a" },
-          }),
-        ),
+      setDevice(
+        makeDevice({
+          custom_fields: { env: "production", owner: "team-a" },
+        }),
       );
       renderPage();
       await screen.findByText("env:");
@@ -253,7 +267,7 @@ describe("DeviceDetails", () => {
       await user.click(xBtn);
       await user.click(screen.getByText("Yes"));
 
-      expect(sdk.deleteDeviceCustomField).toHaveBeenCalledWith(
+      expect(deleteCustomFieldSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           path: expect.objectContaining({ uid: "test-uid", key: "env" }),
         }),
@@ -262,16 +276,14 @@ describe("DeviceDetails", () => {
 
     it("calls setDeviceCustomField when add form is submitted via Enter key", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ custom_fields: {} })),
-      );
+      setDevice(makeDevice({ custom_fields: {} }));
       renderPage();
       await screen.findByPlaceholderText("key");
 
       await user.type(screen.getByPlaceholderText("key"), "region");
       await user.type(screen.getByPlaceholderText("value"), "us-east{Enter}");
 
-      expect(sdk.setDeviceCustomField).toHaveBeenCalledWith(
+      expect(setCustomFieldSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           path: expect.objectContaining({ uid: "test-uid", key: "region" }),
           body: { value: "us-east" },
@@ -281,9 +293,7 @@ describe("DeviceDetails", () => {
 
     it("shows an error when trying to add a duplicate key", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ custom_fields: { env: "production" } })),
-      );
+      setDevice(makeDevice({ custom_fields: { env: "production" } }));
       renderPage();
       await screen.findByPlaceholderText("key");
 
@@ -291,16 +301,14 @@ describe("DeviceDetails", () => {
       await user.type(screen.getByPlaceholderText("value"), "staging{Enter}");
 
       expect(screen.getByText("This key already exists.")).toBeInTheDocument();
-      expect(sdk.setDeviceCustomField).not.toHaveBeenCalled();
+      expect(setCustomFieldSpy).not.toHaveBeenCalled();
     });
   });
 
   describe("action buttons delegate to useDeviceActions", () => {
     it("calls requestAction('accept') when Accept is clicked on a pending device", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ status: "pending", online: false })),
-      );
+      setDevice(makeDevice({ status: "pending", online: false }));
       renderPage();
 
       await user.click(await screen.findByRole("button", { name: /Accept/i }));
@@ -313,9 +321,7 @@ describe("DeviceDetails", () => {
 
     it("calls requestAction('reject') when Reject is clicked on a pending device", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ status: "pending", online: false })),
-      );
+      setDevice(makeDevice({ status: "pending", online: false }));
       renderPage();
 
       await user.click(await screen.findByRole("button", { name: /Reject/i }));
@@ -328,9 +334,7 @@ describe("DeviceDetails", () => {
 
     it("calls requestAction('remove') when Remove is clicked on a rejected device", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ status: "rejected", online: false })),
-      );
+      setDevice(makeDevice({ status: "rejected", online: false }));
       renderPage();
 
       await user.click(await screen.findByRole("button", { name: /Remove/i }));
@@ -343,9 +347,7 @@ describe("DeviceDetails", () => {
 
     it("calls requestAction('remove') when the Delete device trash button is clicked on an accepted device", async () => {
       const user = userEvent.setup();
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ status: "accepted", online: true })),
-      );
+      setDevice(makeDevice({ status: "accepted", online: true }));
       renderPage();
 
       await user.click(
@@ -361,7 +363,7 @@ describe("DeviceDetails", () => {
 
   describe("onSuccess callback wiring", () => {
     it("navigates to /devices when onSuccess is called with action 'remove'", async () => {
-      sdk.getDevice.mockResolvedValue(mockSdkResponse(makeDevice()));
+      setDevice(makeDevice());
       renderPage();
       await screen.findByRole("heading", { name: "my-device" });
 
@@ -372,9 +374,7 @@ describe("DeviceDetails", () => {
     });
 
     it("does NOT navigate when onSuccess is called with a non-remove action", async () => {
-      sdk.getDevice.mockResolvedValue(
-        mockSdkResponse(makeDevice({ status: "pending", online: false })),
-      );
+      setDevice(makeDevice({ status: "pending", online: false }));
       renderPage();
       await screen.findByRole("heading", { name: "my-device" });
 

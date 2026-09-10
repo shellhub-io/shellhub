@@ -3,6 +3,7 @@ import {
   KeyboardEvent,
   startTransition,
   useId,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -20,12 +21,10 @@ import LastSeenCell from "../common/LastSeenCell";
 import SearchField from "@/components/common/fields/SearchField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import {
-  useChoiceDevices,
-  useSuggestedDevices,
-} from "@/hooks/useDeviceChooser";
+import { useChoiceDevices, useGetDevicesMostUsed } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
 import { cn } from "@shellhub/design-system/cn";
@@ -71,11 +70,13 @@ export default function DeviceChooserDialog({
   const allPanelId = useId();
 
   const choice = useChoiceDevices();
-  const {
-    devices: suggested,
-    isLoading: suggestedLoading,
-    error: suggestedError,
-  } = useSuggestedDevices(open);
+  const suggestedQuery = useGetDevicesMostUsed({ query: { enabled: open } });
+  const suggested = useMemo(
+    () => (suggestedQuery.data ?? []).map(normalizeDeviceTags),
+    [suggestedQuery.data],
+  );
+  const suggestedLoading = suggestedQuery.isLoading;
+  const suggestedError = suggestedQuery.error;
 
   const suggestedEmpty =
     !suggestedLoading && !suggestedError && suggested.length === 0;
@@ -148,7 +149,7 @@ export default function DeviceChooserDialog({
         (d) => d.uid,
       );
       if (choices.length === 0) return;
-      await choice.mutateAsync({ body: { choices } });
+      await choice.mutateAsync({ data: { choices } });
       onClose();
     } catch (err) {
       const status = isSdkError(err) ? err.status : undefined;
@@ -412,7 +413,9 @@ const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
         onKeyDown={onKeyDown}
         className={cn(
           "relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md",
-          selected ? "text-text-primary" : "text-text-muted hover:text-text-secondary",
+          selected
+            ? "text-text-primary"
+            : "text-text-muted hover:text-text-secondary",
           disabled && "opacity-40 cursor-not-allowed hover:text-text-muted",
         )}
       >

@@ -1,18 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import { createTestWrapper } from "@/tests/wrapper";
-import { paginatedResponse, mockSdkResponse } from "@/tests/sdk";
-import { mockNamespace } from "@/tests/factories";
+import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import NamespaceGuard from "../NamespaceGuard";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespaces: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("../CreateNamespace", () => ({
   default: () => <div data-testid="create-namespace" />,
@@ -24,9 +18,11 @@ vi.mock("@/components/layout/UserMenu", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token" }),
+  server.use(
+    http.get("*/api/namespaces", () => jsonWithTotal([])),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json(mockUserAuth({ token: "jwt-token" })),
+    ),
   );
   useConnectivityStore.getState().markUp();
 });
@@ -48,13 +44,13 @@ function renderGuard(initialPath = "/dashboard") {
 describe("NamespaceGuard", () => {
   describe("loading state", () => {
     it("shows a loading spinner while namespaces are not yet loaded", () => {
-      sdk.getNamespaces.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
       renderGuard();
       expect(screen.getByText(/loading/i)).toBeInTheDocument();
     });
 
     it("does not render the outlet while loading", () => {
-      sdk.getNamespaces.mockReturnValue(new Promise(() => {}));
+      server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
       renderGuard();
       expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
     });
@@ -62,16 +58,20 @@ describe("NamespaceGuard", () => {
 
   describe("with namespaces", () => {
     it("renders the outlet when namespaces exist", async () => {
-      sdk.getNamespaces.mockResolvedValue(
-        paginatedResponse([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
+      server.use(
+        http.get("*/api/namespaces", () =>
+          jsonWithTotal([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
+        ),
       );
       renderGuard();
       expect(await screen.findByText("dashboard content")).toBeInTheDocument();
     });
 
     it("does not show the create-namespace screen when namespaces exist", async () => {
-      sdk.getNamespaces.mockResolvedValue(
-        paginatedResponse([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
+      server.use(
+        http.get("*/api/namespaces", () =>
+          jsonWithTotal([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
+        ),
       );
       renderGuard();
       expect(await screen.findByText("dashboard content")).toBeInTheDocument();

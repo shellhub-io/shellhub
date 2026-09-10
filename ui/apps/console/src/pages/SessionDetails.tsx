@@ -21,18 +21,18 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import { useSession } from "../hooks/useSession";
 import {
-  useCloseSession,
-  useDeleteSessionRecording,
-} from "../hooks/useSessionMutations";
+  useGetSession,
+  useClsoeSession,
+  useDeleteSessionRecord,
+} from "@/client/api";
 import { useSessionRecording } from "../hooks/useSessionRecording";
 import SessionPlayerDialog from "./sessions/SessionPlayerDialog";
 import CopyButton from "../components/common/CopyButton";
 import DeviceChip from "../components/common/DeviceChip";
 import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
-import type { Session } from "../client";
+import type { Session } from "@/client/model";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import ConfirmDialog from "../components/common/ConfirmDialog";
@@ -249,9 +249,9 @@ function DurationStat({
  */
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
-  const { session, isLoading, error } = useSession(uid!);
-  const closeSession = useCloseSession();
-  const deleteRecording = useDeleteSessionRecording();
+  const { data: session, isLoading, error } = useGetSession(uid ?? "");
+  const closeSession = useClsoeSession();
+  const deleteRecording = useDeleteSessionRecord();
   const {
     logs: sessionLogs,
     isLoading: logsLoading,
@@ -275,7 +275,7 @@ export default function SessionDetails() {
   const handleDeleteLogs = async () => {
     setDeleteLogsError(null);
     try {
-      await deleteRecording.mutateAsync(uid!);
+      await deleteRecording.mutateAsync({ uid: uid!, seat: 0 });
       setShowDeleteLogs(false);
     } catch {
       setDeleteLogsError("Failed to delete recording. Check your permissions.");
@@ -287,8 +287,8 @@ export default function SessionDetails() {
     setCloseError(null);
     try {
       await closeSession.mutateAsync({
-        path: { uid },
-        body: { device: session.device_uid ?? session.device?.uid ?? "" },
+        uid,
+        data: { device: session.device_uid ?? session.device?.uid ?? "" },
       });
       setShowClose(false);
     } catch {

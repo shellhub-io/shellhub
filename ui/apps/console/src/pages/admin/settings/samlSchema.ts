@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GetAuthenticationSettingsResponse } from "@/client";
+import type { GetAuthenticationSettings200 as GetAuthenticationSettingsResponse } from "@/client/model";
 
 /**
  * The stored SAML configuration, taken from the generated response type so the form and the API

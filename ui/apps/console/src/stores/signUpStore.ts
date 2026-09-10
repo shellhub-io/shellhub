@@ -4,7 +4,7 @@ import {
   registerUser,
   resendEmail as resendEmailSdk,
   getValidateAccount,
-} from "../client";
+} from "@/client/api";
 
 /**
  * Where an email verification stands. failed-token is separate from failed because an expired
@@ -62,17 +62,13 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   signUp: async (payload) => {
     set({ signUpLoading: true, signUpError: null, signUpServerFields: [], signUpToken: null, signUpTenant: null });
     try {
-      const { data } = await registerUser({
-        body: payload,
-        throwOnError: true,
-      });
-      const response = (data ?? {}) as { token?: string; tenant?: string };
+      const response = await registerUser(payload);
       set({
         signUpLoading: false,
-        signUpToken: response.token ?? null,
-        signUpTenant: response.tenant ?? null,
+        signUpToken: response?.token ?? null,
+        signUpTenant: response?.tenant ?? null,
       });
-      return response.token ?? null;
+      return response?.token ?? null;
     } catch (error: unknown) {
       const fields = Object.keys(apiErrorFields(error));
       if (fields.length > 0) {
@@ -95,7 +91,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   resendEmail: async (username) => {
     set({ resendLoading: true, resendError: null });
     try {
-      await resendEmailSdk({ body: { username }, throwOnError: true });
+      await resendEmailSdk({ username });
       set({ resendLoading: false });
       return true;
     } catch {
@@ -107,7 +103,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   validateAccount: async (email, token, signal) => {
     set({ validationStatus: "processing" });
     try {
-      await getValidateAccount({ query: { email, token }, signal, throwOnError: true });
+      await getValidateAccount({ email, token }, { signal });
       set({ validationStatus: "success" });
     } catch (error: unknown) {
       if (signal?.aborted) return;

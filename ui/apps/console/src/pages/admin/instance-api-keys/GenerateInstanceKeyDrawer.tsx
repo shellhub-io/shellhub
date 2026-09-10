@@ -3,7 +3,7 @@ import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Card, Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateInstanceApiKey } from "@/hooks/useInstanceApiKeyMutations";
+import { useCreateInstanceAPIKey } from "@/client/api";
 import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
 import {
@@ -33,7 +33,7 @@ function GenerateInstanceKeyDrawer({
   open: boolean;
   onClose: () => void;
 }) {
-  const createKey = useCreateInstanceApiKey();
+  const createKey = useCreateInstanceAPIKey();
   const form = useDrawerForm(
     open,
     generateInstanceKeySchema,
@@ -55,7 +55,7 @@ function GenerateInstanceKeyDrawer({
     clearErrors("root");
     try {
       const result = await createKey.mutateAsync({
-        body: buildGenerateInstanceKeyBody({
+        data: buildGenerateInstanceKeyBody({
           name: values.name,
           expiresAt: values.expiresAt,
         }),

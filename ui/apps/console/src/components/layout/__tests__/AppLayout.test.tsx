@@ -1,20 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { paginatedResponse, mockSdkResponse } from "@/tests/sdk";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
 import AppLayout from "../AppLayout";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespaces: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
@@ -66,10 +59,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
-  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/namespaces", () => jsonWithTotal([])),
+    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
   );
 });
 
@@ -85,15 +80,18 @@ function renderLayout() {
 describe("AppLayout", () => {
   describe("Sidebar", () => {
     it("renders when namespaces exist", async () => {
-      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
       renderLayout();
       expect(await screen.findByTestId("sidebar")).toBeInTheDocument();
     });
 
     it("is hidden when there are no namespaces", async () => {
       renderLayout();
-      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
-      expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -104,7 +102,9 @@ describe("AppLayout", () => {
     });
 
     it("renders alongside the sidebar when namespaces exist", async () => {
-      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
       renderLayout();
       expect(await screen.findByTestId("sidebar")).toBeInTheDocument();
       expect(screen.getByTestId("app-bar")).toBeInTheDocument();
@@ -149,7 +149,9 @@ describe("AppLayout", () => {
     });
 
     it("renders the skip link when the sidebar is visible", async () => {
-      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
       renderLayout();
       expect(
         await screen.findByRole("link", { name: /skip to main content/i }),
@@ -172,7 +174,7 @@ describe("AppLayout", () => {
 
     it("does not mount the enterprise banners on a community instance", async () => {
       renderLayout();
-      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
+      await screen.findByTestId("app-bar");
       expect(
         screen.queryByTestId("device-limit-banner"),
       ).not.toBeInTheDocument();
@@ -182,7 +184,7 @@ describe("AppLayout", () => {
     it("does not mount the enterprise banners in a cloud instance", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       renderLayout();
-      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
+      await screen.findByTestId("app-bar");
       expect(
         screen.queryByTestId("device-limit-banner"),
       ).not.toBeInTheDocument();
