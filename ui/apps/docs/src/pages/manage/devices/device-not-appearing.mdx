@@ -11,10 +11,11 @@ import Callout from "../../../components/Callout.astro";
 The agent is installed and the device is not where you expect. Work down this page in order — it
 goes from most to least common.
 
-## Is it in Pending?
+## Is it waiting to be accepted?
 
-Check the **Pending** tab before anything else. A device enrolled with only a tenant ID lands
-there and waits to be accepted. It is not broken; it is queued.
+Check **Install Keys** before anything else. A device enrolled with only a tenant ID waits for a
+decision on the key that registered it, and each key's row says how many are waiting. It is not
+broken; it is queued.
 
 Accept it and it comes online. To stop needing to, use an
 [install key](/manage/devices/install-keys). See
