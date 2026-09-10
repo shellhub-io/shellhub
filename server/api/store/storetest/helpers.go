@@ -187,6 +187,13 @@ func WithDeviceStatus(status models.DeviceStatus) DeviceOption {
 	}
 }
 
+// WithDeviceInstallKey attributes the device to the install key with the given digest
+func WithDeviceInstallKey(digest string) DeviceOption {
+	return func(d *models.Device) {
+		d.InstallKeyID = digest
+	}
+}
+
 // WithDevicePublicKey sets the device public key
 func WithDevicePublicKey(publicKey string) DeviceOption {
 	return func(d *models.Device) {

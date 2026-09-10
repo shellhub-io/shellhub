@@ -63,6 +63,11 @@ properties:
     type: integer
     description: How many devices have registered with the key.
     example: 3
+  pending_devices:
+    type: integer
+    description: How many devices the key registered that are still awaiting a decision.
+    minimum: 0
+    example: 1
   last_used_at:
     type: string
     format: date-time

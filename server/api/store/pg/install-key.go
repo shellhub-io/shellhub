@@ -75,6 +75,13 @@ func (pg *Pg) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *m
 	return conflicts, len(conflicts) > 0, nil
 }
 
+const pendingDevicesExpr = `(
+	SELECT COUNT(*) FROM devices d
+	WHERE d.install_key_id = install_key.key_digest
+	  AND d.namespace_id = install_key.namespace_id
+	  AND d.status = 'pending'
+) AS pending_devices`
+
 // InstallKeyList implements [store.InstallKeyStore].
 func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
 	db := pg.GetConnection(ctx)
@@ -83,6 +90,8 @@ func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.
 
 	query := db.NewSelect().
 		Model(&entities).
+		ColumnExpr("install_key.*").
+		ColumnExpr(pendingDevicesExpr).
 		OrderExpr("(type = 'user') ASC, (type = 'pairing') ASC")
 	var err error
 	query, err = applyScopedOptions(ctx, query, sc, opts...)

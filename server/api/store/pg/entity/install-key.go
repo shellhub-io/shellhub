@@ -37,6 +37,8 @@ type InstallKey struct {
 	CreatedAt          time.Time  `bun:"created_at"`
 	UpdatedAt          time.Time  `bun:"updated_at"`
 	ExpiresAt          *time.Time `bun:"expires_at,nullzero"`
+	// PendingDevices is counted by InstallKeyList; it is not a stored column.
+	PendingDevices int `bun:"pending_devices,scanonly"`
 }
 
 // InstallKeyFromModel projects an install key into its row form.
@@ -100,6 +102,7 @@ func InstallKeyToModel(entity *InstallKey) *models.InstallKey {
 		Reusable:           entity.Reusable,
 		UsageLimit:         entity.UsageLimit,
 		UsedTimes:          entity.UsedTimes,
+		PendingDevices:     entity.PendingDevices,
 		LastUsedAt:         entity.LastUsedAt,
 		Ephemeral:          entity.Ephemeral,
 		EphemeralTimeout:   entity.EphemeralTimeout,
