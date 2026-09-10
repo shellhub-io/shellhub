@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { LABEL_BASE } from "@/utils/styles";
 import {
@@ -17,8 +22,10 @@ import {
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useInstallKeys } from "../hooks/useInstallKeys";
-import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
-import { DeprecatedBadge } from "@/pages/install-keys/StatusChip";
+import {
+  enrollmentSourceName,
+  resolveEnrollmentSource,
+} from "@/pages/install-keys/helpers";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import ActionDialog from "@/components/common/ActionDialog";
@@ -300,16 +307,13 @@ export default function DeviceDetails() {
           mac={device.identity?.mac ?? ""}
           remoteAddr={device.remote_addr ?? ""}
           registeredVia={
-            enrollment ? (
-              enrollment.kind === "legacy" ? (
-                <DeprecatedBadge />
-              ) : (
-                <span className="text-sm font-medium text-text-primary">
-                  {enrollment.kind === "pairing"
-                    ? "Pairing code"
-                    : enrollment.name}
-                </span>
-              )
+            enrollment && device.install_key_id ? (
+              <Link
+                to={`/install-keys/${encodeURIComponent(device.install_key_id)}/activity`}
+                className="text-sm font-medium text-text-primary hover:text-primary hover:underline"
+              >
+                {enrollmentSourceName(enrollment)}
+              </Link>
             ) : (
               <span className="text-sm text-text-muted">—</span>
             )
