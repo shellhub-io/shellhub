@@ -222,6 +222,14 @@
     );
   }
 
+  .usage-oversubscribed {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0 4px,
+      transparent 4px 8px
+    );
+  }
+
   /* Page transition fade */
   .page-enter {
     animation: pageEnter 1s ease-out;

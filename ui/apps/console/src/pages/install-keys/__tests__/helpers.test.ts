@@ -4,6 +4,7 @@ import {
   getExpiryInfo,
   getKeyBlockers,
   getUsageInfo,
+  getWaitingInfo,
   installKeyDisplayName,
   isPairingKey,
   isWebhookUrl,
@@ -235,5 +236,28 @@ describe("enrollment source", () => {
     expect(installKeyDisplayName(pairing)).toBe("Pairing code");
     expect(installKeyDisplayName(legacy)).toBe("Tenant-only registration");
     expect(installKeyDisplayName(real)).toBe("fleet");
+  });
+});
+
+describe("getWaitingInfo", () => {
+  it.each([
+    { usage_limit: 0, used_times: 40, pending_devices: 3, beyondLimit: 0 },
+    { usage_limit: 5, used_times: 1, pending_devices: 2, beyondLimit: 0 },
+    { usage_limit: 5, used_times: 3, pending_devices: 2, beyondLimit: 0 },
+    { usage_limit: 4, used_times: 3, pending_devices: 3, beyondLimit: 2 },
+    { usage_limit: 1, used_times: 1, pending_devices: 1, beyondLimit: 1 },
+  ])(
+    "leaves $beyondLimit of $pending_devices waiting beyond a limit of $usage_limit already $used_times spent",
+    ({ beyondLimit, ...rest }) => {
+      const info = getWaitingInfo(key(rest));
+
+      expect(info.waiting).toBe(rest.pending_devices);
+      expect(info.beyondLimit).toBe(beyondLimit);
+      expect(info.oversubscribed).toBe(beyondLimit > 0);
+    },
+  );
+
+  it("counts nothing waiting when the API omits the field", () => {
+    expect(getWaitingInfo(key({})).waiting).toBe(0);
   });
 });

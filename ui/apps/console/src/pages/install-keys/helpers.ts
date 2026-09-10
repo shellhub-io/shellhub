@@ -192,6 +192,28 @@ export interface UsageInfo {
 }
 
 /**
+ * The devices a key registered that still await a decision, and how many of them its allowance
+ * cannot take: accepting the queue spends the same budget an accepted device spent, so a key can
+ * hold more waiting devices than it can still admit.
+ */
+export interface WaitingInfo {
+  waiting: number;
+  beyondLimit: number;
+  oversubscribed: boolean;
+}
+
+/** Reads a key's waiting queue against its remaining allowance. */
+export function getWaitingInfo(key: InstallKey): WaitingInfo {
+  const waiting = key.pending_devices ?? 0;
+  const beyondLimit =
+    key.usage_limit > 0
+      ? Math.max(0, key.used_times + waiting - key.usage_limit)
+      : 0;
+
+  return { waiting, beyondLimit, oversubscribed: beyondLimit > 0 };
+}
+
+/**
  * Decode a key's enrollment budget for the usage meter. `usage_limit` is the
  * source of truth the API derives reusability from: 0 unlimited, 1 single-use,
  * N (>=2) limited to N devices.
