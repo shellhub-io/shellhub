@@ -147,31 +147,26 @@ jobs:
             gh api "repos/$REPO/issues/comments/$id" -X DELETE > /dev/null || true
           done
 
+      - name: Checkout trusted actions
+        if: steps.gate.outputs.proceed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: false
+          path: .actions
+
       - name: Determine cloud branch
         id: cloud-branch
         if: steps.gate.outputs.proceed == 'true'
-        env:
-          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          if [[ -n "$HEAD_REF" ]]; then
-            BRANCH="$HEAD_REF"
-          else
-            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
-              echo "::warning::Failed to resolve PR head ref name, falling back to master"
-              true
-            }
-            BRANCH="${BRANCH:-master}"
-          fi
-          if curl -sf -H "Authorization: Bearer $APP_TOKEN" \
-            "https://api.github.com/repos/shellhub-io/cloud/branches/$BRANCH" > /dev/null 2>&1; then
-            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=master" >> "$GITHUB_OUTPUT"
-          fi
+        uses: ./.actions/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/cloud
+          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          pr-repository: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          token: ${{ steps.app-token.outputs.token }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout cloud (context)
         if: steps.gate.outputs.proceed == 'true'
@@ -182,47 +177,6 @@ jobs:
           ref: ${{ steps.cloud-branch.outputs.ref }}
           fetch-depth: 1
           path: cloud
-
-      - name: Determine claude branch
-        id: claude-branch
-        if: steps.gate.outputs.proceed == 'true'
-        env:
-          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          if [[ -n "$HEAD_REF" ]]; then
-            BRANCH="$HEAD_REF"
-          else
-            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
-              echo "::warning::Failed to resolve PR head ref name, falling back to master"
-              true
-            }
-            BRANCH="${BRANCH:-master}"
-          fi
-          if curl -sf -H "Authorization: Bearer $APP_TOKEN" \
-            "https://api.github.com/repos/shellhub-io/claude/branches/$BRANCH" > /dev/null 2>&1; then
-            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=master" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout claude config
-        if: steps.gate.outputs.proceed == 'true'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: shellhub-io/claude
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ steps.claude-branch.outputs.ref }}
-          fetch-depth: 1
-          path: claude
-
-      - name: Setup workspace context
-        if: steps.gate.outputs.proceed == 'true'
-        run: |
-          "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
 
       - name: Check PR author team membership
         id: author-check
@@ -245,6 +199,34 @@ jobs:
             echo "::warning::Author team membership check returned HTTP $HTTP_STATUS for $PR_AUTHOR"
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Determine claude branch
+        id: claude-branch
+        if: steps.gate.outputs.proceed == 'true'
+        uses: ./.actions/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/claude
+          head-ref: ${{ steps.author-check.outputs.is_admin == 'true' && (github.head_ref || github.event.pull_request.head.ref) || '' }}
+          pr-repository: ${{ steps.author-check.outputs.is_admin == 'true' && github.repository || '' }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          token: ${{ steps.app-token.outputs.token }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout claude config
+        if: steps.gate.outputs.proceed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/claude
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+          ref: ${{ steps.claude-branch.outputs.ref }}
+          fetch-depth: 1
+          path: claude
+
+      - name: Setup workspace context
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
 
       - name: Load review procedure
         id: review-procedure
