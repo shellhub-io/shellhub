@@ -167,7 +167,8 @@ export default function InstallKeysTable({
     },
     {
       key: "usage",
-      header: "Usage limit",
+      header: "Usage",
+      headerClassName: "w-40",
       render: (key) => <UsageMeter installKey={key} muted />,
     },
     {
