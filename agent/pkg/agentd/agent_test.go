@@ -49,6 +49,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		err    error
 	}
 
+	corruptTenantKey := filepath.Join(t.TempDir(), "shellhub.key")
+
 	tests := []struct {
 		description   string
 		requiredMocks func()
@@ -138,10 +140,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			description: "fail to load the environment variables when the persisted tenant is not a uuid",
+			description: "fail to load the environment variables when the persisted tenant is not a uuid, naming its file",
 			requiredMocks: func() {
-				key := filepath.Join(t.TempDir(), "shellhub.key")
-				require.NoError(t, PersistTenant(TenantFilePath(key), "not-a-uuid"))
+				require.NoError(t, PersistTenant(TenantFilePath(corruptTenantKey), "not-a-uuid"))
 
 				envs := new(Config)
 
@@ -151,14 +152,14 @@ func TestLoadConfigFromEnv(t *testing.T) {
 
 					cfg.ServerAddress = "http://localhost"
 					cfg.TenantID = ""
-					cfg.PrivateKey = key
+					cfg.PrivateKey = corruptTenantKey
 					cfg.MaxRetryConnectionTimeout = 30
 				})
 			},
 			expected: expected{
 				cfg: nil,
 				fields: map[string]any{
-					"TenantID": "uuid",
+					TenantFilePath(corruptTenantKey): "uuid",
 				},
 				err: validator.ErrStructureInvalid,
 			},
@@ -837,6 +838,64 @@ func TestCredentialFieldsUseTheFieldNamesAFatalRefusalLogs(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			assert.Equal(t, test.expected, test.config.CredentialFields())
+		})
+	}
+}
+
+func TestInvalidConfigMessagesNamesTheEnvironmentVariable(t *testing.T) {
+	cases := []struct {
+		description string
+		fields      map[string]any
+		expected    []string
+	}{
+		{
+			description: "names the variable and spells out the rule",
+			fields:      map[string]any{"TenantID": "uuid"},
+			expected:    []string{"SHELLHUB_TENANT_ID must be a UUID"},
+		},
+		{
+			description: "reports a missing required variable",
+			fields:      map[string]any{"ServerAddress": "required"},
+			expected:    []string{"SHELLHUB_SERVER_ADDRESS is required"},
+		},
+		{
+			description: "reports a value outside its range",
+			fields:      map[string]any{"MaxRetryConnectionTimeout": "max"},
+			expected:    []string{"SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT is out of range"},
+		},
+		{
+			description: "orders the messages so a run is reproducible",
+			fields:      map[string]any{"TenantID": "uuid", "ServerAddress": "required"},
+			expected: []string{
+				"SHELLHUB_SERVER_ADDRESS is required",
+				"SHELLHUB_TENANT_ID must be a UUID",
+			},
+		},
+		{
+			description: "falls back to the field name when it reads no environment variable",
+			fields:      map[string]any{"Version": "required"},
+			expected:    []string{"Version is required"},
+		},
+		{
+			description: "names a persisted tenant's file as the setting to fix",
+			fields:      map[string]any{"/etc/shellhub.key.tenant": "uuid"},
+			expected:    []string{"/etc/shellhub.key.tenant must be a UUID"},
+		},
+		{
+			description: "falls back to the rule's name when it has no plain wording",
+			fields:      map[string]any{"TenantID": "startswith"},
+			expected:    []string{"SHELLHUB_TENANT_ID is invalid (startswith)"},
+		},
+		{
+			description: "reports nothing when nothing failed",
+			fields:      nil,
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.Equal(t, tc.expected, InvalidConfigMessages[Config](tc.fields))
 		})
 	}
 }

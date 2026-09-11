@@ -143,7 +143,7 @@ observe_enrollment() {
       return 0
       ;;
     *"Failed to load the configuration"*)
-      _INVALID=$(echo "$_OBSERVED" | sed -n 's/.*msg="\(SHELLHUB_[^"]*\)".*/\1/p' | awk '!seen[$0]++')
+      _INVALID=$(echo "$_OBSERVED" | sed -n -e 's/.*msg="\(SHELLHUB_[^"]*\)".*/\1/p' -e 's/.*msg="\(\/[^"]*\)".*/\1/p' | sed 's/^\/host\//\//' | awk '!seen[$0]++')
 
       echo "❌ The agent refused its own configuration:"
 

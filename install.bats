@@ -330,6 +330,19 @@ LOG
     refute_output_contains "has not enrolled yet"
 }
 
+@test "observe_enrollment names the host path of a persisted tenant the agent refused" {
+    stub_agent_log <<'LOG'
+time="now" level=error msg="/host/etc/shellhub.key.tenant must be a UUID"
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="invalid structure"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "   /etc/shellhub.key.tenant must be a UUID"
+    refute_output_contains "invalid structure"
+}
+
 @test "observe_enrollment names each refused setting once across agent restarts" {
     stub_agent_log <<'LOG'
 time="now" level=error msg="SHELLHUB_TENANT_ID must be a UUID"
