@@ -181,8 +181,6 @@ podman_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -268,8 +266,6 @@ docker_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
