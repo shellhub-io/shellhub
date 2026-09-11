@@ -150,6 +150,34 @@ enter_wsl() {
     [ "$output" = "none — enroll with 'shellhub-agent login'" ]
 }
 
+@test "enrollment_summary reports a tenant a previous enrollment left behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+
+    call_install enrollment_summary
+
+    [ "$output" = "tenant 00000000-0000-4000-0000-000000000000 (persisted by a previous enrollment)" ]
+}
+
+@test "enrollment_summary prefers a tenant given to this run over the persisted one" {
+    with_tenant
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+
+    call_install enrollment_summary
+
+    [ "$output" = "tenant $TENANT_ID (device lands pending)" ]
+}
+
+@test "enrollment_summary reads the tenant file a container install names under /host" {
+    export PRIVATE_KEY="/host$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+
+    call_install enrollment_summary
+
+    [ "$output" = "tenant 00000000-0000-4000-0000-000000000000 (persisted by a previous enrollment)" ]
+}
+
 @test "enroll_agent_interactively runs the login flow when no credential names a namespace" {
     stub_bin shellhub-agent
 
@@ -209,6 +237,18 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
     assert_output_contains "install key's namespace"
+}
+
+@test "enroll_agent_interactively skips the login flow for a persisted tenant" {
+    echo "00000000-0000-4000-0000-000000000000" > "$AGENT_KEY.tenant"
+    export PRIVATE_KEY="$AGENT_KEY"
+    stub_bin shellhub-agent
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
+
+    [ "$status" -eq 0 ]
+    refute_called "shellhub-agent"
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
 }
 
 @test "enroll_agent_interactively skips the login flow for a tenant" {

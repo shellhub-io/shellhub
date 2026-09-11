@@ -68,13 +68,31 @@ EOF
 # Names the credential that will put this device in a namespace, in the same order
 # enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
 # is visible then, rather than only in the agent's log once it is already running.
+tenant_file() {
+  _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
+
+  echo "${_KEY#/host}.tenant"
+}
+
+persisted_tenant() {
+  _TENANT_FILE=$(tenant_file)
+
+  [ -r "$_TENANT_FILE" ] || return 0
+
+  head -n 1 "$_TENANT_FILE" | tr -d ' \t\r\n'
+}
+
 enrollment_summary() {
+  _PERSISTED=$(persisted_tenant)
+
   if [ -n "$CODE" ]; then
     echo "pairing code (pre-authorized)"
   elif [ -n "$INSTALL_KEY" ]; then
     echo "install key"
   elif [ -n "$TENANT_ID" ]; then
     echo "tenant $TENANT_ID (device lands pending)"
+  elif [ -n "$_PERSISTED" ]; then
+    echo "tenant $_PERSISTED (persisted by a previous enrollment)"
   else
     echo "none — enroll with 'shellhub-agent login'"
   fi
@@ -113,6 +131,16 @@ enroll_agent_interactively() {
   if [ -n "$TENANT_ID" ]; then
     echo ""
     echo "The device will appear as pending in the console — accept it there."
+
+    return 0
+  fi
+
+  _PERSISTED=$(persisted_tenant)
+
+  if [ -n "$_PERSISTED" ]; then
+    echo ""
+    echo "The device will enroll into tenant $_PERSISTED, remembered at $(tenant_file)."
+    echo "Delete that file to enroll it somewhere else."
 
     return 0
   fi
