@@ -74,7 +74,6 @@ func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer, banners
 		User:            sshid,
 		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
-		Timeout:         15 * time.Second,
 	}
 
 	if banners != nil {
