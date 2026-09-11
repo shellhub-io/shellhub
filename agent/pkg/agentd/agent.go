@@ -95,7 +95,7 @@ type Config struct {
 	// It is optional: when empty (and no tenant was persisted from a previous
 	// pairing), the agent boots into pairing mode and waits for a user to
 	// accept it into a namespace, learning the tenant from the server.
-	TenantID string `env:"TENANT_ID"`
+	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
 
 	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
 	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
@@ -164,7 +164,11 @@ func (c *Config) HasNamespaceCredential() bool {
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
 // variables, falling back to the .env file next to the binary when one is present.
 //
-// The second return value carries the environment as parsed, for callers that log it.
+// A tenant persisted by a previous pairing is adopted before validation, so a malformed tenant is
+// refused whether it came from the environment or from the file, rather than being carried into an
+// authorization the server can only reject.
+//
+// The second return value carries the fields that failed validation, for callers that log them.
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
@@ -173,12 +177,6 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		log.Error("failed to parse the configuration")
 
 		return nil, nil, err
-	}
-
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
-		return nil, fields, err
 	}
 
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
@@ -192,6 +190,12 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 				"persisted_tenant": persisted,
 			}).Warn("tenant from environment overrides the tenant persisted by pairing")
 		}
+	}
+
+	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
+
+		return nil, fields, err
 	}
 
 	return cfg, nil, nil
