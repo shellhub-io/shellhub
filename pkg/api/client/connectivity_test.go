@@ -287,3 +287,40 @@ func TestAuthorizationKeepsRetryingWithinItsDeadline(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, response)
 }
+
+func TestAPersistentRefusalKeepsBeingReported(t *testing.T) {
+	backend, hook := logtest.NewNullLogger()
+	backend.SetLevel(logrus.DebugLevel)
+
+	cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries(), WithLogger(backend), WithAuthorizationDeadline(time.Hour))
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	attempts := 0
+	accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+	mock.RegisterResponder("POST", "/api/devices/auth", func(r *http.Request) (*http.Response, error) {
+		attempts++
+		if attempts > 25 {
+			return accepted(r)
+		}
+
+		return mock.NewStringResponse(http.StatusNotFound, `{"message":"namespace not found"}`), nil
+	})
+
+	_, err = cli.AuthDevice(authRequest())
+	require.NoError(t, err)
+
+	surfaced := 0
+	for _, entry := range hook.AllEntries() {
+		if entry.Level == logrus.WarnLevel && strings.Contains(entry.Message, "Cannot authorize the device") {
+			surfaced++
+		}
+	}
+
+	assert.Greater(t, surfaced, 1, "a refusal that keeps repeating must not decay to silence")
+}
