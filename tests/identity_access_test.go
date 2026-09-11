@@ -180,7 +180,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		err := dialSSH(ctx, "localhost:"+compose.Env("SHELLHUB_SSH_PORT"), sshid, signer, nil)
 		require.Error(t, err)
 
-		awaitServerLogContains(t, ctx, compose, "reason=no_grant")
+		awaitServerLogContains(t, ctx, compose, "reason="+string(models.ReasonNoGrant))
 	})
 
 	t.Run("a deny policy beats the allow that would grant the owner", func(t *testing.T) {
@@ -204,7 +204,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		err := dialSSH(ctx, "localhost:"+compose.Env("SHELLHUB_SSH_PORT"), sshid, signer, nil)
 		require.Error(t, err)
 
-		awaitServerLogContains(t, ctx, compose, "reason=denied_by_policy")
+		awaitServerLogContains(t, ctx, compose, "reason="+string(models.ReasonDeniedByPolicy))
 	})
 
 	t.Run("a namespace with no policy at all refuses everyone", func(t *testing.T) {
