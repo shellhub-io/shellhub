@@ -467,6 +467,15 @@ standalone_install() {
   rm -rf "$TMP_DIR"
 }
 
+report_files_left_behind() {
+  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+
+  [ -n "$(persisted_tenant)" ] || return 0
+
+  echo "ℹ️ The namespace this device enrolled into is remembered in $(tenant_file)."
+  echo "   Remove it too, or a reinstall will enroll into the same namespace."
+}
+
 docker_uninstall() {
   _FSUDO=""
   [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
@@ -485,7 +494,7 @@ docker_uninstall() {
   fi
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 podman_uninstall() {
@@ -506,7 +515,7 @@ podman_uninstall() {
   fi
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 standalone_uninstall() {
@@ -532,7 +541,7 @@ standalone_uninstall() {
   $SUDO rm -f "$INSTALL_BIN"
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 wsl_install() {

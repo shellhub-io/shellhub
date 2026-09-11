@@ -736,6 +736,36 @@ enter_wsl() {
     assert_output_contains "not found (may already be removed)"
 }
 
+@test "uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
+}
+
+@test "uninstall names the tenant file a container install left behind under /host" {
+    export PRIVATE_KEY="/host$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    assert_output_contains "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+    [[ "$output" != *"/host$BATS_TEST_TMPDIR"* ]]
+}
+
+@test "uninstall stays quiet about a tenant file that is not there" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    [[ "$output" != *".tenant"* ]]
+}
+
 @test "standalone_uninstall reports a missing binary" {
     call_install standalone_uninstall
 
