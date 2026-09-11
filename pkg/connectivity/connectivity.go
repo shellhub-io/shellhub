@@ -44,9 +44,7 @@ func Recovered(logger logrus.FieldLogger, attempt int, elapsed time.Duration) {
 		Info("Recovered after retrying")
 }
 
-// refusalResurfaceEvery is how many attempts pass before an unchanged refusal is raised back to
-// warn level.
-const refusalResurfaceEvery int = 10
+const refusalResurfaceEvery = 10
 
 func refusalLevel(attempt int) logrus.Level {
 	if attempt%refusalResurfaceEvery == 1 {

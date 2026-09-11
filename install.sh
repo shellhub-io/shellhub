@@ -119,24 +119,12 @@ refusal_reason() {
   echo "$_LOG_LINE" | sed -e 's/\\"/@@Q@@/g' -e 's/.*error="\([^"]*\)".*/\1/' -e 's/@@Q@@/"/g'
 }
 
-# Enrolls a freshly installed agent. Without a tenant the device does not belong
-# to any namespace yet, so we run the login flow in the foreground: it prints the
-# accept URL (opening the browser when possible) and waits until a user accepts
-# the device into a namespace — no second command, no pending list to dig
-# through. With a tenant (fleet install) the device shows up pending and is
-# accepted in the console as before.
-#
-# $1: command that runs the agent, invoked as "<cmd> login". For container
-#     methods this is the wrapper (which execs into the container); for native
-#     methods it is the agent binary itself, possibly prefixed with sudo.
-# $2: host-visible path of the agent key to wait for before pairing.
-# $3: command that prints the agent's recent output, or empty when this runtime has none the
-#     installer can read.
 # observe_enrollment reports what the agent did with the credential rather than what the installer
 # predicted, so a device the server refuses is visible here instead of only in the agent's own log.
-# $1 is a command that prints the agent's recent output; empty means this runtime cannot be read
-# from the installer, and no outcome is claimed. A refusal is reported, never returned: the agent is
-# already installed and keeps retrying, so there is nothing for the caller to undo.
+# $1 is a command that prints the agent's recent output, left unquoted on purpose so the caller can
+# pass one with arguments; empty means this runtime cannot be read from the installer, and no
+# outcome is claimed. A refusal is reported, never returned: the agent is already installed and
+# keeps retrying, so there is nothing for the caller to undo.
 observe_enrollment() {
   _LOG_CMD="$1"
 
@@ -187,6 +175,19 @@ observe_enrollment() {
   esac
 }
 
+# Enrolls a freshly installed agent. Without a tenant the device does not belong
+# to any namespace yet, so we run the login flow in the foreground: it prints the
+# accept URL (opening the browser when possible) and waits until a user accepts
+# the device into a namespace — no second command, no pending list to dig
+# through. With a tenant (fleet install) the device shows up pending and is
+# accepted in the console as before.
+#
+# $1: command that runs the agent, invoked as "<cmd> login". For container
+#     methods this is the wrapper (which execs into the container); for native
+#     methods it is the agent binary itself, possibly prefixed with sudo.
+# $2: host-visible path of the agent key to wait for before pairing.
+# $3: command that prints the agent's recent output, or empty when this runtime has none the
+#     installer can read.
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
