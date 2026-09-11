@@ -168,6 +168,25 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.InstallKey != ""
 }
 
+func (c *Config) credential() string {
+	if c.TenantID == "" && c.InstallKey != "" {
+		return "the install key"
+	}
+
+	switch c.TenantOrigin {
+	case TenantFromEnvironment:
+		return fmt.Sprintf("the tenant %s from SHELLHUB_TENANT_ID", c.TenantID)
+	case TenantFromFile:
+		return fmt.Sprintf("the tenant %s persisted at %s", c.TenantID, TenantFilePath(c.PrivateKey))
+	case TenantFromPairing:
+		return fmt.Sprintf("the tenant %s learned from pairing", c.TenantID)
+	case TenantFromNowhere:
+		return "no namespace credential"
+	}
+
+	return fmt.Sprintf("the tenant %s", c.TenantID)
+}
+
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
 // variables, falling back to the .env file next to the binary when one is present.
 //
@@ -353,7 +372,7 @@ func (a *Agent) Authorize() error {
 	}
 
 	if err := a.authorize(); err != nil {
-		return errors.Wrap(err, "failed to authorize device")
+		return errors.Wrap(err, "failed to authorize device with "+a.config.credential())
 	}
 
 	if a.config.TenantID == "" {

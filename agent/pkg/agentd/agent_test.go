@@ -1,6 +1,8 @@
 package agentd
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"path/filepath"
 	"testing"
 
@@ -632,6 +634,64 @@ func TestLoadConfigFromEnvRecordsTenantOrigin(t *testing.T) {
 			cfg, _, err := LoadConfigFromEnv()
 			require.NoError(t, err)
 			assert.Equal(t, test.expected, cfg.TenantOrigin)
+		})
+	}
+}
+
+func TestAuthorizeNamesTheCredentialItWasRefusedFor(t *testing.T) {
+	refused := errors.New("namespace not found")
+
+	tests := []struct {
+		description string
+		config      *Config
+		expected    string
+	}{
+		{
+			description: "a tenant an operator supplied names the variable it came from",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromEnvironment,
+			},
+			expected: "SHELLHUB_TENANT_ID",
+		},
+		{
+			description: "a tenant left by a previous pairing names the file holding it",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromFile,
+				PrivateKey:   "/etc/shellhub.key",
+			},
+			expected: "/etc/shellhub.key.tenant",
+		},
+		{
+			description: "an install key is named rather than the tenant it would have resolved",
+			config: &Config{
+				InstallKey: "a-key",
+			},
+			expected: "install key",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			cli := new(client_mocks.MockClient)
+			cli.On("AuthDevice", mock.Anything).Return(nil, refused).Once()
+
+			key, err := rsa.GenerateKey(rand.Reader, 2048)
+			require.NoError(t, err)
+
+			agent := &Agent{
+				cli:      cli,
+				config:   test.config,
+				pubKey:   &key.PublicKey,
+				Info:     new(models.DeviceInfo),
+				Identity: &models.DeviceIdentity{MAC: "83:18:77:25:78:0d"},
+			}
+
+			err = agent.Authorize()
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), test.expected)
+			assert.ErrorIs(t, err, refused)
 		})
 	}
 }
