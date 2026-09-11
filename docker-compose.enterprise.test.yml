@@ -1,0 +1,11 @@
+services:
+  minio:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      start_period: 10s
+      retries: 20
+  server:
+    depends_on:
+      minio:
+        condition: service_healthy

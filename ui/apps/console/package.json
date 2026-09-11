@@ -7,8 +7,10 @@
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host",
-    "lint": "eslint src",
+    "lint": "eslint src e2e playwright.config.ts",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "e2e:browsers": "playwright install --with-deps chromium",
     "test:watch": "vitest",
     "generate": "../../scripts/generate-client.sh"
   },
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "1.62.1",
     "@tanstack/react-query-devtools": "^5.102.3",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.5",
