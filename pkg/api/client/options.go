@@ -3,6 +3,7 @@ package client
 import (
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/client/reverser"
 	"github.com/sirupsen/logrus"
@@ -81,6 +82,17 @@ func WithLogger(logger *logrus.Logger) Opt {
 func WithReverser(reverser reverser.Reverser) Opt {
 	return func(c *client) error {
 		c.reverser = reverser
+
+		return nil
+	}
+}
+
+// WithAuthorizationDeadline bounds how long AuthDevice keeps retrying a refusal, overriding
+// DefaultAuthorizationDeadline. Past it the refusal is returned to the caller instead, so a device
+// naming a namespace that will never exist reports itself rather than waiting forever.
+func WithAuthorizationDeadline(deadline time.Duration) Opt {
+	return func(c *client) error {
+		c.authDeadline = deadline
 
 		return nil
 	}

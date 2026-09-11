@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	mock "github.com/jarcoal/httpmock"
@@ -242,4 +243,47 @@ func TestTheServerAnswerIsBoundedBeforeItReachesTheLog(t *testing.T) {
 
 	assert.Less(t, len(reported.Error()), len(page))
 	assert.Contains(t, reported.Error(), "502")
+}
+
+func TestAuthorizationStopsRetryingAfterItsDeadline(t *testing.T) {
+	cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries(), WithAuthorizationDeadline(time.Nanosecond))
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	mock.RegisterResponder("POST", "/api/devices/auth",
+		mock.NewStringResponder(http.StatusNotFound, `{"message":"namespace not found"}`))
+
+	_, err = cli.AuthDevice(authRequest())
+	require.ErrorIs(t, err, ErrNotFound)
+
+	calls := 0
+	for _, count := range mock.GetCallCountInfo() {
+		calls += count
+	}
+
+	assert.Equal(t, 1, calls)
+}
+
+func TestAuthorizationKeepsRetryingWithinItsDeadline(t *testing.T) {
+	cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries(), WithAuthorizationDeadline(time.Hour))
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+	mock.RegisterResponder("POST", "/api/devices/auth",
+		mock.NewStringResponder(http.StatusNotFound, `{"message":"namespace not found"}`).Then(accepted))
+
+	response, err := cli.AuthDevice(authRequest())
+	require.NoError(t, err)
+	assert.NotNil(t, response)
 }
