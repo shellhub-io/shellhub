@@ -34,7 +34,11 @@ func main() {
 
 			cfg, fields, err := agentd.LoadConfigFromEnv()
 			if err != nil {
-				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(agentd.Config{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			cfg.Version = AgentVersion
@@ -227,9 +231,11 @@ func main() {
 
 			cfg, fields, err := LoadConfigConnectorFromEnv()
 			if err != nil {
-				log.WithError(err).
-					WithFields(fields).
-					Fatal("Failed to load de configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(ConfigConnector{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			logger := log.WithFields(
@@ -345,7 +351,11 @@ waits until the device is accepted, rejected, or the code expires.`,
 
 			cfg, fields, err := agentd.LoadConfigFromEnv()
 			if err != nil {
-				log.WithError(err).WithFields(fields).Fatal("Failed to load the configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(agentd.Config{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			cfg.Version = AgentVersion
