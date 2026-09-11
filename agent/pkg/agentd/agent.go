@@ -56,7 +56,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -198,7 +200,7 @@ func (c *Config) credential() string {
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
-	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+	cfg, err := envs.ParseWithPrefix[Config](envPrefix)
 	if err != nil {
 		log.Error("failed to parse the configuration")
 
@@ -223,12 +225,72 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	}
 
 	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
 		return nil, fields, err
 	}
 
 	return cfg, nil, nil
+}
+
+const envPrefix = "SHELLHUB_"
+
+// FatalInvalidConfig reports every invalid setting in fields by the environment variable an
+// operator sets, then exits the process. T is the configuration the fields came from. It does not
+// return.
+func FatalInvalidConfig[T any](fields map[string]any, err error) {
+	for _, message := range InvalidConfigMessages[T](fields) {
+		log.Error(message)
+	}
+
+	log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
+}
+
+// InvalidConfigMessages turns the field map [LoadConfigFromEnv] returns into one message per
+// invalid setting, naming the environment variable an operator sets rather than the struct field
+// the validator reported. T is the configuration the map came from, read for its env tags; a field
+// it does not carry is named as it stands. No value is ever included, because some settings are
+// credentials and a log line is not where those belong.
+func InvalidConfigMessages[T any](fields map[string]any) []string {
+	if len(fields) == 0 {
+		return nil
+	}
+
+	structure := reflect.TypeFor[T]()
+	messages := make([]string, 0, len(fields))
+
+	for field, rule := range fields {
+		messages = append(messages, configEnvName(structure, field)+" "+requirementOf(rule))
+	}
+
+	sort.Strings(messages)
+
+	return messages
+}
+
+func configEnvName(structure reflect.Type, field string) string {
+	structField, ok := structure.FieldByName(field)
+	if !ok {
+		return field
+	}
+
+	name, _, _ := strings.Cut(structField.Tag.Get("env"), ",")
+	if name == "" {
+		return field
+	}
+
+	return envPrefix + name
+}
+
+func requirementOf(rule any) string {
+	switch rule {
+	case "required":
+		return "is required"
+	case "uuid", "uuid4":
+		return "must be a UUID"
+	case "min", "max":
+		return "is out of range"
+	default:
+		return fmt.Sprintf("is invalid (%v)", rule)
+	}
 }
 
 // Agent is a device's connection to a ShellHub server: it authenticates, keeps the device
