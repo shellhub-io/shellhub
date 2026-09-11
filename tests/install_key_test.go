@@ -148,7 +148,10 @@ func TestInstallKeyEnrollment(t *testing.T) {
 
 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
 			state, err := agent.State(ctx)
-			assert.NoError(tt, err)
+			if !assert.NoError(tt, err) {
+				return
+			}
+
 			assert.False(tt, state.Running, "the agent should give up on a key the server refuses")
 		}, 30*time.Second, 1*time.Second)
 
