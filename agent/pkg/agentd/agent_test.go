@@ -42,6 +42,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 
 	privateKey := filepath.Join(t.TempDir(), "shellhub.key")
 
+	corruptedTenantKey := filepath.Join(t.TempDir(), "shellhub.key")
+	require.NoError(t, PersistTenant(TenantFilePath(corruptedTenantKey), "not-a-uuid"))
+
 	type expected struct {
 		cfg    *Config
 		fields map[string]any
@@ -87,6 +90,35 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				fields: map[string]any{
 					"ServerAddress": "required",
 					"PrivateKey":    "required",
+				},
+				err: validator.ErrStructureInvalid,
+			},
+		},
+		{
+			description: "fail to load the environment variables when the tenant is not a uuid",
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS": "http://localhost",
+				"SHELLHUB_TENANT_ID":      "1c462afa-e4b6-41a5-ba54-7236a177O466",
+				"SHELLHUB_PRIVATE_KEY":    privateKey,
+			},
+			expected: expected{
+				cfg: nil,
+				fields: map[string]any{
+					"TenantID": "uuid",
+				},
+				err: validator.ErrStructureInvalid,
+			},
+		},
+		{
+			description: "fail to load the environment variables when the persisted tenant is not a uuid",
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS": "http://localhost",
+				"SHELLHUB_PRIVATE_KEY":    corruptedTenantKey,
+			},
+			expected: expected{
+				cfg: nil,
+				fields: map[string]any{
+					"TenantID": "uuid",
 				},
 				err: validator.ErrStructureInvalid,
 			},
