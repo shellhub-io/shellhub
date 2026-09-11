@@ -102,6 +102,15 @@ func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAcce
 	dc.runAdminCommand(t, args)
 }
 
+// NewMember adds an existing user to a namespace as "owner", "administrator", "operator" or
+// "observer". Call it before authenticating the member: a token only carries a tenant once the
+// user belongs to a namespace.
+func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role string) {
+	t.Helper()
+
+	dc.runAdminCommand(t, []string{"namespace", "member", "add", username, namespace, role})
+}
+
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"
 // endpoint.
 //
