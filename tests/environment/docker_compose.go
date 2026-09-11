@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
@@ -18,7 +17,7 @@ import (
 // DockerCompose is a running test stack: the started services, the HTTP client used to talk to
 // them, the environment they were given, and the hook that tears them down.
 type DockerCompose struct {
-	t *testing.T
+	setupT *testing.T
 
 	services map[Service]*tc.DockerContainer
 
@@ -57,17 +56,19 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
-func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
+func (dc *DockerCompose) runAdminCommand(t *testing.T, args []string) {
+	t.Helper()
+
 	code, output, err := dc.Service(ServiceServer).Exec(
-		ctx,
+		t.Context(),
 		append([]string{"/server", "admin"}, args...),
 		tcexec.Multiplexed(),
 	)
-	require.NoError(dc.t, err)
+	require.NoError(t, err)
 
 	if code != 0 {
 		body, _ := io.ReadAll(output)
-		assert.FailNow(dc.t, fmt.Sprintf("admin %s exited with %d: %s", strings.Join(args, " "), code, body))
+		require.FailNow(t, fmt.Sprintf("admin %s exited with %d: %s", strings.Join(args, " "), code, body))
 	}
 }
 
@@ -75,11 +76,11 @@ func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
 // "admin user create" command.
 //
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
-// instructions will not fail, calling assert.FailNow if any do.
+// instructions will not fail, failing t immediately if any do.
 func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
 	t.Helper()
 
-	dc.runAdminCommand(t.Context(), []string{"user", "create", username, password, email})
+	dc.runAdminCommand(t, []string{"user", "create", username, password, email})
 }
 
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the server's
@@ -89,7 +90,7 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // leaves the server's default in place.
 //
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
-// instructions will not fail, calling assert.FailNow if any do.
+// instructions will not fail, failing t immediately if any do.
 func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
 	t.Helper()
 
@@ -98,30 +99,29 @@ func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAcce
 		args = append(args, "--ssh-access-mode", sshAccessMode)
 	}
 
-	dc.runAdminCommand(t.Context(), args)
+	dc.runAdminCommand(t, args)
 }
 
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"
 // endpoint.
 //
 // It is not intended to be a test of the endpoint, but it makes some assertions to guarantee that the following
-// instructions will not fail, calling assert.FailNow if any do.
-func (dc *DockerCompose) AuthUser(ctx context.Context, username, password string) *models.UserAuthResponse {
+// instructions will not fail, failing t immediately if any do. Pass the *testing.T of the goroutine running the
+// call: a subtest must pass its own, not the one the environment was created with.
+func (dc *DockerCompose) AuthUser(t *testing.T, username, password string) *models.UserAuthResponse {
+	t.Helper()
+
 	auth := new(models.UserAuthResponse)
 
-	res, err := dc.R(ctx).
+	res, err := dc.R(t.Context()).
 		SetBody(map[string]string{
 			"username": username,
 			"password": password,
 		}).
 		SetResult(auth).
 		Post("/api/login")
-
-	require.NoError(dc.t, err)
-
-	if !assert.Equal(dc.t, 200, res.StatusCode()) {
-		assert.FailNow(dc.t, "login fails")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 200, res.StatusCode(), "login fails")
 
 	return auth
 }

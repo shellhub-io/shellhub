@@ -95,7 +95,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	dc := &DockerCompose{
 		envs:     dcc.envs,
 		services: make(map[Service]*tc.DockerContainer),
-		t:        dcc.t,
+		setupT:   dcc.t,
 		client: resty.New().
 			SetBaseURL("http://localhost:" + dcc.envs["SHELLHUB_HTTP_PORT"]).
 			SetContentLength(true),
@@ -116,7 +116,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 			compose.RemoveVolumes(true),
 			compose.RemoveImagesAll,
 		)
-		require.NoError(dc.t, err)
+		require.NoError(dc.setupT, err)
 
 		for k := range dc.services {
 			dc.services[k] = nil
@@ -124,13 +124,13 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	}
 
 	services := []Service{ServiceGateway, ServiceServer}
-	if err := tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true)); !assert.NoError(dc.t, err) {
-		assert.FailNow(dc.t, err.Error())
+	if err := tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true)); !assert.NoError(dc.setupT, err) {
+		assert.FailNow(dc.setupT, err.Error())
 	}
 
 	for _, service := range services {
 		composeService, err := tcDc.ServiceContainer(ctx, string(service))
-		require.NoError(dc.t, err)
+		require.NoError(dc.setupT, err)
 
 		dc.services[service] = composeService
 	}
