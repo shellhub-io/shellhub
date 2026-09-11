@@ -56,6 +56,15 @@ func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption
 	}
 }
 
+// NewAgentContainerWithInstallKey drops the tenant id, so the device proves the key alone
+// resolved the namespace.
+func NewAgentContainerWithInstallKey(key string) NewAgentContainerOption {
+	return func(envs map[string]string) {
+		delete(envs, "SHELLHUB_TENANT_ID")
+		envs["SHELLHUB_INSTALL_KEY"] = key
+	}
+}
+
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
 		"SHELLHUB_SERVER_ADDRESS":     "http://localhost:" + port,
