@@ -65,11 +65,30 @@ EOF
   echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
 }
 
+tenant_file() {
+  _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
+
+  echo "${_KEY#/host}.tenant"
+}
+
+persisted_tenant() {
+  _TENANT_FILE=$(tenant_file)
+
+  [ -e "$_TENANT_FILE" ] || return 0
+
+  _TSUDO=""
+  [ "$(id -u)" -ne 0 ] && _TSUDO="sudo"
+
+  $_TSUDO head -n 1 "$_TENANT_FILE" 2>/dev/null | tr -d ' \t\r\n'
+}
+
 # Names the credential that will put this device in a namespace, in the same order
 # enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
 # is visible then, rather than only in the agent's log once it is already running.
 enrollment_summary() {
-  if [ -n "$PROVISIONING_KEY" ]; then
+  if [ -n "$PERSISTED_TENANT" ]; then
+    echo "tenant $PERSISTED_TENANT (persisted by a previous enrollment)"
+  elif [ -n "$PROVISIONING_KEY" ]; then
     echo "provisioning key"
   elif [ -n "$TENANT_ID" ]; then
     echo "tenant $TENANT_ID (device lands pending)"
@@ -92,6 +111,14 @@ enrollment_summary() {
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
+
+  if [ -n "$PERSISTED_TENANT" ]; then
+    echo ""
+    echo "The device will enroll into tenant $PERSISTED_TENANT, remembered at $(tenant_file)."
+    echo "Delete that file to enroll it somewhere else."
+
+    return 0
+  fi
 
   if [ -n "$PROVISIONING_KEY" ]; then
     echo ""
@@ -591,6 +618,9 @@ main() {
     echo "  5. Standalone - Native binary with systemd"
     echo
   fi
+
+  PERSISTED_TENANT=""
+  [ -z "$TENANT_ID" ] && PERSISTED_TENANT=$(persisted_tenant)
 
   echo "⚙️ Detected settings:"
   echo "- Server address: $SERVER_ADDRESS"
