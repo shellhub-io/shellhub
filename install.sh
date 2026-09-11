@@ -65,9 +65,6 @@ EOF
   echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
 }
 
-# Names the credential that will put this device in a namespace, in the same order
-# enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
-# is visible then, rather than only in the agent's log once it is already running.
 tenant_file() {
   _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
 
@@ -82,6 +79,9 @@ persisted_tenant() {
   head -n 1 "$_TENANT_FILE" | tr -d ' \t\r\n'
 }
 
+# Names the credential that will put this device in a namespace, in the same order
+# enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
+# is visible then, rather than only in the agent's log once it is already running.
 enrollment_summary() {
   _PERSISTED=$(persisted_tenant)
 
