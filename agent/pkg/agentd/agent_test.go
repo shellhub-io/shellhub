@@ -177,6 +177,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				cfg: &Config{
 					ServerAddress:             "http://localhost",
 					TenantID:                  "1c462afa-e4b6-41a5-ba54-7236a1770466",
+					TenantOrigin:              TenantFromEnvironment,
 					PrivateKey:                "/tmp/shellhub.key",
 					MaxRetryConnectionTimeout: 30,
 				},
@@ -575,4 +576,62 @@ func TestAgentAuthorizeRequiresANamespaceCredential(t *testing.T) {
 	agent := &Agent{config: &Config{}}
 
 	assert.Equal(t, ErrAuthorizeNoNamespaceCredential, agent.Authorize())
+}
+
+func TestLoadConfigFromEnvRecordsTenantOrigin(t *testing.T) {
+	const tenant = "1c462afa-e4b6-41a5-ba54-7236a1770466"
+
+	tests := []struct {
+		description string
+		envTenant   string
+		fileTenant  string
+		expected    TenantOrigin
+	}{
+		{
+			description: "no tenant anywhere leaves the origin unset",
+			expected:    TenantFromNowhere,
+		},
+		{
+			description: "a tenant from the environment is attributed to it",
+			envTenant:   tenant,
+			expected:    TenantFromEnvironment,
+		},
+		{
+			description: "a tenant read from the file is attributed to the file",
+			fileTenant:  tenant,
+			expected:    TenantFromFile,
+		},
+		{
+			description: "the environment wins, and keeps its own attribution",
+			envTenant:   tenant,
+			fileTenant:  "00000000-0000-4000-0000-000000000000",
+			expected:    TenantFromEnvironment,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			envMock := new(env_mocks.MockBackend)
+			envs.DefaultBackend = envMock
+
+			key := filepath.Join(t.TempDir(), "shellhub.key")
+			if test.fileTenant != "" {
+				require.NoError(t, PersistTenant(TenantFilePath(key), test.fileTenant))
+			}
+
+			envMock.On("Process", "SHELLHUB_", new(Config)).Return(nil).Once().Run(func(args mock.Arguments) {
+				cfg, ok := args.Get(1).(*Config)
+				require.True(t, ok)
+
+				cfg.ServerAddress = "http://localhost"
+				cfg.TenantID = test.envTenant
+				cfg.PrivateKey = key
+				cfg.MaxRetryConnectionTimeout = 30
+			})
+
+			cfg, _, err := LoadConfigFromEnv()
+			require.NoError(t, err)
+			assert.Equal(t, test.expected, cfg.TenantOrigin)
+		})
+	}
 }
