@@ -51,6 +51,11 @@ func (dc *DockerCompose) Env(key string) string {
 	return dc.envs[key]
 }
 
+// SSHAddress is the host address the gateway's SSH port is published on.
+func (dc *DockerCompose) SSHAddress() string {
+	return "localhost:" + dc.Env("SHELLHUB_SSH_PORT")
+}
+
 // Service retrieves the specified service.
 func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]

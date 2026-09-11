@@ -109,8 +109,8 @@ func TestSSHIdentityMode(t *testing.T) {
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
-	sshid := fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name)
-	addr := "localhost:" + compose.Env("SHELLHUB_SSH_PORT")
+	sshid := deviceSSHID(device)
+	addr := compose.SSHAddress()
 
 	t.Run("password authentication is not offered", func(t *testing.T) {
 		config := &ssh.ClientConfig{
@@ -244,7 +244,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -256,7 +256,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -269,14 +269,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password("wrongpassword"),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				_, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.Error(t, err)
 			},
 		},
@@ -289,7 +289,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -301,7 +301,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -340,14 +340,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.PublicKeys(signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 
 				_ = conn.Close()
@@ -365,14 +365,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.PublicKeys(signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				_, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.Error(t, err)
 			},
 		},
@@ -382,7 +382,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -394,7 +394,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -421,7 +421,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password("password"),
 					},
@@ -433,7 +433,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -474,7 +474,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password("password"),
 					},
@@ -486,7 +486,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -508,7 +508,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -520,7 +520,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -548,7 +548,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -560,7 +560,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -583,7 +583,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -595,7 +595,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -621,7 +621,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -633,7 +633,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -661,7 +661,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -673,7 +673,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -698,7 +698,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -710,7 +710,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -735,14 +735,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+env.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", env.services.SSHAddress(), config)
 				require.NoError(t, err)
 
 				type Data struct {
@@ -807,14 +807,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 
 				sess, err := conn.NewSession()
@@ -836,14 +836,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -894,14 +894,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -924,14 +924,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -961,14 +961,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1004,14 +1004,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1049,14 +1049,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1091,14 +1091,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1144,14 +1144,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				addr := "localhost:" + environment.services.Env("SHELLHUB_SSH_PORT")
+				addr := environment.services.SSHAddress()
 
 				dialed, err := (&net.Dialer{Timeout: 30 * time.Second}).DialContext(t.Context(), "tcp", addr)
 				require.NoError(t, err)
@@ -1201,14 +1201,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1234,14 +1234,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1323,14 +1323,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1352,14 +1352,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1390,7 +1390,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -1409,7 +1409,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1428,7 +1428,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -1444,7 +1444,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					go func(id int) {
 						defer wg.Done()
 
-						conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+						conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 						if err != nil {
 							errors <- fmt.Errorf("connection %d failed: %w", id, err)
 
@@ -1489,7 +1489,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				var learnedKey ssh.PublicKey
 				config1 := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -1500,12 +1500,12 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 				}
 
-				conn1, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config1)
+				conn1, err := ssh.Dial("tcp", environment.services.SSHAddress(), config1)
 				require.NoError(t, err)
 				_ = conn1.Close()
 
 				config2 := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -1518,7 +1518,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 				}
 
-				conn2, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config2)
+				conn2, err := ssh.Dial("tcp", environment.services.SSHAddress(), config2)
 				require.NoError(t, err)
 				defer conn2.Close() //nolint:errcheck
 			},
@@ -1529,7 +1529,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
@@ -1537,7 +1537,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					Timeout:         10 * time.Second,
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1572,14 +1572,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1613,14 +1613,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1663,14 +1663,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				t.Helper()
 
 				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
+				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.NoError(t, err)
 				defer conn.Close() //nolint:errcheck
 
@@ -1727,6 +1727,10 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			}, device)
 		})
 	}
+}
+
+func deviceSSHID(device *models.Device) string {
+	return ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
 }
 
 func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
