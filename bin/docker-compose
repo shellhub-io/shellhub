@@ -85,7 +85,8 @@ esac
 
 # docker-compose.override.yml must come after the database overlays so user
 # customizations win (Compose applies later files with higher precedence).
-[ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
+[ "${COMPOSE_OVERRIDE:-true}" != "false" ] && [ -f docker-compose.override.yml ] \
+    && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
 [ -n "${EXTRA_COMPOSE_FILE:-}" ] && COMPOSE_FILE="${COMPOSE_FILE}:${EXTRA_COMPOSE_FILE}"
 export COMPOSE_FILE
 
