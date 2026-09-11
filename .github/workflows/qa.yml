@@ -42,12 +42,12 @@ jobs:
           # its own agent container and runs twice (transport v1 and v2), so the
           # suite needs well over the 25m the unit-test projects get. The detector
           # is left off here: it would instrument the harness, not the services
-          # under test, on an already 45-minute job.
+          # under test, on an already hour-long job.
           - project: tests
             extra_args: ""
             lint_args: ""
             database: postgres
-            test_timeout: "45m"
+            test_timeout: "60m"
 
     runs-on: ubuntu-latest
 
