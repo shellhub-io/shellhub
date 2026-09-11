@@ -1,0 +1,103 @@
+name: UI E2E
+
+on:
+  schedule:
+    - cron: "00 0 * * 1"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.edition }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [community, enterprise, cloud]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: shellhub
+
+      - name: Generate cloud repo token
+        id: cloud-token
+        if: matrix.edition != 'community'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+
+      - name: Check out cloud source
+        if: matrix.edition != 'community'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.cloud-token.outputs.token }}
+          ref: master
+          fetch-depth: 1
+          path: cloud
+
+      - name: Set up Node.JS 24.13.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.13.0"
+
+      - name: Restore node modules
+        id: node-modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: shellhub/ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('shellhub/ui/package-lock.json') }}
+
+      - name: Install Node dependencies
+        working-directory: shellhub/ui
+        run: npm install
+
+      - name: Restore Playwright browser
+        id: playwright-browser
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.OS }}-playwright-${{ hashFiles('shellhub/ui/package-lock.json') }}
+
+      - name: Install Playwright browser
+        working-directory: shellhub/ui
+        run: npm run e2e:browsers -w @shellhub/console
+
+      - name: Save node modules
+        if: steps.node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: shellhub/ui/node_modules
+          key: ${{ steps.node-modules.outputs.cache-primary-key }}
+
+      - name: Save Playwright browser
+        if: steps.playwright-browser.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.playwright-browser.outputs.cache-primary-key }}
+
+      - name: Run E2E tests
+        working-directory: shellhub/ui
+        timeout-minutes: 60
+        env:
+          E2E_EDITION: ${{ matrix.edition }}
+        run: npm run test:e2e -w @shellhub/console
+
+      - name: Upload Playwright report
+        if: ${{ failure() || cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: playwright-report-${{ matrix.edition }}
+          path: shellhub/ui/apps/console/e2e/tmp
+          retention-days: 14
