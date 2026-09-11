@@ -56,7 +56,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -93,7 +95,16 @@ type Config struct {
 	// It is optional: when empty (and no tenant was persisted from a previous
 	// pairing), the agent boots into pairing mode and waits for a user to
 	// accept it into a namespace, learning the tenant from the server.
-	TenantID string `env:"TENANT_ID"`
+	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
+
+	// TenantOrigin records where TenantID came from. It is not read from the environment;
+	// [LoadConfigFromEnv] and [Agent.SetTenantID] set it as they resolve the tenant.
+	TenantOrigin TenantOrigin
+
+	// AuthorizationDeadline bounds how long the agent keeps retrying a refusal the server says an
+	// operator can clear, after which it fails instead of waiting. Raise it when devices are
+	// deployed further ahead of the namespace they enroll into. Zero leaves the client's default.
+	AuthorizationDeadline time.Duration `env:"AUTHORIZATION_DEADLINE"`
 
 	// PairingCode is a pre-authorized pairing code handed to the agent at install
 	// time (minted from the console's Add Device page). When set and no tenant is
@@ -164,30 +175,52 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.InstallKey != ""
 }
 
+func (c *Config) credential() string {
+	if c.TenantID == "" && c.InstallKey != "" {
+		return "the install key"
+	}
+
+	switch c.TenantOrigin {
+	case TenantFromEnvironment:
+		return fmt.Sprintf("the tenant %s from SHELLHUB_TENANT_ID", c.TenantID)
+	case TenantFromFile:
+		return fmt.Sprintf("the tenant %s persisted at %s", c.TenantID, TenantFilePath(c.PrivateKey))
+	case TenantFromPairing:
+		return fmt.Sprintf("the tenant %s learned from pairing", c.TenantID)
+	case TenantFromNowhere:
+		return "no namespace credential"
+	}
+
+	return fmt.Sprintf("the tenant %s", c.TenantID)
+}
+
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
 // variables, falling back to the .env file next to the binary when one is present.
 //
-// The second return value carries the environment as parsed, for callers that log it.
+// A tenant persisted by a previous pairing is adopted before validation, so a malformed tenant is
+// refused whether it came from the environment or from the file, rather than being carried into an
+// authorization the server can only reject.
+//
+// The second return value carries the fields that failed validation, for callers that log them.
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
-	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+	cfg, err := envs.ParseWithPrefix[Config](envPrefix)
 	if err != nil {
 		log.Error("failed to parse the configuration")
 
 		return nil, nil, err
 	}
 
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
-		return nil, fields, err
+	if cfg.TenantID != "" {
+		cfg.TenantOrigin = TenantFromEnvironment
 	}
 
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
 			cfg.TenantID = persisted
+			cfg.TenantOrigin = TenantFromFile
 		case cfg.TenantID != persisted:
 			log.WithFields(log.Fields{
 				"env_tenant":       cfg.TenantID,
@@ -196,7 +229,61 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		}
 	}
 
+	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+		return nil, fields, err
+	}
+
 	return cfg, nil, nil
+}
+
+const envPrefix = "SHELLHUB_"
+
+// InvalidConfigMessages turns the field map [LoadConfigFromEnv] returns into one message per
+// invalid setting, naming the environment variable an operator sets rather than the struct field
+// the validator reported. structure is the configuration the map came from, read for its env tags;
+// a field it does not carry is named as it stands. No value is ever included, because some settings
+// are credentials and a log line is not where those belong.
+func InvalidConfigMessages(structure any, fields map[string]any) []string {
+	if len(fields) == 0 {
+		return nil
+	}
+
+	messages := make([]string, 0, len(fields))
+
+	for field, rule := range fields {
+		messages = append(messages, configEnvName(structure, field)+" "+requirementOf(rule))
+	}
+
+	sort.Strings(messages)
+
+	return messages
+}
+
+func configEnvName(structure any, field string) string {
+	structField, ok := reflect.TypeOf(structure).FieldByName(field)
+	if !ok {
+		return field
+	}
+
+	name, _, _ := strings.Cut(structField.Tag.Get("env"), ",")
+	if name == "" {
+		return field
+	}
+
+	return envPrefix + name
+}
+
+func requirementOf(rule any) string {
+	switch rule {
+	case "required":
+		return "is required"
+	case "uuid", "uuid4":
+		return "must be a UUID"
+	case "min", "max":
+		return "is out of range"
+	default:
+		return fmt.Sprintf("is invalid (%v)", rule)
+	}
 }
 
 // Agent is a device's connection to a ShellHub server: it authenticates, keeps the device
@@ -300,7 +387,12 @@ func (a *Agent) Initialize() error {
 func (a *Agent) Setup() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
+	opts := []client.Opt{client.WithVersion(a.config.Version)}
+	if a.config.AuthorizationDeadline > 0 {
+		opts = append(opts, client.WithAuthorizationDeadline(a.config.AuthorizationDeadline))
+	}
+
+	a.cli, err = client.NewClient(a.config.ServerAddress, opts...)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -340,7 +432,7 @@ func (a *Agent) Authorize() error {
 	}
 
 	if err := a.authorize(); err != nil {
-		return errors.Wrap(err, "failed to authorize device")
+		return errors.Wrap(err, "failed to authorize device with "+a.config.credential())
 	}
 
 	if a.config.TenantID == "" {
@@ -363,10 +455,11 @@ func (a *Agent) Authorize() error {
 	return nil
 }
 
-// SetTenantID injects the tenant learned from a pairing so the agent can be
-// authorized.
+// SetTenantID injects the tenant learned from a pairing so the agent can be authorized, and
+// attributes it to that pairing so a later recovery can tell it from a tenant an operator set.
 func (a *Agent) SetTenantID(tenant string) {
 	a.config.TenantID = tenant
+	a.config.TenantOrigin = TenantFromPairing
 }
 
 // ClearPairingCode drops a pre-authorized pairing code after the server rejected

@@ -42,12 +42,23 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 // is misconfigured in a way that repeating the same request cannot settle. Transport failures, 429
 // and 5xx are left to the client-wide retry condition, which reports them as a server that cannot
 // answer rather than one that refuses the device.
+//
+// Those three are retried only until the authorization deadline, since the server answers the same
+// 404 for a namespace that does not exist yet and one that never will. Past it the refusal is
+// returned like any other, so a device naming a namespace that was deleted stops waiting on a
+// change that cannot come.
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
+
+	deadline := time.Now().Add(c.authDeadline)
 
 	response, err := c.http.R().
 		AddRetryCondition(func(r *resty.Response, err error) bool {
 			if err != nil || r == nil || serverAtFault(r.StatusCode()) {
+				return false
+			}
+
+			if !time.Now().Before(deadline) {
 				return false
 			}
 

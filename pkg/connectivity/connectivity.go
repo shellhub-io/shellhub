@@ -44,14 +44,29 @@ func Recovered(logger logrus.FieldLogger, attempt int, elapsed time.Duration) {
 		Info("Recovered after retrying")
 }
 
+const refusalResurfaceEvery = 10
+
+func refusalLevel(attempt int) logrus.Level {
+	if attempt%refusalResurfaceEvery == 1 {
+		return logrus.WarnLevel
+	}
+
+	return logrus.DebugLevel
+}
+
 // Refused reports one attempt the server answered by refusing to authorize the device. It reads as
 // a distinct condition from an unreachable server because it is: the server is up, and what has to
-// change is the namespace or the device limit. Levels follow Lost.
+// change is the namespace or the device limit.
+//
+// Unlike Lost it does not fall silent after the first attempt. An unreachable server resolves
+// itself; a refusal may name a namespace that will never exist, and an operator reading the log
+// after the fact needs it to still be saying so. It is raised back to warn every
+// refusalResurfaceEvery attempts and logged at debug in between.
 func Refused(logger logrus.FieldLogger, attempt int, err error) {
 	logger.
 		WithError(err).
 		WithField("attempt", attempt).
-		Log(level(attempt), "Cannot authorize the device, retrying until the server accepts it")
+		Log(refusalLevel(attempt), "Cannot authorize the device, retrying until the server accepts it")
 }
 
 // Tracker counts consecutive failures for a caller whose retry loop has no attempt counter to pass

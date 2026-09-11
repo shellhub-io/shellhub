@@ -54,7 +54,14 @@ type client struct {
 	logEntry  *log.Entry
 	retryWait func() time.Duration
 	reverser  reverser.Reverser
+
+	authDeadline time.Duration
 }
+
+// DefaultAuthorizationDeadline bounds how long AuthDevice retries a refusal an operator is expected
+// to clear. It is generous because the refusal it exists for is a device deployed before its
+// namespace was created, which is a rollout race rather than a mistake.
+const DefaultAuthorizationDeadline time.Duration = 24 * time.Hour
 
 // ErrParseAddress is returned by NewClient when the server address is not a URL carrying scheme,
 // host and port.
@@ -90,6 +97,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 	client := new(client)
 	client.retryWait = randomWaitTimeSecs
+	client.authDeadline = DefaultAuthorizationDeadline
 	client.http = resty.New()
 	client.http.SetRetryCount(math.MaxInt32)
 	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())

@@ -34,7 +34,11 @@ func main() {
 
 			cfg, fields, err := agentd.LoadConfigFromEnv()
 			if err != nil {
-				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(agentd.Config{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			cfg.Version = AgentVersion
@@ -113,9 +117,11 @@ func main() {
 
 			if err := ag.Authorize(); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
-				}).Fatal("Failed to initialize agent")
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
+					"tenant_id":      cfg.TenantID,
+					"tenant_origin":  cfg.TenantOrigin,
+				}).Fatal("Failed to authorize the device")
 			}
 
 			ctx := cmd.Context()
@@ -225,9 +231,11 @@ func main() {
 
 			cfg, fields, err := LoadConfigConnectorFromEnv()
 			if err != nil {
-				log.WithError(err).
-					WithFields(fields).
-					Fatal("Failed to load de configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(ConfigConnector{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			logger := log.WithFields(
@@ -343,7 +351,11 @@ waits until the device is accepted, rejected, or the code expires.`,
 
 			cfg, fields, err := agentd.LoadConfigFromEnv()
 			if err != nil {
-				log.WithError(err).WithFields(fields).Fatal("Failed to load the configuration from the environmental variables")
+				for _, message := range agentd.InvalidConfigMessages(agentd.Config{}, fields) {
+					log.Error(message)
+				}
+
+				log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
 			}
 
 			cfg.Version = AgentVersion

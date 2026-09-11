@@ -65,19 +65,114 @@ EOF
   echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
 }
 
+tenant_file() {
+  _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
+
+  echo "${_KEY#/host}.tenant"
+}
+
+persisted_tenant() {
+  _TENANT_FILE=$(tenant_file)
+
+  [ -r "$_TENANT_FILE" ] || return 0
+
+  head -n 1 "$_TENANT_FILE" | tr -d ' \t\r\n'
+}
+
 # Names the credential that will put this device in a namespace, in the same order
 # enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
 # is visible then, rather than only in the agent's log once it is already running.
 enrollment_summary() {
+  _PERSISTED=$(persisted_tenant)
+
   if [ -n "$CODE" ]; then
     echo "pairing code (pre-authorized)"
   elif [ -n "$INSTALL_KEY" ]; then
     echo "install key"
   elif [ -n "$TENANT_ID" ]; then
     echo "tenant $TENANT_ID (device lands pending)"
+  elif [ -n "$_PERSISTED" ]; then
+    echo "tenant $_PERSISTED (persisted by a previous enrollment)"
   else
     echo "none — enroll with 'shellhub-agent login'"
   fi
+}
+
+# refusal_reason prints the part of an agent log line an operator can act on. logrus writes the line
+# as logfmt, so the reason is the error field and everything around it is the agent's own
+# bookkeeping. The line is printed whole when it carries no error field, because a reason that
+# cannot be parsed out is still worth more than nothing. The quotes logrus escapes inside the field
+# are parked on a placeholder first, because no POSIX sed expression can say "up to the first quote
+# that is not escaped".
+refusal_reason() {
+  _LOG_LINE="$1"
+
+  case "$_LOG_LINE" in
+  *'error="'*) ;;
+  *)
+    echo "$_LOG_LINE"
+
+    return 0
+    ;;
+  esac
+
+  echo "$_LOG_LINE" | sed -e 's/\\"/@@Q@@/g' -e 's/.*error="\([^"]*\)".*/\1/' -e 's/@@Q@@/"/g'
+}
+
+# observe_enrollment reports what the agent did with the credential rather than what the installer
+# predicted, so a device the server refuses is visible here instead of only in the agent's own log.
+# $1 is a command that prints the agent's recent output, left unquoted on purpose so the caller can
+# pass one with arguments; empty means this runtime cannot be read from the installer, and no
+# outcome is claimed. A refusal is reported, never returned: the agent is already installed and
+# keeps retrying, so there is nothing for the caller to undo.
+observe_enrollment() {
+  _LOG_CMD="$1"
+
+  if [ -z "$_LOG_CMD" ]; then
+    echo "ℹ️ This install method does not expose the agent's output to the installer."
+    echo "   Check the console to confirm the device enrolled."
+
+    return 0
+  fi
+
+  _OBSERVED=""
+  _WAITED=0
+
+  while [ "$_WAITED" -lt "${ENROLLMENT_OBSERVE_SECONDS:-20}" ]; do
+    _OBSERVED=$($_LOG_CMD 2>&1)
+
+    case "$_OBSERVED" in
+    *"Listening for connections"*)
+      echo "✅ The agent enrolled and is listening for connections."
+
+      return 0
+      ;;
+    *"Failed to authorize the device"*)
+      _REFUSAL=$(echo "$_OBSERVED" | grep "Failed to authorize the device" | tail -n 1)
+
+      echo "❌ The server refused this device:"
+      echo "   $(refusal_reason "$_REFUSAL")"
+
+      return 0
+      ;;
+    esac
+
+    sleep 1
+    _WAITED=$((_WAITED + 1))
+  done
+
+  case "$_OBSERVED" in
+  *"Cannot authorize the device"*)
+    _REFUSAL=$(echo "$_OBSERVED" | grep "Cannot authorize the device" | tail -n 1)
+
+    echo "⚠️ The server is still refusing this device, and the agent is still retrying:"
+    echo "   $(refusal_reason "$_REFUSAL")"
+    ;;
+  *)
+    echo "⚠️ The agent has not enrolled yet. Inspect it with:"
+    echo "   $_LOG_CMD"
+    ;;
+  esac
 }
 
 # Enrolls a freshly installed agent. Without a tenant the device does not belong
@@ -91,13 +186,18 @@ enrollment_summary() {
 #     methods this is the wrapper (which execs into the container); for native
 #     methods it is the agent binary itself, possibly prefixed with sudo.
 # $2: host-visible path of the agent key to wait for before pairing.
+# $3: command that prints the agent's recent output, or empty when this runtime has none the
+#     installer can read.
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
+  _AGENT_LOG="$3"
 
   if [ -n "$CODE" ]; then
     echo ""
     echo "The device is pre-authorized and will be accepted automatically once it connects."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -107,12 +207,28 @@ enroll_agent_interactively() {
     echo "The device will enroll into the install key's namespace."
     echo "Whether it is accepted straight away or left pending is the key's own setting."
 
+    observe_enrollment "$_AGENT_LOG"
+
     return 0
   fi
 
   if [ -n "$TENANT_ID" ]; then
     echo ""
     echo "The device will appear as pending in the console — accept it there."
+
+    observe_enrollment "$_AGENT_LOG"
+
+    return 0
+  fi
+
+  _PERSISTED=$(persisted_tenant)
+
+  if [ -n "$_PERSISTED" ]; then
+    echo ""
+    echo "The device will enroll into tenant $_PERSISTED, remembered at $(tenant_file)."
+    echo "Delete that file to enroll it somewhere else."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -164,8 +280,8 @@ podman_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  # Passing the variable empty would not clear a persisted tenant: the agent reads absent and blank
+  # alike as no tenant, and adopts the persisted one in both cases.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -242,7 +358,7 @@ podman_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -252,8 +368,8 @@ docker_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  # Passing the variable empty would not clear a persisted tenant: the agent reads absent and blank
+  # alike as no tenant, and adopts the persisted one in both cases.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -331,7 +447,7 @@ docker_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -434,9 +550,21 @@ standalone_install() {
   # Native install: the binary is the command and opens the browser itself, so
   # no wrapper is needed — enroll by invoking it directly. Reads the root-owned
   # key, hence $SUDO.
-  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}"
+  AGENT_LOG_CMD=""
+  command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50"
+
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
 
   rm -rf "$TMP_DIR"
+}
+
+report_files_left_behind() {
+  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+
+  [ -n "$(persisted_tenant)" ] || return 0
+
+  echo "ℹ️ The namespace this device enrolled into is remembered in $(tenant_file)."
+  echo "   Remove it too, or a reinstall will enroll into the same namespace."
 }
 
 docker_uninstall() {
@@ -457,7 +585,7 @@ docker_uninstall() {
   fi
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 podman_uninstall() {
@@ -478,7 +606,7 @@ podman_uninstall() {
   fi
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 standalone_uninstall() {
@@ -504,7 +632,7 @@ standalone_uninstall() {
   $SUDO rm -f "$INSTALL_BIN"
 
   echo "✅ ShellHub agent uninstalled."
-  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+  report_files_left_behind
 }
 
 wsl_install() {
@@ -548,6 +676,130 @@ http_get() {
   fi
 }
 
+detect_install_method() {
+  if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
+    echo "🔍 Checking if Docker is available and accessible in rootful mode..."
+
+    export DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
+
+    for prefix in "" "sudo"; do
+      if $prefix docker info >/dev/null 2>&1; then
+        SUDO=$prefix
+        INSTALL_METHOD="docker"
+        break
+      fi
+    done
+
+    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Docker is not accessible in rootful mode."
+  fi
+
+  if [ -z "$INSTALL_METHOD" ] && type podman >/dev/null 2>&1; then
+    echo "🔍 Checking if Podman is available and accessible in rootful mode..."
+
+    export CONTAINER_HOST="${CONTAINER_HOST:-unix:///var/run/podman/podman.sock}"
+
+    for prefix in "" "sudo"; do
+      if $prefix podman info >/dev/null 2>&1; then
+        SUDO=$prefix
+        INSTALL_METHOD="podman"
+        break
+      fi
+    done
+
+    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Podman is not accessible in rootful mode."
+  fi
+
+  CONTAINER_RUNTIME_METHOD="$INSTALL_METHOD"
+
+  if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
+    echo "🔍 Detected Snap package manager..."
+    INSTALL_METHOD="snap"
+  fi
+
+  if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
+    echo "🔍 Detected WSL environment..."
+
+    WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
+    WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
+
+    if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
+      echo "❌ ERROR: WSL version 2 is required to run ShellHub."
+      exit 1
+    fi
+
+    if grep -qi 'NAME="Ubuntu"' "${OS_RELEASE:-/etc/os-release}"; then
+      INSTALL_METHOD="wsl"
+    else
+      echo "❌ Error: Only Ubuntu is supported in WSL."
+      exit 1
+    fi
+  fi
+
+  [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
+
+  return 0
+}
+
+recommend_container_runtime() {
+  [ -z "$CONTAINER_RUNTIME_METHOD" ] || return 0
+
+  echo
+  echo "⚠️  NOTE: No recommended installation method was detected."
+  echo "⚠️  For best performance, easier updates, and better isolation, it is strongly recommended to use Docker or Podman."
+  echo "ℹ️  The installer will proceed with an alternative method (Snap, Standalone, or WSL), but these may have limitations."
+  echo
+}
+
+uninstall_agent() {
+  case "$INSTALL_METHOD" in
+  standalone|wsl)
+    echo "🗑️ Uninstalling ShellHub using standalone method..."
+    standalone_uninstall
+    ;;
+  docker)
+    echo "🐳 Uninstalling ShellHub using docker method..."
+    docker_uninstall
+    ;;
+  podman)
+    echo "🐳 Uninstalling ShellHub using podman method..."
+    podman_uninstall
+    ;;
+  *)
+    echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
+    exit 1
+    ;;
+  esac
+}
+
+install_agent() {
+  case "$INSTALL_METHOD" in
+  podman)
+    echo "🐳 Installing ShellHub using podman method..."
+    podman_install "$@"
+    ;;
+  docker)
+    echo "🐳 Installing ShellHub using docker method..."
+    docker_install "$@"
+    ;;
+  snap)
+    echo "📦 Installing ShellHub using snap method..."
+    snap_install
+    ;;
+  standalone)
+    echo "🐧 Installing ShellHub using standalone method..."
+    standalone_install
+    ;;
+  wsl)
+    echo "🪟 Installing ShellHub using WSL method..."
+    wsl_install
+    ;;
+  *)
+    echo "❌ Install method not supported."
+    exit 1
+    ;;
+  esac
+}
+
 main() {
   if [ "$(uname -s)" = "FreeBSD" ]; then
     echo "👹 This system is running FreeBSD."
@@ -555,6 +807,13 @@ main() {
     echo
     echo "Please refer to the ShellHub port at https://github.com/shellhub-io/ports"
     exit 1
+  fi
+
+  if [ "$1" = "uninstall" ]; then
+    detect_install_method
+    uninstall_agent
+
+    return
   fi
 
   # TENANT_ID is optional wherever something else names the namespace: an install key does so on its
@@ -615,123 +874,9 @@ main() {
   [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"
   echo
 
-  if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
-    echo "🔍 Checking if Docker is available and accessible in rootful mode..."
-
-    export DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
-
-    for prefix in "" "sudo"; do
-      if $prefix docker info >/dev/null 2>&1; then
-        SUDO=$prefix
-        INSTALL_METHOD="docker"
-        break
-      fi
-    done
-
-    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Docker is not accessible in rootful mode."
-  fi
-
-  if [ -z "$INSTALL_METHOD" ] && type podman >/dev/null 2>&1; then
-    echo "🔍 Checking if Podman is available and accessible in rootful mode..."
-
-    export CONTAINER_HOST="${CONTAINER_HOST:-unix:///var/run/podman/podman.sock}"
-
-    for prefix in "" "sudo"; do
-      if $prefix podman info >/dev/null 2>&1; then
-        SUDO=$prefix
-        INSTALL_METHOD="podman"
-        break
-      fi
-    done
-
-    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Podman is not accessible in rootful mode."
-  fi
-
-  if [ -z "$INSTALL_METHOD" ]; then
-    echo
-    echo "⚠️  NOTE: No recommended installation method was detected."
-    echo "⚠️  For best performance, easier updates, and better isolation, it is strongly recommended to use Docker or Podman."
-    echo "ℹ️  The installer will proceed with an alternative method (Snap, Standalone, or WSL), but these may have limitations."
-    echo
-  fi
-
-  if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
-    echo "🔍 Detected Snap package manager..."
-    INSTALL_METHOD="snap"
-  fi
-
-  # Check if running on WSL
-  if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
-    echo "🔍 Detected WSL environment..."
-
-    WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
-    WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
-
-    if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
-      echo "❌ ERROR: WSL version 2 is required to run ShellHub."
-      exit 1
-    fi
-
-    if grep -qi 'NAME="Ubuntu"' "${OS_RELEASE:-/etc/os-release}"; then
-      INSTALL_METHOD="wsl"
-    else
-      echo "❌ Error: Only Ubuntu is supported in WSL."
-      exit 1
-    fi
-  fi
-
-  [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
-
-  case "$1" in
-  uninstall)
-    case "$INSTALL_METHOD" in
-    standalone|wsl)
-      echo "🗑️ Uninstalling ShellHub using standalone method..."
-      standalone_uninstall
-      ;;
-    docker)
-      echo "🐳 Uninstalling ShellHub using docker method..."
-      docker_uninstall
-      ;;
-    podman)
-      echo "🐳 Uninstalling ShellHub using podman method..."
-      podman_uninstall
-      ;;
-    *)
-      echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
-      exit 1
-      ;;
-    esac
-    ;;
-  *)
-    case "$INSTALL_METHOD" in
-    podman)
-      echo "🐳 Installing ShellHub using podman method..."
-      podman_install "$@"
-      ;;
-    docker)
-      echo "🐳 Installing ShellHub using docker method..."
-      docker_install "$@"
-      ;;
-    snap)
-      echo "📦 Installing ShellHub using snap method..."
-      snap_install
-      ;;
-    standalone)
-      echo "🐧 Installing ShellHub using standalone method..."
-      standalone_install
-      ;;
-    wsl)
-      echo "🪟 Installing ShellHub using WSL method..."
-      wsl_install
-      ;;
-    *)
-      echo "❌ Install method not supported."
-      exit 1
-      ;;
-    esac
-    ;;
-  esac
+  detect_install_method
+  recommend_container_runtime
+  install_agent "$@"
 }
 
 [ "${INSTALL_SH_LIB:-}" = "1" ] || main "$@"
