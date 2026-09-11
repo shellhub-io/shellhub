@@ -219,7 +219,6 @@ func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 		"accept":  string(models.DeviceStatusAccepted),
 		"reject":  string(models.DeviceStatusRejected),
 		"pending": string(models.DeviceStatusPending),
-		"unused":  string(models.DeviceStatusUnused),
 	}
 
 	req.Status = status[req.Status]
