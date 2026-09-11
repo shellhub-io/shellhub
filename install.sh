@@ -97,25 +97,97 @@ enrollment_summary() {
   fi
 }
 
-# Enrolls a freshly installed agent. Without a tenant the device does not belong
-# to any namespace yet, so we run the login flow in the foreground: it prints the
-# accept URL (opening the browser when possible) and waits until a user accepts
-# the device into a namespace — no second command, no pending list to dig
-# through. With a tenant (fleet install) the device shows up pending and is
-# accepted in the console as before.
-#
-# $1: command that runs the agent, invoked as "<cmd> login". For container
-#     methods this is the wrapper (which execs into the container); for native
-#     methods it is the agent binary itself, possibly prefixed with sudo.
-# $2: host-visible path of the agent key to wait for before pairing.
+refusal_reason() {
+  _LOG_LINE="$1"
+
+  case "$_LOG_LINE" in
+  *'error="'*) ;;
+  *)
+    echo "$_LOG_LINE"
+
+    return 0
+    ;;
+  esac
+
+  echo "$_LOG_LINE" | sed -e 's/\\"/@@Q@@/g' -e 's/.*error="\([^"]*\)".*/\1/' -e 's/@@Q@@/"/g'
+}
+
+observe_enrollment() {
+  _LOG_CMD="$1"
+
+  if [ -z "$_LOG_CMD" ]; then
+    echo "ℹ️ This install method does not expose the agent's output to the installer."
+    echo "   Check the console to confirm the device enrolled."
+
+    return 0
+  fi
+
+  _OBSERVED=""
+  _WAITED=0
+
+  while [ "$_WAITED" -lt "${ENROLLMENT_OBSERVE_SECONDS:-20}" ]; do
+    _OBSERVED=$($_LOG_CMD 2>&1)
+
+    case "$_OBSERVED" in
+    *"Listening for connections"*)
+      echo "✅ The agent enrolled and is listening for connections."
+
+      return 0
+      ;;
+    *"Failed to authorize the device"*)
+      _REFUSAL=$(echo "$_OBSERVED" | grep "Failed to authorize the device" | tail -n 1)
+
+      echo "❌ The server refused this device:"
+      echo "   $(refusal_reason "$_REFUSAL")"
+
+      return 0
+      ;;
+    *"Failed to load the configuration"*)
+      _INVALID=$(echo "$_OBSERVED" | sed -n 's/.*msg="\(SHELLHUB_[^"]*\)".*/\1/p' | awk '!seen[$0]++')
+
+      echo "❌ The agent refused its own configuration:"
+
+      if [ -n "$_INVALID" ]; then
+        echo "$_INVALID" | sed 's/^/   /'
+      else
+        _REFUSAL=$(echo "$_OBSERVED" | grep "Failed to load the configuration" | tail -n 1)
+
+        echo "   $(refusal_reason "$_REFUSAL")"
+      fi
+
+      return 0
+      ;;
+    esac
+
+    sleep 1
+    _WAITED=$((_WAITED + 1))
+  done
+
+  case "$_OBSERVED" in
+  *"Cannot authorize the device"*)
+    _REFUSAL=$(echo "$_OBSERVED" | grep "Cannot authorize the device" | tail -n 1)
+
+    echo "⚠️ The server is still refusing this device, and the agent is still retrying:"
+    echo "   $(refusal_reason "$_REFUSAL")"
+    ;;
+  *)
+    echo "⚠️ The agent has not enrolled yet. Inspect it with:"
+    echo "   $_LOG_CMD"
+    ;;
+  esac
+}
+
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
+  _AGENT_LOG="$3"
 
   if [ -n "$PERSISTED_TENANT" ]; then
     echo ""
     echo "The device will enroll into tenant $PERSISTED_TENANT, remembered at $(tenant_file)."
     echo "Delete that file to enroll it somewhere else."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -125,12 +197,16 @@ enroll_agent_interactively() {
     echo "The device will enroll into the provisioning key's namespace."
     echo "Whether it is accepted straight away or left pending is the key's own setting."
 
+    observe_enrollment "$_AGENT_LOG"
+
     return 0
   fi
 
   if [ -n "$TENANT_ID" ]; then
     echo ""
     echo "The device will appear as pending in the console — accept it there."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -257,7 +333,7 @@ podman_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -343,7 +419,7 @@ docker_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -435,6 +511,8 @@ standalone_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
   [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"
 
+  _SERVICE_STARTED=$(date +%s)
+
   $SUDO "$INSTALL_BIN" install $INSTALL_ARGS || {
     echo "❌ Failed to install ShellHub agent service."
     $SUDO rm -f "$INSTALL_BIN"
@@ -446,7 +524,10 @@ standalone_install() {
   # Native install: the binary is the command and opens the browser itself, so
   # no wrapper is needed — enroll by invoking it directly. Reads the root-owned
   # key, hence $SUDO.
-  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}"
+  AGENT_LOG_CMD=""
+  command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50 --since @$_SERVICE_STARTED"
+
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
 
   rm -rf "$TMP_DIR"
 }
