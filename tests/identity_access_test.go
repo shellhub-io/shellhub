@@ -130,17 +130,21 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		var code string
 
-		require.Eventually(t, func() bool {
+		deadline := time.After(60 * time.Second)
+
+		for code == "" {
 			select {
 			case message := <-banners:
 				if match := approvalCodePattern.FindStringSubmatch(message); match != nil {
 					code = match[1]
 				}
-			case <-time.After(time.Second):
+			case err := <-dialed:
+				require.NoError(t, err, "the login failed before an approval code was offered")
+				require.Fail(t, "the login completed without an approval code being offered")
+			case <-deadline:
+				require.Fail(t, "the gateway never offered an approval code")
 			}
-
-			return code != ""
-		}, 60*time.Second, 10*time.Millisecond, "the gateway never offered an approval code")
+		}
 
 		resp, err := compose.R(ctx).Post("/api/ssh-approvals/" + code + "/confirm")
 		require.NoError(t, err)
