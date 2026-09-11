@@ -95,6 +95,10 @@ type Config struct {
 	// accept it into a namespace, learning the tenant from the server.
 	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
 
+	// TenantOrigin records where TenantID came from. It is not read from the environment;
+	// [LoadConfigFromEnv] and [Agent.SetTenantID] set it as they resolve the tenant.
+	TenantOrigin TenantOrigin
+
 	// PairingCode is a pre-authorized pairing code handed to the agent at install
 	// time (minted from the console's Add Device page). When set and no tenant is
 	// configured, the agent claims it: the server accepts the device into the
@@ -182,10 +186,15 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		return nil, nil, err
 	}
 
+	if cfg.TenantID != "" {
+		cfg.TenantOrigin = TenantFromEnvironment
+	}
+
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
 			cfg.TenantID = persisted
+			cfg.TenantOrigin = TenantFromFile
 		case cfg.TenantID != persisted:
 			log.WithFields(log.Fields{
 				"env_tenant":       cfg.TenantID,
@@ -367,10 +376,11 @@ func (a *Agent) Authorize() error {
 	return nil
 }
 
-// SetTenantID injects the tenant learned from a pairing so the agent can be
-// authorized.
+// SetTenantID injects the tenant learned from a pairing so the agent can be authorized, and
+// attributes it to that pairing so a later recovery can tell it from a tenant an operator set.
 func (a *Agent) SetTenantID(tenant string) {
 	a.config.TenantID = tenant
+	a.config.TenantOrigin = TenantFromPairing
 }
 
 // ClearPairingCode drops a pre-authorized pairing code after the server rejected
