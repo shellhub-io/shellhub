@@ -162,8 +162,6 @@ paths:
     $ref: paths/admin@api@devices.yaml
   /admin/api/devices/{uid}:
     $ref: paths/admin@api@devices@{uid}.yaml
-  /admin/api/devices/{uid}/{status}:
-    $ref: paths/admin@api@devices@{uid}@{status}.yaml
   /admin/api/firewall/rules:
     $ref: paths/admin@api@firewall@rules.yaml
   /admin/api/firewall/rules/{id}:

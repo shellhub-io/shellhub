@@ -18,7 +18,6 @@ patch:
           - accept
           - reject
           - pending
-          - unused
         example: accept
       required: true
       in: path
