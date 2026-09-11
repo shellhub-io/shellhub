@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
@@ -114,6 +115,35 @@ func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role strin
 	t.Helper()
 
 	dc.runAdminCommand(t, []string{"namespace", "member", "add", username, namespace, role})
+}
+
+// EnrollIdentity enrolls data, an authorized-keys line, as an SSH identity named name for the user
+// the client is authenticated as.
+func (dc *DockerCompose) EnrollIdentity(t *testing.T, name, data string) {
+	t.Helper()
+
+	dc.enrollIdentity(t, "", name, data)
+}
+
+// EnrollIdentityAs enrolls the identity for the bearer of token instead. A member needs it: the
+// client authenticates as the namespace's owner, and an identity belongs to whoever enrolls it.
+func (dc *DockerCompose) EnrollIdentityAs(t *testing.T, token, name, data string) {
+	t.Helper()
+
+	dc.enrollIdentity(t, token, name, data)
+}
+
+func (dc *DockerCompose) enrollIdentity(t *testing.T, token, name, data string) {
+	t.Helper()
+
+	req := dc.R(t.Context())
+	if token != "" {
+		req = req.SetAuthToken(token)
+	}
+
+	resp, err := req.SetBody(&requests.SSHIdentityCreate{Name: name, Data: data}).Post("/api/ssh-identities")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
 }
 
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"

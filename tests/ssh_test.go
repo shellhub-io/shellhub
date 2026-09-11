@@ -125,23 +125,9 @@ func TestSSHIdentityMode(t *testing.T) {
 	})
 
 	t.Run("authenticate with an enrolled identity", func(t *testing.T) {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-		require.NoError(t, err)
+		signer, data := newSigner(t)
 
-		publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
-		require.NoError(t, err)
-
-		resp, err := compose.R(ctx).
-			SetBody(&requests.SSHIdentityCreate{
-				Name: "integration",
-				Data: string(ssh.MarshalAuthorizedKey(publicKey)),
-			}).
-			Post("/api/ssh-identities")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode())
-
-		signer, err := ssh.NewSignerFromKey(privateKey)
-		require.NoError(t, err)
+		compose.EnrollIdentity(t, "integration", data)
 
 		config := &ssh.ClientConfig{
 			User:            sshid,
@@ -315,16 +301,12 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				ctx := context.Background()
 
-				privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-				require.NoError(t, err)
-
-				publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
-				require.NoError(t, err)
+				signer, data := newSigner(t)
 
 				model := requests.PublicKeyCreate{
 					Name:     ShellHubAgentUsername,
 					Username: ".*",
-					Data:     ssh.MarshalAuthorizedKey(publicKey),
+					Data:     []byte(data),
 					Filter: requests.PublicKeyFilter{
 						Hostname: ".*",
 					},
@@ -334,9 +316,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					SetBody(&model).
 					Post("/api/sshkeys/public-keys")
 				require.Equal(t, 200, resp.StatusCode())
-				require.NoError(t, err)
-
-				signer, err := ssh.NewSignerFromKey(privateKey)
 				require.NoError(t, err)
 
 				config := &ssh.ClientConfig{
@@ -358,11 +337,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-				require.NoError(t, err)
-
-				signer, err := ssh.NewSignerFromKey(privateKey)
-				require.NoError(t, err)
+				signer, _ := newSigner(t)
 
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
@@ -372,7 +347,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
+				_, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
 				require.Error(t, err)
 			},
 		},
@@ -1727,6 +1702,21 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			}, device)
 		})
 	}
+}
+
+func newSigner(t *testing.T) (ssh.Signer, string) {
+	t.Helper()
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	pub, err := ssh.NewPublicKey(&key.PublicKey)
+	require.NoError(t, err)
+
+	signer, err := ssh.NewSignerFromKey(key)
+	require.NoError(t, err)
+
+	return signer, string(ssh.MarshalAuthorizedKey(pub))
 }
 
 func deviceSSHID(device *models.Device) string {
