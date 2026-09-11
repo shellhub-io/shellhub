@@ -65,3 +65,25 @@ load helpers
     # And cloud/.env must appear earlier in the chain.
     [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
 }
+
+@test "extra compose files: a colon-separated list appends every entry" {
+    export EXTRA_COMPOSE_FILE="docker-compose.test.yml:docker-compose.postgres.test.yml"
+    out=$(capture_with)
+    [[ "$out" == *"docker-compose.test.yml"* ]]
+    [[ "$out" == *"docker-compose.postgres.test.yml"* ]]
+}
+
+@test "extra compose files: entries are appended last so they win" {
+    export EXTRA_COMPOSE_FILE="docker-compose.test.yml"
+    out=$(capture_with)
+    files=$(echo "$out" | grep '^COMPOSE_FILE=' | sed 's|.*=||')
+    last=$(echo "$files" | awk -F':' '{print $NF}')
+    [ "$last" = "docker-compose.test.yml" ]
+}
+
+@test "extra compose files: unset leaves COMPOSE_FILE alone" {
+    out=$(capture_with)
+    files=$(echo "$out" | grep '^COMPOSE_FILE=' | sed 's|.*=||')
+    last=$(echo "$files" | awk -F':' '{print $NF}')
+    [ "$last" = "docker-compose.postgres.yml" ]
+}
