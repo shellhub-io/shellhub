@@ -794,6 +794,15 @@ enter_wsl() {
     assert_output_contains "ShellHub agent binary not found"
 }
 
+@test "standalone_uninstall looks in the default install dir when the environment names none" {
+    unset INSTALL_DIR
+
+    call_install standalone_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "/usr/local/bin/shellhub-agent"
+}
+
 @test "standalone_uninstall stops the service and removes the binary" {
     with_tenant
     fake_agent_binary
@@ -1003,6 +1012,20 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     assert_output_contains "Uninstalling ShellHub using docker method"
     assert_called "docker rm -f shellhub"
+}
+
+@test "uninstall does no installer work before removing the agent" {
+    stub_bin docker
+    stub_bin curl 'echo "curl $*" >> "$CALLS"'
+    stub_bin wget 'echo "wget $*" >> "$CALLS"'
+
+    run_install uninstall
+
+    [ "$status" -eq 0 ]
+    refute_called "curl"
+    refute_called "wget"
+    [[ "$output" != *"Detected settings"* ]]
+    [[ "$output" != *"ShellHub Agent Installer"* ]]
 }
 
 @test "uninstall is refused for install methods that do not support it" {
