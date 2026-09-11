@@ -1757,21 +1757,26 @@ func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) 
 	return compose
 }
 
-func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) (testcontainers.Container, *models.Device) {
+func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) testcontainers.Container {
 	t.Helper()
 
 	agent, err := NewAgentContainer(ctx, compose.Env("SHELLHUB_HTTP_PORT"), opts...)
 	require.NoError(t, err)
 
-	_ = agent.Stop(ctx, nil)
-
-	err = agent.Start(ctx)
-	require.NoError(t, err)
+	require.NoError(t, agent.Start(ctx))
 
 	t.Cleanup(func() {
 		_ = agent.Stop(context.Background(), nil)
 		_ = agent.Terminate(context.Background())
 	})
+
+	return agent
+}
+
+func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) (testcontainers.Container, *models.Device) {
+	t.Helper()
+
+	agent := startAgent(t, ctx, compose, opts...)
 
 	devices := []models.Device{}
 
