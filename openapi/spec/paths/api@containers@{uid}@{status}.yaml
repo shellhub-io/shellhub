@@ -13,12 +13,7 @@ patch:
     - name: status
       description: Container's status
       schema:
-        type: string
-        enum:
-          - accept
-          - reject
-          - pending
-        example: accept
+        $ref: ../components/schemas/deviceStatusAction.yaml
       required: true
       in: path
   responses:
