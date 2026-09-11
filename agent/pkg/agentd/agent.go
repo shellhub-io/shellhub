@@ -99,6 +99,11 @@ type Config struct {
 	// [LoadConfigFromEnv] and [Agent.SetTenantID] set it as they resolve the tenant.
 	TenantOrigin TenantOrigin
 
+	// AuthorizationDeadline bounds how long the agent keeps retrying a refusal the server says an
+	// operator can clear, after which it fails instead of waiting. Raise it when devices are
+	// deployed further ahead of the namespace they enroll into. Zero leaves the client's default.
+	AuthorizationDeadline time.Duration `env:"AUTHORIZATION_DEADLINE"`
+
 	// PairingCode is a pre-authorized pairing code handed to the agent at install
 	// time (minted from the console's Add Device page). When set and no tenant is
 	// configured, the agent claims it: the server accepts the device into the
@@ -332,7 +337,12 @@ func (a *Agent) Initialize() error {
 func (a *Agent) Setup() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
+	opts := []client.Opt{client.WithVersion(a.config.Version)}
+	if a.config.AuthorizationDeadline > 0 {
+		opts = append(opts, client.WithAuthorizationDeadline(a.config.AuthorizationDeadline))
+	}
+
+	a.cli, err = client.NewClient(a.config.ServerAddress, opts...)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
