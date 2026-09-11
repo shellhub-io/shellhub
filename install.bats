@@ -341,6 +341,35 @@ LOG
     assert_output_contains "does not expose"
 }
 
+@test "enroll_agent_interactively observes the outcome of a pairing code enrollment" {
+    export CODE=ABC123
+    stub_bin agent-log 'echo "level=info msg=\"Listening for connections\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "pre-authorized"
+    assert_output_contains "enrolled"
+}
+
+@test "enroll_agent_interactively observes the outcome of an install key enrollment" {
+    export INSTALL_KEY=key-1
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "install key's namespace"
+    assert_output_contains "404 Not Found"
+}
+
+@test "enroll_agent_interactively does not claim an outcome it cannot observe" {
+    export CODE=ABC123
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
+
+    assert_output_contains "pre-authorized"
+    assert_output_contains "does not expose"
+}
+
 @test "enroll_agent_interactively observes the outcome of a persisted tenant enrollment" {
     echo "00000000-0000-4000-0000-000000000000" > "$AGENT_KEY.tenant"
     export PRIVATE_KEY="$AGENT_KEY"
@@ -855,6 +884,27 @@ LOG
 
     assert_output_contains "$BATS_TEST_TMPDIR/shellhub.key.tenant"
     [[ "$output" != *"/host$BATS_TEST_TMPDIR"* ]]
+}
+
+@test "podman_uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    stub_bin podman
+
+    call_install podman_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
+}
+
+@test "standalone_uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    fake_agent_binary
+    cp "$AGENT_BINARY" "$INSTALL_DIR/shellhub-agent"
+
+    call_install standalone_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
 }
 
 @test "uninstall stays quiet about a tenant file that is not there" {
