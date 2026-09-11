@@ -94,7 +94,7 @@ type Config struct {
 	// It is optional: when empty (and no tenant was persisted from a previous
 	// pairing), the agent boots into pairing mode and waits for a user to
 	// accept it into a namespace, learning the tenant from the server.
-	TenantID string `env:"TENANT_ID"`
+	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
 
 	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
 	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
@@ -173,12 +173,6 @@ func LoadConfigFromEnv(backend envs.Backend) (*Config, map[string]any, error) {
 		return nil, nil, err
 	}
 
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
-		return nil, fields, err
-	}
-
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
@@ -190,6 +184,12 @@ func LoadConfigFromEnv(backend envs.Backend) (*Config, map[string]any, error) {
 				"persisted_tenant": persisted,
 			}).Warn("tenant from environment overrides the tenant persisted by pairing")
 		}
+	}
+
+	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
+
+		return nil, fields, err
 	}
 
 	return cfg, nil, nil
