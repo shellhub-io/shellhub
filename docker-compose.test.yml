@@ -1,41 +1,18 @@
-version: "3.7"
-
 services:
   server:
-    image: server:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: server/Dockerfile
-      target: production
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20
-    ports: []
   gateway:
-    image: gateway:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-      target: production
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20
-    ports: []
+  redis:
+    image: valkey/valkey:9.1-alpine
   ui:
-    image: ui:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-      target: production
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20

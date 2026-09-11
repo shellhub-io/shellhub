@@ -1,0 +1,26 @@
+services:
+  server:
+    image: server:test
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: production
+      args:
+        EDITION: ${SHELLHUB_BUILD_EDITION:-community}
+      additional_contexts:
+        cloud-src: ${SHELLHUB_CLOUD_SRC:-.}
+  gateway:
+    image: gateway:test
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+      target: production
+  ui:
+    image: ui:test
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      target: production

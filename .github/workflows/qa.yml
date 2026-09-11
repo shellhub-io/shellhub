@@ -80,6 +80,7 @@ jobs:
               - 'pkg/**'
               - 'gateway/**'
               - 'tests/**'
+              - 'docker-compose*.yml'
 
       - name: Set up Go 1.x [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false

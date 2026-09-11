@@ -102,7 +102,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down: nil,
 	}
 
-	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml"}
+	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml", "../docker-compose.build.test.yml"}
 	onlyPostgresAllowed(dc.envs["SHELLHUB_DATABASE"])
 	dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
 
