@@ -10,4 +10,5 @@
 # Dev artifacts: on a developer's disk via the bind mount, never in a clean
 # checkout, so leaving them in makes local builds differ from CI's.
 ui/apps/console/public/config.json
+ui/apps/console/e2e/tmp
 **/node_modules
