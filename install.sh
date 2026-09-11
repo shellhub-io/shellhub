@@ -98,6 +98,27 @@ enrollment_summary() {
   fi
 }
 
+# refusal_reason prints the part of an agent log line an operator can act on. logrus writes the line
+# as logfmt, so the reason is the error field and everything around it is the agent's own
+# bookkeeping. The line is printed whole when it carries no error field, because a reason that
+# cannot be parsed out is still worth more than nothing. The quotes logrus escapes inside the field
+# are parked on a placeholder first, because no POSIX sed expression can say "up to the first quote
+# that is not escaped".
+refusal_reason() {
+  _LOG_LINE="$1"
+
+  case "$_LOG_LINE" in
+  *'error="'*) ;;
+  *)
+    echo "$_LOG_LINE"
+
+    return 0
+    ;;
+  esac
+
+  echo "$_LOG_LINE" | sed -e 's/\\"/@@Q@@/g' -e 's/.*error="\([^"]*\)".*/\1/' -e 's/@@Q@@/"/g'
+}
+
 # Enrolls a freshly installed agent. Without a tenant the device does not belong
 # to any namespace yet, so we run the login flow in the foreground: it prints the
 # accept URL (opening the browser when possible) and waits until a user accepts
@@ -109,13 +130,73 @@ enrollment_summary() {
 #     methods this is the wrapper (which execs into the container); for native
 #     methods it is the agent binary itself, possibly prefixed with sudo.
 # $2: host-visible path of the agent key to wait for before pairing.
+# $3: command that prints the agent's recent output, or empty when this runtime has none the
+#     installer can read.
+# observe_enrollment reports what the agent did with the credential rather than what the installer
+# predicted, so a device the server refuses is visible here instead of only in the agent's own log.
+# $1 is a command that prints the agent's recent output; empty means this runtime cannot be read
+# from the installer, and no outcome is claimed. A refusal is reported, never returned: the agent is
+# already installed and keeps retrying, so there is nothing for the caller to undo.
+observe_enrollment() {
+  _LOG_CMD="$1"
+
+  if [ -z "$_LOG_CMD" ]; then
+    echo "ℹ️ This install method does not expose the agent's output to the installer."
+    echo "   Check the console to confirm the device enrolled."
+
+    return 0
+  fi
+
+  _OBSERVED=""
+  _WAITED=0
+
+  while [ "$_WAITED" -lt "${ENROLLMENT_OBSERVE_SECONDS:-20}" ]; do
+    _OBSERVED=$($_LOG_CMD 2>&1)
+
+    case "$_OBSERVED" in
+    *"Listening for connections"*)
+      echo "✅ The agent enrolled and is listening for connections."
+
+      return 0
+      ;;
+    *"Failed to authorize the device"*)
+      _REFUSAL=$(echo "$_OBSERVED" | grep "Failed to authorize the device" | tail -n 1)
+
+      echo "❌ The server refused this device:"
+      echo "   $(refusal_reason "$_REFUSAL")"
+
+      return 0
+      ;;
+    esac
+
+    sleep 1
+    _WAITED=$((_WAITED + 1))
+  done
+
+  case "$_OBSERVED" in
+  *"Cannot authorize the device"*)
+    _REFUSAL=$(echo "$_OBSERVED" | grep "Cannot authorize the device" | tail -n 1)
+
+    echo "⚠️ The server is still refusing this device, and the agent is still retrying:"
+    echo "   $(refusal_reason "$_REFUSAL")"
+    ;;
+  *)
+    echo "⚠️ The agent has not enrolled yet. Inspect it with:"
+    echo "   $_LOG_CMD"
+    ;;
+  esac
+}
+
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
+  _AGENT_LOG="$3"
 
   if [ -n "$CODE" ]; then
     echo ""
     echo "The device is pre-authorized and will be accepted automatically once it connects."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -125,12 +206,16 @@ enroll_agent_interactively() {
     echo "The device will enroll into the install key's namespace."
     echo "Whether it is accepted straight away or left pending is the key's own setting."
 
+    observe_enrollment "$_AGENT_LOG"
+
     return 0
   fi
 
   if [ -n "$TENANT_ID" ]; then
     echo ""
     echo "The device will appear as pending in the console — accept it there."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -141,6 +226,8 @@ enroll_agent_interactively() {
     echo ""
     echo "The device will enroll into tenant $_PERSISTED, remembered at $(tenant_file)."
     echo "Delete that file to enroll it somewhere else."
+
+    observe_enrollment "$_AGENT_LOG"
 
     return 0
   fi
@@ -270,7 +357,7 @@ podman_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -359,7 +446,7 @@ docker_install() {
     # The key path is under /host (the agent mounts the host root there); strip
     # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -462,7 +549,10 @@ standalone_install() {
   # Native install: the binary is the command and opens the browser itself, so
   # no wrapper is needed — enroll by invoking it directly. Reads the root-owned
   # key, hence $SUDO.
-  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}"
+  AGENT_LOG_CMD=""
+  command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50"
+
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
 
   rm -rf "$TMP_DIR"
 }

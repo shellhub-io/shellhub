@@ -33,6 +33,11 @@ skip_enrollment_wait() {
     stub_bin sleep 'exit 0'
 }
 
+stub_agent_log() {
+    cat > "$BATS_TEST_TMPDIR/agent.log"
+    stub_bin agent-log "cat '$BATS_TEST_TMPDIR/agent.log'"
+}
+
 with_tenant() {
     export TENANT_ID="00000000-0000-4000-a000-000000000000"
 }
@@ -260,6 +265,101 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
     assert_output_contains "appear as pending in the console"
+}
+
+@test "observe_enrollment reports an agent that enrolled" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\""'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "enrolled"
+}
+
+@test "refusal_reason prints only the reason a log line carries" {
+    call_install refusal_reason 'time="now" level=warning msg="Cannot authorize the device" attempt=1 error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}" server_address="http://localhost:80"'
+
+    [ "$status" -eq 0 ]
+    [ "$output" = 'the server answered 404 Not Found: {"message":"namespace not found"}' ]
+}
+
+@test "refusal_reason falls back to the line when it carries no reason" {
+    call_install refusal_reason 'level=warning msg="Cannot authorize the device"'
+
+    [ "$status" -eq 0 ]
+    [ "$output" = 'level=warning msg="Cannot authorize the device"' ]
+}
+
+@test "observe_enrollment reports the server's refusal" {
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}" server_address="http://localhost:80"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    assert_output_contains "refused"
+    assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
+}
+
+@test "observe_enrollment keeps the agent's own bookkeeping out of what it reports" {
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found" server_address="http://localhost:80"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    refute_output_contains "level=fatal"
+    refute_output_contains "server_address"
+}
+
+@test "observe_enrollment reports an agent still retrying when the window closes" {
+    stub_agent_log <<'LOG'
+time="now" level=warning msg="Cannot authorize the device, retrying until the server accepts it" attempt=1 error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "still"
+    assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
+    refute_output_contains "level=warning"
+}
+
+@test "observe_enrollment names the command to inspect an agent that says nothing" {
+    stub_bin agent-log
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "agent-log"
+}
+
+@test "observe_enrollment does not claim an outcome for a runtime it cannot read" {
+    call_install observe_enrollment ""
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "does not expose"
+}
+
+@test "enroll_agent_interactively observes the outcome of a persisted tenant enrollment" {
+    echo "00000000-0000-4000-0000-000000000000" > "$AGENT_KEY.tenant"
+    export PRIVATE_KEY="$AGENT_KEY"
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
+    assert_output_contains "404 Not Found"
+}
+
+@test "enroll_agent_interactively observes the outcome of a tenant enrollment" {
+    with_tenant
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "appear as pending in the console"
+    assert_output_contains "404 Not Found"
 }
 
 @test "docker_install runs the container with unless-stopped so it survives a reboot" {
