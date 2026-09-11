@@ -585,6 +585,130 @@ http_get() {
   fi
 }
 
+detect_install_method() {
+  if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
+    echo "🔍 Checking if Docker is available and accessible in rootful mode..."
+
+    export DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
+
+    for prefix in "" "sudo"; do
+      if $prefix docker info >/dev/null 2>&1; then
+        SUDO=$prefix
+        INSTALL_METHOD="docker"
+        break
+      fi
+    done
+
+    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Docker is not accessible in rootful mode."
+  fi
+
+  if [ -z "$INSTALL_METHOD" ] && type podman >/dev/null 2>&1; then
+    echo "🔍 Checking if Podman is available and accessible in rootful mode..."
+
+    export CONTAINER_HOST="${CONTAINER_HOST:-unix:///var/run/podman/podman.sock}"
+
+    for prefix in "" "sudo"; do
+      if $prefix podman info >/dev/null 2>&1; then
+        SUDO=$prefix
+        INSTALL_METHOD="podman"
+        break
+      fi
+    done
+
+    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Podman is not accessible in rootful mode."
+  fi
+
+  CONTAINER_RUNTIME_METHOD="$INSTALL_METHOD"
+
+  if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
+    echo "🔍 Detected Snap package manager..."
+    INSTALL_METHOD="snap"
+  fi
+
+  if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
+    echo "🔍 Detected WSL environment..."
+
+    WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
+    WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
+
+    if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
+      echo "❌ ERROR: WSL version 2 is required to run ShellHub."
+      exit 1
+    fi
+
+    if grep -qi 'NAME="Ubuntu"' "${OS_RELEASE:-/etc/os-release}"; then
+      INSTALL_METHOD="wsl"
+    else
+      echo "❌ Error: Only Ubuntu is supported in WSL."
+      exit 1
+    fi
+  fi
+
+  [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
+
+  return 0
+}
+
+recommend_container_runtime() {
+  [ -z "$CONTAINER_RUNTIME_METHOD" ] || return 0
+
+  echo
+  echo "⚠️  NOTE: No recommended installation method was detected."
+  echo "⚠️  For best performance, easier updates, and better isolation, it is strongly recommended to use Docker or Podman."
+  echo "ℹ️  The installer will proceed with an alternative method (Snap, Standalone, or WSL), but these may have limitations."
+  echo
+}
+
+uninstall_agent() {
+  case "$INSTALL_METHOD" in
+  standalone|wsl)
+    echo "🗑️ Uninstalling ShellHub using standalone method..."
+    standalone_uninstall
+    ;;
+  docker)
+    echo "🐳 Uninstalling ShellHub using docker method..."
+    docker_uninstall
+    ;;
+  podman)
+    echo "🐳 Uninstalling ShellHub using podman method..."
+    podman_uninstall
+    ;;
+  *)
+    echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
+    exit 1
+    ;;
+  esac
+}
+
+install_agent() {
+  case "$INSTALL_METHOD" in
+  podman)
+    echo "🐳 Installing ShellHub using podman method..."
+    podman_install "$@"
+    ;;
+  docker)
+    echo "🐳 Installing ShellHub using docker method..."
+    docker_install "$@"
+    ;;
+  snap)
+    echo "📦 Installing ShellHub using snap method..."
+    snap_install
+    ;;
+  standalone)
+    echo "🐧 Installing ShellHub using standalone method..."
+    standalone_install
+    ;;
+  wsl)
+    echo "🪟 Installing ShellHub using WSL method..."
+    wsl_install
+    ;;
+  *)
+    echo "❌ Install method not supported."
+    exit 1
+    ;;
+  esac
+}
+
 main() {
   if [ "$(uname -s)" = "FreeBSD" ]; then
     echo "👹 This system is running FreeBSD."
@@ -592,6 +716,13 @@ main() {
     echo
     echo "Please refer to the ShellHub port at https://github.com/shellhub-io/ports"
     exit 1
+  fi
+
+  if [ "$1" = "uninstall" ]; then
+    detect_install_method
+    uninstall_agent
+
+    return
   fi
 
   # TENANT_ID is optional wherever something else names the namespace: an install key does so on its
@@ -652,123 +783,9 @@ main() {
   [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"
   echo
 
-  if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
-    echo "🔍 Checking if Docker is available and accessible in rootful mode..."
-
-    export DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
-
-    for prefix in "" "sudo"; do
-      if $prefix docker info >/dev/null 2>&1; then
-        SUDO=$prefix
-        INSTALL_METHOD="docker"
-        break
-      fi
-    done
-
-    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Docker is not accessible in rootful mode."
-  fi
-
-  if [ -z "$INSTALL_METHOD" ] && type podman >/dev/null 2>&1; then
-    echo "🔍 Checking if Podman is available and accessible in rootful mode..."
-
-    export CONTAINER_HOST="${CONTAINER_HOST:-unix:///var/run/podman/podman.sock}"
-
-    for prefix in "" "sudo"; do
-      if $prefix podman info >/dev/null 2>&1; then
-        SUDO=$prefix
-        INSTALL_METHOD="podman"
-        break
-      fi
-    done
-
-    [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Podman is not accessible in rootful mode."
-  fi
-
-  if [ -z "$INSTALL_METHOD" ]; then
-    echo
-    echo "⚠️  NOTE: No recommended installation method was detected."
-    echo "⚠️  For best performance, easier updates, and better isolation, it is strongly recommended to use Docker or Podman."
-    echo "ℹ️  The installer will proceed with an alternative method (Snap, Standalone, or WSL), but these may have limitations."
-    echo
-  fi
-
-  if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
-    echo "🔍 Detected Snap package manager..."
-    INSTALL_METHOD="snap"
-  fi
-
-  # Check if running on WSL
-  if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
-    echo "🔍 Detected WSL environment..."
-
-    WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
-    WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
-
-    if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
-      echo "❌ ERROR: WSL version 2 is required to run ShellHub."
-      exit 1
-    fi
-
-    if grep -qi 'NAME="Ubuntu"' "${OS_RELEASE:-/etc/os-release}"; then
-      INSTALL_METHOD="wsl"
-    else
-      echo "❌ Error: Only Ubuntu is supported in WSL."
-      exit 1
-    fi
-  fi
-
-  [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
-
-  case "$1" in
-  uninstall)
-    case "$INSTALL_METHOD" in
-    standalone|wsl)
-      echo "🗑️ Uninstalling ShellHub using standalone method..."
-      standalone_uninstall
-      ;;
-    docker)
-      echo "🐳 Uninstalling ShellHub using docker method..."
-      docker_uninstall
-      ;;
-    podman)
-      echo "🐳 Uninstalling ShellHub using podman method..."
-      podman_uninstall
-      ;;
-    *)
-      echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
-      exit 1
-      ;;
-    esac
-    ;;
-  *)
-    case "$INSTALL_METHOD" in
-    podman)
-      echo "🐳 Installing ShellHub using podman method..."
-      podman_install "$@"
-      ;;
-    docker)
-      echo "🐳 Installing ShellHub using docker method..."
-      docker_install "$@"
-      ;;
-    snap)
-      echo "📦 Installing ShellHub using snap method..."
-      snap_install
-      ;;
-    standalone)
-      echo "🐧 Installing ShellHub using standalone method..."
-      standalone_install
-      ;;
-    wsl)
-      echo "🪟 Installing ShellHub using WSL method..."
-      wsl_install
-      ;;
-    *)
-      echo "❌ Install method not supported."
-      exit 1
-      ;;
-    esac
-    ;;
-  esac
+  detect_install_method
+  recommend_container_runtime
+  install_agent "$@"
 }
 
 [ "${INSTALL_SH_LIB:-}" = "1" ] || main "$@"

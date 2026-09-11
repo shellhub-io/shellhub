@@ -984,6 +984,20 @@ enter_wsl() {
     assert_called "docker rm -f shellhub"
 }
 
+@test "uninstall does no installer work before removing the agent" {
+    stub_bin docker
+    stub_bin curl 'echo "curl $*" >> "$CALLS"'
+    stub_bin wget 'echo "wget $*" >> "$CALLS"'
+
+    run_install uninstall
+
+    [ "$status" -eq 0 ]
+    refute_called "curl"
+    refute_called "wget"
+    [[ "$output" != *"Detected settings"* ]]
+    [[ "$output" != *"ShellHub Agent Installer"* ]]
+}
+
 @test "uninstall is refused for install methods that do not support it" {
     export INSTALL_METHOD=snap
 
