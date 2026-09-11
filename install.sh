@@ -192,8 +192,8 @@ podman_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  # Passing the variable empty would not clear a persisted tenant: the agent reads absent and blank
+  # alike as no tenant, and adopts the persisted one in both cases.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -280,8 +280,8 @@ docker_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  # Passing the variable empty would not clear a persisted tenant: the agent reads absent and blank
+  # alike as no tenant, and adopts the persisted one in both cases.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
