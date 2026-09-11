@@ -331,6 +331,72 @@ func TestRenameDevice(t *testing.T) {
 	}
 }
 
+func TestUpdateDeviceStatus(t *testing.T) {
+	cases := []struct {
+		title          string
+		path           string
+		expectedStatus models.DeviceStatus
+		expectedCode   int
+	}{
+		{
+			title:          "accept sets the device accepted",
+			path:           "/api/devices/uid/accept",
+			expectedStatus: models.DeviceStatusAccepted,
+			expectedCode:   http.StatusOK,
+		},
+		{
+			title:          "reject sets the device rejected",
+			path:           "/api/devices/uid/reject",
+			expectedStatus: models.DeviceStatusRejected,
+			expectedCode:   http.StatusOK,
+		},
+		{
+			title:          "pending sets the device pending",
+			path:           "/api/devices/uid/pending",
+			expectedStatus: models.DeviceStatusPending,
+			expectedCode:   http.StatusOK,
+		},
+		{
+			title:          "the container route sets the device accepted",
+			path:           "/api/containers/uid/accept",
+			expectedStatus: models.DeviceStatusAccepted,
+			expectedCode:   http.StatusOK,
+		},
+		{
+			title:        "unused is rejected",
+			path:         "/api/devices/uid/unused",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			title:        "a model status is rejected",
+			path:         "/api/devices/uid/accepted",
+			expectedCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.title, func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+			if tc.expectedStatus != "" {
+				mock.On("UpdateDeviceStatus", gomock.Anything, &requests.DeviceUpdateStatus{
+					TenantID: "tenant-id",
+					UID:      "uid",
+					Status:   string(tc.expectedStatus),
+				}).Return(nil).Once()
+			}
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.path, nil)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "tenant-id")
+			rec := httptest.NewRecorder()
+
+			NewRouter(mock).ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expectedCode, rec.Result().StatusCode)
+		})
+	}
+}
+
 func TestGetDeviceList(t *testing.T) {
 	mock := mocks.NewMockService(t)
 

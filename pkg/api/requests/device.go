@@ -84,7 +84,7 @@ type DeviceLookup struct {
 type DeviceUpdateStatus struct {
 	TenantID string `header:"X-Tenant-ID"`
 	UID      string `param:"uid" validate:"required"`
-	Status   string `param:"status" validate:"required,oneof=accepted pending rejected"`
+	Status   string `param:"status" validate:"required"`
 }
 
 // DeviceCreateTag is the structure to represent the request data for device create tag endpoint.

@@ -1,0 +1,7 @@
+description: Status change to apply to a device
+type: string
+enum:
+  - accept
+  - reject
+  - pending
+example: accept
