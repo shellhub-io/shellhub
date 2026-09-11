@@ -205,6 +205,17 @@ func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int
 	}, 30*time.Second, 1*time.Second)
 }
 
+// CreateAccessPolicy creates an access policy in the namespace the client is authenticated
+// against, failing t unless the server accepts it. The policy takes effect on the next login
+// decision; a namespace in the identity mode is born holding one that grants its owner.
+func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPolicyCreate) {
+	t.Helper()
+
+	resp, err := dc.R(t.Context()).SetBody(req).Post("/api/access-policies")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
+}
+
 // AwaitDeviceWithStatus waits until exactly one device in the namespace has the given status. The
 // status is a server-side filter, so a device that lands in another one leaves the list empty.
 func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.DeviceStatus) {
