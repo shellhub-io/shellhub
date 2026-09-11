@@ -1,15 +1,9 @@
-version: "3.7"
-
 services:
   server:
-    image: server:test
-    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20
-    ports: []
     environment:
       - SHELLHUB_OPENAPI_VALIDATION=strict
       - SHELLHUB_OPENAPI_SCHEMA=file:///etc/shellhub/openapi.json
@@ -17,19 +11,12 @@ services:
     volumes:
       - ./openapi/static/openapi.json:/etc/shellhub/openapi.json:ro
   gateway:
-    image: gateway:test
-    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20
-    ports: []
   ui:
-    image: ui:test
-    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
       retries: 20
