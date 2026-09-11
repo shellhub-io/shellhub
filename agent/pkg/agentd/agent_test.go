@@ -1,6 +1,7 @@
 package agentd
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -104,6 +105,55 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				fields: map[string]any{
 					"ServerAddress": "required",
 					"PrivateKey":    "required",
+				},
+				err: validator.ErrStructureInvalid,
+			},
+		},
+		{
+			description: "fail to load the environment variables when the tenant is not a uuid",
+			requiredMocks: func() {
+				envs := new(Config)
+
+				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
+					cfg, ok := args.Get(1).(*Config)
+					require.True(t, ok)
+
+					cfg.ServerAddress = "http://localhost"
+					cfg.TenantID = "1c462afa-e4b6-41a5-ba54-7236a177O466"
+					cfg.PrivateKey = "/tmp/shellhub.key"
+					cfg.MaxRetryConnectionTimeout = 30
+				})
+			},
+			expected: expected{
+				cfg: nil,
+				fields: map[string]any{
+					"TenantID": "uuid",
+				},
+				err: validator.ErrStructureInvalid,
+			},
+		},
+		{
+			description: "fail to load the environment variables when the persisted tenant is not a uuid",
+			requiredMocks: func() {
+				key := filepath.Join(t.TempDir(), "shellhub.key")
+				require.NoError(t, PersistTenant(TenantFilePath(key), "not-a-uuid"))
+
+				envs := new(Config)
+
+				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
+					cfg, ok := args.Get(1).(*Config)
+					require.True(t, ok)
+
+					cfg.ServerAddress = "http://localhost"
+					cfg.TenantID = ""
+					cfg.PrivateKey = key
+					cfg.MaxRetryConnectionTimeout = 30
+				})
+			},
+			expected: expected{
+				cfg: nil,
+				fields: map[string]any{
+					"TenantID": "uuid",
 				},
 				err: validator.ErrStructureInvalid,
 			},
