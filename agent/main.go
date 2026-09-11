@@ -113,9 +113,11 @@ func main() {
 
 			if err := ag.Authorize(); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
-				}).Fatal("Failed to initialize agent")
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
+					"tenant_id":      cfg.TenantID,
+					"tenant_origin":  cfg.TenantOrigin,
+				}).Fatal("Failed to authorize the device")
 			}
 
 			ctx := cmd.Context()
