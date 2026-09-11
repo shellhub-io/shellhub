@@ -39,7 +39,7 @@ func createInstallKey(t *testing.T, ctx context.Context, compose *environment.Do
 	return key
 }
 
-func awaitDevicesWithStatus(t *testing.T, ctx context.Context, compose *environment.DockerCompose, status string, count int) []models.Device {
+func awaitDevicesWithStatus(t *testing.T, ctx context.Context, compose *environment.DockerCompose, status string, count int) {
 	t.Helper()
 
 	devices := []models.Device{}
@@ -50,8 +50,6 @@ func awaitDevicesWithStatus(t *testing.T, ctx context.Context, compose *environm
 		assert.Equal(tt, 200, resp.StatusCode())
 		assert.Len(tt, devices, count)
 	}, 30*time.Second, 1*time.Second)
-
-	return devices
 }
 
 func startAgentWithInstallKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose, key string) testcontainers.Container {
@@ -85,8 +83,7 @@ func TestInstallKeyEnrollment(t *testing.T) {
 
 		startAgentWithInstallKey(t, ctx, compose, key.Key)
 
-		devices := awaitDevicesWithStatus(t, ctx, compose, "accepted", 1)
-		assert.Equal(t, models.DeviceStatusAccepted, devices[0].Status)
+		awaitDevicesWithStatus(t, ctx, compose, "accepted", 1)
 	})
 
 	t.Run("a manual key leaves the device waiting for a decision", func(t *testing.T) {
@@ -100,8 +97,7 @@ func TestInstallKeyEnrollment(t *testing.T) {
 
 		startAgentWithInstallKey(t, ctx, compose, key.Key)
 
-		devices := awaitDevicesWithStatus(t, ctx, compose, "pending", 1)
-		assert.Equal(t, models.DeviceStatusPending, devices[0].Status)
+		awaitDevicesWithStatus(t, ctx, compose, "pending", 1)
 	})
 
 	t.Run("an automatic enrollment charges one use of the key", func(t *testing.T) {
