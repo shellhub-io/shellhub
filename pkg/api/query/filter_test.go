@@ -138,9 +138,9 @@ func TestFilters_Unmarshal(t *testing.T) {
 			},
 		},
 		{
-			description: "non-base64 garbage returns ErrFilterInvalid",
+			description: "non-base64 garbage returns ErrFilterNotBase64",
 			raw:         "!!!not-base64!!!",
-			wantErr:     ErrFilterInvalid,
+			wantErr:     ErrFilterNotBase64,
 		},
 		{
 			description: "invalid JSON in valid base64 returns ErrFilterInvalid",
@@ -148,9 +148,14 @@ func TestFilters_Unmarshal(t *testing.T) {
 			wantErr:     ErrFilterInvalid,
 		},
 		{
-			description: "valid base64 + valid JSON with unknown filter type returns ErrFilterInvalid",
+			description: "valid base64 + valid JSON with unknown filter type returns ErrFilterShapeInvalid",
 			raw:         base64.StdEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
-			wantErr:     ErrFilterInvalid,
+			wantErr:     ErrFilterShapeInvalid,
+		},
+		{
+			description: "valid base64 + valid JSON whose params do not match its type returns ErrFilterShapeInvalid",
+			raw:         base64.StdEncoding.EncodeToString([]byte(`[{"type":"property","params":"not-an-object"}]`)),
+			wantErr:     ErrFilterShapeInvalid,
 		},
 	}
 
