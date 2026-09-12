@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
@@ -27,6 +28,13 @@ var identityHeaders = []string{
 	"X-API-Key",
 	"X-Role",
 	"X-Admin",
+}
+
+// IdentityHeaders returns the headers [Identity.WriteTo] stamps. A request dispatched internally
+// must carry them forward for the caller's identity to survive the hop, and reading them from here
+// is what keeps that set from drifting out of step with the write.
+func IdentityHeaders() []string {
+	return slices.Clone(identityHeaders)
 }
 
 // WriteTo stamps the identity onto header, clearing every identity header
@@ -61,6 +69,29 @@ func (i *Identity) WriteTo(header http.Header) {
 	if i.Admin {
 		header.Set("X-Admin", "true")
 	}
+}
+
+// IdentityFrom reads back the identity [Identity.WriteTo] stamped onto header.
+//
+// It is the read side of that write, and the two must name the same headers. TestIdentityRoundTrip
+// is what holds them together; a comment cannot.
+func IdentityFrom(header http.Header) Identity {
+	return Identity{
+		ID:        header.Get("X-ID"),
+		Username:  header.Get("X-Username"),
+		TenantID:  header.Get("X-Tenant-ID"),
+		DeviceUID: header.Get("X-Device-UID"),
+		APIKey:    header.Get("X-API-Key"),
+		Role:      authorizer.RoleFromString(header.Get("X-Role")),
+		Admin:     header.Get("X-Admin") == "true",
+	}
+}
+
+// Actor returns the identity as the [Actor] a handler receives: who is performing the request,
+// without the role and admin flag. Those decide what the caller may do, which the middleware
+// answers before a handler runs.
+func (i *Identity) Actor() Actor {
+	return Actor{ID: i.ID, Username: i.Username, APIKey: i.APIKey, DeviceUID: i.DeviceUID}
 }
 
 // WithoutUserScope returns the identity stripped of the acting user's ID and

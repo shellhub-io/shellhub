@@ -29,3 +29,14 @@ func (s *Sorter) Normalize() {
 		s.Order = OrderDesc
 	}
 }
+
+// Sorted is a request that carries a [Sorter]. It is the sorting half of [Paginated], and exists
+// for the same reason: the promoted Normalize methods cancel out when both are embedded.
+type Sorted interface {
+	GetSorter() *Sorter
+}
+
+// GetSorter returns the sorter itself, satisfying [Sorted] for every type that embeds it.
+func (s *Sorter) GetSorter() *Sorter {
+	return s
+}
