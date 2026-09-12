@@ -35,6 +35,9 @@ jobs:
       pull-requests: write
       issues: write
 
+    outputs:
+      claude-ref: ${{ steps.claude-branch.outputs.ref }}
+
     steps:
       - name: Generate cross-repo token
         id: app-token
@@ -188,9 +191,6 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Supplies both the review action below and the workspace.sh that syncs
-      # the config. Pairing is gated on the author being an admin, so a fork PR
-      # can never point this at a branch it controls.
       - name: Checkout claude config
         if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -217,3 +217,44 @@ jobs:
           app-token: ${{ steps.app-token.outputs.token }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  # A separate job so that a review job cancelled by its own timeout, or a runner
+  # that died under it, cannot leave the tracking comment stranded mid-progress.
+  finalize:
+    name: Finalize tracking comment
+    needs: review
+    if: always() && needs.review.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Generate cross-repo token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: claude
+
+      - name: Checkout claude config
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/claude
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+          ref: ${{ needs.review.outputs.claude-ref || 'master' }}
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+          path: claude
+
+      - name: Finalize
+        uses: ./claude/.github/actions/pr-review-finalize
+        with:
+          repo: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
