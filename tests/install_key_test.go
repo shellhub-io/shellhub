@@ -6,132 +6,62 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 )
 
-func createInstallKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose, req *requests.CreateInstallKey) *responses.CreateInstallKey {
-	t.Helper()
-
-	key := new(responses.CreateInstallKey)
-
-	resp, err := compose.R(ctx).
-		SetBody(req).
-		SetResult(key).
-		Post("/api/namespaces/install-key")
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
-	require.NotEmpty(t, key.Key)
-
-	return key
-}
-
-func awaitDevicesWithStatus(t *testing.T, ctx context.Context, compose *environment.DockerCompose, status string, count int) {
-	t.Helper()
-
-	devices := []models.Device{}
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).SetResult(&devices).Get("/api/devices?status=" + status)
-		assert.NoError(tt, err)
-		assert.Equal(tt, 200, resp.StatusCode())
-		assert.Len(tt, devices, count)
-	}, 30*time.Second, 1*time.Second)
-}
-
-func startAgentWithInstallKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose, key string) testcontainers.Container {
-	t.Helper()
-
-	agent, err := NewAgentContainer(ctx, compose.Env("SHELLHUB_HTTP_PORT"), NewAgentContainerWithInstallKey(key))
-	require.NoError(t, err)
-
-	require.NoError(t, agent.Start(ctx))
-
-	t.Cleanup(func() {
-		_ = agent.Stop(context.Background(), nil)
-		_ = agent.Terminate(context.Background())
-	})
-
-	return agent
-}
+const unissuedInstallKey = "3f2b1c44-0000-4000-8000-9a7d5e1c0b22"
 
 // TestInstallKeyEnrollment enrolls a device with an install key instead of a tenant id: the key
 // names the namespace, and its mode decides whether the device still needs a decision. The legacy
 // tenant-only path is covered by [TestSSH].
 func TestInstallKeyEnrollment(t *testing.T) {
-	t.Run("an automatic key enrolls the device already accepted", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	tests := []struct {
+		name   string
+		mode   models.InstallKeyMode
+		status models.DeviceStatus
+		uses   int
+	}{
+		{
+			name:   "an automatic key enrolls the device accepted and is charged a use",
+			mode:   models.InstallKeyModeAutomatic,
+			status: models.DeviceStatusAccepted,
+			uses:   1,
+		},
+		{
+			name:   "a manual key leaves the device pending and is charged nothing yet",
+			mode:   models.InstallKeyModeManual,
+			status: models.DeviceStatusPending,
+			uses:   0,
+		},
+	}
 
-		key := createInstallKey(t, ctx, compose, &requests.CreateInstallKey{
-			Name: "automatic",
-			Mode: "automatic",
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+
+			key := compose.CreateInstallKey(t, &requests.CreateInstallKey{
+				Name: string(tc.mode),
+				Mode: string(tc.mode),
+			})
+
+			startAgent(t, ctx, compose, NewAgentContainerWithInstallKey(key.Key))
+
+			compose.AwaitDeviceWithStatus(t, tc.status)
+			compose.AwaitInstallKeyUses(t, string(tc.mode), tc.uses)
 		})
-
-		startAgentWithInstallKey(t, ctx, compose, key.Key)
-
-		awaitDevicesWithStatus(t, ctx, compose, "accepted", 1)
-	})
-
-	t.Run("a manual key leaves the device waiting for a decision", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
-
-		key := createInstallKey(t, ctx, compose, &requests.CreateInstallKey{
-			Name: "manual",
-			Mode: "manual",
-		})
-
-		startAgentWithInstallKey(t, ctx, compose, key.Key)
-
-		awaitDevicesWithStatus(t, ctx, compose, "pending", 1)
-	})
-
-	t.Run("an automatic enrollment charges one use of the key", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
-
-		key := createInstallKey(t, ctx, compose, &requests.CreateInstallKey{
-			Name: "counted",
-			Mode: "automatic",
-		})
-
-		startAgentWithInstallKey(t, ctx, compose, key.Key)
-		awaitDevicesWithStatus(t, ctx, compose, "accepted", 1)
-
-		keys := []models.InstallKey{}
-
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			resp, err := compose.R(ctx).SetResult(&keys).Get("/api/namespaces/install-key")
-			assert.NoError(tt, err)
-			assert.Equal(tt, 200, resp.StatusCode())
-
-			found := false
-
-			for _, k := range keys {
-				if k.Name != "counted" {
-					continue
-				}
-
-				found = true
-
-				assert.Equal(tt, 1, k.UsedTimes)
-				assert.NotNil(tt, k.LastUsedAt)
-			}
-
-			assert.True(tt, found, "the key was not listed")
-		}, 30*time.Second, 1*time.Second)
-	})
+	}
 
 	t.Run("a key the namespace never issued enrolls nothing", func(t *testing.T) {
 		ctx := context.Background()
 		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
 
-		agent := startAgentWithInstallKey(t, ctx, compose, "3f2b1c44-0000-4000-8000-9a7d5e1c0b22")
+		agent := startAgent(t, ctx, compose, NewAgentContainerWithInstallKey(unissuedInstallKey))
+
+		environment.AwaitLogContains(t, agent, `error="failed to authorize device: bad request"`)
 
 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
 			state, err := agent.State(ctx)
