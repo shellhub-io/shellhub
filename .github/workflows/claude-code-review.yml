@@ -1,10 +1,9 @@
 name: Claude Code Review
 
 on:
-  # Automatic review only on PR opened (no synchronize — author drives re-review)
   # Using pull_request_target because shellhub is public (fork PRs need secrets)
   pull_request_target:
-    types: [opened]
+    types: [opened, ready_for_review, edited]
     branches: [master]
 
   # Manual review via /review command in comments
@@ -17,13 +16,13 @@ on:
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event.action != 'edited' || github.event.changes.base != null }}
 
 jobs:
   review:
     name: Claude Code Review
     if: |
-      (github.event_name == 'pull_request_target' && !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot') ||
+      (github.event_name == 'pull_request_target' && !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot' && (github.event.action != 'edited' || github.event.changes.base != null)) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/review') && github.event.comment.user.type != 'Bot') ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/review') && github.event.comment.user.type != 'Bot') ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/review') && github.event.review.user.type != 'Bot')
