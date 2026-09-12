@@ -4,14 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	log "github.com/sirupsen/logrus"
 )
 
 // The device routes, relative to the API's base path.
@@ -36,24 +32,6 @@ const (
 
 // GetDeviceList serves the namespace's devices, filtered, sorted and paginated as requested.
 func (h *Handler) GetDeviceList(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceList) ([]models.Device, int, error) {
-	if err := query.ValidateSorter(&req.Sorter, services.DeviceSortFields); err != nil {
-		log.WithError(err).WithField("sort_by", req.Sorter.By).Warn("failed to validate device list sorter")
-
-		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"sort_by": req.Sorter.By})
-	}
-
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode device list filter")
-
-		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"filter": "cannot be decoded"})
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to validate device list filter")
-
-		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"filter": "is not valid"})
-	}
-
 	return h.service.ListDevices(ctx, sc, req)
 }
 

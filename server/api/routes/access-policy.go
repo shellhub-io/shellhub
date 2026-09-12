@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
@@ -18,20 +20,8 @@ const (
 )
 
 // ListAccessPolicies serves the policy list for the caller's namespace.
-func (h *Handler) ListAccessPolicies(c *gateway.Context) error {
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	list, err := h.service.ListAccessPolicies(c.Ctx(), tenant)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(len(list)))
-
-	return c.JSON(http.StatusOK, list)
+func (h *Handler) ListAccessPolicies(ctx context.Context, sc scope.Scope, _ gateway.Actor, _ *requests.AccessPolicyList) ([]models.AccessPolicy, int, error) {
+	return h.service.ListAccessPolicies(ctx, sc.TenantID())
 }
 
 // GetAccessPolicy serves a single policy by id.

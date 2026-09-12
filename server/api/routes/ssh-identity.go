@@ -1,12 +1,15 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // The SSH identity routes, relative to the API's base path.
@@ -20,34 +23,19 @@ const (
 // ListSSHIdentities returns the caller's enrolled SSH identities in the current
 // namespace. With ?all=true (and the manage permission) it returns every
 // member's, for offboarding.
-func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
-	req := new(requests.SSHIdentityList)
-	if err := c.Bind(req); err != nil {
-		return err
+func (h *Handler) ListSSHIdentities(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *requests.SSHIdentityList) ([]models.SSHIdentity, int, error) {
+	if actor.ID == "" {
+		return nil, 0, errs.NewErrUnauthorized(nil)
 	}
 
-	userID, ok := c.GetID()
-	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
-	}
+	req.UserID = actor.ID
+	req.TenantID = sc.TenantID()
 
-	req.UserID = userID
-	if c.Tenant() != nil {
-		req.TenantID = c.Tenant().ID
-	}
-
-	if req.All && !c.Role().HasPermission(authorizer.SSHIdentityManage) {
+	if req.All && !gateway.RoleFromContext(ctx).HasPermission(authorizer.SSHIdentityManage) {
 		req.All = false
 	}
 
-	list, err := h.service.ListSSHIdentities(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(len(list)))
-
-	return c.JSON(http.StatusOK, list)
+	return h.service.ListSSHIdentities(ctx, req)
 }
 
 // CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the caller.

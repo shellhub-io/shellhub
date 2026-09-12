@@ -15,15 +15,17 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// APIKeySortFields is the set of field names accepted in the sort_by query parameter when listing
-// API keys. The row also holds the key's digest, which the response omits and a sort must not
-// order by.
-var APIKeySortFields = query.NewFieldSet(
-	"name",
-	"created_at",
-	"updated_at",
-	"expires_in",
-)
+// APIKeyQuery is the query contract the API key list accepts. The row also holds the key's digest,
+// which the response omits and a sort must not order by; keys take no filter at all.
+var APIKeyQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"name",
+		"created_at",
+		"updated_at",
+		"expires_in",
+	),
+	DefaultSort: query.Sorter{By: "expires_in", Order: query.OrderDesc},
+}
 
 // APIKeyService manages the keys that authenticate a namespace rather than a person. A key's
 // plaintext is returned once, at creation, and only its hash is kept.

@@ -16,23 +16,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// MembershipInvitationFilterFields maps each filter field the invitation list endpoints accept to
-// the set of operators valid for it. It names only fields the response already carries: the row
-// also holds the invitation's signature, which the response omits and a filter must not reach.
-var MembershipInvitationFilterFields = query.NewFieldConstraints(map[string][]string{
-	"status": {"eq", "ne"},
-	"role":   {"eq", "ne"},
-})
-
-// MembershipInvitationSortFields is the set of field names accepted in the sort_by query
-// parameter when listing invitations.
-var MembershipInvitationSortFields = query.NewFieldSet(
-	"status",
-	"role",
-	"created_at",
-	"updated_at",
-	"expires_at",
-)
+// MembershipInvitationQuery is the query contract both invitation lists accept — the user's and the
+// namespace's, which face opposite directions across the same rows. It names only fields the
+// response already carries: the row also holds the invitation's signature, which the response omits
+// and neither a filter nor a sort must reach.
+var MembershipInvitationQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"status": {"eq", "ne"},
+		"role":   {"eq", "ne"},
+	}),
+	Sort: query.NewFieldSet(
+		"status",
+		"role",
+		"created_at",
+		"updated_at",
+		"expires_at",
+	),
+}
 
 // InvitationService owns membership invitations, from issuing an invite code through to the
 // invitee accepting it, whether or not they already have an account.
@@ -51,11 +51,14 @@ type InvitationService interface {
 	// enabled (enterprise), the member is added directly and an empty link is returned.
 	GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)
 
-	// UserMembershipInvitationList lists membership invitations for a user.
-	UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int64, error)
+	// UserMembershipInvitationList lists membership invitations for a user, and the size of the whole
+	// collection. The store counts in int64; the count is narrowed here so the route layer writes the
+	// same header for invitations as for every other list.
+	UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int, error)
 
-	// NamespaceMembershipInvitationList lists membership invitations for a namespace.
-	NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error)
+	// NamespaceMembershipInvitationList lists membership invitations for a namespace, and the size of
+	// the whole collection, narrowed from the store's int64 as [InvitationService.UserMembershipInvitationList] is.
+	NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int, error)
 
 	// CancelMembershipInvitation cancels a pending membership invitation.
 	CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error
@@ -160,7 +163,7 @@ func buildInviteURL(forwardedProto, forwardedHost, sig string) string {
 	return scheme + "://" + forwardedHost + "/accept-invite?" + query.Encode()
 }
 
-func (s *service) UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
+func (s *service) UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int, error) {
 	invitations, count, err := s.store.UserMembershipInvitationList(
 		ctx,
 		req.UserID,
@@ -177,10 +180,10 @@ func (s *service) UserMembershipInvitationList(ctx context.Context, req *request
 		res[i] = *responses.MembershipInvitationFromModel(&invitations[i])
 	}
 
-	return res, count, nil
+	return res, int(count), nil
 }
 
-func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
+func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int, error) {
 	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleAdministrator); err != nil {
 		return nil, 0, err
 	}
@@ -209,7 +212,7 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *re
 		}
 	}
 
-	return res, count, nil
+	return res, int(count), nil
 }
 
 func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {

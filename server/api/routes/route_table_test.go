@@ -178,6 +178,20 @@ func staleExemptions(registered map[string]struct{}, exempt map[string]string) [
 	return stale
 }
 
+func unqueriedListRoutes(declarations []gateway.Declaration) []string {
+	unqueried := make([]string, 0)
+
+	for _, declaration := range declarations {
+		if declaration.Shape == gateway.ShapeList && !declaration.AcceptsQuery {
+			unqueried = append(unqueried, declaration.Address()+" serves a page and names no query contract")
+		}
+	}
+
+	sort.Strings(unqueried)
+
+	return unqueried
+}
+
 // TestRouteTableHoldsItsClaims reads the whole route table of a fully built router against the
 // claims its registrations made. Every check is one predicate over that table, and each has a
 // companion below feeding it a known-bad input, so a passing run means the predicate looked.
@@ -207,6 +221,10 @@ func TestRouteTableHoldsItsClaims(t *testing.T) {
 
 	t.Run("the anonymity claims and the allowlist agree", func(t *testing.T) {
 		assert.Empty(t, anonymityMismatches(declarations, authn.AnonymousRoutes()))
+	})
+
+	t.Run("every list route names a query contract", func(t *testing.T) {
+		assert.Empty(t, unqueriedListRoutes(declarations))
 	})
 
 	t.Run("every exemption names a mounted route and states why", func(t *testing.T) {
@@ -334,4 +352,21 @@ func TestStaleExemptionsCatchesAnExemptionNothingMounts(t *testing.T) {
 		"GET /gone is exempt but no such route is mounted",
 		"GET /silent is exempt and states no reason",
 	}, stale)
+}
+
+// TestUnqueriedListRoutesCatchesAListThatNamesNoContract replaces the go/ast test that used to
+// enforce this rule by reading the requests and routes packages as source text. That test matched a
+// handler by its gateway-context parameter, so a route dropped out of its coverage the moment its
+// handler changed shape — and it kept passing. A route is in the table whatever shape its handler
+// has, so a list route cannot leave this check by changing its signature. A route that still writes
+// its own response is a ShapeLegacy one, and is covered when it converts.
+func TestUnqueriedListRoutesCatchesAListThatNamesNoContract(t *testing.T) {
+	unqueried := unqueriedListRoutes([]gateway.Declaration{
+		{Method: "GET", Path: "/named", Shape: gateway.ShapeList, AcceptsQuery: true},
+		{Method: "GET", Path: "/silent", Shape: gateway.ShapeList},
+		{Method: "GET", Path: "/single", Shape: gateway.ShapeOne},
+		{Method: "GET", Path: "/legacy", Shape: gateway.ShapeLegacy},
+	})
+
+	assert.Equal(t, []string{"GET /silent serves a page and names no query contract"}, unqueried)
 }

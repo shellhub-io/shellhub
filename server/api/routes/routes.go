@@ -136,15 +136,15 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	gateway.POST(publicAPI, AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
 
 	gateway.POST(publicAPI, CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyCreate))
-	gateway.GET(publicAPI, ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys), gateway.NoAPIKey())
+	gateway.GET(publicAPI, ListAPIKeysURL, gateway.List(handler.ListAPIKeys), gateway.Accepts(services.APIKeyQuery), gateway.NoAPIKey())
 	gateway.PATCH(publicAPI, UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyUpdate))
 	gateway.DELETE(publicAPI, DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyDelete))
 
 	gateway.POST(publicAPI, CreateInstallKeyURL, gateway.Handler(handler.CreateInstallKey), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyCreate))
-	gateway.GET(publicAPI, ListInstallKeysURL, gateway.Handler(handler.ListInstallKeys), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyList))
+	gateway.GET(publicAPI, ListInstallKeysURL, gateway.List(handler.ListInstallKeys), gateway.Accepts(services.InstallKeyQuery), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyList))
 	gateway.PATCH(publicAPI, UpdateInstallKeyURL, gateway.Handler(handler.UpdateInstallKey), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyUpdate))
 	gateway.GET(publicAPI, RevealInstallKeyURL, gateway.Handler(handler.RevealInstallKey), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyReveal))
-	gateway.GET(publicAPI, HistoryInstallKeyURL, gateway.Handler(handler.HistoryInstallKey), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyList))
+	gateway.GET(publicAPI, HistoryInstallKeyURL, gateway.List(handler.HistoryInstallKey), gateway.Accepts(services.InstallKeyEventQuery), gateway.NoAPIKey(), gateway.Requires(authorizer.InstallKeyList))
 
 	gateway.PATCH(publicAPI, URLUpdateUser, gateway.Handler(handler.UpdateUser), gateway.NoAPIKey())
 	gateway.PATCH(publicAPI, URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), gateway.NoAPIKey())                 // WARN: DEPRECATED.
@@ -156,11 +156,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		gateway.Anonymous("an invitee follows the link before holding an account, and the signed invitation is the credential"))
 	gateway.POST(publicAPI, URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), gateway.NoAPIKey(), gateway.Requires(authorizer.NamespaceAddMember))
 	gateway.PATCH(publicAPI, URLAcceptInvite, gateway.Handler(handler.AcceptInvite), gateway.NoAPIKey())
-	gateway.GET(publicAPI, URLUserMembershipInvitationList, gateway.Handler(handler.GetUserMembershipInvitationList))
-	gateway.GET(publicAPI, URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), gateway.Requires(authorizer.NamespaceEditMember))
+	gateway.GET(publicAPI, URLUserMembershipInvitationList, gateway.List(handler.GetUserMembershipInvitationList), gateway.Accepts(services.MembershipInvitationQuery),
+		gateway.Unbounded("an invitation is addressed to a person across namespaces, and the invitee may belong to none yet"))
+	gateway.GET(publicAPI, URLNamespaceMembershipInvitationList, gateway.List(handler.GetNamespaceMembershipInvitationList), gateway.Accepts(services.MembershipInvitationQuery), gateway.Requires(authorizer.NamespaceEditMember))
 	gateway.DELETE(publicAPI, URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), gateway.Requires(authorizer.NamespaceRemoveMember))
 
-	gateway.GET(publicAPI, GetDeviceListURL, gateway.List(handler.GetDeviceList), gateway.Guard(routesmiddleware.Authorize))
+	gateway.GET(publicAPI, GetDeviceListURL, gateway.List(handler.GetDeviceList), gateway.Accepts(services.DeviceQuery), gateway.Guard(routesmiddleware.Authorize))
 	gateway.GET(publicAPI, GetDeviceURL, gateway.One(handler.GetDevice), gateway.Guard(routesmiddleware.Authorize))
 	gateway.GET(publicAPI, ResolveDeviceURL, gateway.Handler(handler.ResolveDevice), gateway.Guard(routesmiddleware.Authorize))
 	gateway.PUT(publicAPI, UpdateDevice, gateway.Handler(handler.UpdateDevice), gateway.Requires(authorizer.DeviceUpdate))
@@ -185,21 +186,21 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	gateway.PUT(publicAPI, SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), gateway.Requires(authorizer.DeviceCustomFieldUpdate))
 	gateway.DELETE(publicAPI, DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), gateway.Requires(authorizer.DeviceCustomFieldUpdate))
 
-	gateway.GET(publicAPI, URLGetTags, gateway.Handler(handler.GetTags))
+	gateway.GET(publicAPI, URLGetTags, gateway.List(handler.GetTags), gateway.Accepts(services.TagQuery))
 	gateway.POST(publicAPI, URLCreateTag, gateway.Handler(handler.CreateTag), gateway.Requires(authorizer.TagCreate))
 	gateway.PATCH(publicAPI, URLUpdateTag, gateway.Handler(handler.UpdateTag), gateway.Requires(authorizer.TagUpdate))
 	gateway.DELETE(publicAPI, URLDeleteTag, gateway.Handler(handler.DeleteTag), gateway.Requires(authorizer.TagDelete))
 	gateway.POST(publicAPI, URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), gateway.Requires(authorizer.TagCreate))
 	gateway.DELETE(publicAPI, URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), gateway.Requires(authorizer.TagDelete))
 
-	gateway.GET(publicAPI, URLOldGetTags, gateway.Handler(handler.GetTags))
+	gateway.GET(publicAPI, URLOldGetTags, gateway.List(handler.GetTags), gateway.Accepts(services.TagQuery))
 	gateway.POST(publicAPI, URLOldCreateTag, gateway.Handler(handler.CreateTag), gateway.Requires(authorizer.TagCreate))
 	gateway.PATCH(publicAPI, URLOldUpdateTag, gateway.Handler(handler.UpdateTag), gateway.Requires(authorizer.TagUpdate))
 	gateway.DELETE(publicAPI, URLOldDeleteTag, gateway.Handler(handler.DeleteTag), gateway.Requires(authorizer.TagDelete))
 	gateway.POST(publicAPI, URLOldPushTagToDevice, gateway.Handler(handler.PushTagToDevice), gateway.Requires(authorizer.TagCreate))
 	gateway.DELETE(publicAPI, URLOldPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), gateway.Requires(authorizer.TagDelete))
 
-	gateway.GET(publicAPI, GetSessionsURL, gateway.Handler(handler.GetSessionList), gateway.Guard(routesmiddleware.Authorize))
+	gateway.GET(publicAPI, GetSessionsURL, gateway.List(handler.GetSessionList), gateway.Accepts(services.SessionQuery), gateway.Guard(routesmiddleware.Authorize))
 	gateway.GET(publicAPI, GetSessionURL, gateway.Handler(handler.GetSession), gateway.Guard(routesmiddleware.Authorize))
 
 	gateway.GET(publicAPI, GetStatsURL, gateway.Handler(handler.GetStats), gateway.Guard(routesmiddleware.Authorize))
@@ -209,7 +210,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		gateway.Anonymous("the install script is fetched by a shell on a machine that holds no credential"))
 
 	gateway.POST(publicAPI, CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), gateway.Requires(authorizer.PublicKeyCreate))
-	gateway.GET(publicAPI, GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
+	gateway.GET(publicAPI, GetPublicKeysURL, gateway.List(handler.GetPublicKeys), gateway.Accepts(services.PublicKeyQuery))
 	gateway.PUT(publicAPI, UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), gateway.Requires(authorizer.PublicKeyEdit))
 	gateway.DELETE(publicAPI, DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), gateway.Requires(authorizer.PublicKeyRemove))
 
@@ -217,11 +218,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		gateway.POST(publicAPI, CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), gateway.NoAPIKey())
 	}
 	gateway.GET(publicAPI, GetNamespaceURL, gateway.Handler(handler.GetNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)))
-	gateway.GET(publicAPI, ListNamespaceURL, gateway.Handler(handler.GetNamespaceList), gateway.NoAPIKey())
+	gateway.GET(publicAPI, ListNamespaceURL, gateway.List(handler.GetNamespaceList), gateway.Accepts(services.NamespaceQuery), gateway.NoAPIKey(),
+		gateway.Unbounded("the list answers which namespaces the caller belongs to, and the caller may have selected none"))
 	gateway.PUT(publicAPI, EditNamespaceURL, gateway.Handler(handler.EditNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceUpdate))
 	gateway.DELETE(publicAPI, DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceDelete))
 
-	gateway.GET(publicAPI, ListNamespaceMembersURL, gateway.Handler(handler.ListNamespaceMembers), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)))
+	gateway.GET(publicAPI, ListNamespaceMembersURL, gateway.List(handler.ListNamespaceMembers), gateway.Accepts(services.MemberQuery), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)))
 	gateway.POST(publicAPI, AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), gateway.Requires(authorizer.NamespaceAddMember))
 	gateway.PATCH(publicAPI, EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), gateway.Requires(authorizer.NamespaceEditMember))
 	gateway.DELETE(publicAPI, RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), gateway.Requires(authorizer.NamespaceRemoveMember))
@@ -230,20 +232,20 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	gateway.PUT(publicAPI, EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceEnableSessionRecord))
 	gateway.PUT(publicAPI, EditSSHAccessModeURL, gateway.Handler(handler.EditSSHAccessMode), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceUpdate))
 
-	gateway.GET(publicAPI, ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), gateway.Requires(authorizer.AccessPolicyManage))
+	gateway.GET(publicAPI, ListAccessPoliciesURL, gateway.List(handler.ListAccessPolicies), gateway.Accepts(services.AccessPolicyQuery), gateway.Requires(authorizer.AccessPolicyManage))
 	gateway.POST(publicAPI, CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
 	gateway.GET(publicAPI, GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
 	gateway.PUT(publicAPI, UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
 	gateway.DELETE(publicAPI, DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
 
-	gateway.GET(publicAPI, ListSSHIdentitiesURL, gateway.Handler(handler.ListSSHIdentities))
+	gateway.GET(publicAPI, ListSSHIdentitiesURL, gateway.List(handler.ListSSHIdentities), gateway.Accepts(services.SSHIdentityQuery))
 	gateway.POST(publicAPI, CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), gateway.Requires(authorizer.SSHIdentityAdd))
 	gateway.PATCH(publicAPI, UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), gateway.Requires(authorizer.SSHIdentityAdd))
 	gateway.DELETE(publicAPI, DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
 
 	gateway.POST(publicAPI, WebReauthURL, gateway.Handler(handler.WebReauthVerify))
 
-	gateway.GET(publicAPI, ListServiceAccountsURL, gateway.Handler(handler.ListServiceAccounts), gateway.Requires(authorizer.NamespaceAddMember))
+	gateway.GET(publicAPI, ListServiceAccountsURL, gateway.List(handler.ListServiceAccounts), gateway.Accepts(services.ServiceAccountQuery), gateway.Requires(authorizer.NamespaceAddMember))
 	gateway.POST(publicAPI, CreateServiceAccountURL, gateway.Handler(handler.CreateServiceAccount), gateway.Requires(authorizer.NamespaceAddMember))
 	gateway.DELETE(publicAPI, DeleteServiceAccountURL, gateway.Handler(handler.DeleteServiceAccount), gateway.Requires(authorizer.NamespaceAddMember))
 

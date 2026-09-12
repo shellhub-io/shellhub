@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,4 +87,29 @@ func TestDeleteServiceAccount(t *testing.T) {
 			storeMock.AssertExpectations(t)
 		})
 	}
+}
+
+// TestListServiceAccountsCarriesTheStoreCount pins the count the header is written from as the
+// account store's, not the page's nor the identity list's.
+func TestListServiceAccountsCarriesTheStoreCount(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	storeMock := new(storemock.MockStore)
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID}, nil).Once()
+	storeMock.On("ServiceAccountList", ctx, tenantID).
+		Return([]models.ServiceAccount{{ID: "account1"}}, 7, nil).Once()
+	storeMock.On("SSHIdentityList", ctx, mock.Anything).
+		Return([]models.SSHIdentity{{ID: "id1", PrincipalID: "account1"}, {ID: "id2", PrincipalID: "account1"}}, 2, nil).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, nil)
+
+	accounts, count, err := service.ListServiceAccounts(ctx, &requests.ServiceAccountList{TenantID: tenantID})
+	require.NoError(t, err)
+	require.Len(t, accounts, 1)
+	require.Equal(t, 7, count)
+
+	storeMock.AssertExpectations(t)
 }

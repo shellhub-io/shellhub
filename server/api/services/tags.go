@@ -10,19 +10,16 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// TagFilterFields maps each filter field the tag list endpoint accepts to the
-// set of operators valid for it. Tags currently have no filterable fields, so
-// this is an empty FieldConstraints that causes all filter attempts to be
-// rejected at the handler level.
-var TagFilterFields = query.NewFieldConstraints(map[string][]string{})
-
-// TagSortFields is the set of field names accepted in the sort_by query
-// parameter when listing tags.
-var TagSortFields = query.NewFieldSet(
-	"name",
-	"created_at",
-	"updated_at",
-)
+// TagQuery is the query contract the tag list accepts. Tags have no filterable fields, so every
+// filter a client sends is refused.
+var TagQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{}),
+	Sort: query.NewFieldSet(
+		"name",
+		"created_at",
+		"updated_at",
+	),
+}
 
 // TagsService owns tags, which are namespace-scoped labels attached to devices and keys.
 type TagsService interface {
