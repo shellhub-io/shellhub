@@ -173,7 +173,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		compose.NewUser(t, "member", "member@ossystems.com.br", ShellHubPassword)
 		compose.NewMember(t, "member", ShellHubNamespaceName, "operator")
 
-		auth := compose.AuthUser(ctx, "member", ShellHubPassword)
+		auth := compose.AuthUser(t, "member", ShellHubPassword)
 		require.Equal(t, ShellHubNamespace, auth.Tenant)
 
 		signer, data := newSigner(t)
@@ -193,7 +193,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		signer, data := newSigner(t)
 
-		auth := compose.AuthUser(ctx, ShellHubUsername, ShellHubPassword)
+		auth := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
 		enrollIdentity(t, ctx, compose, auth.Token, "owner", data)
 
 		createAccessPolicy(t, ctx, compose, &requests.AccessPolicyCreate{
@@ -217,7 +217,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		signer, data := newSigner(t)
 
-		auth := compose.AuthUser(ctx, ShellHubUsername, ShellHubPassword)
+		auth := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
 		enrollIdentity(t, ctx, compose, auth.Token, "owner", data)
 
 		policies := []models.AccessPolicy{}
