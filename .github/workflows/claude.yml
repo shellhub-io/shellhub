@@ -98,6 +98,7 @@ jobs:
         with:
           repository: shellhub-io/claude
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
           fetch-depth: 1
           path: claude
 
