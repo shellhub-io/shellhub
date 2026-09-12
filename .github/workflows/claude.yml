@@ -106,6 +106,19 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
 
+      - name: Verify the workspace config is readable
+        run: |
+          for file in \
+            "$GITHUB_WORKSPACE/claude/CLAUDE.md" \
+            "$GITHUB_WORKSPACE/claude/shellhub/CLAUDE.md" \
+            "$GITHUB_WORKSPACE/claude/.claude/rules/code-style.md" \
+            "$GITHUB_WORKSPACE/claude/.claude/skills/code-review/SKILL.md"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error::Workspace config not found at $file"
+              exit 1
+            fi
+          done
+
       - name: Run Claude
         timeout-minutes: 60
         uses: anthropics/claude-code-action@8251c103ac8c1d761882c86aba1412c7f583c844 # v1
