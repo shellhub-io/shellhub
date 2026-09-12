@@ -216,7 +216,7 @@ func TestWrapperCeremony(t *testing.T) {
 			call := new(probeCall)
 
 			e := probeRouter(t, tc.withGatewayContext)
-			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil), tc.options...))
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)), tc.options...)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
 			for name, value := range tc.headers {
@@ -266,7 +266,7 @@ func TestListWritesTheTotalCountAfterTheErrorCheck(t *testing.T) {
 			call := new(probeCall)
 
 			e := probeRouter(t, true)
-			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err)))
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err)))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
 			req.Header.Set("X-Tenant-ID", probeTenant)
@@ -292,7 +292,7 @@ func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 	var got *plainRequest
 
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, req *plainRequest) (string, error) {
+	gateway.GET(rootOf(e), "/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, req *plainRequest) (string, error) {
 		got = req
 
 		return "ok", nil
@@ -312,7 +312,7 @@ func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 
 func TestOneEncodesTheHandlerResult(t *testing.T) {
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) (map[string]string, error) {
+	gateway.GET(rootOf(e), "/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) (map[string]string, error) {
 		return map[string]string{"name": "value"}, nil
 	}))
 
@@ -330,7 +330,7 @@ func TestOneEncodesTheHandlerResult(t *testing.T) {
 
 func TestNoneAnswersWithoutABody(t *testing.T) {
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.None(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) error {
+	gateway.GET(rootOf(e), "/probe", gateway.None(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) error {
 		return nil
 	}))
 
@@ -351,13 +351,13 @@ func TestDeclarationsRecordEveryClaim(t *testing.T) {
 	const unboundedReason = "the declared probe reads every namespace"
 
 	e := probeRouter(t, true)
-	e.GET("/declared", gateway.List(probeHandler(new(probeCall), nil, 0, nil),
+	gateway.GET(rootOf(e), "/declared", gateway.List(probeHandler(new(probeCall), nil, 0, nil)),
 		gateway.Unbounded(unboundedReason),
-		gateway.Anonymous("the declared probe establishes the actor")))
+		gateway.Anonymous("the declared probe establishes the actor"))
 
 	var found bool
 
-	for _, declaration := range gateway.Declarations() {
+	for _, declaration := range gateway.Declarations(e) {
 		if declaration.UnboundedReason != unboundedReason {
 			continue
 		}
