@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"io"
 	"net"
 	"regexp"
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -16,43 +16,13 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func enrollIdentity(t *testing.T, ctx context.Context, compose *environment.DockerCompose, token, name, data string) {
-	t.Helper()
+const approvalWait = 60 * time.Second
 
-	resp, err := compose.R(ctx).
-		SetAuthToken(token).
-		SetBody(&requests.SSHIdentityCreate{Name: name, Data: data}).
-		Post("/api/ssh-identities")
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
+func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer) error {
+	return dialSSHForApproval(ctx, addr, sshid, signer, nil)
 }
 
-func createAccessPolicy(t *testing.T, ctx context.Context, compose *environment.DockerCompose, req *requests.AccessPolicyCreate) {
-	t.Helper()
-
-	resp, err := compose.R(ctx).SetBody(req).Post("/api/access-policies")
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
-}
-
-func awaitServerLogContains(t *testing.T, ctx context.Context, compose *environment.DockerCompose, substr string) {
-	t.Helper()
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		reader, err := compose.Service(environment.ServiceServer).Logs(ctx)
-		if !assert.NoError(tt, err) {
-			return
-		}
-
-		defer func() { _ = reader.Close() }()
-
-		logs, err := io.ReadAll(reader)
-		assert.NoError(tt, err)
-		assert.Contains(tt, string(logs), substr)
-	}, 30*time.Second, 2*time.Second)
-}
-
-func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer, banners chan<- string) error {
+func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Signer, banners chan<- string) error {
 	config := &ssh.ClientConfig{
 		User:            sshid,
 		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
@@ -89,12 +59,24 @@ func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer, banners
 	return nil
 }
 
+func requireLoginRefused(t *testing.T, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer, wantServerLogs ...string) {
+	t.Helper()
+
+	err := dialSSH(t.Context(), compose.SSHAddress(), deviceSSHID(device), signer)
+	require.Error(t, err)
+
+	for _, substr := range wantServerLogs {
+		compose.AwaitServerLog(t, substr)
+	}
+}
+
 var approvalCodePattern = regexp.MustCompile(`/ssh-identities/new/([2-9A-Z]{8})`)
 
-// TestIdentityAccessPolicy covers what the Access Policies decide once a namespace is in the
-// identity model: default-deny leaves a member without a grant outside, a deny beats the allow that
-// would otherwise let the owner in, and a namespace stripped of every policy admits nobody. The
-// authentication side of the model is covered by [TestSSHIdentityMode].
+// TestIdentityAccessPolicy covers what decides a login once a namespace is in the identity model:
+// an unknown key is held for approval and let in once confirmed, default-deny leaves a member
+// without a grant outside, a deny beats the allow that would otherwise let the owner in, and a
+// namespace stripped of every policy admits nobody. Password refusal and a pre-enrolled identity
+// connecting are covered by [TestSSHIdentityMode].
 func TestIdentityAccessPolicy(t *testing.T) {
 	t.Run("an unknown key is held for approval and let in once confirmed", func(t *testing.T) {
 		ctx := context.Background()
@@ -102,17 +84,17 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		_, device := startAcceptedAgent(t, ctx, compose)
 
 		signer, _ := newSigner(t)
-		sshid := ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
-		addr := "localhost:" + compose.Env("SHELLHUB_SSH_PORT")
 
 		banners := make(chan string, 8)
 		dialed := make(chan error, 1)
 
-		go func() { dialed <- dialSSH(ctx, addr, sshid, signer, banners) }()
+		go func() {
+			dialed <- dialSSHForApproval(ctx, compose.SSHAddress(), deviceSSHID(device), signer, banners)
+		}()
 
 		var code string
 
-		deadline := time.After(60 * time.Second)
+		deadline := time.After(approvalWait)
 
 		for code == "" {
 			select {
@@ -135,7 +117,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		select {
 		case err := <-dialed:
 			require.NoError(t, err, "the login should resume once the approval is confirmed")
-		case <-time.After(60 * time.Second):
+		case <-time.After(approvalWait):
 			require.Fail(t, "the login never resumed after the approval was confirmed")
 		}
 
@@ -146,78 +128,87 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		require.Equal(t, 200, resp.StatusCode())
 		require.Len(t, identities, 1)
 		assert.Equal(t, models.SSHIdentitySourceApproval, identities[0].Source)
+		assert.Equal(t, ssh.FingerprintSHA256(signer.PublicKey()), identities[0].Fingerprint,
+			"the identity should hold the key that dialled")
 	})
 
-	t.Run("a member no policy grants is refused", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
-		_, device := startAcceptedAgent(t, ctx, compose)
+	tests := []struct {
+		name           string
+		refuse         func(t *testing.T, compose *environment.DockerCompose) ssh.Signer
+		wantServerLogs []string
+	}{
+		{
+			name: "a member no policy grants is refused",
+			refuse: func(t *testing.T, compose *environment.DockerCompose) ssh.Signer {
+				t.Helper()
 
-		compose.NewUser(t, "member", "member@ossystems.com.br", ShellHubPassword)
-		compose.NewMember(t, "member", ShellHubNamespaceName, "operator")
+				compose.NewUser(t, "member", "member@ossystems.com.br", ShellHubPassword)
+				compose.NewMember(t, "member", ShellHubNamespaceName, string(authorizer.RoleOperator))
 
-		auth := compose.AuthUser(t, "member", ShellHubPassword)
-		require.Equal(t, ShellHubNamespace, auth.Tenant)
+				auth := compose.AuthUser(t, "member", ShellHubPassword)
+				require.Equal(t, ShellHubNamespace, auth.Tenant)
 
-		signer, data := newSigner(t)
-		enrollIdentity(t, ctx, compose, auth.Token, "member", data)
+				signer, data := newSigner(t)
+				compose.EnrollIdentityAs(t, auth.Token, "member", data)
 
-		sshid := ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
-		err := dialSSH(ctx, "localhost:"+compose.Env("SHELLHUB_SSH_PORT"), sshid, signer, nil)
-		require.Error(t, err)
+				return signer
+			},
+			wantServerLogs: []string{"reason=" + string(models.ReasonNoGrant)},
+		},
+		{
+			name: "a deny policy beats the allow that would grant the owner",
+			refuse: func(t *testing.T, compose *environment.DockerCompose) ssh.Signer {
+				t.Helper()
 
-		awaitServerLogContains(t, ctx, compose, "reason="+string(models.ReasonNoGrant))
-	})
+				signer, data := newSigner(t)
+				compose.EnrollIdentity(t, "owner", data)
 
-	t.Run("a deny policy beats the allow that would grant the owner", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
-		_, device := startAcceptedAgent(t, ctx, compose)
+				compose.CreateAccessPolicy(t, &requests.AccessPolicyCreate{
+					Name:    "no root",
+					Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectAllMembers)},
+					Logins:  []string{ShellHubAgentUsername},
+					Action:  string(models.PolicyActionDeny),
+				})
 
-		signer, data := newSigner(t)
+				return signer
+			},
+			wantServerLogs: []string{"reason=" + string(models.ReasonDeniedByPolicy)},
+		},
+		{
+			name: "a namespace with no policy at all refuses everyone",
+			refuse: func(t *testing.T, compose *environment.DockerCompose) ssh.Signer {
+				t.Helper()
 
-		auth := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
-		enrollIdentity(t, ctx, compose, auth.Token, "owner", data)
+				signer, data := newSigner(t)
+				compose.EnrollIdentity(t, "owner", data)
 
-		createAccessPolicy(t, ctx, compose, &requests.AccessPolicyCreate{
-			Name:    "no root",
-			Subject: requests.AccessPolicySubject{Type: "all-members"},
-			Logins:  []string{ShellHubAgentUsername},
-			Action:  "deny",
+				policies := []models.AccessPolicy{}
+
+				resp, err := compose.R(t.Context()).SetResult(&policies).Get("/api/access-policies")
+				require.NoError(t, err)
+				require.Equal(t, 200, resp.StatusCode())
+				require.NotEmpty(t, policies, "a namespace born in identity is seeded with the owner policy")
+
+				for _, policy := range policies {
+					resp, err := compose.R(t.Context()).Delete("/api/access-policies/" + policy.ID)
+					require.NoError(t, err)
+					require.Equal(t, 200, resp.StatusCode())
+				}
+
+				return signer
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+			_, device := startAcceptedAgent(t, ctx, compose)
+
+			signer := tc.refuse(t, compose)
+
+			requireLoginRefused(t, compose, device, signer, tc.wantServerLogs...)
 		})
-
-		sshid := ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
-		err := dialSSH(ctx, "localhost:"+compose.Env("SHELLHUB_SSH_PORT"), sshid, signer, nil)
-		require.Error(t, err)
-
-		awaitServerLogContains(t, ctx, compose, "reason="+string(models.ReasonDeniedByPolicy))
-	})
-
-	t.Run("a namespace with no policy at all refuses everyone", func(t *testing.T) {
-		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
-		_, device := startAcceptedAgent(t, ctx, compose)
-
-		signer, data := newSigner(t)
-
-		auth := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
-		enrollIdentity(t, ctx, compose, auth.Token, "owner", data)
-
-		policies := []models.AccessPolicy{}
-
-		resp, err := compose.R(ctx).SetResult(&policies).Get("/api/access-policies")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode())
-		require.NotEmpty(t, policies, "a namespace born in identity is seeded with the owner policy")
-
-		for _, policy := range policies {
-			resp, err := compose.R(ctx).Delete("/api/access-policies/" + policy.ID)
-			require.NoError(t, err)
-			require.Equal(t, 200, resp.StatusCode())
-		}
-
-		sshid := ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
-		err = dialSSH(ctx, "localhost:"+compose.Env("SHELLHUB_SSH_PORT"), sshid, signer, nil)
-		require.Error(t, err, "default-deny leaves nobody in when no policy grants anything")
-	})
+	}
 }
