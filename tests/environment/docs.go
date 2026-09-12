@@ -30,9 +30,10 @@
 // resources for the instance. Generally, it is passed to [testing.T.Cleanup]:
 //
 //	func TestSomething(t *testing.T) {
+//	    ctx := context.Background()
 //	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
 //
-//	    dockerCompose := cfg.Up()
+//	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
 //	}
 //
@@ -43,12 +44,12 @@
 //	    ctx := context.Background()
 //	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
 //
-//	    dockerCompose := cfg.Up()
+//	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
 //
-//	    dockerCompose.NewUser(ctx, "john_doe", "john.doe@test.com", "secret") // Create a new user
-//	    dockerCompose.NewNamespace(ctx, "john_doe", "dev", "00000000-0000-0000-0000-000000000000", "legacy") // And a namespace
-//	    credentials := dockerCompose.AuthUser("john_doe", "secret")
+//	    dockerCompose.NewUser(t, "john_doe", "john.doe@test.com", "secret") // Create a new user
+//	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000", "legacy") // And a namespace
+//	    credentials := dockerCompose.AuthUser(t, "john_doe", "secret")
 //	    // Do something ...
 //	}
 //
