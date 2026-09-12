@@ -6,9 +6,13 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
@@ -49,6 +53,11 @@ func (dc *DockerCompose) JWT(jwt string) {
 // Env retrieves a environment variable with the specified key.
 func (dc *DockerCompose) Env(key string) string {
 	return dc.envs[key]
+}
+
+// SSHAddress is the host address the gateway's SSH port is published on.
+func (dc *DockerCompose) SSHAddress() string {
+	return "localhost:" + dc.Env("SHELLHUB_SSH_PORT")
 }
 
 // Service retrieves the specified service.
@@ -109,6 +118,146 @@ func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role strin
 	t.Helper()
 
 	dc.runAdminCommand(t, []string{"namespace", "member", "add", username, namespace, role})
+}
+
+// LogSource is anything whose logs a test can read, such as a compose service or a container the
+// test started itself.
+type LogSource interface {
+	Logs(ctx context.Context) (io.ReadCloser, error)
+}
+
+// AwaitLogContains waits until source's log holds substr, failing t if it never does.
+func AwaitLogContains(t *testing.T, source LogSource, substr string) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		reader, err := source.Logs(t.Context())
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		defer func() { _ = reader.Close() }()
+
+		logs, err := io.ReadAll(reader)
+		assert.NoError(tt, err)
+		assert.Contains(tt, string(logs), substr)
+	}, 30*time.Second, 2*time.Second)
+}
+
+// AwaitServerLog waits until the server's log holds substr. It is how a test reads a decision the
+// server reports nowhere else, such as why an SSH login was refused.
+func (dc *DockerCompose) AwaitServerLog(t *testing.T, substr string) {
+	t.Helper()
+
+	AwaitLogContains(t, dc.Service(ServiceServer), substr)
+}
+
+// CreateInstallKey creates an install key for the namespace the client is authenticated against
+// and returns it, including the key itself, which no later request can read back.
+func (dc *DockerCompose) CreateInstallKey(t *testing.T, req *requests.CreateInstallKey) *responses.CreateInstallKey {
+	t.Helper()
+
+	key := new(responses.CreateInstallKey)
+
+	resp, err := dc.R(t.Context()).
+		SetBody(req).
+		SetResult(key).
+		Post("/api/namespaces/install-key")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
+	require.NotEmpty(t, key.Key)
+
+	return key
+}
+
+// AwaitInstallKeyUses waits until the install key named name reports uses enrollments charged to
+// it, and a last-used stamp once there is at least one. A use is charged when a device the key
+// enrolled reaches accepted, so a manual key stays at zero until a member accepts the device.
+func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int) {
+	t.Helper()
+
+	keys := []models.InstallKey{}
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/install-key")
+		assert.NoError(tt, err)
+		assert.Equal(tt, 200, resp.StatusCode())
+
+		found := false
+
+		for _, key := range keys {
+			if key.Name != name {
+				continue
+			}
+
+			found = true
+
+			assert.Equal(tt, uses, key.UsedTimes)
+
+			if uses > 0 {
+				assert.NotNil(tt, key.LastUsedAt)
+			} else {
+				assert.Nil(tt, key.LastUsedAt)
+			}
+		}
+
+		assert.True(tt, found, "the key was not listed")
+	}, 30*time.Second, 1*time.Second)
+}
+
+// CreateAccessPolicy creates an access policy in the namespace the client is authenticated
+// against, failing t unless the server accepts it. The policy takes effect on the next login
+// decision; a namespace in the identity mode is born holding one that grants its owner.
+func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPolicyCreate) {
+	t.Helper()
+
+	resp, err := dc.R(t.Context()).SetBody(req).Post("/api/access-policies")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
+}
+
+// AwaitDeviceWithStatus waits until exactly one device in the namespace has the given status. The
+// status is a server-side filter, so a device that lands in another one leaves the list empty.
+func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.DeviceStatus) {
+	t.Helper()
+
+	devices := []models.Device{}
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := dc.R(t.Context()).SetResult(&devices).Get("/api/devices?status=" + string(status))
+		assert.NoError(tt, err)
+		assert.Equal(tt, 200, resp.StatusCode())
+		assert.Len(tt, devices, 1)
+	}, 30*time.Second, 1*time.Second)
+}
+
+// EnrollIdentity enrolls data, an authorized-keys line, as an SSH identity named name for the user
+// the client is authenticated as.
+func (dc *DockerCompose) EnrollIdentity(t *testing.T, name, data string) {
+	t.Helper()
+
+	dc.enrollIdentity(t, "", name, data)
+}
+
+// EnrollIdentityAs enrolls the identity for the bearer of token instead. A member needs it: the
+// client authenticates as the namespace's owner, and an identity belongs to whoever enrolls it.
+func (dc *DockerCompose) EnrollIdentityAs(t *testing.T, token, name, data string) {
+	t.Helper()
+
+	dc.enrollIdentity(t, token, name, data)
+}
+
+func (dc *DockerCompose) enrollIdentity(t *testing.T, token, name, data string) {
+	t.Helper()
+
+	req := dc.R(t.Context())
+	if token != "" {
+		req = req.SetAuthToken(token)
+	}
+
+	resp, err := req.SetBody(&requests.SSHIdentityCreate{Name: name, Data: data}).Post("/api/ssh-identities")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
 }
 
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"
