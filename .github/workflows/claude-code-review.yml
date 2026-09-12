@@ -29,6 +29,7 @@ jobs:
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/review') && github.event.review.user.type != 'Bot')
 
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     permissions:
       contents: read
       pull-requests: write
@@ -132,21 +133,6 @@ jobs:
         if: github.event_name == 'pull_request_target' || steps.auth-check.outputs.authorized == 'true'
         run: echo "proceed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Clean up previous review comment
-        if: steps.gate.outputs.proceed == 'true' && github.event_name != 'pull_request_target'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          MARKER="<!-- claude-code-review -->"
-          gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
-            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
-          | while read -r id; do
-            gh api "repos/$REPO/issues/comments/$id" -X DELETE > /dev/null || true
-          done
-
       - name: Checkout trusted actions
         if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -155,28 +141,6 @@ jobs:
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: false
           path: .actions
-
-      - name: Determine cloud branch
-        id: cloud-branch
-        if: steps.gate.outputs.proceed == 'true'
-        uses: ./.actions/.github/actions/paired-branch
-        with:
-          repository: shellhub-io/cloud
-          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          pr-repository: ${{ github.repository }}
-          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
-          token: ${{ steps.app-token.outputs.token }}
-          gh-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout cloud (context)
-        if: steps.gate.outputs.proceed == 'true'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: shellhub-io/cloud
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ steps.cloud-branch.outputs.ref }}
-          fetch-depth: 1
-          path: cloud
 
       - name: Check PR author team membership
         id: author-check
@@ -200,6 +164,18 @@ jobs:
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: steps.gate.outputs.proceed == 'true'
+        uses: ./.actions/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/cloud
+          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          pr-repository: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          token: ${{ steps.app-token.outputs.token }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Determine claude branch
         id: claude-branch
         if: steps.gate.outputs.proceed == 'true'
@@ -212,6 +188,9 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Supplies both the review action below and the workspace.sh that syncs
+      # the config. Pairing is gated on the author being an admin, so a fork PR
+      # can never point this at a branch it controls.
       - name: Checkout claude config
         if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -223,105 +202,18 @@ jobs:
           fetch-depth: 1
           path: claude
 
-      - name: Setup workspace context
+      - name: Review
         if: steps.gate.outputs.proceed == 'true'
-        run: |
-          "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
-
-      - name: Load review procedure
-        id: review-procedure
-        if: steps.gate.outputs.proceed == 'true'
-        run: |
-          PROCEDURE="$GITHUB_WORKSPACE/.claude/prompts/pr-review.md"
-          if [[ ! -f "$PROCEDURE" ]]; then
-            echo "::error::Review procedure not found at $PROCEDURE"
-            exit 1
-          fi
-          {
-            echo 'text<<PR_REVIEW_PROCEDURE_EOF'
-            cat "$PROCEDURE"
-            echo 'PR_REVIEW_PROCEDURE_EOF'
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Run Claude Code Review
-        if: steps.gate.outputs.proceed == 'true'
-        timeout-minutes: 30
-        uses: anthropics/claude-code-action@8251c103ac8c1d761882c86aba1412c7f583c844 # v1
+        uses: ./claude/.github/actions/pr-review
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          track_progress: true
-          trigger_phrase: "/review"
-          prompt: |
-            You are the lead reviewer for a pull request in shellhub-io/shellhub.
-
-            ## This PR
-
-            - Repo slug: shellhub-io/shellhub (Community Edition)
-            - PR number: ${{ github.event.pull_request.number || github.event.issue.number }}
-            - The PR author ${{ steps.author-check.outputs.is_admin == 'true' && 'IS' || 'is NOT' }} a member of the shellhub-io/admin team.
-
-            ## Repo specifics
-
-            - This repo is checked out at the working directory. Its diff is the review scope.
-            - Sibling checkout for context: $GITHUB_WORKSPACE/cloud/ (Enterprise/Cloud). Use it to
-              understand cross-repo impact, never as review scope.
-            - Anonymous-route allowlist: `server/api/routes/anonymous.go`
-            - Conventions skills that apply: `go-conventions` for Go, `react-conventions` for `ui/`
-            - Extra correctness focus: none beyond the rules
-            - Cross-repo rule: if the PR changes `pkg/` or a `server/api/services` symbol,
-              check $GITHUB_WORKSPACE/cloud/ for impact — it consumes them through a `replace`
-              directive, so a rename here breaks its build.
-
-            The procedure follows. Execute it exactly.
-
-            ${{ steps.review-procedure.outputs.text }}
-
-          claude_args: |
-            --max-turns 80
-            --model claude-opus-5
-            --allowedTools "Task" "Read" "Grep" "Glob" "LS" "mcp__github_inline_comment__create_inline_comment" "mcp__github_comment__update_claude_comment" "Bash(gh api:*)" "Bash(gh pr diff:*)" "Bash(gh pr view:*)" "Bash(gh issue view:*)"
-
-      - name: Finalize tracking comment
-        if: always() && steps.gate.outputs.proceed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          MARKER="<!-- claude-code-review -->"
-          # Identify THIS run's tracking comment by the run link the action
-          # writes into the comment footer ([View job](.../actions/runs/<id>)).
-          # That link is present by the time this step runs (it executes after
-          # the action step) and survives even when Claude leaves the checklist
-          # stuck. We cannot key on the MARKER: update_claude_comment strips the
-          # leading HTML comment, so it never reaches the persisted body.
-          COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
-            --jq ".[] | select(.body | contains(\"/actions/runs/$RUN_ID\")) | .id" \
-            | head -1)
-
-          if [[ -z "$COMMENT_ID" ]]; then
-            echo "No tracking comment found for run $RUN_ID; nothing to finalize."
-            exit 0
-          fi
-
-          BODY=$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
-
-          # A finalized summary has no unchecked checkboxes. If none remain, leave it.
-          if ! grep -qF -- '- [ ]' <<<"$BODY"; then
-            echo "Tracking comment already finalized; nothing to do."
-            exit 0
-          fi
-
-          echo "Tracking comment stuck mid-progress; rewriting to a terminal state."
-          FINAL_BODY=$(printf '%s\n' \
-            "$MARKER" \
-            "## Code Review Complete" \
-            "" \
-            "The automated review ran but did not post an updated summary — this usually means no new issues were found since the previous review. If you've pushed changes and want a fresh pass, comment \`/review\`." \
-            "" \
-            "_[View job]($RUN_URL)_")
-
-          gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$FINAL_BODY"
+          project: shellhub
+          repo: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          author-is-admin: ${{ steps.author-check.outputs.is_admin }}
+          command-trigger: ${{ github.event_name != 'pull_request_target' }}
+          sibling-repository: shellhub-io/cloud
+          sibling-ref: ${{ steps.cloud-branch.outputs.ref }}
+          sibling-path: cloud
+          app-token: ${{ steps.app-token.outputs.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
