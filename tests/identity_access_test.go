@@ -197,6 +197,10 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 				return signer
 			},
+			wantServerLogs: []string{
+				"destination device did not pass the connection evaluation",
+				`error="ssh access denied by policy"`,
+			},
 		},
 	}
 
