@@ -93,8 +93,8 @@ func TestRequiresDeclaresThePermitItEnforces(t *testing.T) {
 
 			declarations := gateway.Declarations(e)
 			require.Len(t, declarations, 1)
-			assert.True(t, declarations[0].RequiresPermission)
-			assert.Equal(t, authorizer.DeviceRemove, declarations[0].Permission)
+			assert.Equal(t, gateway.AuthorityPermission, declarations[0].Authority)
+			assert.Equal(t, []authorizer.Permission{authorizer.DeviceRemove}, declarations[0].Permissions)
 
 			assert.Equal(t, tc.expectedStatus, probe(t, e, map[string]string{
 				"X-Tenant-ID": probeTenant,
@@ -174,10 +174,119 @@ func TestGuardDeclaresNothing(t *testing.T) {
 
 	declarations := gateway.Declarations(e)
 	require.Len(t, declarations, 1)
-	assert.False(t, declarations[0].RequiresPermission)
+	assert.Equal(t, gateway.AuthorityUnstated, declarations[0].Authority)
 	assert.False(t, declarations[0].BlocksAPIKey)
 
 	assert.Equal(t, http.StatusTeapot, probe(t, e, map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"}))
+}
+
+// TestRequiresAnyDeclaresThePermitsItEnforces covers the route whose rule is two permissions,
+// which [gateway.Requires] cannot express: the option records the set and admits a role holding
+// any one of it, so the declaration is still evidence of what the route does.
+//
+// The roles nest, so no two permissions are held disjointly by two of them, and a role holding
+// both cannot show which element admitted it. What isolates one is a single role holding exactly
+// one: an administrator plays a session and cannot delete a namespace, so the two orderings below
+// admit on different elements of the set.
+func TestRequiresAnyDeclaresThePermitsItEnforces(t *testing.T) {
+	cases := []struct {
+		description    string
+		permissions    []authorizer.Permission
+		role           string
+		expectedStatus int
+	}{
+		{
+			description:    "refuses a role holding neither",
+			permissions:    []authorizer.Permission{authorizer.NamespaceDelete, authorizer.BillingCreateCustomer},
+			role:           "administrator",
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			description:    "admits a role holding only the first",
+			permissions:    []authorizer.Permission{authorizer.SessionPlay, authorizer.NamespaceDelete},
+			role:           "administrator",
+			expectedStatus: http.StatusOK,
+		},
+		{
+			description:    "admits a role holding only the second",
+			permissions:    []authorizer.Permission{authorizer.NamespaceDelete, authorizer.SessionPlay},
+			role:           "administrator",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", okRoute(), gateway.RequiresAny(tc.permissions...))
+
+			declarations := gateway.Declarations(e)
+			require.Len(t, declarations, 1)
+			assert.Equal(t, gateway.AuthorityPermission, declarations[0].Authority)
+			assert.Equal(t, tc.permissions, declarations[0].Permissions)
+
+			assert.Equal(t, tc.expectedStatus, probe(t, e, map[string]string{
+				"X-Tenant-ID": probeTenant,
+				"X-ID":        "user-id",
+				"X-Role":      tc.role,
+			}))
+		})
+	}
+}
+
+// TestRequiresAnyRefusesEveryoneWhenItNamesNothing fails closed on the programming error, so a
+// route registered with an empty set answers 403 rather than admitting every caller while the
+// route table waits to be run.
+func TestRequiresAnyRefusesEveryoneWhenItNamesNothing(t *testing.T) {
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/probe", okRoute(), gateway.RequiresAny())
+
+	assert.Equal(t, http.StatusForbidden, probe(t, e, map[string]string{
+		"X-Tenant-ID": probeTenant,
+		"X-ID":        "user-id",
+		"X-Role":      "owner",
+	}))
+}
+
+// TestStatedAbsenceOfAuthorityInstallsNothing pins the half of the vocabulary that is a claim and
+// not a guard: a route saying the handler decides, or that it demands nothing, records the reason
+// it typed and leaves the request otherwise untouched.
+func TestStatedAbsenceOfAuthorityInstallsNothing(t *testing.T) {
+	cases := []struct {
+		description       string
+		option            gateway.RouteOption
+		expectedAuthority gateway.Authority
+	}{
+		{
+			description:       "the handler decides",
+			option:            gateway.PermissionInHandler("the probe reads the namespace from its path"),
+			expectedAuthority: gateway.AuthorityInHandler,
+		},
+		{
+			description:       "the route demands none",
+			option:            gateway.NoPermission("the probe acts on the caller's own record"),
+			expectedAuthority: gateway.AuthorityNone,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", okRoute(), tc.option)
+
+			declarations := gateway.Declarations(e)
+			require.Len(t, declarations, 1)
+			assert.Equal(t, tc.expectedAuthority, declarations[0].Authority)
+			assert.NotEmpty(t, declarations[0].AuthorityReason)
+			assert.Empty(t, declarations[0].Permissions)
+
+			assert.Equal(t, http.StatusOK, probe(t, e, map[string]string{
+				"X-Tenant-ID": probeTenant,
+				"X-ID":        "user-id",
+				"X-Role":      "observer",
+			}))
+		})
+	}
 }
 
 func probe(t *testing.T, e *echo.Echo, headers map[string]string) int {
