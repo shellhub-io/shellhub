@@ -14,15 +14,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
-// NewAgentContainerWithInstallKey drops the tenant id, so the device proves the key alone
-// resolved the namespace.
-func NewAgentContainerWithInstallKey(key string) NewAgentContainerOption {
-	return func(envs map[string]string) {
-		delete(envs, "SHELLHUB_TENANT_ID")
-		envs["SHELLHUB_INSTALL_KEY"] = key
-	}
-}
-
 func createInstallKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose, req *requests.CreateInstallKey) *responses.CreateInstallKey {
 	t.Helper()
 

@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"io"
 	"net"
 	"regexp"
@@ -17,21 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
-
-func newSigner(t *testing.T) (ssh.Signer, string) {
-	t.Helper()
-
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
-
-	pub, err := ssh.NewPublicKey(&key.PublicKey)
-	require.NoError(t, err)
-
-	signer, err := ssh.NewSignerFromKey(key)
-	require.NoError(t, err)
-
-	return signer, string(ssh.MarshalAuthorizedKey(pub))
-}
 
 func enrollIdentity(t *testing.T, ctx context.Context, compose *environment.DockerCompose, token, name, data string) {
 	t.Helper()
