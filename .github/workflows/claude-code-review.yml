@@ -258,3 +258,4 @@ jobs:
           repo: ${{ github.repository }}
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          review-result: ${{ needs.review.result }}
