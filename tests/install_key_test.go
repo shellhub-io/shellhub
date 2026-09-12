@@ -19,22 +19,30 @@ const unissuedInstallKey = "3f2b1c44-0000-4000-8000-9a7d5e1c0b22"
 // tenant-only path is covered by [TestSSH].
 func TestInstallKeyEnrollment(t *testing.T) {
 	tests := []struct {
-		name   string
-		mode   models.InstallKeyMode
-		status models.DeviceStatus
-		uses   int
+		name       string
+		mode       models.InstallKeyMode
+		status     models.DeviceStatus
+		wantCharge func(t *testing.T, compose *environment.DockerCompose, name string)
 	}{
 		{
 			name:   "an automatic key enrolls the device accepted and is charged a use",
 			mode:   models.InstallKeyModeAutomatic,
 			status: models.DeviceStatusAccepted,
-			uses:   1,
+			wantCharge: func(t *testing.T, compose *environment.DockerCompose, name string) {
+				t.Helper()
+
+				compose.AwaitInstallKeyUses(t, name, 1)
+			},
 		},
 		{
 			name:   "a manual key leaves the device pending and is charged nothing yet",
 			mode:   models.InstallKeyModeManual,
 			status: models.DeviceStatusPending,
-			uses:   0,
+			wantCharge: func(t *testing.T, compose *environment.DockerCompose, name string) {
+				t.Helper()
+
+				compose.RequireInstallKeyUnused(t, name)
+			},
 		},
 	}
 
@@ -51,7 +59,7 @@ func TestInstallKeyEnrollment(t *testing.T) {
 			startAgent(t, ctx, compose, NewAgentContainerWithInstallKey(key.Key))
 
 			compose.AwaitDeviceWithStatus(t, tc.status)
-			compose.AwaitInstallKeyUses(t, string(tc.mode), tc.uses)
+			tc.wantCharge(t, compose, string(tc.mode))
 		})
 	}
 
