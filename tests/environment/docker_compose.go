@@ -171,10 +171,12 @@ func (dc *DockerCompose) CreateInstallKey(t *testing.T, req *requests.CreateInst
 }
 
 // AwaitInstallKeyUses waits until the install key named name reports uses enrollments charged to
-// it, and a last-used stamp once there is at least one. A use is charged when a device the key
-// enrolled reaches accepted, so a manual key stays at zero until a member accepts the device.
+// it and carries a last-used stamp. A use is charged when a device the key enrolled reaches
+// accepted, so uses must be at least one; RequireInstallKeyUnused covers a key still at zero.
 func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int) {
 	t.Helper()
+
+	require.Positive(t, uses, "a key charged no use is asserted by RequireInstallKeyUnused")
 
 	keys := []models.InstallKey{}
 
@@ -193,16 +195,37 @@ func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int
 			found = true
 
 			assert.Equal(tt, uses, key.UsedTimes)
-
-			if uses > 0 {
-				assert.NotNil(tt, key.LastUsedAt)
-			} else {
-				assert.Nil(tt, key.LastUsedAt)
-			}
+			assert.NotNil(tt, key.LastUsedAt)
 		}
 
 		assert.True(tt, found, "the key was not listed")
 	}, 30*time.Second, 1*time.Second)
+}
+
+// RequireInstallKeyUnused asserts, once and without waiting, that the install key named name has
+// been charged no use and carries no last-used stamp. A key is born satisfying both, so call it
+// only once the enrollment that must not have charged it has been awaited.
+func (dc *DockerCompose) RequireInstallKeyUnused(t *testing.T, name string) {
+	t.Helper()
+
+	keys := []models.InstallKey{}
+
+	resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/install-key")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode())
+
+	for _, key := range keys {
+		if key.Name != name {
+			continue
+		}
+
+		require.Zero(t, key.UsedTimes)
+		require.Nil(t, key.LastUsedAt)
+
+		return
+	}
+
+	require.Fail(t, "the key was not listed")
 }
 
 // CreateAccessPolicy creates an access policy in the namespace the client is authenticated
