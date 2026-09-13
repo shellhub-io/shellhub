@@ -636,7 +636,9 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 
 	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID})
 	if err != nil {
-		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).WithError(err).Error("failed to open ssh session")
+		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			WithError(err).
+			Error("failed to open the ssh session: " + dialer.Describe(err))
 
 		return errors.Join(ErrDial, err)
 	}
