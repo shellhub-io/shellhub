@@ -11,7 +11,7 @@ import (
 )
 
 func newAgentVersionSession(service *servicemocks.MockService, version string) *Session {
-	sess := newTestSession(service)
+	sess := newTestSession(service, nil)
 	sess.Device.Info = &models.DeviceInfo{Version: version}
 
 	return sess

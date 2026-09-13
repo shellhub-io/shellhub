@@ -17,6 +17,10 @@
 //     offline notifications) and provides DialTo which returns a ready-to-use
 //     net.Conn for a requested Target.
 //
+//   - TunnelDialer: the dial on its own, without the registry behind it. A
+//     consumer that only reaches a device takes this rather than Dialer, and
+//     a test substitutes it (see the dialertest package).
+//
 //   - Target: an interface implemented by small helpers that prepare a raw
 //     connection for a particular application-level purpose (for example,
 //     opening or closing an SSH session, or establishing an HTTP proxy). The

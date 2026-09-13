@@ -11,12 +11,16 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
+	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,8 +35,10 @@ func (s *stubContext) User() string          { return s.user }
 func (s *stubContext) SessionID() string     { return s.sessionID }
 func (s *stubContext) ClientVersion() string { return "" }
 func (s *stubContext) ServerVersion() string { return "" }
-func (s *stubContext) RemoteAddr() net.Addr  { return nil }
-func (s *stubContext) LocalAddr() net.Addr   { return nil }
+func (s *stubContext) RemoteAddr() net.Addr {
+	return &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}
+}
+func (s *stubContext) LocalAddr() net.Addr { return nil }
 func (s *stubContext) Permissions() *gliderssh.Permissions {
 	return &gliderssh.Permissions{}
 }
@@ -50,16 +56,23 @@ const validSSHID = "user@namespace.device"
 
 func stubDeps() bannerDeps {
 	return bannerDeps{
-		newSession: func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
-			return &session.Session{}, nil //nolint:exhaustruct
-		},
-		dial: func(_ *session.Session, _ gliderssh.Context) error {
-			return nil
-		},
+		newSession: session.NewSession,
 		evaluate: func(_ *session.Session, _ gliderssh.Context) error {
 			return nil
 		},
 	}
+}
+
+func reachableDevice(t *testing.T) *servicemocks.MockService {
+	t.Helper()
+
+	service := servicemocks.NewMockService(t)
+	service.On("LookupDevice", mock.Anything, "namespace", "device").
+		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
+	service.On("GetNamespace", mock.Anything, "tenant-id").
+		Return(&models.Namespace{Name: "namespace", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it names the session with
+
+	return service
 }
 
 func bannerKind(message string) banner.Kind {
@@ -89,17 +102,22 @@ func TestBannerHandlerNewSessionFailure(t *testing.T) {
 		"BannerHandler must return KindConnectionFailed when NewSession fails")
 }
 
+// TestBannerHandlerDialFailure drives the real session against a tunnel that will not dial,
+// which is the only substitution the banner path needs to fail on an unreachable device.
 func TestBannerHandlerDialFailure(t *testing.T) {
-	deps := stubDeps()
-	deps.dial = func(_ *session.Session, _ gliderssh.Context) error {
-		return errors.New("device offline")
+	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrInvalidArgument} {
+		t.Run(failure.Error(), func(t *testing.T) {
+			deps := stubDeps()
+
+			stub := &dialertest.Stub{Err: failure} //nolint:exhaustruct // the recording field starts empty and is appended to under the mutex
+
+			h := newBannerHandlerWithDeps(stub, reachableDevice(t), nil, deps)
+			result := h(newStubCtx(validSSHID))
+
+			assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
+				"BannerHandler must return KindConnectionFailed when the device cannot be dialled")
+		})
 	}
-
-	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
-	result := h(newStubCtx(validSSHID))
-
-	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
-		"BannerHandler must return KindConnectionFailed when Dial fails")
 }
 
 func TestBannerHandlerEvaluateFailure(t *testing.T) {
@@ -108,7 +126,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 		return errors.New("firewall block")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
+	h := newBannerHandlerWithDeps(dialertest.NewAgent(t), reachableDevice(t), nil, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindAccessDenied, bannerKind(result),
@@ -116,11 +134,15 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 }
 
 func TestBannerHandlerSuccess(t *testing.T) {
-	h := newBannerHandlerWithDeps(nil, nil, nil, stubDeps())
+	agent := dialertest.NewAgent(t)
+
+	h := newBannerHandlerWithDeps(agent, reachableDevice(t), nil, stubDeps())
 	result := h(newStubCtx(validSSHID))
 
 	assert.Empty(t, result,
 		"BannerHandler must return an empty string on the success path")
+	assert.Len(t, agent.Dials(), 1,
+		"BannerHandler must reach the device exactly once")
 }
 
 func TestBannerHandlerRecoversFromPanic(t *testing.T) {

@@ -53,13 +53,13 @@ func TestDrainAgentRequestsSurvivesKeepAliveFailure(t *testing.T) {
 		KeepAliveSession(mock.Anything, models.UID("test-uid")).
 		Return(errors.New("store is down"))
 
-	sess := newTestSession(serviceMock)
+	sess := newTestSession(serviceMock, nil)
 
 	drained(t, sess, make(chan *gossh.Request), 32)
 }
 
 func TestDrainAgentRequestsRefusesOtherRequests(t *testing.T) {
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	reqs := make(chan *gossh.Request)
 	done := make(chan struct{})
@@ -89,7 +89,7 @@ func TestDrainAgentRequestsEndsWithTheAgentConnection(t *testing.T) {
 		KeepAliveSession(mock.Anything, models.UID("test-uid")).
 		Return(nil)
 
-	sess := newTestSession(serviceMock)
+	sess := newTestSession(serviceMock, nil)
 
 	reqs := make(chan *gossh.Request)
 	done := make(chan struct{})

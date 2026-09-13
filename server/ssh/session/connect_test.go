@@ -1,15 +1,17 @@
 package session
 
 import (
-	"net"
 	"testing"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gossh "golang.org/x/crypto/ssh"
 )
+
+func noAuth(*Session, *gossh.ClientConfig) error { return nil }
 
 // TestConnectBoundsASilentAgent is the reason ConnectTimeout exists.
 //
@@ -22,37 +24,13 @@ import (
 // Note this covers the handshake specifically. A device that has gone away
 // entirely fails earlier, in the dialer, on its own deadlines.
 func TestConnectBoundsASilentAgent(t *testing.T) {
-	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-
-	defer listener.Close() //nolint:errcheck
-
-	accepted := make(chan net.Conn, 1)
-
-	go func() {
-		conn, err := listener.Accept()
-		if err != nil {
-			return
-		}
-
-		accepted <- conn
-	}()
-
-	peer, err := new(net.Dialer).DialContext(t.Context(), "tcp", listener.Addr().String())
-	require.NoError(t, err)
-
-	defer peer.Close() //nolint:errcheck
-
 	Configure(Config{ //nolint:exhaustruct
 		ConnectTimeout: 2 * time.Second,
 	})
 
 	defer Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 
-	sess := newTestSession(nil)
-	sess.agent.conn = peer
-
-	noAuth := func(*Session, *gossh.ClientConfig) error { return nil }
+	sess := newTestSession(nil, dialertest.NewSilentAgent(t))
 
 	done := make(chan error, 1)
 
@@ -68,40 +46,15 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatal("the handshake against a silent agent never gave up")
 	}
-
-	if conn := <-accepted; conn != nil {
-		_ = conn.Close()
-	}
 }
 
 // TestConnectWithoutTimeoutNeverGivesUp pins why the deadline is the mechanism:
 // with it unset the same silent agent holds the handshake open indefinitely,
 // which is what the code did before ConnectTimeout was wired up.
 func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
-	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-
-	defer listener.Close() //nolint:errcheck
-
-	go func() {
-		if conn, err := listener.Accept(); err == nil {
-			defer conn.Close() //nolint:errcheck
-
-			time.Sleep(10 * time.Second)
-		}
-	}()
-
-	peer, err := new(net.Dialer).DialContext(t.Context(), "tcp", listener.Addr().String())
-	require.NoError(t, err)
-
-	defer peer.Close() //nolint:errcheck
-
 	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 
-	sess := newTestSession(nil)
-	sess.agent.conn = peer
-
-	noAuth := func(*Session, *gossh.ClientConfig) error { return nil }
+	sess := newTestSession(nil, dialertest.NewSilentAgent(t))
 
 	done := make(chan error, 1)
 	go func() { done <- sess.connect(newStubContext(), noAuth) }()
@@ -111,4 +64,20 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 		t.Fatal("it returned without a deadline; the timeout is not what bounds this")
 	case <-time.After(3 * time.Second):
 	}
+}
+
+// TestConnectReachesTheAgentThroughTheTunnel covers the path the two tests above only fail
+// on: a device that answers leaves the session holding an SSH client it can open channels on.
+func TestConnectReachesTheAgentThroughTheTunnel(t *testing.T) {
+	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
+
+	agent := dialertest.NewAgent(t)
+	sess := newTestSession(nil, agent)
+
+	require.NoError(t, sess.connect(newStubContext(), noAuth))
+
+	channel, _, err := sess.agent.client.OpenChannel("session", nil)
+	require.NoError(t, err, "the session must hold a usable SSH client after connect")
+
+	assert.NoError(t, channel.Close())
 }
