@@ -50,7 +50,7 @@ const validSSHID = "user@namespace.device"
 
 func stubDeps() bannerDeps {
 	return bannerDeps{
-		newSession: func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
+		newSession: func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 			return &session.Session{}, nil //nolint:exhaustruct
 		},
 		dial: func(_ *session.Session, _ gliderssh.Context) error {
@@ -78,7 +78,7 @@ func TestBannerHandlerInvalidSSHID(t *testing.T) {
 
 func TestBannerHandlerNewSessionFailure(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 		return nil, errors.New("api unreachable")
 	}
 
@@ -125,7 +125,7 @@ func TestBannerHandlerSuccess(t *testing.T) {
 
 func TestBannerHandlerRecoversFromPanic(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 		panic("boom")
 	}
 

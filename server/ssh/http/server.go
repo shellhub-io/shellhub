@@ -53,6 +53,7 @@ var upgrader = websocket.Upgrader{
 func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
 	handlers := &Handlers{
 		Dialer:  d,
+		Tunnels: d.Manager,
 		Service: service,
 		Config:  cfg,
 	}

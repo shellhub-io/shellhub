@@ -31,8 +31,19 @@ type DeviceStatuser interface {
 	OfflineDevice(ctx context.Context, uid models.UID) error
 }
 
+// TunnelDialer opens a connection back to a device over the reverse tunnel the device holds
+// open to the server, prepared for the purpose named by target.
+//
+// It is the whole of what the SSH path asks of a tunnel, so a caller that only reaches a device
+// takes this rather than [Dialer], and cannot register or evict a tunnel through it.
+type TunnelDialer interface {
+	DialTo(ctx context.Context, tenant, uid string, target Target) (net.Conn, error)
+}
+
 // Dialer opens connections back to agents over the reverse tunnels they hold open. The
-// device is the listener here; the server is the one dialling.
+// device is the listener here; the server is the one dialling. It also owns the registry the
+// tunnels are held in, which is why the composition root keeps this type rather than
+// [TunnelDialer].
 type Dialer struct {
 	Manager *Manager
 }
