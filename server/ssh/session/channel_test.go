@@ -44,7 +44,7 @@ func (*fakeNewChannel) ExtraData() []byte   { return nil }
 func TestNewClientChannelConcurrent(t *testing.T) {
 	const seats = 64
 
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(seats)
@@ -69,7 +69,7 @@ func TestNewClientChannelConcurrent(t *testing.T) {
 }
 
 func TestNewClientChannelRejectsSeatTwice(t *testing.T) {
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	_, err := sess.NewClientChannel(&fakeNewChannel{}, 0)
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestNewClientChannelRejectsSeatTwice(t *testing.T) {
 func TestDropAgentChannelConcurrent(t *testing.T) {
 	const seats = 32
 
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	for seat := range seats {
 		sess.agent.channels[seat] = &AgentChannel{Channel: &fakeChannel{}, Requests: nil}
@@ -112,7 +112,7 @@ func TestDropAgentChannelConcurrent(t *testing.T) {
 func TestSeatsConcurrentAccess(t *testing.T) {
 	const seats = 32
 
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	ids := make([]int, 0, seats)
 
@@ -161,7 +161,7 @@ func TestSeatsConcurrentAccess(t *testing.T) {
 // pointer: a caller holding it would observe later mutations without any
 // synchronization.
 func TestSeatsGetReturnsCopy(t *testing.T) {
-	sess := newTestSession(servicemocks.NewMockService(t))
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
 
 	id, err := sess.seats.NewSeat()
 	require.NoError(t, err)

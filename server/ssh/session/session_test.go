@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -56,12 +57,13 @@ func (s *stubContext) Value(key any) any {
 	return s.values[key]
 }
 
-func newTestSession(service services.Service) *Session {
+func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
 		UID:     "test-uid",
 		service: service,
+		dialer:  tunnel,
 		Data: Data{
 			Target:    tgt,
 			IPAddress: "127.0.0.1",
@@ -144,7 +146,7 @@ func TestRecorded(t *testing.T) {
 			serviceMock := servicemocks.NewMockService(t)
 			tt.setupMock(serviceMock)
 
-			sess := newTestSession(serviceMock)
+			sess := newTestSession(serviceMock, nil)
 			sess.Namespace.Settings = &models.NamespaceSettings{SessionRecord: tt.record}
 
 			seat, err := sess.seats.NewSeat()
@@ -288,7 +290,7 @@ func TestEvaluate(t *testing.T) {
 			serviceMock := servicemocks.NewMockService(t)
 			tt.setupMock(serviceMock)
 
-			sess := newTestSession(serviceMock)
+			sess := newTestSession(serviceMock, nil)
 			ctx := newStubContext()
 
 			snap := getSnapshot(ctx)

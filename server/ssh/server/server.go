@@ -75,14 +75,12 @@ type Server struct {
 
 type bannerDeps struct {
 	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
-	dial       func(sess *session.Session, ctx gliderssh.Context) error
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
 
 func defaultBannerDeps() bannerDeps {
 	return bannerDeps{
 		newSession: session.NewSession,
-		dial:       (*session.Session).Dial,
 		evaluate:   (*session.Session).Evaluate,
 	}
 }
@@ -122,7 +120,7 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			return banner.Message(banner.KindConnectionFailed)
 		}
 
-		if err := deps.dial(sess, ctx); err != nil {
+		if err := sess.Dial(ctx); err != nil {
 			logger.WithError(err).Error("destination device is offline or cannot be reached")
 
 			return banner.Message(banner.KindConnectionFailed)
