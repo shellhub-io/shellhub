@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -951,8 +950,38 @@ func (s *Session) Announce(client gossh.Channel) error {
 	return nil
 }
 
-// Finish terminates the session between Agent and Client, sending a request to Agent to closes it.
-func (s *Session) Finish() (err error) {
+const closeRequestTimeout = 10 * time.Second
+
+func (s *Session) closeOnAgent() {
+	logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
+
+	ctx, cancel := context.WithTimeout(context.Background(), closeRequestTimeout)
+	defer cancel()
+
+	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHCloseTarget{SessionID: s.UID})
+	if err != nil {
+		logger.WithError(err).
+			Warning("failed to ask the device to close the session: " + dialer.Describe(err))
+
+		return
+	}
+
+	if err := conn.Close(); err != nil {
+		logger.WithError(err).Warning("failed to close the connection the session close was sent over")
+	}
+}
+
+// Finish tears the session down: it stops the event stream, asks the device to close the
+// session over a connection dialled for that purpose, and deactivates the session on the API.
+//
+// It runs once however many times it is called, and reports every failure to the log rather
+// than to the caller, because each teardown step is worth attempting whatever the one before
+// it did. The error is always nil.
+//
+// The device is told on its own goroutine. Finish runs from the client connection's Close, so
+// a device holding a tunnel it no longer answers on would otherwise park that goroutine for
+// the dial's full budget and delay the API learning the session ended.
+func (s *Session) Finish() error {
 	s.once.Do(func() {
 		log.WithFields(log.Fields{
 			"uid": s.UID,
@@ -961,13 +990,7 @@ func (s *Session) Finish() (err error) {
 		s.Events.Close() //nolint:errcheck
 
 		if s.agent.conn != nil {
-			request, _ := http.NewRequestWithContext(context.Background(), http.MethodDelete, "/ssh/close/"+s.UID, nil)
-
-			if err = request.Write(s.agent.conn); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-					Warning("Error when trying write the request to /ssh/close")
-			}
+			go s.closeOnAgent()
 		}
 
 		if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
