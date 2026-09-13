@@ -70,11 +70,11 @@ const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
 type Server struct {
 	sshd   *gliderssh.Server
 	opts   *Options
-	dialer *dialer.Dialer
+	dialer dialer.TunnelDialer
 }
 
 type bannerDeps struct {
-	newSession func(ctx gliderssh.Context, d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
+	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
 	dial       func(sess *session.Session, ctx gliderssh.Context) error
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
@@ -87,11 +87,11 @@ func defaultBannerDeps() bannerDeps {
 	}
 }
 
-func newBannerHandler(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) gliderssh.BannerHandler {
+func newBannerHandler(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) gliderssh.BannerHandler {
 	return newBannerHandlerWithDeps(d, service, handoff, defaultBannerDeps())
 }
 
-func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
+func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
@@ -191,7 +191,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 
 // NewServer builds the SSH server, wiring the connection handlers to dialer, the session
 // bookkeeping to service, and the web terminal's credential handoff to handoff.
-func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
+func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
 	session.Configure(session.Config{
 		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
 		Domain:                       opts.Domain,

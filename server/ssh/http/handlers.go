@@ -19,9 +19,15 @@ import (
 
 // Handlers serves the HTTP endpoints agents use to open and hold their reverse tunnels. It
 // is a sidecar to the SSH server proper, sharing its dialer.
+//
+// Dialer reaches a device that already holds a tunnel; Tunnels is the registry the agent
+// endpoints put one into. They are separate fields so that the dial can be substituted in a
+// test without standing up a registry. What stops an out-of-tree caller registering a tunnel
+// is [TunnelExtension] taking the interface, not this split.
 type Handlers struct {
 	Config  *Config
-	Dialer  *dialer.Dialer
+	Dialer  dialer.TunnelDialer
+	Tunnels *dialer.Manager
 	Service services.Service
 }
 
@@ -161,7 +167,7 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	h.Dialer.Manager.Set(
+	h.Tunnels.Set(
 		dialer.NewKey(tenant, uid),
 		wsconnadapter.New(
 			conn,
@@ -224,7 +230,7 @@ func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 
 	logger.Info("v2 connection established")
 
-	if err := h.Dialer.Manager.Bind(
+	if err := h.Tunnels.Bind(
 		data.Tenant,
 		data.UID,
 		wsconnadapter.New(

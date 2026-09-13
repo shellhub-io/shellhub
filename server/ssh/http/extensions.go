@@ -16,7 +16,10 @@ import (
 // live agent connections and is built during server setup, so a feature that
 // proxies into a device has to be handed it. Everything else such a feature
 // needs, it already owns.
-type TunnelExtension func(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer) error
+//
+// An extension is handed the ability to dial and nothing else, so it cannot register or evict
+// a tunnel.
+type TunnelExtension func(router *echo.Echo, authn *routesmiddleware.Authenticator, d dialer.TunnelDialer) error
 
 var tunnelExtensions []TunnelExtension
 
@@ -26,7 +29,7 @@ func RegisterTunnelExtension(ext TunnelExtension) {
 	tunnelExtensions = append(tunnelExtensions, ext)
 }
 
-func applyTunnelExtensions(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer) error {
+func applyTunnelExtensions(router *echo.Echo, authn *routesmiddleware.Authenticator, d dialer.TunnelDialer) error {
 	for _, ext := range tunnelExtensions {
 		if err := ext(router, authn, d); err != nil {
 			log.WithError(err).Error("failed to apply tunnel extension")

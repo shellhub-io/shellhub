@@ -146,7 +146,7 @@ type Session struct {
 	client *Client
 
 	service services.Service
-	dialer  *dialer.Dialer
+	dialer  dialer.TunnelDialer
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -266,7 +266,7 @@ func (s *seats) SetType(seat int, kind string) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) (*Session, error) {
 	sshid := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
