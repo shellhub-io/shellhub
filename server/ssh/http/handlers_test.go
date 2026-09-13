@@ -53,7 +53,7 @@ func TestHandleSSHCloseAsksTheTunnelToCloseTheSession(t *testing.T) {
 // TestHandleSSHCloseReportsAnUnreachableDevice covers the dial failing however it fails: the
 // agent asked for the close is told the device could not be reached.
 func TestHandleSSHCloseReportsAnUnreachableDevice(t *testing.T) {
-	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrInvalidArgument} {
+	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrUnreachable, dialer.ErrInvalidArgument} {
 		t.Run(failure.Error(), func(t *testing.T) {
 			c, _ := newCloseRequest(t, "administrator")
 

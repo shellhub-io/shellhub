@@ -36,6 +36,12 @@ type DeviceStatuser interface {
 //
 // It is the whole of what the SSH path asks of a tunnel, so a caller that only reaches a device
 // takes this rather than [Dialer], and cannot register or evict a tunnel through it.
+//
+// DialTo fails three ways a caller can tell apart, because it can act on the difference:
+// [ErrInvalidArgument] for an empty tenant or device, [ErrNoConnection] for a device holding no
+// tunnel, which is how offline is observed, and [ErrUnreachable] for a device holding a tunnel
+// that did not complete the exchange. [ErrUnreachable] carries the underlying error joined to
+// it. [Describe] turns any of them into the sentence an operator reads.
 type TunnelDialer interface {
 	DialTo(ctx context.Context, tenant, uid string, target Target) (net.Conn, error)
 }
@@ -89,8 +95,29 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 }
 
 // ErrInvalidArgument is returned when a device UID cannot be parsed into the namespace and
-// device parts the tunnel key is built from.
+// device parts the tunnel key is built from. It is a programming error, not a device state.
 var ErrInvalidArgument = errors.New("invalid argument")
+
+// ErrUnreachable is returned when the device holds a tunnel but the exchange over it did not
+// complete: the stream never opened, the agent did not answer the bootstrap, or the caller
+// gave up first. Unlike [ErrNoConnection] the device is present.
+var ErrUnreachable = errors.New("tunnel unreachable")
+
+// Describe turns a [TunnelDialer.DialTo] error into the sentence an operator reads. It keeps
+// the classification next to the sentinels it names, so a caller is left with the log level
+// and nothing else to decide.
+func Describe(err error) string {
+	switch {
+	case errors.Is(err, ErrNoConnection):
+		return "the device holds no tunnel"
+	case errors.Is(err, ErrUnreachable):
+		return "the device holds a tunnel but did not answer"
+	case errors.Is(err, ErrInvalidArgument):
+		return "the device cannot be named"
+	default:
+		return "the tunnel could not be dialled"
+	}
+}
 
 // HandshakeTimeout bounds the target's handshake once the stream is open. The
 // exchange is short and has a known shape, unlike the streaming phase that
@@ -101,6 +128,9 @@ const HandshakeTimeout = 30 * time.Second
 // DialTo establishes a raw reverse connection to the device and performs
 // the version-specific bootstrap for the provided target. It returns a
 // connection ready for application protocol usage.
+//
+// It reports the failures [TunnelDialer] names. A nil target skips the bootstrap and returns
+// the raw stream.
 func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target Target) (net.Conn, error) {
 	if tenant == "" || uid == "" {
 		return nil, ErrInvalidArgument
@@ -108,14 +138,23 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 
 	conn, version, err := t.Manager.Dial(ctx, NewKey(tenant, uid))
 	if err != nil {
-		return nil, err
+		if errors.Is(err, ErrNoConnection) {
+			return nil, err
+		}
+
+		return nil, errors.Join(ErrUnreachable, err)
 	}
 
 	if target == nil {
 		return conn, nil
 	}
 
-	return handshake(ctx, conn, version, target)
+	prepared, err := handshake(ctx, conn, version, target)
+	if err != nil {
+		return nil, errors.Join(ErrUnreachable, err)
+	}
+
+	return prepared, nil
 }
 
 func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { //nolint:ireturn

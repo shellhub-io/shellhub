@@ -111,7 +111,14 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
 	if _, err := h.Dialer.DialTo(ctx, tenant, data.Device, dialer.SSHCloseTarget{SessionID: data.UID}); err != nil {
-		log.WithError(err).Error("failed to send ssh close message")
+		logger := log.WithError(err).
+			WithFields(log.Fields{"session": data.UID, "device": data.Device})
+
+		if errors.Is(err, dialer.ErrNoConnection) {
+			logger.Warning("failed to send the ssh close message: " + dialer.Describe(err))
+		} else {
+			logger.Error("failed to send the ssh close message: " + dialer.Describe(err))
+		}
 
 		return ErrDeviceTunnelDial
 	}

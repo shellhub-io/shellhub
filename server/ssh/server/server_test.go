@@ -105,7 +105,7 @@ func TestBannerHandlerNewSessionFailure(t *testing.T) {
 // TestBannerHandlerDialFailure drives the real session against a tunnel that will not dial,
 // which is the only substitution the banner path needs to fail on an unreachable device.
 func TestBannerHandlerDialFailure(t *testing.T) {
-	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrInvalidArgument} {
+	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrUnreachable, dialer.ErrInvalidArgument} {
 		t.Run(failure.Error(), func(t *testing.T) {
 			deps := stubDeps()
 
