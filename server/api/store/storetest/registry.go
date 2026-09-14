@@ -95,6 +95,9 @@ var Groups = []Group{
 		(*Suite).TestInstanceAPIKeyList,
 		(*Suite).TestInstanceAPIKeyDelete,
 	}},
+	{Name: "SSHIdentityStore", Tests: []TestFunc{
+		(*Suite).TestSSHIdentityResolveCarriesThePrincipal,
+	}},
 	{Name: "InstallKeyStore", Tests: []TestFunc{
 		(*Suite).TestInstallKeyModeRoundTrip,
 		(*Suite).TestInstallKeyListPendingDevices,

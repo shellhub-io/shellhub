@@ -163,9 +163,12 @@ func (s *service) persistSSHIdentity(ctx context.Context, identity *models.SSHId
 		return nil, err
 	}
 
-	identity.ID = id
+	sc, err := BoundTo(identity.TenantID)
+	if err != nil {
+		return nil, err
+	}
 
-	return identity, nil
+	return s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityIDResolver, id)
 }
 
 func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error) {

@@ -497,6 +497,10 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return("id1", nil).
 		Once()
 	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityIDResolver, "id1").
+		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "owner1", Fingerprint: "SHA256:abc"}, nil).
+		Once()
+	storeMock.
 		On("SSHIdentityTouchLastUsed", mock.Anything, namespace.TenantID, "SHA256:abc").
 		Return(nil).
 		Once()

@@ -69,8 +69,8 @@ func (pg *Pg) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver s
 	}
 
 	e := new(entity.SSHIdentity)
-	query := db.NewSelect().Model(e).
-		Where("? = ?", bun.Ident(column), value)
+	query := db.NewSelect().Model(e).Relation("User").
+		Where("?TableAlias.? = ?", bun.Ident(column), value)
 
 	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
