@@ -276,7 +276,6 @@ export const sidebar: SidebarSection[] = [
         href: "/manage/sessions",
         featured: true,
       },
-      { label: "Session Recording", href: "/manage/session-recording" },
       { label: "Settings", href: "/manage/settings" },
     ],
   },
