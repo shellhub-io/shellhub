@@ -19,8 +19,9 @@ deployment — without it, the agents are still running out there and nothing kn
 means every client that has connected before refuses to connect, because the server's host key
 changed.
 
-**Object storage, on Enterprise.** Session recordings live in MinIO or whatever S3-compatible
-storage you configured. **A database dump does not include them.**
+**Object storage, on Enterprise.** [Session recordings](/manage/session-recording) live in MinIO
+or whatever S3-compatible storage you configured, and that storage grows with session activity.
+**A database dump does not include them.**
 
 **Your `.env.override`.** Small, easily recreated, easily forgotten at the worst moment.
 
