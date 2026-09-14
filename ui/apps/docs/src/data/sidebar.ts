@@ -124,16 +124,7 @@ export const sidebar: SidebarSection[] = [
       {
         label: "Install the Agent",
         href: "/get-started/install",
-        items: [
-          { label: "Docker", href: "/get-started/install/docker" },
-          { label: "Podman", href: "/get-started/install/podman" },
-          { label: "Snap", href: "/get-started/install/snap" },
-          {
-            label: "Standalone Binary",
-            href: "/get-started/install/standalone",
-          },
-          { label: "WSL", href: "/get-started/install/wsl" },
-        ],
+        featured: true,
       },
       {
         label: "Additional Platforms",

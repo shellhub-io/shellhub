@@ -6,8 +6,8 @@
 /overview/supported-platforms/          /get-started/install                       301
 /overview/supported-platforms/buildroot /get-started/install/buildroot             301
 /overview/supported-platforms/freebsd   /get-started/install/freebsd               301
-/overview/supported-platforms/snap      /get-started/install/snap                  301
-/overview/supported-platforms/wsl       /get-started/install/wsl                   301
+/overview/supported-platforms/snap      /get-started/install                       301
+/overview/supported-platforms/wsl       /get-started/install                       301
 /overview/supported-platforms/yocto     /get-started/install/yocto                 301
 
 # What ShellHub is
@@ -92,6 +92,12 @@
 /search                         /                                                  301
 
 # Pages this documentation itself has retired since it was published.
+/get-started/install/docker      /get-started/install                               301
+/get-started/install/podman      /get-started/install                               301
+/get-started/install/snap        /get-started/install                               301
+/get-started/install/standalone  /get-started/install                               301
+/get-started/install/wsl         /get-started/install                               301
+
 /api/api-keys                   /api#creating-a-key                                301
 /api/openapi                    /api#the-specification                             301
 

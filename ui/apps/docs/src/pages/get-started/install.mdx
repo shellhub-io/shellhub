@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Install the Agent
-description: Every way to put the agent on a machine, and how the installer picks one for you.
+description: One command, what it decides for you, and the settings it takes.
 ---
 
 import ActionLink from "../../components/ActionLink.astro";
@@ -12,93 +12,177 @@ import Callout from "../../components/Callout.astro";
 The agent is what a device runs. It opens one outbound connection to the server and keeps it,
 which is what makes the machine reachable without anything listening on it.
 
-If you are setting up your first device, the [Quickstart](/get-started) walks the whole path.
-This page is the reference for the install itself.
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh
+```
 
 <ActionLink href="https://cloud.shellhub.io/install">Install ShellHub</ActionLink>
 
-The script behind it is served by the server it will register with, which writes its own address
-into it on the way out — port included. Fetch it from your own server and you get one that
-registers there, with nothing to pass.
+Nothing else is needed. Given no credential the agent pairs: it prints a code, you enter it in the
+console, and the device joins the namespace you pick. [Quickstart](/get-started) walks that path
+end to end.
 
-## Platforms
+The script is served by the server it will register with, which writes its own address into it on
+the way out — port included. Fetch it from your own server and you get one that registers there.
 
-The installer picks one of these by looking at the machine, in this order: Docker, Podman, Snap,
-WSL, then a native binary. Follow a page to see what the method leaves on the machine, or to run
-it yourself.
+## What the script does
 
-- [Docker](/get-started/install/docker) — The agent in a container, on any host with a daemon.
-- [Podman](/get-started/install/podman) — The same, without a daemon running as root.
-- [Snap](/get-started/install/snap) — For Ubuntu and anything else carrying snapd.
-- [Standalone Binary](/get-started/install/standalone) — A native binary under systemd, no
-  container runtime.
-- [WSL](/get-started/install/wsl) — Ubuntu under Windows Subsystem for Linux.
+1. **Picks a method** by looking at the machine: Docker, then Podman, then Snap, then WSL, then a
+   native binary. The first one that works is used.
+2. **Detects the architecture** — `amd64`, `armv6`, `armv7`, `arm64`, `386`.
+3. **Installs the agent** and registers it to start at boot.
 
-Architectures are detected: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
+Force a method with `INSTALL_METHOD` when the choice is wrong for you:
 
-## Additional platforms
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
+```
 
-The installer assumes a machine that already exists, with somebody — or a provisioning script —
+## The methods
+
+### Docker
+
+Picked when a rootful daemon is usable. Leaves a container running the agent, plus a
+`shellhub-agent` wrapper on the host.
+
+The wrapper is there because `shellhub-agent login` opens a browser during pairing, which an
+agent inside a container cannot do. The container itself runs privileged, with the host's
+filesystem and process namespace: the agent opens shells as real unix users and forwards ports on
+their behalf, and a confined container can do neither.
+
+```bash
+$ docker ps | grep shellhub          # is it running
+$ docker logs -f <container>         # what it is doing
+$ docker restart <container>         # restart it
+```
+
+### Podman
+
+Picked when Podman is present and rootful. The same image and the same wrapper as Docker.
+
+Rootful is a requirement, not a preference: the installer declines rootless, because an agent
+installed that way would appear to work and fail at the moment somebody tried to use it.
+
+<Callout variant="warning" title="Podman needs podman-restart.service to come back after a reboot">
+Podman has no daemon, so nothing starts the container at boot on its own — that unit does. The
+installer requires it enabled and stops otherwise, and `SKIP_BOOT_RESTART_CHECK=1` waives the
+check if you manage the lifecycle yourself, through Quadlet or an orchestrator.
+</Callout>
+
+```bash
+$ podman ps | grep shellhub          # is it running
+$ podman logs -f <container>         # what it is doing
+$ podman restart <container>         # restart it
+```
+
+### Snap
+
+Picked when the `snap` command is present. Leaves the `shellhub` snap.
+
+That snap is **classic** rather than strict, for the same reason the containers are privileged,
+and classic snaps cannot be installed on **Ubuntu Core** — run the agent as a container under the
+Docker snap there instead. Being a snap also means `snapd` refreshes it on its own schedule, so
+the agent updates itself; `sudo snap refresh --hold shellhub` pins it.
+
+```bash
+$ snap services shellhub             # is it running
+$ sudo snap logs -f shellhub         # what it is doing
+$ sudo snap restart shellhub         # restart it
+```
+
+### WSL
+
+Picked on WSL 2 with Ubuntu. Leaves a native binary under systemd, inside the distribution.
+
+Each of those is a requirement rather than a description: version 2, Ubuntu, systemd enabled, and
+mirrored networking. The installer checks all four and stops on any of them.
+
+<Callout variant="warning" title="WSL shuts down when you close the terminal">
+The distribution starts when you open a terminal and stops when the last session ends, and the
+agent goes with it. For a workstation you use interactively that may be fine. For anything you
+expect to reach at arbitrary times, arrange for the distribution to stay running, then test it
+honestly: close every WSL terminal, wait, and see whether the device is still online.
+</Callout>
+
+```bash
+$ systemctl status shellhub-agent    # is it running
+$ journalctl -u shellhub-agent -f    # what it is doing
+```
+
+### Standalone
+
+Picked when nothing above matched. Leaves a binary and a systemd unit that starts it at boot.
+
+That unit is the whole of it: no daemon, no container runtime, no snapd, which is what makes this
+the leanest way to run the agent.
+
+```bash
+$ systemctl status shellhub-agent    # is it running
+$ journalctl -u shellhub-agent -f    # what it is doing
+$ sudo systemctl restart shellhub-agent   # restart it
+```
+
+## What it configures
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SERVER_ADDRESS` | the instance that served the script | Which server the agent talks to |
+| `INSTALL_METHOD` | detected | Force a method rather than letting the script pick |
+| `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
+| `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
+| `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
+| `INSTALL_KEY` | — | Enrol without anybody accepting the device. See below |
+| `TENANT_ID` | — | Which namespace to join. Deprecated |
+| `SKIP_BOOT_RESTART_CHECK` | — | Set to `1` to install under Podman without `podman-restart.service` |
+
+`SERVER_ADDRESS` is filled in for you. Set it only to point somewhere other than where the script
+came from.
+
+## Enrolling without accepting each device
+
+Pairing asks somebody to approve the device, which is right for the machines in front of you and
+wrong for a hundred of them. An [install key](/manage/devices/install-keys) carries the namespace
+and the rule for what happens on arrival, so devices enrol on their own, tagged:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_KEY=<your-install-key> sh
+```
+
+## Uninstalling
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+Standalone, WSL, Docker and Podman are supported. Other methods refuse rather than half-remove
+themselves; a Snap install goes with `snap remove shellhub`.
+
+## Machines the script does not cover
+
+The script assumes a machine that already exists, with somebody — or a provisioning script —
 running a command on it. These are not that command with a different flag.
 
 Yocto and Buildroot are embedded build systems: the agent goes into the product image while the
-image is being built, before there is a machine to run anything on, and whoever does it is
-building the firmware rather than using it. FreeBSD has its own packaging. Building from source
-is you producing the binary.
+image is built, before there is a machine to run anything on. FreeBSD has its own packaging.
+Building from source is you producing the binary.
 
 - [Raspberry Pi](/get-started/install/raspberry-pi) — A card image that enrols itself on first
   boot.
-- [Yocto Project](/get-started/install/yocto) — The `meta-shellhub` OpenEmbedded layer, so the
-  agent is in the image the build produces.
+- [Yocto Project](/get-started/install/yocto) — The `meta-shellhub` OpenEmbedded layer.
 - [Buildroot](/get-started/install/buildroot) — The ShellHub external tree, same idea.
 - [FreeBSD](/get-started/install/freebsd) — The
   [ShellHub ports tree](https://github.com/shellhub-io/ports).
 - [Building from Source](/get-started/install/build-from-source) — For a platform nothing above
   covers, or to run an agent you built yourself.
 
-Shipping the agent inside an image raises two questions that installing onto a machine never
-does.
-
-### How does a unit enrol with nobody there?
-
-A unit coming off a line has no console to open and no link to click. The image carries an
-[install key](/manage/devices/install-keys) instead: units enrol with it and are accepted as they
-come online, tags already set. A tenant ID would leave the whole run pending for somebody to work
-through by hand.
-
-### Where does the device key come from?
-
-A device is identified by a key the agent holds — not by its hostname, not by its MAC address.
-The agent generates that key the first time it starts, if it does not already have one.
-
-Which means the generation has to happen on the unit, not in the image:
-
-- A key already **in the image** is the same key on every unit written from it. The whole run
-  shows up as a single device that appears to move between machines.
-- A key the unit **cannot keep** — storage that is read-only, or wiped on reboot — is generated
-  again on every boot. One unit shows up as a new device each time it starts.
-
-Which file holds it, and how to point the agent somewhere else, is in
-[Agent Configuration](/get-started/agent-configuration).
-
-## Uninstalling
-
-Supported for standalone, WSL, Docker and Podman:
-
-```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
-```
-
-Other methods will refuse rather than half-remove themselves. A Snap install is removed with
-`snap remove shellhub`.
-
-## The agent wrapper
-
-Container installs also drop a `shellhub-agent` command on the host. It exists so
-`shellhub-agent login` can open a browser during pairing — an agent inside a container cannot do
-that on its own. See [Quickstart](/get-started).
+A unit coming off a line has no console to open and no link to click, so an image carries an
+install key rather than waiting to be paired. And the key that identifies a device is generated by
+the agent on first start: one baked into an image makes every unit the same device, and one the
+unit cannot keep makes it a new device on every boot. See
+[Agent Configuration](/get-started/agent-configuration) for where that file lives.
 
 ## Where to go next
 
-- [Managing Devices](/manage/devices) — How a device enrols, and what identifies one.
+- [Quickstart](/get-started) — Accept the device and open a terminal on it.
 - [Agent Configuration](/get-started/agent-configuration) — Every agent variable.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — If it never shows up.
