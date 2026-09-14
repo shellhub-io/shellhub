@@ -422,6 +422,10 @@ func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c 
 func openAPIValidationSkipper(ctx *echo.Context) bool {
 	path := ctx.Request().URL.Path
 
+	if routes.RewrittenFromRoot(path) {
+		return true
+	}
+
 	switch path {
 	case sshhttp.HandleConnectionV1Path,
 		sshhttp.HandleConnectionV2Path,
