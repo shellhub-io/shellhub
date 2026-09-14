@@ -67,7 +67,7 @@ address is normalized to a host route — `/32`, or `/128` for IPv6.
 **Empty matches any address.** Source IP only narrows a policy that already matched. It never
 grants on its own, and it is not a substitute for a subject.
 
-An unparseable CIDR or client address causes a **deny** to fail closed.
+An unparsable CIDR or client address causes a **deny** to fail closed.
 
 <Callout variant="warning">
 The client address is resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
@@ -120,7 +120,7 @@ Between two matching policies, the shorter window wins, and "always" beats any n
 |---|---|
 | `user is not a member of the namespace` | The connecting account does not belong to this namespace |
 | `denied by policy "<name>"` | A deny matched |
-| `denied: policy "<name>" could not be evaluated` | A deny had an unparseable filter or source IP, and failed closed |
+| `denied: policy "<name>" could not be evaluated` | A deny had an unparsable filter or source IP, and failed closed |
 | `no policy grants "<login>" on this device` | No allow covered this device and login |
 
 <Callout variant="info">

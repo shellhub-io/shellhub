@@ -1,7 +1,7 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
 title: SAML Sign-In Fails
-description: The identity provider is usually not the problem. Check the licence first.
+description: The identity provider is usually not the problem. Check the license first.
 ---
 
 import Callout from "../../../components/Callout.astro";
@@ -11,15 +11,15 @@ import Callout from "../../../components/Callout.astro";
 SAML failing on a deployment that has it configured looks like an identity provider problem, and
 usually is not.
 
-## Check the licence first
+## Check the license first
 
-<Callout variant="warning" title="A missing or expired licence does not announce itself">
-Nothing says "your licence expired". The sign-in simply fails, and every minute spent in the
+<Callout variant="warning" title="A missing or expired license does not announce itself">
+Nothing says "your license expired". The sign-in simply fails, and every minute spent in the
 identity provider's logs is wasted.
 </Callout>
 
-Open **License** in the admin console. It states which it is: no licence installed, expiring
-soon, expired, or expired but inside its grace period. A licence past its grace period stops
+Open **License** in the admin console. It states which it is: no license installed, expiring
+soon, expired, or expired but inside its grace period. A license past its grace period stops
 gating in your favour, and SAML is one of the things that stops.
 
 ## Then check the edition
