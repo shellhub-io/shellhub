@@ -1,0 +1,19 @@
+services:
+  server:
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: production
+  gateway:
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+      target: production
+  ui:
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      target: production

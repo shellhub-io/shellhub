@@ -3,11 +3,7 @@ version: "3.7"
 services:
   server:
     image: server:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: server/Dockerfile
-      target: production
+    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
@@ -16,11 +12,7 @@ services:
     ports: []
   gateway:
     image: gateway:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-      target: production
+    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
@@ -29,11 +21,7 @@ services:
     ports: []
   ui:
     image: ui:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-      target: production
+    pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
