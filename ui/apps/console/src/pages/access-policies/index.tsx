@@ -138,7 +138,7 @@ function DevicesCell({ policy }: { policy: AccessPolicy }) {
       <span className="inline-flex items-center gap-1.5 flex-wrap">
         {shown.map((tag) => (
           <Chip
-            key={tag.id}
+            key={tag.name}
             tone="primary"
             mono
             icon={<TagIcon className={CHIP_ICON} strokeWidth={2} />}
