@@ -95,6 +95,9 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 			c.SetResponse(rw)
 
 			err := next(c)
+			if err != nil {
+				return err
+			}
 
 			response := &http.Response{
 				StatusCode:    rw.statusCode,
