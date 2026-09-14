@@ -13,10 +13,7 @@ properties:
     format: uuid
     example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
   created_by:
-    description: The ID of the user who created the API key.
-    type: string
-    pattern: ^[0-9a-f]{24}$
-    example: 507f1f77bcf86cd799439011
+    $ref: userID.yaml
   role:
     type: string
     description: |
@@ -38,14 +35,14 @@ properties:
   created_at:
     type: string
     description: The UTC date when the key was created.
-    format: date
-    example: 2020-05-01
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z
   updated_at:
     type: string
     description: |
       The UTC date when the key was last updated. It is updated whenever the key is modified.
-    format: date
-    example: 2020-05-01
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z
 required:
   - id
   - tenant_id
