@@ -541,6 +541,25 @@ report_files_left_behind() {
   echo "   Remove it too, or a reinstall will enroll into the same namespace."
 }
 
+remove_agent_container() {
+  _RUNTIME="$1"
+
+  _CONTAINER=$($SUDO $_RUNTIME ps -a -q -f "name=^${CONTAINER_NAME}$") || {
+    echo "❌ Failed to look up container '$CONTAINER_NAME'."
+    exit 1
+  }
+
+  if [ -z "$_CONTAINER" ]; then
+    echo "⚠️ Container '$CONTAINER_NAME' not found (may already be removed)."
+  else
+    echo "🗑️ Stopping and removing ShellHub container..."
+    $SUDO $_RUNTIME rm -f "$CONTAINER_NAME" >/dev/null || {
+      echo "❌ Failed to remove container '$CONTAINER_NAME'."
+      exit 1
+    }
+  fi
+}
+
 docker_uninstall() {
   _FSUDO=""
   [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
@@ -549,8 +568,7 @@ docker_uninstall() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-shellhub}"
 
-  echo "🗑️ Stopping and removing ShellHub container..."
-  $SUDO docker rm -f "$CONTAINER_NAME" 2>/dev/null || echo "⚠️ Container '$CONTAINER_NAME' not found (may already be removed)."
+  remove_agent_container docker
 
   WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
   if [ -f "$WRAPPER_PATH" ]; then
@@ -570,8 +588,7 @@ podman_uninstall() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-shellhub}"
 
-  echo "🗑️ Stopping and removing ShellHub container..."
-  $SUDO podman rm -f "$CONTAINER_NAME" 2>/dev/null || echo "⚠️ Container '$CONTAINER_NAME' not found (may already be removed)."
+  remove_agent_container podman
 
   WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
   if [ -f "$WRAPPER_PATH" ]; then
