@@ -86,7 +86,6 @@ export const sidebar: SidebarSection[] = [
       {
         label: "Introduction",
         href: "/introduction",
-        featured: true,
       },
       {
         label: "How ShellHub Works",
@@ -102,7 +101,11 @@ export const sidebar: SidebarSection[] = [
         href: "/about/self-hosted-vs-cloud",
         featured: true,
       },
-      { label: "Editions", href: "/about/editions" },
+      {
+        label: "Editions",
+        href: "/about/editions",
+        featured: true,
+      },
       {
         label: "Ports and Connectivity",
         href: "/about/ports-and-connectivity",
@@ -143,6 +146,7 @@ export const sidebar: SidebarSection[] = [
           {
             label: "Agent Configuration",
             href: "/get-started/agent-configuration",
+            featured: true,
           },
         ],
       },
@@ -206,12 +210,10 @@ export const sidebar: SidebarSection[] = [
           {
             label: "SSH Identities",
             href: "/manage/access-control/ssh-identities",
-            featured: true,
           },
           {
             label: "Access Policies",
             href: "/manage/access-control/access-policies",
-            featured: true,
           },
           {
             label: "Policy Reference",
@@ -249,7 +251,6 @@ export const sidebar: SidebarSection[] = [
           {
             label: "Members",
             href: "/manage/team",
-            featured: true,
           },
           { label: "User Roles", href: "/manage/team/user-roles" },
           {
@@ -269,7 +270,6 @@ export const sidebar: SidebarSection[] = [
       {
         label: "Namespaces",
         href: "/manage/namespaces",
-        featured: true,
       },
       {
         label: "Sessions",
@@ -292,11 +292,18 @@ export const sidebar: SidebarSection[] = [
       {
         label: "Environment Variables",
         href: "/selfhosted/environment-variables",
+      },
+      {
+        label: "Administration",
+        href: "/selfhosted/administration",
         featured: true,
       },
-      { label: "Administration", href: "/selfhosted/administration" },
       { label: "Backup", href: "/selfhosted/backup" },
-      { label: "Upgrade", href: "/selfhosted/upgrade" },
+      {
+        label: "Upgrade",
+        href: "/selfhosted/upgrade",
+        featured: true,
+      },
       { label: "Troubleshooting", href: "/selfhosted/troubleshooting" },
     ],
   },
@@ -333,7 +340,7 @@ export const sidebar: SidebarSection[] = [
         href: "/help/troubleshooting",
         featured: true,
       },
-      { label: "Getting Support", href: "/help/support", featured: true },
+      { label: "Getting Support", href: "/help/support" },
     ],
   },
 ];
