@@ -53,6 +53,13 @@ func WithUsername(username string) UserOption {
 	}
 }
 
+// WithName sets the user's display name, which an SSH identity carries as its principal name.
+func WithName(name string) UserOption {
+	return func(u *models.User) {
+		u.UserData.Name = name
+	}
+}
+
 // WithEmail sets the email
 func WithEmail(email string) UserOption {
 	return func(u *models.User) {

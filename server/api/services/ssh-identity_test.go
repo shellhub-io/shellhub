@@ -116,6 +116,8 @@ func TestEnrollSSHIdentity(t *testing.T) {
 				storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
 					return identity.PrincipalID == userID && identity.Fingerprint == fingerprint && identity.TenantID == tenantID
 				})).Return("id1", nil).Once()
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+					Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedErr: nil,
 		},
@@ -201,6 +203,8 @@ func TestReenrollSSHIdentity(t *testing.T) {
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("SSHIdentityCreate", ctx, mock.Anything).Return("created", nil).Once()
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "created").
+					Return(&models.SSHIdentity{ID: "created", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedID:  "created",
 			expectedErr: nil,
@@ -273,6 +277,8 @@ func TestCreateSSHIdentity(t *testing.T) {
 		storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
 			return identity.Fingerprint == fingerprint && identity.PrincipalID == userID
 		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
@@ -326,6 +332,8 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 
 			return true
 		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
 		require.NoError(t, run(NewService(storeMock, privateKey, publicKey, nil)))
 		storeMock.AssertExpectations(t)
@@ -374,6 +382,8 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 
 			return true
 		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
 		clockMock.On("Now").Return(now)
 		service := NewService(storeMock, privateKey, publicKey, nil)
@@ -402,6 +412,8 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 
 			return true
 		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
