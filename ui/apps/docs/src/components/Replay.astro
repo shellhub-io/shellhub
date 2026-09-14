@@ -1,0 +1,244 @@
+---
+import "asciinema-player/dist/bundle/asciinema-player.css";
+
+/**
+ * A recorded terminal session, replayed the way the console replays one.
+ *
+ * The console's player drives asciinema with its own controls rather than the library's, so this
+ * one does the same: a round play button, the elapsed and total time in mono, a scrubber and a
+ * speed control, over the terminal. It is a simplified copy — enough to show a reader what
+ * replaying a session looks like, without reaching for the console's component, which is React
+ * and would be the only hydrated island on this site.
+ */
+interface Props {
+  src: string;
+  title: string;
+}
+
+const { src, title } = Astro.props;
+---
+<figure class="replay">
+  <div class="replay-frame">
+    <div class="replay-term" data-replay data-src={src} aria-label={title}></div>
+
+    <div class="replay-bar">
+      <button type="button" class="replay-play" aria-label="Play">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="replay-icon-play">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="replay-icon-pause" hidden>
+          <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+        </svg>
+      </button>
+
+      <span class="replay-time"><span data-elapsed>00:00</span> / <span data-total>00:00</span></span>
+
+      <input class="replay-seek" type="range" min="0" max="1" step="0.1" value="0" aria-label="Seek" />
+
+      <select class="replay-speed" aria-label="Playback speed">
+        <option value="0.5">0.5x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+  </div>
+</figure>
+
+<style>
+  .replay {
+    margin: 1.75rem 0;
+  }
+
+  .replay-frame {
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .replay-term {
+    background: #121314;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .replay-term :global(.ap-overlay-start) {
+    display: none;
+  }
+
+  /* The player draws the terminal into a <pre>, which the prose styles as a code block: the
+     padding and border are wrong, and the height it loses takes the lines with it, since each
+     one is positioned as a percentage of it. */
+  .replay-term :global(pre.ap-term-text) {
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .replay-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    background: rgb(var(--c-surface));
+    border-top: 1px solid rgb(var(--c-border));
+  }
+
+  .replay-play {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex: none;
+    padding: 0;
+    color: #fff;
+    background: rgb(var(--color-primary-rgb));
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .replay-play svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .replay-time {
+    flex: none;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--c-text-secondary));
+  }
+
+  .replay-seek {
+    flex: 1;
+    accent-color: rgb(var(--color-primary-rgb));
+    cursor: pointer;
+  }
+
+  .replay-speed {
+    flex: none;
+    padding: 0.15rem 0.4rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    color: rgb(var(--c-text-secondary));
+    background: rgb(var(--c-background));
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { create } from "asciinema-player";
+
+  const clock = (seconds: number) => {
+    const total = Math.max(0, Math.floor(seconds));
+    const mm = String(Math.floor(total / 60)).padStart(2, "0");
+    const ss = String(total % 60).padStart(2, "0");
+
+    return `${mm}:${ss}`;
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-replay]").forEach((term) => {
+    const frame = term.closest(".replay-frame")!;
+    const button = frame.querySelector<HTMLButtonElement>(".replay-play")!;
+    const playIcon = frame.querySelector<SVGElement>(".replay-icon-play")!;
+    const pauseIcon = frame.querySelector<SVGElement>(".replay-icon-pause")!;
+    const elapsed = frame.querySelector<HTMLElement>("[data-elapsed]")!;
+    const total = frame.querySelector<HTMLElement>("[data-total]")!;
+    const seek = frame.querySelector<HTMLInputElement>(".replay-seek")!;
+    const speed = frame.querySelector<HTMLSelectElement>(".replay-speed")!;
+
+    const options = (startAt = 0) => ({
+      fit: "width" as const,
+      controls: false,
+      speed: Number(speed.value),
+      startAt,
+      poster: "npt:0:06",
+      terminalFontFamily: '"IBM Plex Mono", monospace',
+    });
+
+    let player = create({ url: term.dataset.src! }, term, options());
+
+    let playing = false;
+    let ticker: ReturnType<typeof setInterval> | null = null;
+
+    const showPlaying = (state: boolean) => {
+      playing = state;
+      playIcon.hidden = state;
+      pauseIcon.hidden = !state;
+      button.setAttribute("aria-label", state ? "Pause" : "Play");
+    };
+
+    const tick = () => {
+      const at = player.getCurrentTime() ?? 0;
+      const length = player.getDuration() ?? 0;
+
+      elapsed.textContent = clock(at);
+      total.textContent = clock(length);
+      seek.max = String(length || 1);
+      seek.value = String(at);
+    };
+
+    const track = () => {
+      if (ticker) clearInterval(ticker);
+      ticker = setInterval(tick, 100);
+    };
+
+    player.addEventListener("play", () => {
+      showPlaying(true);
+      track();
+    });
+
+    player.addEventListener("pause", () => showPlaying(false));
+
+    player.addEventListener("ended", () => {
+      showPlaying(false);
+      if (ticker) clearInterval(ticker);
+    });
+
+    button.addEventListener("click", () => {
+      if (playing) void player.pause();
+      else void player.play();
+    });
+
+    seek.addEventListener("input", () => {
+      void player.seek(Number(seek.value));
+      tick();
+    });
+
+    // The library takes its speed at creation, so changing it rebuilds the player at the
+    // position it had reached.
+    speed.addEventListener("change", () => {
+      const at = player.getCurrentTime() ?? 0;
+      const wasPlaying = playing;
+
+      player.dispose();
+      term.replaceChildren();
+      player = create({ url: term.dataset.src! }, term, options(at));
+
+      player.addEventListener("play", () => {
+        showPlaying(true);
+        track();
+      });
+      player.addEventListener("pause", () => showPlaying(false));
+      player.addEventListener("ended", () => showPlaying(false));
+
+      if (wasPlaying) void player.play();
+    });
+
+    let settle: ReturnType<typeof setInterval> | null = setInterval(() => {
+      tick();
+      if ((player.getDuration() ?? 0) > 0 && settle) {
+        clearInterval(settle);
+        settle = null;
+      }
+    }, 200);
+
+    tick();
+  });
+</script>
