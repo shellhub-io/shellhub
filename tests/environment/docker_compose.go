@@ -32,9 +32,10 @@ type DockerCompose struct {
 	down func()
 }
 
-// Down stops the [DockerCompose] instance, removing images, services, networks, and volumes
-// associated with it. It's generally a good idea to encapsulate it inside a [t.Cleanup]
-// function.
+// Down stops the [DockerCompose] instance, removing the services, networks, and volumes
+// associated with it. It keeps the images, because every [DockerComposeConfigurator.Up] after
+// the first starts from them instead of pulling or building. It's generally a good idea to
+// encapsulate it inside a [t.Cleanup] function.
 func (dc *DockerCompose) Down() {
 	dc.down()
 }

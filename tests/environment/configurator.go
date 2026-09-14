@@ -17,6 +17,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
+var stackImages struct {
+	sync.Mutex
+	built bool
+}
+
 // DockerComposeConfigurator collects the environment a test stack needs before it is brought
 // up. Ports and network names are randomised so that concurrent test binaries do not collide.
 type DockerComposeConfigurator struct {
@@ -87,7 +92,8 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 }
 
 // Up initiates the ShellHub instance, blocking until all services are in the running or
-// healthy state.
+// healthy state. The first successful Up in a test binary builds the server, gateway and ui
+// images; every later Up starts from those images and fails if they were removed in between.
 //
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
 // [assert.FailNow] if an error arises.
@@ -102,20 +108,24 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down: nil,
 	}
 
-	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml"}
 	onlyPostgresAllowed(dc.envs["SHELLHUB_DATABASE"])
-	dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
+	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml", "../docker-compose.postgres.test.yml"}
+
+	stackImages.Lock()
+	buildsStackImages := !stackImages.built
+	if buildsStackImages {
+		defer stackImages.Unlock()
+
+		dockerFiles = append(dockerFiles, "../docker-compose.test.build.yml")
+	} else {
+		stackImages.Unlock()
+	}
 
 	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
 	require.NoError(dcc.t, err)
 
 	dc.down = func() {
-		err := tcDc.Down(
-			ctx,
-			compose.RemoveOrphans(true),
-			compose.RemoveVolumes(true),
-			compose.RemoveImagesAll,
-		)
+		err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
 		require.NoError(dc.setupT, err)
 
 		for k := range dc.services {
@@ -126,6 +136,10 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	services := []Service{ServiceGateway, ServiceServer}
 	if err := tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true)); !assert.NoError(dc.setupT, err) {
 		assert.FailNow(dc.setupT, err.Error())
+	}
+
+	if buildsStackImages {
+		stackImages.built = true
 	}
 
 	for _, service := range services {
