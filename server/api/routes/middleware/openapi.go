@@ -51,8 +51,6 @@ func (rw *capture) Unwrap() http.ResponseWriter {
 type OpenAPIValidatorConfig struct {
 	// EnabledPaths specifies which paths to validate (nil = all paths)
 	EnabledPaths []string
-	// FailOnMismatch determines if validation failures should return HTTP errors
-	FailOnMismatch bool
 	// SchemaPath overrides the default schema path
 	SchemaPath *url.URL
 	// Skipper defines a function to skip middleware. If Skipper returns true, middleware is skipped.
@@ -132,10 +130,9 @@ func getOrCreateValidator(cfg OpenAPIValidatorConfig) *openapi.OpenAPIValidator 
 		logger := logrus.WithField("component", "openapi_validator")
 
 		validatorConfig := &openapi.OpenAPIValidatorConfig{
-			SchemaPath:     cfg.SchemaPath,
-			EnabledPaths:   cfg.EnabledPaths,
-			FailOnMismatch: cfg.FailOnMismatch,
-			Logger:         logger,
+			SchemaPath:   cfg.SchemaPath,
+			EnabledPaths: cfg.EnabledPaths,
+			Logger:       logger,
 		}
 
 		ctx := context.Background()
