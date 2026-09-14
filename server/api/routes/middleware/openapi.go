@@ -110,13 +110,16 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 				"path":        result.Path,
 				"method":      result.Method,
 				"status_code": result.StatusCode,
-				"valid":       result.Valid,
+				"outcome":     result.Outcome,
 			})
 
-			if result.Valid {
-				logger.Debug("OpenAPI response validation passed")
-			} else {
+			switch result.Outcome {
+			case openapi.OutcomeFailed:
 				logger.WithField("error", result.Error).Warn("OpenAPI response validation failed")
+			case openapi.OutcomeUndeclared:
+				logger.WithField("error", result.Error).Warn("no OpenAPI route describes this response")
+			default:
+				logger.Debug("OpenAPI response validation passed")
 			}
 
 			return err

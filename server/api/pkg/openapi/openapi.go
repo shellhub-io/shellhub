@@ -27,9 +27,23 @@ type OpenAPIValidator struct {
 	logger         *logrus.Entry
 }
 
-// ValidationResult contains the result of response validation
+// ValidationOutcome is what checking one response against the schema concluded.
+type ValidationOutcome string
+
+const (
+	// OutcomePassed means the response matched the schema its route declares.
+	OutcomePassed ValidationOutcome = "passed"
+	// OutcomeFailed means the response did not match the schema its route declares.
+	OutcomeFailed ValidationOutcome = "failed"
+	// OutcomeUndeclared means no route in the schema matches the request.
+	OutcomeUndeclared ValidationOutcome = "undeclared"
+	// OutcomeSkipped means the path was outside the configured EnabledPaths.
+	OutcomeSkipped ValidationOutcome = "skipped"
+)
+
+// ValidationResult contains the result of response validation.
 type ValidationResult struct {
-	Valid      bool
+	Outcome    ValidationOutcome
 	Error      string
 	Path       string
 	Method     string
@@ -107,7 +121,7 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 // ValidateResponse validates an HTTP response against the OpenAPI schema
 func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Response, responseBody []byte) *ValidationResult {
 	result := &ValidationResult{
-		Valid:      true,
+		Outcome:    OutcomePassed,
 		Path:       r.URL.Path,
 		Method:     r.Method,
 		StatusCode: response.StatusCode,
@@ -117,24 +131,18 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 	defer v.mu.RUnlock()
 
 	if len(v.enabledPaths) > 0 && !v.enabledPaths[r.URL.Path] {
+		result.Outcome = OutcomeSkipped
+
 		return result
 	}
 
 	route, pathParams, err := v.router.FindRoute(r)
 	if err != nil {
-		v.logger.WithFields(logrus.Fields{
-			"path":   r.URL.Path,
-			"method": r.Method,
-			"error":  err.Error(),
-		}).Debug("Path not found in OpenAPI spec")
+		result.Outcome = OutcomeUndeclared
+		result.Error = err.Error()
 
 		return result
 	}
-
-	v.logger.WithFields(logrus.Fields{
-		"path":   r.URL.Path,
-		"method": r.Method,
-	}).Debug("Path found in OpenAPI spec, proceeding with validation")
 
 	requestValidationInput := &openapi3filter.RequestValidationInput{
 		Request:    r,
@@ -152,21 +160,8 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 	ctx := context.Background()
 
 	if err := openapi3filter.ValidateResponse(ctx, responseValidationInput); err != nil {
-		result.Valid = false
+		result.Outcome = OutcomeFailed
 		result.Error = err.Error()
-
-		v.logger.WithFields(logrus.Fields{
-			"path":        r.URL.Path,
-			"method":      r.Method,
-			"status_code": response.StatusCode,
-			"error":       err.Error(),
-		}).Trace("OpenAPI response validation failed")
-	} else {
-		v.logger.WithFields(logrus.Fields{
-			"path":        r.URL.Path,
-			"method":      r.Method,
-			"status_code": response.StatusCode,
-		}).Trace("OpenAPI response validation passed")
 	}
 
 	return result
