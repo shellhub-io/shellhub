@@ -65,21 +65,22 @@ will not show what went through it.
 
 Know that before relying on recordings for an audit requirement.
 
-## Privacy
+## Deciding what gets recorded
 
-A recording captures whatever appeared on screen. That includes passwords typed at an interactive
-prompt, tokens in environment output, and the contents of any file somebody `cat`s.
+A recording is a replay of a terminal, so it holds whatever that terminal showed. Three controls
+decide how much of that exists and who reaches it.
 
-Tell your team recording is on. Use
-[connection announcements](/manage/settings) so the terminal itself says so at login.
+**Recording is a namespace setting, and it is off until you turn it on.** Turn it off and the
+server records nothing from then on; sessions already running are unaffected either way. Nothing
+obliges a namespace to record, and a namespace that does not need an audit trail should not.
 
-## Storage
+**Playback is administrator and owner only.** An operator can open a session and read the session
+list, and still cannot replay one. A recording is not something everybody in the namespace can
+watch — see [User Roles](/manage/team/user-roles).
 
-Server-side recordings need somewhere to live. Enterprise uses object storage,
-configured with the `SHELLHUB_OBJECT_STORAGE_*` variables and pointed at MinIO by default.
-
-That storage grows with session activity, and it is **not** covered by a PostgreSQL dump. Backing
-up the database does not back up the recordings — see [Backup](/selfhosted/backup).
+**Tell people it is on.** A [connection announcement](/manage/settings) puts it in the terminal
+at login, so recording is something a member knows about rather than discovers. On Cloud and
+Enterprise that is one setting away.
 
 ## Where to go next
 
