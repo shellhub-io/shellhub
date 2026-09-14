@@ -126,6 +126,10 @@ jobs:
           sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=${{ matrix.database }}/' .env
           echo "Running integration tests with database: ${{ matrix.database }}"
 
+      - name: Bundle the OpenAPI schema the e2e server validates against [Go]
+        if: matrix.project == 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        run: npx -y @redocly/cli@2.31.5 bundle openapi/spec/community-openapi.yaml -o openapi/static/openapi.json
+
       - name: Unit test [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
