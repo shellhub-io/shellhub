@@ -1,10 +1,9 @@
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SidebarItem } from "@/data/sidebar";
 import { PAGES_NOT_IN_NAV, flattenItems, sidebar } from "@/data/sidebar";
+import { routes } from "@/lib/routes";
 
 describe("flattenItems", () => {
   describe("group 1: pure-function tests over hand-crafted inputs", () => {
@@ -166,48 +165,18 @@ describe("flattenItems", () => {
 
   describe("group 3: dead-link integrity — every sidebar href resolves to a real page file", () => {
     it("route set contains more than 40 entries (sanity check for scan path)", () => {
-      const pagesDir = join(import.meta.dirname, "../../pages");
-      const entries = readdirSync(pagesDir, {
-        recursive: true,
-        encoding: "utf-8",
-      });
-      const routes = new Set(
-        entries
-          .filter((rel) => /\.(mdx|astro)$/.test(rel))
-          .map((rel) => {
-            const route = ("/" + rel.replace(/\.(mdx|astro)$/, "")).replace(
-              /\/index$/,
-              "",
-            );
-            return route || "/";
-          }),
-      );
-      expect(routes.size).toBeGreaterThan(40);
+      const pages = routes();
+      expect(pages.size).toBeGreaterThan(40);
     });
 
     it("every sidebar href resolves to an existing page file", () => {
-      const pagesDir = join(import.meta.dirname, "../../pages");
-      const entries = readdirSync(pagesDir, {
-        recursive: true,
-        encoding: "utf-8",
-      });
-      const routes = new Set(
-        entries
-          .filter((rel) => /\.(mdx|astro)$/.test(rel))
-          .map((rel) => {
-            const route = ("/" + rel.replace(/\.(mdx|astro)$/, "")).replace(
-              /\/index$/,
-              "",
-            );
-            return route || "/";
-          }),
-      );
+      const pages = routes();
       const allLeaves = sidebar.flatMap((section) =>
         flattenItems(section.items),
       );
       for (const leaf of allLeaves) {
         expect(
-          routes.has(leaf.href),
+          pages.has(leaf.href),
           `sidebar href "${leaf.href}" (label: "${leaf.label}") does not match any page file`,
         ).toBe(true);
       }
@@ -215,32 +184,13 @@ describe("flattenItems", () => {
   });
 
   describe("group 4: orphan-page integrity — every page file appears in the sidebar or the allowlist", () => {
-    function scanRoutes(): Set<string> {
-      const pagesDir = join(import.meta.dirname, "../../pages");
-      const entries = readdirSync(pagesDir, {
-        recursive: true,
-        encoding: "utf-8",
-      });
-      return new Set(
-        entries
-          .filter((rel) => /\.(mdx|astro)$/.test(rel))
-          .map((rel) => {
-            const route = ("/" + rel.replace(/\.(mdx|astro)$/, "")).replace(
-              /\/index$/,
-              "",
-            );
-            return route || "/";
-          }),
-      );
-    }
-
     it("PAGES_NOT_IN_NAV is an array that contains '/'", () => {
       expect(Array.isArray(PAGES_NOT_IN_NAV)).toBe(true);
       expect(PAGES_NOT_IN_NAV).toContain("/");
     });
 
     it("every page file is either in the sidebar hrefs or in PAGES_NOT_IN_NAV — no orphaned pages", () => {
-      const routes = scanRoutes();
+      const pages = routes();
       const sidebarHrefs = new Set(
         sidebar
           .flatMap((section) => flattenItems(section.items))
@@ -248,7 +198,7 @@ describe("flattenItems", () => {
       );
       const allowlist = new Set<string>(PAGES_NOT_IN_NAV);
 
-      for (const route of routes) {
+      for (const route of pages) {
         expect(
           sidebarHrefs.has(route) || allowlist.has(route),
           `page file route "${route}" is not listed in any sidebar section and is not in PAGES_NOT_IN_NAV — add it to the sidebar or to the allowlist`,
