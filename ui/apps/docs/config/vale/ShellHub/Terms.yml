@@ -1,0 +1,14 @@
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: error
+ignorecase: false
+swap:
+  Docker[ -]?compose: Docker Compose
+  Freebsd: FreeBSD
+  Github: GitHub
+  Javascript: JavaScript
+  Nodejs: Node.js
+  Openapi: OpenAPI
+  Shellhub: ShellHub
+  Typescript: TypeScript
+  Websocket: WebSocket

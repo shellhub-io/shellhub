@@ -13,9 +13,10 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "sync": "astro sync",
-    "lint": "npm run lint:code && npm run lint:mdx && npm run lint:spelling",
+    "lint": "npm run lint:code && npm run lint:mdx && npm run lint:spelling && npm run lint:prose",
     "lint:code": "eslint \"src/**/*.ts\"",
     "lint:mdx": "remark \"src/**/*.mdx\" --frail --quiet",
+    "lint:prose": "vale src",
     "lint:spelling": "cspell \"src/**/*.mdx\" --no-progress"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@redocly/cli": "^2.31.5",
     "@types/jsdom": "^30.0.0",
     "cspell": "^10.3.1",
+    "mdx2vast": "^0.5.0",
     "remark-cli": "^12.0.1",
     "remark-frontmatter": "^5.0.0",
     "remark-lint-heading-increment": "^4.0.1",
