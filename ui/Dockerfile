@@ -1,21 +1,11 @@
 FROM node:24.16.0-alpine3.22 AS base
 
 ARG NPM_CONFIG_REGISTRY
-ARG TARGETARCH
-ARG VALE_VERSION=3.17.0
 
 RUN apk add --update build-base python3 curl git gcompat
 
-RUN set -eu; \
-    case "$TARGETARCH" in \
-      amd64) archive="vale_${VALE_VERSION}_Linux_64-bit.tar.gz"; sha="a903f1f60c3293fac643e0137f599a462881cc691ee19d6120dcfc786f1be86d" ;; \
-      arm64) archive="vale_${VALE_VERSION}_Linux_arm64.tar.gz"; sha="c7da52f10d25fb97e14370b2f77ac5ebdbd23cf0abc156659463cfa785282692" ;; \
-      *) echo "unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
-    esac; \
-    curl -fsSL "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/${archive}" -o "/tmp/${archive}"; \
-    echo "${sha}  /tmp/${archive}" | sha256sum -c -; \
-    tar -xzf "/tmp/${archive}" -C /usr/local/bin vale; \
-    rm "/tmp/${archive}"
+COPY ui/scripts/install-vale.sh /tmp/install-vale
+RUN /tmp/install-vale /usr/local/bin && rm /tmp/install-vale
 
 WORKDIR /app
 
