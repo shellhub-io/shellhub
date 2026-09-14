@@ -64,7 +64,7 @@ post:
                 type: string
                 example: example
               filter:
-                $ref: ../components/schemas/publicKeyFilterResponse.yaml
+                $ref: ../components/schemas/publicKeyFilterCreated.yaml
               username:
                 $ref: ../components/schemas/publicKeyUsername.yaml
     '400':

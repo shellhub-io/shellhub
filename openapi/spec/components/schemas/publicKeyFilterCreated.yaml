@@ -1,0 +1,12 @@
+description: |
+  Public key's filter rule, echoed back as it was submitted: a `hostname` regexp or
+  tags by name, with the absent one omitted. The listing returns the stored form
+  instead, where `tags` is always present and carries whole tag objects.
+type: object
+properties:
+  hostname:
+    description: Public key's hostname regexp, which must match the whole device name.
+    type: string
+    example: .*
+  tags:
+    $ref: tagNameArray.yaml
