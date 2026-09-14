@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "npm run openapi && astro dev --force",
-    "build": "npm run openapi && astro build",
+    "build": "npm run openapi && astro build && npm run check:links",
+    "check:links": "node scripts/check-links.mjs dist",
     "openapi": "redocly bundle community-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/community-openapi.yaml && redocly bundle cloud-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/cloud-openapi.yaml && redocly bundle enterprise-customer@v1 --config ../../../openapi/redocly.yaml -o public/openapi/enterprise-openapi.yaml",
     "shots": "./scripts/capture-shots.sh",
     "preview": "astro preview",
