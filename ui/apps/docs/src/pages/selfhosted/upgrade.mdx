@@ -4,7 +4,9 @@ title: Upgrade
 description: Move a self-hosted deployment to a newer ShellHub release.
 ---
 
+import { Code } from "astro:components";
 import Callout from "../../components/Callout.astro";
+import { releaseTag } from "../../data/version";
 
 # Upgrade
 
@@ -34,13 +36,11 @@ $ grep SHELLHUB_VERSION .env
 
 Get the new sources:
 
-```bash
-$ git fetch --tags
-$ git checkout <the-tag-you-want>
-```
+<Code lang="bash" code={`$ git fetch --tags
+$ git checkout ${releaseTag}`} />
 
-Do not hardcode a version from documentation — including this page. Pick a real tag from the
-[releases page](https://github.com/shellhub-io/shellhub/releases).
+Every tag is on the [releases page](https://github.com/shellhub-io/shellhub/releases), and a
+release two or three versions ahead is a fine target as long as you read what changed in between.
 
 Your settings survive, because they are in `.env.override` and not in `.env`. If you edited `.env`
 directly, the checkout has just overwritten your changes — which is why the quickstart says not

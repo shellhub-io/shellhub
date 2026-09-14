@@ -35,6 +35,7 @@ jobs:
       publish: ${{ steps.decide.outputs.publish }}
       channel: ${{ steps.decide.outputs.channel }}
       branch: ${{ steps.decide.outputs.branch }}
+      version: ${{ steps.decide.outputs.version }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -59,6 +60,24 @@ jobs:
           fi
 
           echo "publish=true" >> "$GITHUB_OUTPUT"
+
+          # The version the pages name is the one the stack runs: SHELLHUB_VERSION, the line the
+          # release bumps and the same value docker-compose reads.
+          #
+          # Except in one window. The bump is merged before the tag is pushed, so master spends
+          # the gap naming a release nobody can check out yet, and a page that hands out
+          # `git clone -b` has to name a tag that exists. The newest tag stands in until it does.
+          #
+          # `versionsort.suffix` is what makes that ordering semver's rather than the string's: it
+          # marks -rc as a pre-release, so v0.27.0 outranks v0.27.0-rc.10 instead of losing to it
+          # on the digits. Sorting by date would read the same today and lie the moment a tag is
+          # moved, which the release playbook does.
+          git fetch --tags --quiet
+          version=$(grep '^SHELLHUB_VERSION=' .env | cut -d= -f2-)
+          if ! git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            version=$(git -c versionsort.suffix=-rc tag -l 'v*' --sort=-v:refname | head -n1)
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
           # A release and the branch are the same channel to a reader, and `docs/stable` is the
           # project's production branch, which is what promotes a deployment to the site.
@@ -109,6 +128,7 @@ jobs:
         working-directory: ui
         env:
           PUBLIC_DOCS_CHANNEL: ${{ needs.channel.outputs.channel }}
+          PUBLIC_SHELLHUB_VERSION: ${{ needs.channel.outputs.version }}
         run: npm run build -w @shellhub/docs
 
       # Only `docs/stable`, the project's production branch, publishes to the site. Every other

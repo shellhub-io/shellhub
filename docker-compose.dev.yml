@@ -30,6 +30,8 @@ services:
       network: host
       args:
         - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
+    environment:
+      - PUBLIC_SHELLHUB_VERSION=${SHELLHUB_VERSION}
     volumes:
       - ./ui:/src
       - ./openapi:/openapi:ro
