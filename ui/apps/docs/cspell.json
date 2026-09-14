@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "language": "en-US",
+  "useGitignore": true,
+  "dictionaryDefinitions": [
+    {
+      "name": "shellhub",
+      "path": "./config/spelling.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["shellhub"]
+}
