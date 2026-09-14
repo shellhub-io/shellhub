@@ -11,14 +11,10 @@ properties:
     items:
       type: object
       properties:
-        id:
-          description: Tag's ID.
-          type: string
         name:
           description: Tag's name.
           type: string
       required:
-        - id
         - name
     minItems: 0
     maxItems: 3
