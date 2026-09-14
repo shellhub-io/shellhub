@@ -6,6 +6,7 @@ import remarkLintNoDuplicateHeadingsInSection from "remark-lint-no-duplicate-hea
 import remarkLintNoEmptyUrl from "remark-lint-no-empty-url";
 import remarkMdx from "remark-mdx";
 import remarkPresetLintRecommended from "remark-preset-lint-recommended";
+import remarkLintDocsFrontmatter from "./scripts/remark-lint-docs-frontmatter.mjs";
 
 export default {
   plugins: [
@@ -17,5 +18,6 @@ export default {
     remarkLintNoEmptyUrl,
     remarkLintMdxJsxUniqueAttributeName,
     remarkLintMdxJsxNoVoidChildren,
+    remarkLintDocsFrontmatter,
   ],
 };
