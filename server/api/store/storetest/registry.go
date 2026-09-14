@@ -98,6 +98,15 @@ var Groups = []Group{
 	{Name: "SSHIdentityStore", Tests: []TestFunc{
 		(*Suite).TestSSHIdentityResolveCarriesThePrincipal,
 	}},
+	{Name: "SSHApprovalStore", Tests: []TestFunc{
+		(*Suite).TestSSHApprovalExpiryHidesTheRow,
+		(*Suite).TestSSHApprovalDecideIsClaimedOnce,
+		(*Suite).TestSSHApprovalCleanupRemovesOnlyTheExpired,
+	}},
+	{Name: "AccessPolicyStore", Tests: []TestFunc{
+		(*Suite).TestAccessPolicyTagFilterRoundTrip,
+		(*Suite).TestAccessPolicyUpdateReplacesTheTagFilter,
+	}},
 	{Name: "InstallKeyStore", Tests: []TestFunc{
 		(*Suite).TestInstallKeyModeRoundTrip,
 		(*Suite).TestInstallKeyListPendingDevices,
