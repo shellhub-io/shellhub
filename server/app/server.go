@@ -472,8 +472,8 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		opts = append(opts, routes.WithMetrics())
 	}
 
-	if envs.IsDevelopment() {
-		log.Info("Enabling OpenAPI validation in development mode")
+	if envs.ValidatesOpenAPIResponses() {
+		log.Info("Enabling OpenAPI response validation")
 
 		opts = append(opts, routes.WithOpenAPIValidator(&middleware.OpenAPIValidatorConfig{
 			Skipper: openAPIValidationSkipper,
