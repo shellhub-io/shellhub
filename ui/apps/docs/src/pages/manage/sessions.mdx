@@ -18,7 +18,7 @@ whether or not the *contents* were recorded.
 | | |
 |---|---|
 | Who | The authenticated principal — a person or a service account |
-| Which device | |
+| Which device | The device they reached |
 | Which unix login | The user they connected as |
 | When | Start, and end for a closed session |
 | From where | The client address, resolved through `SHELLHUB_PROXY_TRUSTED_IPS` |
@@ -41,8 +41,9 @@ from one address, is the thing this list exists to show you.
 
 <Shot id="session-detail" route="/sessions/:session" alt="A session detail page showing the session flow timeline, details, device, and play recording button" />
 
-Active sessions can be inspected while they run. A session with a recording has a play control —
-see [Session Recording](/manage/session-recording).
+A session's own page adds the flow of the connection, the device it reached, and — when there is a
+recording — the button that replays it. Active sessions can be inspected while they are still
+running.
 
 ## Sessions and authorization
 
@@ -56,10 +57,67 @@ So the sessions list is not only history — for live sessions it is the answer 
 right now", and the place to look after revoking somebody's access if you need to be sure they are
 actually gone.
 
-## What is not here
+## Recording
 
-**File transfer contents.** A session shows that somebody was connected and, with recording on,
-what the terminal displayed. It does not capture the bytes of an `scp`.
+ShellHub can capture what happened in a terminal and play it back. It does this **two** ways, and
+they answer different questions.
+
+| | Browser-local | Server-side |
+|---|---|---|
+| Answers | What did I do | What did anyone do |
+| Edition | **Community**, Cloud, Enterprise | Cloud and Enterprise |
+| Where the recording lives | In the browser that opened the session | On the server |
+| Covers | Web terminal sessions from that browser | Every session, including native SSH clients |
+| Survives clearing site data | No | Yes |
+| Available to other members | No | Yes |
+
+**Browser-local recording is in Community, and it is yours.** The web terminal records the session
+in the browser and keeps it there: no server storage and nobody else's eyes. Replay the work you
+did on a machine last week, or find the step that broke it. It never leaves the browser you made
+it in, which is the point.
+
+**Server-side recording is Cloud and Enterprise, and it is the namespace's.** The server makes it,
+so it covers every session from every client — native `ssh` included, not only the web terminal —
+and keeps it where the people responsible for the fleet can replay it. That is the one that
+answers "who touched this device, and what did they do". It is on from the moment the namespace
+exists, and [Settings](/manage/settings) turns it off; either way the change applies to new
+sessions, and sessions already running are unaffected.
+
+### Playing one
+
+Every row in the session list carries a **Play** button, and a recorded session repeats it as
+**Play Recording** on its detail page. Either one opens the player, which replays the terminal in
+real time — what was typed, what was displayed, and the timing between them:
+
+<Shot id="session-player" route="/sessions/:session" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Play Recording" } }]} alt="A recorded session replaying, with the terminal and the playback controls" />
+
+From there it behaves like a video: play, pause, scrub, and slow it down or speed it up.
+
+### What a recording holds
+
+**Captured:** everything the terminal displayed, everything typed, and terminal resizes.
+
+**Not captured:** file transfer payloads, and forwarded port traffic. A recording will show
+somebody ran `scp`; it will not show the file's contents. It will show they opened a forward; it
+will not show what went through it.
+
+Know that before relying on recordings for an audit requirement.
+
+### Deciding what gets recorded
+
+A recording is a replay of a terminal, so it holds whatever that terminal showed. Two controls
+decide how much of that exists and who reaches it.
+
+**Recording is a namespace setting, and a new namespace starts with it on.** Turn it off in
+[Settings](/manage/settings) and the server records nothing from then on. Nothing obliges a
+namespace to record, and a namespace that does not need an audit trail should not.
+
+**Playback is administrator and owner only.** An operator can open a session and read the session
+list, and still cannot replay one. A recording is not something everybody in the namespace can
+watch — see [User Roles](/manage/team/user-roles). This is about recordings the server holds: a
+browser-local one is your own data, and plays for you regardless.
+
+## What is not here
 
 **Denial reasons.** A refused connection does not become a session — it was refused before the
 device was contacted. The reason is not surfaced to the client either. See
@@ -70,5 +128,6 @@ authenticated session, so requests to it do not appear here.
 
 ## Where to go next
 
-- [Session Recording](/manage/session-recording) — Capturing and replaying the terminal.
-- [Settings](/manage/settings) — Turning recording on.
+- [Settings](/manage/settings) — Turning recording off.
+- [User Roles](/manage/team/user-roles) — Who may replay a recording.
+- [Connection Denied](/manage/access-control/connection-denied) — When a session never happened.

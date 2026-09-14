@@ -48,7 +48,7 @@
 
 # Sessions
 /user-guides/sessions/introduction      /manage/sessions                           301
-/user-guides/sessions/session-recording /manage/session-recording                  301
+/user-guides/sessions/session-recording /manage/sessions#recording                  301
 
 # Account and team
 /user-guides/settings/account/mfa/about-mfa      /manage/team/multi-factor-authentication  301
@@ -92,6 +92,8 @@
 /search                         /                                                  301
 
 # Pages this documentation itself has retired since it was published.
+/manage/session-recording       /manage/sessions#recording                         301
+
 /get-started/install/docker      /get-started/install                               301
 /get-started/install/podman      /get-started/install                               301
 /get-started/install/snap        /get-started/install                               301
