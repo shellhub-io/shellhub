@@ -8,23 +8,23 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/sirupsen/logrus"
 )
 
 // OpenAPIValidator validates HTTP responses against OpenAPI specification
 type OpenAPIValidator struct {
-	router         routers.Router
-	failOnMismatch bool
-	enabledPaths   map[string]bool
-	mu             sync.RWMutex
-	logger         *logrus.Entry
+	router       routers.Router
+	enabledPaths map[string]bool
+	mu           sync.RWMutex
+	logger       *logrus.Entry
 }
 
 // ValidationOutcome is what checking one response against the schema concluded.
@@ -56,8 +56,6 @@ type OpenAPIValidatorConfig struct {
 	SchemaPath *url.URL
 	// EnabledPaths are the paths that should be validated (nil = all paths)
 	EnabledPaths []string
-	// FailOnMismatch determines if validation failures should cause HTTP errors
-	FailOnMismatch bool
 	// Logger for validation messages
 	Logger *logrus.Entry
 }
@@ -73,9 +71,8 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	}
 
 	validator := &OpenAPIValidator{
-		failOnMismatch: config.FailOnMismatch && envs.IsDevelopment(),
-		enabledPaths:   make(map[string]bool),
-		logger:         config.Logger,
+		enabledPaths: make(map[string]bool),
+		logger:       config.Logger,
 	}
 
 	if config.SchemaPath == nil {
@@ -181,14 +178,14 @@ func (v *OpenAPIValidator) DisablePath(path string) {
 	delete(v.enabledPaths, path)
 }
 
-// ShouldFailOnMismatch returns whether validation failures should cause HTTP errors
-func (v *OpenAPIValidator) ShouldFailOnMismatch() bool {
-	return v.failOnMismatch
-}
-
 // GetDefaultSchemaPath returns the default path to the OpenAPI schema
 func GetDefaultSchemaPath() *url.URL {
-	u, err := url.Parse("http://openapi:8080/openapi/openapi.json")
+	raw := strings.TrimSpace(os.Getenv("SHELLHUB_OPENAPI_SCHEMA"))
+	if raw == "" {
+		raw = "http://openapi:8080/openapi/openapi.json"
+	}
+
+	u, err := url.Parse(raw)
 	if err != nil {
 		return nil
 	}
