@@ -267,9 +267,7 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, err
 	}
 
-	installKey.ID = key
-
-	return responses.CreateInstallKeyFromModel(installKey), nil
+	return responses.CreateInstallKeyFromModel(installKey, key), nil
 }
 
 func (s *service) ListInstallKeys(ctx context.Context, req *requests.ListInstallKey) ([]models.InstallKey, int, error) {
