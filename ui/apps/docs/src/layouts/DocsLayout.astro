@@ -383,7 +383,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
     <script>
       // Code block copy button
       if (navigator.clipboard) {
-        document.querySelectorAll(".prose pre").forEach((pre) => {
+        document.querySelectorAll(".prose pre:not([data-replay] pre)").forEach((pre) => {
           try {
             const parent = pre.parentNode;
             if (!parent) return; // skip detached <pre>
