@@ -96,6 +96,21 @@ func IsDevelopment() bool {
 	return DefaultBackend.Get("SHELLHUB_ENV") == "development"
 }
 
+// ValidatesOpenAPIResponses reports whether responses should be checked against the
+// OpenAPI schema. SHELLHUB_OPENAPI_VALIDATION overrides it either way; unset, it
+// follows IsDevelopment. The e2e stack turns it on without becoming a development
+// deployment, which would also enable block profiling.
+func ValidatesOpenAPIResponses() bool {
+	switch strings.TrimSpace(strings.ToLower(DefaultBackend.Get("SHELLHUB_OPENAPI_VALIDATION"))) {
+	case "on", "true", "1":
+		return true
+	case "off", "false", "0":
+		return false
+	default:
+		return IsDevelopment()
+	}
+}
+
 // ErrParseWithPrefix is joined with the backend's error when ParseWithPrefix fails, so a
 // caller can tell a configuration problem from anything else with errors.Is.
 var ErrParseWithPrefix = errors.New("failed to parse environment variables for the given prefix")
