@@ -81,7 +81,31 @@ export function checkLinks(rootDirectory) {
   return [...new Set(errors)].sort();
 }
 
+export function externalLinks(rootDirectory) {
+  const root = resolve(rootDirectory);
+  const links = filesUnder(root)
+    .filter((file) => file.endsWith(".html"))
+    .flatMap((file) => {
+      const document = new JSDOM(readFileSync(file, "utf8")).window.document;
+      return [...document.querySelectorAll(resourceSelector)]
+        .map((element) => {
+          const attribute = element.hasAttribute("href") ? "href" : "src";
+          return element.getAttribute(attribute)?.trim();
+        })
+        .filter(Boolean)
+        .map((value) => new URL(value, localOrigin))
+        .filter((url) => url.origin !== localOrigin && ["http:", "https:"].includes(url.protocol))
+        .map(String);
+    });
+  return [...new Set(links)].sort();
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === "--external") {
+    for (const link of externalLinks(process.argv[3] ?? "dist")) console.log(link);
+    process.exit(0);
+  }
+
   const errors = checkLinks(process.argv[2] ?? "dist");
   if (errors.length > 0) {
     for (const error of errors) console.error(error);

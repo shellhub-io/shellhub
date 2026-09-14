@@ -2,12 +2,28 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { checkLinks } from "./check-links.mjs";
+import { checkLinks, externalLinks } from "./check-links.mjs";
 
 const roots = [];
 
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true });
+});
+
+describe("externalLinks", () => {
+  it("returns unique HTTP links without local, mail, or data URLs", () => {
+    const root = site({
+      "index.html": [
+        '<a href="https://example.com/guide">External</a>',
+        '<a href="https://example.com/guide">Duplicate</a>',
+        '<a href="/guide">Local</a>',
+        '<a href="mailto:help@example.com">Mail</a>',
+        '<img src="data:image/png;base64,eA==">',
+      ].join(""),
+    });
+
+    expect(externalLinks(root)).toEqual(["https://example.com/guide"]);
+  });
 });
 
 function site(files) {

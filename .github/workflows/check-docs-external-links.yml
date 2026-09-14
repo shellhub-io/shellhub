@@ -1,0 +1,62 @@
+name: Documentation external links
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check external links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.13.0"
+
+      - name: Restore link cache
+        id: cache
+        uses: actions/cache/restore@55cc42b7b02ab1982aa125a73a1b0cfab2278c68
+        with:
+          path: .lycheecache
+          key: docs-external-links-${{ github.run_id }}
+          restore-keys: docs-external-links-
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm install
+
+      - name: Build documentation
+        working-directory: ui/apps/docs
+        run: npm run build
+
+      - name: Collect external links
+        working-directory: ui/apps/docs
+        run: node scripts/check-links.mjs --external dist | sed 's|.*|<&>|' > /tmp/docs-external-links.md
+
+      - name: Check external links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8
+        with:
+          args: >-
+            --cache
+            --cache-exclude-status "429,500..=599"
+            --max-cache-age 7d
+            --max-retries 3
+            --timeout 20
+            /tmp/docs-external-links.md
+          lycheeVersion: v0.24.2
+
+      - name: Save link cache
+        if: always()
+        uses: actions/cache/save@55cc42b7b02ab1982aa125a73a1b0cfab2278c68
+        with:
+          path: .lycheecache
+          key: ${{ steps.cache.outputs.cache-primary-key }}
