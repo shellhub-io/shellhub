@@ -49,6 +49,7 @@ export const PAGES_NOT_IN_NAV: string[] = [
   // The API reference is the specification rendered full-window, outside this layout. It is
   // reached from the REST API page rather than listed beside pages that read like pages.
   "/api/reference",
+  "/connect/container-access",
 ];
 
 /**
@@ -63,7 +64,9 @@ export function flattenItems(
   items: SidebarItem[],
 ): { label: string; href: string; featured?: boolean }[] {
   return items.flatMap((item) => [
-    ...(item.href ? [{ label: item.label, href: item.href, featured: item.featured }] : []),
+    ...(item.href
+      ? [{ label: item.label, href: item.href, featured: item.featured }]
+      : []),
     ...flattenItems(item.items ?? []),
   ]);
 }
@@ -174,11 +177,6 @@ export const sidebar: SidebarSection[] = [
       {
         label: "Port Forwarding",
         href: "/connect/port-forwarding",
-        featured: true,
-      },
-      {
-        label: "Container Access",
-        href: "/connect/container-access",
         featured: true,
       },
       { label: "Web Endpoints", href: "/connect/web-endpoints" },
@@ -340,7 +338,11 @@ export const sidebar: SidebarSection[] = [
     description: "Find the guide for what is not working, or ask.",
     icon: LifebuoyIcon,
     items: [
-      { label: "Troubleshooting", href: "/help/troubleshooting", featured: true },
+      {
+        label: "Troubleshooting",
+        href: "/help/troubleshooting",
+        featured: true,
+      },
       { label: "Getting Support", href: "/help/support", featured: true },
     ],
   },

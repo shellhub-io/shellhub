@@ -68,20 +68,6 @@ rule's hostname filter matches against.
 Generate the hash with `openssl passwd`. Single-user mode is for devices with no real user
 accounts to authenticate against.
 
-## Connector
-
-The Connector — the component that exposes containers on a host as devices — takes its own set:
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `SHELLHUB_SERVER_ADDRESS` | — | Required |
-| `SHELLHUB_PRIVATE_KEYS` | — | Required. Note the **plural**: a directory holding one key per container |
-| `SHELLHUB_TENANT_ID` | — | Required. The Connector does not pair |
-| `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | As above |
-| `SHELLHUB_CONNECTOR_LABEL` | `""` | Only manage containers carrying this label |
-
-See [Container Access](/connect/container-access).
-
 ## Where to go next
 
 - [Managing Devices](/manage/devices) — How a device enrols, and what identifies one.
