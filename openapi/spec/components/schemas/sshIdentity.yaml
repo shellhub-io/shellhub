@@ -66,6 +66,15 @@ properties:
     format: date-time
     nullable: true
     example: 2026-01-02T00:00:00.000Z
+  last_reauth_at:
+    description: |
+      When the identity last completed a re-authentication, or null if it never
+      did. This is the freshness an access policy's `reauth_period` is measured
+      against; it moves only on a successful re-auth, not on an ordinary connect.
+    type: string
+    format: date-time
+    nullable: true
+    example: 2026-01-02T00:00:00.000Z
   expires_at:
     description: |
       When the key stops working (service-account key lifecycle), or null if it
