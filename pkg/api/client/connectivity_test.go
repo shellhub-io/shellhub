@@ -269,7 +269,7 @@ func TestAPersistentRefusalKeepsBeingReported(t *testing.T) {
 		return mock.NewStringResponse(http.StatusNotFound, `{"message":"namespace not found"}`), nil
 	})
 
-	_, err = cli.AuthDevice(authRequest())
+	_, err = cli.AuthDevice(context.Background(), authRequest(), nil)
 	require.NoError(t, err)
 
 	surfaced := 0
@@ -306,7 +306,7 @@ func TestRefusalsCarryTheFieldsTheCallerNamesAtTheTimeTheyAreLogged(t *testing.T
 
 	named = "the tenant 00000000-0000-4000-0000-000000000000 persisted at /etc/shellhub.key.tenant"
 
-	_, err = cli.AuthDevice(authRequest())
+	_, err = cli.AuthDevice(context.Background(), authRequest(), nil)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, hook.AllEntries())

@@ -989,7 +989,7 @@ LOG
 }
 
 @test "docker_uninstall removes the container and the wrapper" {
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper docker
 
     call_install docker_uninstall
@@ -1000,7 +1000,7 @@ LOG
 }
 
 @test "docker_uninstall escalates when it is not already root" {
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper docker
     as_non_root
 
@@ -1012,7 +1012,7 @@ LOG
 }
 
 @test "podman_uninstall removes the container and the wrapper" {
-    stub_bin podman
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper podman
 
     call_install podman_uninstall
@@ -1023,7 +1023,7 @@ LOG
 }
 
 @test "podman_uninstall escalates when it is not already root" {
-    stub_bin podman
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper podman
     as_non_root
 
@@ -1035,12 +1035,65 @@ LOG
 }
 
 @test "docker_uninstall reports a container that was already gone" {
-    stub_bin docker 'echo "docker $*" >> "$CALLS"; exit 1'
+    stub_bin docker
 
     call_install docker_uninstall
 
     [ "$status" -eq 0 ]
     assert_output_contains "not found (may already be removed)"
+    refute_called "docker rm -f"
+}
+
+@test "docker_uninstall aborts when the container cannot be removed" {
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; [ "$1" != rm ]'
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to remove container 'shellhub'"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall aborts when the container cannot be removed" {
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; [ "$1" != rm ]'
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to remove container 'shellhub'"
+    refute_output_contains "uninstalled"
+}
+
+@test "docker_uninstall aborts when it cannot list containers" {
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" != ps ]'
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to look up container 'shellhub'"
+    refute_output_contains "not found"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall aborts when it cannot list containers" {
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" != ps ]'
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to look up container 'shellhub'"
+    refute_output_contains "not found"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall reports a container that was already gone" {
+    stub_bin podman
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "not found (may already be removed)"
+    refute_called "podman rm -f"
 }
 
 @test "uninstall names the tenant file it leaves behind" {
@@ -1426,7 +1479,7 @@ LOG
 
 @test "uninstall does not depend on the server reporting a release version" {
     discover_version "not a version"
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
 
     run_install uninstall
 
@@ -1457,7 +1510,7 @@ LOG
 }
 
 @test "uninstall dispatches to the detected method" {
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
 
     run_install uninstall
 
