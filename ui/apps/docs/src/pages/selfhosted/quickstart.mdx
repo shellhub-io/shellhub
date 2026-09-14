@@ -4,8 +4,10 @@ title: Self-Hosting Quickstart
 description: Bring up your own ShellHub server with Docker Compose.
 ---
 
+import { Code } from "astro:components";
 import Callout from "../../components/Callout.astro";
 import Shot from "../../components/Shot.astro";
+import { releaseTag } from "../../data/version";
 
 # Self-Hosting Quickstart
 
@@ -25,13 +27,11 @@ composition is four services plus PostgreSQL.
 
 ## 1. Clone
 
-```bash
-$ git clone https://github.com/shellhub-io/shellhub.git
-$ cd shellhub
-```
+<Code lang="bash" code={`$ git clone -b ${releaseTag} https://github.com/shellhub-io/shellhub.git
+$ cd shellhub`} />
 
-Check out a release tag rather than running from `master`. The available tags are on the
-[releases page](https://github.com/shellhub-io/shellhub/releases).
+Every release is on the [releases page](https://github.com/shellhub-io/shellhub/releases) if you
+need a different one.
 
 ## 2. Generate keys
 
