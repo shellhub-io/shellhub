@@ -111,6 +111,17 @@ func ValidatesOpenAPIResponses() bool {
 	}
 }
 
+// OpenAPISchemaURL is where the response validator loads the schema from.
+// SHELLHUB_OPENAPI_SCHEMA overrides the address the openapi service serves it at, so a
+// deployment without that service can point the validator at a file it already carries.
+func OpenAPISchemaURL() string {
+	if raw := strings.TrimSpace(DefaultBackend.Get("SHELLHUB_OPENAPI_SCHEMA")); raw != "" {
+		return raw
+	}
+
+	return "http://openapi:8080/openapi/openapi.json"
+}
+
 // ErrParseWithPrefix is joined with the backend's error when ParseWithPrefix fails, so a
 // caller can tell a configuration problem from anything else with errors.Is.
 var ErrParseWithPrefix = errors.New("failed to parse environment variables for the given prefix")
