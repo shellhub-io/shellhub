@@ -158,6 +158,10 @@ paths:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
   /api/devices/enroll/callback/{token}:
     $ref: paths/api@devices@enroll@callback@{token}.yaml
+  /api/devices/auth:
+    $ref: paths/api@devices@auth.yaml
+  /api/auth/device:
+    $ref: paths/api@auth@device.yaml
   /api/devices/auth/code:
     $ref: paths/api@devices@auth@code.yaml
   /api/devices/auth/status:
