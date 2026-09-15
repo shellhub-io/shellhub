@@ -20,8 +20,9 @@ type InstallKeyEvent struct {
 	DeviceUID string `json:"device_uid"`
 	// Hostname is the enrolled device's hostname at enrollment time.
 	Hostname string `json:"hostname"`
-	// MAC is the enrolled device's MAC at enrollment time. It may be empty.
-	MAC string `json:"mac"`
+	// Identity is the identity the device claimed at enrollment time, which is what an
+	// allowlist key is matched against. It may be empty.
+	Identity string `json:"identity"`
 	// Info is the enrolled device's system info at enrollment time. It may be nil.
 	Info *DeviceInfo `json:"info"`
 	// SourceIP is the device's remote address at enrollment time. It may be empty (a pairing accept

@@ -54,7 +54,7 @@ type InstallKeyEvent struct {
 	NamespaceID    string     `bun:"namespace_id"`
 	DeviceUID      string     `bun:"device_uid"`
 	Hostname       string     `bun:"hostname"`
-	MAC            string     `bun:"mac,nullzero"`
+	Identity       string     `bun:"identity,nullzero"`
 	InfoID         string     `bun:"info_id,nullzero"`
 	InfoPrettyName string     `bun:"info_pretty_name,nullzero"`
 	InfoVersion    string     `bun:"info_version,nullzero"`
@@ -81,7 +81,7 @@ func InstallKeyEventFromModel(model *models.InstallKeyEvent) *InstallKeyEvent {
 		NamespaceID:    model.TenantID,
 		DeviceUID:      model.DeviceUID,
 		Hostname:       model.Hostname,
-		MAC:            model.MAC,
+		Identity:       model.Identity,
 		SourceIP:       model.SourceIP,
 		PublicKey:      model.PublicKey,
 		Ephemeral:      model.Ephemeral,
@@ -110,7 +110,7 @@ func InstallKeyEventToModel(entity *InstallKeyEvent) *models.InstallKeyEvent {
 		TenantID:       entity.NamespaceID,
 		DeviceUID:      entity.DeviceUID,
 		Hostname:       entity.Hostname,
-		MAC:            entity.MAC,
+		Identity:       entity.Identity,
 		SourceIP:       entity.SourceIP,
 		PublicKey:      entity.PublicKey,
 		Fingerprint:    fingerprintFromPEM(entity.PublicKey),

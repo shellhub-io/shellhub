@@ -236,9 +236,9 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
 	})
 
-	t.Run("allowlist accepts a listed MAC and rejects others", func(t *testing.T) {
+	t.Run("allowlist accepts a listed identity and rejects others", func(t *testing.T) {
 		e.installKey(t, digest(0x03), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
-			k.AllowedMACs = []string{"aa:bb:cc:dd:ee:31"}
+			k.AllowedIdentities = []string{"aa:bb:cc:dd:ee:31"}
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
 		accepted := e.enroll(t, "aa:bb:cc:dd:ee:31", plaintextFor(0x03))
@@ -309,7 +309,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 
 	t.Run("an auto-rejected device can be manually re-accepted", func(t *testing.T) {
 		e.installKey(t, digest(0x42), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
-			k.AllowedMACs = []string{"aa:bb:cc:dd:ee:99"}
+			k.AllowedIdentities = []string{"aa:bb:cc:dd:ee:99"}
 			clearSecret(k)
 		})
 
@@ -738,7 +738,7 @@ func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
 
 	t.Run("accepting a rejected device spends a use", func(t *testing.T) {
 		e.installKey(t, digest(0x91), "allow-capped", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
-			k.AllowedMACs = []string{"aa:bb:cc:dd:91:ff"}
+			k.AllowedIdentities = []string{"aa:bb:cc:dd:91:ff"}
 			clearSecret(k)
 		})
 

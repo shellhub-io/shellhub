@@ -56,7 +56,7 @@ func TestCreateInstallKey(t *testing.T) {
 				return false
 			}
 
-			if got.Mode != models.InstallKeyModeAutomatic || len(got.AllowedMACs) != 0 {
+			if got.Mode != models.InstallKeyModeAutomatic || len(got.AllowedIdentities) != 0 {
 				return false
 			}
 
@@ -64,7 +64,7 @@ func TestCreateInstallKey(t *testing.T) {
 			c.KeyEncrypted = ""
 			c.KeyHint = ""
 			c.Mode = ""
-			c.AllowedMACs = nil
+			c.AllowedIdentities = nil
 
 			return reflect.DeepEqual(&c, want)
 		})
@@ -125,13 +125,13 @@ func TestCreateInstallKey(t *testing.T) {
 			expectedErr: NewErrInstallKeyInvalidField(map[string]string{"webhook_secret": "is required for webhook mode"}),
 		},
 		{
-			description: "fails when allowlist mode has no MAC",
+			description: "fails when allowlist mode has no identity",
 			req:         &requests.CreateInstallKey{TenantID: tenant, Name: "ci", Mode: "allowlist"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 			},
-			expectedErr: NewErrInstallKeyInvalidField(map[string]string{"allowed_macs": "at least one MAC is required for allowlist mode"}),
+			expectedErr: NewErrInstallKeyInvalidField(map[string]string{"allowed_identities": "at least one identity is required for allowlist mode"}),
 		},
 		{
 			description: "fails when the name is duplicated",
@@ -598,7 +598,7 @@ func TestAppendInstallKeyEvent(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("InstallKeyEventCreate", mock.Anything, mock.MatchedBy(func(e *models.InstallKeyEvent) bool {
 			return e.InstallKeyID == "digest" && e.TenantID == tenant && e.DeviceUID == "uid-1" &&
-				e.Hostname == "web-01" && e.MAC == "00:1a:2b:3c:4d:5e" && e.SourceIP == "203.0.113.7" &&
+				e.Hostname == "web-01" && e.Identity == "00:1a:2b:3c:4d:5e" && e.SourceIP == "203.0.113.7" &&
 				e.Ephemeral && e.ReRegistration && e.Info != nil && e.Info.Arch == "amd64"
 		})).Return(nil).Once()
 

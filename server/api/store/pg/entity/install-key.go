@@ -18,7 +18,7 @@ type InstallKey struct {
 	Mode               string     `bun:"mode"`
 	WebhookURL         string     `bun:"webhook_url,nullzero"`
 	WebhookSecret      string     `bun:"webhook_secret,nullzero"`
-	AllowedMACs        []string   `bun:"allowed_macs,array"`
+	AllowedIdentities  []string   `bun:"allowed_identities,array"`
 	WebhookTimeout     int        `bun:"webhook_timeout"`
 	WebhookCallbackTTL int        `bun:"webhook_callback_ttl"`
 	Reusable           bool       `bun:"reusable"`
@@ -43,9 +43,9 @@ type InstallKey struct {
 
 // InstallKeyFromModel projects an install key into its row form.
 func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
-	allowedMACs := model.AllowedMACs
-	if allowedMACs == nil {
-		allowedMACs = []string{}
+	allowedIdentities := model.AllowedIdentities
+	if allowedIdentities == nil {
+		allowedIdentities = []string{}
 	}
 
 	tags := model.Tags
@@ -65,7 +65,7 @@ func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 		Mode:               string(model.Mode),
 		WebhookURL:         model.WebhookURL,
 		WebhookSecret:      model.WebhookSecret,
-		AllowedMACs:        allowedMACs,
+		AllowedIdentities:  allowedIdentities,
 		WebhookTimeout:     model.WebhookTimeout,
 		WebhookCallbackTTL: model.WebhookCallbackTTL,
 		Reusable:           model.Reusable,
@@ -96,7 +96,7 @@ func InstallKeyToModel(entity *InstallKey) *models.InstallKey {
 		Mode:               models.InstallKeyMode(entity.Mode),
 		WebhookURL:         entity.WebhookURL,
 		WebhookSecret:      entity.WebhookSecret,
-		AllowedMACs:        entity.AllowedMACs,
+		AllowedIdentities:  entity.AllowedIdentities,
 		WebhookTimeout:     entity.WebhookTimeout,
 		WebhookCallbackTTL: entity.WebhookCallbackTTL,
 		Reusable:           entity.Reusable,

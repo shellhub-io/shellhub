@@ -143,9 +143,7 @@ func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.Install
 		ReRegistration: reRegistration,
 	}
 
-	if req.Identity != nil {
-		event.MAC = req.Identity.MAC
-	}
+	event.Identity = claimedIdentity(req)
 
 	if req.Info != nil {
 		event.Info = &models.DeviceInfo{

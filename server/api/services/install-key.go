@@ -61,18 +61,18 @@ func installKeyExpiry(days *int) *time.Time {
 	return &at
 }
 
-func normalizeMACs(macs []string) []string {
-	out := make([]string, 0, len(macs))
-	for _, m := range macs {
-		if m = strings.ToLower(strings.TrimSpace(m)); m != "" {
-			out = append(out, m)
+func normalizeIdentities(identities []string) []string {
+	out := make([]string, 0, len(identities))
+	for _, identity := range identities {
+		if identity = strings.ToLower(strings.TrimSpace(identity)); identity != "" {
+			out = append(out, identity)
 		}
 	}
 
 	return out
 }
 
-func validateInstallKeyMode(mode models.InstallKeyMode, webhookURL, webhookSecret string, allowedMACs []string) error {
+func validateInstallKeyMode(mode models.InstallKeyMode, webhookURL, webhookSecret string, allowedIdentities []string) error {
 	switch mode {
 	case models.InstallKeyModeWebhook:
 		if !strings.HasPrefix(webhookURL, "https://") && !strings.HasPrefix(webhookURL, "http://") {
@@ -83,8 +83,8 @@ func validateInstallKeyMode(mode models.InstallKeyMode, webhookURL, webhookSecre
 			return NewErrInstallKeyInvalidField(map[string]string{"webhook_secret": "is required for webhook mode"})
 		}
 	case models.InstallKeyModeAllowlist:
-		if len(allowedMACs) == 0 {
-			return NewErrInstallKeyInvalidField(map[string]string{"allowed_macs": "at least one MAC is required for allowlist mode"})
+		if len(allowedIdentities) == 0 {
+			return NewErrInstallKeyInvalidField(map[string]string{"allowed_identities": "at least one identity is required for allowlist mode"})
 		}
 	case models.InstallKeyModeAutomatic, models.InstallKeyModeManual:
 	default:
@@ -204,8 +204,8 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		mode = models.InstallKeyModeAutomatic
 	}
 
-	allowedMACs := normalizeMACs(req.AllowedMACs)
-	if err := validateInstallKeyMode(mode, req.WebhookURL, req.WebhookSecret, allowedMACs); err != nil {
+	allowedIdentities := normalizeIdentities(req.AllowedIdentities)
+	if err := validateInstallKeyMode(mode, req.WebhookURL, req.WebhookSecret, allowedIdentities); err != nil {
 		return nil, err
 	}
 
@@ -244,7 +244,7 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		Mode:               mode,
 		WebhookURL:         req.WebhookURL,
 		WebhookSecret:      req.WebhookSecret,
-		AllowedMACs:        allowedMACs,
+		AllowedIdentities:  allowedIdentities,
 		WebhookTimeout:     req.WebhookTimeout,
 		WebhookCallbackTTL: req.WebhookCallbackTTL,
 		Reusable:           reusable,
@@ -351,8 +351,8 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		installKey.WebhookSecret = *req.WebhookSecret
 	}
 
-	if req.AllowedMACs != nil {
-		installKey.AllowedMACs = normalizeMACs(req.AllowedMACs)
+	if req.AllowedIdentities != nil {
+		installKey.AllowedIdentities = normalizeIdentities(req.AllowedIdentities)
 	}
 
 	if req.WebhookTimeout != nil {
@@ -363,8 +363,8 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		installKey.WebhookCallbackTTL = *req.WebhookCallbackTTL
 	}
 
-	if req.Mode != nil || req.WebhookURL != nil || req.WebhookSecret != nil || req.AllowedMACs != nil {
-		if err := validateInstallKeyMode(installKey.Mode, installKey.WebhookURL, installKey.WebhookSecret, installKey.AllowedMACs); err != nil {
+	if req.Mode != nil || req.WebhookURL != nil || req.WebhookSecret != nil || req.AllowedIdentities != nil {
+		if err := validateInstallKeyMode(installKey.Mode, installKey.WebhookURL, installKey.WebhookSecret, installKey.AllowedIdentities); err != nil {
 			return err
 		}
 	}

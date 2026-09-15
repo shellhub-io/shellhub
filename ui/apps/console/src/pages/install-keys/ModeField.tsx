@@ -173,8 +173,8 @@ export default function ModeField({
   onWebhookUrlChange,
   webhookSecret,
   onWebhookSecretChange,
-  allowedMacs,
-  onAllowedMacsChange,
+  allowedIdentities,
+  onAllowedIdentitiesChange,
   webhookTimeout,
   onWebhookTimeoutChange,
   webhookCallbackTtl,
@@ -189,8 +189,8 @@ export default function ModeField({
   onWebhookUrlChange: (value: string) => void;
   webhookSecret: string;
   onWebhookSecretChange: (value: string) => void;
-  allowedMacs: string;
-  onAllowedMacsChange: (value: string) => void;
+  allowedIdentities: string;
+  onAllowedIdentitiesChange: (value: string) => void;
   webhookTimeout: number;
   onWebhookTimeoutChange: (value: number) => void;
   webhookCallbackTtl: number;
@@ -293,18 +293,18 @@ export default function ModeField({
               {selected && option.value === "allowlist" && (
                 <div className="border-t border-primary/20 bg-card/40 px-3.5 py-3">
                   <KeyFileInput
-                    id={`${idPrefix}-allowed-macs`}
-                    label="Allowed MACs"
-                    value={allowedMacs}
-                    onChange={onAllowedMacsChange}
+                    id={`${idPrefix}-allowed-identities`}
+                    label="Allowed identities"
+                    value={allowedIdentities}
+                    onChange={onAllowedIdentitiesChange}
                     validate={(text) => text.trim().length > 0}
                     accept=".txt,.csv,text/plain"
                     maxBytes={2 * 1024 * 1024}
                     rows={4}
-                    placeholder={"aa:bb:cc:dd:ee:ff\n11:22:33:44:55:66"}
-                    emptyLabel="Drop a MAC list, paste, or browse"
-                    loadedLabel="MAC list loaded"
-                    hint="One MAC per line. A convenience filter, not a security boundary: MACs can be spoofed. Max 2 MB."
+                    placeholder={"SN-99f2\naa:bb:cc:dd:ee:ff"}
+                    emptyLabel="Drop an identity list, paste, or browse"
+                    loadedLabel="Identity list loaded"
+                    hint="One identity per line, as the agent reports it. A convenience filter, not a security boundary: an identity can be spoofed. Max 2 MB."
                   />
                 </div>
               )}

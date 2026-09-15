@@ -13,7 +13,7 @@ properties:
     description: |
       The enrollment policy. Omitted defaults to `automatic`. `webhook` requires
       `webhook_url` (http/https) and `webhook_secret`; `allowlist` requires at least
-      one MAC in `allowed_macs`.
+      one entry in `allowed_identities`.
     example: automatic
   webhook_url:
     type: string
@@ -26,13 +26,17 @@ properties:
       Secret used to sign the webhook request (HMAC-SHA256, `X-ShellHub-Signature`
       header). Write-only; never returned.
     example: s3cr3t
-  allowed_macs:
+  allowed_identities:
     type: array
     items:
       type: string
-    description: The device MACs accepted for `allowlist` mode.
+    description: |
+      The device identities accepted for `allowlist` mode, matched against the identity
+      the agent claims. Commonly an equipment serial rather than a MAC address, since
+      SHELLHUB_PREFERRED_IDENTITY replaces the interface address.
     example:
       - "aa:bb:cc:dd:ee:ff"
+      - "SN-99f2"
   webhook_timeout:
     type: integer
     description: |

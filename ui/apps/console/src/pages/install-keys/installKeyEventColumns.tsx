@@ -45,7 +45,9 @@ export function getInstallKeyEventColumns(
               </div>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              {event.mac && <KeyValueChip label="MAC" value={event.mac} />}
+              {event.identity && (
+                <KeyValueChip label="Identity" value={event.identity} />
+              )}
               {event.source_ip && (
                 <KeyValueChip label="IP" value={event.source_ip} />
               )}

@@ -58,12 +58,12 @@ export function enrollmentSourceName(source: EnrollmentSource): string {
   return source.kind === "key" ? source.name : SYSTEM_SOURCE_NAMES[source.kind];
 }
 
-/** Split a MAC-allowlist textarea into a normalized, deduped list (lowercased, blanks dropped). */
-export function parseAllowedMacs(text: string): string[] {
+/** Split an identity-allowlist textarea into a normalized, deduped list (lowercased, blanks dropped). */
+export function parseAllowedIdentities(text: string): string[] {
   const seen = new Set<string>();
   for (const line of text.split("\n")) {
-    const mac = line.trim().toLowerCase();
-    if (mac) seen.add(mac);
+    const identity = line.trim().toLowerCase();
+    if (identity) seen.add(identity);
   }
   return [...seen];
 }
@@ -110,7 +110,7 @@ export function isWebhookUrl(value: string): boolean {
 
 /**
  * Client-side check of a mode's required config, mirroring the API: webhook needs an https URL and a
- * secret; allowlist needs at least one MAC. Returns an error message, or "" when valid. Pass
+ * secret; allowlist needs at least one identity. Returns an error message, or "" when valid. Pass
  * `secretOptional` when editing a key already in webhook mode: its stored secret is write-only, so a
  * blank field keeps it rather than clearing it.
  */
@@ -118,7 +118,7 @@ export function validateModeConfig(
   mode: string,
   webhookUrl: string,
   webhookSecret: string,
-  macs: string[],
+  identities: string[],
   options: {
     secretOptional?: boolean;
     webhookTimeout?: number;
@@ -142,8 +142,8 @@ export function validateModeConfig(
         return `Callback window must be ${WINDOW_MIN_H}–${WINDOW_MAX_H} hours.`;
     }
   }
-  if (mode === "allowlist" && macs.length === 0) {
-    return "Add at least one MAC address for allowlist mode.";
+  if (mode === "allowlist" && identities.length === 0) {
+    return "Add at least one identity for allowlist mode.";
   }
   return "";
 }

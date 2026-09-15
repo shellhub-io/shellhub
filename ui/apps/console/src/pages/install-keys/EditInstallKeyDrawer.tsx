@@ -17,7 +17,11 @@ import EphemeralField from "./EphemeralField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type InstallKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
-import { parseAllowedMacs, validateModeConfig, validateName } from "./helpers";
+import {
+  parseAllowedIdentities,
+  validateModeConfig,
+  validateName,
+} from "./helpers";
 
 /**
  * Edits an install key's name and limits. The key itself is not re-issued.
@@ -36,7 +40,7 @@ function EditInstallKeyDrawer({
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
-  const [allowedMacs, setAllowedMacs] = useState("");
+  const [allowedIdentities, setAllowedIdentities] = useState("");
   const [webhookTimeout, setWebhookTimeout] = useState(5);
   const [webhookCallbackTtl, setWebhookCallbackTtl] = useState(3600);
   const [usageLimit, setUsageLimit] = useState(0);
@@ -50,13 +54,13 @@ function EditInstallKeyDrawer({
   const [nameError, setNameError] = useState("");
   const [error, setError] = useState("");
 
-  const macList = parseAllowedMacs(allowedMacs);
+  const identityList = parseAllowedIdentities(allowedIdentities);
   const alreadyWebhook = installKey?.mode === "webhook";
   const modeError = validateModeConfig(
     mode,
     webhookUrl,
     webhookSecret,
-    macList,
+    identityList,
     {
       secretOptional: alreadyWebhook,
       webhookTimeout,
@@ -75,7 +79,7 @@ function EditInstallKeyDrawer({
     setMode((installKey?.mode as InstallKeyMode) ?? "automatic");
     setWebhookUrl(installKey?.webhook_url ?? "");
     setWebhookSecret("");
-    setAllowedMacs((installKey?.allowed_macs ?? []).join("\n"));
+    setAllowedIdentities((installKey?.allowed_identities ?? []).join("\n"));
     setWebhookTimeout(installKey?.webhook_timeout || 5);
     setWebhookCallbackTtl(installKey?.webhook_callback_ttl || 3600);
     setUsageLimit(installKey?.usage_limit ?? 0);
@@ -136,7 +140,7 @@ function EditInstallKeyDrawer({
               ...(webhookSecret ? { webhook_secret: webhookSecret } : {}),
             }
           : {}),
-        ...(mode === "allowlist" ? { allowed_macs: macList } : {}),
+        ...(mode === "allowlist" ? { allowed_identities: identityList } : {}),
       };
       const body: InstallKeyUpdate = isSystem
         ? modeBody
@@ -219,8 +223,8 @@ function EditInstallKeyDrawer({
           onWebhookUrlChange={setWebhookUrl}
           webhookSecret={webhookSecret}
           onWebhookSecretChange={setWebhookSecret}
-          allowedMacs={allowedMacs}
-          onAllowedMacsChange={setAllowedMacs}
+          allowedIdentities={allowedIdentities}
+          onAllowedIdentitiesChange={setAllowedIdentities}
           webhookTimeout={webhookTimeout}
           onWebhookTimeoutChange={setWebhookTimeout}
           webhookCallbackTtl={webhookCallbackTtl}

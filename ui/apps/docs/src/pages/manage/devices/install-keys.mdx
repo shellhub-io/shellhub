@@ -53,7 +53,7 @@ The mode decides what happens when a device presents the key.
 | `automatic` | Accepted | Fleets you trust by construction — your own images, your own provisioning |
 | `manual` | Pending | Keeping the human check while still getting tags |
 | `webhook` | Whatever your endpoint says | Deciding from your own inventory |
-| `allowlist` | Accepted if its MAC is listed, rejected otherwise | A known, fixed set of hardware |
+| `allowlist` | Accepted if the identity it reports is listed, rejected otherwise | A known, fixed set of hardware |
 
 ### Automatic
 
@@ -91,8 +91,13 @@ hostname that resolves into a private network is refused too.
 
 ### Allowlist
 
-Accepted if the device's MAC is in the key's list, rejected otherwise. For a fixed set of hardware
-you can enumerate in advance.
+Accepted if the identity the device reports is in the key's list, rejected otherwise. For a fixed
+set of hardware you can enumerate in advance.
+
+The identity is the primary interface's MAC address, unless the agent was started with
+`SHELLHUB_PREFERRED_IDENTITY`, which replaces it with any string you choose and is commonly set to
+the equipment's serial number. List what your fleet actually reports, not what the hardware's MAC
+happens to be. Matching ignores case and surrounding whitespace.
 
 ## Tags
 
@@ -129,7 +134,7 @@ devices waiting, and the dashboard's pending count links to it.
 
 <Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
 
-Each row is one enrollment attempt: which device, the MAC address, the source address, the
+Each row is one enrollment attempt: which device, the identity it reported, the source address, the
 architecture, the agent version, whether the device was new or enrolling again, and how it was
 resolved. A pending row carries **Accept** and **Reject** beside it. A device that was rejected can
 still be accepted later.
