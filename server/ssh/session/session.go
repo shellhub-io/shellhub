@@ -849,7 +849,7 @@ func (s *Session) NoKeyReason() string {
 		"",
 		"  Add one to your identities, then connect again:",
 		"",
-		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities"),
+		"    " + ConsoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities"),
 		"",
 	}, "\r\n")
 }
@@ -863,7 +863,7 @@ func (s *Session) EnrollInstruction() string {
 		"",
 		"  Open the link to add it to your identities:",
 		"",
-		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/new/"+s.ApprovalCode),
+		"    " + ConsoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/new/"+s.ApprovalCode),
 		"",
 		"  Security code:  " + groupCode(s.ApprovalCode),
 		"  Key:            " + s.Fingerprint,
@@ -882,7 +882,7 @@ func (s *Session) ReauthInstruction() string {
 		"",
 		"  Open the link to do it in the console:",
 		"",
-		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/confirm/"+s.ApprovalCode),
+		"    " + ConsoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/confirm/"+s.ApprovalCode),
 		"",
 		"  Security code:  " + groupCode(s.ApprovalCode),
 		"",
@@ -907,7 +907,10 @@ func (s *Session) IsIdentityMode() bool {
 	return s.Namespace.Settings.IsIdentityAccess()
 }
 
-func consoleURL(domain string, autoSSL bool, path string) string {
+// ConsoleURL builds an absolute URL into the console from the instance's domain, taking the
+// scheme from autoSSL. It reports how the bundled gateway serves the console, so an instance
+// whose TLS terminates upstream is described as http.
+func ConsoleURL(domain string, autoSSL bool, path string) string {
 	scheme := "http"
 	if autoSSL {
 		scheme = "https"

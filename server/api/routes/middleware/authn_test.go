@@ -40,6 +40,7 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 
 	bearer, err := jwttoken.EncodeUserClaims(
 		authorizer.UserClaims{ID: testUserID, TenantID: testTenant, Username: "john"},
+		"http://localhost",
 		privateKey,
 	)
 	require.NoError(t, err)
@@ -201,7 +202,7 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
 	require.NoError(t, err)
 
 	cases := []struct {
