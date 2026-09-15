@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -76,6 +77,60 @@ func TestGuardsRefuseWhatTheyRefusedBefore(t *testing.T) {
 				service.
 					On("ListAPIKeys", gomock.Anything, gomock.AnythingOfType("*requests.ListAPIKey")).
 					Return([]models.APIKey{}, 0, nil).
+					Once()
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			description: "the any-permission guard refuses a role holding neither of the two",
+			method:      http.MethodDelete,
+			target:      "/api/ssh-identities/1234",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": guardTenant,
+				"X-Role":      authorizer.RoleObserver.String(),
+			},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			description: "the any-permission guard admits a role holding only the enrol one, and tells the service so",
+			method:      http.MethodDelete,
+			target:      "/api/ssh-identities/1234",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": guardTenant,
+				"X-Role":      authorizer.RoleOperator.String(),
+			},
+			mocks: func(service *mocks.MockService) {
+				service.
+					On("DeleteSSHIdentity", gomock.Anything, &requests.SSHIdentityDelete{
+						SSHIdentityIDParam: requests.SSHIdentityIDParam{ID: "1234"},
+						UserID:             "000000000000000000000000",
+						TenantID:           guardTenant,
+					}).
+					Return(nil).
+					Once()
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			description: "the any-permission guard admits a role holding the manage one, and tells the service so",
+			method:      http.MethodDelete,
+			target:      "/api/ssh-identities/1234",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": guardTenant,
+				"X-Role":      authorizer.RoleOwner.String(),
+			},
+			mocks: func(service *mocks.MockService) {
+				service.
+					On("DeleteSSHIdentity", gomock.Anything, &requests.SSHIdentityDelete{
+						SSHIdentityIDParam: requests.SSHIdentityIDParam{ID: "1234"},
+						UserID:             "000000000000000000000000",
+						TenantID:           guardTenant,
+						Manage:             true,
+					}).
+					Return(nil).
 					Once()
 			},
 			expectedStatus: http.StatusOK,

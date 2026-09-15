@@ -33,6 +33,26 @@ const (
 	ShapeLegacy Shape = "legacy"
 )
 
+// Authority names how a route decides what it demands of the caller's role. A route states one,
+// or claims [Anonymous] — which discharges the question, because a request carrying no actor has
+// no role for a permission to be checked against.
+type Authority string
+
+const (
+	// AuthorityUnstated is a route that claimed nothing. It is the zero value because forgetting
+	// is what the route table has to be able to see.
+	AuthorityUnstated Authority = ""
+	// AuthorityPermission is a route admitting a caller whose role holds one of the permissions it
+	// named, refused by the guard the claim installs.
+	AuthorityPermission Authority = "permission"
+	// AuthorityInHandler is a route whose admission decision needs request data a middleware
+	// cannot see, so the check stays in the handler and the reason says why.
+	AuthorityInHandler Authority = "in-handler"
+	// AuthorityNone is a route that demands no authority at all, and the reason says why that is
+	// safe.
+	AuthorityNone Authority = "none"
+)
+
 // OneHandler answers with a single value. It is a function of its inputs: it does not know that
 // HTTP exists, and cannot be called without the namespace it is bounded to and the actor
 // performing it.
@@ -245,9 +265,47 @@ func Anonymous(reason string) RouteOption {
 // of what the route does rather than a description of it.
 func Requires(permission authorizer.Permission) RouteOption {
 	return func(d *Declaration) echo.MiddlewareFunc {
-		d.Permission, d.RequiresPermission = permission, true
+		d.Authority, d.Permissions = AuthorityPermission, []authorizer.Permission{permission}
 
 		return RequiresPermission(permission)
+	}
+}
+
+// RequiresAny declares the permissions the route admits a caller for holding any one of, and
+// installs the guard that enforces the set. It is [Requires] for a route whose rule is more than
+// one permission, which would otherwise have to choose between an inexpressible claim and none.
+//
+// Naming nothing refuses every caller, because a route admitting a role that holds nothing is what
+// [NoPermission] says.
+func RequiresAny(permissions ...authorizer.Permission) RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.Authority, d.Permissions = AuthorityPermission, permissions
+
+		return RequiresAnyPermission(permissions...)
+	}
+}
+
+// PermissionInHandler declares that the route's permission is checked past the middleware chain,
+// because the check needs request data no middleware can see: a namespace named by a code in the
+// path rather than by the session, or a query parameter the permission widens the answer to rather
+// than admits. The check stays where it is; the route stops reading as though it had none.
+func PermissionInHandler(reason string) RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.Authority, d.AuthorityReason = AuthorityInHandler, reason
+
+		return nil
+	}
+}
+
+// NoPermission declares that the route demands no authority of its caller, and records why that is
+// safe: it acts on the caller's own record, it is prior to holding any role, or the credential it
+// answers to carries no role at all. The reason is a required argument, so a route cannot become
+// permissionless by copy-paste.
+func NoPermission(reason string) RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.Authority, d.AuthorityReason = AuthorityNone, reason
+
+		return nil
 	}
 }
 
@@ -301,10 +359,20 @@ type Declaration struct {
 	Method string
 	Path   string
 
-	// Permission is what the route demands of the caller's role. The zero value is a real
-	// permission, so RequiresPermission is what tells it apart from a route demanding none.
-	Permission         authorizer.Permission
-	RequiresPermission bool
+	// Authority is what the route demands of the caller's role, as one of a closed set. The zero
+	// value is a route that claimed nothing, which is what tells a forgotten claim from a route
+	// deliberately demanding none.
+	Authority Authority
+
+	// AuthorityReason is why the route installs no permission guard — because the check is past
+	// the middleware chain, or because there is nothing to check. It is set by the two claims that
+	// install no guard, and empty for the one that does.
+	AuthorityReason string
+
+	// Permissions is the set the caller's role must intersect for the route to admit the call. One
+	// element is [Requires]; several is [RequiresAny]. It is empty unless Authority is
+	// [AuthorityPermission].
+	Permissions []authorizer.Permission
 
 	// BlocksAPIKey reports whether the route refuses a request authenticated by an API key. The
 	// refusal is about the credential and not the authority: a key carrying a role that holds the

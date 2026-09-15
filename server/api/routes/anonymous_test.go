@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -174,5 +175,75 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 	require.NotNil(t, seen)
 	for key := range forged {
 		assert.Empty(t, seen.Get(key), "%s reached the handler", key)
+	}
+}
+
+// TestAuthenticationRoutesAnswerBothSpellings drives the bug this rung fixed. Each authentication
+// endpoint has a V2 path under /auth, and the pair is what deployed agents and current clients
+// respectively call. The V2 spellings were mounted without their siblings' anonymity claim and
+// added to no allowlist, so the authenticator refused the very clients they exist for — the call
+// never reached the handler, and answered 401 whatever the credentials were worth.
+func TestAuthenticationRoutesAnswerBothSpellings(t *testing.T) {
+	cases := []struct {
+		description string
+		target      string
+		body        string
+		mock        func(*serviceMocks.MockService)
+	}{
+		{
+			description: "a device against the older path",
+			target:      "/api" + AuthDeviceURL,
+			body:        `{"info":{"id":"manjaro"},"hostname":"device","public_key":"key","tenant_id":"tenant"}`,
+			mock: func(service *serviceMocks.MockService) {
+				service.On("AuthDevice", mock.Anything, mock.AnythingOfType("requests.DeviceAuth")).
+					Return(&models.DeviceAuthResponse{}, nil).
+					Once()
+			},
+		},
+		{
+			description: "a device against the V2 path",
+			target:      "/api" + AuthDeviceURLV2,
+			body:        `{"info":{"id":"manjaro"},"hostname":"device","public_key":"key","tenant_id":"tenant"}`,
+			mock: func(service *serviceMocks.MockService) {
+				service.On("AuthDevice", mock.Anything, mock.AnythingOfType("requests.DeviceAuth")).
+					Return(&models.DeviceAuthResponse{}, nil).
+					Once()
+			},
+		},
+		{
+			description: "a user against the older path",
+			target:      "/api" + AuthLocalUserURL,
+			body:        `{"username":"user","password":"secret"}`,
+			mock: func(service *serviceMocks.MockService) {
+				service.On("AuthLocalUser", mock.Anything, mock.AnythingOfType("*requests.AuthLocalUser"), mock.Anything).
+					Return(&models.UserAuthResponse{}, int64(0), "", nil).
+					Once()
+			},
+		},
+		{
+			description: "a user against the V2 path",
+			target:      "/api" + AuthLocalUserURLV2,
+			body:        `{"username":"user","password":"secret"}`,
+			mock: func(service *serviceMocks.MockService) {
+				service.On("AuthLocalUser", mock.Anything, mock.AnythingOfType("*requests.AuthLocalUser"), mock.Anything).
+					Return(&models.UserAuthResponse{}, int64(0), "", nil).
+					Once()
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			router, _, service := authenticatedRouter(t)
+			tc.mock(service)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, tc.target, strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		})
 	}
 }

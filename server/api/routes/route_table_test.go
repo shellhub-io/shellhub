@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
@@ -52,6 +53,31 @@ func unstatedClaims(declarations []gateway.Declaration) []string {
 			unstated = append(unstated, declaration.Address()+" requires no actor and states no reason")
 		}
 	}
+
+	return unstated
+}
+
+func unstatedAuthority(declarations []gateway.Declaration) []string {
+	unstated := make([]string, 0)
+
+	for _, declaration := range declarations {
+		switch declaration.Authority {
+		case gateway.AuthorityPermission:
+			if len(declaration.Permissions) == 0 {
+				unstated = append(unstated, declaration.Address()+" demands a permission and names none")
+			}
+		case gateway.AuthorityInHandler, gateway.AuthorityNone:
+			if strings.TrimSpace(declaration.AuthorityReason) == "" {
+				unstated = append(unstated, declaration.Address()+" leaves its authority to the handler or demands none, and states no reason")
+			}
+		case gateway.AuthorityUnstated:
+			if !declaration.Anonymous {
+				unstated = append(unstated, declaration.Address()+" demands no permission and states no reason")
+			}
+		}
+	}
+
+	sort.Strings(unstated)
 
 	return unstated
 }
@@ -138,6 +164,43 @@ func anonymityMismatches(declarations []gateway.Declaration, allowlist []string)
 	return mismatches
 }
 
+func anonymityDisagreements(declarations []gateway.Declaration) []string {
+	byHandler := make(map[string][]gateway.Declaration, len(declarations))
+	for _, declaration := range declarations {
+		byHandler[declaration.Handler] = append(byHandler[declaration.Handler], declaration)
+	}
+
+	disagreements := make([]string, 0)
+
+	for _, mounts := range byHandler {
+		anonymous, credentialed := make([]string, 0), make([]string, 0)
+
+		for _, declaration := range mounts {
+			if declaration.Anonymous {
+				anonymous = append(anonymous, declaration.Address())
+
+				continue
+			}
+
+			credentialed = append(credentialed, declaration.Address())
+		}
+
+		if len(anonymous) == 0 || len(credentialed) == 0 {
+			continue
+		}
+
+		sort.Strings(anonymous)
+		sort.Strings(credentialed)
+
+		disagreements = append(disagreements,
+			strings.Join(credentialed, ", ")+" demand a credential but "+strings.Join(anonymous, ", ")+" serves the same handler without one")
+	}
+
+	sort.Strings(disagreements)
+
+	return disagreements
+}
+
 func misplacedComposedRoutes(router *echo.Echo, composed map[string]string) []string {
 	misplaced := make([]string, 0)
 
@@ -207,6 +270,10 @@ func TestRouteTableHoldsItsClaims(t *testing.T) {
 		assert.Empty(t, unstatedClaims(declarations))
 	})
 
+	t.Run("every route states the authority it demands", func(t *testing.T) {
+		assert.Empty(t, unstatedAuthority(declarations))
+	})
+
 	t.Run("every mounted route is declared or exempt", func(t *testing.T) {
 		assert.Empty(t, undeclaredRoutes(registered, declarations, gatewayExemptRoutes))
 	})
@@ -221,6 +288,10 @@ func TestRouteTableHoldsItsClaims(t *testing.T) {
 
 	t.Run("the anonymity claims and the allowlist agree", func(t *testing.T) {
 		assert.Empty(t, anonymityMismatches(declarations, authn.AnonymousRoutes()))
+	})
+
+	t.Run("routes serving the same handler agree on whether it needs a credential", func(t *testing.T) {
+		assert.Empty(t, anonymityDisagreements(declarations))
 	})
 
 	t.Run("every list route names a query contract", func(t *testing.T) {
@@ -248,6 +319,27 @@ func TestUnstatedClaimsRefusesAnEmptyReason(t *testing.T) {
 	for _, complaint := range unstated {
 		assert.Contains(t, complaint, "/silent")
 	}
+}
+
+// TestUnstatedAuthorityRefusesARouteThatDemandsNothingSilently proves the check above bites. Its
+// three complaints are the three ways a route can leave a reader unable to tell a decision from an
+// omission: no claim at all, a claim whose reason nobody typed, and a permission set naming
+// nothing.
+func TestUnstatedAuthorityRefusesARouteThatDemandsNothingSilently(t *testing.T) {
+	unstated := unstatedAuthority([]gateway.Declaration{
+		{Method: "GET", Path: "/anonymous", Anonymous: true},
+		{Method: "GET", Path: "/empty", Authority: gateway.AuthorityPermission},
+		{Method: "GET", Path: "/guarded", Authority: gateway.AuthorityPermission, Permissions: []authorizer.Permission{authorizer.DeviceRemove}},
+		{Method: "GET", Path: "/handler", Authority: gateway.AuthorityInHandler, AuthorityReason: "the path names the namespace"},
+		{Method: "GET", Path: "/silent"},
+		{Method: "GET", Path: "/unreasoned", Authority: gateway.AuthorityNone, AuthorityReason: "  "},
+	})
+
+	assert.Equal(t, []string{
+		"GET /empty demands a permission and names none",
+		"GET /silent demands no permission and states no reason",
+		"GET /unreasoned leaves its authority to the handler or demands none, and states no reason",
+	}, unstated)
 }
 
 // TestUndeclaredRoutesCatchesARouteThatClaimsNothing drives the case the invariant exists for: a
@@ -315,6 +407,25 @@ func TestAnonymityMismatchesCatchesBothDirections(t *testing.T) {
 	require.Len(t, mismatches, 2)
 	assert.Contains(t, mismatches[0], "/unreachable")
 	assert.Contains(t, mismatches[1], "/open")
+}
+
+// TestAnonymityDisagreementsCatchesASecondSpellingThatForgot is the direction anonymityMismatches
+// cannot see: a route claiming nothing and allowlisted nowhere reads as consistent to it, because
+// that is what every authenticated route looks like. What distinguishes the bug is the handler —
+// a second spelling of an endpoint mounted beside the first and given none of its claims answers
+// 401 to the very clients it exists for, and only its sibling says so.
+func TestAnonymityDisagreementsCatchesASecondSpellingThatForgot(t *testing.T) {
+	disagreements := anonymityDisagreements([]gateway.Declaration{
+		{Method: "POST", Path: "/devices/auth", Handler: "AuthDevice", Anonymous: true},
+		{Method: "POST", Path: "/auth/device", Handler: "AuthDevice"},
+		{Method: "GET", Path: "/tags", Handler: "GetTags"},
+		{Method: "GET", Path: "/namespaces/:tenant/tags", Handler: "GetTags"},
+		{Method: "GET", Path: "/info", Handler: "GetSystemInfo", Anonymous: true},
+	})
+
+	assert.Equal(t, []string{
+		"POST /auth/device demand a credential but POST /devices/auth serves the same handler without one",
+	}, disagreements)
 }
 
 // TestMisplacedComposedRoutesCatchesOneThatMoved keeps the naming honest in the only direction
