@@ -59,7 +59,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 	}
 
 	toToken := func(uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey)
 		require.NoError(t, err)
 
 		return token
@@ -146,7 +146,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -214,7 +214,7 @@ func TestEnrollmentInstallKey(t *testing.T) {
 			cacheMock := mockcache.NewMockCache(tt)
 			tc.requiredMocks(ctx, storeMock)
 
-			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 			key, id, err := svc.enrollmentInstallKey(ctx, scope.MustBounded(tenant), requests.DeviceAuth{TenantID: tenant}, tc.paired)
 
 			require.NoError(tt, err)
@@ -258,7 +258,7 @@ func TestAuthDevice_InstallKeyWithoutTenant(t *testing.T) {
 	}
 
 	toToken := func(uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey)
 		require.NoError(t, err)
 
 		return token
@@ -342,7 +342,7 @@ func TestAuthDevice_InstallKeyWithoutTenant(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -417,7 +417,7 @@ func TestInstallKeyTenant(t *testing.T) {
 			cacheMock := mockcache.NewMockCache(tt)
 			tc.requiredMocks(ctx, storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+			s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 			tenantID, err := s.installKeyTenant(ctx, "fleet-key")
 
 			require.Equal(tt, tc.expected.tenantID, tenantID)

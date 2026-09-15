@@ -234,7 +234,7 @@ func (s *service) enrollmentCallbackURL(key *models.InstallKey, req requests.Dev
 		DeviceUID:    uid,
 		TenantID:     key.TenantID,
 		InstallKeyID: key.ID,
-	}, ttl, s.privKey)
+	}, ttl, s.issuer, s.privKey)
 	if err != nil {
 		log.WithError(err).Warn("failed to mint enrollment callback token")
 

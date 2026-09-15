@@ -20,12 +20,14 @@ type Token struct {
 	Data string
 }
 
-// NewToken creates a new token.
-func NewToken(_ *rsa.PrivateKey) (*Token, error) {
+// NewToken creates a new token, signed with the SSH host key rather than with any key the
+// caller holds. issuer names the instance signing it and is written to the iss claim verbatim.
+func NewToken(issuer string) (*Token, error) {
 	identifier := uuid.Generate()
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"id": identifier,
+		"id":  identifier,
+		"iss": issuer,
 	}).SignedString(magickey.GetReference())
 	if err != nil {
 		return nil, err

@@ -249,7 +249,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
 	uid := hex.EncodeToString(uidSHA[:])
 
-	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID}, s.privKey)
+	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID}, s.issuer, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -550,7 +550,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		Admin:    user.Admin,
 	}
 
-	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
 	if err != nil {
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
@@ -648,7 +648,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Admin:    user.Admin,
 	}
 
-	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
