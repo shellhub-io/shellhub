@@ -216,7 +216,7 @@ jobs:
           app-token: ${{ steps.app-token.outputs.token }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          anthropic-base-url: ${{ vars.ANTHROPIC_BASE_URL }}
+          anthropic-base-url: ${{ secrets.ANTHROPIC_BASE_URL }}
 
   # A separate job so that a review job cancelled by its own timeout, or a runner
   # that died under it, cannot leave the tracking comment stranded mid-progress.
