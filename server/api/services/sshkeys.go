@@ -17,12 +17,13 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// PublicKeyFilterFields maps each filter field the public key list endpoint
-// accepts to the set of operators valid for it.
-var PublicKeyFilterFields = query.NewFieldConstraints(map[string][]string{
-	"name":        {"contains", "eq", "ne"},
-	"fingerprint": {"contains", "eq", "ne"},
-})
+// PublicKeyQuery is the query contract the public key list accepts. The list takes no sort.
+var PublicKeyQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"name":        {"contains", "eq", "ne"},
+		"fingerprint": {"contains", "eq", "ne"},
+	}),
+}
 
 // SSHKeysService owns a namespace's public keys and the rules restricting which devices and
 // usernames each may reach.

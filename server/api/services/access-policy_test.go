@@ -1000,3 +1000,27 @@ func TestStricterReauthPeriod(t *testing.T) {
 		})
 	}
 }
+
+// TestListAccessPoliciesCarriesTheStoreCount pins the count the header is written from as the
+// store's, not the page's. The mock returns a count that disagrees with the slice length, which is
+// the only way to tell one from the other while the list is unpaginated.
+func TestListAccessPoliciesCarriesTheStoreCount(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	storeMock := new(storemock.MockStore)
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID}, nil).Once()
+	storeMock.On("AccessPolicyList", ctx, mock.Anything).
+		Return([]models.AccessPolicy{{ID: "policy1"}}, 7, nil).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, nil)
+
+	policies, count, err := service.ListAccessPolicies(ctx, tenantID)
+	require.NoError(t, err)
+	require.Len(t, policies, 1)
+	require.Equal(t, 7, count)
+
+	storeMock.AssertExpectations(t)
+}

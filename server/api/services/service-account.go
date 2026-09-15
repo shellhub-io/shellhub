@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -11,6 +12,10 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"golang.org/x/crypto/ssh"
 )
+
+// ServiceAccountQuery is the query contract the service account list accepts, which is nothing: the
+// list serves every account in the namespace and offers neither a filter nor a sort.
+var ServiceAccountQuery = query.Contract{}
 
 // ServiceAccountService manages accounts that exist only to hold an SSH identity. They never
 // sign in and are not API principals.
@@ -20,8 +25,9 @@ type ServiceAccountService interface {
 	// key, all atomically. The account never signs in and is not an API principal.
 	CreateServiceAccount(ctx context.Context, req *requests.ServiceAccountCreate) (*models.ServiceAccount, error)
 
-	// ListServiceAccounts returns the namespace's service accounts with their identities.
-	ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error)
+	// ListServiceAccounts returns the namespace's service accounts with their identities, and the
+	// size of the whole collection as the store counted it.
+	ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, int, error)
 
 	// DeleteServiceAccount removes a service account. Deleting the account cascades to its
 	// membership and every SSH identity it holds.
@@ -106,24 +112,24 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 	return account, nil
 }
 
-func (s *service) ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error) {
+func (s *service) ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, int, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	accounts, _, err := s.store.ServiceAccountList(ctx, req.TenantID)
+	accounts, count, err := s.store.ServiceAccountList(ctx, req.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	identities, _, err := s.store.SSHIdentityList(ctx, sc)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	byUser := make(map[string][]models.SSHIdentity, len(accounts))
@@ -135,7 +141,7 @@ func (s *service) ListServiceAccounts(ctx context.Context, req *requests.Service
 		accounts[i].Identities = byUser[accounts[i].ID]
 	}
 
-	return accounts, nil
+	return accounts, count, nil
 }
 
 func (s *service) DeleteServiceAccount(ctx context.Context, req *requests.ServiceAccountDelete) error {

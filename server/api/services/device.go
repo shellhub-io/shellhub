@@ -20,33 +20,31 @@ import (
 // because the store and the API both compare against the wire value.
 const StatusAccepted = "accepted"
 
-// DeviceFilterFields maps each filter field the device list endpoint accepts
-// to the set of operators valid for it. Operators that the database rejects
-// on a given column type (e.g. ILIKE on the status enum) are omitted so the
-// handler returns HTTP 400 instead of letting the store produce a 500.
-var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
-	"name":          {"contains", "eq", "ne"},
-	"status":        {"eq", "ne"},
-	"mac":           {"contains", "eq", "ne"},
-	"platform":      {"contains", "eq", "ne"},
-	"tags.name":     {"contains", "eq"},
-	"online":        {"bool", "eq"},
-	"custom_fields": {"contains"},
+// DeviceQuery is the query contract the device list accepts. Operators the database rejects on a
+// given column type (e.g. ILIKE on the status enum) are omitted, so the route answers 400 instead of
+// letting the store produce a 500.
+var DeviceQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"name":          {"contains", "eq", "ne"},
+		"status":        {"eq", "ne"},
+		"mac":           {"contains", "eq", "ne"},
+		"platform":      {"contains", "eq", "ne"},
+		"tags.name":     {"contains", "eq"},
+		"online":        {"bool", "eq"},
+		"custom_fields": {"contains"},
 
-	"info.platform": {"contains", "eq", "ne"},
-	"identity.mac":  {"contains", "eq", "ne"},
-},
-	"online",
-)
-
-// DeviceSortFields is the set of field names accepted in the sort_by query
-// parameter when listing devices.
-var DeviceSortFields = query.NewFieldSet(
-	"name",
-	"status",
-	"last_seen",
-	"created_at",
-)
+		"info.platform": {"contains", "eq", "ne"},
+		"identity.mac":  {"contains", "eq", "ne"},
+	},
+		"online",
+	),
+	Sort: query.NewFieldSet(
+		"name",
+		"status",
+		"last_seen",
+		"created_at",
+	),
+}
 
 // DeviceService owns the device lifecycle: enrolment, acceptance, renaming, tagging and
 // removal, all within a namespace scope.

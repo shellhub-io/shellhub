@@ -37,7 +37,7 @@ func TestGetPublicKeys(t *testing.T) {
 		{
 			description: "success when try to list a publics keys exists",
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers:     map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ListPublicKeys", gomock.Anything, &requests.ListPublicKeys{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).

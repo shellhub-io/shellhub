@@ -1,13 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The API key routes, relative to the API's base path.
@@ -40,39 +40,8 @@ func (h *Handler) CreateAPIKey(c *gateway.Context) error {
 }
 
 // ListAPIKeys serves the namespace's keys, without their plaintext.
-func (h *Handler) ListAPIKeys(c *gateway.Context) error {
-	req := new(requests.ListAPIKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "expires_in"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.APIKeySortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListAPIKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, res)
+func (h *Handler) ListAPIKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
+	return h.service.ListAPIKeys(ctx, req)
 }
 
 // UpdateAPIKey renames a key or changes the role it acts with.

@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
@@ -16,24 +18,10 @@ const (
 )
 
 // ListServiceAccounts returns the namespace's service accounts with their identities.
-func (h *Handler) ListServiceAccounts(c *gateway.Context) error {
-	req := new(requests.ServiceAccountList)
-	if err := c.Bind(req); err != nil {
-		return err
-	}
+func (h *Handler) ListServiceAccounts(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.ServiceAccountList) ([]models.ServiceAccount, int, error) {
+	req.TenantID = sc.TenantID()
 
-	if c.Tenant() != nil {
-		req.TenantID = c.Tenant().ID
-	}
-
-	list, err := h.service.ListServiceAccounts(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(len(list)))
-
-	return c.JSON(http.StatusOK, list)
+	return h.service.ListServiceAccounts(ctx, req)
 }
 
 // CreateServiceAccount creates a service account from a display name and an OpenSSH

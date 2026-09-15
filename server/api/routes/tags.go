@@ -1,15 +1,14 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
-	log "github.com/sirupsen/logrus"
 )
 
 // The tag routes, relative to the API's base path. The URLOld* spellings are kept because
@@ -53,42 +52,8 @@ func (h *Handler) CreateTag(c *gateway.Context) error {
 }
 
 // GetTags serves the namespace's tags.
-func (h *Handler) GetTags(c *gateway.Context) error {
-	req := new(requests.ListTags)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	if err := req.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode tags list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.TagFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	req.Paginator.Normalize()
-	req.Sorter.Normalize()
-
-	if err := query.ValidateSorter(&req.Sorter, services.TagSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	tags, totalCount, err := h.service.ListTags(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(totalCount))
-
-	return c.JSON(http.StatusOK, tags)
+func (h *Handler) GetTags(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListTags) ([]models.Tag, int, error) {
+	return h.service.ListTags(ctx, req)
 }
 
 // UpdateTag renames a tag, which renames it everywhere it is attached.

@@ -65,6 +65,18 @@ func (fs *Filters) Unmarshal() error {
 	return nil
 }
 
+// Filtered is a request that carries a [Filters]. It is the filtering counterpart of [Paginated]
+// and [Sorted], and exists for the same reason: it lets a caller holding only the request decode
+// the filter without knowing the request's concrete type.
+type Filtered interface {
+	GetFilters() *Filters
+}
+
+// GetFilters returns the filters themselves, satisfying [Filtered] for every type that embeds it.
+func (fs *Filters) GetFilters() *Filters {
+	return fs
+}
+
 // Filter is one node of a query filter: a tagged union whose Type picks the shape of Params.
 // Unmarshal one rather than building it by hand, or Params holds a map instead of a params struct.
 type Filter struct {
