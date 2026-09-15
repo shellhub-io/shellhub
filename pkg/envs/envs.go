@@ -96,18 +96,36 @@ func IsDevelopment() bool {
 	return DefaultBackend.Get("SHELLHUB_ENV") == "development"
 }
 
-// ValidatesOpenAPIResponses reports whether responses should be checked against the
-// OpenAPI schema. SHELLHUB_OPENAPI_VALIDATION overrides it either way; unset, it
-// follows IsDevelopment. The e2e stack turns it on without becoming a development
-// deployment, which would also enable block profiling.
-func ValidatesOpenAPIResponses() bool {
+// OpenAPIValidation is how the server treats a response that does not match its schema.
+type OpenAPIValidation string
+
+const (
+	// OpenAPIValidationOff checks nothing.
+	OpenAPIValidationOff OpenAPIValidation = "off"
+	// OpenAPIValidationReport logs a mismatch and answers as the handler did.
+	OpenAPIValidationReport OpenAPIValidation = "report"
+	// OpenAPIValidationStrict answers a mismatch with a 500 that lists it and refuses to start
+	// without a schema.
+	OpenAPIValidationStrict OpenAPIValidation = "strict"
+)
+
+// OpenAPIValidationMode reads SHELLHUB_OPENAPI_VALIDATION. on, true, 1 and report log a
+// mismatch, strict fails it, and off, false and 0 disable the check. Unset, it reports in
+// development and is off elsewhere.
+func OpenAPIValidationMode() OpenAPIValidation {
 	switch strings.TrimSpace(strings.ToLower(DefaultBackend.Get("SHELLHUB_OPENAPI_VALIDATION"))) {
-	case "on", "true", "1":
-		return true
+	case "on", "true", "1", "report":
+		return OpenAPIValidationReport
+	case "strict":
+		return OpenAPIValidationStrict
 	case "off", "false", "0":
-		return false
+		return OpenAPIValidationOff
 	default:
-		return IsDevelopment()
+		if IsDevelopment() {
+			return OpenAPIValidationReport
+		}
+
+		return OpenAPIValidationOff
 	}
 }
 
