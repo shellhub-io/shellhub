@@ -33,6 +33,12 @@ func setupKeyDigest(t *testing.T) *keyDigestFixture {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = provider.Close(t) })
 
+	return seedKeyDigest(t, ctx, provider)
+}
+
+func seedKeyDigest(t *testing.T, ctx context.Context, provider *pgprovider.Provider) *keyDigestFixture {
+	t.Helper()
+
 	st := provider.Store()
 	f := &keyDigestFixture{provider: provider, st: st, users: map[string]string{}}
 
@@ -129,14 +135,14 @@ func TestAPIKeyResolveRefusesAmbiguousDigest(t *testing.T) {
 // both sides of a collision go, a key with an unshared digest stays, and the index is left behind.
 func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
 	ctx := context.Background()
-	f := setupKeyDigest(t)
 
-	for _, stmt := range migrationStatements(t, "023_key_digest_globally_unique.tx.down.sql") {
-		_, err := f.provider.DB().ExecContext(ctx, stmt)
-		require.NoError(t, err)
-	}
+	provider, err := pgprovider.NewProviderAt(ctx, 22)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = provider.Close(t) })
 
-	_, err := f.st.APIKeyCreate(ctx, f.apiKey(f.victim, "prodkey"))
+	f := seedKeyDigest(t, ctx, provider)
+
+	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.victim, "prodkey"))
 	require.NoError(t, err)
 	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.attacker, "mallorykey"))
 	require.NoError(t, err)
@@ -146,10 +152,7 @@ func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
 	_, err = f.st.APIKeyCreate(ctx, lone)
 	require.NoError(t, err)
 
-	for _, stmt := range migrationStatements(t, "023_key_digest_globally_unique.tx.up.sql") {
-		_, err := f.provider.DB().ExecContext(ctx, stmt)
-		require.NoError(t, err, "the migration must survive pre-existing collisions")
-	}
+	require.NoError(t, provider.ApplyNext(ctx), "the migration must survive pre-existing collisions")
 
 	var names []string
 	require.NoError(t, f.provider.DB().NewRaw("SELECT name FROM api_keys ORDER BY name").Scan(ctx, &names))

@@ -5,51 +5,20 @@ import (
 	"database/sql"
 	"fmt"
 	"maps"
-	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/server/api/store/pg"
-	"github.com/shellhub-io/shellhub/server/api/store/pg/dbtest"
-	"github.com/shellhub-io/shellhub/server/api/store/pg/options"
+	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 )
 
-// migrationStatements reads a migration file from disk and returns its statements, split on the
-// --bun:split separator the migrator splits on. Reading the file rather than the embedded registry
-// is what lets a test re-run one migration against data it planted first.
-func migrationStatements(t *testing.T, name string) []string {
+func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string, args ...any) {
 	t.Helper()
 
-	_, file, _, ok := runtime.Caller(0)
-	require.True(t, ok, "runtime.Caller must succeed")
-
-	path := filepath.Join(filepath.Dir(file), "migrations", name)
-
-	raw, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
-	require.NoError(t, err, "migration file must exist on disk")
-
-	var stmts []string
-	for part := range strings.SplitSeq(string(raw), "--bun:split") {
-		if s := strings.TrimSpace(part); s != "" {
-			stmts = append(stmts, s)
-		}
-	}
-
-	require.NotEmpty(t, stmts, "004 migration must have at least one statement")
-
-	return stmts
-}
-
-func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string) {
-	t.Helper()
-
-	_, err := db.ExecContext(ctx, query)
+	_, err := db.ExecContext(ctx, query, args...)
 	require.NoError(t, err, "execSQL failed:\n%s", query)
 }
 
@@ -58,32 +27,17 @@ func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string) {
 // ties broken by id ASC) unchanged and renaming every other duplicate so that all
 // values of lower(name) are unique, each name fits in 63 chars, and no renamed name
 // starts or ends with a hyphen.  It also asserts that the resulting unique index
-// blocks a subsequent duplicate INSERT (SQLSTATE 23505) and that re-running the
-// dedup UPDATE is idempotent.
+// blocks a subsequent duplicate INSERT (SQLSTATE 23505) and that rolling the
+// migration back and applying it again is idempotent.
 func TestMigration004Dedup(t *testing.T) {
 	ctx := context.Background()
 
-	srv := &dbtest.Server{}
-	require.NoError(t, srv.Up(ctx))
-
-	t.Cleanup(func() {
-		if err := srv.Down(ctx); err != nil {
-			t.Logf("warn: container teardown: %v", err)
-		}
-	})
-
-	connStr, err := srv.ConnectionString(ctx)
+	provider, err := pgprovider.NewProviderAt(ctx, 3)
 	require.NoError(t, err)
 
-	st, err := pg.New(ctx, connStr, options.Migrate())
-	require.NoError(t, err, "pg.New with Migrate must succeed")
+	t.Cleanup(func() { _ = provider.Close(t) })
 
-	pgStore, ok := st.(*pg.Pg)
-	require.True(t, ok)
-
-	db := pgStore.Driver()
-
-	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
+	db := provider.DB()
 
 	const ownerID = "11111111-1111-4111-8111-111111111111"
 
@@ -120,11 +74,7 @@ func TestMigration004Dedup(t *testing.T) {
 	insertNS(nsMixed, "MyApp", base.Add(2*time.Hour))
 	insertNS(nsControl, "otherapp", base.Add(3*time.Hour))
 
-	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
-	for i, stmt := range stmts {
-		_, execErr := db.ExecContext(ctx, stmt)
-		require.NoError(t, execErr, "004 migration statement %d failed:\n%s", i, stmt)
-	}
+	require.NoError(t, provider.ApplyNext(ctx), "004 must apply cleanly")
 
 	type nsRow struct {
 		ID   string `bun:"id"`
@@ -196,8 +146,8 @@ func TestMigration004Dedup(t *testing.T) {
 		snapBefore := make(map[string]string)
 		maps.Copy(snapBefore, byID)
 
-		_, execErr := db.ExecContext(ctx, stmts[0])
-		require.NoError(t, execErr, "re-running dedup step must not error")
+		require.NoError(t, provider.Rollback(ctx), "004 must roll back")
+		require.NoError(t, provider.ApplyNext(ctx), "re-applying 004 must not error")
 
 		var rows2 []nsRow
 		err = db.NewSelect().
@@ -205,15 +155,11 @@ func TestMigration004Dedup(t *testing.T) {
 			ColumnExpr("id, name").
 			Scan(ctx, &rows2)
 		require.NoError(t, err)
+		require.Len(t, rows2, len(snapBefore), "the round trip must not lose rows")
 
 		for _, r := range rows2 {
-			before, known := snapBefore[r.ID]
-			if !known {
-				continue // extra row inserted by sub-test 8
-			}
-
-			assert.Equal(t, before, r.Name,
-				"re-running dedup must not change name of id=%s", r.ID)
+			assert.Equal(t, snapBefore[r.ID], r.Name,
+				"re-applying 004 must not change name of id=%s", r.ID)
 		}
 	})
 }
@@ -224,23 +170,12 @@ func TestMigration004Dedup(t *testing.T) {
 func TestMigration004DedupTieBreak(t *testing.T) {
 	ctx := context.Background()
 
-	srv := &dbtest.Server{}
-	require.NoError(t, srv.Up(ctx))
-
-	t.Cleanup(func() { srv.Down(ctx) }) //nolint:errcheck
-
-	connStr, err := srv.ConnectionString(ctx)
+	provider, err := pgprovider.NewProviderAt(ctx, 3)
 	require.NoError(t, err)
 
-	st, err := pg.New(ctx, connStr, options.Migrate())
-	require.NoError(t, err)
+	t.Cleanup(func() { _ = provider.Close(t) })
 
-	pgStore, ok := st.(*pg.Pg)
-	require.True(t, ok)
-
-	db := pgStore.Driver()
-
-	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
+	db := provider.DB()
 
 	const ownerID = "22222222-2222-4222-8222-222222222222"
 
@@ -271,11 +206,7 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 		`, ns.id, ts, ts, ns.name, ownerID))
 	}
 
-	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
-	for i, stmt := range stmts {
-		_, execErr := db.ExecContext(ctx, stmt)
-		require.NoError(t, execErr, "statement %d failed", i)
-	}
+	require.NoError(t, provider.ApplyNext(ctx), "004 must apply cleanly")
 
 	nameSmall := nsName(t, ctx, db, idSmall)
 	nameLarge := nsName(t, ctx, db, idLarge)
@@ -301,10 +232,10 @@ func nsName(t *testing.T, ctx context.Context, db *bun.DB, id string) string {
 	return name
 }
 
-// TestMigration004AtomicRollback proves that the two 004 statements run atomically:
-// when CREATE UNIQUE INDEX (step b) fails due to a pre-existing row whose name
-// collides with a would-be renamed duplicate, the whole transaction rolls back and
-// no rows are renamed (step a is undone).
+// TestMigration004AtomicRollback proves that migration 004 runs atomically: when
+// CREATE UNIQUE INDEX (step b) fails due to a pre-existing row whose name collides
+// with a would-be renamed duplicate, the whole migration rolls back and no rows are
+// renamed (step a is undone).
 //
 // Setup:
 //   - "rollapp"         – oldest, winner of the "rollapp" lower(name) group
@@ -317,27 +248,12 @@ func nsName(t *testing.T, ctx context.Context, db *bun.DB, id string) string {
 func TestMigration004AtomicRollback(t *testing.T) {
 	ctx := context.Background()
 
-	srv := &dbtest.Server{}
-	require.NoError(t, srv.Up(ctx))
-
-	t.Cleanup(func() {
-		if err := srv.Down(ctx); err != nil {
-			t.Logf("warn: container teardown: %v", err)
-		}
-	})
-
-	connStr, err := srv.ConnectionString(ctx)
+	provider, err := pgprovider.NewProviderAt(ctx, 3)
 	require.NoError(t, err)
 
-	st, err := pg.New(ctx, connStr, options.Migrate())
-	require.NoError(t, err, "pg.New with Migrate must succeed")
+	t.Cleanup(func() { _ = provider.Close(t) })
 
-	pgStore, ok := st.(*pg.Pg)
-	require.True(t, ok)
-
-	db := pgStore.Driver()
-
-	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
+	db := provider.DB()
 
 	const ownerID = "33333333-3333-4333-8333-333333333333"
 
@@ -376,32 +292,10 @@ func TestMigration004AtomicRollback(t *testing.T) {
 	insertRollbackNS(loserID, loserName, base.Add(time.Hour))
 	insertRollbackNS(controlID, controlName, base.Add(2*time.Hour))
 
-	stmts := migrationStatements(t, "004_namespaces_name_unique.tx.up.sql")
-	require.Len(t, stmts, 2, "004 migration must have exactly 2 statements (dedup + index)")
-
-	tx, err := db.BeginTx(ctx, nil)
-	require.NoError(t, err, "BEGIN must succeed")
-
-	var stmtErr error
-
-	for i, stmt := range stmts {
-		if _, execErr := tx.ExecContext(ctx, stmt); execErr != nil {
-			stmtErr = execErr
-			t.Logf("statement %d failed (expected): %v", i, execErr)
-
-			break
-		}
-	}
-
-	if stmtErr != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			t.Logf("warn: ROLLBACK failed: %v", rollbackErr)
-		}
-	} else {
-		_ = tx.Commit()
-	}
-
-	require.Error(t, stmtErr, "the 004 migration must fail when a rename target already exists")
+	applyErr := provider.ApplyNext(ctx)
+	require.Error(t, applyErr, "the 004 migration must fail when a rename target already exists")
+	require.Contains(t, applyErr.Error(), "23505",
+		"004 must fail on the unique index (SQLSTATE 23505), not on the migrator's bookkeeping")
 
 	assert.Equal(t, winnerName, nsName(t, ctx, db, winnerID),
 		"winner row must be untouched after rollback")
