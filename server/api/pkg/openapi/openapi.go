@@ -8,14 +8,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -76,7 +75,7 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	}
 
 	if config.SchemaPath == nil {
-		config.SchemaPath = GetDefaultSchemaPath()
+		config.SchemaPath = schemaPathFromEnv()
 	}
 
 	if config.SchemaPath == nil {
@@ -178,14 +177,8 @@ func (v *OpenAPIValidator) DisablePath(path string) {
 	delete(v.enabledPaths, path)
 }
 
-// GetDefaultSchemaPath returns the default path to the OpenAPI schema
-func GetDefaultSchemaPath() *url.URL {
-	raw := strings.TrimSpace(os.Getenv("SHELLHUB_OPENAPI_SCHEMA"))
-	if raw == "" {
-		raw = "http://openapi:8080/openapi/openapi.json"
-	}
-
-	u, err := url.Parse(raw)
+func schemaPathFromEnv() *url.URL {
+	u, err := url.Parse(envs.OpenAPISchemaURL())
 	if err != nil {
 		return nil
 	}
