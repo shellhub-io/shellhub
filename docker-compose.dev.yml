@@ -17,6 +17,7 @@ services:
       - ./.golangci.yaml:/.golangci.yaml
       - ./.mockery.yaml:/go/src/github.com/shellhub-io/shellhub/.mockery.yaml
       - ./go.sum:/go/src/github.com/shellhub-io/shellhub/go.sum
+      - ./install.sh:/go/src/github.com/shellhub-io/shellhub/install.sh
     environment:
       - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
