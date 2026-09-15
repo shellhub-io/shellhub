@@ -63,7 +63,7 @@ func TestRouterRefusesDeviceTokenOnManagementRoutes(t *testing.T) {
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, "http://localhost", privateKey)
 	require.NoError(t, err)
 
 	paths := []string{
