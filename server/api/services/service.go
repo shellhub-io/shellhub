@@ -28,6 +28,7 @@ type service struct {
 	licenseEvaluator  LicenseEvaluator
 	firewallEvaluator FirewallEvaluator
 	recordingPruner   SessionRecordingPruner
+	issuer            string
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -74,8 +75,9 @@ type Service interface {
 	Store() store.Store
 }
 
-// Option supplies a capability the community build has no implementation for. Each is
-// optional, and the enterprise binary is what passes them.
+// Option configures the service at construction. Most supply a capability the community build
+// has no implementation for, which the enterprise binary passes; the rest carry a value the
+// server knows and the service layer does not, such as the token issuer.
 type Option func(service *APIService)
 
 // WithLocator resolves IP addresses to locations, for session geolocation.
@@ -110,6 +112,14 @@ func WithFirewallEvaluator(fe FirewallEvaluator) Option {
 func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
 	return func(service *APIService) {
 		service.recordingPruner = rp
+	}
+}
+
+// WithIssuer sets the identifier written to the iss claim of every token the service signs.
+// Without it tokens are signed with an empty issuer.
+func WithIssuer(issuer string) Option {
+	return func(service *APIService) {
+		service.issuer = issuer
 	}
 }
 

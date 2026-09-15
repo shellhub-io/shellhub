@@ -63,15 +63,16 @@ func claimKindFromString(str string) claimKind {
 // EncodeUserClaims encodes the provided user claims into a signed JWT token. It returns
 // the encoded token and an error, if any.
 //
-// The token is valid for 72 hours; tenantID is optional.
-func EncodeUserClaims(claims authorizer.UserClaims, privateKey *rsa.PrivateKey) (string, error) {
+// The token is valid for 72 hours; tenantID is optional. issuer names the instance signing
+// the token and is written to the iss claim verbatim.
+func EncodeUserClaims(claims authorizer.UserClaims, issuer string, privateKey *rsa.PrivateKey) (string, error) {
 	now := clock.Now()
 	jwtClaims := userClaims{
 		Kind:       kindUserClaims,
 		UserClaims: claims,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.Generate(),
-			Issuer:    "", // TODO: how can we get the correct issuer?
+			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 72)),
@@ -88,14 +89,16 @@ func EncodeUserClaims(claims authorizer.UserClaims, privateKey *rsa.PrivateKey) 
 
 // EncodeDeviceClaims encodes the provided device claims into a signed JWT token. It returns
 // the encoded token and an error, if any.
-func EncodeDeviceClaims(claims authorizer.DeviceClaims, privateKey *rsa.PrivateKey) (string, error) {
+//
+// issuer names the instance signing the token and is written to the iss claim verbatim.
+func EncodeDeviceClaims(claims authorizer.DeviceClaims, issuer string, privateKey *rsa.PrivateKey) (string, error) {
 	now := clock.Now()
 	jwtClaims := deviceClaims{
 		Kind:         kindDeviceClaims,
 		DeviceClaims: claims,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.Generate(),
-			Issuer:    "", // TODO: how can we get the correct issuer?
+			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 		},
@@ -110,13 +113,16 @@ func EncodeDeviceClaims(claims authorizer.DeviceClaims, privateKey *rsa.PrivateK
 }
 
 // EncodeEnrollmentDecisionClaims signs a deferred enrollment-decision callback token, valid for ttl.
-func EncodeEnrollmentDecisionClaims(claims EnrollmentDecisionClaims, ttl time.Duration, privateKey *rsa.PrivateKey) (string, error) {
+//
+// issuer names the instance signing the token and is written to the iss claim verbatim.
+func EncodeEnrollmentDecisionClaims(claims EnrollmentDecisionClaims, ttl time.Duration, issuer string, privateKey *rsa.PrivateKey) (string, error) {
 	now := clock.Now()
 	jwtClaims := enrollmentDecisionClaims{
 		Kind:                     kindEnrollmentDecisionClaims,
 		EnrollmentDecisionClaims: claims,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.Generate(),
+			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),

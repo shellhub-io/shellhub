@@ -29,6 +29,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	sshserver "github.com/shellhub-io/shellhub/server/ssh/server"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -95,6 +96,7 @@ type sshEnv struct {
 // services they share. One [Server] serves both the REST API and the admin surface.
 type Server struct {
 	env         *Env
+	issuer      string
 	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
 	http        *http.Server
 	authn       *middleware.Authenticator
@@ -193,6 +195,9 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
+	s.issuer = s.instanceIssuer()
+	servicesOptions = append(servicesOptions, services.WithIssuer(s.issuer))
+
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
@@ -278,7 +283,8 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	handoff := webhandoff.NewStore()
 
-	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, &web.Config{HostKeyFile: env.HostKeyFile}); err != nil {
+	config := &web.Config{HostKeyFile: env.HostKeyFile, Issuer: s.issuer}
+	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, config); err != nil {
 		return err
 	}
 
@@ -477,4 +483,8 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 	}
 
 	return opts, nil
+}
+
+func (s *Server) instanceIssuer() string {
+	return session.ConsoleURL(s.env.Domain, s.env.AutoSSL, "")
 }

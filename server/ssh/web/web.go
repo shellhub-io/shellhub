@@ -49,6 +49,8 @@ type Config struct {
 	// HostKeyFile is the path to that server's host key. The bridge pins its connection to
 	// the key's public half, so nothing else answering on the loopback port is accepted.
 	HostKeyFile string
+	// Issuer names the instance signing web session tokens; it is written to their iss claim.
+	Issuer string
 }
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
@@ -101,7 +103,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 			key := magickey.GetReference()
 
-			token, err := token.NewToken(key)
+			token, err := token.NewToken(config.Issuer)
 			if err != nil {
 				response(res, http.StatusBadRequest, Fail{Error: err.Error()})
 

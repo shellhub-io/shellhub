@@ -723,7 +723,10 @@ func (s *Session) IsIdentityMode() bool {
 	return s.Namespace.Settings.IsIdentityAccess()
 }
 
-func consoleURL(domain string, autoSSL bool, path string) string {
+// ConsoleURL builds an absolute URL into the console from the instance's domain, taking the
+// scheme from autoSSL. It reports how the bundled gateway serves the console, so an instance
+// whose TLS terminates upstream is described as http.
+func ConsoleURL(domain string, autoSSL bool, path string) string {
 	scheme := "http"
 	if autoSSL {
 		scheme = "https"
@@ -750,7 +753,7 @@ func buildAddKeyBanner(domain string, autoSSL bool, code, fingerprint string) st
 		"  Open the link to add it to your identities. This login",
 		"  continues once you do:",
 		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/new/"+code),
+		"    " + ConsoleURL(domain, autoSSL, "/ssh-identities/new/"+code),
 		"",
 		"  Security code:  " + groupCode(code),
 		"  Key:            " + fingerprint,
@@ -770,7 +773,7 @@ func buildReauthBanner(domain string, autoSSL bool, code string) string {
 		"  Open the link to do it in the console. This login",
 		"  continues once you do:",
 		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/confirm/"+code),
+		"    " + ConsoleURL(domain, autoSSL, "/ssh-identities/confirm/"+code),
 		"",
 		"  Security code:  " + groupCode(code),
 		"",
