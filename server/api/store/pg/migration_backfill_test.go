@@ -2,13 +2,10 @@ package pg_test
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,69 +18,67 @@ import (
 func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	ctx := context.Background()
 
-	provider, err := pgprovider.NewProvider(ctx)
+	provider, err := pgprovider.NewProviderAt(ctx, 13)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = provider.Close(t) })
 
-	st := provider.Store()
+	db := provider.DB()
 
-	owner, err := st.UserCreate(ctx, &models.User{
-		Origin:        models.UserOriginLocal,
-		Status:        models.UserStatusConfirmed,
-		MaxNamespaces: -1,
-		UserData:      models.UserData{Name: "owner", Email: "owner@example.com", Username: "owner"},
-		Password:      models.UserPassword{Hash: "hash"},
-	})
-	require.NoError(t, err)
+	const (
+		ownerID   = "11111111-1111-4111-8111-111111111111"
+		tenant    = "22222222-2222-4222-8222-222222222222"
+		legacyKey = "3333333333333333333333333333333333333333333333333333333333333333"
+	)
 
-	tenant, err := st.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "ns",
-		Owner:      owner,
-		MaxDevices: -1,
-		Members:    []models.Member{{ID: owner, Role: authorizer.RoleOwner}},
-		Settings:   &models.NamespaceSettings{},
-	})
-	require.NoError(t, err)
+	execSQL(t, ctx, db, `
+		INSERT INTO users
+		    (id, created_at, updated_at, origin, status, name, username, email,
+		     password_digest, auth_methods, namespace_ownership_limit)
+		VALUES (?, now(), now(), 'local', 'confirmed', 'owner', 'owner',
+		        'owner@example.com', 'hash', ARRAY['local']::user_auth_method[], -1)
+	`, ownerID)
 
-	legacy, err := st.InstallKeyResolveSystem(ctx, scope.MustBounded(tenant))
-	require.NoError(t, err)
+	execSQL(t, ctx, db, `
+		INSERT INTO namespaces
+		    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
+		VALUES (?, now(), now(), 'personal', 'ns', ?, -1, false)
+	`, tenant, ownerID)
 
-	now := clock.Now()
-	mkDevice := func(uidSeed, mac string, status models.DeviceStatus, keyID string) string {
+	execSQL(t, ctx, db, `
+		INSERT INTO install_keys
+		    (key_digest, namespace_id, name, reusable, mode, system, user_id, created_at, updated_at)
+		VALUES (?, ?, 'legacy', true, 'manual', true, ?, now(), now())
+	`, legacyKey, tenant, ownerID)
+
+	mkDevice := func(uidSeed, mac, status, keyID string) string {
 		t.Helper()
+
 		uid := uidSeed + strings.Repeat("0", 64-len(uidSeed))
-		_, err := st.DeviceCreate(ctx, &models.Device{
-			UID:             uid,
-			TenantID:        tenant,
-			Name:            uidSeed,
-			Identity:        &models.DeviceIdentity{MAC: mac},
-			Info:            &models.DeviceInfo{ID: "arch", PrettyName: "Arch Linux", Version: "v1.2.3", Arch: "amd64", Platform: "docker"},
-			PublicKey:       "pk-" + uidSeed,
-			Status:          status,
-			StatusUpdatedAt: now,
-			InstallKeyID:    keyID,
-		})
-		require.NoError(t, err)
+
+		execSQL(t, ctx, db, `
+			INSERT INTO devices
+			    (id, namespace_id, created_at, updated_at, last_seen, status, status_updated_at,
+			     name, mac, public_key, identifier, pretty_name, version, arch, platform, install_key_id)
+			VALUES (?, ?, now(), now(), now(), ?::device_status, now(),
+			        ?, ?, ?, 'arch', 'Arch Linux', 'v1.2.3', 'amd64', 'docker', ?)
+		`, uid, tenant, status, uidSeed, mac, "pk-"+uidSeed, sql.NullString{String: keyID, Valid: keyID != ""})
 
 		return uid
 	}
 
-	pendingUID := mkDevice("aa", "aa:bb:cc:dd:ee:01", models.DeviceStatusPending, legacy.ID)
-	acceptedUID := mkDevice("bb", "aa:bb:cc:dd:ee:02", models.DeviceStatusAccepted, legacy.ID)
-	withEventUID := mkDevice("cc", "aa:bb:cc:dd:ee:03", models.DeviceStatusAccepted, legacy.ID)
-	keylessUID := mkDevice("dd", "aa:bb:cc:dd:ee:04", models.DeviceStatusPending, "")
+	pendingUID := mkDevice("aa", "aa:bb:cc:dd:ee:01", "pending", legacyKey)
+	acceptedUID := mkDevice("bb", "aa:bb:cc:dd:ee:02", "accepted", legacyKey)
+	withEventUID := mkDevice("cc", "aa:bb:cc:dd:ee:03", "accepted", legacyKey)
+	keylessUID := mkDevice("dd", "aa:bb:cc:dd:ee:04", "pending", "")
+	rejectedUID := mkDevice("ee", "aa:bb:cc:dd:ee:05", "rejected", legacyKey)
 
-	require.NoError(t, st.InstallKeyEventCreate(ctx, &models.InstallKeyEvent{
-		InstallKeyID: legacy.ID,
-		TenantID:     tenant,
-		DeviceUID:    withEventUID,
-		Hostname:     "cc",
-	}))
+	execSQL(t, ctx, db, `
+		INSERT INTO install_key_events
+		    (id, install_key_id, namespace_id, device_uid, hostname, created_at)
+		VALUES (gen_random_uuid(), ?, ?, ?, 'cc', now())
+	`, legacyKey, tenant, withEventUID)
 
-	for _, stmt := range migrationStatements(t, "014_backfill_install_key_events.tx.up.sql") {
-		_, err = provider.DB().ExecContext(ctx, stmt)
-		require.NoError(t, err)
-	}
+	require.NoError(t, provider.ApplyNext(ctx), "014 must apply cleanly")
 
 	type row struct {
 		DeviceUID  string `bun:"device_uid"`
@@ -94,7 +89,7 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	}
 	events := make(map[string][]row)
 	var rows []row
-	require.NoError(t, provider.DB().
+	require.NoError(t, db.
 		NewRaw("SELECT device_uid, coalesce(decided_status, '') AS decided_status, coalesce(info_id, '') AS info_id, coalesce(info_pretty_name, '') AS info_pretty_name, coalesce(info_arch, '') AS info_arch FROM install_key_events").
 		Scan(ctx, &rows))
 	for _, r := range rows {
@@ -110,6 +105,9 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	require.Len(t, events[acceptedUID], 1, "an accepted device without an event gets one")
 	assert.Equal(t, "accepted", events[acceptedUID][0].Decided, "an accepted device's decision is frozen on the event")
 	assert.Equal(t, "arch", events[acceptedUID][0].InfoID, "OS facts ride along regardless of decision")
+
+	require.Len(t, events[rejectedUID], 1, "a rejected device without an event gets one")
+	assert.Equal(t, "rejected", events[rejectedUID][0].Decided, "a rejected device's decision is frozen too, so the accept control stays hidden")
 
 	require.Len(t, events[withEventUID], 1, "a device that already had an event is not given a second one")
 
