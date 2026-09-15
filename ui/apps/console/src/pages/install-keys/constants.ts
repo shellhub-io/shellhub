@@ -37,11 +37,11 @@ export const MODE_INFO: Record<
       "Ask your endpoint at registration whether to accept, reject, or leave the device pending.",
   },
   allowlist: {
-    label: "MAC allowlist",
+    label: "Identity allowlist",
     icon: ListBulletIcon,
-    summary: "Accepts listed MACs",
+    summary: "Accepts listed identities",
     description:
-      "Accept a device only when its MAC is on the list below; reject the rest.",
+      "Accept a device only when the identity it reports is on the list below; reject the rest.",
   },
 };
 

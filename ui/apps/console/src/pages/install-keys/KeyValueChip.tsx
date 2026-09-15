@@ -5,7 +5,8 @@ const CHIP =
 
 /**
  * A labelled key/value chip: a tiny uppercase label pill followed by a mono value, on a soft rounded
- * fill. Used for the registration-activity device facts (MAC, source IP, the Device key fingerprint).
+ * fill. Used for the registration-activity device facts (identity, source IP, the Device key
+ * fingerprint).
  * With `onClick` it renders as a button (the Device key opens its reveal); otherwise a static span.
  */
 export default function KeyValueChip({

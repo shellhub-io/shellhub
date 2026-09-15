@@ -18,7 +18,8 @@ const (
 	InstallKeyModeManual InstallKeyMode = "manual"
 	// InstallKeyModeWebhook defers the decision to an integrator's endpoint, called at enrollment.
 	InstallKeyModeWebhook InstallKeyMode = "webhook"
-	// InstallKeyModeAllowlist accepts the device when its MAC is in AllowedMACs, otherwise rejects it.
+	// InstallKeyModeAllowlist accepts the device when the identity it presents is in
+	// AllowedIdentities, otherwise rejects it.
 	InstallKeyModeAllowlist InstallKeyMode = "allowlist"
 )
 
@@ -91,9 +92,10 @@ type InstallKey struct {
 	// WebhookSecret signs the webhook request (HMAC-SHA256) so the integrator can trust it. It is
 	// internal-only and never serialized to clients.
 	WebhookSecret string `json:"-"`
-	// AllowedMACs is the set of device MACs accepted when Mode is allowlist. Any MAC outside it is
-	// rejected.
-	AllowedMACs []string `json:"allowed_macs"`
+	// AllowedIdentities is the set of device identities accepted when Mode is allowlist, matched
+	// against the identity the agent claims (DeviceIdentity.MAC), which is the interface address
+	// only when SHELLHUB_PREFERRED_IDENTITY did not replace it. Anything outside it is rejected.
+	AllowedIdentities []string `json:"allowed_identities"`
 	// WebhookTimeout is how long (seconds) the synchronous webhook call may take before failing closed
 	// to pending. Zero means the default.
 	WebhookTimeout int `json:"webhook_timeout"`

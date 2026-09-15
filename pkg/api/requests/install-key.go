@@ -34,12 +34,12 @@ type CreateInstallKey struct {
 	TenantID string `header:"X-Tenant-ID"`
 	Name     string `json:"name" validate:"required,api-key_name"`
 	// Mode is the enrollment policy. Omitted defaults to "automatic". Mode-specific fields
-	// (WebhookURL/WebhookSecret, AllowedMACs) are validated in the service.
+	// (WebhookURL/WebhookSecret, AllowedIdentities) are validated in the service.
 	Mode string `json:"mode" validate:"omitempty,oneof=automatic manual webhook allowlist"`
-	// WebhookURL and WebhookSecret configure the webhook mode; AllowedMACs configures the allowlist mode.
-	WebhookURL    string   `json:"webhook_url" validate:"omitempty,url"`
-	WebhookSecret string   `json:"webhook_secret"`
-	AllowedMACs   []string `json:"allowed_macs" validate:"omitempty,dive,required"`
+	// WebhookURL and WebhookSecret configure the webhook mode; AllowedIdentities configures the allowlist mode.
+	WebhookURL        string   `json:"webhook_url" validate:"omitempty,url"`
+	WebhookSecret     string   `json:"webhook_secret"`
+	AllowedIdentities []string `json:"allowed_identities" validate:"omitempty,dive,required"`
 	// WebhookTimeout (seconds, max 15) is the synchronous request timeout; WebhookCallbackTTL (seconds,
 	// max 24h) is the deferred-decision token's validity. 0/omitted uses the server default.
 	WebhookTimeout     int `json:"webhook_timeout" validate:"omitempty,min=0,max=15"`
@@ -77,11 +77,11 @@ type UpdateInstallKey struct {
 	// Mode changes the enrollment policy. Nil leaves it unchanged. Mode-specific fields are validated
 	// in the service against the resulting key state.
 	Mode *string `json:"mode" validate:"omitempty,oneof=automatic manual webhook allowlist"`
-	// WebhookURL/WebhookSecret update the webhook config; nil leaves each unchanged. AllowedMACs
+	// WebhookURL/WebhookSecret update the webhook config; nil leaves each unchanged. AllowedIdentities
 	// replaces the allowlist when non-nil.
-	WebhookURL    *string  `json:"webhook_url" validate:"omitempty,url"`
-	WebhookSecret *string  `json:"webhook_secret"`
-	AllowedMACs   []string `json:"allowed_macs" validate:"omitempty,dive,required"`
+	WebhookURL        *string  `json:"webhook_url" validate:"omitempty,url"`
+	WebhookSecret     *string  `json:"webhook_secret"`
+	AllowedIdentities []string `json:"allowed_identities" validate:"omitempty,dive,required"`
 	// WebhookTimeout/WebhookCallbackTTL update the webhook tuning; nil leaves each unchanged.
 	WebhookTimeout     *int `json:"webhook_timeout" validate:"omitempty,min=0,max=15"`
 	WebhookCallbackTTL *int `json:"webhook_callback_ttl" validate:"omitempty,min=0,max=86400"`

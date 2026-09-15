@@ -26,20 +26,27 @@ properties:
       The registration policy applied to devices that register with the key:
       `automatic` accepts, `manual` leaves the device pending for review,
       `webhook` defers to an integrator endpoint, `allowlist` accepts a device
-      whose MAC is in `allowed_macs` and rejects the rest. The legacy/system key
-      defaults to `manual` but its mode can be changed like any other key.
+      whose claimed identity is in `allowed_identities` and rejects the rest. The
+      legacy/system key defaults to `manual` but its mode can be changed like any
+      other key.
     example: automatic
   webhook_url:
     type: string
     description: The integrator endpoint called at registration when `mode` is `webhook`.
     example: https://register.example.com/hook
-  allowed_macs:
+  allowed_identities:
     type: array
     items:
       type: string
-    description: The device MACs accepted when `mode` is `allowlist`.
+    description: |
+      The device identities accepted when `mode` is `allowlist`, matched against the
+      identity the agent claims (`identity.mac` on device authentication). That is the
+      primary interface's MAC address only when SHELLHUB_PREFERRED_IDENTITY did not
+      replace it, so an entry is commonly an equipment serial. Matching ignores case
+      and surrounding whitespace.
     example:
       - "aa:bb:cc:dd:ee:ff"
+      - "sn-99f2"
   webhook_timeout:
     type: integer
     description: Seconds the synchronous webhook call may take (0 = default).

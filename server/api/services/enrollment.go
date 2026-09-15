@@ -94,8 +94,8 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 	case models.InstallKeyModeManual:
 		return enrollPending
 	case models.InstallKeyModeAllowlist:
-		mac := strings.ToLower(strings.TrimSpace(req.Identity.MAC))
-		if slices.Contains(key.AllowedMACs, mac) {
+		identity := strings.ToLower(strings.TrimSpace(claimedIdentity(req)))
+		if identity != "" && slices.Contains(key.AllowedIdentities, identity) {
 			return enrollAccept
 		}
 
@@ -197,7 +197,7 @@ type enrollmentWebhookRequest struct {
 	InstallKeyID   string               `json:"install_key_id"`
 	InstallKeyName string               `json:"install_key_name"`
 	DeviceUID      string               `json:"device_uid"`
-	MAC            string               `json:"mac"`
+	Identity       string               `json:"identity"`
 	Hostname       string               `json:"hostname"`
 	Info           *requests.DeviceInfo `json:"info,omitempty"`
 	SourceIP       string               `json:"source_ip"`
@@ -244,13 +244,21 @@ func (s *service) enrollmentCallbackURL(key *models.InstallKey, req requests.Dev
 	return fmt.Sprintf("%s://%s/api/devices/enroll/callback/%s", proto, req.ForwardedHost, token)
 }
 
+func claimedIdentity(req requests.DeviceAuth) string {
+	if req.Identity == nil {
+		return ""
+	}
+
+	return req.Identity.MAC
+}
+
 func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname, callbackURL string) (enrollmentDecision, error) {
 	payload := enrollmentWebhookRequest{
 		TenantID:       key.TenantID,
 		InstallKeyID:   key.ID,
 		InstallKeyName: key.Name,
 		DeviceUID:      uid,
-		MAC:            req.Identity.MAC,
+		Identity:       claimedIdentity(req),
 		Hostname:       hostname,
 		Info:           req.Info,
 		SourceIP:       req.RealIP,

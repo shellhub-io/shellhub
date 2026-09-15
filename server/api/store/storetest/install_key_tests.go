@@ -12,7 +12,7 @@ import (
 )
 
 // TestInstallKeyModeRoundTrip verifies the enrollment-mode columns (mode, webhook_url,
-// webhook_secret, allowed_macs) persist and read back intact through the store.
+// webhook_secret, allowed_identities) persist and read back intact through the store.
 func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -38,14 +38,14 @@ func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 
 	allowlistDigest := "2222222222222222222222222222222222222222222222222222222222222222"
 	_, err = st.InstallKeyCreate(ctx, &models.InstallKey{
-		ID:          allowlistDigest,
-		Name:        "allow",
-		TenantID:    tenantID,
-		Mode:        models.InstallKeyModeAllowlist,
-		AllowedMACs: []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"},
-		Reusable:    true,
-		Tags:        []string{},
-		CreatedBy:   owner,
+		ID:                allowlistDigest,
+		Name:              "allow",
+		TenantID:          tenantID,
+		Mode:              models.InstallKeyModeAllowlist,
+		AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"},
+		Reusable:          true,
+		Tags:              []string{},
+		CreatedBy:         owner,
 	})
 	require.NoError(t, err)
 
@@ -55,14 +55,14 @@ func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 		assert.Equal(t, models.InstallKeyModeWebhook, got.Mode)
 		assert.Equal(t, "https://hook.example/enroll", got.WebhookURL)
 		assert.Equal(t, "s3cr3t", got.WebhookSecret)
-		assert.Empty(t, got.AllowedMACs)
+		assert.Empty(t, got.AllowedIdentities)
 	})
 
 	t.Run("persists allowlist mode config", func(t *testing.T) {
 		got, err := st.InstallKeyResolve(ctx, scope.MustBounded(tenantID), store.InstallKeyNameResolver, "allow")
 		require.NoError(t, err)
 		assert.Equal(t, models.InstallKeyModeAllowlist, got.Mode)
-		assert.Equal(t, []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"}, got.AllowedMACs)
+		assert.Equal(t, []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"}, got.AllowedIdentities)
 		assert.Empty(t, got.WebhookURL)
 	})
 }

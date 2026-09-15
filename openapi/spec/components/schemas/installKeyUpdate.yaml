@@ -12,7 +12,7 @@ properties:
     enum: [automatic, manual, webhook, allowlist]
     description: |
       Change the enrollment policy. Omit to leave unchanged. Mode-specific config
-      (`webhook_url`/`webhook_secret`, `allowed_macs`) may be sent alongside.
+      (`webhook_url`/`webhook_secret`, `allowed_identities`) may be sent alongside.
     example: webhook
   webhook_url:
     type: string
@@ -23,13 +23,14 @@ properties:
     type: string
     description: Update the webhook signing secret. Write-only; never returned.
     example: s3cr3t
-  allowed_macs:
+  allowed_identities:
     type: array
     items:
       type: string
-    description: Replace the allowlist MACs.
+    description: Replace the allowlist, matched against the identity the agent claims.
     example:
       - "aa:bb:cc:dd:ee:ff"
+      - "SN-99f2"
   webhook_timeout:
     type: integer
     description: Update the synchronous webhook timeout in seconds (1-15). 0 uses the default.

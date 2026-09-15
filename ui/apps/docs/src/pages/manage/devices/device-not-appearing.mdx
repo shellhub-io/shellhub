@@ -120,7 +120,7 @@ An install made with `SKIP_BOOT_RESTART_CHECK=1` is yours to bring back.
 
 If the device enrolled with an install key, the key's mode decides where it lands: `automatic`
 accepts it, `manual` puts it in Pending, `webhook` asks your endpoint, `allowlist` accepts it only
-if its MAC is listed.
+if the identity it reports is listed.
 
 A device rejected by an allowlist or a webhook did enroll — it was refused. Check the key's
 history. See [Install Keys](/manage/devices/install-keys).

@@ -15,7 +15,7 @@ import ModeField, { type InstallKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
 import {
   keyExpiryPayload,
-  parseAllowedMacs,
+  parseAllowedIdentities,
   validateModeConfig,
   validateName,
 } from "./helpers";
@@ -39,7 +39,7 @@ function CreateInstallKeyDrawer({
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
-  const [allowedMacs, setAllowedMacs] = useState("");
+  const [allowedIdentities, setAllowedIdentities] = useState("");
   const [webhookTimeout, setWebhookTimeout] = useState(5);
   const [webhookCallbackTtl, setWebhookCallbackTtl] = useState(3600);
   const [usageLimit, setUsageLimit] = useState(0);
@@ -52,12 +52,12 @@ function CreateInstallKeyDrawer({
   const [error, setError] = useState("");
   const [generatedKey, setGeneratedKey] = useState("");
 
-  const macList = parseAllowedMacs(allowedMacs);
+  const identityList = parseAllowedIdentities(allowedIdentities);
   const modeError = validateModeConfig(
     mode,
     webhookUrl,
     webhookSecret,
-    macList,
+    identityList,
     { webhookTimeout, webhookCallbackTtl },
   );
 
@@ -66,7 +66,7 @@ function CreateInstallKeyDrawer({
     setMode("automatic");
     setWebhookUrl("");
     setWebhookSecret("");
-    setAllowedMacs("");
+    setAllowedIdentities("");
     setWebhookTimeout(5);
     setWebhookCallbackTtl(3600);
     setUsageLimit(0);
@@ -115,7 +115,7 @@ function CreateInstallKeyDrawer({
                 webhook_callback_ttl: webhookCallbackTtl,
               }
             : {}),
-          ...(mode === "allowlist" ? { allowed_macs: macList } : {}),
+          ...(mode === "allowlist" ? { allowed_identities: identityList } : {}),
           ...keyExpiryPayload(expiresIn),
           usage_limit: usageLimit,
           ephemeral,
@@ -238,8 +238,8 @@ function CreateInstallKeyDrawer({
             onWebhookUrlChange={setWebhookUrl}
             webhookSecret={webhookSecret}
             onWebhookSecretChange={setWebhookSecret}
-            allowedMacs={allowedMacs}
-            onAllowedMacsChange={setAllowedMacs}
+            allowedIdentities={allowedIdentities}
+            onAllowedIdentitiesChange={setAllowedIdentities}
             webhookTimeout={webhookTimeout}
             onWebhookTimeoutChange={setWebhookTimeout}
             webhookCallbackTtl={webhookCallbackTtl}

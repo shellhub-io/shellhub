@@ -47,7 +47,7 @@ func (s *Suite) TestInstallKeyEventCreate(t *testing.T) {
 			TenantID:     tenantID,
 			DeviceUID:    "device-uid-1",
 			Hostname:     "web-01",
-			MAC:          "00:1a:2b:3c:4d:5e",
+			Identity:     "00:1a:2b:3c:4d:5e",
 			Info:         &models.DeviceInfo{PrettyName: "Debian GNU/Linux 12", Version: "v0.18.0", Arch: "amd64", Platform: "docker"},
 			SourceIP:     "203.0.113.7",
 			Ephemeral:    true,
@@ -63,7 +63,7 @@ func (s *Suite) TestInstallKeyEventCreate(t *testing.T) {
 		assert.NotEmpty(t, got.ID)
 		assert.False(t, got.Timestamp.IsZero())
 		assert.Equal(t, "web-01", got.Hostname)
-		assert.Equal(t, "00:1a:2b:3c:4d:5e", got.MAC)
+		assert.Equal(t, "00:1a:2b:3c:4d:5e", got.Identity)
 		assert.Equal(t, "203.0.113.7", got.SourceIP)
 		assert.True(t, got.Ephemeral)
 		require.NotNil(t, got.Info)

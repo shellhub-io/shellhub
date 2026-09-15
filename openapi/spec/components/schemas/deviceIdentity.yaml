@@ -6,7 +6,8 @@ properties:
       The identity the agent claims for this machine, which feeds the device's UID.
       It is the primary interface's MAC address unless the agent was started with
       SHELLHUB_PREFERRED_IDENTITY, which replaces it with any string the operator
-      chooses, commonly the equipment's serial number.
+      chooses, commonly the equipment's serial number. An install key in `allowlist`
+      mode matches its `allowed_identities` against this value.
     type: string
     example: '00:00:00:00:00:00'
 required:

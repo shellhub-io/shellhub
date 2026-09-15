@@ -1,6 +1,7 @@
 package services
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"io"
@@ -23,26 +24,33 @@ func TestEvaluateEnrollment(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-	req := requests.DeviceAuth{TenantID: "00000000-0000-4000-0000-000000000000", Identity: &requests.DeviceIdentity{MAC: "AA:BB:CC:DD:EE:FF"}}
+	const defaultIdentity = "AA:BB:CC:DD:EE:FF"
 
 	cases := []struct {
 		description string
+		identity    string
 		key         *models.InstallKey
 		paired      bool
 		expected    enrollmentDecision
 	}{
-		{"a keyless enrollment (nil key) lands pending", nil, false, enrollPending},
-		{"automatic accepts", &models.InstallKey{Mode: models.InstallKeyModeAutomatic}, false, enrollAccept},
-		{"manual stays pending", &models.InstallKey{Mode: models.InstallKeyModeManual}, false, enrollPending},
-		{"allowlist accepts a listed MAC (case-insensitive)", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
-		{"allowlist rejects an unlisted MAC", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, false, enrollReject},
-		{"an unknown mode stays pending", &models.InstallKey{Mode: "bogus"}, false, enrollPending},
-		{"paired accepts despite a manual key", &models.InstallKey{Mode: models.InstallKeyModeManual}, true, enrollAccept},
-		{"paired accepts despite an allowlist miss", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
+		{"a keyless enrollment (nil key) lands pending", "", nil, false, enrollPending},
+		{"automatic accepts", "", &models.InstallKey{Mode: models.InstallKeyModeAutomatic}, false, enrollAccept},
+		{"manual stays pending", "", &models.InstallKey{Mode: models.InstallKeyModeManual}, false, enrollPending},
+		{"allowlist accepts a listed identity (case-insensitive)", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
+		{"allowlist accepts an identity that is not a MAC address", "SN-99f2", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"sn-99f2"}}, false, enrollAccept},
+		{"allowlist rejects an unlisted identity", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, false, enrollReject},
+		{"an unknown mode stays pending", "", &models.InstallKey{Mode: "bogus"}, false, enrollPending},
+		{"paired accepts despite a manual key", "", &models.InstallKey{Mode: models.InstallKeyModeManual}, true, enrollAccept},
+		{"paired accepts despite an allowlist miss", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			req := requests.DeviceAuth{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Identity: &requests.DeviceIdentity{MAC: cmp.Or(tc.identity, defaultIdentity)},
+			}
+
 			got := svc.evaluateEnrollment(context.Background(), tc.key, req, "uid", "host", tc.paired)
 			require.Equal(t, tc.expected, got)
 		})
@@ -91,6 +99,26 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 			srv.Close()
 		}
+	})
+
+	t.Run("sends the presented identity under the agreed key", func(t *testing.T) {
+		var gotBody []byte
+
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotBody, _ = io.ReadAll(r.Body)
+			_ = json.NewEncoder(w).Encode(enrollmentWebhookResponse{Decision: string(enrollAccept)})
+		}))
+		defer srv.Close()
+
+		serial := req
+		serial.Identity = &requests.DeviceIdentity{MAC: "SN-99f2"}
+
+		require.Equal(t, enrollAccept, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), serial, "uid", "host", false))
+
+		payload := map[string]any{}
+		require.NoError(t, json.Unmarshal(gotBody, &payload))
+		require.Equal(t, "SN-99f2", payload["identity"])
+		require.NotContains(t, payload, "mac")
 	})
 
 	t.Run("fails closed to pending on a server error", func(t *testing.T) {

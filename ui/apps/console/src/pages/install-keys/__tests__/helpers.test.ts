@@ -8,7 +8,7 @@ import {
   installKeyDisplayName,
   isPairingKey,
   isWebhookUrl,
-  parseAllowedMacs,
+  parseAllowedIdentities,
   resolveEnrollmentSource,
   validateModeConfig,
   validateName,
@@ -151,7 +151,7 @@ describe("validateModeConfig", () => {
     );
   });
 
-  it("requires at least one MAC for allowlist mode", () => {
+  it("requires at least one identity for allowlist mode", () => {
     expect(validateModeConfig("allowlist", "", "", [])).not.toBe("");
     expect(validateModeConfig("allowlist", "", "", ["aa:bb:cc:dd:ee:ff"])).toBe(
       "",
@@ -197,17 +197,24 @@ describe("validateName", () => {
   });
 });
 
-describe("parseAllowedMacs", () => {
+describe("parseAllowedIdentities", () => {
   it("lowercases, trims, drops blanks, and dedupes", () => {
     expect(
-      parseAllowedMacs(
+      parseAllowedIdentities(
         "AA:BB:CC:DD:EE:FF\n  aa:bb:cc:dd:ee:ff \n\n11:22:33:44:55:66",
       ),
     ).toEqual(["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]);
   });
 
+  it("keeps an identity that is not a MAC address", () => {
+    expect(parseAllowedIdentities("SN-99f2\nserial-0042")).toEqual([
+      "sn-99f2",
+      "serial-0042",
+    ]);
+  });
+
   it("returns an empty list for blank input", () => {
-    expect(parseAllowedMacs("\n  \n")).toEqual([]);
+    expect(parseAllowedIdentities("\n  \n")).toEqual([]);
   });
 });
 

@@ -77,7 +77,7 @@ const MODE_OUTCOME: Record<string, string> = {
   automatic: "accepted the moment it connects",
   manual: "left pending for you to accept",
   webhook: "decided by your integrator",
-  allowlist: "accepted if its MAC is allowed",
+  allowlist: "accepted if the identity it reports is allowed",
 };
 
 /**
