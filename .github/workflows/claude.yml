@@ -124,7 +124,7 @@ jobs:
         uses: anthropics/claude-code-action@5ccc3a35a6367cdb8e6fbd0728287467540ecfe2 # v1
         env:
           CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
-          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
