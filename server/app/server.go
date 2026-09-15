@@ -188,7 +188,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, rpOpts...)
 
-	routerOptions, err := s.routerOptions()
+	routerOptions, err := s.routerOptions(ctx)
 	if err != nil {
 		return err
 	}
@@ -443,7 +443,7 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 	return false
 }
 
-func (s *Server) routerOptions() ([]routes.Option, error) {
+func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
 	opts := []routes.Option{}
 
 	if s.env.SentryDSN != "" {
@@ -472,11 +472,12 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		opts = append(opts, routes.WithMetrics())
 	}
 
-	if envs.ValidatesOpenAPIResponses() {
-		log.Info("Enabling OpenAPI response validation")
+	if mode := envs.OpenAPIValidationMode(); mode != envs.OpenAPIValidationOff {
+		log.Info("Enabling OpenAPI response validation in " + string(mode) + " mode")
 
-		opts = append(opts, routes.WithOpenAPIValidator(&middleware.OpenAPIValidatorConfig{
+		opts = append(opts, routes.WithOpenAPIValidator(ctx, &middleware.OpenAPIValidatorConfig{
 			Skipper: openAPIValidationSkipper,
+			Strict:  mode == envs.OpenAPIValidationStrict,
 		}))
 	}
 

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
@@ -77,11 +78,22 @@ func WithMetrics() Option {
 	}
 }
 
-// WithOpenAPIValidator rejects requests that do not match the published spec, so the spec is
-// enforced rather than merely documented.
-func WithOpenAPIValidator(cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
+// WithOpenAPIValidator validates every response against the published spec. In strict mode the
+// schema loads now, and a schema that does not load is the error the router refuses to build on.
+func WithOpenAPIValidator(ctx context.Context, cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
 	return func(e *echo.Echo, _ *Handler) error {
-		e.Use(routesmiddleware.OpenAPIValidator(cfg))
+		if !cfg.Strict {
+			e.Use(routesmiddleware.OpenAPIValidator(cfg))
+
+			return nil
+		}
+
+		validate, err := routesmiddleware.LoadOpenAPIValidator(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		e.Use(validate)
 
 		return nil
 	}
