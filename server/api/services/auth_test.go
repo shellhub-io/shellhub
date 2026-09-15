@@ -63,7 +63,7 @@ func TestAuthDevice(t *testing.T) {
 	}
 
 	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey)
 		require.NoError(t, err)
 
 		return token
@@ -1123,7 +1123,7 @@ func TestAuthDevice(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -2298,7 +2298,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock)
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2613,7 +2613,7 @@ func TestCreateUserToken(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2823,7 +2823,7 @@ func TestAuthAPIKey(t *testing.T) {
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock)
+	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2897,7 +2897,7 @@ func newAPIKeyAuthFixture(t *testing.T, cache storecache.Cache) (*mocks.MockStor
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	return storeMock, NewService(storeMock, privKey, &privKey.PublicKey, cache)
+	return storeMock, NewService(storeMock, privKey, &privKey.PublicKey, cache, WithIssuer(testIssuer))
 }
 
 func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
@@ -3089,7 +3089,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 	}
 
 	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey)
 		require.NoError(t, err)
 
 		return token
@@ -3152,7 +3152,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -3214,7 +3214,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -3269,7 +3269,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,

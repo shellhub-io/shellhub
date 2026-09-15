@@ -29,6 +29,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	sshserver "github.com/shellhub-io/shellhub/server/ssh/server"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -193,6 +194,8 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
+	servicesOptions = append(servicesOptions, services.WithIssuer(s.instanceIssuer()))
+
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
@@ -278,7 +281,8 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	handoff := webhandoff.NewStore()
 
-	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, &web.Config{HostKeyFile: env.HostKeyFile}); err != nil {
+	config := &web.Config{HostKeyFile: env.HostKeyFile, Issuer: s.instanceIssuer()}
+	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, config); err != nil {
 		return err
 	}
 
@@ -477,4 +481,8 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 	}
 
 	return opts, nil
+}
+
+func (s *Server) instanceIssuer() string {
+	return session.ConsoleURL(s.env.Domain, s.env.AutoSSL, "")
 }

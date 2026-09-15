@@ -16,6 +16,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
+const testIssuer = "http://localhost"
+
 var (
 	privateKey      *rsa.PrivateKey
 	publicKey       *rsa.PublicKey
