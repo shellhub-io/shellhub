@@ -65,3 +65,51 @@ load helpers
     # And cloud/.env must appear earlier in the chain.
     [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
 }
+
+@test "extra compose files: a colon-separated list appends every entry" {
+    export EXTRA_COMPOSE_FILE="docker-compose.test.yml:docker-compose.postgres.test.yml"
+    out=$(capture_with)
+    [[ "$out" == *"docker-compose.test.yml"* ]]
+    [[ "$out" == *"docker-compose.postgres.test.yml"* ]]
+}
+
+@test "extra compose files: entries are appended last so they win" {
+    export EXTRA_COMPOSE_FILE="docker-compose.test.yml"
+    out=$(capture_with)
+    files=$(echo "$out" | grep '^COMPOSE_FILE=' | sed 's|.*=||')
+    last=$(echo "$files" | awk -F':' '{print $NF}')
+    [ "$last" = "docker-compose.test.yml" ]
+}
+
+@test "extra compose files: a path that does not exist is still appended" {
+    export EXTRA_COMPOSE_FILE="does-not-exist.yml"
+    out=$(capture_with)
+    [[ "$out" == *"does-not-exist.yml"* ]]
+}
+
+@test "extra compose files: a list is appended verbatim to the base COMPOSE_FILE" {
+    base=$(capture_with | grep '^COMPOSE_FILE=')
+    export EXTRA_COMPOSE_FILE="a.yml:b.yml"
+    out=$(capture_with | grep '^COMPOSE_FILE=')
+    [ "$out" = "$base:a.yml:b.yml" ]
+}
+
+teardown() {
+    [ -n "${CREATED_OVERRIDE:-}" ] && rm -f "$REPO_ROOT/docker-compose.override.yml"
+    return 0
+}
+
+@test "compose override: COMPOSE_OVERRIDE=false skips docker-compose.override.yml" {
+    if [ -f "$REPO_ROOT/docker-compose.override.yml" ]; then
+        skip "checkout already has a docker-compose.override.yml"
+    fi
+    CREATED_OVERRIDE=1
+    printf 'services: {}\n' > "$REPO_ROOT/docker-compose.override.yml"
+
+    default=$(capture_with)
+    export COMPOSE_OVERRIDE=false
+    guarded=$(capture_with)
+
+    [[ "$default" == *"docker-compose.override.yml"* ]]
+    [[ "$guarded" != *"docker-compose.override.yml"* ]]
+}

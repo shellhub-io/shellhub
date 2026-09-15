@@ -32,6 +32,7 @@ export default defineConfig({
   server: {
     port: 8080,
     allowedHosts: true,
+    watch: { ignored: ["**/e2e/tmp/**"] },
   },
   resolve: {
     alias: {
@@ -48,6 +49,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
     setupFiles: [path.resolve(__dirname, "./src/tests/setup.ts")],
   },
 });
