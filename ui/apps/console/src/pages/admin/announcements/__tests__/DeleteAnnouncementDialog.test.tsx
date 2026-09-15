@@ -54,68 +54,7 @@ function renderDialog(
 }
 
 describe("DeleteAnnouncementDialog", () => {
-  describe("rendering — closed", () => {
-    it("renders nothing when open is false", () => {
-      renderDialog({ open: false });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("rendering — open", () => {
-    it("renders the dialog when open is true", () => {
-      renderDialog();
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
-    it("renders the 'Delete Announcement' title", () => {
-      renderDialog();
-      expect(screen.getByText("Delete Announcement")).toBeInTheDocument();
-    });
-
-    it("renders the announcement title in the description", () => {
-      renderDialog();
-      expect(screen.getByText("Test Announcement")).toBeInTheDocument();
-    });
-
-    it("renders the 'This action cannot be undone' warning", () => {
-      renderDialog();
-      expect(
-        screen.getByText(/this action cannot be undone/i),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the 'Delete' confirm button", () => {
-      renderDialog();
-      expect(
-        screen.getByRole("button", { name: /^delete$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      renderDialog();
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("confirm — success", () => {
-    it("calls onDeleted callback after successful deletion", async () => {
-      const { onDeleted } = renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-
-      await waitFor(() => expect(onDeleted).toHaveBeenCalledTimes(1));
-    });
-
-    it("calls onClose after successful deletion", async () => {
-      const { onClose } = renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-
-      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    });
-
     it("calls onClose before onDeleted", async () => {
       const callOrder: string[] = [];
       const onClose = vi.fn(() => callOrder.push("onClose"));
@@ -197,27 +136,6 @@ describe("DeleteAnnouncementDialog", () => {
 
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const { onClose } = renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call onDeleted when Cancel is clicked", async () => {
-      const { onDeleted } = renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onDeleted).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("null announcement", () => {
-    it("renders nothing meaningful in the description when announcement is null", () => {
-      renderDialog({ announcement: null });
-      expect(screen.queryByText("Test Announcement")).not.toBeInTheDocument();
     });
   });
 

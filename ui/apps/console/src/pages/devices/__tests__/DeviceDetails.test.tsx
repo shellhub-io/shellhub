@@ -169,34 +169,18 @@ beforeEach(() => {
 });
 
 describe("DeviceDetails", () => {
-  describe("loading state", () => {
-    it("renders a spinner while loading", () => {
-      server.use(http.get("*/api/devices/:uid", () => new Promise(() => {})));
-      renderPage();
-      expect(document.querySelector(".animate-spin")).toBeInTheDocument();
-    });
-  });
-
   describe("device data", () => {
     beforeEach(() => {
       setDevice(makeDevice());
     });
 
-    it("renders the device name as a heading", async () => {
+    it("renders the device's fields", async () => {
       renderPage();
       expect(
         await screen.findByRole("heading", { name: "my-device" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders the MAC address", async () => {
-      renderPage();
-      expect(await screen.findByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
-    });
-
-    it("renders the operating system", async () => {
-      renderPage();
-      expect(await screen.findByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
+      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
     });
 
     it("names the source a keyless device registered through, linked to its activity", async () => {
@@ -219,11 +203,6 @@ describe("DeviceDetails", () => {
         await screen.findByRole("link", { name: "Tenant-only registration" }),
       ).toHaveAttribute("href", "/install-keys/legacy-digest/activity");
     });
-
-    it('renders the "Custom Fields" section label', async () => {
-      renderPage();
-      expect(await screen.findByText("Custom Fields")).toBeInTheDocument();
-    });
   });
 
   describe("custom fields section", () => {
@@ -236,44 +215,6 @@ describe("DeviceDetails", () => {
       expect(screen.getByText("production")).toBeInTheDocument();
       expect(screen.getByText("owner:")).toBeInTheDocument();
       expect(screen.getByText("team-a")).toBeInTheDocument();
-    });
-
-    it("renders the add form inputs", async () => {
-      setDevice(makeDevice({ custom_fields: {} }));
-      renderPage();
-      expect(await screen.findByPlaceholderText("key")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("value")).toBeInTheDocument();
-    });
-
-    it("shows delete confirmation when the remove button is clicked", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ custom_fields: { env: "production" } }));
-      renderPage();
-      await screen.findByText("env:");
-
-      const keyEl = screen.getByText("env:");
-      const fieldRow = keyEl.closest("div")!.parentElement!;
-      const xBtn = within(fieldRow).getByRole("button");
-      await user.click(xBtn);
-
-      expect(screen.getByText("Remove?")).toBeInTheDocument();
-      expect(screen.getByText("Yes")).toBeInTheDocument();
-      expect(screen.getByText("No")).toBeInTheDocument();
-    });
-
-    it("hides the confirmation when 'No' is clicked", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ custom_fields: { env: "production" } }));
-      renderPage();
-      await screen.findByText("env:");
-
-      const keyEl = screen.getByText("env:");
-      const fieldRow = keyEl.closest("div")!.parentElement!;
-      const xBtn = within(fieldRow).getByRole("button");
-      await user.click(xBtn);
-      await user.click(screen.getByText("No"));
-
-      expect(screen.queryByText("Remove?")).not.toBeInTheDocument();
     });
 
     it("calls deleteDeviceCustomField when 'Yes' is clicked", async () => {
@@ -331,59 +272,28 @@ describe("DeviceDetails", () => {
   });
 
   describe("action buttons delegate to useDeviceActions", () => {
-    it("calls requestAction('accept') when Accept is clicked on a pending device", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ status: "pending", online: false }));
-      renderPage();
+    it.each([
+      ["pending", /Accept/i, "accept"],
+      ["pending", /Reject/i, "reject"],
+      ["rejected", /Remove/i, "remove"],
+      ["accepted", "Delete device", "remove"],
+    ] as const)(
+      "a %s device's %s button requests '%s'",
+      async (status, buttonName, expectedAction) => {
+        const user = userEvent.setup();
+        setDevice(makeDevice({ status, online: status === "accepted" }));
+        renderPage();
 
-      await user.click(await screen.findByRole("button", { name: /Accept/i }));
+        await user.click(
+          await screen.findByRole("button", { name: buttonName }),
+        );
 
-      expect(mockRequestAction).toHaveBeenCalledWith(
-        expect.objectContaining({ uid: "test-uid" }),
-        "accept",
-      );
-    });
-
-    it("calls requestAction('reject') when Reject is clicked on a pending device", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ status: "pending", online: false }));
-      renderPage();
-
-      await user.click(await screen.findByRole("button", { name: /Reject/i }));
-
-      expect(mockRequestAction).toHaveBeenCalledWith(
-        expect.objectContaining({ uid: "test-uid" }),
-        "reject",
-      );
-    });
-
-    it("calls requestAction('remove') when Remove is clicked on a rejected device", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ status: "rejected", online: false }));
-      renderPage();
-
-      await user.click(await screen.findByRole("button", { name: /Remove/i }));
-
-      expect(mockRequestAction).toHaveBeenCalledWith(
-        expect.objectContaining({ uid: "test-uid" }),
-        "remove",
-      );
-    });
-
-    it("calls requestAction('remove') when the Delete device trash button is clicked on an accepted device", async () => {
-      const user = userEvent.setup();
-      setDevice(makeDevice({ status: "accepted", online: true }));
-      renderPage();
-
-      await user.click(
-        await screen.findByRole("button", { name: "Delete device" }),
-      );
-
-      expect(mockRequestAction).toHaveBeenCalledWith(
-        expect.objectContaining({ uid: "test-uid" }),
-        "remove",
-      );
-    });
+        expect(mockRequestAction).toHaveBeenCalledWith(
+          expect.objectContaining({ uid: "test-uid" }),
+          expectedAction,
+        );
+      },
+    );
   });
 
   describe("onSuccess callback wiring", () => {

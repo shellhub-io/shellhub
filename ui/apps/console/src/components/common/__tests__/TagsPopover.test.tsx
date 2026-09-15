@@ -31,6 +31,30 @@ function renderPopover(
   );
 }
 
+async function openPopover() {
+  await userEvent.click(screen.getByRole("button", { name: /manage tags/i }));
+  return screen.getByRole("dialog", { name: /manage tags/i });
+}
+
+function tagInput() {
+  return screen.getByRole("textbox", { name: /search or create tag/i });
+}
+
+async function addProductionViaSuggestion() {
+  await openPopover();
+  await userEvent.type(tagInput(), "prod");
+  await userEvent.click(
+    await screen.findByRole("button", { name: /^production$/i }),
+  );
+}
+
+async function removeAlpha() {
+  const dialog = await openPopover();
+  await userEvent.click(
+    within(dialog).getByRole("button", { name: /remove tag alpha/i }),
+  );
+}
+
 describe("TagsPopover", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,17 +63,6 @@ describe("TagsPopover", () => {
   });
 
   describe("tag chip rendering", () => {
-    it("renders each tag as a clickable button", () => {
-      renderPopover({ tags: ["alpha", "beta"] });
-
-      expect(
-        screen.getByRole("button", { name: /^alpha$/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /^beta$/i }),
-      ).toBeInTheDocument();
-    });
-
     it("calls onFilterTag with the tag name when a chip is clicked", async () => {
       const onFilterTag = vi.fn();
       renderPopover({ tags: ["alpha"], onFilterTag });
@@ -66,14 +79,6 @@ describe("TagsPopover", () => {
   });
 
   describe("edit button visibility", () => {
-    it("shows the edit button when user has tag:edit permission", () => {
-      renderPopover();
-
-      expect(
-        screen.getByRole("button", { name: /manage tags/i }),
-      ).toBeInTheDocument();
-    });
-
     it("hides the edit button when user lacks tag:edit permission", () => {
       useAuthStore.setState({ role: "observer" });
       renderPopover();
@@ -92,267 +97,111 @@ describe("TagsPopover", () => {
     });
   });
 
-  describe("popover open", () => {
-    it("opens the popover when the edit button is clicked", async () => {
-      renderPopover();
+  it("closes the popover on Escape key", async () => {
+    renderPopover();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
+    await openPopover();
+    fireEvent.keyDown(document, { key: "Escape" });
 
+    await waitFor(() => {
       expect(
-        screen.getByRole("dialog", { name: /manage tags/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows the search input when the popover is open", async () => {
-      renderPopover();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      expect(
-        screen.getByRole("textbox", { name: /search or create tag/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("shows current tags with remove buttons in the popover", async () => {
-      renderPopover({ tags: ["alpha", "beta"] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const dialog = screen.getByRole("dialog", { name: /manage tags/i });
-      expect(
-        within(dialog).getByRole("button", { name: /remove tag alpha/i }),
-      ).toBeInTheDocument();
-      expect(
-        within(dialog).getByRole("button", { name: /remove tag beta/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("closes the popover on Escape key", async () => {
-      renderPopover();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      expect(
-        screen.getByRole("dialog", { name: /manage tags/i }),
-      ).toBeInTheDocument();
-
-      fireEvent.keyDown(document, { key: "Escape" });
-
-      await waitFor(() => {
-        expect(
-          screen.queryByRole("dialog", { name: /manage tags/i }),
-        ).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("max tags reached", () => {
-    it("shows 'Max 3 tags' message when there are already 3 tags", async () => {
-      renderPopover({ tags: ["alpha", "beta", "gamma"] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      expect(screen.getByText(/max 3 tags/i)).toBeInTheDocument();
-    });
-
-    it("does not show the text input when there are already 3 tags", async () => {
-      renderPopover({ tags: ["alpha", "beta", "gamma"] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      expect(
-        screen.queryByRole("textbox", { name: /search or create tag/i }),
+        screen.queryByRole("dialog", { name: /manage tags/i }),
       ).not.toBeInTheDocument();
     });
   });
 
-  describe("adding a tag via suggestion", () => {
-    it("calls addTag when a suggestion is clicked", async () => {
-      mockAddTag.mockResolvedValue(undefined);
-      setTags(["production"]);
+  it("replaces the tag input with a 'Max 3 tags' message at the limit", async () => {
+    renderPopover({ tags: ["alpha", "beta", "gamma"] });
 
-      renderPopover({ tags: [] });
+    await openPopover();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
+    expect(screen.getByText(/max 3 tags/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: /search or create tag/i }),
+    ).not.toBeInTheDocument();
+  });
 
-      const input = screen.getByRole("textbox", {
-        name: /search or create tag/i,
-      });
-      await userEvent.type(input, "prod");
+  it("calls addTag when a suggestion is clicked", async () => {
+    mockAddTag.mockResolvedValue(undefined);
+    setTags(["production"]);
+    renderPopover({ tags: [] });
 
-      await userEvent.click(
-        await screen.findByRole("button", { name: /^production$/i }),
-      );
+    await addProductionViaSuggestion();
 
-      await waitFor(() => {
-        expect(mockAddTag).toHaveBeenCalledWith({
-          uid: "entity-1",
-          name: "production",
-        });
+    await waitFor(() => {
+      expect(mockAddTag).toHaveBeenCalledWith({
+        uid: "entity-1",
+        name: "production",
       });
     });
   });
 
-  describe("client-side validation", () => {
-    it("does not call addTag when tag has invalid characters", async () => {
-      renderPopover({ tags: [] });
+  it.each([
+    ["invalid characters", "bad-tag"],
+    ["too few characters", "ab"],
+  ])("does not call addTag for a tag with %s", async (_label, value) => {
+    renderPopover({ tags: [] });
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
+    await openPopover();
+    await userEvent.type(tagInput(), `${value}{Enter}`);
 
-      const input = screen.getByRole("textbox", {
-        name: /search or create tag/i,
-      });
-      await userEvent.type(input, "bad-tag{Enter}");
-
-      expect(mockAddTag).not.toHaveBeenCalled();
-    });
-
-    it("does not call addTag when tag is too short", async () => {
-      renderPopover({ tags: [] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const input = screen.getByRole("textbox", {
-        name: /search or create tag/i,
-      });
-      await userEvent.type(input, "ab{Enter}");
-
-      expect(mockAddTag).not.toHaveBeenCalled();
-    });
+    expect(mockAddTag).not.toHaveBeenCalled();
   });
 
-  describe("removing a tag", () => {
-    it("calls removeTag when remove button is clicked", async () => {
-      mockRemoveTag.mockResolvedValue(undefined);
+  it("calls removeTag when remove button is clicked", async () => {
+    mockRemoveTag.mockResolvedValue(undefined);
+    renderPopover({ tags: ["alpha"] });
 
-      renderPopover({ tags: ["alpha"] });
+    await removeAlpha();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const dialog = screen.getByRole("dialog", { name: /manage tags/i });
-      await userEvent.click(
-        within(dialog).getByRole("button", { name: /remove tag alpha/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockRemoveTag).toHaveBeenCalledWith({
-          uid: "entity-1",
-          name: "alpha",
-        });
+    await waitFor(() => {
+      expect(mockRemoveTag).toHaveBeenCalledWith({
+        uid: "entity-1",
+        name: "alpha",
       });
     });
   });
 
   describe("error states", () => {
-    it("shows an error alert when addTag fails", async () => {
-      mockAddTag.mockRejectedValue(new Error("network error"));
+    it.each([
+      ["a network error", new Error("network error"), null],
+      ["a 403", { status: 403 }, /you don't have permission to add tags/i],
+    ] as const)("addTag rejecting with %s raises an alert", async (
+      _label,
+      rejection,
+      message,
+    ) => {
+      mockAddTag.mockRejectedValue(rejection);
       setTags(["production"]);
-
       renderPopover({ tags: [] });
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const input = screen.getByRole("textbox", {
-        name: /search or create tag/i,
-      });
-      await userEvent.type(input, "prod");
-
-      await userEvent.click(
-        await screen.findByRole("button", { name: /^production$/i }),
-      );
+      await addProductionViaSuggestion();
 
       await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
+        const alert = screen.getByRole("alert");
+        if (message) expect(alert).toHaveTextContent(message);
       });
     });
 
-    it("shows permission error when addTag fails with 403", async () => {
-      mockAddTag.mockRejectedValue({ status: 403 });
-      setTags(["production"]);
-
-      renderPopover({ tags: [] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const input = screen.getByRole("textbox", {
-        name: /search or create tag/i,
-      });
-      await userEvent.type(input, "prod");
-
-      await userEvent.click(
-        await screen.findByRole("button", { name: /^production$/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /you don't have permission to add tags/i,
-        );
-      });
-    });
-
-    it("shows permission error when removeTag fails with 403", async () => {
-      mockRemoveTag.mockRejectedValue({ status: 403 });
-
+    it.each([
+      ["a 403", { status: 403 }, /you don't have permission to remove tags/i],
+      [
+        "a non-403 status",
+        new Error("server error"),
+        /failed to remove "alpha"/i,
+      ],
+    ] as const)("removeTag rejecting with %s reports '%s'", async (
+      _label,
+      rejection,
+      message,
+    ) => {
+      mockRemoveTag.mockRejectedValue(rejection);
       renderPopover({ tags: ["alpha"] });
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const dialog = screen.getByRole("dialog", { name: /manage tags/i });
-      await userEvent.click(
-        within(dialog).getByRole("button", { name: /remove tag alpha/i }),
-      );
+      await removeAlpha();
 
       await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /you don't have permission to remove tags/i,
-        );
-      });
-    });
-
-    it("shows generic error when removeTag fails with non-403 status", async () => {
-      mockRemoveTag.mockRejectedValue(new Error("server error"));
-
-      renderPopover({ tags: ["alpha"] });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      const dialog = screen.getByRole("dialog", { name: /manage tags/i });
-      await userEvent.click(
-        within(dialog).getByRole("button", { name: /remove tag alpha/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /failed to remove "alpha"/i,
-        );
+        expect(screen.getByRole("alert")).toHaveTextContent(message);
       });
     });
   });

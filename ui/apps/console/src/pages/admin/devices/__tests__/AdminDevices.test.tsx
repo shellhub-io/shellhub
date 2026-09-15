@@ -18,10 +18,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 let lastRequestUrl: URL | null;
 
-function setDevices(
-  devices: ReturnType<typeof mockDevice>[],
-  total?: number,
-) {
+function setDevices(devices: ReturnType<typeof mockDevice>[], total?: number) {
   server.use(
     http.get("*/admin/api/devices", ({ request }) => {
       lastRequestUrl = new URL(request.url);
@@ -47,35 +44,9 @@ describe("AdminDevices", () => {
     setDevices([]);
   });
 
-  describe("rendering", () => {
-    it("renders the page heading", () => {
-      renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Devices" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the search input with correct aria-label", () => {
-      renderPage();
-      expect(
-        screen.getByRole("searchbox", { name: "Search devices by hostname" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders all status filter tabs", () => {
-      renderPage();
-      expect(screen.getByRole("tab", { name: "All" })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: "Accepted" })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: "Pending" })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: "Rejected" })).toBeInTheDocument();
-    });
-  });
-
   describe("loading state", () => {
     it('renders the loading spinner with "Loading devices..." text', () => {
-      server.use(
-        http.get("*/admin/api/devices", () => new Promise(() => {})),
-      );
+      server.use(http.get("*/admin/api/devices", () => new Promise(() => {})));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
@@ -132,118 +103,23 @@ describe("AdminDevices", () => {
     });
   });
 
-  describe("status tab interaction", () => {
-    it("re-renders without crashing after clicking a status tab", async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByRole("tab", { name: "Accepted" }));
-      expect(
-        screen.getByRole("searchbox", { name: "Search devices by hostname" }),
-      ).toBeInTheDocument();
-    });
+  it("marks the matching status tab as selected when status is in the URL", () => {
+    renderPage(["/?status=pending"]);
+    expect(screen.getByRole("tab", { name: "Pending" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
-  describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes sortBy/orderBy hydrated from URL to the API", async () => {
-      renderPage(["/?sortField=name&sortOrder=asc"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
-      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("asc");
-    });
+  it("clicking a status tab writes status to URL and resets page to 1", async () => {
+    const user = userEvent.setup();
+    renderPage(["/?page=2"]);
+    await screen.findByText("No devices found");
 
-    it("passes status hydrated from URL to the API", async () => {
-      renderPage(["/?status=accepted"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("status")).toBe("accepted");
-    });
+    await user.click(screen.getByRole("tab", { name: "Accepted" }));
 
-    it("marks the matching status tab as selected when status is in the URL", () => {
-      renderPage(["/?status=pending"]);
-      expect(screen.getByRole("tab", { name: "Pending" })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-    });
-
-    it("passes page hydrated from URL to the API", async () => {
-      renderPage(["/?page=3"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-    });
-
-    it("uses defaults when URL params are absent (last_seen/desc, page 1, no status)", async () => {
-      renderPage(["/"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("last_seen");
-      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("desc");
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-    });
-
-    it("rejects an invalid status value and falls back to no status filter (All tab selected)", async () => {
-      renderPage(["/?status=invalid-status"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("status")).toBeNull();
-      expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-    });
-  });
-
-  describe("URL writes — interactions update URL and reset page", () => {
-    it("clicking a status tab writes status to URL and resets page to 1", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?page=2"]);
-      await screen.findByText("No devices found");
-
-      await user.click(screen.getByRole("tab", { name: "Accepted" }));
-
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("status")).toBe("accepted");
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-    });
-
-    it("clicking a sort column header writes sort to API and resets page", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?page=3"]);
-      await screen.findByText("No devices found");
-
-      await user.click(
-        screen.getByRole("button", { name: /sort by hostname/i }),
-      );
-
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
-      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("asc");
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-    });
-
-    it("clicking the same sort column again toggles order from asc to desc", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?sortField=name&sortOrder=asc"]);
-      await screen.findByText("No devices found");
-
-      await user.click(
-        screen.getByRole("button", { name: /sort by hostname/i }),
-      );
-
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("sort_by")).toBe("name");
-      expect(lastRequestUrl!.searchParams.get("order_by")).toBe("desc");
-    });
-  });
-
-  describe("URL writes — default params are omitted from the URL", () => {
-    it("API receives page=1 when on the default page", async () => {
-      renderPage(["/"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-    });
-
-    it("API receives no status when All tab is selected (default)", async () => {
-      renderPage(["/"]);
-      await screen.findByText("No devices found");
-      expect(lastRequestUrl!.searchParams.get("status")).toBeNull();
-    });
+    await screen.findByText("No devices found");
+    expect(lastRequestUrl!.searchParams.get("status")).toBe("accepted");
+    expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
   });
 });

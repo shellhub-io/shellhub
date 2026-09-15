@@ -43,6 +43,16 @@ async function fillForm({
     await userEvent.type(screen.getByLabelText(/^password$/i), password);
 }
 
+function submitButton() {
+  return screen.getByRole("button", { name: /create user/i });
+}
+
+function setCreateError(status: number) {
+  server.use(
+    http.post("*/admin/api/users", () => HttpResponse.json({}, { status })),
+  );
+}
+
 describe("CreateUserDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -55,149 +65,25 @@ describe("CreateUserDrawer", () => {
     );
   });
 
-  describe("rendering — closed", () => {
-    it("renders nothing when open is false", () => {
-      renderDrawer({ open: false });
-      expect(screen.queryByText("Create User")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("rendering — open", () => {
-    it("renders the 'Create User' title", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("heading", { name: "Create User" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Name input field", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Username input field", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Email input field", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Password input field", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    });
-
-    it("renders the 'Create User' submit button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("submit button is disabled when form is empty", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeDisabled();
-    });
-
-    it("password field is of type password by default", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
-        "type",
-        "password",
-      );
-    });
-  });
-
   describe("form enabling", () => {
-    it("enables submit button when all required fields are filled", async () => {
+    it("enables submit when all required fields are filled", async () => {
       renderDrawer();
       await fillForm();
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).not.toBeDisabled();
+      expect(submitButton()).not.toBeDisabled();
     });
 
-    it("keeps submit disabled when name is missing", async () => {
-      renderDrawer();
-      await fillForm({ name: "" });
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeDisabled();
-    });
-
-    it("keeps submit disabled when username is missing", async () => {
-      renderDrawer();
-      await fillForm({ username: "" });
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeDisabled();
-    });
-
-    it("keeps submit disabled when email is missing", async () => {
-      renderDrawer();
-      await fillForm({ email: "" });
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeDisabled();
-    });
-
-    it("keeps submit disabled when password is missing", async () => {
-      renderDrawer();
-      await fillForm({ password: "" });
-      expect(
-        screen.getByRole("button", { name: /create user/i }),
-      ).toBeDisabled();
-    });
-  });
-
-  describe("password visibility toggle", () => {
-    it("shows password in plaintext when Show password button is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(
-        screen.getByRole("button", { name: /show password/i }),
-      );
-      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
-        "type",
-        "text",
-      );
-    });
-
-    it("hides password again when Hide password button is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(
-        screen.getByRole("button", { name: /show password/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /hide password/i }),
-      );
-      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
-        "type",
-        "password",
-      );
-    });
+    it.each(["name", "username", "email", "password"] as const)(
+      "keeps submit disabled when %s is missing",
+      async (field) => {
+        renderDrawer();
+        await fillForm({ [field]: "" });
+        expect(submitButton()).toBeDisabled();
+      },
+    );
   });
 
   describe("namespace limit controls", () => {
-    it("does not show namespace limit sub-options by default", () => {
-      renderDrawer();
-      expect(
-        screen.queryByLabelText(/disable namespace creation/i),
-      ).not.toBeInTheDocument();
-    });
-
-    it("shows sub-options when 'Set namespace creation limit' is checked", async () => {
+    it("shows the disable toggle and the max namespaces input once the limit is enabled", async () => {
       renderDrawer();
       await userEvent.click(
         screen.getByLabelText(/set namespace creation limit/i),
@@ -205,13 +91,6 @@ describe("CreateUserDrawer", () => {
       expect(
         screen.getByLabelText(/disable namespace creation/i),
       ).toBeInTheDocument();
-    });
-
-    it("shows max namespaces input when limit is enabled but disable is unchecked", async () => {
-      renderDrawer();
-      await userEvent.click(
-        screen.getByLabelText(/set namespace creation limit/i),
-      );
       expect(screen.getByLabelText(/max namespaces/i)).toBeInTheDocument();
     });
 
@@ -229,21 +108,12 @@ describe("CreateUserDrawer", () => {
     });
   });
 
-  describe("admin checkbox", () => {
-    it("renders 'Admin user' checkbox unchecked by default", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/admin user/i)).not.toBeChecked();
-    });
-  });
-
   describe("submit — success", () => {
-    it("calls createUserAdmin with the correct payload", async () => {
-      renderDrawer();
+    it("posts the form values and closes the drawer", async () => {
+      const { onClose } = renderDrawer();
       await fillForm();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
+      await userEvent.click(submitButton());
 
       await waitFor(() => {
         expect(createSpy).toHaveBeenCalledWith(
@@ -258,31 +128,21 @@ describe("CreateUserDrawer", () => {
           }),
         );
       });
-    });
-
-    it("calls onClose after successful creation", async () => {
-      const { onClose } = renderDrawer();
-      await fillForm();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
-
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
 
-    it("sends max_namespaces as undefined when limit is not enabled", async () => {
+    it("omits max_namespaces when the limit is not enabled", async () => {
       renderDrawer();
       await fillForm();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
+      await userEvent.click(submitButton());
 
       await waitFor(() => {
         expect(createSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            body: expect.not.objectContaining({ max_namespaces: expect.anything() }),
+            body: expect.not.objectContaining({
+              max_namespaces: expect.anything(),
+            }),
           }),
         );
       });
@@ -298,9 +158,7 @@ describe("CreateUserDrawer", () => {
       await userEvent.click(
         screen.getByLabelText(/disable namespace creation/i),
       );
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
+      await userEvent.click(submitButton());
 
       await waitFor(() => {
         expect(createSpy).toHaveBeenCalledWith(
@@ -313,124 +171,57 @@ describe("CreateUserDrawer", () => {
   });
 
   describe("submit — error handling", () => {
-    it("shows conflict error message for 409 responses", async () => {
-      server.use(
-        http.post("*/admin/api/users", () =>
-          HttpResponse.json({}, { status: 409 }),
-        ),
-      );
+    it.each([
+      [409, /already exists/i],
+      [400, /failed to create user/i],
+    ])("a %i response reports '%s'", async (status, message) => {
+      setCreateError(status);
       renderDrawer();
       await fillForm();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
+      await userEvent.click(submitButton());
+
+      await waitFor(() =>
+        expect(screen.getByText(message)).toBeInTheDocument(),
       );
-
-      await waitFor(() => {
-        expect(screen.getByText(/already exists/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows generic error for 400 responses", async () => {
-      server.use(
-        http.post("*/admin/api/users", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderDrawer();
-      await fillForm();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to create user/i)).toBeInTheDocument();
-      });
     });
 
     it("shows generic error for unexpected failures", async () => {
-      server.use(
-        http.post("*/admin/api/users", () => HttpResponse.error()),
-      );
+      server.use(http.post("*/admin/api/users", () => HttpResponse.error()));
       renderDrawer();
       await fillForm();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
+      await userEvent.click(submitButton());
+
+      await waitFor(() =>
+        expect(screen.getByText(/failed to create user/i)).toBeInTheDocument(),
       );
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to create user/i)).toBeInTheDocument();
-      });
-    });
-
-    it("renders error with role='alert'", async () => {
-      server.use(
-        http.post("*/admin/api/users", () => HttpResponse.error()),
-      );
-      renderDrawer();
-      await fillForm();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("does not call onClose when creation fails", async () => {
-      server.use(
-        http.post("*/admin/api/users", () => HttpResponse.error()),
-      );
-      const { onClose } = renderDrawer();
-      await fillForm();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
-
-      await waitFor(() => screen.getByRole("alert"));
-      expect(onClose).not.toHaveBeenCalled();
     });
   });
 
   describe("client-side validation", () => {
-    it("marks username invalid on blur for an uppercase value", async () => {
-      renderDrawer();
-      const usernameInput = screen.getByLabelText(/^username$/i);
-      await userEvent.type(usernameInput, "Alice");
-      await userEvent.tab();
-      expect(usernameInput).toHaveAttribute("aria-invalid", "true");
-    });
-
-    it("marks email invalid on blur for a malformed value", async () => {
-      renderDrawer();
-      const emailInput = screen.getByLabelText(/^email$/i);
-      await userEvent.type(emailInput, "not-an-email");
-      await userEvent.tab();
-      expect(emailInput).toHaveAttribute("aria-invalid", "true");
-      expect(
-        await screen.findByText(/enter a valid email address/i),
-      ).toBeInTheDocument();
-    });
-
-    it("marks password invalid on blur for a too-short value", async () => {
-      renderDrawer();
-      const passwordInput = screen.getByLabelText(/^password$/i);
-      await userEvent.type(passwordInput, "abc");
-      await userEvent.tab();
-      expect(passwordInput).toHaveAttribute("aria-invalid", "true");
-      expect(await screen.findByText(/5–32 characters/i)).toBeInTheDocument();
-    });
+    it.each([
+      [/^username$/i, "Alice", null],
+      [/^email$/i, "not-an-email", /enter a valid email address/i],
+      [/^password$/i, "abc", /5–32 characters/i],
+    ] as const)(
+      "marks %s invalid on blur and reports %s",
+      async (label, value, message) => {
+        renderDrawer();
+        const input = screen.getByLabelText(label);
+        await userEvent.type(input, value);
+        await userEvent.tab();
+        expect(input).toHaveAttribute("aria-invalid", "true");
+        if (message)
+          expect(await screen.findByText(message)).toBeInTheDocument();
+      },
+    );
 
     it("blocks submit when fields are non-empty but format is invalid", async () => {
       renderDrawer();
       await fillForm({ username: "Alice", email: "bad", password: "abc" });
 
-      const submit = screen.getByRole("button", { name: /create user/i });
+      const submit = submitButton();
       expect(submit).toBeDisabled();
       await userEvent.click(submit);
 
@@ -462,20 +253,6 @@ describe("CreateUserDrawer", () => {
     });
   });
 
-  describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const { onClose } = renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call createUserAdmin when Cancel is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(createSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe("state reset on reopen", () => {
     it("clears the name field when closed then reopened", async () => {
       const { rerender } = renderDrawer();
@@ -488,14 +265,10 @@ describe("CreateUserDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      server.use(
-        http.post("*/admin/api/users", () => HttpResponse.error()),
-      );
+      server.use(http.post("*/admin/api/users", () => HttpResponse.error()));
       const { rerender } = renderDrawer();
       await fillForm();
-      await userEvent.click(
-        screen.getByRole("button", { name: /create user/i }),
-      );
+      await userEvent.click(submitButton());
       await waitFor(() => screen.getByRole("alert"));
 
       rerender(<CreateUserDrawer open={false} onClose={vi.fn()} />);

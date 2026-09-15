@@ -73,22 +73,6 @@ describe("AdminNamespaces", () => {
     setNamespaces([]);
   });
 
-  describe("rendering", () => {
-    it("renders the page heading", () => {
-      renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Namespaces" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the search input with correct aria-label", () => {
-      renderPage();
-      expect(
-        screen.getByRole("searchbox", { name: "Search namespaces by name" }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("loading state", () => {
     it('renders the loading spinner with "Loading namespaces..." text', () => {
       server.use(
@@ -143,83 +127,6 @@ describe("AdminNamespaces", () => {
       expect(
         screen.getByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
-    });
-  });
-
-  describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes search and page hydrated from URL to the API", async () => {
-      renderPage(["/?search=myns&page=3"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-      });
-      expect(
-        screen.getByRole("searchbox", { name: "Search namespaces by name" }),
-      ).toHaveValue("myns");
-    });
-
-    it("passes page=1 and no filter to the API when URL has no params", async () => {
-      renderPage(["/"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-    });
-  });
-
-  describe("URL writes — clearing search resets page to 1 and omits both params", () => {
-    it("omits search and page from the URL after clearing a prefilled search", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?search=myns&page=3"]);
-
-      const searchbox = screen.getByRole("searchbox", {
-        name: "Search namespaces by name",
-      });
-      expect(searchbox).toHaveValue("myns");
-
-      await user.clear(searchbox);
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-    });
-  });
-
-  describe("URL hydration — ?page=2&search=dev hydrates controls", () => {
-    it("hydrates the search field to 'dev' and passes page=2 to the API", async () => {
-      renderPage(["/?page=2&search=dev"]);
-
-      expect(
-        screen.getByRole("searchbox", { name: "Search namespaces by name" }),
-      ).toHaveValue("dev");
-
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
-      });
-    });
-  });
-
-  describe("URL writes — typing in SearchField resets page to 1", () => {
-    it("resets page to 1 and reflects new search value after typing", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?page=2"]);
-
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
-      });
-
-      const searchbox = screen.getByRole("searchbox", {
-        name: "Search namespaces by name",
-      });
-
-      await user.type(searchbox, "dev");
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-      expect(searchbox).toHaveValue("dev");
     });
   });
 

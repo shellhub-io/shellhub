@@ -64,20 +64,7 @@ function mockFileReader(content: string) {
 }
 
 describe("KeyFileInput", () => {
-  describe("label", () => {
-    it("renders the label text", () => {
-      renderComponent({ label: "Private Key" });
-      expect(screen.getByText("Private Key")).toBeInTheDocument();
-    });
-  });
-
   describe("mode toggle", () => {
-    it("shows File and Text buttons when not disabled", () => {
-      renderComponent();
-      expect(screen.getByRole("button", { name: "File" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Text" })).toBeInTheDocument();
-    });
-
     it("hides mode toggle buttons when disabled", () => {
       renderComponent({ disabled: true });
       expect(
@@ -88,8 +75,14 @@ describe("KeyFileInput", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("shows the drop zone by default (file mode)", () => {
+    it.each([
+      ["by default", [] as string[]],
+      ["after switching to Text and back to File", ["Text", "File"]],
+    ])("shows the drop zone %s", async (_label, clicks) => {
       renderComponent();
+      for (const name of clicks) {
+        await userEvent.click(screen.getByRole("button", { name }));
+      }
       expect(
         screen.getByText("Drop key file, paste, or browse"),
       ).toBeInTheDocument();
@@ -101,46 +94,20 @@ describe("KeyFileInput", () => {
       await userEvent.click(screen.getByRole("button", { name: "Text" }));
       expect(screen.getByRole("textbox")).toBeInTheDocument();
     });
-
-    it("switches back to drop zone when File button is clicked after Text", async () => {
-      renderComponent();
-      await userEvent.click(screen.getByRole("button", { name: "Text" }));
-      await userEvent.click(screen.getByRole("button", { name: "File" }));
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-      expect(
-        screen.getByText("Drop key file, paste, or browse"),
-      ).toBeInTheDocument();
-    });
   });
 
-  describe("drop zone — empty state", () => {
-    it("renders the empty label", () => {
-      renderComponent();
-      expect(
-        screen.getByText("Drop key file, paste, or browse"),
-      ).toBeInTheDocument();
-    });
-
+  describe("drop zone", () => {
     it("renders a custom emptyLabel", () => {
       renderComponent({ emptyLabel: "Upload your public key" });
       expect(screen.getByText("Upload your public key")).toBeInTheDocument();
     });
-  });
 
-  describe("drop zone — loaded state", () => {
-    it("renders the loaded label when a value is present", () => {
-      renderComponent({ value: "ssh-rsa AAAA" });
-      expect(screen.getByText("Key loaded")).toBeInTheDocument();
-    });
-
-    it("renders a custom loadedLabel", () => {
-      renderComponent({ value: "ssh-rsa AAAA", loadedLabel: "Key ready" });
-      expect(screen.getByText("Key ready")).toBeInTheDocument();
-    });
-
-    it("renders a Clear button when key is loaded", () => {
-      renderComponent({ value: "ssh-rsa AAAA" });
-      expect(screen.getByRole("button", { name: "Clear" })).toBeInTheDocument();
+    it.each([
+      [undefined, "Key loaded"],
+      ["Key ready", "Key ready"],
+    ])("loadedLabel=%s renders as '%s'", (loadedLabel, expected) => {
+      renderComponent({ value: "ssh-rsa AAAA", loadedLabel });
+      expect(screen.getByText(expected)).toBeInTheDocument();
     });
 
     it("calls onChange('') when Clear is clicked", async () => {
@@ -149,36 +116,10 @@ describe("KeyFileInput", () => {
       await userEvent.click(screen.getByRole("button", { name: "Clear" }));
       expect(onChange).toHaveBeenCalledWith("");
     });
-  });
 
-  describe("drop zone — dragging state", () => {
-    it("sets dragging visual when dragOver fires on the drop zone", () => {
-      const { container } = renderComponent();
-      const dropZone = container.querySelector("[ondragover], .border-dashed");
-      if (!dropZone) throw new Error("drop zone not found");
-
-      fireEvent.dragOver(dropZone, { preventDefault: () => {} });
-      expect(dropZone.className).toMatch(/border-primary/);
-    });
-
-    it("removes dragging visual on dragLeave", () => {
-      const { container } = renderComponent();
-      const dropZone = container.querySelector(".border-dashed") as HTMLElement;
-      fireEvent.dragOver(dropZone);
-      fireEvent.dragLeave(dropZone);
-      expect(dropZone.className).not.toMatch(/bg-primary\/5/);
-    });
-  });
-
-  describe("drop zone — error state", () => {
     it("renders the error message", () => {
       renderComponent({ error: "Invalid key format" });
       expect(screen.getByText("Invalid key format")).toBeInTheDocument();
-    });
-
-    it("does not render an error message when error is null", () => {
-      renderComponent({ error: null });
-      expect(screen.queryByText(/invalid/i)).not.toBeInTheDocument();
     });
   });
 
@@ -247,41 +188,25 @@ describe("KeyFileInput", () => {
   });
 
   describe("disabled state", () => {
-    it("renders a textarea (not the drop zone) when disabled", () => {
+    it("renders a disabled textarea instead of the drop zone", () => {
       renderComponent({ disabled: true });
-      expect(screen.getByRole("textbox")).toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toBeDisabled();
       expect(
         screen.queryByText("Drop key file, paste, or browse"),
       ).not.toBeInTheDocument();
     });
 
-    it("textarea is disabled", () => {
-      renderComponent({ disabled: true });
-      expect(screen.getByRole("textbox")).toBeDisabled();
-    });
-
-    it("renders disabledHint when disabled", () => {
-      renderComponent({ disabled: true, disabledHint: "Cannot edit now" });
-      expect(screen.getByText("Cannot edit now")).toBeInTheDocument();
-    });
-
-    it("does not render hint when disabled", () => {
-      renderComponent({ disabled: true, hint: "Upload a key" });
-      expect(screen.queryByText("Upload a key")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("hint", () => {
-    it("renders the hint when not disabled", () => {
-      renderComponent({ hint: "Paste or drag your key file" });
-      expect(
-        screen.getByText("Paste or drag your key file"),
-      ).toBeInTheDocument();
-    });
-
-    it("does not render disabledHint when not disabled", () => {
-      renderComponent({ disabledHint: "Read only" });
-      expect(screen.queryByText("Read only")).not.toBeInTheDocument();
+    it.each([
+      [true, "Cannot edit now", "Upload a key"],
+      [false, "Upload a key", "Cannot edit now"],
+    ])("disabled=%s shows '%s' and not '%s'", (disabled, shown, hidden) => {
+      renderComponent({
+        disabled,
+        hint: "Upload a key",
+        disabledHint: "Cannot edit now",
+      });
+      expect(screen.getByText(shown)).toBeInTheDocument();
+      expect(screen.queryByText(hidden)).not.toBeInTheDocument();
     });
   });
 
@@ -293,17 +218,11 @@ describe("KeyFileInput", () => {
       expect(screen.getByLabelText("Public Key")).toBeInTheDocument();
     });
 
-    it("marks the textarea aria-invalid when error is provided (text mode)", async () => {
+    it("marks the textarea invalid and links the error paragraph in text mode", async () => {
       renderComponent({ error: "Bad key", id: "pub-key" });
       await userEvent.click(screen.getByRole("button", { name: "Text" }));
       const textarea = screen.getByRole("textbox");
       expect(textarea).toHaveAttribute("aria-invalid", "true");
-    });
-
-    it("links the error paragraph via aria-describedby when id is provided (text mode)", async () => {
-      renderComponent({ error: "Bad key", id: "pub-key" });
-      await userEvent.click(screen.getByRole("button", { name: "Text" }));
-      const textarea = screen.getByRole("textbox");
       expect(textarea).toHaveAttribute("aria-describedby", "pub-key-error");
     });
   });

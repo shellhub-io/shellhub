@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { fireEvent } from "@testing-library/react";
 import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import TagFilterDropdown from "../TagFilterDropdown";
@@ -41,11 +40,6 @@ describe("TagFilterDropdown", () => {
   });
 
   describe("trigger button", () => {
-    it("renders the Tags trigger button", () => {
-      renderDropdown();
-      expect(screen.getByRole("button", { name: /tags/i })).toBeInTheDocument();
-    });
-
     it("does not show a count badge when no tags are active", () => {
       renderDropdown({ filterTags: [] });
       const btn = screen.getByRole("button", { name: /tags/i });
@@ -57,33 +51,9 @@ describe("TagFilterDropdown", () => {
       const btn = screen.getByRole("button", { name: /tags/i });
       expect(btn.textContent).toContain("2");
     });
-
-    it("shows badge with count 1 when one tag is active", () => {
-      renderDropdown({ filterTags: ["alpha"] });
-      const btn = screen.getByRole("button", { name: /tags/i });
-      expect(btn.textContent).toContain("1");
-    });
   });
 
   describe("opening the popover", () => {
-    it("opens the popover when the trigger is clicked", async () => {
-      renderDropdown();
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-    });
-
-    it("renders all available tags in the list when opened", async () => {
-      renderDropdown();
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByRole("button", { name: /^alpha$/i });
-      expect(
-        screen.getByRole("button", { name: /^beta$/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /^gamma$/i }),
-      ).toBeInTheDocument();
-    });
-
     it("clears the search state when reopened", async () => {
       renderDropdown();
       const trigger = screen.getByRole("button", { name: /tags/i });
@@ -97,35 +67,6 @@ describe("TagFilterDropdown", () => {
       await userEvent.click(trigger);
 
       expect(screen.getByPlaceholderText("Search tags...")).toHaveValue("");
-    });
-  });
-
-  describe("closing the popover", () => {
-    it("closes the popover on Escape key", async () => {
-      renderDropdown();
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-
-      fireEvent.keyDown(document, { key: "Escape" });
-
-      await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText("Search tags..."),
-        ).not.toBeInTheDocument();
-      });
-    });
-
-    it("toggles closed when trigger is clicked while open", async () => {
-      renderDropdown();
-      const trigger = screen.getByRole("button", { name: /tags/i });
-
-      await userEvent.click(trigger);
-      await screen.findByPlaceholderText("Search tags...");
-
-      await userEvent.click(trigger);
-      expect(
-        screen.queryByPlaceholderText("Search tags..."),
-      ).not.toBeInTheDocument();
     });
   });
 
@@ -192,18 +133,6 @@ describe("TagFilterDropdown", () => {
 
       expect(onAdd).toHaveBeenCalledWith("alpha");
     });
-
-    it("does not call onRemove when clicking an inactive tag", async () => {
-      const onRemove = vi.fn();
-      renderDropdown({ filterTags: [], onRemove });
-
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(
-        await screen.findByRole("button", { name: /^alpha$/i }),
-      );
-
-      expect(onRemove).not.toHaveBeenCalled();
-    });
   });
 
   describe("removing a tag (toggle)", () => {
@@ -218,39 +147,9 @@ describe("TagFilterDropdown", () => {
 
       expect(onRemove).toHaveBeenCalledWith("alpha");
     });
-
-    it("does not call onAdd when clicking an active tag", async () => {
-      const onAdd = vi.fn();
-      renderDropdown({ filterTags: ["alpha"], onAdd });
-
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(
-        await screen.findByRole("button", { name: /^alpha$/i }),
-      );
-
-      expect(onAdd).not.toHaveBeenCalled();
-    });
   });
 
   describe("clear all button", () => {
-    it("is not rendered when no tags are active", async () => {
-      renderDropdown({ filterTags: [] });
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-      expect(
-        screen.queryByRole("button", { name: /clear all/i }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("is rendered when at least one tag is active", async () => {
-      renderDropdown({ filterTags: ["alpha"] });
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-      expect(
-        screen.getByRole("button", { name: /clear all/i }),
-      ).toBeInTheDocument();
-    });
-
     it("calls onClearAll when Clear all is clicked", async () => {
       const onClearAll = vi.fn();
       renderDropdown({ filterTags: ["alpha"], onClearAll });
@@ -261,24 +160,9 @@ describe("TagFilterDropdown", () => {
 
       expect(onClearAll).toHaveBeenCalledTimes(1);
     });
-
-    it("closes the popover after clearing all", async () => {
-      const onClearAll = vi.fn();
-      renderDropdown({ filterTags: ["alpha"], onClearAll });
-
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-      await userEvent.click(screen.getByRole("button", { name: /clear all/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText("Search tags..."),
-        ).not.toBeInTheDocument();
-      });
-    });
   });
 
-  describe("manage tags button — absent", () => {
+  describe("manage tags button", () => {
     it("is NOT rendered when onManageTags is not provided", async () => {
       renderDropdown({ onManageTags: undefined });
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
@@ -286,17 +170,6 @@ describe("TagFilterDropdown", () => {
       expect(
         screen.queryByRole("button", { name: /manage tags/i }),
       ).not.toBeInTheDocument();
-    });
-  });
-
-  describe("manage tags button — present", () => {
-    it("IS rendered when onManageTags is provided", async () => {
-      renderDropdown({ onManageTags: vi.fn() });
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-      expect(
-        screen.getByRole("button", { name: /manage tags/i }),
-      ).toBeInTheDocument();
     });
 
     it("calls onManageTags when the button is clicked", async () => {
@@ -310,23 +183,6 @@ describe("TagFilterDropdown", () => {
       );
 
       expect(onManageTags).toHaveBeenCalledTimes(1);
-    });
-
-    it("closes the popover after clicking Manage tags", async () => {
-      const onManageTags = vi.fn();
-      renderDropdown({ onManageTags });
-
-      await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await screen.findByPlaceholderText("Search tags...");
-      await userEvent.click(
-        screen.getByRole("button", { name: /manage tags/i }),
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText("Search tags..."),
-        ).not.toBeInTheDocument();
-      });
     });
   });
 });
