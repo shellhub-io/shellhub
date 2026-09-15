@@ -5,7 +5,7 @@ import {
   buildRuleDefaults,
   type RuleFormValues,
 } from "../ruleSchema";
-import type { FirewallRulesResponse } from "@/client";
+import type { FirewallRulesResponse } from "@/client/model";
 
 function makeValues(overrides: Partial<RuleFormValues> = {}): RuleFormValues {
   return {

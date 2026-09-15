@@ -8,11 +8,8 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@shellhub/design-system/primitives";
-import {
-  useCreatePublicKey,
-  useUpdatePublicKey,
-} from "@/hooks/usePublicKeyMutations";
-import type { PublicKeyResponse } from "@/client";
+import { useCreatePublicKey, useUpdatePublicKey } from "@/client/api";
+import type { PublicKeyResponse } from "@/client/model";
 import RadioCard from "@/components/common/fields/RadioCard";
 import FormDrawer from "@/components/common/FormDrawer";
 import {
@@ -71,15 +68,15 @@ export default function KeyDrawer({
       if (isEdit && editKey) {
         const body = buildKeyBody(values);
         await updateKey.mutateAsync({
-          path: { fingerprint: editKey.fingerprint },
-          body: {
+          fingerprint: editKey.fingerprint,
+          data: {
             name: body.name,
             username: body.username,
             filter: body.filter,
           },
         });
       } else {
-        await createKey.mutateAsync({ body: buildKeyBody(values) });
+        await createKey.mutateAsync({ data: buildKeyBody(values) });
       }
       onClose();
     } catch (err: unknown) {

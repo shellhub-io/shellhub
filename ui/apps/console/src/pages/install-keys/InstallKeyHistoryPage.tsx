@@ -6,8 +6,8 @@ import {
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { IconBadge } from "@shellhub/design-system/primitives";
-import { type InstallKey } from "@/client";
-import { useInstallKeys } from "@/hooks/useInstallKeys";
+import { type InstallKey } from "@/client/model";
+import { useInstallKeyList } from "@/client/api";
 import PageLoader from "@/components/common/PageLoader";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
@@ -41,7 +41,7 @@ export default function InstallKeyHistoryPage() {
   const location = useLocation();
   const state = location.state as { name?: string; key?: InstallKey } | null;
 
-  const { installKeys, isLoading } = useInstallKeys({ perPage: 100 });
+  const { data: installKeys = [], isLoading } = useInstallKeyList({ page: 1, per_page: 100, sort_by: "created_at", order_by: "desc" });
   const key = installKeys.find((k) => k.id === id) ?? state?.key ?? null;
   const name = key ? installKeyDisplayName(key) : (state?.name ?? "");
   const [revealOpen, setRevealOpen] = useState(false);

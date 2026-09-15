@@ -1,21 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 import UserMenu from "../UserMenu";
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespaces: vi.fn(),
-  }),
-);
-
-function mockNamespaces(namespaces: Namespace[]) {
-  sdk.getNamespaces.mockResolvedValue(mockSdkResponse(namespaces));
+function mockNamespaceList(namespaces: Namespace[]) {
+  server.use(http.get("*/api/namespaces", () => HttpResponse.json(namespaces)));
 }
 
 function renderMenu() {
@@ -33,8 +28,8 @@ describe("UserMenu", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({ ...auth });
-    mockNamespaces([mockNamespace()]);
+    useAuthStore.setState(auth);
+    mockNamespaceList([mockNamespace()]);
   });
 
   describe("trigger button", () => {
@@ -82,7 +77,7 @@ describe("UserMenu", () => {
 
   describe("dropdown — without namespaces", () => {
     it("shows Profile and Logout but hides Settings", async () => {
-      mockNamespaces([]);
+      mockNamespaceList([]);
       renderMenu();
       await openDropdown();
       expect(

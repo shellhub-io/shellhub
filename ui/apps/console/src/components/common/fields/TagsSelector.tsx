@@ -2,7 +2,7 @@ import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useTags } from "@/hooks/useTags";
+import { useTagNames } from "@/hooks/useTags";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import FieldError from "@/components/common/fields/FieldError";
 import FieldHint from "@/components/common/fields/FieldHint";
@@ -25,8 +25,7 @@ export default function TagsSelector({
   error?: string;
   hint?: string;
 }) {
-  const { tags: allTags, isLoading: loading } = useTags();
-  const tags = allTags.map((t) => t.name);
+  const { names: tags, isLoading: loading } = useTagNames();
   const [search, setSearch] = useState("");
 
   const filtered = tags.filter(

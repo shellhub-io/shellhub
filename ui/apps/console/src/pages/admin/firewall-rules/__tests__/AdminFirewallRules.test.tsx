@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import AdminFirewallRules from "../index";
-import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockFirewallRule } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -14,12 +15,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getFirewallRulesAdmin: vi.fn(),
-  }),
-);
 
 const capturedDataTableProps: Record<string, unknown>[] = [];
 vi.mock("@/components/common/DataTable", async (importOriginal) => {
@@ -36,6 +31,20 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
   };
 });
 
+let lastRequestUrl: URL | null;
+
+function setRules(
+  rules: ReturnType<typeof mockFirewallRule>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/admin/api/firewall/rules", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(rules, total ?? rules.length);
+    }),
+  );
+}
+
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -49,8 +58,9 @@ describe("AdminFirewallRules", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     capturedDataTableProps.length = 0;
+    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
-    sdk.getFirewallRulesAdmin.mockResolvedValue(paginatedResponse([]));
+    setRules([]);
   });
 
   describe("rendering", () => {
@@ -73,7 +83,9 @@ describe("AdminFirewallRules", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading firewall rules..." text', () => {
-      sdk.getFirewallRulesAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/firewall/rules", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading firewall rules...")).toBeInTheDocument();
@@ -91,14 +103,12 @@ describe("AdminFirewallRules", () => {
 
   describe("rule rows", () => {
     it("renders a row for each returned rule", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse(
-          [
-            mockFirewallRule({ id: "r1", priority: 1 }),
-            mockFirewallRule({ id: "r2", priority: 2 }),
-          ],
-          2,
-        ),
+      setRules(
+        [
+          mockFirewallRule({ id: "r1", priority: 1 }),
+          mockFirewallRule({ id: "r2", priority: 2 }),
+        ],
+        2,
       );
       renderPage();
       await waitFor(() => expect(screen.getAllByText("Allow").length).toBe(2));
@@ -107,74 +117,56 @@ describe("AdminFirewallRules", () => {
     });
 
     it('shows "Allow" with accent-green for an allow rule', async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ action: "allow" })]),
-      );
+      setRules([mockFirewallRule({ action: "allow" })]);
       renderPage();
       expect(await screen.findByText("Allow")).toBeInTheDocument();
     });
 
     it('shows "Deny" for a deny rule', async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ action: "deny" })]),
-      );
+      setRules([mockFirewallRule({ action: "deny" })]);
       renderPage();
       expect(await screen.findByText("Deny")).toBeInTheDocument();
     });
 
     it('shows "Any IP" when source_ip is ".*"', async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ source_ip: ".*" })]),
-      );
+      setRules([mockFirewallRule({ source_ip: ".*" })]);
       renderPage();
       expect(await screen.findByText("Any IP")).toBeInTheDocument();
     });
 
     it("shows specific IP when source_ip is not wildcard", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ source_ip: "192.168.1.0/24" })]),
-      );
+      setRules([mockFirewallRule({ source_ip: "192.168.1.0/24" })]);
       renderPage();
       expect(await screen.findByText("192.168.1.0/24")).toBeInTheDocument();
     });
 
     it('shows "All users" when username is ".*"', async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ username: ".*" })]),
-      );
+      setRules([mockFirewallRule({ username: ".*" })]);
       renderPage();
       expect(await screen.findByText("All users")).toBeInTheDocument();
     });
 
     it("shows specific username when not wildcard", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ username: "alice" })]),
-      );
+      setRules([mockFirewallRule({ username: "alice" })]);
       renderPage();
       expect(await screen.findByText("alice")).toBeInTheDocument();
     });
 
     it("renders an Active badge for an active rule", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ active: true })]),
-      );
+      setRules([mockFirewallRule({ active: true })]);
       renderPage();
       expect(await screen.findByText("Active")).toBeInTheDocument();
     });
 
     it("renders an Inactive badge for an inactive rule", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ active: false })]),
-      );
+      setRules([mockFirewallRule({ active: false })]);
       renderPage();
       expect(await screen.findByText("Inactive")).toBeInTheDocument();
     });
 
     it("navigates to the detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ id: "rule-abc", priority: 99 })]),
-      );
+      setRules([mockFirewallRule({ id: "rule-abc", priority: 99 })]);
       renderPage();
 
       await user.click(await screen.findByText("99"));
@@ -184,9 +176,7 @@ describe("AdminFirewallRules", () => {
     });
 
     it("renders the tenant_id as a namespace link", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ tenant_id: "tenant-xyz" })]),
-      );
+      setRules([mockFirewallRule({ tenant_id: "tenant-xyz" })]);
       renderPage();
       const link = await screen.findByRole("link", { name: "tenant-xyz" });
       expect(link).toHaveAttribute("href", "/admin/namespaces/tenant-xyz");
@@ -195,7 +185,11 @@ describe("AdminFirewallRules", () => {
 
   describe("error state", () => {
     it("renders an error alert when the SDK returns an error", async () => {
-      sdk.getFirewallRulesAdmin.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/firewall/rules", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
@@ -221,9 +215,7 @@ describe("AdminFirewallRules", () => {
     });
 
     beforeEach(() => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([allowRule, denyRule]),
-      );
+      setRules([allowRule, denyRule]);
     });
 
     it("filters rules by action text", async () => {
@@ -321,11 +313,9 @@ describe("AdminFirewallRules", () => {
 
   describe("pagination suppressed while searching", () => {
     beforeEach(() => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse(
-          [mockFirewallRule({ id: "r1", action: "allow", priority: 1 })],
-          1,
-        ),
+      setRules(
+        [mockFirewallRule({ id: "r1", action: "allow", priority: 1 })],
+        1,
       );
     });
 
@@ -364,9 +354,7 @@ describe("AdminFirewallRules", () => {
 
   describe("URL round-trips", () => {
     it("hydrates search from URL on mount", async () => {
-      sdk.getFirewallRulesAdmin.mockResolvedValue(
-        paginatedResponse([mockFirewallRule({ id: "r1", action: "allow" })]),
-      );
+      setRules([mockFirewallRule({ id: "r1", action: "allow" })]);
       renderPage(["/?search=allow"]);
       expect(
         screen.getByRole("searchbox", {
@@ -375,24 +363,18 @@ describe("AdminFirewallRules", () => {
       ).toHaveValue("allow");
     });
 
-    it("hydrates page from URL and passes it to the SDK", async () => {
+    it("hydrates page from URL and passes it to the API", async () => {
       renderPage(["/?page=3"]);
       await screen.findByText("No firewall rules found");
-      expect(sdk.getFirewallRulesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastRequestUrl).not.toBeNull();
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
     });
 
-    it("passes page=1 to the SDK when URL has no params", async () => {
+    it("passes page=1 to the API when URL has no params", async () => {
       renderPage(["/"]);
       await screen.findByText("No firewall rules found");
-      expect(sdk.getFirewallRulesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 1 }),
-        }),
-      );
+      expect(lastRequestUrl).not.toBeNull();
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
     });
 
     it("setSearch resets page to 1 in the URL", async () => {
@@ -401,11 +383,8 @@ describe("AdminFirewallRules", () => {
 
       await screen.findByText("No firewall rules found");
 
-      expect(sdk.getFirewallRulesAdmin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          query: expect.objectContaining({ page: 3 }),
-        }),
-      );
+      expect(lastRequestUrl).not.toBeNull();
+      expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
 
       await user.type(
         screen.getByRole("searchbox", {
@@ -415,10 +394,7 @@ describe("AdminFirewallRules", () => {
       );
 
       await waitFor(() => {
-        const calls = sdk.getFirewallRulesAdmin.mock.calls;
-        const lastCall = calls.at(-1)![0];
-        expect(lastCall).toBeDefined();
-        expect(lastCall?.query?.page).toBe(1);
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });

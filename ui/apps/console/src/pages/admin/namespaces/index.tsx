@@ -5,10 +5,13 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
+import { useGetNamespacesAdmin } from "@/client/api";
+import type { GetNamespacesAdminParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
@@ -48,13 +51,26 @@ export default function AdminNamespaces() {
   const [editTarget, setEditTarget] = useState<Namespace | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Namespace | null>(null);
 
-  const { namespaces, totalCount, isLoading, error } = useAdminNamespaces({
+  const requestParams: GetNamespacesAdminParams = {
     page: params.page,
-    perPage: PER_PAGE,
-    search: debouncedSearch,
-  });
+    per_page: PER_PAGE,
+  };
+  if (debouncedSearch) {
+    requestParams.filter = toBase64Json([
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: debouncedSearch },
+      },
+    ]);
+  }
+  const {
+    data: namespaces = [],
+    isLoading,
+    error,
+  } = useGetNamespacesAdmin(requestParams);
+  const total = totalCount(namespaces);
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const columns: Column<Namespace>[] = [
     {
@@ -164,7 +180,7 @@ export default function AdminNamespaces() {
         loadingMessage="Loading namespaces..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="namespace"
         onPageChange={setPage}
         onRowClick={(ns) => void navigate(`/admin/namespaces/${ns.tenant_id}`)}

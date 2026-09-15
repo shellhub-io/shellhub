@@ -12,8 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
-import { useAcceptInvite } from "@/hooks/useInvitationMutations";
-import { useResolveInvitation } from "@/hooks/useInvitations";
+import { useAcceptInvite, useResolveInvitation } from "@/client/api";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
@@ -60,10 +59,17 @@ export default function AcceptInvite() {
   const signUpLoading = useSignUpStore((s) => s.signUpLoading);
   const signUpError = useSignUpStore((s) => s.signUpError);
 
-  const { resolved, isLoading, isError } = useResolveInvitation(invite);
+  const {
+    data: resolvedInvite,
+    isLoading,
+    isError,
+  } = useResolveInvitation(
+    { invite },
+    { query: { enabled: !!invite, retry: false, staleTime: Infinity } },
+  );
 
-  const tenant = resolved?.tenantId ?? "";
-  const inviteEmail = resolved?.email ?? "";
+  const tenant = resolvedInvite?.tenant_id ?? "";
+  const inviteEmail = resolvedInvite?.email ?? "";
 
   const [postAction, setPostAction] = useState<PostAction | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -83,8 +89,9 @@ export default function AcceptInvite() {
   const needsLogin =
     !authToken &&
     !postAction &&
-    !!resolved &&
-    (resolved.status === "not-confirmed" || resolved.status === "confirmed");
+    !!resolvedInvite &&
+    (resolvedInvite.status === "not-confirmed" ||
+      resolvedInvite.status === "confirmed");
 
   useEffect(() => {
     if (!needsLogin) return;
@@ -96,13 +103,13 @@ export default function AcceptInvite() {
     if (postAction) return postAction.kind;
     if (!invite) return "missing-params";
     if (isLoading || needsLogin) return "loading";
-    if (isError || !resolved) return "error";
+    if (isError || !resolvedInvite) return "error";
 
     if (authToken) {
-      return authUserId === resolved.userId ? "accept" : "wrong-user";
+      return authUserId === resolvedInvite.user_id ? "accept" : "wrong-user";
     }
 
-    if (resolved.status === "invited") return "sign-up";
+    if (resolvedInvite.status === "invited") return "sign-up";
 
     return "error";
   })();
@@ -140,7 +147,7 @@ export default function AcceptInvite() {
     if (!tenant || !authToken) return;
     setError("");
     try {
-      await acceptInvite.mutateAsync({ path: { tenant } });
+      await acceptInvite.mutateAsync({ tenant });
       setShowConfirm(false);
       setPostAction({ kind: "joined" });
     } catch {

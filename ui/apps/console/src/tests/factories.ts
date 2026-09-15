@@ -5,8 +5,8 @@ import type {
   Customer,
   Device,
   FirewallRulesResponse,
-  GetLicenseResponse,
-  GetStatusDevicesResponse,
+  GetLicense200 as GetLicenseResponse,
+  GetStatusDevices200 as GetStatusDevicesResponse,
   InstallKey,
   MembershipInvitation,
   Namespace,
@@ -18,7 +18,7 @@ import type {
   Tag,
   UserAuth,
   Webendpoint,
-} from "@/client";
+} from "@/client/model";
 
 /**
  * Builds a signed-in user for a test. Every field has a value, so a case names only what it is about
@@ -26,7 +26,8 @@ import type {
  */
 export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
-    token: "jwt-token",
+    token:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInN1YiI6InRlc3QifQ.fake-sig",
     id: "user-123",
     origin: "local",
     user: "admin",

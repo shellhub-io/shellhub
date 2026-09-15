@@ -2,18 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse, type JsonBodyType } from "msw";
+import { server } from "@/tests/msw";
 import AdminLicense from "../License";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getLicense: vi.fn(),
-    sendLicense: vi.fn(),
-  }),
-);
 
 Object.assign(navigator, {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
@@ -52,6 +46,12 @@ const gracePeriodLicense = {
 };
 const regionalLicense = { ...validLicense, allowed_regions: ["BR", "US"] };
 
+function setLicense(data: JsonBodyType) {
+  server.use(
+    http.get("*/admin/api/license", () => HttpResponse.json(data)),
+  );
+}
+
 function renderPage() {
   const result = render(
     <ClipboardProvider>
@@ -69,14 +69,21 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  sdk.getLicense.mockResolvedValue(mockSdkResponse({}));
-  sdk.sendLicense.mockResolvedValue(mockSdkResponse(undefined));
+  server.use(
+    http.get("*/admin/api/license", () => HttpResponse.json({})),
+    http.post(
+      "*/admin/api/license",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("AdminLicense", () => {
   describe("loading state", () => {
     it("renders spinner with role='status'", () => {
-      sdk.getLicense.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/license", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
@@ -84,7 +91,11 @@ describe("AdminLicense", () => {
 
   describe("error state", () => {
     it("renders error message with role='alert' for non-400 errors", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
@@ -93,7 +104,11 @@ describe("AdminLicense", () => {
     });
 
     it("shows no-license info alert and upload section when 400 (no license stored)", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
       renderPage();
       expect(
         await screen.findByText("You do not have an installed license"),
@@ -124,7 +139,7 @@ describe("AdminLicense", () => {
     });
 
     it("shows info alert when about_to_expire", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(aboutToExpireLicense));
+      setLicense(aboutToExpireLicense);
       renderPage();
       expect(
         await screen.findByText("Your license is about to expire!"),
@@ -132,14 +147,14 @@ describe("AdminLicense", () => {
     });
 
     it("shows warning when expired + grace period", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(gracePeriodLicense));
+      setLicense(gracePeriodLicense);
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(screen.getByText(/grace period/i)).toBeInTheDocument();
     });
 
     it("shows error when expired without grace period", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(expiredLicense));
+      setLicense(expiredLicense);
       renderPage();
       expect(
         await screen.findByText("Your license has expired!"),
@@ -147,7 +162,7 @@ describe("AdminLicense", () => {
     });
 
     it("shows no alert when license is valid", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       expect(
@@ -168,7 +183,7 @@ describe("AdminLicense", () => {
     });
 
     it("renders dates formatted correctly", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       const jan2024 = screen.getAllByText("Jan 1, 2024");
@@ -178,7 +193,7 @@ describe("AdminLicense", () => {
 
     it("shows 'Now' for -1 timestamps", async () => {
       const licenseWithNow = { ...validLicense, issued_at: -1, starts_at: -1 };
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(licenseWithNow));
+      setLicense(licenseWithNow);
       renderPage();
       await screen.findByText("License Information");
       const nowElements = screen.getAllByText("Now");
@@ -186,13 +201,13 @@ describe("AdminLicense", () => {
     });
 
     it("shows 'Global' when allowed_regions is empty", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       expect(await screen.findByText("Global")).toBeInTheDocument();
     });
 
     it("shows region list when regions are non-empty", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(regionalLicense));
+      setLicense(regionalLicense);
       renderPage();
       expect(await screen.findByText("BR, US")).toBeInTheDocument();
     });
@@ -200,7 +215,7 @@ describe("AdminLicense", () => {
 
   describe("license owner", () => {
     it("displays customer fields", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       expect(screen.getByText("cust-xxx")).toBeInTheDocument();
@@ -210,7 +225,7 @@ describe("AdminLicense", () => {
     });
 
     it("renders copy button for customer ID", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
@@ -219,13 +234,13 @@ describe("AdminLicense", () => {
 
   describe("license features", () => {
     it("shows 'Unlimited' for devices = -1", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       expect(await screen.findByText("Unlimited")).toBeInTheDocument();
     });
 
     it("renders check icon for enabled boolean features", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       const included = screen.getAllByLabelText("Included");
@@ -233,7 +248,7 @@ describe("AdminLicense", () => {
     });
 
     it("renders cross icon for disabled boolean features", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       const notIncluded = screen.getAllByLabelText("Not included");
@@ -241,7 +256,7 @@ describe("AdminLicense", () => {
     });
 
     it("does not render login_link or reports features", async () => {
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(validLicense));
+      setLicense(validLicense);
       renderPage();
       await screen.findByText("License Information");
       expect(screen.queryByText("Login link")).not.toBeInTheDocument();
@@ -294,8 +309,7 @@ describe("AdminLicense", () => {
       ).toBeDisabled();
     });
 
-    it("calls sendLicense when upload button is clicked with valid file", async () => {
-      sdk.sendLicense.mockResolvedValue(mockSdkResponse(undefined));
+    it("uploads license when upload button is clicked with valid file", async () => {
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
       const validFile = new File(["license-content"], "license.dat", {
@@ -307,17 +321,14 @@ describe("AdminLicense", () => {
       });
       expect(uploadBtn).not.toBeDisabled();
       await userEvent.click(uploadBtn);
-      await waitFor(() => {
-        expect(sdk.sendLicense).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: { file: validFile },
-          }),
-        );
-      });
+      await waitFor(() =>
+        expect(
+          screen.getByText("License uploaded successfully."),
+        ).toBeInTheDocument(),
+      );
     });
 
     it("shows success message after upload", async () => {
-      sdk.sendLicense.mockResolvedValue(mockSdkResponse(undefined));
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
       const validFile = new File(["license-content"], "license.dat", {
@@ -335,7 +346,11 @@ describe("AdminLicense", () => {
     });
 
     it("shows error message on failed upload", async () => {
-      sdk.sendLicense.mockRejectedValue(new Error("upload failed"));
+      server.use(
+        http.post("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
       const validFile = new File(["license-content"], "license.dat", {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EMAIL_REGEX } from "@/utils/validation";
-import type { ApiKey, ApiKeyCreate } from "@/client";
+import type { ApiKey, ApiKeyCreate } from "@/client/model";
 import type { NamespaceMember } from "@/hooks/useNamespaces";
 import { ROLES, isAssignableRole, type AssignableRole } from "./helpers";
 

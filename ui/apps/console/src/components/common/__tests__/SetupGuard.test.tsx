@@ -1,19 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import SetupGuard from "../SetupGuard";
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getInfo: vi.fn(),
-  }),
-);
-
 function mockSetup(done: boolean) {
-  sdk.getInfo.mockResolvedValue({
-    data: { setup: done },
-  });
+  server.use(http.get("*/info", () => HttpResponse.json({ setup: done })));
 }
 
 function renderAt(path: string) {
@@ -31,7 +25,7 @@ function renderAt(path: string) {
 }
 
 beforeEach(() => {
-  sdk.getInfo.mockReset();
+  vi.clearAllMocks();
   useAuthStore.setState({ token: null });
 });
 

@@ -6,7 +6,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
-import { useCreateSubscription, useSubscription } from "@/hooks/useBilling";
+import { useCreateSubscription, useGetSubscription } from "@/client/api";
 import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
@@ -36,7 +36,9 @@ export default function BillingDialog({
   const [hasDefault, setHasDefault] = useState(false);
   const [error, setError] = useState("");
   const createSubscription = useCreateSubscription();
-  const { refetch: refetchSubscription } = useSubscription(false);
+  const { refetch: refetchSubscription } = useGetSubscription({
+    query: { enabled: false },
+  });
 
   const goNext = useCallback(
     () => startTransition(() => setStep((s) => s + 1)),
@@ -50,7 +52,7 @@ export default function BillingDialog({
   const subscribe = async () => {
     setError("");
     try {
-      await createSubscription.mutateAsync({});
+      await createSubscription.mutateAsync();
       const { data: sub } = await refetchSubscription();
       const subStatus = sub?.status;
       if (!subStatus || !["active", "trialing"].includes(subStatus)) {

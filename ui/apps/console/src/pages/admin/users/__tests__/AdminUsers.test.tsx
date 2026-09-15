@@ -8,17 +8,12 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import AdminUsers from "../index";
-import type { UserAdminResponse } from "@/client";
-import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import type { UserAdminResponse } from "@/client/model";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getUsers: vi.fn(),
-  }),
-);
 
 vi.mock("../AccountRequestsTab", () => ({
   default: () => null,
@@ -62,6 +57,17 @@ function mockAdminUser(
   };
 }
 
+let lastRequestUrl: URL | null;
+
+function setUsers(users: UserAdminResponse[], total?: number) {
+  server.use(
+    http.get("*/admin/api/users", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(users, total ?? users.length);
+    }),
+  );
+}
+
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -74,8 +80,9 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("AdminUsers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
-    sdk.getUsers.mockResolvedValue(paginatedResponse([]));
+    setUsers([]);
   });
 
   describe("rendering", () => {
@@ -96,7 +103,9 @@ describe("AdminUsers", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading users..." text', () => {
-      sdk.getUsers.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/users", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading users...")).toBeInTheDocument();
@@ -112,12 +121,10 @@ describe("AdminUsers", () => {
 
   describe("user rows", () => {
     it("renders a row for each returned user", async () => {
-      sdk.getUsers.mockResolvedValue(
-        paginatedResponse([
-          mockAdminUser({ id: "id-1", name: "Alice Smith" }),
-          mockAdminUser({ id: "id-2", name: "Bob Jones" }),
-        ]),
-      );
+      setUsers([
+        mockAdminUser({ id: "id-1", name: "Alice Smith" }),
+        mockAdminUser({ id: "id-2", name: "Bob Jones" }),
+      ]);
       renderPage();
       expect(await screen.findByText("Alice Smith")).toBeInTheDocument();
       expect(screen.getByText("Bob Jones")).toBeInTheDocument();
@@ -125,11 +132,9 @@ describe("AdminUsers", () => {
 
     it("navigates to user detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getUsers.mockResolvedValue(
-        paginatedResponse([
-          mockAdminUser({ id: "uid-abc", name: "Clickable User" }),
-        ]),
-      );
+      setUsers([
+        mockAdminUser({ id: "uid-abc", name: "Clickable User" }),
+      ]);
       renderPage();
       await user.click(await screen.findByText("Clickable User"));
       expect(mockNavigate).toHaveBeenCalledWith("/admin/users/uid-abc");
@@ -138,7 +143,11 @@ describe("AdminUsers", () => {
 
   describe("error state", () => {
     it("renders an error alert when the SDK returns an error", async () => {
-      sdk.getUsers.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/users", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
@@ -148,28 +157,22 @@ describe("AdminUsers", () => {
   });
 
   describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes search and page hydrated from URL to the SDK", async () => {
+    it("passes search and page hydrated from URL to the API", async () => {
       renderPage(["/?search=foo&page=2"]);
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
       expect(
         screen.getByRole("searchbox", { name: "Search users by username" }),
       ).toHaveValue("foo");
     });
 
-    it("passes page=1 to the SDK when URL has no params", async () => {
+    it("passes page=1 to the API when URL has no params", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
@@ -187,17 +190,13 @@ describe("AdminUsers", () => {
       await user.clear(searchbox);
 
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
 
   describe("URL hydration — ?page=3&search=alice hydrates controls", () => {
-    it("hydrates the search field to 'alice' and passes page=3 to the SDK", async () => {
+    it("hydrates the search field to 'alice' and passes page=3 to the API", async () => {
       renderPage(["/?page=3&search=alice"]);
 
       expect(
@@ -205,11 +204,8 @@ describe("AdminUsers", () => {
       ).toHaveValue("alice");
 
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 3 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
       });
     });
   });
@@ -220,11 +216,8 @@ describe("AdminUsers", () => {
       renderPage(["/?page=3"]);
 
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 3 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
       });
 
       const searchbox = screen.getByRole("searchbox", {
@@ -234,11 +227,7 @@ describe("AdminUsers", () => {
       await user.type(searchbox, "bob");
 
       await waitFor(() => {
-        expect(sdk.getUsers).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
       expect(searchbox).toHaveValue("bob");
     });
@@ -253,7 +242,7 @@ describe("AdminUsers", () => {
       vi.useRealTimers();
     });
 
-    it("does not pass the new search to the SDK until the debounce delay elapses", async () => {
+    it("does not pass the new search to the API until the debounce delay elapses", async () => {
       renderPage(["/"]);
 
       const searchbox = screen.getByRole("searchbox", {
@@ -264,18 +253,17 @@ describe("AdminUsers", () => {
         fireEvent.change(searchbox, { target: { value: "alice" } });
       });
 
-      const hasFilter = (calls: unknown[][]) =>
-        calls.some(
-          ([args]) => (args as { query?: { filter?: string } })?.query?.filter,
-        );
-      expect(hasFilter(sdk.getUsers.mock.calls)).toBe(false);
+      const hasFilter = () =>
+        lastRequestUrl !== null &&
+        lastRequestUrl.searchParams.get("filter") !== null;
+      expect(hasFilter()).toBe(false);
 
       act(() => {
         vi.advanceTimersByTime(350);
       });
 
       await waitFor(() => {
-        expect(hasFilter(sdk.getUsers.mock.calls)).toBe(true);
+        expect(hasFilter()).toBe(true);
       });
     });
   });

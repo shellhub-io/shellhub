@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
+import { useEditNamespaceAdmin } from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import FormDrawer from "@/components/common/FormDrawer";
 import {
@@ -18,7 +18,7 @@ import {
   buildEditNamespaceBody,
   type EditNamespaceFormValues,
 } from "./editNamespaceSchema";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -35,7 +35,7 @@ export default function EditNamespaceDrawer({
   onClose,
   namespace,
 }: EditNamespaceDrawerProps) {
-  const editNamespace = useAdminEditNamespace();
+  const editNamespace = useEditNamespaceAdmin();
 
   const schema = useMemo(
     () => editNamespaceSchema(namespace?.name ?? ""),
@@ -54,8 +54,8 @@ export default function EditNamespaceDrawer({
     clearErrors("root");
     try {
       await editNamespace.mutateAsync({
-        path: { tenantID: namespace.tenant_id },
-        body: buildEditNamespaceBody(namespace, values),
+        tenantID: namespace.tenant_id,
+        data: buildEditNamespaceBody(namespace, values),
       });
       onClose();
     } catch (err) {

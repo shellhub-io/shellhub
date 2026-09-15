@@ -2,20 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { paginatedResponse } from "@/tests/sdk";
 import Profile from "../Profile";
 import * as SettingsCardModule from "@/components/common/SettingsCard";
 import * as SettingsRowModule from "@/components/common/SettingsRow";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    updateUser: vi.fn(),
-    getNamespaces: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -31,8 +25,11 @@ function renderProfile() {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
   seedAuthStore();
+  server.use(
+    http.get("*/api/namespaces", () => jsonWithTotal([])),
+    http.patch("*/api/users", () => new HttpResponse(null, { status: 204 })),
+  );
 });
 
 describe("Profile", () => {
@@ -175,11 +172,11 @@ describe("Profile", () => {
     });
 
     it("shows 'Current password is incorrect.' on 403", async () => {
-      sdk.updateUser.mockRejectedValueOnce({
-        status: 403,
-        errors: {},
-        message: "Forbidden",
-      });
+      server.use(
+        http.patch("*/api/users", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = await openChangePasswordDrawer();
 
       await user.type(screen.getByLabelText(/current password/i), "wrong");
@@ -196,10 +193,6 @@ describe("Profile", () => {
     });
 
     it("shows success message after a successful password change", async () => {
-      sdk.updateUser.mockResolvedValueOnce({
-        data: undefined,
-        error: undefined,
-      });
       const user = await openChangePasswordDrawer();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");

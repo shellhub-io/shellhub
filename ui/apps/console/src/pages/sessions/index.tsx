@@ -8,12 +8,12 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import { useSessions } from "@/hooks/useSessions";
-import { useCloseSession } from "@/hooks/useSessionMutations";
+import { useGetSessions, useClsoeSession } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { isRecordingSupported, readRecording } from "@/utils/recordings";
-import type { Session } from "@/client";
+import type { Session } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -74,11 +74,9 @@ export default function Sessions() {
   const { params, setPage } = usePaginatedListState<SessionsParams>({
     defaults: DEFAULTS,
   });
-  const { sessions, totalCount, isLoading, error } = useSessions({
-    page: params.page,
-    perPage: PER_PAGE,
-  });
-  const closeSession = useCloseSession();
+  const { data: sessions = [], isLoading, error } = useGetSessions({ page: params.page, per_page: PER_PAGE });
+  const total = totalCount(sessions);
+  const closeSession = useClsoeSession();
   const navigate = useNavigate();
   const premium = isEnterpriseOrCloud();
   const [playTarget, setPlayTarget] = useState<string | null>(null);
@@ -109,7 +107,7 @@ export default function Sessions() {
     [recordings],
   );
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const handlePlayClick = async (e: React.MouseEvent, s: Session) => {
     e.stopPropagation();
@@ -300,8 +298,8 @@ export default function Sessions() {
                 <CloseButton
                   onClose={() =>
                     closeSession.mutateAsync({
-                      path: { uid: s.uid },
-                      body: { device: s.device_uid ?? s.device?.uid ?? "" },
+                      uid: s.uid,
+                      data: { device: s.device_uid ?? s.device?.uid ?? "" },
                     })
                   }
                 />
@@ -342,7 +340,7 @@ export default function Sessions() {
         loadingMessage="Loading sessions..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="session"
         onPageChange={setPage}
         onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}

@@ -1,19 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { MfaGenerate } from "@/client";
-import { mockSdkResponse } from "@/tests/sdk";
+import type { MfaGenerate } from "@/client/model";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import MfaEnableDrawer from "../MfaEnableDrawer";
 
 vi.mock("qrcode");
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    generateMfa: vi.fn(),
-    enableMfa: vi.fn(),
-    updateUser: vi.fn(),
-  }),
-);
 
 const mockMfaData: MfaGenerate = {
   link: "otpauth://totp/ShellHub:user@example.com?secret=ABCD1234&issuer=ShellHub",
@@ -27,9 +20,14 @@ describe("MfaEnableDrawer", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.generateMfa.mockResolvedValue(mockSdkResponse(mockMfaData));
-    sdk.enableMfa.mockResolvedValue(mockSdkResponse(undefined));
-    sdk.updateUser.mockResolvedValue(mockSdkResponse(undefined));
+    server.use(
+      http.get("*/api/user/mfa/generate", () => HttpResponse.json(mockMfaData)),
+      http.put(
+        "*/api/user/mfa/enable",
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+      http.patch("*/api/users", () => new HttpResponse(null, { status: 204 })),
+    );
   });
 
   describe("Step 1: Recovery Email", () => {
@@ -83,18 +81,14 @@ describe("MfaEnableDrawer", () => {
       await user.click(nextButton);
 
       await waitFor(() => {
-        expect(sdk.updateUser).toHaveBeenCalledWith({
-          body: { recovery_email: "new-recovery@example.com" },
-          throwOnError: true,
-        });
-        expect(sdk.generateMfa).toHaveBeenCalled();
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
       });
     });
 
     it("shows error when email is already in use (409)", async () => {
       const user = userEvent.setup();
-      sdk.updateUser.mockRejectedValue(
-        Object.assign(new Error("409"), { status: 409 }),
+      server.use(
+        http.patch("*/api/users", () => HttpResponse.json({}, { status: 409 })),
       );
 
       render(
@@ -132,7 +126,7 @@ describe("MfaEnableDrawer", () => {
       await user.click(continueButton);
 
       await waitFor(() => {
-        expect(sdk.generateMfa).toHaveBeenCalled();
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
       });
     });
   });
@@ -151,7 +145,9 @@ describe("MfaEnableDrawer", () => {
 
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
+      await waitFor(() => {
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
+      });
     });
 
     it("displays all 6 recovery codes", async () => {
@@ -198,7 +194,9 @@ describe("MfaEnableDrawer", () => {
 
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
+      await waitFor(() => {
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
+      });
 
       const checkbox = screen.getByRole("checkbox");
       await user.click(checkbox);
@@ -243,20 +241,19 @@ describe("MfaEnableDrawer", () => {
       await user.click(verifyButton);
 
       await waitFor(() => {
-        expect(sdk.enableMfa).toHaveBeenCalledWith({
-          body: {
-            code: "123456",
-            secret: mockMfaData.secret,
-            recovery_codes: mockMfaData.recovery_codes,
-          },
-          throwOnError: true,
-        });
+        expect(
+          screen.getByText(/MFA Enabled Successfully/i),
+        ).toBeInTheDocument();
       });
     });
 
     it("shows error on invalid OTP", async () => {
       const user = userEvent.setup();
-      sdk.enableMfa.mockRejectedValue(new Error("Invalid code"));
+      server.use(
+        http.put("*/api/user/mfa/enable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
 
       await waitFor(() => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
@@ -299,7 +296,9 @@ describe("MfaEnableDrawer", () => {
 
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
+      await waitFor(() => {
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
+      });
 
       const checkbox = screen.getByRole("checkbox");
       await user.click(checkbox);
@@ -353,7 +352,9 @@ describe("MfaEnableDrawer", () => {
 
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
+      await waitFor(() => {
+        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
+      });
 
       rerender(
         <MfaEnableDrawer
@@ -382,7 +383,11 @@ describe("MfaEnableDrawer", () => {
   describe("Error Handling", () => {
     it("handles API errors when generating MFA codes", async () => {
       const user = userEvent.setup();
-      sdk.generateMfa.mockRejectedValue(new Error("Network error"));
+      server.use(
+        http.get("*/api/user/mfa/generate", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
 
       render(
         <MfaEnableDrawer

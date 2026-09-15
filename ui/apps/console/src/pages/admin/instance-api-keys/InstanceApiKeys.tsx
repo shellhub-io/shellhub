@@ -2,10 +2,10 @@ import { useState } from "react";
 import { KeyIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useInstanceApiKeys } from "@/hooks/useInstanceApiKeys";
-import { useDeleteInstanceApiKey } from "@/hooks/useInstanceApiKeyMutations";
+import { useListInstanceAPIKeys, useDeleteInstanceAPIKey } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { type InstanceApiKey } from "@/client";
+import type { InstanceAPIKey } from "@/client/model";
 import PageHeader from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -13,11 +13,11 @@ import { formatDateShort } from "@/utils/date";
 import { pageCount } from "@/utils/pagination";
 import GenerateInstanceKeyDrawer from "./GenerateInstanceKeyDrawer";
 
-type InstanceApiKeyListParams = {
+type InstanceAPIKeyListParams = {
   page: number;
 };
 
-const INSTANCE_API_KEY_LIST_DEFAULTS: InstanceApiKeyListParams = { page: 1 };
+const INSTANCE_API_KEY_LIST_DEFAULTS: InstanceAPIKeyListParams = { page: 1 };
 
 function hasExpired(expiresAt: string) {
   return new Date(expiresAt).getTime() <= Date.now();
@@ -28,16 +28,19 @@ function hasExpired(expiresAt: string) {
  * administrator rather than as a member of a namespace, so they are managed here rather than
  * alongside a namespace's own keys.
  */
-function InstanceApiKeys() {
-  const { params, setPage } = usePaginatedListState<InstanceApiKeyListParams>({
+function InstanceAPIKeys() {
+  const { params, setPage } = usePaginatedListState<InstanceAPIKeyListParams>({
     defaults: INSTANCE_API_KEY_LIST_DEFAULTS,
   });
   const page = params.page;
-  const { apiKeys, totalCount, isLoading } = useInstanceApiKeys({ page });
+  const keysQuery = useListInstanceAPIKeys({ page, per_page: 10, order_by: "desc" });
+  const apiKeys = keysQuery.data ?? [];
+  const keyCount = totalCount(keysQuery.data);
+  const isLoading = keysQuery.isLoading;
 
-  const deleteKey = useDeleteInstanceApiKey();
+  const deleteKey = useDeleteInstanceAPIKey();
   const [generateOpen, setGenerateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<InstanceApiKey | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<InstanceAPIKey | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const closeDelete = () => {
@@ -49,7 +52,7 @@ function InstanceApiKeys() {
     if (!deleteTarget) return;
     setDeleteError(null);
     try {
-      await deleteKey.mutateAsync({ path: { name: deleteTarget.name } });
+      await deleteKey.mutateAsync({ name: deleteTarget.name });
       if (apiKeys.length === 1 && page > 1) setPage(page - 1);
       closeDelete();
     } catch (err) {
@@ -61,7 +64,7 @@ function InstanceApiKeys() {
     }
   };
 
-  const columns: Column<InstanceApiKey>[] = [
+  const columns: Column<InstanceAPIKey>[] = [
     {
       key: "name",
       header: "Name",
@@ -133,7 +136,7 @@ function InstanceApiKeys() {
 
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-text-muted">
-          {totalCount} key{totalCount !== 1 ? "s" : ""}
+          {keyCount} key{keyCount !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -144,7 +147,7 @@ function InstanceApiKeys() {
         isLoading={isLoading}
         loadingMessage="Loading instance API keys..."
         page={page}
-        totalPages={pageCount(totalCount)}
+        totalPages={pageCount(keyCount)}
         onPageChange={setPage}
         rowClassName={(key) =>
           hasExpired(key.expires_at)
@@ -190,4 +193,4 @@ function InstanceApiKeys() {
   );
 }
 
-export default InstanceApiKeys;
+export default InstanceAPIKeys;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { validateNamespaceName } from "@/utils/validation";
-import type { Namespace } from "@/client";
+import type { Namespace } from "@/client/model";
 
 const editNamespaceFields = z.object({
   name: z.string(),

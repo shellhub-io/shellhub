@@ -3,8 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm, useController, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MegaphoneIcon } from "@heroicons/react/24/outline";
-import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
-import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
+import { useGetAnnouncementAdmin, useUpdateAnnouncement } from "@/client/api";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { FormInputField } from "@/components/common/fields/rhf";
@@ -22,14 +21,14 @@ import {
  * Edits an existing announcement. Changes are live as soon as they are saved.
  */
 export default function EditAnnouncement() {
-  const { uuid } = useParams<{ uuid: string }>();
+  const { uuid = "" } = useParams<{ uuid: string }>();
   const navigate = useNavigate();
   const {
     data: announcement,
     isLoading: isFetching,
     error: fetchError,
-  } = useAdminAnnouncement(uuid ?? "");
-  const updateAnnouncement = useAdminUpdateAnnouncement();
+  } = useGetAnnouncementAdmin(uuid, { query: { enabled: !!uuid } });
+  const updateAnnouncement = useUpdateAnnouncement();
 
   const values = useMemo<AnnouncementFormValues>(
     () => ({
@@ -62,8 +61,8 @@ export default function EditAnnouncement() {
     clearErrors("root");
     try {
       await updateAnnouncement.mutateAsync({
-        path: { uuid },
-        body: buildAnnouncementBody(formValues),
+        uuid,
+        data: buildAnnouncementBody(formValues),
       });
       void navigate(`/admin/announcements/${uuid}`);
     } catch {

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { isCloud } from "@/env";
-import { useStats } from "@/hooks/useStats";
+import { useGetStatusDevices } from "@/client/api";
 import { hasActiveSubscription } from "@/utils/billing";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -29,7 +29,7 @@ function DeviceChooserTriggerInner() {
   const canChoose = useHasPermission("device:choose");
   const tenantId = useAuthStore((s) => s.tenant);
   const { namespace, isLoading: nsLoading } = useNamespace(tenantId ?? "");
-  const { stats, isLoading: statsLoading } = useStats();
+  const { data: stats, isLoading: statsLoading } = useGetStatusDevices();
   const [dismissed, setDismissed] = useState(false);
 
   if (!tenantId || nsLoading || statsLoading || !namespace || !stats)

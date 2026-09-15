@@ -7,7 +7,7 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
+import { useGetFirewallRuleAdmin } from "@/client/api";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
@@ -21,8 +21,12 @@ import { Card } from "@shellhub/design-system/primitives";
  * One firewall rule, seen from the admin area.
  */
 export default function AdminFirewallRuleDetails() {
-  const { id } = useParams<{ id: string }>();
-  const { data: rule, isLoading, error } = useAdminFirewallRule(id ?? "");
+  const { id = "" } = useParams<{ id: string }>();
+  const {
+    data: rule,
+    isLoading,
+    error,
+  } = useGetFirewallRuleAdmin(id, { query: { enabled: !!id } });
 
   if (isLoading) {
     return <PageLoader label="Loading firewall rule details" />;

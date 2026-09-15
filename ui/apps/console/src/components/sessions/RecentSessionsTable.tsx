@@ -7,11 +7,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { Callout, Card } from "@shellhub/design-system/primitives";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
-import { useSessions } from "@/hooks/useSessions";
-import { useAdminSessions } from "@/hooks/useAdminSessions";
+import { useGetSessions, useGetSessionsAdmin } from "@/client/api";
 import { formatRelative } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import type { Session } from "@/client";
+import type { Session } from "@/client/model";
 import { apiErrorMessage } from "@/api/errors";
 
 /**
@@ -19,8 +18,12 @@ import { apiErrorMessage } from "@/api/errors";
  * which is the only difference between the two dashboards' tables.
  */
 export default function RecentSessionsTable({ isAdmin = false }) {
-  const sessionsHook = isAdmin ? useAdminSessions : useSessions;
-  const { sessions, isLoading, error } = sessionsHook({ page: 1, perPage: 5 });
+  const sessionsHook = isAdmin ? useGetSessionsAdmin : useGetSessions;
+  const {
+    data: sessions = [],
+    isLoading,
+    error,
+  } = sessionsHook({ page: 1, per_page: 5 });
   const navigate = useNavigate();
   const prefix = isAdmin ? "/admin" : "";
 

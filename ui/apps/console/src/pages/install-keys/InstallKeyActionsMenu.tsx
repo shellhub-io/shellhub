@@ -7,7 +7,7 @@ import {
   PlayIcon,
 } from "@heroicons/react/24/outline";
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { type Action } from "@/utils/permission";
 import { isPairingKey, isSystemKey } from "./helpers";

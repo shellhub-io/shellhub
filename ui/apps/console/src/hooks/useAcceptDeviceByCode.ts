@@ -1,22 +1,20 @@
 import { useState } from "react";
-import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
+import {
+  resolveDeviceLoginCode,
+  acceptDevicePairing,
+  useAcceptDevice,
+} from "@/client/api";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 
-/**
- * Resolves a pairing/login code and accepts the device in one shot, into the
- * current namespace. Used by the onboarding wizard's code-entry step, which
- * skips the preview/confirm screen: the user just installed the device, so they
- * type the code and go. Returns the accepted device, or null with `error` set.
- */
+/** Resolves a pairing/login code and accepts the device into the current namespace. */
 export function useAcceptDeviceByCode() {
-  const authTenant = useAuthStore((s) => s.tenant);
-  const { namespace } = useNamespace(authTenant ?? "");
+  const authTenant = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace } = useNamespace(authTenant);
   const hasSubscription = isSubscriptionBlocked(namespace?.billing);
   const canSubscribe = useHasPermission("billing:subscribe");
   const acceptDevice = useAcceptDevice();
@@ -29,23 +27,18 @@ export function useAcceptDeviceByCode() {
     setError("");
     setIsPending(true);
     try {
-      const { data } = await resolveDeviceLoginCode({
-        path: { code },
-        throwOnError: true,
-      });
+      const resolved = await resolveDeviceLoginCode(code);
 
-      if (data.kind === "pairing") {
-        const { data: accepted } = await acceptDevicePairing({
-          path: { code },
-          body: { tenant_id: authTenant ?? "" },
-          throwOnError: true,
+      if (resolved.kind === "pairing") {
+        const accepted = await acceptDevicePairing(code, {
+          tenant_id: authTenant,
         });
-        return { uid: accepted.uid ?? "", name: data.name ?? "" };
+        return { uid: accepted.uid ?? "", name: resolved.name ?? "" };
       }
 
-      if (data.uid) {
-        await acceptDevice.mutateAsync({ path: { uid: data.uid } });
-        return { uid: data.uid, name: data.name ?? "" };
+      if (resolved.uid) {
+        await acceptDevice.mutateAsync({ uid: resolved.uid });
+        return { uid: resolved.uid, name: resolved.name ?? "" };
       }
 
       setError(

@@ -11,4 +11,4 @@ if [ -z "$OPENAPI_SPEC_PATH" ]; then
 fi
 
 cd "$(dirname "$0")/../apps/console"
-exec npx openapi-ts
+exec npx orval

@@ -10,7 +10,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
-import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import { type FirewallRulesResponse as FirewallRule } from "@/client/model";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -19,8 +19,8 @@ import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
-import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
-import { useFirewallRules } from "@/hooks/useFirewallRules";
+import { useGetFirewallRules, useDeleteFirewallRule } from "@/client/api";
+import { totalCount } from "@/api/pagination";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import RuleDrawer from "./RuleDrawer";
 import { pageCount } from "@/utils/pagination";
@@ -42,7 +42,8 @@ export default function FirewallRules() {
   const { params, setPage, setSearch } =
     usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
 
-  const { rules, totalCount, isLoading } = useFirewallRules({ page: params.page });
+  const { data: rules = [], isLoading } = useGetFirewallRules({ page: params.page, per_page: 10 });
+  const total = totalCount(rules);
   const deleteRule = useDeleteFirewallRule();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
@@ -61,8 +62,9 @@ export default function FirewallRules() {
     if (!deleteTarget) return;
     setDeleteError(null);
     try {
-      await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
-      if (rules.length === 1 && params.page > 1 && !params.search) setPage(params.page - 1);
+      await deleteRule.mutateAsync({ id: deleteTarget.id });
+      if (rules.length === 1 && params.page > 1 && !params.search)
+        setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -86,7 +88,7 @@ export default function FirewallRules() {
     setEditTarget(null);
   };
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
 
   const filtered = params.search
     ? rules.filter(
@@ -289,7 +291,7 @@ export default function FirewallRules() {
         {...(!params.search && {
           page: params.page,
           totalPages,
-          totalCount,
+          totalCount: total,
           itemLabel: "rule",
           onPageChange: setPage,
         })}

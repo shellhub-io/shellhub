@@ -4,8 +4,9 @@ import {
   saveVaultData,
   saveVaultSettings,
   deleteVault,
-} from "@/client";
-import type { VaultResponse } from "@/client";
+} from "@/client/api";
+import type { VaultResponse } from "@/client/model";
+import { isSdkError } from "@/api/errors";
 import type {
   VaultMeta,
   VaultData,
@@ -60,12 +61,14 @@ export class ServerVaultBackend implements IVaultBackend {
   }
 
   private async fetch(): Promise<VaultResponse | null> {
-    const { data, error, response } = await getVault();
-    if (response?.status === 404) return null;
-    if (error || !data)
+    try {
+      const data = await getVault();
+      this.track(data);
+      return data;
+    } catch (err) {
+      if (isSdkError(err) && err.status === 404) return null;
       throw new Error("Failed to load the vault from the server.");
-    this.track(data);
-    return data;
+    }
   }
 
   /**
@@ -81,12 +84,12 @@ export class ServerVaultBackend implements IVaultBackend {
    * means the vault they just created was not saved.
    */
   async saveMeta(meta: VaultMeta): Promise<void> {
-    const { data, error } = await saveVaultMeta({
-      body: { meta: JSON.stringify(meta) },
-    });
-    if (error || !data)
+    try {
+      const data = await saveVaultMeta({ meta: JSON.stringify(meta) });
+      this.track(data);
+    } catch {
       throw new Error("Failed to save the vault to the server.");
-    this.track(data);
+    }
   }
 
   /**
@@ -103,18 +106,21 @@ export class ServerVaultBackend implements IVaultBackend {
    * overwrite, because a blind write would silently drop the other session's keys.
    */
   async saveData(data: VaultData): Promise<void> {
-    const res = await saveVaultData({
-      body: { data: JSON.stringify(data), version: this.version },
-    });
-    if (res.response?.status === 409) {
-      await this.fetch().catch(() => null);
-      throw new Error(
-        "The vault was changed in another session. Reload the vault and try again.",
-      );
-    }
-    if (res.error || !res.data)
+    try {
+      const res = await saveVaultData({
+        data: JSON.stringify(data),
+        version: this.version,
+      });
+      this.track(res);
+    } catch (err) {
+      if (isSdkError(err) && err.status === 409) {
+        await this.fetch().catch(() => null);
+        throw new Error(
+          "The vault was changed in another session. Reload the vault and try again.",
+        );
+      }
       throw new Error("Failed to save the vault to the server.");
-    this.track(res.data);
+    }
   }
 
   /**
@@ -122,9 +128,12 @@ export class ServerVaultBackend implements IVaultBackend {
    * the version counter is dropped so a later write does not carry a stale one.
    */
   async clear(): Promise<void> {
-    const { error, response } = await deleteVault();
-    if (error && response?.status !== 404)
-      throw new Error("Failed to reset the vault on the server.");
+    try {
+      await deleteVault();
+    } catch (err) {
+      if (!isSdkError(err) || err.status !== 404)
+        throw new Error("Failed to reset the vault on the server.");
+    }
     versionRegistry.delete(this.key);
   }
 
@@ -141,12 +150,14 @@ export class ServerVaultBackend implements IVaultBackend {
    * Stores the vault settings.
    */
   async saveSettings(settings: VaultSettings): Promise<void> {
-    const { data, error } = await saveVaultSettings({
-      body: { settings: JSON.stringify(settings) },
-    });
-    if (error || !data)
+    try {
+      const data = await saveVaultSettings({
+        settings: JSON.stringify(settings),
+      });
+      this.track(data);
+    } catch {
       throw new Error("Failed to save the vault settings to the server.");
-    this.track(data);
+    }
   }
 
   /**

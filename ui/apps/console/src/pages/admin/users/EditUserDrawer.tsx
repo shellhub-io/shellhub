@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useUpdateUser } from "@/hooks/useAdminUserMutations";
+import { useAdminUpdateUser } from "@/client/api";
 import { useAuthStore } from "@/stores/authStore";
 import { isSdkError } from "@/api/errors";
 import FormDrawer from "@/components/common/FormDrawer";
@@ -11,7 +11,7 @@ import {
   buildUserPayload,
   type UserFormValues,
 } from "./userSchema";
-import type { UserAdminResponse } from "@/client";
+import type { UserAdminResponse } from "@/client/model";
 
 interface EditUserDrawerProps {
   open: boolean;
@@ -27,7 +27,7 @@ export default function EditUserDrawer({
   onClose,
   user,
 }: EditUserDrawerProps) {
-  const updateUser = useUpdateUser();
+  const updateUser = useAdminUpdateUser();
   const currentUserId = useAuthStore((s) => s.userId);
 
   const schema = useMemo(() => userSchema("edit"), []);
@@ -45,8 +45,8 @@ export default function EditUserDrawer({
     clearErrors("root");
     try {
       await updateUser.mutateAsync({
-        path: { id: user.id },
-        body: buildUserPayload("edit", values, user),
+        id: user.id,
+        data: buildUserPayload("edit", values, user),
       });
       onClose();
     } catch (err) {

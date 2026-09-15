@@ -9,7 +9,6 @@ import { ClipboardProvider } from "./components/common/ClipboardProvider";
 import { loadConfig } from "./env";
 import { queryClient } from "./api/queryClient";
 import "./stores/themeStore";
-import "./api/fetchInterceptors";
 import "@xterm/xterm/css/xterm.css";
 import "font-logos/assets/font-logos.css";
 import "./index.css";

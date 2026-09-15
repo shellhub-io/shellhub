@@ -7,12 +7,12 @@ import {
 import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
-  useCreateSSHIdentity,
-  useRenameSSHIdentity,
-} from "@/hooks/useSSHIdentityMutations";
-import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
+  useCreateSshIdentity,
+  useRenameSshIdentity,
+  useCreateServiceAccount,
+} from "@/client/api";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import type { SshIdentity } from "@/client";
+import type { SshIdentity } from "@/client/model";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
@@ -47,8 +47,8 @@ function IdentityDrawer({
   editIdentity: SshIdentity | null;
   onClose: () => void;
 }) {
-  const createIdentity = useCreateSSHIdentity();
-  const renameIdentity = useRenameSSHIdentity();
+  const createIdentity = useCreateSshIdentity();
+  const renameIdentity = useRenameSshIdentity();
   const createServiceAccount = useCreateServiceAccount();
   const canCreateServiceAccount = useHasPermission("serviceAccount:create");
   const browserKeyFingerprint = useBrowserKeyFingerprint();
@@ -99,12 +99,12 @@ function IdentityDrawer({
     try {
       if (isEdit && editIdentity) {
         await renameIdentity.mutateAsync({
-          path: { id: editIdentity.id },
-          body: { name: name.trim() },
+          id: editIdentity.id,
+          data: { name: name.trim() },
         });
       } else if (isServiceAccount) {
         await createServiceAccount.mutateAsync({
-          body: {
+          data: {
             name: name.trim(),
             data: keyData.trim(),
             ...serviceAccountLifecyclePayload(expiresIn, singleUse),
@@ -112,7 +112,7 @@ function IdentityDrawer({
         });
       } else {
         await createIdentity.mutateAsync({
-          body: {
+          data: {
             name: name.trim(),
             data: keyData.trim(),
             ...keyExpiryPayload(expiresIn),

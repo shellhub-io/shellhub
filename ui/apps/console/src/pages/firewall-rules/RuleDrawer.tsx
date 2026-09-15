@@ -1,9 +1,6 @@
 import { useWatch } from "react-hook-form";
-import {
-  useCreateFirewallRule,
-  useUpdateFirewallRule,
-} from "@/hooks/useFirewallRuleMutations";
-import type { FirewallRulesResponse } from "@/client";
+import { useCreateFirewallRule, useUpdateFirewallRule } from "@/client/api";
+import type { FirewallRulesResponse } from "@/client/model";
 import RadioCard from "@/components/common/fields/RadioCard";
 import {
   UserGroupIcon,
@@ -72,9 +69,9 @@ export default function RuleDrawer({
     const body = buildRuleBody(values);
     try {
       if (isEdit && editRule) {
-        await updateRule.mutateAsync({ path: { id: editRule.id }, body });
+        await updateRule.mutateAsync({ id: editRule.id, data: body });
       } else {
-        await createRule.mutateAsync({ body });
+        await createRule.mutateAsync({ data: body });
       }
       onClose();
     } catch (err: unknown) {

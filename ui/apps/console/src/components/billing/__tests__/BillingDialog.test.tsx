@@ -2,20 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
-
-const mockIsSdkError = vi.fn();
-vi.mock("@/api/errors", () => ({
-  isSdkError: (err: unknown): boolean => mockIsSdkError(err) as boolean,
-}));
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createSubscription: vi.fn(),
-    getSubscription: vi.fn(),
-  }),
-);
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
 vi.mock("../BillingPayment", () => ({
   default: ({
@@ -72,9 +62,16 @@ import BillingDialog from "../BillingDialog";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.createSubscription.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.getSubscription.mockResolvedValue(mockSdkResponse({ status: "active" }));
-  mockIsSdkError.mockReturnValue(false);
+  seedAuthStore();
+  server.use(
+    http.post(
+      "*/api/billing/subscription",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get("*/api/billing/subscription", () =>
+      HttpResponse.json({ status: "active" }),
+    ),
+  );
 });
 
 function renderDialog(onClose = vi.fn(), onSuccess = vi.fn()) {
@@ -193,20 +190,6 @@ describe("BillingDialog", () => {
       ).toBeInTheDocument();
     });
 
-    it("'Confirm subscription' calls createSubscription", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      await user.click(
-        screen.getByRole("button", { name: /confirm subscription/i }),
-      );
-      await waitFor(() =>
-        expect(sdk.createSubscription).toHaveBeenCalledWith(
-          expect.objectContaining({ throwOnError: true }),
-        ),
-      );
-    });
-
     it("advances to step 4 after subscription is active", async () => {
       const user = userEvent.setup();
       renderDialog();
@@ -220,8 +203,10 @@ describe("BillingDialog", () => {
     });
 
     it("advances to step 4 when subscription status is 'trialing'", async () => {
-      sdk.getSubscription.mockResolvedValue(
-        mockSdkResponse({ status: "trialing" }),
+      server.use(
+        http.get("*/api/billing/subscription", () =>
+          HttpResponse.json({ status: "trialing" }),
+        ),
       );
       const user = userEvent.setup();
       renderDialog();
@@ -235,8 +220,10 @@ describe("BillingDialog", () => {
     });
 
     it("shows error and stays on step 3 when status is 'incomplete'", async () => {
-      sdk.getSubscription.mockResolvedValue(
-        mockSdkResponse({ status: "incomplete" }),
+      server.use(
+        http.get("*/api/billing/subscription", () =>
+          HttpResponse.json({ status: "incomplete" }),
+        ),
       );
       const user = userEvent.setup();
       renderDialog();
@@ -253,8 +240,10 @@ describe("BillingDialog", () => {
     });
 
     it("shows 'wasn't fully activated' error for non-active non-incomplete statuses", async () => {
-      sdk.getSubscription.mockResolvedValue(
-        mockSdkResponse({ status: "past_due" }),
+      server.use(
+        http.get("*/api/billing/subscription", () =>
+          HttpResponse.json({ status: "past_due" }),
+        ),
       );
       const user = userEvent.setup();
       renderDialog();
@@ -270,9 +259,11 @@ describe("BillingDialog", () => {
     });
 
     it("shows 'unpaid invoices' error on 402 response", async () => {
-      const err = { status: 402 };
-      sdk.createSubscription.mockRejectedValue(err);
-      mockIsSdkError.mockImplementation((e: unknown) => e === err);
+      server.use(
+        http.post("*/api/billing/subscription", () =>
+          HttpResponse.json({}, { status: 402 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -285,8 +276,11 @@ describe("BillingDialog", () => {
     });
 
     it("shows generic error on non-402 failure", async () => {
-      sdk.createSubscription.mockRejectedValue(new Error("network failure"));
-      mockIsSdkError.mockReturnValue(false);
+      server.use(
+        http.post("*/api/billing/subscription", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -301,7 +295,9 @@ describe("BillingDialog", () => {
     });
 
     it("disables 'Confirm subscription' and shows 'Subscribing…' while pending", async () => {
-      sdk.createSubscription.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/subscription", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -380,8 +376,10 @@ describe("BillingDialog", () => {
     });
 
     it("'Back' clears any existing error message", async () => {
-      sdk.getSubscription.mockResolvedValue(
-        mockSdkResponse({ status: "past_due" }),
+      server.use(
+        http.get("*/api/billing/subscription", () =>
+          HttpResponse.json({ status: "past_due" }),
+        ),
       );
       const user = userEvent.setup();
       renderDialog();

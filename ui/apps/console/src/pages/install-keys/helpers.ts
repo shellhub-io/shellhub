@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { type InstallKey } from "@/client";
+import { type InstallKey } from "@/client/model";
 import { formatDateShort } from "@/utils/date";
 
 /**

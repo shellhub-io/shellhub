@@ -14,10 +14,7 @@ import { isSdkError } from "@/api/errors";
 export interface RenameSectionProps {
   uid: string;
   currentName: string;
-  rename: (opts: {
-    path: { uid: string };
-    body: { name: string };
-  }) => Promise<unknown>;
+  rename: (opts: { uid: string; data: { name: string } }) => Promise<unknown>;
   entityLabel: string;
   canRename?: boolean;
 }
@@ -47,8 +44,8 @@ export default function RenameSection({
     setError(null);
     try {
       await rename({
-        path: { uid },
-        body: { name: name.trim() },
+        uid,
+        data: { name: name.trim() },
       });
       setEditing(false);
     } catch (e) {
@@ -57,7 +54,9 @@ export default function RenameSection({
         400: `Invalid ${entityLabel} name.`,
         409: `A ${entityLabel} with that name already exists.`,
       };
-      setError((status && errors[status]) || `Failed to rename ${entityLabel}.`);
+      setError(
+        (status && errors[status]) || `Failed to rename ${entityLabel}.`,
+      );
     }
     setSaving(false);
   };

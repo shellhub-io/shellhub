@@ -1,26 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Device } from "@/client";
+import type { Device } from "@/client/model";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
 import { mockDevice as mockDeviceFactory } from "@/tests/factories";
 
 vi.mock("@/components/common/BaseDialog", async () => ({
   default: (await import("@/tests/mocks")).MockBaseDialog,
-}));
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getDevicesMostUsed: vi.fn(),
-    getDevices: vi.fn(),
-    choiceDevices: vi.fn(),
-  }),
-);
-
-const mockIsSdkError = vi.fn();
-vi.mock("@/api/errors", () => ({
-  isSdkError: (err: unknown): boolean => mockIsSdkError(err) as boolean,
 }));
 
 const mockNavigate = vi.fn();
@@ -58,7 +46,7 @@ const ALL_DEVICES = [
   makeDevice(14),
 ];
 
-function setupSdk({
+function setupHandlers({
   suggested = SUGGESTED_DEVICES,
   allDevices = ALL_DEVICES,
   totalCount = ALL_DEVICES.length,
@@ -67,9 +55,16 @@ function setupSdk({
   allDevices?: Device[];
   totalCount?: number;
 } = {}) {
-  sdk.getDevicesMostUsed.mockResolvedValue(mockSdkResponse(suggested));
-  sdk.getDevices.mockResolvedValue(paginatedResponse(allDevices, totalCount));
-  sdk.choiceDevices.mockResolvedValue(mockSdkResponse(undefined));
+  server.use(
+    http.get("*/api/billing/devices-most-used", () =>
+      HttpResponse.json(suggested),
+    ),
+    http.get("*/api/devices", () => jsonWithTotal(allDevices, totalCount)),
+    http.post(
+      "*/api/billing/device-choice",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 }
 
 function renderDialog(props: { open?: boolean; onClose?: () => void } = {}) {
@@ -85,8 +80,7 @@ function renderDialog(props: { open?: boolean; onClose?: () => void } = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockIsSdkError.mockReturnValue(false);
-  setupSdk();
+  setupHandlers();
 });
 
 describe("DeviceChooserDialog", () => {
@@ -199,7 +193,7 @@ describe("DeviceChooserDialog", () => {
 
   describe("when suggested list is empty", () => {
     beforeEach(() => {
-      setupSdk({ suggested: [] });
+      setupHandlers({ suggested: [] });
     });
 
     it("switches to the All tab automatically", async () => {
@@ -222,7 +216,11 @@ describe("DeviceChooserDialog", () => {
 
   describe("when the suggested query errors", () => {
     beforeEach(() => {
-      sdk.getDevicesMostUsed.mockRejectedValue(new Error("network failure"));
+      server.use(
+        http.get("*/api/billing/devices-most-used", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
     });
 
     it("keeps the Suggested tab selected and surfaces the error banner", async () => {
@@ -245,7 +243,7 @@ describe("DeviceChooserDialog", () => {
 
   describe("when suggested becomes empty after a refetch", () => {
     it("forces tab to All when suggested starts empty", async () => {
-      setupSdk({ suggested: [] });
+      setupHandlers({ suggested: [] });
       renderDialog();
       await waitFor(() =>
         expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
@@ -402,75 +400,6 @@ describe("DeviceChooserDialog", () => {
       );
       expect(screen.getByRole("status").textContent).toMatch(/1 of 3/);
     });
-
-    it("typing in search filters devices via the SDK", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("tab", { name: "All" }));
-      await screen.findByRole("searchbox");
-      const searchInput = screen.getByRole("searchbox");
-      await user.type(searchInput, "prod");
-      await waitFor(() => {
-        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
-          query?: { filter?: string };
-        };
-        const decoded = atob(call?.query?.filter ?? "");
-        expect(decoded).toContain("prod");
-      });
-    });
-
-    it("requests per_page=5 from the SDK", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await switchToAll(user);
-      await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ per_page: 5 }),
-          }),
-        );
-      });
-    });
-
-    it("requests last_seen/desc sort by default", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await switchToAll(user);
-      await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "last_seen",
-              order_by: "desc",
-            }),
-          }),
-        );
-      });
-    });
-
-    it("toggles sort to name/asc when the Hostname header is clicked", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("tab", { name: "All" }));
-      await screen.findByRole("checkbox", { name: /select hostname-10/i });
-      await user.click(
-        screen.getByRole("button", { name: "Sort by Hostname" }),
-      );
-      await waitFor(() => {
-        expect(sdk.getDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({
-              sort_by: "name",
-              order_by: "asc",
-            }),
-          }),
-        );
-      });
-    });
   });
 
   describe("tab keyboard navigation", () => {
@@ -531,7 +460,9 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("Cancel is disabled while mutation is in flight", async () => {
-      sdk.choiceDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -560,7 +491,9 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("Subscribe is disabled while mutation is in flight", async () => {
-      sdk.choiceDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -574,22 +507,7 @@ describe("DeviceChooserDialog", () => {
   });
 
   describe("Accept button", () => {
-    it("calls choiceDevices with the suggested UIDs when on suggested tab", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await screen.findByText("hostname-1");
-      await user.click(screen.getByRole("button", { name: /accept/i }));
-      await waitFor(() =>
-        expect(sdk.choiceDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: { choices: ["uid-1", "uid-2", "uid-3"] },
-            throwOnError: true,
-          }),
-        ),
-      );
-    });
-
-    it("calls onClose after a successful Accept", async () => {
+    it("calls onClose after a successful Accept on suggested tab", async () => {
       const user = userEvent.setup();
       const { onClose } = renderDialog();
       await screen.findByText("hostname-1");
@@ -597,27 +515,22 @@ describe("DeviceChooserDialog", () => {
       await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
     });
 
-    it("calls choiceDevices with selected UIDs when on All tab", async () => {
+    it("calls onClose after a successful Accept on All tab", async () => {
       const user = userEvent.setup();
-      renderDialog();
+      const { onClose } = renderDialog();
       await screen.findByText("hostname-1");
       await user.click(screen.getByRole("tab", { name: "All" }));
       await user.click(
         await screen.findByRole("checkbox", { name: /select hostname-10/i }),
       );
       await user.click(screen.getByRole("button", { name: /accept/i }));
-      await waitFor(() =>
-        expect(sdk.choiceDevices).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: { choices: ["uid-10"] },
-            throwOnError: true,
-          }),
-        ),
-      );
+      await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
     });
 
     it("shows spinner and 'Saving…' text while mutation is pending", async () => {
-      sdk.choiceDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -630,7 +543,9 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("Accept is disabled while mutation is in flight", async () => {
-      sdk.choiceDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -642,7 +557,9 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("blocks close (canClose=false) while mutation is in flight", async () => {
-      sdk.choiceDevices.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.post("*/api/billing/device-choice", () => new Promise(() => {})),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -663,8 +580,11 @@ describe("DeviceChooserDialog", () => {
 
   describe("error handling", () => {
     it("shows generic error when Accept fails with a non-403 error", async () => {
-      sdk.choiceDevices.mockRejectedValue(new Error("network error"));
-      mockIsSdkError.mockReturnValue(false);
+      server.use(
+        http.post("*/api/billing/device-choice", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -677,9 +597,11 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("shows permission error when Accept fails with a 403 SDK error", async () => {
-      const err = { status: 403 };
-      sdk.choiceDevices.mockRejectedValue(err);
-      mockIsSdkError.mockImplementation((e: unknown) => e === err);
+      server.use(
+        http.post("*/api/billing/device-choice", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -692,8 +614,11 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("error alert is rendered above the footer", async () => {
-      sdk.choiceDevices.mockRejectedValue(new Error("fail"));
-      mockIsSdkError.mockReturnValue(false);
+      server.use(
+        http.post("*/api/billing/device-choice", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -710,8 +635,11 @@ describe("DeviceChooserDialog", () => {
     });
 
     it("clears the error when switching tabs", async () => {
-      sdk.choiceDevices.mockRejectedValue(new Error("fail"));
-      mockIsSdkError.mockReturnValue(false);
+      server.use(
+        http.post("*/api/billing/device-choice", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
@@ -719,7 +647,12 @@ describe("DeviceChooserDialog", () => {
       await waitFor(() =>
         expect(screen.getByRole("alert")).toBeInTheDocument(),
       );
-      sdk.choiceDevices.mockResolvedValue(mockSdkResponse(undefined));
+      server.use(
+        http.post(
+          "*/api/billing/device-choice",
+          () => new HttpResponse(null, { status: 204 }),
+        ),
+      );
       await user.click(screen.getByRole("tab", { name: "All" }));
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });

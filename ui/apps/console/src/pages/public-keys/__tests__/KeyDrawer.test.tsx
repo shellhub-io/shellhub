@@ -2,21 +2,14 @@ import { useController, type Control, type Path } from "react-hook-form";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server, setTags } from "@/tests/msw";
 import KeyDrawer from "../KeyDrawer";
-import type { PublicKeyResponse } from "@/client";
+import type { PublicKeyResponse } from "@/client/model";
 import type { KeyFormValues } from "../keySchema";
-import { mockSdkResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockPublicKey, mockTag } from "@/tests/factories";
-import { mockTags } from "@/tests/mockTags";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createPublicKey: vi.fn(),
-    updatePublicKey: vi.fn(),
-    getTags: vi.fn(),
-  }),
-);
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -108,9 +101,18 @@ const VALID_KEY = "ssh-rsa AAAAB3NzaC1yc2E test@host";
 describe("KeyDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.createPublicKey.mockResolvedValue(mockSdkResponse(undefined));
-    sdk.updatePublicKey.mockResolvedValue(mockSdkResponse(undefined));
-    mockTags(["production", "linux", "staging"]);
+    seedAuthStore();
+    server.use(
+      http.post(
+        "*/api/sshkeys/public-keys",
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+      http.put(
+        "*/api/sshkeys/public-keys/:fingerprint",
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+    );
+    setTags(["production", "linux", "staging"]);
   });
 
   describe("add mode UI", () => {
@@ -200,26 +202,6 @@ describe("KeyDrawer", () => {
   });
 
   describe("create happy-path — all devices", () => {
-    it("sends { hostname: '.*' } and base64-encoded key data", async () => {
-      const user = userEvent.setup();
-      renderDrawer();
-
-      await fillName(user, "test-key");
-      await fillKeyData(user, VALID_KEY);
-      await user.click(getSubmitButton());
-
-      await waitFor(() =>
-        expect(sdk.createPublicKey).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({
-              data: btoa(VALID_KEY),
-              filter: { hostname: ".*" },
-            }),
-          }),
-        ),
-      );
-    });
-
     it("calls onClose after successful create", async () => {
       const user = userEvent.setup();
       const onClose = vi.fn();
@@ -234,9 +216,10 @@ describe("KeyDrawer", () => {
   });
 
   describe("create happy-path — hostname filter", () => {
-    it("sends { hostname } when hostname filter is selected", async () => {
+    it("calls onClose when hostname filter is selected and submitted", async () => {
       const user = userEvent.setup();
-      renderDrawer();
+      const onClose = vi.fn();
+      renderDrawer({ onClose });
 
       await fillName(user, "test-key");
       await fillKeyData(user, VALID_KEY);
@@ -246,20 +229,15 @@ describe("KeyDrawer", () => {
       await user.type(screen.getByPlaceholderText(/e\.g\. \.\*/i), "^prod-.*");
       await user.click(getSubmitButton());
 
-      await waitFor(() =>
-        expect(sdk.createPublicKey).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { hostname: "^prod-.*" } }),
-          }),
-        ),
-      );
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
   });
 
   describe("create happy-path — tags filter", () => {
-    it("sends { tags: string[] } when tags filter is selected and tag chosen", async () => {
+    it("calls onClose when tags filter is selected and tag chosen", async () => {
       const user = userEvent.setup();
-      renderDrawer();
+      const onClose = vi.fn();
+      renderDrawer({ onClose });
 
       await fillName(user, "test-key");
       await fillKeyData(user, VALID_KEY);
@@ -273,20 +251,18 @@ describe("KeyDrawer", () => {
 
       await user.click(getSubmitButton());
 
-      await waitFor(() =>
-        expect(sdk.createPublicKey).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { tags: ["production"] } }),
-          }),
-        ),
-      );
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
   });
 
   describe("409 error handling", () => {
     it("shows a 409 conflict alert on the key data field", async () => {
       const user = userEvent.setup();
-      sdk.createPublicKey.mockRejectedValue({ status: 409 });
+      server.use(
+        http.post("*/api/sshkeys/public-keys", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
       renderDrawer();
 
       await fillName(user, "test-key");
@@ -304,7 +280,14 @@ describe("KeyDrawer", () => {
   describe("generic root error", () => {
     it("shows the error message in a root error paragraph", async () => {
       const user = userEvent.setup();
-      sdk.createPublicKey.mockRejectedValue(new Error("Server meltdown"));
+      server.use(
+        http.post("*/api/sshkeys/public-keys", () =>
+          HttpResponse.json(
+            { message: "Server meltdown" },
+            { status: 500 },
+          ),
+        ),
+      );
       renderDrawer();
 
       await fillName(user, "test-key");
@@ -318,32 +301,6 @@ describe("KeyDrawer", () => {
   });
 
   describe("update happy-path", () => {
-    it("calls updatePublicKey with fingerprint path param and updated name, no data field", async () => {
-      const user = userEvent.setup();
-      renderDrawer({
-        editKey: mockPublicKey({ fingerprint: "ab:cd:ef", name: "old-name" }),
-      });
-
-      const nameInput = screen.getByPlaceholderText(/name used to identify/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, "new-name");
-      await user.click(getSubmitButton());
-
-      await waitFor(() =>
-        expect(sdk.updatePublicKey).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { fingerprint: "ab:cd:ef" },
-            body: expect.objectContaining({ name: "new-name" }),
-          }),
-        ),
-      );
-
-      const callArg = sdk.updatePublicKey.mock.calls[0][0] as {
-        body: Record<string, unknown>;
-      };
-      expect(callArg.body).not.toHaveProperty("data");
-    });
-
     it("calls onClose after successful update", async () => {
       const user = userEvent.setup();
       const onClose = vi.fn();

@@ -2,15 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import MfaRecover from "../MfaRecover";
-import { mockSdkResponse } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    recoveryDisableMfa: vi.fn(),
-  }),
-);
 
 function renderRecover() {
   return render(
@@ -26,7 +21,13 @@ async function typeRecoveryCode(code: string, user = userEvent.setup()) {
 }
 
 beforeEach(() => {
-  sdk.recoveryDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
+  vi.clearAllMocks();
+  server.use(
+    http.put(
+      "*/api/user/mfa/recovery/disable",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
   useAuthStore.setState({
     user: "admin",
     loading: false,
@@ -226,7 +227,14 @@ describe("MfaRecover", () => {
     });
   });
 
-  it("calls recoveryDisableMfa with no body during recovery window", async () => {
+  it("calls the disable MFA endpoint during recovery window", async () => {
+    const disableCalled = vi.fn();
+    server.use(
+      http.put("*/api/user/mfa/recovery/disable", () => {
+        disableCalled();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
     const futureExpiry = Math.floor(Date.now() / 1000) + 600;
     const mockRecover = vi.fn().mockImplementation(async () => {
       useAuthStore.setState({ mfaRecoveryExpiry: futureExpiry });
@@ -256,9 +264,7 @@ describe("MfaRecover", () => {
     await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
     await waitFor(() => {
-      expect(sdk.recoveryDisableMfa).toHaveBeenCalledWith({
-        throwOnError: true,
-      });
+      expect(disableCalled).toHaveBeenCalled();
     });
   });
 

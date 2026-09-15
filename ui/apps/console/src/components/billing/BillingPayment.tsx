@@ -25,10 +25,10 @@ import { useAuthStore } from "@/stores/authStore";
 import {
   useAttachPaymentMethod,
   useCreateCustomer,
-  useCustomer,
   useDetachPaymentMethod,
+  useGetCustomer,
   useSetDefaultPaymentMethod,
-} from "@/hooks/useBilling";
+} from "@/client/api";
 import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
@@ -104,10 +104,10 @@ function BillingPaymentInner({
   const { namespace, refetch: refetchNamespace } = useNamespace(tenantId ?? "");
   const hasCustomer = !!namespace?.billing?.customer_id;
   const {
-    customer,
+    data: customer,
     isLoading: customerLoading,
     refetch: refetchCustomer,
-  } = useCustomer(hasCustomer);
+  } = useGetCustomer({ query: { enabled: hasCustomer } });
 
   const createCustomer = useCreateCustomer();
   const attachPm = useAttachPaymentMethod();
@@ -133,7 +133,7 @@ function BillingPaymentInner({
         const fresh = await refetchNamespace();
         if (cancelled) return;
         if (!fresh.data?.billing?.customer_id) {
-          await createCustomer.mutateAsync({});
+          await createCustomer.mutateAsync();
           if (cancelled) return;
           await refetchNamespace();
         }
@@ -188,7 +188,7 @@ function BillingPaymentInner({
         setError("Unable to create payment method. Please try again.");
         return;
       }
-      await attachPm.mutateAsync({ body: { id: paymentMethod.id } });
+      await attachPm.mutateAsync({ data: { id: paymentMethod.id } });
       await refetchCustomer();
       card.clear();
       setIsAddingCard(false);
@@ -211,7 +211,7 @@ function BillingPaymentInner({
   const handleSetDefault = async (id: string) => {
     setError("");
     try {
-      await setDefaultPm.mutateAsync({ body: { id } });
+      await setDefaultPm.mutateAsync({ data: { id } });
       await refetchCustomer();
     } catch {
       setError("Failed to update default payment method.");
@@ -221,7 +221,7 @@ function BillingPaymentInner({
   const handleDetach = async (id: string) => {
     setError("");
     try {
-      await detachPm.mutateAsync({ body: { id } });
+      await detachPm.mutateAsync({ data: { id } });
       await refetchCustomer();
     } catch {
       setError("Failed to remove payment method.");

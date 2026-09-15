@@ -1,6 +1,10 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
+import { useGetContainers } from "@/client/api";
+import type { GetContainersParams } from "@/client/model";
+import { totalCount } from "@/api/pagination";
+import { normalizeDeviceTags, type TaggedDevice as NormalizedContainer } from "@/utils/deviceTags";
+import { toBase64Json } from "@/utils/encoding";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
@@ -17,10 +21,8 @@ import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
 import TagsPopover from "@/components/common/TagsPopover";
-import {
-  useAddContainerTag,
-  useRemoveContainerTag,
-} from "@/hooks/useContainerMutations";
+import { usePullTagFromContainer } from "@/client/api";
+import { useAddContainerTag } from "@/hooks/useContainerMutations";
 import { useActionDialog } from "@/hooks/useActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
 import ActionDialog from "@/components/common/ActionDialog";
@@ -97,7 +99,7 @@ export default function Containers() {
   );
 
   const addContainerTag = useAddContainerTag();
-  const removeContainerTag = useRemoveContainerTag();
+  const removeContainerTag = usePullTagFromContainer();
   const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
   const runContainerAction = useContainerActionRunner();
@@ -113,21 +115,32 @@ export default function Containers() {
     onSortChange: () => setPage(1),
   });
 
-  const { containers, totalCount, isLoading, error, refetch } = useContainers({
+  const requestParams: GetContainersParams = {
     page: params.page,
-    perPage: PER_PAGE,
-    status: params.status,
-    search: debouncedSearch,
-    filterTags: params.tags,
-    sortBy,
-    orderBy,
-  });
+    per_page: PER_PAGE,
+    sort_by: sortBy,
+    order_by: orderBy,
+  };
+  if (params.status) requestParams.status = params.status;
+  if (debouncedSearch || params.tags.length > 0) {
+    const filters: Record<string, unknown>[] = [];
+    if (debouncedSearch) {
+      filters.push({ type: "property", params: { name: "name", operator: "contains", value: debouncedSearch } });
+    }
+    if (params.tags.length > 0) {
+      filters.push({ type: "property", params: { name: "tags.name", operator: "contains", value: params.tags } });
+    }
+    requestParams.filter = toBase64Json(filters);
+  }
+  const { data: rawContainers = [], isLoading, error, refetch } = useGetContainers(requestParams);
+  const containers = rawContainers.map(normalizeDeviceTags);
+  const total = totalCount(rawContainers);
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
 
-  const totalPages = pageCount(totalCount);
+  const totalPages = pageCount(total);
   const nsName = currentNamespace?.name ?? "";
 
   const handleStatusChange = (newStatus: ValidStatus) => {
@@ -151,8 +164,7 @@ export default function Containers() {
     setArrayFilter("tags", []);
   };
 
-  const columns = useMemo<Column<NormalizedContainer>[]>(() => {
-    const baseColumns: Column<NormalizedContainer>[] = [
+  const baseColumns: Column<NormalizedContainer>[] = [
       {
         key: "name",
         header: "Hostname",
@@ -196,10 +208,12 @@ export default function Containers() {
           </span>
         ),
       },
-    ];
+  ];
 
-    if (params.status === "accepted") {
-      return [
+  let columns: Column<NormalizedContainer>[];
+
+  if (params.status === "accepted") {
+    columns = [
         {
           key: "online",
           header: "",
@@ -280,11 +294,9 @@ export default function Containers() {
               </span>
             ),
         },
-      ];
-    }
-
-    if (params.status === "pending") {
-      return [
+    ];
+  } else if (params.status === "pending") {
+    columns = [
         ...baseColumns,
         {
           key: "actions",
@@ -319,10 +331,9 @@ export default function Containers() {
             </div>
           ),
         },
-      ];
-    }
-
-    return [
+    ];
+  } else {
+    columns = [
       ...baseColumns,
       {
         key: "actions",
@@ -358,14 +369,7 @@ export default function Containers() {
         ),
       },
     ];
-  }, [
-    params.status,
-    nsName,
-    addFilterTag,
-    requestContainerAction,
-    addContainerTag.mutateAsync,
-    removeContainerTag.mutateAsync,
-  ]);
+  }
 
   return (
     <div>
@@ -472,7 +476,7 @@ export default function Containers() {
         loadingMessage="Loading containers..."
         page={params.page}
         totalPages={totalPages}
-        totalCount={totalCount}
+        totalCount={total}
         itemLabel="container"
         onPageChange={setPage}
         onRowClick={(container) =>
