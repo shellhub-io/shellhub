@@ -15,12 +15,14 @@ func Handler(next func(*Context) error) echo.HandlerFunc {
 			return echo.ErrInternalServerError
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx)
-
-		c.SetRequest(c.Request().WithContext(ctx))
+		stash(c, gCtx)
 
 		return next(gCtx)
 	}
+}
+
+func stash(c *echo.Context, gCtx *Context) {
+	c.SetRequest(c.Request().WithContext(context.WithValue(c.Request().Context(), "ctx", gCtx)))
 }
 
 // Middleware adapts echo middleware so it runs with a gateway [Context] in place.

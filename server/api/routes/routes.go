@@ -118,7 +118,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	}
 
 	publicAPI := router.Group("/api")
-	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+	publicAPI.GET(HealthCheckURL,
+		gateway.None(handler.EvaluateHealth,
+			gateway.Unbounded("the health check reports on the instance, which belongs to no namespace"),
+			gateway.Anonymous("the health check is what a load balancer asks before any credential exists")))
 
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
@@ -152,8 +155,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
 	publicAPI.DELETE(URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
 
-	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
+	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.List(handler.GetDeviceList)))
+	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.One(handler.GetDevice)))
 	publicAPI.GET(ResolveDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.ResolveDevice)))
 	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
 	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))
@@ -253,7 +256,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	router.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
-		"/api/containers?*": "/api/devices?$1&connector=true",
+		"/api/containers?*": "/api/devices?connector=true&$1",
 		"/api/containers/*": "/api/devices/$1",
 	}))
 
