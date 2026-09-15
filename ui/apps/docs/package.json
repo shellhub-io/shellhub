@@ -25,10 +25,10 @@
     "@astrojs/sitemap": "^3.7.4",
     "@shellhub/design-system": "*",
     "asciinema-player": "^3.17.0",
-    "astro": "^7.2.10"
+    "astro": "^7.3.1"
   },
   "devDependencies": {
-    "@redocly/cli": "^2.31.5",
+    "@redocly/cli": "^2.51.2",
     "@types/jsdom": "^30.0.0",
     "cspell": "^10.3.1",
     "mdx2vast": "^0.5.0",
