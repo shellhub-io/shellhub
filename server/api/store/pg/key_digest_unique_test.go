@@ -40,29 +40,41 @@ func seedKeyDigest(t *testing.T, ctx context.Context, provider *pgprovider.Provi
 	t.Helper()
 
 	st := provider.Store()
+	db := provider.DB()
 	f := &keyDigestFixture{provider: provider, st: st, users: map[string]string{}}
 
-	mk := func(name string) string {
-		owner, err := st.UserCreate(ctx, &models.User{
-			Origin: models.UserOriginLocal, Status: models.UserStatusConfirmed, MaxNamespaces: -1,
-			UserData: models.UserData{Name: name, Email: name + "@example.com", Username: name},
-			Password: models.UserPassword{Hash: "hash"},
-		})
-		require.NoError(t, err)
+	const (
+		victimOwner    = "11111111-1111-4111-8111-111111111111"
+		victimTenant   = "22222222-2222-4222-8222-222222222222"
+		attackerOwner  = "33333333-3333-4333-8333-333333333333"
+		attackerTenant = "44444444-4444-4444-8444-444444444444"
+	)
 
-		tenant, err := st.NamespaceCreate(ctx, &models.Namespace{
-			Name: name, Owner: owner, MaxDevices: -1,
-			Members:  []models.Member{{ID: owner, Role: authorizer.RoleOwner}},
-			Settings: &models.NamespaceSettings{},
-		})
-		require.NoError(t, err)
+	mk := func(name, owner, tenant string) {
+		t.Helper()
+
+		execSQL(t, ctx, db, `
+			INSERT INTO users
+			    (id, created_at, updated_at, origin, status, name, username, email,
+			     password_digest, auth_methods, namespace_ownership_limit)
+			VALUES (?, now(), now(), 'local', 'confirmed', ?, ?, ?,
+			        'hash', ARRAY['local']::user_auth_method[], -1)
+		`, owner, name, name, name+"@example.com")
+
+		execSQL(t, ctx, db, `
+			INSERT INTO namespaces
+			    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
+			VALUES (?, now(), now(), 'personal', ?, ?, -1, false)
+		`, tenant, name, owner)
+
 		f.users[tenant] = owner
-
-		return tenant
 	}
 
-	f.victim = mk("victimns")
-	f.attacker = mk("attackerns")
+	mk("victimns", victimOwner, victimTenant)
+	mk("attackerns", attackerOwner, attackerTenant)
+
+	f.victim = victimTenant
+	f.attacker = attackerTenant
 
 	return f
 }
