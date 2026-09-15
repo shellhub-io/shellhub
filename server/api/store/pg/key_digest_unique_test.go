@@ -53,19 +53,8 @@ func seedKeyDigest(t *testing.T, ctx context.Context, provider *pgprovider.Provi
 	mk := func(name, owner, tenant string) {
 		t.Helper()
 
-		execSQL(t, ctx, db, `
-			INSERT INTO users
-			    (id, created_at, updated_at, origin, status, name, username, email,
-			     password_digest, auth_methods, namespace_ownership_limit)
-			VALUES (?, now(), now(), 'local', 'confirmed', ?, ?, ?,
-			        'hash', ARRAY['local']::user_auth_method[], -1)
-		`, owner, name, name, name+"@example.com")
-
-		execSQL(t, ctx, db, `
-			INSERT INTO namespaces
-			    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
-			VALUES (?, now(), now(), 'personal', ?, ?, -1, false)
-		`, tenant, name, owner)
+		seedUser(t, ctx, db, owner, name)
+		seedNamespace(t, ctx, db, tenant, name, owner, fixtureTime)
 
 		f.users[tenant] = owner
 	}

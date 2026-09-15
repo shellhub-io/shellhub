@@ -22,6 +22,30 @@ func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string, args .
 	require.NoError(t, err, "execSQL failed:\n%s", query)
 }
 
+var fixtureTime = time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+func seedUser(t *testing.T, ctx context.Context, db *bun.DB, id, name string) {
+	t.Helper()
+
+	execSQL(t, ctx, db, `
+		INSERT INTO users
+		    (id, created_at, updated_at, origin, status, name, username, email,
+		     password_digest, auth_methods, namespace_ownership_limit)
+		VALUES (?, now(), now(), 'local', 'confirmed', ?, ?, ?,
+		        'hash', ARRAY['local']::user_auth_method[], -1)
+	`, id, name, name, name+"@example.com")
+}
+
+func seedNamespace(t *testing.T, ctx context.Context, db *bun.DB, id, name, ownerID string, createdAt time.Time) {
+	t.Helper()
+
+	execSQL(t, ctx, db, `
+		INSERT INTO namespaces
+		    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
+		VALUES (?, ?, ?, 'personal', ?, ?, -1, false)
+	`, id, createdAt, createdAt, name, ownerID)
+}
+
 // TestMigration004Dedup verifies that the dedup step (a) of migration 004 renames
 // duplicate namespace rows non-destructively, keeping the oldest (by created_at,
 // ties broken by id ASC) unchanged and renaming every other duplicate so that all
@@ -41,26 +65,9 @@ func TestMigration004Dedup(t *testing.T) {
 
 	const ownerID = "11111111-1111-4111-8111-111111111111"
 
-	execSQL(t, ctx, db, `
-		INSERT INTO users
-		    (id, created_at, updated_at, origin, status, name, username, email,
-		     password_digest, auth_methods, namespace_ownership_limit)
-		VALUES ('`+ownerID+`', now(), now(), 'local', 'confirmed', 'Owner', 'nsowner',
-		        'nsowner@example.com', 'x', ARRAY['local']::user_auth_method[], 10)
-	`)
+	seedUser(t, ctx, db, ownerID, "nsowner")
 
 	base := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
-
-	insertNS := func(id, name string, createdAt time.Time) {
-		t.Helper()
-
-		ts := createdAt.UTC().Format("2006-01-02 15:04:05Z")
-		execSQL(t, ctx, db, fmt.Sprintf(`
-			INSERT INTO namespaces
-			    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
-			VALUES ('%s', '%s', '%s', 'personal', '%s', '%s', -1, false)
-		`, id, ts, ts, name, ownerID))
-	}
 
 	const (
 		nsOldest  = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" // oldest → keeps "myapp"
@@ -69,10 +76,10 @@ func TestMigration004Dedup(t *testing.T) {
 		nsControl = "dddddddd-dddd-4ddd-8ddd-dddddddddddd" // unrelated control
 	)
 
-	insertNS(nsOldest, "myapp", base)
-	insertNS(nsMiddle, "myapp", base.Add(time.Hour))
-	insertNS(nsMixed, "MyApp", base.Add(2*time.Hour))
-	insertNS(nsControl, "otherapp", base.Add(3*time.Hour))
+	seedNamespace(t, ctx, db, nsOldest, "myapp", ownerID, base)
+	seedNamespace(t, ctx, db, nsMiddle, "myapp", ownerID, base.Add(time.Hour))
+	seedNamespace(t, ctx, db, nsMixed, "MyApp", ownerID, base.Add(2*time.Hour))
+	seedNamespace(t, ctx, db, nsControl, "otherapp", ownerID, base.Add(3*time.Hour))
 
 	require.NoError(t, provider.ApplyNext(ctx), "004 must apply cleanly")
 
@@ -179,16 +186,9 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 
 	const ownerID = "22222222-2222-4222-8222-222222222222"
 
-	execSQL(t, ctx, db, `
-		INSERT INTO users
-		    (id, created_at, updated_at, origin, status, name, username, email,
-		     password_digest, auth_methods, namespace_ownership_limit)
-		VALUES ('`+ownerID+`', now(), now(), 'local', 'confirmed', 'Tie Owner', 'tieowner',
-		        'tieowner@example.com', 'x', ARRAY['local']::user_auth_method[], 10)
-	`)
+	seedUser(t, ctx, db, ownerID, "tieowner")
 
 	sameTime := time.Date(2024, 6, 1, 12, 0, 0, 0, time.UTC)
-	ts := sameTime.UTC().Format("2006-01-02 15:04:05Z")
 
 	const (
 		idSmall = "aaaaaaaa-0000-4000-8000-000000000000"
@@ -199,11 +199,7 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 		{idSmall, "tieapp"},
 		{idLarge, "tieapp"},
 	} {
-		execSQL(t, ctx, db, fmt.Sprintf(`
-			INSERT INTO namespaces
-			    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
-			VALUES ('%s', '%s', '%s', 'personal', '%s', '%s', -1, false)
-		`, ns.id, ts, ts, ns.name, ownerID))
+		seedNamespace(t, ctx, db, ns.id, ns.name, ownerID, sameTime)
 	}
 
 	require.NoError(t, provider.ApplyNext(ctx), "004 must apply cleanly")
@@ -257,13 +253,7 @@ func TestMigration004AtomicRollback(t *testing.T) {
 
 	const ownerID = "33333333-3333-4333-8333-333333333333"
 
-	execSQL(t, ctx, db, `
-		INSERT INTO users
-		    (id, created_at, updated_at, origin, status, name, username, email,
-		     password_digest, auth_methods, namespace_ownership_limit)
-		VALUES ('`+ownerID+`', now(), now(), 'local', 'confirmed', 'Rollback Owner', 'rollbackowner',
-		        'rollbackowner@example.com', 'x', ARRAY['local']::user_auth_method[], 10)
-	`)
+	seedUser(t, ctx, db, ownerID, "rollbackowner")
 
 	base := time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
 
@@ -277,20 +267,9 @@ func TestMigration004AtomicRollback(t *testing.T) {
 		controlName = "rollapp-cccccccc" // pre-seeded to collide with step a's rename target
 	)
 
-	insertRollbackNS := func(id, name string, createdAt time.Time) {
-		t.Helper()
-
-		ts := createdAt.UTC().Format("2006-01-02 15:04:05Z")
-		execSQL(t, ctx, db, fmt.Sprintf(`
-			INSERT INTO namespaces
-			    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
-			VALUES ('%s', '%s', '%s', 'personal', '%s', '%s', -1, false)
-		`, id, ts, ts, name, ownerID))
-	}
-
-	insertRollbackNS(winnerID, winnerName, base)
-	insertRollbackNS(loserID, loserName, base.Add(time.Hour))
-	insertRollbackNS(controlID, controlName, base.Add(2*time.Hour))
+	seedNamespace(t, ctx, db, winnerID, winnerName, ownerID, base)
+	seedNamespace(t, ctx, db, loserID, loserName, ownerID, base.Add(time.Hour))
+	seedNamespace(t, ctx, db, controlID, controlName, ownerID, base.Add(2*time.Hour))
 
 	applyErr := provider.ApplyNext(ctx)
 	require.Error(t, applyErr, "the 004 migration must fail when a rename target already exists")

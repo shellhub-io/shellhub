@@ -30,19 +30,8 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 		legacyKey = "3333333333333333333333333333333333333333333333333333333333333333"
 	)
 
-	execSQL(t, ctx, db, `
-		INSERT INTO users
-		    (id, created_at, updated_at, origin, status, name, username, email,
-		     password_digest, auth_methods, namespace_ownership_limit)
-		VALUES (?, now(), now(), 'local', 'confirmed', 'owner', 'owner',
-		        'owner@example.com', 'hash', ARRAY['local']::user_auth_method[], -1)
-	`, ownerID)
-
-	execSQL(t, ctx, db, `
-		INSERT INTO namespaces
-		    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)
-		VALUES (?, now(), now(), 'personal', 'ns', ?, -1, false)
-	`, tenant, ownerID)
+	seedUser(t, ctx, db, ownerID, "owner")
+	seedNamespace(t, ctx, db, tenant, "ns", ownerID, fixtureTime)
 
 	execSQL(t, ctx, db, `
 		INSERT INTO install_keys
