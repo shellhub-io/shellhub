@@ -26,8 +26,8 @@ export const isValidRole = (role: string | null): role is Role =>
   role !== null && Object.prototype.hasOwnProperty.call(roleLevels, role);
 
 const permissions = {
-  "device:connect": RoleLevel.OBSERVER,
   "device:details": RoleLevel.OBSERVER,
+  "device:connect": RoleLevel.OPERATOR,
   "device:add": RoleLevel.OPERATOR,
   "device:accept": RoleLevel.OPERATOR,
   "device:reject": RoleLevel.OPERATOR,

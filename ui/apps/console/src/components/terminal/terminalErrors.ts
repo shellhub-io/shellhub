@@ -139,6 +139,18 @@ export const HTTP_CONNECT_ERROR: TerminalError = {
 };
 
 /**
+ * The account's namespace role does not allow opening terminal sessions. Retrying is not
+ * offered, since nothing the user does in the terminal changes the answer.
+ */
+export const ACCESS_DENIED_ERROR: TerminalError = {
+  title: "Your role cannot connect",
+  message: "Your role does not allow connecting to devices.",
+  reconnect: false,
+  hints: ["Ask a namespace administrator for a role with device access."],
+  links: [],
+};
+
+/**
  * The session ended cleanly. Not an error to retry — the shell exited.
  */
 export const WS_CLOSE_ERROR: TerminalError = {

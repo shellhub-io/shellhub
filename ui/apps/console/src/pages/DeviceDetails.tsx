@@ -65,6 +65,7 @@ export default function DeviceDetails() {
   const [connectOpen, setConnectOpen] = useState(false);
   const renameMutation = useRenameDevice();
   const canRename = useHasPermission("device:rename");
+  const canConnect = useHasPermission("device:connect");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useActionDialog({
@@ -74,10 +75,10 @@ export default function DeviceDetails() {
   });
   const runDeviceAction = useDeviceActionRunner();
 
-  const shouldAutoConnect =
-    searchParams.get("connect") === "true" &&
-    device?.online &&
-    !existingSession;
+  const wantsAutoConnect =
+    canConnect && searchParams.get("connect") === "true" && device?.online;
+
+  const shouldAutoConnect = wantsAutoConnect && !existingSession;
 
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
@@ -89,14 +90,10 @@ export default function DeviceDetails() {
   }
 
   useEffect(() => {
-    if (
-      searchParams.get("connect") === "true" &&
-      device?.online &&
-      existingSession
-    ) {
+    if (wantsAutoConnect && existingSession) {
       restoreTerminal(existingSession.id);
     }
-  }, [searchParams, device, existingSession, restoreTerminal]);
+  }, [wantsAutoConnect, existingSession, restoreTerminal]);
 
   if (isLoading) {
     return <PageLoader label="Loading device details" />;

@@ -16,8 +16,14 @@ describe("useHasPermission", () => {
 
   it("returns true for observer on observer-level action", () => {
     useAuthStore.setState({ role: "observer" });
-    const { result } = renderHook(() => useHasPermission("device:connect"));
+    const { result } = renderHook(() => useHasPermission("device:details"));
     expect(result.current).toBe(true);
+  });
+
+  it("returns false for observer on device:connect", () => {
+    useAuthStore.setState({ role: "observer" });
+    const { result } = renderHook(() => useHasPermission("device:connect"));
+    expect(result.current).toBe(false);
   });
 
   it("returns false for observer on operator-level action", () => {
@@ -40,15 +46,21 @@ describe("useHasPermission", () => {
 
   it("returns true for owner on all actions", () => {
     useAuthStore.setState({ role: "owner" });
-    const { result: r1 } = renderHook(() => useHasPermission("namespace:delete"));
-    const { result: r2 } = renderHook(() => useHasPermission("billing:subscribe"));
+    const { result: r1 } = renderHook(() =>
+      useHasPermission("namespace:delete"),
+    );
+    const { result: r2 } = renderHook(() =>
+      useHasPermission("billing:subscribe"),
+    );
     expect(r1.current).toBe(true);
     expect(r2.current).toBe(true);
   });
 
   it("re-evaluates when role changes in the store", () => {
     useAuthStore.setState({ role: "observer" });
-    const { result, rerender } = renderHook(() => useHasPermission("device:remove"));
+    const { result, rerender } = renderHook(() =>
+      useHasPermission("device:remove"),
+    );
     expect(result.current).toBe(false);
 
     useAuthStore.setState({ role: "administrator" });
