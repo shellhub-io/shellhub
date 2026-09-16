@@ -69,6 +69,42 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     false,
 		},
 		{
+			description: "denies a role without the connect permission before reading any policy",
+			login:       "root",
+			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleObserver), nil).Once()
+			},
+			expectedAllowed: false,
+			expectedReason:  models.ReasonRoleCannotConnect,
+			expectedErr:     false,
+		},
+		{
+			description: "grants a service account although its role holds no permissions",
+			login:       "root",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(&models.Namespace{
+						TenantID: tenantID,
+						Members:  []models.Member{{ID: userID, Role: authorizer.RoleService, Type: models.UserTypeService}},
+					}, nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
 			description: "fails closed when the policy store errors",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
@@ -105,7 +141,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleObserver), nil).Once()
+					Return(namespaceWith(authorizer.RoleOperator), nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -167,7 +203,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleObserver), nil).Once()
+					Return(namespaceWith(authorizer.RoleOperator), nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{

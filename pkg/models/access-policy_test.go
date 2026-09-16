@@ -38,6 +38,11 @@ func TestDecisionMessage(t *testing.T) {
 			expectedMessage: `no policy grants "root" on this device`,
 		},
 		{
+			description:     "a role without the connect permission",
+			decision:        Decision{Reason: ReasonRoleCannotConnect},
+			expectedMessage: "the member's namespace role has no permission to connect to devices",
+		},
+		{
 			description:     "a denial with no reason falls back to a generic sentence",
 			decision:        Decision{},
 			expectedMessage: "denied by the access policies",

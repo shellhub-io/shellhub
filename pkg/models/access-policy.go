@@ -113,6 +113,10 @@ const (
 	// ReasonNoGrant refuses because no allow policy grants the requested login on
 	// the device, leaving default-deny to stand. Carries Login.
 	ReasonNoGrant DenialReason = "no_grant"
+	// ReasonRoleCannotConnect refuses because the member's namespace role does not hold
+	// authorizer.DeviceConnect, which no policy can grant. Service accounts never reach
+	// it: they are exempted by user type before the role is read.
+	ReasonRoleCannotConnect DenialReason = "role_cannot_connect"
 )
 
 // Decision is the outcome of an Access Policy authorization check.
@@ -153,6 +157,8 @@ func (d Decision) Message() string {
 		return fmt.Sprintf("denied: policy %q could not be evaluated", d.PolicyName)
 	case ReasonNoGrant:
 		return fmt.Sprintf("no policy grants %q on this device", d.Login)
+	case ReasonRoleCannotConnect:
+		return "the member's namespace role has no permission to connect to devices"
 	default:
 		return "denied by the access policies"
 	}

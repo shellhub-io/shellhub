@@ -14,7 +14,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// AccessPolicyService answers whether a namespace's Access Policies permit a connection.
+// AccessPolicyService answers whether a principal may connect to a device. The namespace's
+// Access Policies decide which devices and logins, and the member's role decides whether they
+// connect at all.
 type AccessPolicyService interface {
 	// Authorize decides whether the user may reach the device as the given login,
 	// connecting from sourceIP, under the namespace's Access Policies. It is
@@ -22,6 +24,12 @@ type AccessPolicyService interface {
 	// grants it, and any store failure denies. It is the authorization model for
 	// the identity-based SSH access mode; the gateway calls it at the
 	// ephemeral-key mint point.
+	//
+	// A member whose role lacks [authorizer.DeviceConnect] is refused with
+	// [models.ReasonRoleCannotConnect] before any policy is read, since no policy could
+	// grant what the role withholds. Service accounts are exempt by user type:
+	// [authorizer.RoleService] holds no permissions by design, and their access comes
+	// entirely from the policies.
 	Authorize(ctx context.Context, tenantID, userID, deviceUID, login, sourceIP string) (*models.Decision, error)
 
 	// ListAccessPolicies returns every access policy in the namespace.
@@ -65,6 +73,10 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 	member, ok := namespace.FindMember(userID)
 	if !ok {
 		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
+	}
+
+	if member.Type != models.UserTypeService && !member.Role.HasPermission(authorizer.DeviceConnect) {
+		return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
 	}
 
 	policies, _, err := s.store.AccessPolicyList(ctx, sc)
