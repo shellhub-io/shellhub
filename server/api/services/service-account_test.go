@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,4 +87,35 @@ func TestDeleteServiceAccount(t *testing.T) {
 			storeMock.AssertExpectations(t)
 		})
 	}
+}
+
+func TestListServiceAccountsGivesEveryAccountAnIdentityList(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		withKey  = "00000000-0000-0000-0000-00000000000a"
+		without  = "00000000-0000-0000-0000-00000000000b"
+	)
+
+	storeMock := new(storemock.MockStore)
+
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID}, nil).Once()
+	storeMock.On("ServiceAccountList", ctx, tenantID).
+		Return([]models.ServiceAccount{{ID: withKey, Name: "deployer"}, {ID: without, Name: "auditor"}}, 2, nil).Once()
+	storeMock.On("SSHIdentityList", ctx, mock.Anything).
+		Return([]models.SSHIdentity{{ID: "identity-1", PrincipalID: withKey}}, 1, nil).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, nil)
+
+	accounts, err := service.ListServiceAccounts(ctx, &requests.ServiceAccountList{TenantID: tenantID})
+	require.NoError(t, err)
+	require.Len(t, accounts, 2)
+
+	require.Len(t, accounts[0].Identities, 1)
+	require.NotNil(t, accounts[1].Identities, "an account with no identity serializes [], not null")
+	require.Empty(t, accounts[1].Identities)
+
+	storeMock.AssertExpectations(t)
 }

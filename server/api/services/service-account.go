@@ -20,7 +20,9 @@ type ServiceAccountService interface {
 	// key, all atomically. The account never signs in and is not an API principal.
 	CreateServiceAccount(ctx context.Context, req *requests.ServiceAccountCreate) (*models.ServiceAccount, error)
 
-	// ListServiceAccounts returns the namespace's service accounts with their identities.
+	// ListServiceAccounts returns the namespace's service accounts with their identities. An
+	// account holding no key gets an empty list, never nil, so it serializes as [] rather than
+	// null, which is what the schema declares and what the console reads.
 	ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error)
 
 	// DeleteServiceAccount removes a service account. Deleting the account cascades to its
@@ -132,7 +134,10 @@ func (s *service) ListServiceAccounts(ctx context.Context, req *requests.Service
 	}
 
 	for i := range accounts {
-		accounts[i].Identities = byUser[accounts[i].ID]
+		accounts[i].Identities = []models.SSHIdentity{}
+		if held, ok := byUser[accounts[i].ID]; ok {
+			accounts[i].Identities = held
+		}
 	}
 
 	return accounts, nil
