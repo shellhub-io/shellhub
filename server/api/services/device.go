@@ -61,6 +61,9 @@ type DeviceService interface {
 	// ResolveDevice attempts to resolve a device by searching for either its UID or hostname. When both are provided,
 	// UID takes precedence over hostname. The search is scoped to the namespace's tenant ID to limit results.
 	//
+	// One of them must be set. A request naming neither resolves nothing and returns
+	// ErrDeviceInvalid, the same refusal the route answers for it.
+	//
 	// It returns the resolved device and any error encountered.
 	ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error)
 
@@ -169,6 +172,8 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 		device, err = s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
 	case req.Hostname != "":
 		device, err = s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, req.Hostname)
+	default:
+		return nil, NewErrDeviceInvalid(nil, nil)
 	}
 
 	if err != nil {

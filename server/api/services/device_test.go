@@ -728,6 +728,20 @@ func TestResolveDevice(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the request names neither resolver",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: ""},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrDeviceInvalid(nil, nil),
+			},
+		},
+		{
 			description: "fails when cannot retrieve a device with the specified UID",
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
 			requiredMocks: func() {
