@@ -81,7 +81,6 @@ const (
 var servicePermissions = []Permission{}
 
 var observerPermissions = []Permission{
-	DeviceConnect,
 	DeviceDetails,
 
 	SessionDetails,

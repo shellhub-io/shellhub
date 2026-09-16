@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
@@ -21,7 +23,10 @@ const (
 	// stream. It is gated by a single-use token rather than authenticated.
 	WebsocketSSHBridgeRoute = "/ws/ssh"
 	// WebSessionRoute is the credential/token POST. It is authenticated, so the
-	// bridge learns the logged-in ShellHub account (used in identity mode).
+	// bridge learns the logged-in ShellHub account (used in identity mode). It
+	// requires authorizer.DeviceConnect, and refuses a device outside the caller's
+	// namespace, since the role it checks is the one held there. In the legacy
+	// access mode it is the only permission check a browser terminal meets.
 	WebSessionRoute = "/ws/ssh/session"
 )
 
@@ -99,6 +104,19 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 			request.UserID = req.Header.Get("X-ID")
 
+			sc, err := services.BoundTo(req.Header.Get("X-Tenant-ID"))
+			if err != nil {
+				response(res, http.StatusForbidden, Fail{Error: err.Error()})
+
+				return
+			}
+
+			if _, err := service.GetDevice(req.Context(), sc, models.UID(request.Device)); err != nil {
+				response(res, http.StatusForbidden, Fail{Error: err.Error()})
+
+				return
+			}
+
 			key := magickey.GetReference()
 
 			token, err := token.NewToken(key)
@@ -114,6 +132,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 			response(res, http.StatusOK, Success{Token: token.ID})
 		})),
+		routesmiddleware.RequiresPermission(authorizer.DeviceConnect),
 	)
 
 	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
