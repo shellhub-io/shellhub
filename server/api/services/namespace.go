@@ -286,7 +286,8 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 // "identity" gates SSH logins on browser approval and governs access through
 // Access Policies; to avoid a silent lockout on a namespace with no policies,
 // the owner-scoped starter policy is seeded on the first switch (see
-// seedAccessPolicy).
+// seedAccessPolicy). The switch and the seed share one transaction, so a
+// namespace never reaches identity mode with no policy to authorize anyone.
 func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error {
 	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
@@ -303,15 +304,16 @@ func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID
 	}
 
 	n.Settings.SSHAccessMode = sshAccessMode
-	if err := s.store.NamespaceUpdate(ctx, n); err != nil {
-		return err
-	}
 
-	if sshAccessMode == models.SSHAccessModeIdentity {
-		if err := s.seedAccessPolicy(ctx, tenantID, n.Owner); err != nil {
+	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		if err := s.store.NamespaceUpdate(ctx, n); err != nil {
 			return err
 		}
-	}
 
-	return nil
+		if sshAccessMode != models.SSHAccessModeIdentity {
+			return nil
+		}
+
+		return s.seedAccessPolicy(ctx, tenantID, n.Owner)
+	})
 }

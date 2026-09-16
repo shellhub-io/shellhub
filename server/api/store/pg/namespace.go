@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -37,6 +38,16 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 
 	if namespace.Settings.SSHAccessMode == "" {
 		namespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
+	}
+
+	if namespace.Owner != "" {
+		if _, ok := namespace.FindMember(namespace.Owner); !ok {
+			namespace.Members = append(namespace.Members, models.Member{
+				ID:      namespace.Owner,
+				Role:    authorizer.RoleOwner,
+				AddedAt: clock.Now(),
+			})
+		}
 	}
 
 	if err := pg.WithTransaction(ctx, func(ctx context.Context) error {

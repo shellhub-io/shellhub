@@ -18,7 +18,8 @@ type AccessPolicy struct {
 	UpdatedAt     time.Time `bun:"updated_at"`
 	Name          string    `bun:"name"`
 	SubjectType   string    `bun:"subject_type"`
-	SubjectValue  string    `bun:"subject_value"`
+	SubjectUserID *string   `bun:"subject_user_id,nullzero"`
+	SubjectRole   *string   `bun:"subject_role,nullzero"`
 	Logins        []string  `bun:"logins,array"`
 	SourceIP      []string  `bun:"source_ip,array"`
 	RequireReauth bool      `bun:"require_reauth"`
@@ -55,7 +56,8 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		UpdatedAt:     model.UpdatedAt,
 		Name:          model.Name,
 		SubjectType:   string(model.Subject.Type),
-		SubjectValue:  model.Subject.Value,
+		SubjectUserID: subjectColumn(model.Subject, models.PolicySubjectUser),
+		SubjectRole:   subjectColumn(model.Subject, models.PolicySubjectRole),
 		Logins:        model.Logins,
 		SourceIP:      model.SourceIP,
 		RequireReauth: model.RequireReauth,
@@ -89,7 +91,7 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 		UpdatedAt: entity.UpdatedAt,
 		Subject: models.PolicySubject{
 			Type:  models.PolicySubjectType(entity.SubjectType),
-			Value: entity.SubjectValue,
+			Value: subjectValue(entity),
 		},
 		Filter: models.PublicKeyFilter{
 			Taggable: models.Taggable{
@@ -113,4 +115,25 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 	}
 
 	return accessPolicy
+}
+
+func subjectColumn(subject models.PolicySubject, want models.PolicySubjectType) *string {
+	if subject.Type != want || subject.Value == "" {
+		return nil
+	}
+
+	value := subject.Value
+
+	return &value
+}
+
+func subjectValue(entity *AccessPolicy) string {
+	switch {
+	case entity.SubjectUserID != nil:
+		return *entity.SubjectUserID
+	case entity.SubjectRole != nil:
+		return *entity.SubjectRole
+	default:
+		return ""
+	}
 }

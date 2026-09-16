@@ -97,6 +97,7 @@ var Groups = []Group{
 	}},
 	{Name: "SSHIdentityStore", Tests: []TestFunc{
 		(*Suite).TestSSHIdentityResolveCarriesThePrincipal,
+		(*Suite).TestSSHIdentityGoesWithTheMembership,
 	}},
 	{Name: "SSHApprovalStore", Tests: []TestFunc{
 		(*Suite).TestSSHApprovalExpiryHidesTheRow,
@@ -106,6 +107,8 @@ var Groups = []Group{
 	{Name: "AccessPolicyStore", Tests: []TestFunc{
 		(*Suite).TestAccessPolicyTagFilterRoundTrip,
 		(*Suite).TestAccessPolicyUpdateReplacesTheTagFilter,
+		(*Suite).TestAccessPolicySubjectMustMatchSomeone,
+		(*Suite).TestAccessPolicyGoesWithTheMembershipItNames,
 	}},
 	{Name: "InstallKeyStore", Tests: []TestFunc{
 		(*Suite).TestInstallKeyModeRoundTrip,

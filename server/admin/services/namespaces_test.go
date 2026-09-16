@@ -567,21 +567,24 @@ func TestNamespaceRemoveMember(t *testing.T) {
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
-					Owner:    "507f191e810c19729de860ea",
+					Owner:    "608f191e810c19729de860eb",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+					Members: []models.Member{
+						{ID: "608f191e810c19729de860eb", Role: "owner"},
+						{ID: "507f191e810c19729de860ea", Role: "operator"},
+					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord: true,
 					},
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(errors.New("error")).Once()
+				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "operator"}).Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
 		},
 		{
-			description: "successfully remove member from the namespace",
+			description: "refuses to remove the namespace owner",
 			username:    "john_doe",
 			namespace:   "namespace",
 			requiredMocks: func() {
@@ -605,13 +608,47 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(nil).Once()
+			},
+			expected: Expected{nil, ErrNamespaceRemoveOwner},
+		},
+		{
+			description: "successfully remove member from the namespace",
+			username:    "john_doe",
+			namespace:   "namespace",
+			requiredMocks: func() {
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "608f191e810c19729de860eb",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Members: []models.Member{
+						{ID: "608f191e810c19729de860eb", Role: "owner"},
+						{ID: "507f191e810c19729de860ea", Role: "operator"},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord: true,
+					},
+					CreatedAt: now,
+				}
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "operator"}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
-				Owner:    "507f191e810c19729de860ea",
+				Owner:    "608f191e810c19729de860eb",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+				Members: []models.Member{
+					{ID: "608f191e810c19729de860eb", Role: "owner"},
+					{ID: "507f191e810c19729de860ea", Role: "operator"},
+				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord: true,
 				},
