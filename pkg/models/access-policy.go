@@ -69,6 +69,11 @@ type AccessPolicy struct {
 	// means "always", the only setting that is genuinely per login. Only
 	// meaningful when RequireReauth is set.
 	ReauthPeriod *int `json:"reauth_period"`
+	// SubjectMatches reports whether any current member of the namespace satisfies Subject. A
+	// policy whose subject matches nobody is inert: an allow grants nothing and a deny blocks
+	// nothing. Computed when a policy is read, never stored, so it follows membership without a
+	// write.
+	SubjectMatches bool `json:"subject_matches"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

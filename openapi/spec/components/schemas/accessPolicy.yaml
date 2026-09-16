@@ -54,6 +54,15 @@ properties:
     type: integer
     nullable: true
     example: 43200
+  subject_matches:
+    description: |
+      Whether any current member of the namespace satisfies `subject`. A policy
+      whose subject matches nobody is inert: an allow grants nothing and a deny
+      blocks nothing, while the rule still reads as if it were in force. It is
+      computed when the policy is read, so it follows membership without a write.
+    type: boolean
+    readOnly: true
+    example: true
   created_at:
     description: Access policy's creation date.
     type: string
@@ -73,5 +82,6 @@ required:
   - source_ip
   - action
   - require_reauth
+  - subject_matches
   - created_at
   - updated_at

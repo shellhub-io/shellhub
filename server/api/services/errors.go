@@ -132,6 +132,7 @@ var (
 	ErrPublicKeyDataInvalid            = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyFilter                 = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
 	ErrAccessPolicyNotFound            = errors.New("access policy not found", ErrLayer, ErrCodeNotFound)
+	ErrAccessPolicyInvalidField        = errors.New("access policy field is invalid", ErrLayer, ErrCodeInvalid)
 	ErrSSHIdentityNotFound             = errors.New("ssh identity not found", ErrLayer, ErrCodeNotFound)
 	ErrSSHIdentityDuplicated           = errors.New("ssh identity duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrSSHIdentityInvalid              = errors.New("ssh identity public key invalid", ErrLayer, ErrCodeInvalid)
@@ -290,6 +291,12 @@ type ErrDataInvalidFields struct {
 // so the HTTP error handler can answer with a per-field body.
 func NewErrInvalidFields(err error, fields map[string]string) error {
 	return errors.WithData(err, ErrDataInvalidFields{Fields: fields})
+}
+
+// NewErrAccessPolicyInvalidField returns a bad-request error tagging access policy field(s) with a
+// human-readable reason, retrievable by the route from the error's Data.
+func NewErrAccessPolicyInvalidField(fields map[string]string) error {
+	return NewErrInvalidFields(ErrAccessPolicyInvalidField, fields)
 }
 
 // NewErrInstallKeyInvalidField returns a bad-request error tagging install key field(s) with a
