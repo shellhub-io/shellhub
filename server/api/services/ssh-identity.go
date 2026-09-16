@@ -56,9 +56,9 @@ type SSHIdentityService interface {
 	// concurrent session already consumed the key and the caller must be denied.
 	ConsumeSSHIdentity(ctx context.Context, tenantID, fingerprint string) (bool, error)
 
-	// ListSSHIdentities returns the caller's enrolled identities in the namespace.
-	// When all is true it returns every member's (the caller must hold
-	// SSHIdentityManage, enforced at the handler).
+	// ListSSHIdentities returns the caller's own enrolled identities, or every
+	// member's when req.AllPrincipals is set. The handler sets AllPrincipals from
+	// SSHIdentityManage; nothing here checks permissions.
 	ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error)
 
 	// CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the
@@ -178,7 +178,7 @@ func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdenti
 	}
 
 	var opts []store.QueryOption
-	if !req.All {
+	if !req.AllPrincipals {
 		opts = append(opts, s.store.Options().WithUserID(req.UserID))
 	}
 
