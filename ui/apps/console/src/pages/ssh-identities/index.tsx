@@ -65,15 +65,28 @@ const EXPIRY_TONE: Record<IdentityStatusTone, string> = {
 
 /**
  * The SSH identities page: the keys that may authenticate, whose they are, and how each will
- * end. Fetches every identity in the namespace, marking the caller's own.
+ * end. Opens on the caller's own; the owner filter appears only when the server returned
+ * somebody else's.
  */
 export default function SSHIdentities() {
   const userId = useAuthStore((s) => s.userId);
 
-  const { identities, isLoading } = useSSHIdentities(true);
+  const { identities, isLoading } = useSSHIdentities();
+  const [scope, setScope] = useState<"mine" | "all">("mine");
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isCurrentBrowser = (i: SshIdentity) =>
     i.source === "browser" && i.fingerprint === browserKeyFingerprint;
+  const othersCount = identities.filter(
+    (i) => i.principal_id !== userId,
+  ).length;
+  const shown =
+    scope === "mine"
+      ? identities.filter((i) => i.principal_id === userId)
+      : identities;
+  const scopeTabs = [
+    { value: "mine" as const, label: "Mine" },
+    { value: "all" as const, label: "Everyone" },
+  ];
   const deleteIdentity = useDeleteSSHIdentity();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SshIdentity | null>(null);
@@ -246,7 +259,10 @@ export default function SSHIdentities() {
           <div className="flex justify-end">
             <Dropdown portal placement="bottom-end">
               <Dropdown.Trigger>
-                <IconButton variant="ghost" aria-label={`Actions for ${i.name}`}>
+                <IconButton
+                  variant="ghost"
+                  aria-label={`Actions for ${i.name}`}
+                >
                   <EllipsisVerticalIcon className="w-4 h-4" />
                 </IconButton>
               </Dropdown.Trigger>
@@ -357,13 +373,45 @@ export default function SSHIdentities() {
         </RestrictedAction>
       </PageHeader>
 
+      {othersCount > 0 && (
+        <div className="flex items-center gap-3 mb-5 animate-fade-in">
+          <div
+            className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
+            role="tablist"
+            aria-label="SSH identity owner filter"
+          >
+            {scopeTabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.value}
+                role="tab"
+                aria-selected={scope === tab.value}
+                onClick={() => setScope(tab.value)}
+                className={cn(
+                  "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+                  scope === tab.value
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent",
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <DataTable
         columns={columns}
-        data={identities}
+        data={shown}
         rowKey={(i) => i.id}
         isLoading={isLoading}
         loadingMessage="Loading SSH identities..."
-        emptyMessage="No SSH identities in this namespace"
+        emptyMessage={
+          scope === "mine"
+            ? "You have no SSH identities in this namespace"
+            : "No SSH identities in this namespace"
+        }
       />
 
       <IdentityDrawer

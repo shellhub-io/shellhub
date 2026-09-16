@@ -74,6 +74,31 @@ beforeEach(() => {
 });
 
 describe("SSHIdentities", () => {
+  it("shows only the caller's own keys until they ask for everyone's", async () => {
+    const user = userEvent.setup();
+
+    renderList([
+      identity({ id: "a", name: "mine", principal_id: "user1" }),
+      identity({ id: "b", name: "theirs", principal_id: "user2" }),
+    ]);
+
+    await screen.findByText("mine");
+    expect(screen.queryByText("theirs")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Everyone" }));
+
+    expect(screen.getByText("theirs")).toBeInTheDocument();
+    expect(screen.getByText("mine")).toBeInTheDocument();
+  });
+
+  it("offers no filter when the caller can see nobody else's keys", async () => {
+    renderList([identity({ id: "a", name: "mine", principal_id: "user1" })]);
+
+    await screen.findByText("mine");
+
+    expect(screen.queryByRole("tab", { name: "Everyone" })).not.toBeInTheDocument();
+  });
+
   it("says where each key came from", async () => {
     renderList([
       identity({ id: "a", name: "chrome", source: "browser" }),

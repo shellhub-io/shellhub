@@ -1,19 +1,14 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listSshIdentitiesOptions, type SshIdentity } from "../client";
 
 /**
- * The SSH identities. By default the caller's own; all includes every identity in the namespace,
- * which needs the permission to see them.
+ * The SSH identities the caller may see: their own, or every member's when they hold the
+ * permission to manage them. The server decides which, so there is nothing to ask for here.
  */
-export function useSSHIdentities(all = false) {
-  const options = all ? { query: { all: true } } : {};
-  const result = useQuery(listSshIdentitiesOptions(options));
+export function useSSHIdentities() {
+  const result = useQuery(listSshIdentitiesOptions());
 
-  const identities = useMemo<SshIdentity[]>(
-    () => result.data ?? [],
-    [result.data],
-  );
+  const identities: SshIdentity[] = result.data ?? [];
 
   return {
     identities,
