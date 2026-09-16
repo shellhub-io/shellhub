@@ -88,6 +88,22 @@ function SubjectCell({
 }) {
   const { type, value } = policy.subject;
 
+  if (!policy.subject_matches) {
+    return (
+      <Chip
+        tone="red"
+        icon={<ExclamationTriangleIcon className={CHIP_ICON} strokeWidth={2} />}
+        title={
+          policy.action === "deny"
+            ? "No member of this namespace matches this subject, so the rule blocks nobody."
+            : "No member of this namespace matches this subject, so the rule grants nothing."
+        }
+      >
+        {type === "all-members" ? "All members" : value}
+      </Chip>
+    );
+  }
+
   if (type === "all-members") {
     return (
       <Chip icon={<UsersIcon className={CHIP_ICON} strokeWidth={2} />}>
