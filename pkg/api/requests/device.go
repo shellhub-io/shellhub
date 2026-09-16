@@ -49,12 +49,12 @@ type DeviceGet struct {
 	DeviceParam
 }
 
-// ResolveDevice is the request to find a device by UID or by hostname. Exactly one of the two is
-// meant to be set; both are optional here because which one is present is the caller's choice.
+// ResolveDevice is the request to find a device by UID or by hostname. One of the two is
+// required, and UID wins when both are given.
 type ResolveDevice struct {
 	TenantID string `header:"X-Tenant-ID" validate:"required"`
-	UID      string `query:"uid" validate:"omitempty"`
-	Hostname string `query:"hostname" validate:"omitempty"`
+	UID      string `query:"uid" validate:"required_without=Hostname"`
+	Hostname string `query:"hostname" validate:"required_without=UID"`
 }
 
 // DeviceDelete is the structure to represent the request data for delete device endpoint.

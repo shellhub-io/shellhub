@@ -2,7 +2,8 @@ get:
   operationId: resolveDevice
   summary: Resolve a device
   description: |
-    Resolve a device by UID or hostname. If both are provided, UID takes
+    Resolve a device by UID or hostname. One of the two is required, and a
+    request naming neither is refused. If both are provided, UID takes
     precedence.
   tags:
     - community
@@ -14,13 +15,13 @@ get:
     - name: hostname
       in: query
       required: false
-      description: The UID of the device
+      description: The hostname of the device
       schema:
         type: string
     - name: uid
       in: query
       required: false
-      description: The hostname of the device
+      description: The UID of the device
       schema:
         type: string
   responses:
@@ -30,6 +31,8 @@ get:
         application/json:
           schema:
             $ref: ../components/schemas/device.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '404':

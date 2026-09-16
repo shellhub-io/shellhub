@@ -186,6 +186,21 @@ func TestResolveDevice(t *testing.T) {
 				status: http.StatusOK,
 			},
 		},
+		{
+			description: "fails when neither resolver is given",
+			hostname:    "",
+			uid:         "",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Role":       authorizer.RoleOwner.String(),
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {},
+			expected: Expected{
+				device: nil,
+				status: http.StatusBadRequest,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -204,8 +219,10 @@ func TestResolveDevice(t *testing.T) {
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
 
 			var session *models.Device
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
+			if rec.Result().StatusCode < http.StatusBadRequest {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
+					assert.ErrorIs(t, io.EOF, err)
+				}
 			}
 
 			assert.Equal(t, tc.expected.device, session)
