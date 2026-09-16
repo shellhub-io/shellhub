@@ -13,11 +13,13 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { OpfsCastRecorder } from "@/utils/recordings";
+import { isSdkError } from "@/api/errors";
 import { nextFontSize } from "./fontSizeShortcut";
 import type { TerminalError } from "./terminalErrors";
 import TerminalErrorBanner from "./TerminalErrorBanner";
 import {
   WS_KIND,
+  ACCESS_DENIED_ERROR,
   HTTP_CONNECT_ERROR,
   WS_CLOSE_ERROR,
   WS_NETWORK_ERROR,
@@ -102,10 +104,14 @@ export default function TerminalInstance({
           throwOnError: true,
         });
         token = data.token;
-      } catch {
+      } catch (err) {
         if (cancelled) return;
         updateStatus("disconnected");
-        setError(HTTP_CONNECT_ERROR);
+        setError(
+          isSdkError(err) && err.status === 403
+            ? ACCESS_DENIED_ERROR
+            : HTTP_CONNECT_ERROR,
+        );
         return;
       }
 
@@ -258,7 +264,9 @@ export default function TerminalInstance({
             case WS_KIND.ERROR: {
               lastError = true;
               updateStatus("disconnected");
-              setError(resolveError(msg.data, session.deviceUid, isIdentityMode));
+              setError(
+                resolveError(msg.data, session.deviceUid, isIdentityMode),
+              );
               break;
             }
             case WS_KIND.SESSION: {

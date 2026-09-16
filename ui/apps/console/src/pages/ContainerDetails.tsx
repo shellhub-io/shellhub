@@ -25,6 +25,7 @@ import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import TagsSection from "@/components/common/TagsSection";
 import PageLoader from "@/components/common/PageLoader";
 import IdentityCard from "@/components/common/IdentityCard";
@@ -62,11 +63,12 @@ export default function ContainerDetails() {
     },
   });
   const runContainerAction = useContainerActionRunner();
+  const canConnect = useHasPermission("device:connect");
 
-  const shouldAutoConnect =
-    searchParams.get("connect") === "true" &&
-    container?.online &&
-    !existingSession;
+  const wantsAutoConnect =
+    canConnect && searchParams.get("connect") === "true" && container?.online;
+
+  const shouldAutoConnect = wantsAutoConnect && !existingSession;
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
     setAutoConnectDone(true);
@@ -77,14 +79,10 @@ export default function ContainerDetails() {
   }
 
   useEffect(() => {
-    if (
-      searchParams.get("connect") === "true" &&
-      container?.online &&
-      existingSession
-    ) {
+    if (wantsAutoConnect && existingSession) {
       restoreTerminal(existingSession.id);
     }
-  }, [searchParams, container, existingSession, restoreTerminal]);
+  }, [wantsAutoConnect, existingSession, restoreTerminal]);
 
   if (isLoading) {
     return <PageLoader label="Loading container details" />;

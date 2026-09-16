@@ -7,7 +7,6 @@ import {
 } from "../permission";
 
 const OBSERVER_ACTIONS: Action[] = [
-  "device:connect",
   "device:details",
   "session:details",
   "namespace:create",
@@ -15,6 +14,7 @@ const OBSERVER_ACTIONS: Action[] = [
 ];
 
 const OPERATOR_ACTIONS: Action[] = [
+  "device:connect",
   "device:add",
   "device:accept",
   "device:reject",
@@ -204,6 +204,7 @@ describe("hasPermission", () => {
 
   describe("boundary conditions — minimum required role", () => {
     it.each<[Action, Role, Role]>([
+      ["device:connect", "observer", "operator"],
       ["device:accept", "observer", "operator"],
       ["device:remove", "operator", "administrator"],
       ["namespace:delete", "administrator", "owner"],

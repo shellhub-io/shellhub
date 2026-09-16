@@ -13,15 +13,17 @@ itself.
 
 | Role | Can |
 |---|---|
-| **Observer** | Connect to a device, and view device and session details. Nothing else |
+| **Observer** | View device and session details. Nothing else. An observer cannot connect to a device, except by native SSH in the legacy access mode |
 | **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details |
 | **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
 | **Owner** | Everything |
 
 There is also an internal **service** role, carried by
 [service accounts](/manage/access-control/service-accounts). It has no permissions and no
-authority — a service account exists to hold SSH identities and connect, not to administer
-anything.
+authority — a service account exists to hold SSH identities and connect over SSH, not to
+administer anything. Its right to connect comes from its access policies rather than from the
+role, which is why the permission the other roles carry is not needed here. A service account
+cannot use the browser terminal.
 
 ## Roles do not grant device access
 
@@ -33,6 +35,13 @@ the operator role and no matching policy connects to nothing.
 
 What the role controls is the console: what they see, what they can change, whether they can
 remove a device.
+
+A role never grants device access, but it can withhold it. The **observer** role holds no connect
+permission. In the identity access mode an observer is refused before their policies are read, and
+the refusal covers the whole connection, including file transfer and port forwarding. The
+browser terminal refuses them in either mode. Native SSH in the legacy access mode carries no user
+identity, so the role cannot be enforced there. Grant an observer a policy and they still connect
+to nothing. Make them an operator and the policy decides.
 
 ## Roles as policy subjects
 

@@ -35,7 +35,8 @@ vi.mock("@/components/common/CopyButton", async () => ({
 }));
 
 vi.mock("@/components/ConnectDrawer", () => ({
-  default: () => <div />,
+  default: ({ open }: { open: boolean }) =>
+    open ? <div role="dialog" aria-label="Connect" /> : null,
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -73,13 +74,17 @@ vi.mock("@/utils/sshid", () => ({
 
 const mockNavigate = vi.fn();
 
+const { searchParamsRef } = vi.hoisted(() => ({
+  searchParamsRef: { current: new URLSearchParams() },
+}));
+
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
     useParams: () => ({ uid: "test-uid" }),
     useNavigate: () => mockNavigate,
-    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+    useSearchParams: () => [searchParamsRef.current, vi.fn()],
   };
 });
 
@@ -112,6 +117,7 @@ function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  searchParamsRef.current = new URLSearchParams();
   seedAuthStore();
   sdk.getContainer.mockResolvedValue(mockSdkResponse(null));
   sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
@@ -285,6 +291,30 @@ describe("ContainerDetails", () => {
       capturedOnSuccess!("accept");
 
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("connect deep link", () => {
+    it("opens the connect drawer for a role that can connect", async () => {
+      searchParamsRef.current = new URLSearchParams({ connect: "true" });
+      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      renderPage();
+
+      expect(
+        await screen.findByRole("dialog", { name: "Connect" }),
+      ).toBeInTheDocument();
+    });
+
+    it("does not open the connect drawer for an observer", async () => {
+      searchParamsRef.current = new URLSearchParams({ connect: "true" });
+      seedAuthStore({ role: "observer" });
+      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      renderPage();
+      await screen.findByRole("heading", { name: "my-container" });
+
+      expect(
+        screen.queryByRole("dialog", { name: "Connect" }),
+      ).not.toBeInTheDocument();
     });
   });
 });

@@ -41,7 +41,7 @@ const ROLE_META: Record<
   },
   observer: {
     icon: EyeIcon,
-    summary: "Read-only — connect to devices, view details and sessions",
+    summary: "Read-only — view device and session details",
   },
 };
 
