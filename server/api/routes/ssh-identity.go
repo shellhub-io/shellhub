@@ -17,9 +17,9 @@ const (
 	DeleteSSHIdentityURL = "/ssh-identities/:id"
 )
 
-// ListSSHIdentities returns the caller's enrolled SSH identities in the current
-// namespace. With ?all=true (and the manage permission) it returns every
-// member's, for offboarding.
+// ListSSHIdentities returns the SSH identities the caller may see in the current namespace:
+// their own, or every member's when they hold SSHIdentityManage, which is what offboarding
+// needs. The scope is not a parameter, so a caller cannot ask for one they do not hold.
 func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
 	req := new(requests.SSHIdentityList)
 	if err := c.Bind(req); err != nil {
@@ -36,9 +36,7 @@ func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
 		req.TenantID = c.Tenant().ID
 	}
 
-	if req.All && !c.Role().HasPermission(authorizer.SSHIdentityManage) {
-		req.All = false
-	}
+	req.AllPrincipals = c.Role().HasPermission(authorizer.SSHIdentityManage)
 
 	list, err := h.service.ListSSHIdentities(c.Ctx(), req)
 	if err != nil {

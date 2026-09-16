@@ -2,13 +2,14 @@ package requests
 
 import "github.com/shellhub-io/shellhub/pkg/models"
 
-// SSHIdentityList is the request data for listing the caller's enrolled SSH
-// identities in the current namespace. All lists every member's identities and
-// requires the SSHIdentityManage permission.
+// SSHIdentityList is the request data for listing enrolled SSH identities in the current
+// namespace. AllPrincipals widens the listing from the caller's own identities to every
+// member's; the handler sets it from the caller's permissions, so it is never read from the
+// request and a client cannot ask for a scope it does not hold.
 type SSHIdentityList struct {
-	TenantID string `json:"-"`
-	UserID   string `json:"-"`
-	All      bool   `query:"all"`
+	TenantID      string `json:"-"`
+	UserID        string `json:"-"`
+	AllPrincipals bool   `json:"-" query:"-"`
 }
 
 // SSHIdentityCreate is the request data for manually enrolling an SSH public key

@@ -521,14 +521,14 @@ func TestListSSHIdentities(t *testing.T) {
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
-		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, All: false})
+		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: false})
 		require.NoError(t, err)
 		require.Len(t, list, 1)
 
 		storeMock.AssertExpectations(t)
 	})
 
-	t.Run("lists every member when all is set", func(t *testing.T) {
+	t.Run("lists every member when the caller may see them", func(t *testing.T) {
 		storeMock := new(storemock.MockStore)
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -537,7 +537,7 @@ func TestListSSHIdentities(t *testing.T) {
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
-		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, All: true})
+		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: true})
 		require.NoError(t, err)
 		require.Len(t, list, 2)
 

@@ -2,24 +2,18 @@ get:
   operationId: listSshIdentities
   summary: List SSH identities
   description: |
-    List the caller's enrolled SSH keys in the current namespace. When `all` is
-    set (requires the `SSHIdentityManage` permission), every member's enrolled
-    keys in the namespace are returned instead.
+    List the enrolled SSH keys the caller may see in the current namespace.
+
+    The collection is filtered by what the caller is allowed to see: a member
+    receives their own enrolled keys, and a caller holding the
+    `SSHIdentityManage` permission receives every member's, their own included,
+    which is what offboarding needs. The scope is not a parameter, so the same
+    request returns different rows depending on the caller's permissions.
   tags:
     - community
     - ssh-identities
   security:
     - jwt: []
-  parameters:
-    - name: all
-      in: query
-      required: false
-      description: |
-        Return every member's enrolled keys in the namespace instead of only
-        the caller's. Requires the `SSHIdentityManage` permission.
-      schema:
-        type: boolean
-        example: true
   responses:
     '200':
       description: Success to list SSH identities.
