@@ -101,7 +101,9 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 	return ns, nil
 }
 
-// NamespaceRemoveMember removes a member from a namespace.
+// NamespaceRemoveMember removes a member from a namespace, reporting ErrNamespaceRemoveOwner for
+// the owner: their membership carries the access policies and SSH identities the namespace granted
+// them, and removing it takes those with it.
 func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
@@ -116,6 +118,10 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 	member, ok := ns.FindMember(user.ID)
 	if !ok {
 		return nil, ErrFailedNamespaceRemoveMember
+	}
+
+	if member.Role == authorizer.RoleOwner {
+		return nil, ErrNamespaceRemoveOwner
 	}
 
 	if err = s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {

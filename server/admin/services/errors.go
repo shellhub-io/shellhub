@@ -17,6 +17,7 @@ var (
 	ErrFailedDeleteNamespace       = errors.New("failed to delete the namespace")
 	ErrFailedUpdateUser            = errors.New("failed to reset the password for the user")
 	ErrFailedNamespaceRemoveMember = errors.New("failed to remove member from the namespace")
+	ErrNamespaceRemoveOwner        = errors.New("the namespace owner cannot be removed from it")
 	ErrUserPasswordInvalid         = errors.New("user password is invalid")
 	ErrUserEmailExists             = errors.New("user email already exists")
 	ErrUserNameExists              = errors.New("user name already exists")

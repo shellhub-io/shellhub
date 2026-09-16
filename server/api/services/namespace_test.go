@@ -1392,6 +1392,8 @@ func TestEditSSHAccessMode(t *testing.T) {
 	const tenantID = "00000000-0000-4000-0000-000000000000"
 	const ownerID = "owner-1"
 
+	errTransactionAborted := errors.New("transaction aborted")
+
 	cases := []struct {
 		description string
 		mode        string
@@ -1440,6 +1442,11 @@ func TestEditSSHAccessMode(t *testing.T) {
 					Once()
 
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+
+				storeMock.
 					On("NamespaceUpdate", ctx, withSSHAccessMode(namespace, models.SSHAccessModeLegacy)).
 					Return(nil).
 					Once()
@@ -1458,6 +1465,11 @@ func TestEditSSHAccessMode(t *testing.T) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).
+					Once()
+
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
 
 				storeMock.
@@ -1491,6 +1503,11 @@ func TestEditSSHAccessMode(t *testing.T) {
 					Once()
 
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+
+				storeMock.
 					On("NamespaceUpdate", ctx, withSSHAccessMode(namespace, models.SSHAccessModeIdentity)).
 					Return(nil).
 					Once()
@@ -1501,6 +1518,27 @@ func TestEditSSHAccessMode(t *testing.T) {
 					Once()
 			},
 			expected: nil,
+		},
+		{
+			description: "the mode switch and the seed share one transaction",
+			mode:        models.SSHAccessModeIdentity,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				namespace := &models.Namespace{
+					TenantID: tenantID,
+					Owner:    ownerID,
+					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(errTransactionAborted).
+					Once()
+			},
+			expected: errTransactionAborted,
 		},
 	}
 

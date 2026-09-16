@@ -55,6 +55,9 @@ type NamespaceStore interface {
 	// It returns the namespace or an error if any.
 	NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error)
 
+	// NamespaceCreate stores a namespace and returns its tenant ID. It enrols the owner as a
+	// member when namespace.Members omits them, appending to the slice the caller passed, because
+	// the owner policy seeded in the same transaction has a foreign key to that membership row.
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error)
 
 	NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) (conflicts []string, has bool, err error)

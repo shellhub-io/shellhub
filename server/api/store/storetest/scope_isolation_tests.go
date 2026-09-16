@@ -354,8 +354,10 @@ func (s *Suite) TestScopeIsolationNamespaceGetMembers(t *testing.T) {
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
 
-	owner := s.CreateNamespace(t)
-	other := s.CreateNamespace(t)
+	ownerUserID := s.CreateUser(t)
+	otherOwnerUserID := s.CreateUser(t)
+	owner := s.CreateNamespace(t, WithOwner(ownerUserID))
+	other := s.CreateNamespace(t, WithOwner(otherOwnerUserID))
 	memberID := s.CreateUser(t)
 
 	require.NoError(t, st.NamespaceCreateMembership(ctx, scope.MustBounded(owner),
@@ -363,14 +365,13 @@ func (s *Suite) TestScopeIsolationNamespaceGetMembers(t *testing.T) {
 
 	members, count, err := st.NamespaceGetMembers(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
-	require.Len(t, members, 1)
-	assert.Equal(t, memberID, members[0].ID)
+	assert.Equal(t, 2, count)
+	assert.ElementsMatch(t, []string{ownerUserID, memberID}, memberIDs(members))
 
 	members, count, err = st.NamespaceGetMembers(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
-	assert.Empty(t, members)
+	assert.Equal(t, 1, count)
+	assert.Equal(t, []string{otherOwnerUserID}, memberIDs(members), "the other namespace holds its owner and nobody else")
 }
 
 // TestScopeIsolationMembershipInvitationResolve locks that MembershipInvitationResolve answers within the owning namespace and returns
@@ -598,8 +599,9 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
 
+	otherOwnerUserID := s.CreateUser(t)
 	owner := s.CreateNamespace(t)
-	other := s.CreateNamespace(t)
+	other := s.CreateNamespace(t, WithOwner(otherOwnerUserID))
 	memberID := s.CreateUser(t)
 
 	require.NoError(t, st.NamespaceCreateMembership(ctx, scope.MustBounded(owner),
@@ -607,7 +609,7 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 
 	members, _, err := st.NamespaceGetMembers(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Empty(t, members)
+	assert.Equal(t, []string{otherOwnerUserID}, memberIDs(members), "the other namespace holds its owner and nobody else")
 
 	require.ErrorIs(t,
 		st.NamespaceUpdateMembership(ctx, scope.MustBounded(other), &models.Member{ID: memberID, Role: authorizer.RoleAdministrator}),
@@ -834,6 +836,8 @@ func (s *Suite) TestScopeIsolationSSHIdentityList(t *testing.T) {
 	other := s.CreateNamespace(t)
 	userID := s.CreateUser(t)
 
+	s.CreateMembership(t, owner, userID, "operator")
+
 	_, err := st.SSHIdentityCreate(ctx, &models.SSHIdentity{
 		TenantID:    owner,
 		PrincipalID: userID,
@@ -868,6 +872,8 @@ func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 	userID := s.CreateUser(t)
 
 	fingerprint := "SHA256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb="
+	s.CreateMembership(t, owner, userID, "operator")
+
 	_, err := st.SSHIdentityCreate(ctx, &models.SSHIdentity{
 		TenantID:    owner,
 		PrincipalID: userID,
@@ -886,4 +892,13 @@ func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 	got, err = st.SSHIdentityResolve(ctx, scope.MustBounded(other), store.SSHIdentityFingerprintResolver, fingerprint)
 	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
+}
+
+func memberIDs(members []models.MemberView) []string {
+	ids := make([]string, 0, len(members))
+	for _, member := range members {
+		ids = append(ids, member.ID)
+	}
+
+	return ids
 }

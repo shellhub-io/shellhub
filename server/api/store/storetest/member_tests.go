@@ -135,7 +135,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 
 		userID := s.CreateUser(t)
 		tenantID := s.CreateNamespace(t, WithOwner(userID))
-		s.CreateMembership(t, tenantID, userID, "observer")
 
 		require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, tenantID))
 

@@ -418,17 +418,28 @@ func (s *Suite) CreateTag(t *testing.T, opts ...TagOption) string {
 	return tagID
 }
 
-// CreateMembership creates a membership relationship
+// CreateMembership enrols userID in tenantID with role. It does nothing when they are already
+// a member with that role, since namespace creation enrols the owner and a fixture may ask
+// again, and fails the test when they are already a member with a different role.
 func (s *Suite) CreateMembership(t *testing.T, tenantID, userID, role string) {
 	t.Helper()
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), &models.Member{
+	namespace, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	require.NoError(t, err)
+
+	if existing, already := namespace.FindMember(userID); already {
+		require.Equal(t, authorizer.Role(role), existing.Role,
+			"the namespace already holds this member with a different role than the fixture asked for")
+
+		return
+	}
+
+	require.NoError(t, st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), &models.Member{
 		ID:   userID,
 		Role: authorizer.Role(role),
-	})
-	require.NoError(t, err)
+	}))
 }
 
 // APIKeyOption allows customization of test API keys
