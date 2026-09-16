@@ -215,6 +215,31 @@ func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID strin
 	return count > 0, nil
 }
 
+func validateAccessPolicySubject(namespace *models.Namespace, subject requests.AccessPolicySubject) error {
+	switch models.PolicySubjectType(subject.Type) {
+	case models.PolicySubjectUser:
+		if _, ok := namespace.FindMember(subject.Value); !ok {
+			return NewErrAccessPolicyInvalidField(map[string]string{
+				"subject.value": "must be a member of this namespace",
+			})
+		}
+	case models.PolicySubjectRole:
+		if authorizer.RoleFromString(subject.Value) == authorizer.RoleInvalid {
+			return NewErrAccessPolicyInvalidField(map[string]string{
+				"subject.value": "must be a role this namespace defines",
+			})
+		}
+	case models.PolicySubjectAllMembers:
+		if subject.Value != "" {
+			return NewErrAccessPolicyInvalidField(map[string]string{
+				"subject.value": "must be empty when the subject is every member",
+			})
+		}
+	}
+
+	return nil
+}
+
 func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role, userType models.UserType) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
@@ -272,7 +297,8 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 		return nil, err
 	}
 
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID); err != nil {
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
@@ -281,7 +307,21 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 		return nil, err
 	}
 
+	for i := range policies {
+		policies[i].SubjectMatches = subjectMatchesAnyMember(namespace, policies[i].Subject)
+	}
+
 	return policies, nil
+}
+
+func subjectMatchesAnyMember(namespace *models.Namespace, subject models.PolicySubject) bool {
+	for _, member := range namespace.Members {
+		if subjectMatches(subject, member.ID, member.Role, member.Type) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error) {
@@ -295,6 +335,13 @@ func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolic
 		return nil, NewErrAccessPolicyNotFound(req.ID, err)
 	}
 
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	policy.SubjectMatches = subjectMatchesAnyMember(namespace, policy.Subject)
+
 	return policy, nil
 }
 
@@ -304,8 +351,13 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if err := validateAccessPolicySubject(namespace, req.Subject); err != nil {
+		return nil, err
 	}
 
 	filter, err := s.resolveAccessPolicyFilter(ctx, sc, req.Filter)
@@ -330,7 +382,14 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	return s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+	created, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+	if err != nil {
+		return nil, err
+	}
+
+	created.SubjectMatches = subjectMatchesAnyMember(namespace, created.Subject)
+
+	return created, nil
 }
 
 func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error) {
@@ -341,6 +400,15 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 
 	if _, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID); err != nil {
 		return nil, NewErrAccessPolicyNotFound(req.ID, err)
+	}
+
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if err := validateAccessPolicySubject(namespace, req.Subject); err != nil {
+		return nil, err
 	}
 
 	filter, err := s.resolveAccessPolicyFilter(ctx, sc, req.Filter)
@@ -365,7 +433,14 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	return s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID)
+	updated, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	updated.SubjectMatches = subjectMatchesAnyMember(namespace, updated.Subject)
+
+	return updated, nil
 }
 
 func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error {

@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -998,5 +1000,254 @@ func TestStricterReauthPeriod(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			require.Equal(t, tc.expected, stricterReauthPeriod(tc.a, tc.b))
 		})
+	}
+}
+
+func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID   = "00000000-0000-4000-0000-000000000000"
+		memberID   = "11111111-1111-4111-1111-111111111111"
+		serviceID  = "22222222-2222-4222-2222-222222222222"
+		strangerID = "33333333-3333-4333-3333-333333333333"
+	)
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members: []models.Member{
+			{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman},
+			{ID: serviceID, Role: authorizer.RoleService, Type: models.UserTypeService},
+		},
+	}
+
+	cases := []struct {
+		description string
+		subject     requests.AccessPolicySubject
+		rejected    bool
+	}{
+		{"a member of the namespace is accepted", requests.AccessPolicySubject{Type: "user", Value: memberID}, false},
+		{"a service account is accepted, since it is a member too", requests.AccessPolicySubject{Type: "user", Value: serviceID}, false},
+		{"a user of another namespace is rejected", requests.AccessPolicySubject{Type: "user", Value: strangerID}, true},
+		{"a role the authorizer defines is accepted", requests.AccessPolicySubject{Type: "role", Value: "operator"}, false},
+		{"owner is accepted, though a member cannot be assigned it", requests.AccessPolicySubject{Type: "role", Value: "owner"}, false},
+		{"an invented role is rejected", requests.AccessPolicySubject{Type: "role", Value: "superadmin"}, true},
+		{"all-members with no value is accepted", requests.AccessPolicySubject{Type: "all-members"}, false},
+		{"all-members carrying a value is rejected", requests.AccessPolicySubject{Type: "all-members", Value: memberID}, true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+				Return(namespace, nil).Once()
+
+			if !tc.rejected {
+				queryOptionsMock := new(storemock.MockQueryOptions)
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
+				storeMock.On("AccessPolicyCreate", ctx, mock.Anything).Return("policy-1", nil).Once()
+				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, "policy-1").
+					Return(&models.AccessPolicy{ID: "policy-1"}, nil).Once()
+			}
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+			_, err := service.CreateAccessPolicy(ctx, &requests.AccessPolicyCreate{
+				TenantID: tenantID,
+				Name:     "rule",
+				Subject:  tc.subject,
+				Logins:   []string{"root"},
+			})
+
+			if tc.rejected {
+				require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID   = "00000000-0000-4000-0000-000000000000"
+		memberID   = "11111111-1111-4111-1111-111111111111"
+		strangerID = "33333333-3333-4333-3333-333333333333"
+		policyID   = "policy-1"
+	)
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+	}
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+		Return(&models.AccessPolicy{ID: policyID}, nil).Once()
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(namespace, nil).Once()
+
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+	_, err := service.UpdateAccessPolicy(ctx, &requests.AccessPolicyUpdate{
+		AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+		TenantID:            tenantID,
+		Name:                "rule",
+		Subject:             requests.AccessPolicySubject{Type: "user", Value: strangerID},
+		Logins:              []string{"root"},
+	})
+
+	require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
+}
+
+func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID   = "00000000-0000-4000-0000-000000000000"
+		memberID   = "11111111-1111-4111-1111-111111111111"
+		departedID = "44444444-4444-4444-4444-444444444444"
+	)
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+	}
+
+	stored := []models.AccessPolicy{
+		{ID: "a", Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: memberID}},
+		{ID: "b", Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: departedID}},
+		{ID: "c", Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "operator"}},
+		{ID: "d", Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "owner"}},
+		{ID: "e", Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers}},
+	}
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(namespace, nil).Once()
+	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, len(stored), nil).Once()
+
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+	policies, err := service.ListAccessPolicies(ctx, tenantID)
+	require.NoError(t, err)
+
+	matches := make(map[string]bool, len(policies))
+	for _, policy := range policies {
+		matches[policy.ID] = policy.SubjectMatches
+	}
+
+	require.Equal(t, map[string]bool{
+		"a": true,
+		"b": false,
+		"c": true,
+		"d": false,
+		"e": true,
+	}, matches)
+}
+
+func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		memberID = "11111111-1111-4111-1111-111111111111"
+		policyID = "policy-1"
+	)
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+	}
+
+	reads := []struct {
+		description string
+		read        func(*APIService, *storemock.MockStore, string) (*models.AccessPolicy, error)
+	}{
+		{
+			description: "get",
+			read: func(service *APIService, storeMock *storemock.MockStore, role string) (*models.AccessPolicy, error) {
+				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).Once()
+
+				return service.GetAccessPolicy(ctx, &requests.AccessPolicyGet{
+					AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+					TenantID:            tenantID,
+				})
+			},
+		},
+		{
+			description: "create",
+			read: func(service *APIService, storeMock *storemock.MockStore, role string) (*models.AccessPolicy, error) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).Once()
+				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
+				storeMock.On("AccessPolicyCreate", ctx, mock.Anything).Return(policyID, nil).Once()
+				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Once()
+
+				return service.CreateAccessPolicy(ctx, &requests.AccessPolicyCreate{
+					TenantID: tenantID,
+					Name:     "rule",
+					Subject:  requests.AccessPolicySubject{Type: "role", Value: role},
+					Logins:   []string{"root"},
+				})
+			},
+		},
+		{
+			description: "update",
+			read: func(service *APIService, storeMock *storemock.MockStore, role string) (*models.AccessPolicy, error) {
+				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Twice()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).Once()
+				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
+				storeMock.On("AccessPolicyUpdate", ctx, mock.Anything).Return(nil).Once()
+
+				return service.UpdateAccessPolicy(ctx, &requests.AccessPolicyUpdate{
+					AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+					TenantID:            tenantID,
+					Name:                "rule",
+					Subject:             requests.AccessPolicySubject{Type: "role", Value: role},
+					Logins:              []string{"root"},
+				})
+			},
+		},
+	}
+
+	subjects := []struct {
+		description string
+		role        string
+		matches     bool
+	}{
+		{"a role a member holds matches", "operator", true},
+		{"a role no member holds matches nobody", "administrator", false},
+	}
+
+	for _, read := range reads {
+		for _, subject := range subjects {
+			t.Run(read.description+": "+subject.description, func(t *testing.T) {
+				storeMock := storemock.NewMockStore(t)
+				service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+				policy, err := read.read(service, storeMock, subject.role)
+				require.NoError(t, err)
+				require.Equal(t, subject.matches, policy.SubjectMatches)
+			})
+		}
+	}
+}
+
+func storedAccessPolicyWithRole(tenantID, id, role string) *models.AccessPolicy {
+	return &models.AccessPolicy{
+		ID:       id,
+		TenantID: tenantID,
+		Subject:  models.PolicySubject{Type: models.PolicySubjectRole, Value: role},
 	}
 }
