@@ -253,7 +253,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   return (
     <div ref={rootRef} className="flex flex-col h-full bg-[#121314]">
       {/* Player container */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]">
         <div ref={containerRef} className="w-full" />
       </div>
 
