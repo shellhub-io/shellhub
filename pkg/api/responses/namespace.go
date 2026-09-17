@@ -50,7 +50,7 @@ func NamespaceFromModel(m *models.Namespace) *Namespace {
 	members := make([]Member, 0, len(m.Members))
 
 	for _, member := range m.Members {
-		if member.Type == models.UserTypeService {
+		if member.IsService() {
 			continue
 		}
 

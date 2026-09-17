@@ -145,7 +145,7 @@ func (s *service) ListServiceAccounts(ctx context.Context, req *requests.Service
 
 func (s *service) DeleteServiceAccount(ctx context.Context, req *requests.ServiceAccountDelete) error {
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.ID)
-	if err != nil || user.Type != models.UserTypeService {
+	if err != nil || !user.IsService() {
 		return NewErrServiceAccountNotFound(req.ID, err)
 	}
 

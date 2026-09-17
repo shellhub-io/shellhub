@@ -74,6 +74,13 @@ func WithUserStatus(status models.UserStatus) UserOption {
 	}
 }
 
+// WithUserType sets the principal type, which is what tells a service account from a person.
+func WithUserType(userType models.UserType) UserOption {
+	return func(u *models.User) {
+		u.Type = userType
+	}
+}
+
 // WithMaxNamespaces sets max namespaces
 func WithMaxNamespaces(n int) UserOption {
 	return func(u *models.User) {

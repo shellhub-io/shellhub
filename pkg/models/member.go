@@ -57,3 +57,10 @@ type Member struct {
 	// sign in until an admin approves it.
 	AwaitingApproval bool `json:"awaiting_approval,omitempty"`
 }
+
+// IsService reports whether the membership belongs to a service account, which Type answers and
+// Role does not. It reports false when Type is empty, which is a membership loaded without the
+// users join rather than a person.
+func (m Member) IsService() bool {
+	return m.Type.IsService()
+}

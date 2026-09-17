@@ -33,18 +33,22 @@ type MemberService interface {
 	//
 	// The role assigned to the new member must not grant more authority than the user adding them (e.g.,
 	// an administrator cannot add a member with a higher role such as an owner). Owners cannot be created.
+	// An email that resolves to a service account is refused with ErrMemberIsServiceAccount: it is
+	// managed through the service-account routes, never as a member.
 	//
 	// It returns the namespace and an error, if any.
 	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
 
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
-	// have more authority than the user who is updating the member; owners cannot be created.
+	// have more authority than the user who is updating the member; owners cannot be created. A service account is
+	// refused with ErrMemberIsServiceAccount whatever role it carries.
 	//
 	// It returns an error, if any.
 	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
 
 	// RemoveNamespaceMember removes a specified member from a namespace. The action must be performed by a user with higher
-	// authority than the target member. Owners cannot be removed.
+	// authority than the target member. Owners cannot be removed. A service account is refused with
+	// ErrMemberIsServiceAccount: it is removed through the service-account routes, which also drop its SSH identities.
 	//
 	// Returns the updated namespace and an error, if any.
 	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
@@ -119,6 +123,10 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 			if err != nil {
 				return err
 			}
+		}
+
+		if passiveUser.IsService() {
+			return NewErrMemberIsServiceAccount()
 		}
 
 		recipientName = passiveUser.Name
@@ -241,6 +249,10 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
+	if member.IsService() {
+		return NewErrMemberIsServiceAccount()
+	}
+
 	if active.ID == member.ID {
 		return NewErrAuthForbidden()
 	}
@@ -275,6 +287,10 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 	passive, ok := namespace.FindMember(req.MemberID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(req.MemberID, nil)
+	}
+
+	if passive.IsService() {
+		return nil, NewErrMemberIsServiceAccount()
 	}
 
 	if active.ID == passive.ID {

@@ -302,6 +302,18 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			expected: Expected{false, NewErrRoleForbidden()},
 		},
 		{
+			description: "fails when the invited email belongs to a service account",
+			requiredMocks: func() {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(namespace, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
+					Return(&models.User{ID: "bot", Type: models.UserTypeService}, nil).Once()
+			},
+			expected: Expected{false, NewErrMemberIsServiceAccount()},
+		},
+		{
 			description: "fails when the invited account is already a member",
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").

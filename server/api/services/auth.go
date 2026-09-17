@@ -467,7 +467,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	if user.Type == models.UserTypeService {
+	if user.IsService() {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 

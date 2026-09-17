@@ -62,6 +62,18 @@ func (t UserType) String() string {
 	return string(t)
 }
 
+// IsService reports whether t is the service-account type. An empty type is a person, which is
+// how a principal loaded without its user row reads.
+func (t UserType) IsService() bool {
+	return t == UserTypeService
+}
+
+// IsService reports whether the user is a service account. It reports false for an empty type,
+// which is a person.
+func (u User) IsService() bool {
+	return u.Type.IsService()
+}
+
 // UserAuthMethod is a way a user may authenticate. A user can hold several at once, so this is a
 // set rather than a mode.
 type UserAuthMethod string
