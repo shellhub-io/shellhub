@@ -3,8 +3,8 @@ properties:
   name:
     type: string
     description: |
-      The name of the API key. This serves as an "external ID" since the UUID
-      will never be returned. It is unique per namespace.
+      The name of the API key. It is unique per namespace and is what the key's own routes
+      address it by. It is mutable, so refer to the key by its id from anywhere else.
     maxLength: 20
     minLength: 3
     pattern: ^[a-zA-Z0-9_-]{3,20}$

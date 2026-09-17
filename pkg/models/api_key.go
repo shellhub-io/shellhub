@@ -15,10 +15,8 @@ import (
 // Expired keys cannot be used for authentication. Use [APIKey.IsValid] to verify its validity.
 type APIKey struct {
 	// ID is the key's surrogate identifier, and what anything owned by the key points at. It
-	// is stable across a rename and carries nothing derived from the credential. It stays off
-	// the wire until the response schema declares it: the list route serializes this struct,
-	// and strict validation refuses a property the schema does not name.
-	ID string `json:"-"`
+	// is stable across a rename and carries nothing derived from the credential.
+	ID string `json:"id"`
 	// Digest is the SHA256 hash of the key's plaintext, and is what identifies the key
 	// everywhere it is resolved. The plaintext is never persisted.
 	Digest string `json:"-"`
