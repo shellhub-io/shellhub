@@ -6,7 +6,7 @@ import (
 	"crypto/rsa"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"sync"
 	"testing"
 
 	"github.com/labstack/echo/v5"
@@ -17,73 +17,50 @@ import (
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
+	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+var testSigningKey = sync.OnceValues(func() (*rsa.PrivateKey, error) {
+	return rsa.GenerateKey(rand.Reader, 2048)
+})
 
 func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authenticator, *serviceMocks.MockService) {
 	t.Helper()
 
 	envstest.SetEdition(t, envs.Community)
 
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
 	service := serviceMocks.NewMockService(t)
-	service.On("PublicKey").Return(nil).Maybe()
+	service.On("PublicKey").Return(&privateKey.PublicKey).Maybe()
 
 	authn := routesmiddleware.NewAuthenticator(service)
 
 	return NewRouter(service, WithAuthentication(authn)), authn, service
 }
 
-// TestAnonymousAllowlistMatchesRegisteredRoutes catches a typo or a stale entry
-// in the anonymous allowlist. A key matching no route is dead: the route it meant
-// to open stays authenticated, which fails safe but breaks a public endpoint in a
-// way no other test would notice.
-func TestAnonymousAllowlistMatchesRegisteredRoutes(t *testing.T) {
-	router, authn, _ := authenticatedRouter(t)
+// TestAllowlistsMatchRegisteredRoutes catches a typo or a stale entry in the
+// anonymous and device allowlists, across the API routes and the SSH routes
+// mounted on the same router. A key matching no route is dead: the route it
+// meant to open stays closed, which fails safe but breaks an endpoint in a way no
+// other test would notice.
+func TestAllowlistsMatchRegisteredRoutes(t *testing.T) {
+	router, authn, service := authenticatedRouter(t)
 
-	registered := make(map[string]struct{})
-	paths := make(map[string]struct{})
+	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil), service, &sshhttp.Config{})
 
-	for _, route := range router.Router().Routes() {
-		registered[route.Method+" "+route.Path] = struct{}{}
-		paths[route.Path] = struct{}{}
-	}
-
-	for _, entry := range authn.AnonymousRoutes() {
-		method, path, found := strings.Cut(entry, " ")
-		require.True(t, found, "malformed allowlist entry %q", entry)
-
-		if method == routesmiddleware.AnyMethod {
-			assert.Contains(t, paths, path,
-				"allowlist names %q but no route is registered on that path", entry)
-
-			continue
-		}
-
-		assert.Contains(t, registered, entry,
-			"allowlist names %q but that method/path pair is not registered", entry)
-	}
-}
-
-func TestDeviceAllowlistMatchesRegisteredRoutes(t *testing.T) {
-	router, authn, _ := authenticatedRouter(t)
-
-	registered := make(map[string]struct{})
-	for _, route := range router.Router().Routes() {
-		registered[route.Method+" "+route.Path] = struct{}{}
-	}
-
-	for _, entry := range authn.DeviceRoutes() {
-		assert.Contains(t, registered, entry,
-			"device allowlist names %q but that method/path pair is not registered", entry)
-	}
+	assert.Empty(t, authn.UnregisteredRoutes(router.Router().Routes()))
 }
 
 func TestRouterRefusesDeviceTokenOnManagementRoutes(t *testing.T) {
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
 	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, privateKey)
@@ -104,12 +81,7 @@ func TestRouterRefusesDeviceTokenOnManagementRoutes(t *testing.T) {
 
 	for _, path := range paths {
 		t.Run(path, func(t *testing.T) {
-			envstest.SetEdition(t, envs.Community)
-
-			service := serviceMocks.NewMockService(t)
-			service.On("PublicKey").Return(&privateKey.PublicKey)
-
-			router := NewRouter(service, WithAuthentication(routesmiddleware.NewAuthenticator(service)))
+			router, _, _ := authenticatedRouter(t)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
 			req.Header.Set("Authorization", "Bearer "+bearer)
