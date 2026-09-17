@@ -170,7 +170,12 @@ func (*queryOptions) WithUserID(userID string) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		wrapper.query = wrapper.query.Where("user_id = ?", userID)
+		col := "user_id"
+		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
+			col = alias + ".user_id"
+		}
+
+		wrapper.query = wrapper.query.Where(col+" = ?", userID)
 
 		return nil
 	}

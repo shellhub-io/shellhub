@@ -97,6 +97,8 @@ var Groups = []Group{
 	}},
 	{Name: "SSHIdentityStore", Tests: []TestFunc{
 		(*Suite).TestSSHIdentityResolveCarriesThePrincipal,
+		(*Suite).TestSSHIdentityBelongsToAnAPIKey,
+		(*Suite).TestSSHIdentityListFiltersByOwner,
 		(*Suite).TestSSHIdentityGoesWithTheMembership,
 	}},
 	{Name: "SSHApprovalStore", Tests: []TestFunc{

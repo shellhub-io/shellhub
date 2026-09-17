@@ -39,7 +39,9 @@ func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store
 
 	entities := make([]entity.SSHIdentity, 0)
 
-	query := db.NewSelect().Model(&entities).Relation("User").Order("created_at ASC")
+	query := db.NewSelect().Model(&entities).Relation("User").Relation("APIKey").Order("created_at ASC")
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "ssh_identity")
 
 	query, err := applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
@@ -69,8 +71,10 @@ func (pg *Pg) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver s
 	}
 
 	e := new(entity.SSHIdentity)
-	query := db.NewSelect().Model(e).Relation("User").
+	query := db.NewSelect().Model(e).Relation("User").Relation("APIKey").
 		Where("?TableAlias.? = ?", bun.Ident(column), value)
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "ssh_identity")
 
 	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {

@@ -415,7 +415,7 @@ export function mockSshIdentity(
     principal_id: "user-123",
     principal_name: "admin",
     principal_email: "admin@test.com",
-    principal_type: "human",
+    principal_type: "user",
     fingerprint: "SHA256:abc123",
     name: "my-key",
     source: "manual",
