@@ -378,6 +378,39 @@ describe("vaultStore", () => {
       expect(useVaultStore.getState().error).toBeNull();
     });
 
+    it("leaves the vault alone when another session has already filled it", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      const createdMeta = makeMeta();
+
+      backend.loadMeta.mockResolvedValue(createdMeta);
+      backend.loadData.mockResolvedValue(makeVaultData());
+      backend.saveData.mockRejectedValue(new Error("Version conflict"));
+      mockGetBackend.mockReturnValue(backend);
+      mockCrypto.mockResolvedValue({ meta: createdMeta, derivedKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      await useVaultStore.getState().initialize("master-pass");
+
+      expect(backend.clear).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().error).toBe("Version conflict");
+    });
+
+    it("leaves the vault alone when the header cannot be read back", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+
+      backend.loadMeta.mockRejectedValue(new Error("Network unreachable"));
+      backend.saveData.mockRejectedValue(new Error("Network unreachable"));
+      mockGetBackend.mockReturnValue(backend);
+      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      await useVaultStore.getState().initialize("master-pass");
+
+      expect(backend.clear).not.toHaveBeenCalled();
+    });
+
     it("leaves the stored header alone when it belongs to a newer vault", async () => {
       const backend = makeFakeBackend();
       const derivedKey = makeFakeCryptoKey();
@@ -716,7 +749,7 @@ describe("vaultStore", () => {
       const { onIdle } = mockTrackerStart.mock.calls[0][0];
 
       mockGetSession.mockReturnValue(derivedKey);
-      useVaultStore.setState({ autoLockNonce: 0 });
+      useVaultStore.setState({ autoLockNonce: 0, loading: true });
 
       onIdle();
 
@@ -724,6 +757,7 @@ describe("vaultStore", () => {
       expect(state.status).toBe("locked");
       expect(state.keys).toEqual([]);
       expect(state.error).toBeNull();
+      expect(state.loading).toBe(false);
       expect(state.autoLockNonce).toBe(1);
       expect(mockClearSession).toHaveBeenCalled();
       expect(mockTrackerStop).toHaveBeenCalled();
@@ -1302,6 +1336,83 @@ describe("vaultStore", () => {
       expect(useVaultStore.getState().error).toBe(
         "Vault locked during password change",
       );
+    });
+
+    it("does not restore the old vault when a reset deleted it mid-change", async () => {
+      const backend = makeFakeBackend();
+      const oldKey = makeFakeCryptoKey("old");
+      const newKey = makeFakeCryptoKey("new");
+      const oldMeta = makeMeta();
+
+      backend.loadMeta.mockReturnValue(oldMeta);
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(oldKey);
+      mockVerify.mockResolvedValue(oldKey);
+      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey: newKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let rejectSaveData!: (err: Error) => void;
+      backend.saveData.mockReturnValueOnce(
+        new Promise<void>((_, reject) => {
+          rejectSaveData = reject;
+        }),
+      );
+
+      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
+
+      const promise = useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
+
+      await vi.waitFor(() => expect(backend.saveData).toHaveBeenCalled());
+      await useVaultStore.getState().resetVault();
+      backend.saveData.mockClear();
+      backend.saveMeta.mockClear();
+
+      rejectSaveData(new Error("Save failed"));
+      await promise;
+
+      expect(backend.saveData).not.toHaveBeenCalled();
+      expect(backend.saveMeta).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().status).toBe("uninitialized");
+    });
+
+    it("clears the loading state when a reset lands during a failing change", async () => {
+      const backend = makeFakeBackend();
+      const oldKey = makeFakeCryptoKey("old");
+
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(oldKey);
+      mockVerify.mockResolvedValue(oldKey);
+      mockCrypto.mockResolvedValue({
+        meta: makeMeta(),
+        derivedKey: makeFakeCryptoKey("new"),
+      });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let rejectSaveData!: (err: Error) => void;
+      backend.saveData.mockReturnValueOnce(
+        new Promise<void>((_, reject) => {
+          rejectSaveData = reject;
+        }),
+      );
+
+      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
+
+      const promise = useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
+
+      await vi.waitFor(() => expect(backend.saveData).toHaveBeenCalled());
+      await useVaultStore.getState().resetVault();
+
+      rejectSaveData(new Error("Save failed"));
+      await promise;
+
+      expect(useVaultStore.getState().loading).toBe(false);
     });
 
     it("does not restore the old session key when the rollback runs after a lock", async () => {
