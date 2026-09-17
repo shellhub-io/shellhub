@@ -21,7 +21,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "full fields",
 			model: &models.APIKey{
-				ID:        "digest-abc123",
+				Digest:        "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
 				Role:      authorizer.RoleAdministrator,
@@ -44,7 +44,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "observer role and zero ExpiresIn",
 			model: &models.APIKey{
-				ID:        "digest-def456",
+				Digest:        "digest-def456",
 				Name:      "read-only-key",
 				TenantID:  "namespace-id-2",
 				Role:      authorizer.RoleObserver,
@@ -102,7 +102,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   3600,
 			},
 			expected: &models.APIKey{
-				ID:        "digest-abc123",
+				Digest:        "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
 				Role:      authorizer.RoleAdministrator,
@@ -125,7 +125,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   0,
 			},
 			expected: &models.APIKey{
-				ID:        "digest-def456",
+				Digest:        "digest-def456",
 				Name:      "no-expiry-key",
 				TenantID:  "namespace-id-2",
 				Role:      authorizer.RoleObserver,
@@ -140,7 +140,7 @@ func TestAPIKeyToModel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := APIKeyToModel(tt.entity)
-			assert.Equal(t, tt.expected.ID, result.ID)
+			assert.Equal(t, tt.expected.Digest, result.Digest)
 			assert.Equal(t, tt.expected.Name, result.Name)
 			assert.Equal(t, tt.expected.TenantID, result.TenantID)
 			assert.Equal(t, tt.expected.Role, result.Role)

@@ -83,10 +83,10 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{ID: keyID})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{Digest: keyID})
 		require.NoError(t, err)
 		assert.True(t, has)
-		assert.Equal(t, []string{"id"}, conflicts)
+		assert.Equal(t, []string{"digest"}, conflicts)
 	})
 }
 
@@ -100,7 +100,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, "nonexistent-id")
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, "nonexistent-id")
 		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -110,7 +110,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 
 		malformedTenantID := "83176492-e6cl-43d7-922e-ee01c3693e26"
 
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(malformedTenantID), store.APIKeyIDResolver, "any-key-id")
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(malformedTenantID), store.APIKeyDigestResolver, "any-key-id")
 		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -121,10 +121,10 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 		require.NotNil(t, apiKey)
-		assert.Equal(t, keyID, apiKey.ID)
+		assert.Equal(t, keyID, apiKey.Digest)
 		assert.Equal(t, "dev", apiKey.Name)
 		assert.Equal(t, tenantID, apiKey.TenantID)
 		assert.Equal(t, "administrator", string(apiKey.Role))
@@ -149,7 +149,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyNameResolver, "dev")
 		require.NoError(t, err)
 		require.NotNil(t, apiKey)
-		assert.Equal(t, keyID, apiKey.ID)
+		assert.Equal(t, keyID, apiKey.Digest)
 		assert.Equal(t, "dev", apiKey.Name)
 		assert.Equal(t, tenantID, apiKey.TenantID)
 		assert.Equal(t, "administrator", string(apiKey.Role))
@@ -228,7 +228,7 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
@@ -244,14 +244,14 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 
 		apiKey.Name = "updated-dev"
 		err = st.APIKeyUpdate(ctx, apiKey)
 		require.NoError(t, err)
 
-		updatedKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		updatedKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 		assert.Equal(t, "updated-dev", updatedKey.Name)
 	})
@@ -268,7 +268,7 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
@@ -283,13 +283,13 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		require.NoError(t, err)
 
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
 
-		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
+		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, keyID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

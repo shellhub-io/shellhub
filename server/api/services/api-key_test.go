@@ -166,13 +166,13 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
-					Return([]string{"id", "name"}, true, nil).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
+					Return([]string{"digest", "name"}, true, nil).
 					Once()
 			},
 			expected: Expected{
 				res: nil,
-				err: NewErrAPIKeyDuplicated([]string{"id", "name"}),
+				err: NewErrAPIKeyDuplicated([]string{"digest", "name"}),
 			},
 		},
 		{
@@ -214,12 +214,12 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
 					On("APIKeyCreate", ctx, &models.APIKey{
-						ID:        hashedKey,
+						Digest:        hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -273,12 +273,12 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
 					On("APIKeyCreate", ctx, &models.APIKey{
-						ID:        hashedKey,
+						Digest:        hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -288,9 +288,9 @@ func TestCreateAPIKey(t *testing.T) {
 					Return(hashedKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyDigestResolver, hashedKey).
 					Return(&models.APIKey{
-						ID:        hashedKey,
+						Digest:        hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -531,7 +531,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -563,14 +563,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -606,14 +606,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -649,14 +649,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -705,14 +705,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -790,7 +790,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -815,7 +815,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					ID:       "existing-id",
+					Digest:       "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",

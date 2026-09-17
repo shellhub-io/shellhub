@@ -637,7 +637,7 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 
 		_, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, pkFingerprint)
 		require.NoError(t, err)
-		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, apiKeyID)
+		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, apiKeyID)
 		require.NoError(t, err)
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
@@ -647,7 +647,7 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 
 		_, err = st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, pkFingerprint)
 		require.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, apiKeyID)
+		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, apiKeyID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 

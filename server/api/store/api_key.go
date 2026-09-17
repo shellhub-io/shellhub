@@ -13,7 +13,7 @@ type APIKeyResolver uint
 // The fields an API key can be resolved by. The zero value is not one, so an unset resolver
 // cannot silently mean the first.
 const (
-	APIKeyIDResolver APIKeyResolver = iota + 1
+	APIKeyDigestResolver APIKeyResolver = iota + 1
 	APIKeyNameResolver
 )
 

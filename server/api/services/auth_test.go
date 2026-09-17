@@ -2663,7 +2663,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2681,7 +2681,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2705,7 +2705,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2740,7 +2740,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2784,7 +2784,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2906,7 +2906,7 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 	storeMock, service := newAPIKeyAuthFixture(t, cache)
 
 	apiKey := &models.APIKey{
-		ID:        testKeyDigest,
+		Digest:        testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
 		CreatedBy: "creator-id",
@@ -2915,7 +2915,7 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 	}
 
 	storeMock.
-		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(apiKey, nil).
 		Once()
 	storeMock.
@@ -2949,7 +2949,7 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 	}))
 
 	storeMock.
-		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(nil, store.ErrNoDocuments).
 		Once()
 
@@ -2964,7 +2964,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 	storeMock, service := newAPIKeyAuthFixture(t, cache)
 
 	apiKey := &models.APIKey{
-		ID:        testKeyDigest,
+		Digest:        testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
 		CreatedBy: "creator-id",
@@ -2978,7 +2978,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 	}
 
 	storeMock.
-		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(apiKey, nil).
 		Once()
 	storeMock.
@@ -3008,7 +3008,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 	}))
 
 	storeMock.
-		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(apiKey, nil).
 		Once()
 
@@ -3023,10 +3023,10 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 	storeMock, service := newAPIKeyAuthFixture(t, cache)
 
 	storeMock.
-		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, testKeyDigest).
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(
 			&models.APIKey{
-				ID:        testKeyDigest,
+				Digest:        testKeyDigest,
 				Name:      "dev",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				CreatedBy: "creator-id",

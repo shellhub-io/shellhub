@@ -728,11 +728,11 @@ func (s *Suite) TestScopeIsolationAPIKeyResolve(t *testing.T) {
 	other := s.CreateNamespace(t)
 	keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(owner))
 
-	got, err := st.APIKeyResolve(ctx, scope.MustBounded(owner), store.APIKeyIDResolver, keyID)
+	got, err := st.APIKeyResolve(ctx, scope.MustBounded(owner), store.APIKeyDigestResolver, keyID)
 	require.NoError(t, err)
-	assert.Equal(t, keyID, got.ID)
+	assert.Equal(t, keyID, got.Digest)
 
-	got, err = st.APIKeyResolve(ctx, scope.MustBounded(other), store.APIKeyIDResolver, keyID)
+	got, err = st.APIKeyResolve(ctx, scope.MustBounded(other), store.APIKeyDigestResolver, keyID)
 	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }

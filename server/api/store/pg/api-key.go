@@ -20,14 +20,14 @@ func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, 
 		return "", fromSQLError(err)
 	}
 
-	return apiKey.ID, nil
+	return apiKey.Digest, nil
 }
 
 // APIKeyConflicts implements [store.APIKeyStore].
 func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
-	if target.ID == "" && target.Name == "" {
+	if target.Digest == "" && target.Name == "" {
 		return []string{}, false, nil
 	}
 
@@ -42,10 +42,10 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *model
 	}
 
 	switch {
-	case target.ID != "" && target.Name != "":
-		query = query.Where("key_digest = ? OR name = ?", target.ID, target.Name)
-	case target.ID != "":
-		query = query.Where("key_digest = ?", target.ID)
+	case target.Digest != "" && target.Name != "":
+		query = query.Where("key_digest = ? OR name = ?", target.Digest, target.Name)
+	case target.Digest != "":
+		query = query.Where("key_digest = ?", target.Digest)
 	case target.Name != "":
 		query = query.Where("name = ?", target.Name)
 	}
@@ -56,8 +56,8 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *model
 
 	seen := make(map[string]bool)
 	for _, apiKey := range apiKeys {
-		if target.ID != "" && apiKey.KeyDigest == target.ID {
-			seen["id"] = true
+		if target.Digest != "" && apiKey.KeyDigest == target.Digest {
+			seen["digest"] = true
 		}
 
 		if target.Name != "" && apiKey.Name == target.Name {
@@ -168,7 +168,7 @@ func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID 
 // [store.ErrResolverNotFound] for one this store does not implement.
 func APIKeyResolverToString(resolver store.APIKeyResolver) (string, error) {
 	switch resolver {
-	case store.APIKeyIDResolver:
+	case store.APIKeyDigestResolver:
 		return "key_digest", nil
 	case store.APIKeyNameResolver:
 		return "name", nil
