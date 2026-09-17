@@ -102,8 +102,9 @@ interface VaultState {
 async function persistKeys(
   keys: VaultKeyEntry[],
   be?: IVaultBackend,
+  sessionKey?: CryptoKey,
 ): Promise<void> {
-  const key = getSessionKey();
+  const key = sessionKey ?? getSessionKey();
   if (!key) throw new Error("Vault is locked");
 
   const backend = be ?? getBackend();
@@ -244,9 +245,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
         const legacyKeys = await backend.loadLegacyKeys();
         const keys = legacyKeys.length > 0 ? migrateLegacyKeys(legacyKeys) : [];
 
-        await backend.saveData(
-          await encrypt(derivedKey, JSON.stringify(keys)),
-        );
+        await persistKeys(keys, backend, derivedKey);
 
         if (legacyKeys.length > 0) {
           await backend.clearLegacyKeys();
@@ -387,6 +386,9 @@ export const useVaultStore = create<VaultState>((set, get) => {
     },
 
     changeMasterPassword: async (currentPassword, newPassword) => {
+      const generation = lockGeneration;
+      const superseded = () => generation !== lockGeneration;
+
       set({ loading: true, error: null });
       try {
         const backend = getBackend();
@@ -418,6 +420,11 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
         const oldData = await backend.loadData();
         const oldMeta = meta;
+
+        if (superseded() || get().status !== "unlocked") {
+          set({ loading: false, error: "Vault locked during password change" });
+          return;
+        }
 
         setSessionKey(newKey);
         try {
