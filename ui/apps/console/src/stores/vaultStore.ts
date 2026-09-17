@@ -431,7 +431,9 @@ export const useVaultStore = create<VaultState>((set, get) => {
           await persistKeys(get().keys, backend);
           await backend.saveMeta(newMeta);
         } catch (err) {
-          setSessionKey(oldKey);
+          if (!superseded() && get().status === "unlocked") {
+            setSessionKey(oldKey);
+          }
           if (oldData) await backend.saveData(oldData).catch(() => undefined);
           await backend.saveMeta(oldMeta).catch(() => undefined);
           throw err;
@@ -439,6 +441,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
         set({ loading: false });
       } catch (err) {
+        if (superseded()) return;
         set({
           loading: false,
           error:
