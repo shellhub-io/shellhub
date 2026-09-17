@@ -32,7 +32,7 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
     e.preventDefault();
     if (!canSubmit) return;
     await unlock(password);
-    if (!useVaultStore.getState().error && !useVaultStore.getState().loading) {
+    if (useVaultStore.getState().status === "unlocked") {
       onClose();
     }
   };

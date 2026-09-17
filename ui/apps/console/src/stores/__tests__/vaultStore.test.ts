@@ -392,7 +392,7 @@ describe("vaultStore", () => {
       expect(mockTrackerStart).not.toHaveBeenCalled();
     });
 
-    it("does not clear a newer session key when a superseded initialization fails", async () => {
+    it("does not clear the session key when a superseded initialization fails", async () => {
       const backend = makeFakeBackend();
       mockGetBackend.mockReturnValue(backend);
 
@@ -1202,6 +1202,49 @@ describe("vaultStore", () => {
       expect(mockGetSession()).toBeNull();
       expect(backend.saveMeta).not.toHaveBeenCalledWith(newMeta);
       expect(mockEncrypt).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().error).toBe(
+        "Vault locked during password change",
+      );
+    });
+
+    it("does not republish the new session key when the vault locks during loadData", async () => {
+      const backend = makeFakeBackend();
+      const oldKey = makeFakeCryptoKey("old");
+      const newKey = makeFakeCryptoKey("new");
+      const newMeta = makeMeta();
+
+      backend.loadMeta.mockReturnValue(makeMeta());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(oldKey);
+      mockVerify.mockResolvedValue(oldKey);
+      mockCrypto.mockResolvedValue({ meta: newMeta, derivedKey: newKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let resolveLoadData!: (data: VaultData) => void;
+      backend.loadData.mockReturnValue(
+        new Promise<VaultData>((r) => {
+          resolveLoadData = r;
+        }),
+      );
+
+      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
+
+      const promise = useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
+
+      await vi.waitFor(() => expect(backend.loadData).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+      useVaultStore.setState({ status: "unlocked" });
+      mockSetSession.mockClear();
+
+      resolveLoadData(makeVaultData());
+      await promise;
+
+      expect(mockSetSession).not.toHaveBeenCalled();
+      expect(mockEncrypt).not.toHaveBeenCalled();
+      expect(backend.saveData).not.toHaveBeenCalled();
+      expect(backend.saveMeta).not.toHaveBeenCalled();
       expect(useVaultStore.getState().error).toBe(
         "Vault locked during password change",
       );
