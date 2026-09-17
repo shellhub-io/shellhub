@@ -54,7 +54,7 @@ function GenerateKeyDrawer({
       const result = await createKey.mutateAsync({
         body: buildGenerateKeyBody(values),
       });
-      setGeneratedKey(result.id);
+      setGeneratedKey(result.key);
     } catch (err) {
       if (isSdkError(err) && err.status === 400) {
         setError("name", {

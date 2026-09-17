@@ -29,6 +29,8 @@ func TestCreateAPIKey(t *testing.T) {
 		err error
 	}
 
+	const surrogateID = "c629572a-b643-4301-90fe-4572b00d007e"
+
 	storeMock := storemock.NewMockStore(t)
 
 	prevUUID := uuid.DefaultBackend
@@ -219,7 +221,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyCreate", ctx, &models.APIKey{
-						Digest:        hashedKey,
+						Digest:    hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -278,7 +280,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyCreate", ctx, &models.APIKey{
-						Digest:        hashedKey,
+						Digest:    hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -290,7 +292,8 @@ func TestCreateAPIKey(t *testing.T) {
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyDigestResolver, hashedKey).
 					Return(&models.APIKey{
-						Digest:        hashedKey,
+						ID:        surrogateID,
+						Digest:    hashedKey,
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -301,9 +304,10 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			expected: Expected{
 				res: &responses.CreateAPIKey{
-					ID:        "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
+					ID:        surrogateID,
+					Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 					Name:      "dev",
-					UserID:    "000000000000000000000000",
+					CreatedBy: "000000000000000000000000",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Role:      "owner",
 					ExpiresIn: -1,

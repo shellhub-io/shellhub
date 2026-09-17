@@ -2,11 +2,18 @@ type: object
 properties:
   id:
     description: |
-      The UUID of the API key. It is used only internally and, except for the
-      create operation, is never returned to the client.
+      The key's identifier. It is stable across a rename and is what an access policy
+      or an SSH identity refers to. It is not the credential.
     type: string
-    format: uuidv4
+    format: uuid
     example: c629572a-b643-4301-90fe-4572b00d007e
+  key:
+    description: |
+      The credential itself, returned by this operation and never again. Store it when
+      it is created; nothing can read it back.
+    type: string
+    format: uuid
+    example: 2f6a1d8e-5b0c-4e77-9a3f-0c1d2e3f4a5b
   tenant_id:
     description: The tenant ID of the namespace with which the key is associated.
     type: string
@@ -23,8 +30,8 @@ properties:
   name:
     type: string
     description: |
-      The name of the API key. This serves as an "external ID" since the UUID
-      will never be returned. It is unique per namespace.
+      The name of the API key. It is unique per namespace and is what the key's own routes
+      address it by. It is mutable, so refer to the key by its id from anywhere else.
     example: dev
   expires_in:
     description: |
@@ -45,6 +52,7 @@ properties:
     example: 2020-05-01T00:00:00.000Z
 required:
   - id
+  - key
   - tenant_id
   - created_by
   - role

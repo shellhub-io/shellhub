@@ -107,9 +107,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, err
 	}
 
-	apiKey.Digest = plaintext
-
-	return responses.CreateAPIKeyFromModel(apiKey), nil
+	return responses.CreateAPIKeyFromModel(apiKey, plaintext), nil
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {

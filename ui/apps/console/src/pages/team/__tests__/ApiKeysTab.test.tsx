@@ -29,6 +29,7 @@ vi.mock("@/components/common/ConfirmDialog", async () => ({
 
 function mockApiKey(overrides: Partial<ApiKey> = {}): ApiKey {
   return {
+    id: "c629572a-b643-4301-90fe-4572b00d007e",
     tenant_id: "tenant-456",
     created_by: "user-123",
     role: "administrator",
