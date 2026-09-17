@@ -560,6 +560,11 @@ func TestMemberRole(t *testing.T) {
 			value:       "observer",
 			want:        true,
 		},
+		{
+			description: "fails when role is service",
+			value:       "service",
+			want:        false,
+		},
 	}
 
 	for _, tt := range tests {
