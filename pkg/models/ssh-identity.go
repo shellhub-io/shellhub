@@ -27,16 +27,15 @@ const (
 type SSHIdentity struct {
 	ID       string `json:"id"`
 	TenantID string `json:"-"`
-	// PrincipalID is the id of the bound principal (a row in the users table,
-	// human or service account).
+	// PrincipalID is the id of the bound principal. Which table it names depends on
+	// PrincipalType: a person is a row in users, an automation a row in api_keys.
 	PrincipalID string `json:"principal_id"`
 	// PrincipalName, PrincipalEmail, and PrincipalType describe the bound
 	// principal, resolved for the management screen. They are not stored on the
-	// identity row. PrincipalType tells a human's key apart from a service
-	// account's.
-	PrincipalName  string   `json:"principal_name"`
-	PrincipalEmail string   `json:"principal_email"`
-	PrincipalType  UserType `json:"principal_type"`
+	// identity row. PrincipalEmail is empty for anything that is not a person.
+	PrincipalName  string        `json:"principal_name"`
+	PrincipalEmail string        `json:"principal_email"`
+	PrincipalType  PrincipalKind `json:"principal_type"`
 	// Fingerprint is the SSH public key fingerprint in "SHA256:…" form.
 	Fingerprint string `json:"fingerprint"`
 	// Data is the OpenSSH public key the fingerprint is derived from.

@@ -7,13 +7,16 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// SSHIdentity is a row of ssh_identities, binding a public key to a person within a namespace.
+// SSHIdentity is a row of ssh_identities, binding a public key to a principal within a
+// namespace. Exactly one owner column is set, which is where the model's single PrincipalID
+// comes from and where it goes back to.
 type SSHIdentity struct {
 	bun.BaseModel `bun:"table:ssh_identities"`
 
 	ID           string     `bun:"id,pk,type:uuid"`
 	NamespaceID  string     `bun:"namespace_id"`
-	UserID       string     `bun:"user_id"`
+	UserID       string     `bun:"user_id,nullzero"`
+	APIKeyID     string     `bun:"api_key_id,nullzero"`
 	Fingerprint  string     `bun:"fingerprint"`
 	Data         []byte     `bun:"data,type:bytea"`
 	Name         string     `bun:"name"`
@@ -25,7 +28,8 @@ type SSHIdentity struct {
 	SingleUse    bool       `bun:"single_use"`
 	ConsumedAt   *time.Time `bun:"consumed_at"`
 
-	User *User `bun:"rel:belongs-to,join:user_id=id"`
+	User   *User   `bun:"rel:belongs-to,join:user_id=id"`
+	APIKey *APIKey `bun:"rel:belongs-to,join:api_key_id=id"`
 }
 
 // SSHIdentityFromModel projects an identity into its row form.
@@ -33,7 +37,8 @@ func SSHIdentityFromModel(model *models.SSHIdentity) *SSHIdentity {
 	return &SSHIdentity{
 		ID:           model.ID,
 		NamespaceID:  model.TenantID,
-		UserID:       model.PrincipalID,
+		UserID:       userOwner(model),
+		APIKeyID:     apiKeyOwner(model),
 		Fingerprint:  model.Fingerprint,
 		Data:         model.Data,
 		Name:         model.Name,
@@ -65,11 +70,43 @@ func SSHIdentityToModel(e *SSHIdentity) *models.SSHIdentity {
 		ConsumedAt:   e.ConsumedAt,
 	}
 
-	if e.User != nil {
+	switch {
+	case e.APIKeyID != "":
+		identity.PrincipalID = e.APIKeyID
+		identity.PrincipalType = models.PrincipalAPIKey
+
+		if e.APIKey != nil {
+			identity.PrincipalName = e.APIKey.Name
+		}
+	case e.User != nil:
 		identity.PrincipalName = e.User.Name
 		identity.PrincipalEmail = e.User.Email
-		identity.PrincipalType = models.UserType(e.User.Type)
+		identity.PrincipalType = principalKindOfUser(e.User.Type)
 	}
 
 	return identity
+}
+
+func principalKindOfUser(userType string) models.PrincipalKind {
+	if userType == string(models.UserTypeService) {
+		return models.PrincipalService
+	}
+
+	return models.PrincipalUser
+}
+
+func userOwner(model *models.SSHIdentity) string {
+	if model.PrincipalType == models.PrincipalAPIKey {
+		return ""
+	}
+
+	return model.PrincipalID
+}
+
+func apiKeyOwner(model *models.SSHIdentity) string {
+	if model.PrincipalType == models.PrincipalAPIKey {
+		return model.PrincipalID
+	}
+
+	return ""
 }

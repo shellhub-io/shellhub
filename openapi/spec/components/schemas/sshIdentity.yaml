@@ -17,18 +17,21 @@ properties:
     type: string
     example: john.doe
   principal_email:
-    description: Email of the principal the key is bound to.
+    description: |
+      Email of the principal the key is bound to. Empty for a principal that is not a
+      person, which has no mailbox.
     type: string
     example: john.doe@example.com
   principal_type:
     description: |
-      Whether the bound principal is a human or a service account. Lets the list
-      tell a person's key apart from a service account's.
+      What kind of principal the key is bound to, which decides what principal_id
+      names: a user, or an API key acting as an automation.
     type: string
     enum:
-      - human
+      - user
+      - api-key
       - service
-    example: human
+    example: user
   fingerprint:
     description: SSH public key fingerprint.
     type: string

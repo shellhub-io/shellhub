@@ -31,7 +31,7 @@ function identity(overrides: Partial<SshIdentity> = {}): SshIdentity {
     principal_id: "user1",
     principal_name: "John Doe",
     principal_email: "john@example.com",
-    principal_type: "human",
+    principal_type: "user",
     fingerprint: FINGERPRINT,
     name: "Chrome 149 on Linux",
     source: "browser",
