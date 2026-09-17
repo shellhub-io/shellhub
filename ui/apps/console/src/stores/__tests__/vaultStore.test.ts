@@ -362,6 +362,57 @@ describe("vaultStore", () => {
 
       expect(useVaultStore.getState().loading).toBe(false);
     });
+
+    it("finishes creating the vault but does not unlock it when locked mid-creation", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      mockGetBackend.mockReturnValue(backend);
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let resolveMeta!: (v: { meta: VaultMeta; derivedKey: CryptoKey }) => void;
+      mockCrypto.mockReturnValue(
+        new Promise((r) => {
+          resolveMeta = r;
+        }),
+      );
+
+      const promise = useVaultStore.getState().initialize("master-pass");
+      useVaultStore.getState().lock();
+      resolveMeta({ meta: makeMeta(), derivedKey });
+      await promise;
+
+      const state = useVaultStore.getState();
+      expect(backend.saveMeta).toHaveBeenCalled();
+      expect(mockEncrypt).toHaveBeenCalledWith(derivedKey, "[]");
+      expect(backend.saveData).toHaveBeenCalled();
+      expect(backend.clear).not.toHaveBeenCalled();
+      expect(mockSetSession).not.toHaveBeenCalled();
+      expect(state.status).toBe("locked");
+      expect(state.loading).toBe(false);
+      expect(mockTrackerStart).not.toHaveBeenCalled();
+    });
+
+    it("does not clear a newer session key when a superseded initialization fails", async () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+
+      let rejectMeta!: (err: Error) => void;
+      mockCrypto.mockReturnValue(
+        new Promise((_, reject) => {
+          rejectMeta = reject;
+        }),
+      );
+
+      const promise = useVaultStore.getState().initialize("master-pass");
+      useVaultStore.getState().lock();
+      mockClearSession.mockClear();
+      rejectMeta(new Error("Crypto failure"));
+      await promise;
+
+      expect(backend.clear).toHaveBeenCalled();
+      expect(mockClearSession).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().error).toBeNull();
+    });
   });
 
   describe("unlock", () => {

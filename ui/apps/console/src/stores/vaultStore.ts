@@ -228,6 +228,9 @@ export const useVaultStore = create<VaultState>((set, get) => {
     },
 
     initialize: async (masterPassword, mode) => {
+      const generation = ++lockGeneration;
+      const superseded = () => generation !== lockGeneration;
+
       set({ loading: true, error: null });
       if (mode) {
         setVaultStorageMode(mode, getScope());
@@ -238,22 +241,27 @@ export const useVaultStore = create<VaultState>((set, get) => {
         const { meta, derivedKey } = await createVaultMeta(masterPassword);
         await backend.saveMeta(meta);
 
-        setSessionKey(derivedKey);
-
         const legacyKeys = await backend.loadLegacyKeys();
         const keys = legacyKeys.length > 0 ? migrateLegacyKeys(legacyKeys) : [];
 
-        await persistKeys(keys);
+        await backend.saveData(
+          await encrypt(derivedKey, JSON.stringify(keys)),
+        );
 
         if (legacyKeys.length > 0) {
           await backend.clearLegacyKeys();
         }
 
+        if (superseded()) return;
+
+        setSessionKey(derivedKey);
         set({ status: "unlocked", keys, loading: false });
         await loadSettingsIntoState();
+        if (superseded()) return;
         startTracker();
       } catch (err) {
         await backend.clear().catch(() => undefined);
+        if (superseded()) return;
         clearSessionKey();
         const msg =
           err instanceof Error ? err.message : "Failed to create vault";
