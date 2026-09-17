@@ -79,6 +79,7 @@ func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
 	masterPasswd := masterPasswdLine("bad", "0", "never") + masterPasswdLine("good", "0", "0")
 
 	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(masterPasswd)))
+	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(masterPasswd)))
 	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(masterPasswd)))
 }
 

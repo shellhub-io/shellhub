@@ -33,8 +33,9 @@ type backend struct{}
 
 type masterPasswdEntry struct {
 	User
-	Change int64
-	Expire int64
+	Change    int64
+	Expire    int64
+	Malformed bool
 }
 
 func (e masterPasswdEntry) checkAccountExpiry(now int64) error {
@@ -73,7 +74,7 @@ func (b *backend) AccountExpired(username string) bool {
 
 		return true
 	}
-	defer file.Close() //nolint:errcheck
+	defer file.Close() //nolint:errcheck // read-only file, nothing to flush
 
 	return AccountExpiredFromShadow(username, file)
 }
@@ -127,6 +128,14 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 		return false
 	}
 
+	if user.Malformed {
+		log.WithFields(log.Fields{
+			"username": username,
+		}).Error("Refusing login to an account with a malformed passwd entry")
+
+		return false
+	}
+
 	if !VerifyPasswordHash(user.Password, password) {
 		return false
 	}
@@ -143,7 +152,8 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 }
 
 // AccountExpiredFromShadow reports whether the account's entry in masterPasswd has expired. It
-// returns true when masterPasswd cannot be parsed, and false when the account has no entry.
+// returns true when masterPasswd cannot be parsed or the account's change or expire field is
+// malformed, and false when the account has no entry.
 func AccountExpiredFromShadow(username string, masterPasswd io.Reader) bool {
 	entries, err := parseMasterPasswdReader(masterPasswd)
 	if err != nil {
@@ -155,6 +165,14 @@ func AccountExpiredFromShadow(username string, masterPasswd io.Reader) bool {
 	entry, found := entries[username]
 	if !found {
 		return false
+	}
+
+	if entry.Malformed {
+		log.WithFields(log.Fields{
+			"username": username,
+		}).Error("Refusing login to an account with a malformed passwd entry")
+
+		return true
 	}
 
 	if err := entry.checkAccountExpiry(clock.Now().Unix()); err != nil {
@@ -178,7 +196,7 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 	}
 
 	user, found := entries[username]
-	if !found {
+	if !found || user.Malformed {
 		log.WithFields(log.Fields{
 			"username": username,
 		}).Error("User not found in passwd file")
@@ -204,13 +222,19 @@ func parseMasterPasswdReader(r io.Reader) (map[string]masterPasswdEntry, error) 
 
 		entry, err := parseMasterPasswdLine(string(line))
 		if errors.Is(err, errMalformedChange) || errors.Is(err, errMalformedExpire) {
-			log.WithError(err).Warnf("Skipping master.passwd line %d", lineno)
+			log.WithError(err).Warnf("Refusing the account on master.passwd line %d", lineno)
+
+			entries[entry.Username] = masterPasswdEntry{User: User{Username: entry.Username}, Malformed: true}
 
 			continue
 		}
 
 		if err != nil {
 			return nil, fmt.Errorf("master.passwd line %d: %w", lineno, err)
+		}
+
+		if previous, ok := entries[entry.Username]; ok && previous.Malformed {
+			continue
 		}
 
 		entries[entry.Username] = entry
