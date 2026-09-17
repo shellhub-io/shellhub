@@ -2,6 +2,7 @@ package environment
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net"
 	"slices"
@@ -24,28 +25,41 @@ const (
 
 var freePortController []string
 
+func freePort() (string, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return "", err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return "", err
+	}
+
+	defer l.Close() //nolint:errcheck // port already read; close is best-effort
+
+	tcpAddr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		return "", errors.New("listener address is not TCP")
+	}
+
+	port := strconv.Itoa(tcpAddr.Port)
+	if slices.Contains(freePortController, port) {
+		return freePort()
+	}
+
+	freePortController = append(freePortController, port)
+
+	return port, nil
+}
+
 // GetFreePort returns a randomly available TCP port. It can be used to avoid
 // network conflicts in Docker Compose.
 func GetFreePort(t *testing.T) string {
 	t.Helper()
 
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	port, err := freePort()
 	require.NoError(t, err)
-
-	l, err := net.ListenTCP("tcp", addr)
-	require.NoError(t, err)
-
-	defer l.Close() //nolint:errcheck
-
-	tcpAddr, ok := l.Addr().(*net.TCPAddr)
-	require.True(t, ok, "listener address is not TCP")
-
-	port := strconv.Itoa(tcpAddr.Port)
-	if slices.Contains(freePortController, port) {
-		return GetFreePort(t)
-	}
-
-	freePortController = append(freePortController, port)
 
 	return port
 }

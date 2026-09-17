@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	bundledSpec = "../openapi/static/openapi.json"
+	bundledSpec = "../openapi/static/openapi-community.json"
 
 	strictModeMismatchMarker = "the response does not match the OpenAPI schema"
 

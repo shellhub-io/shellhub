@@ -2,9 +2,7 @@ package environment
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,23 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
-	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
 
 // DockerCompose is a running test stack: the started services, the HTTP client used to talk to
 // them, the environment they were given, and the hook that tears them down.
 type DockerCompose struct {
 	setupT *testing.T
-
-	services map[Service]*tc.DockerContainer
-
-	client *resty.Client
-
-	anonymous *resty.Client
-
-	envs map[string]string
-
-	down func()
+	stack  *Stack
 }
 
 // Down stops the [DockerCompose] instance, removing the services, networks, and volumes
@@ -39,58 +27,38 @@ type DockerCompose struct {
 // the first starts from them instead of pulling or building. It's generally a good idea to
 // encapsulate it inside a [t.Cleanup] function.
 func (dc *DockerCompose) Down() {
-	dc.down()
+	require.NoError(dc.setupT, dc.stack.Down(context.Background()))
 }
 
 // R return a [resty.R] with `http://localhost:{SHELLHUB_HTTP_PORT}` as base URL.
 func (dc *DockerCompose) R(ctx context.Context) *resty.Request {
-	return dc.client.R().SetContext(ctx)
+	return dc.stack.R(ctx)
 }
 
 // JWT makes every subsequent request from [DockerCompose.R] authenticate as the bearer of jwt.
 func (dc *DockerCompose) JWT(jwt string) {
-	dc.client.SetAuthScheme("Bearer")
-	dc.client.SetAuthToken(jwt)
+	dc.stack.JWT(jwt)
 }
 
 // Anonymous returns a request carrying no credential, whatever token [DockerCompose.JWT] has
-// installed on the shared client. It comes from a client of its own because resty falls back to
-// the client's token whenever a request sets none, so no per-request call can take a credential
-// away. Call SetAuthToken on the returned request to authenticate as someone other than the
-// bearer [DockerCompose.R] carries.
+// installed. See [Stack.Anonymous].
 func (dc *DockerCompose) Anonymous(ctx context.Context) *resty.Request {
-	return dc.anonymous.R().SetContext(ctx)
+	return dc.stack.Anonymous(ctx)
 }
 
 // Env retrieves a environment variable with the specified key.
 func (dc *DockerCompose) Env(key string) string {
-	return dc.envs[key]
+	return dc.stack.Env(key)
 }
 
 // SSHAddress is the host address the gateway's SSH port is published on.
 func (dc *DockerCompose) SSHAddress() string {
-	return "localhost:" + dc.Env("SHELLHUB_SSH_PORT")
+	return dc.stack.SSHAddress()
 }
 
 // Service retrieves the specified service.
 func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
-	return dc.services[service]
-}
-
-func (dc *DockerCompose) runAdminCommand(t *testing.T, args []string) {
-	t.Helper()
-
-	code, output, err := dc.Service(ServiceServer).Exec(
-		t.Context(),
-		append([]string{"/server", "admin"}, args...),
-		tcexec.Multiplexed(),
-	)
-	require.NoError(t, err)
-
-	if code != 0 {
-		body, _ := io.ReadAll(output)
-		require.FailNow(t, fmt.Sprintf("admin %s exited with %d: %s", strings.Join(args, " "), code, body))
-	}
+	return dc.stack.Service(service)
 }
 
 // NewUser creates a new user with the specified values. It is an abstraction around the server's
@@ -101,7 +69,7 @@ func (dc *DockerCompose) runAdminCommand(t *testing.T, args []string) {
 func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
 	t.Helper()
 
-	dc.runAdminCommand(t, []string{"user", "create", username, password, email})
+	require.NoError(t, dc.stack.NewUser(t.Context(), username, email, password))
 }
 
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the server's
@@ -115,12 +83,7 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
 	t.Helper()
 
-	args := []string{"namespace", "create", name, owner, tenant}
-	if sshAccessMode != "" {
-		args = append(args, "--ssh-access-mode", sshAccessMode)
-	}
-
-	dc.runAdminCommand(t, args)
+	require.NoError(t, dc.stack.NewNamespace(t.Context(), owner, name, tenant, sshAccessMode))
 }
 
 // NewMember adds an existing user to a namespace as "owner", "administrator", "operator" or
@@ -129,7 +92,7 @@ func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAcce
 func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role string) {
 	t.Helper()
 
-	dc.runAdminCommand(t, []string{"namespace", "member", "add", username, namespace, role})
+	require.NoError(t, dc.stack.NewMember(t.Context(), username, namespace, role))
 }
 
 // LogSource is anything whose logs a test can read, such as a compose service or a container the

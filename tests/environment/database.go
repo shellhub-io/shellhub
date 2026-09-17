@@ -2,8 +2,10 @@ package environment
 
 import "fmt"
 
-func onlyPostgresAllowed(db string) {
+func onlyPostgresAllowed(db string) error {
 	if db != "postgres" {
-		panic(fmt.Sprintf("unsupported database %q: only postgres is supported", db))
+		return fmt.Errorf("unsupported database %q: only postgres is supported", db)
 	}
+
+	return nil
 }
