@@ -9,10 +9,13 @@ import (
 )
 
 // APIKey is a row of api_keys. The model's Digest is stored as key_digest: the plaintext is
-// never persisted, so the digest is the identity.
+// never persisted, so the digest is what authentication resolves. ID is the surrogate anything
+// owned by the key points at, and is deliberately not part of the primary key: APIKeyUpdate and
+// APIKeyDelete address a row with WherePK, which a third key column would silently widen.
 type APIKey struct {
 	bun.BaseModel `bun:"table:api_keys"`
 
+	ID          string    `bun:"id,type:uuid,nullzero,default:gen_random_uuid()"`
 	KeyDigest   string    `bun:"key_digest,pk"`
 	NamespaceID string    `bun:"namespace_id,pk"`
 	Name        string    `bun:"name"`
@@ -26,6 +29,7 @@ type APIKey struct {
 // APIKeyFromModel projects an API key into its row form.
 func APIKeyFromModel(model *models.APIKey) *APIKey {
 	return &APIKey{
+		ID:          model.ID,
 		Name:        model.Name,
 		NamespaceID: model.TenantID,
 		KeyDigest:   model.Digest,
@@ -40,6 +44,7 @@ func APIKeyFromModel(model *models.APIKey) *APIKey {
 // APIKeyToModel rebuilds an API key from its row.
 func APIKeyToModel(entity *APIKey) *models.APIKey {
 	return &models.APIKey{
+		ID:        entity.ID,
 		Digest:    entity.KeyDigest,
 		Name:      entity.Name,
 		TenantID:  entity.NamespaceID,
