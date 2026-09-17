@@ -38,6 +38,7 @@ type Authenticator struct {
 	service AuthnService
 
 	anonymous map[string]struct{}
+	devices   map[string]struct{}
 }
 
 // NewAuthenticator returns an authenticator that resolves credentials through service. Its
@@ -46,6 +47,7 @@ func NewAuthenticator(service AuthnService) *Authenticator {
 	return &Authenticator{
 		service:   service,
 		anonymous: make(map[string]struct{}),
+		devices:   make(map[string]struct{}),
 	}
 }
 
@@ -75,6 +77,28 @@ func (a *Authenticator) AnonymousRoutes() []string {
 	return routes
 }
 
+// AllowDevice marks a route as reachable with a device token. The path must be
+// the full registered pattern, including the group prefix.
+//
+// A device token is honoured on these routes only. Anywhere else it is refused
+// with 403, or, on an anonymous route, dropped so the request proceeds as
+// anonymous. A device holds no role, so without this fence it would pass every
+// check that only asks for a tenant.
+func (a *Authenticator) AllowDevice(method, path string) {
+	a.devices[method+" "+path] = struct{}{}
+}
+
+// DeviceRoutes returns the routes registered with [Authenticator.AllowDevice]
+// as "METHOD path" keys. Tests use it to assert the allowlist matches the router.
+func (a *Authenticator) DeviceRoutes() []string {
+	routes := make([]string, 0, len(a.devices))
+	for route := range a.devices {
+		routes = append(routes, route)
+	}
+
+	return routes
+}
+
 // Middleware authenticates the request. Register it with echo's Use so it runs
 // after routing, where the matched route pattern is available.
 func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -89,6 +113,14 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			if !anonymous {
 				return err
+			}
+
+			identity = nil
+		}
+
+		if identity != nil && identity.DeviceUID != "" && !routeIn(a.devices, c) {
+			if !anonymous {
+				return c.NoContent(http.StatusForbidden)
 			}
 
 			identity = nil
@@ -122,11 +154,15 @@ func isExempt(path string) bool {
 }
 
 func (a *Authenticator) isAnonymous(c *echo.Context) bool {
-	if _, ok := a.anonymous[c.Request().Method+" "+c.Path()]; ok {
+	return routeIn(a.anonymous, c)
+}
+
+func routeIn(routes map[string]struct{}, c *echo.Context) bool {
+	if _, ok := routes[c.Request().Method+" "+c.Path()]; ok {
 		return true
 	}
 
-	_, ok := a.anonymous[AnyMethod+" "+c.Path()]
+	_, ok := routes[AnyMethod+" "+c.Path()]
 
 	return ok
 }

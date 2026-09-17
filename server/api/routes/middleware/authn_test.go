@@ -189,3 +189,64 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 	assert.Empty(t, c.Request().Header.Get("X-ID"))
 	service.AssertExpectations(t)
 }
+
+func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
+	const deviceUID = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, privateKey)
+	require.NoError(t, err)
+
+	cases := []struct {
+		description    string
+		register       func(*Authenticator)
+		expectedStatus int
+		expectedDevice string
+	}{
+		{
+			description:    "refuses a route not declared for devices",
+			register:       func(*Authenticator) {},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			description: "stamps the device identity on a declared device route",
+			register: func(a *Authenticator) {
+				a.AllowDevice(http.MethodGet, "/api/namespaces")
+			},
+			expectedStatus: http.StatusOK,
+			expectedDevice: deviceUID,
+		},
+		{
+			description: "drops the device identity on an anonymous route",
+			register: func(a *Authenticator) {
+				a.AllowAnonymous(http.MethodGet, "/api/namespaces")
+			},
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			service := new(mocks.MockService)
+			service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+
+			c, rec := authenticatedRequest(echo.New(), bearer)
+			c.Request().Header.Set("X-Device-UID", "forged")
+
+			authenticator := NewAuthenticator(service)
+			tc.register(authenticator)
+
+			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+			require.NoError(t, authenticator.Middleware(next)(c))
+
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			if tc.expectedStatus == http.StatusOK {
+				assert.Equal(t, tc.expectedDevice, c.Request().Header.Get("X-Device-UID"))
+			}
+
+			service.AssertExpectations(t)
+		})
+	}
+}

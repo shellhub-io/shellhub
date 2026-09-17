@@ -257,6 +257,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	if handler.authn != nil {
 		registerAnonymousRoutes(handler.authn)
+		registerDeviceRoutes(handler.authn)
 	}
 
 	if err := applyExtensions(router, handler.authn, service); err != nil {

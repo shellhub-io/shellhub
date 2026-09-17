@@ -49,7 +49,8 @@ var upgrader = websocket.Upgrader{
 // error handler are the API's; they are a superset of what these handlers need.
 //
 // authn is the API's authenticator, used to declare which of these routes are
-// reachable without a credential. It may be nil in tests.
+// reachable without a credential and which accept a device token. It may be nil
+// in tests.
 func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
 	handlers := &Handlers{
 		Dialer:  d,
@@ -64,8 +65,17 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 		}
 	}
 
+	allowDevice := func(method, path string) {
+		if authn != nil {
+			authn.AllowDevice(method, path)
+		}
+	}
+
 	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
+	allowDevice(http.MethodGet, HandleConnectionV1Path)
+
 	router.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
+	allowDevice(http.MethodGet, HandleConnectionV2Path)
 
 	router.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
 	allowAnonymous(http.MethodGet, HandleRevdialPath)

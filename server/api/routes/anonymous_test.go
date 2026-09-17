@@ -2,12 +2,16 @@ package routes
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
@@ -59,6 +63,62 @@ func TestAnonymousAllowlistMatchesRegisteredRoutes(t *testing.T) {
 
 		assert.Contains(t, registered, entry,
 			"allowlist names %q but that method/path pair is not registered", entry)
+	}
+}
+
+func TestDeviceAllowlistMatchesRegisteredRoutes(t *testing.T) {
+	router, authn, _ := authenticatedRouter(t)
+
+	registered := make(map[string]struct{})
+	for _, route := range router.Router().Routes() {
+		registered[route.Method+" "+route.Path] = struct{}{}
+	}
+
+	for _, entry := range authn.DeviceRoutes() {
+		assert.Contains(t, registered, entry,
+			"device allowlist names %q but that method/path pair is not registered", entry)
+	}
+}
+
+func TestRouterRefusesDeviceTokenOnManagementRoutes(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, privateKey)
+	require.NoError(t, err)
+
+	paths := []string{
+		"/api/devices",
+		"/api/devices/device",
+		"/api/devices/resolve?uid=device",
+		"/api/sessions",
+		"/api/sessions/session",
+		"/api/stats",
+		"/api/tags",
+		"/api/sshkeys/public-keys",
+		"/api/namespaces/" + tenant,
+		"/api/namespaces/" + tenant + "/members",
+	}
+
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			envstest.SetEdition(t, envs.Community)
+
+			service := serviceMocks.NewMockService(t)
+			service.On("PublicKey").Return(&privateKey.PublicKey)
+
+			router := NewRouter(service, WithAuthentication(routesmiddleware.NewAuthenticator(service)))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
+			req.Header.Set("Authorization", "Bearer "+bearer)
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusForbidden, rec.Code)
+		})
 	}
 }
 
