@@ -113,14 +113,25 @@ async function persistKeys(
   await backend.saveData(data);
 }
 
-async function storedHeaderIs(
+async function ownsUnadoptedVault(
   meta: VaultMeta | null,
   backend: IVaultBackend,
 ): Promise<boolean> {
   if (!meta) return false;
 
-  const stored = await backend.loadMeta().catch(() => null);
-  return stored?.salt === meta.salt && stored?.verifier === meta.verifier;
+  const stored = await backend.loadMeta().catch(nullOnFailure);
+  if (
+    !stored ||
+    stored.salt !== meta.salt ||
+    stored.verifier !== meta.verifier
+  ) {
+    return false;
+  }
+
+  return backend
+    .loadData()
+    .then((body) => body === null)
+    .catch(() => false);
 }
 
 function checkDuplicates(
@@ -162,6 +173,7 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
  */
 export const useVaultStore = create<VaultState>((set, get) => {
   let lockGeneration = 0;
+  let storageGeneration = 0;
 
   async function loadSettingsIntoState(): Promise<void> {
     const settings = await Promise.resolve()
@@ -191,6 +203,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
         set({
           status: "locked",
           keys: [],
+          loading: false,
           error: null,
           autoLockNonce: get().autoLockNonce + 1,
         });
@@ -272,8 +285,13 @@ export const useVaultStore = create<VaultState>((set, get) => {
         if (superseded()) return;
         startTracker();
       } catch (err) {
-        if (await storedHeaderIs(createdMeta, backend)) {
-          await backend.clear().catch(() => undefined);
+        if (await ownsUnadoptedVault(createdMeta, backend)) {
+          await backend
+            .clear()
+            .then(() => {
+              storageGeneration++;
+            })
+            .catch(() => undefined);
         }
         if (superseded()) return;
         clearSessionKey();
@@ -402,7 +420,9 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
     changeMasterPassword: async (currentPassword, newPassword) => {
       const generation = lockGeneration;
+      const storage = storageGeneration;
       const superseded = () => generation !== lockGeneration;
+      const storageDiscarded = () => storage !== storageGeneration;
 
       set({ loading: true, error: null });
       try {
@@ -449,8 +469,10 @@ export const useVaultStore = create<VaultState>((set, get) => {
           if (!superseded() && get().status === "unlocked") {
             setSessionKey(oldKey);
           }
-          if (oldData) await backend.saveData(oldData).catch(() => undefined);
-          await backend.saveMeta(oldMeta).catch(() => undefined);
+          if (!storageDiscarded()) {
+            if (oldData) await backend.saveData(oldData).catch(() => undefined);
+            await backend.saveMeta(oldMeta).catch(() => undefined);
+          }
           throw err;
         }
 
@@ -478,11 +500,13 @@ export const useVaultStore = create<VaultState>((set, get) => {
         return;
       }
       lockGeneration++;
+      storageGeneration++;
       clearSessionKey();
       activityTracker.stop();
       set({
         status: "uninitialized",
         keys: [],
+        loading: false,
         error: null,
         autoLockTimeoutMinutes: DEFAULT_VAULT_SETTINGS.autoLockTimeoutMinutes,
         lockOnHidden: DEFAULT_VAULT_SETTINGS.lockOnHidden,
