@@ -75,7 +75,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
 	}
 
-	if member.Type != models.UserTypeService && !member.Role.HasPermission(authorizer.DeviceConnect) {
+	if !member.IsService() && !member.Role.HasPermission(authorizer.DeviceConnect) {
 		return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
 	}
 
@@ -141,7 +141,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: login}, nil
 	}
 
-	if member.Type == models.UserTypeService {
+	if member.IsService() {
 		requireReauth = false
 		reauthPeriod = nil
 	}
