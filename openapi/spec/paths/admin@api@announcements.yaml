@@ -39,6 +39,8 @@ get:
       $ref: ../components/responses/400.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 post:
   operationId: createAnnouncement
   summary: Create an announcement
@@ -71,3 +73,5 @@ post:
       $ref: ../components/responses/401.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

@@ -25,6 +25,8 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteVault
   summary: Delete vault
@@ -46,3 +48,5 @@ delete:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

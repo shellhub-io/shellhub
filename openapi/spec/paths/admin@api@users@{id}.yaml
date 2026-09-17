@@ -24,6 +24,8 @@ delete:
       $ref: ../components/responses/401.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 put:
   operationId: adminUpdateUser
   summary: Update user
@@ -66,6 +68,8 @@ put:
       $ref: ../components/responses/conflictFields.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 get:
   operationId: getUser
   summary: Get user
@@ -198,3 +202,5 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

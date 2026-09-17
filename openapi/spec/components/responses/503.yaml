@@ -1,0 +1,7 @@
+description: Service unavailable
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/apiError.yaml
+    example:
+      message: internal server error

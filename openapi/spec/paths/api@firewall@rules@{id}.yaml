@@ -26,6 +26,8 @@ get:
       $ref: ../components/responses/401.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 put:
   operationId: updateFirewallRule
   summary: Update a firewall rule
@@ -58,6 +60,8 @@ put:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteFirewallRule
   summary: Delete a firewall rule
@@ -77,3 +81,5 @@ delete:
       $ref: ../components/responses/403.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

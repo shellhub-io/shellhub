@@ -40,3 +40,5 @@ get:
                 type: string
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

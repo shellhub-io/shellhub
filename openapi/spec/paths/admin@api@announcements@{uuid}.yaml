@@ -22,6 +22,8 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 put:
   operationId: updateAnnouncement
   summary: Update an announcement
@@ -56,6 +58,8 @@ put:
       $ref: ../components/responses/401.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteAnnouncement
   summary: Delete an announcement
@@ -80,3 +84,5 @@ delete:
       $ref: ../components/responses/401.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
