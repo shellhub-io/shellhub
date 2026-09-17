@@ -352,7 +352,7 @@ and the role indicates the permissions that the member will have within that nam
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			role := authorizer.RoleFromString(args[2])
-			if role == authorizer.RoleInvalid {
+			if !role.Assignable() {
 				return fmt.Errorf("invalid role %q, valid roles are: owner, administrator, operator, observer", args[2])
 			}
 

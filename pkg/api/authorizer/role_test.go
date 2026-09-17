@@ -52,6 +52,56 @@ func TestRoleFromString(t *testing.T) {
 	}
 }
 
+func TestRoleAssignable(t *testing.T) {
+	cases := []struct {
+		description string
+		role        authorizer.Role
+		expected    bool
+	}{
+		{
+			description: "refuses an invalid role",
+			role:        authorizer.RoleInvalid,
+			expected:    false,
+		},
+		{
+			description: "refuses the service role",
+			role:        authorizer.RoleService,
+			expected:    false,
+		},
+		{
+			description: "refuses a role that is not one of the known values",
+			role:        authorizer.Role("bogus"),
+			expected:    false,
+		},
+		{
+			description: "accepts owner",
+			role:        authorizer.RoleOwner,
+			expected:    true,
+		},
+		{
+			description: "accepts administrator",
+			role:        authorizer.RoleAdministrator,
+			expected:    true,
+		},
+		{
+			description: "accepts operator",
+			role:        authorizer.RoleOperator,
+			expected:    true,
+		},
+		{
+			description: "accepts observer",
+			role:        authorizer.RoleObserver,
+			expected:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			require.Equal(tt, tc.expected, tc.role.Assignable())
+		})
+	}
+}
+
 func TestRolePermissions(t *testing.T) {
 	cases := []struct {
 		description string

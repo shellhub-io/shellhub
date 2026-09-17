@@ -138,7 +138,7 @@ var Rules = []Rule{
 	{
 		Tag: MemberRoleTag,
 		Handler: func(field validator.FieldLevel) bool {
-			return authorizer.RoleFromString(field.Field().String()) != authorizer.RoleInvalid
+			return authorizer.RoleFromString(field.Field().String()).Assignable()
 		},
 		Error: errors.New("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
 	},

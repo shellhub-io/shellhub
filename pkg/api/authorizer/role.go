@@ -50,6 +50,19 @@ func RoleFromString(str string) Role {
 	}
 }
 
+// Assignable reports whether r is a role a person can be given. The switch names every role and
+// takes no default, so a role added later fails the exhaustive check until someone places it.
+func (r Role) Assignable() bool {
+	switch r {
+	case RoleOwner, RoleAdministrator, RoleOperator, RoleObserver:
+		return true
+	case RoleInvalid, RoleService:
+		return false
+	}
+
+	return false
+}
+
 // String converts the given role to its corresponding string.
 // If the string is not a valid role, it returns "N/A".
 func (r Role) String() string {
