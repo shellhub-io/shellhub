@@ -470,6 +470,91 @@ describe("vaultStore", () => {
       expect(state.status).toBe("locked");
       expect(mockClearSession).toHaveBeenCalled();
     });
+
+    it("does not publish the session key when locked during password verification", async () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockDecrypt.mockResolvedValue(JSON.stringify([makeFakeKey()]));
+
+      let resolveVerify!: (key: CryptoKey) => void;
+      mockVerify.mockReturnValue(
+        new Promise<CryptoKey>((r) => {
+          resolveVerify = r;
+        }),
+      );
+
+      const promise = useVaultStore.getState().unlock("master-pass");
+      await vi.waitFor(() => expect(mockVerify).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+      resolveVerify(makeFakeCryptoKey());
+      await promise;
+
+      const state = useVaultStore.getState();
+      expect(mockSetSession).not.toHaveBeenCalled();
+      expect(state.status).toBe("locked");
+      expect(state.keys).toEqual([]);
+      expect(state.loading).toBe(false);
+      expect(mockTrackerStart).not.toHaveBeenCalled();
+    });
+
+    it("does not publish decrypted keys when locked during decryption", async () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockVerify.mockResolvedValue(makeFakeCryptoKey());
+
+      let resolveDecrypt!: (plaintext: string) => void;
+      mockDecrypt.mockReturnValue(
+        new Promise<string>((r) => {
+          resolveDecrypt = r;
+        }),
+      );
+
+      const promise = useVaultStore.getState().unlock("master-pass");
+      await vi.waitFor(() => expect(mockDecrypt).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+      resolveDecrypt(JSON.stringify([makeFakeKey()]));
+      await promise;
+
+      const state = useVaultStore.getState();
+      expect(state.status).toBe("locked");
+      expect(state.keys).toEqual([]);
+      expect(mockTrackerStart).not.toHaveBeenCalled();
+    });
+
+    it("does not clear a newer session key when a superseded unlock fails", async () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockVerify.mockResolvedValue(makeFakeCryptoKey());
+
+      let rejectDecrypt!: (err: Error) => void;
+      mockDecrypt.mockReturnValueOnce(
+        new Promise<string>((_, reject) => {
+          rejectDecrypt = reject;
+        }),
+      );
+
+      const stale = useVaultStore.getState().unlock("master-pass");
+      await vi.waitFor(() => expect(mockDecrypt).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+      mockClearSession.mockClear();
+
+      mockDecrypt.mockResolvedValueOnce(JSON.stringify([makeFakeKey()]));
+      await useVaultStore.getState().unlock("master-pass");
+
+      rejectDecrypt(new Error("Decryption failed"));
+      await stale;
+
+      const state = useVaultStore.getState();
+      expect(mockClearSession).not.toHaveBeenCalled();
+      expect(state.status).toBe("unlocked");
+      expect(state.error).toBeNull();
+    });
   });
 
   describe("lock", () => {

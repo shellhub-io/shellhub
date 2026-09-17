@@ -149,6 +149,8 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
  * component must read them through this store rather than holding its own copy.
  */
 export const useVaultStore = create<VaultState>((set, get) => {
+  let lockGeneration = 0;
+
   async function loadSettingsIntoState(): Promise<void> {
     const settings = await Promise.resolve()
       .then(() => getBackend().loadSettings())
@@ -171,6 +173,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
       hiddenGraceMs: HIDDEN_GRACE_MS,
       onIdle: () => {
         if (get().status !== "unlocked") return;
+        lockGeneration++;
         clearSessionKey();
         activityTracker.stop();
         set({
@@ -259,10 +262,14 @@ export const useVaultStore = create<VaultState>((set, get) => {
     },
 
     unlock: async (masterPassword) => {
+      const generation = ++lockGeneration;
+      const superseded = () => generation !== lockGeneration;
+
       set({ loading: true, error: null });
       try {
         const backend = getBackend();
         const meta = await backend.loadMeta();
+        if (superseded()) return;
         if (!meta) {
           set({ loading: false, error: "No vault found" });
           return;
@@ -272,9 +279,11 @@ export const useVaultStore = create<VaultState>((set, get) => {
         try {
           derivedKey = await verifyPassword(masterPassword, meta);
         } catch {
+          if (superseded()) return;
           set({ loading: false, error: "Incorrect master password" });
           return;
         }
+        if (superseded()) return;
 
         setSessionKey(derivedKey);
 
@@ -283,6 +292,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
           const parsed: unknown = vaultData
             ? JSON.parse(await decrypt(derivedKey, vaultData))
             : [];
+          if (superseded()) return;
           if (!Array.isArray(parsed))
             throw new Error("Vault data is corrupted");
           const isValid = parsed.every(
@@ -304,12 +314,15 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
           set({ status: "unlocked", keys, loading: false });
           await loadSettingsIntoState();
+          if (superseded()) return;
           startTracker();
         } catch {
+          if (superseded()) return;
           clearSessionKey();
           set({ loading: false, error: "Vault data is corrupted" });
         }
       } catch (err) {
+        if (superseded()) return;
         clearSessionKey();
         const msg =
           err instanceof Error ? err.message : "Failed to unlock vault";
@@ -318,9 +331,10 @@ export const useVaultStore = create<VaultState>((set, get) => {
     },
 
     lock: () => {
+      lockGeneration++;
       clearSessionKey();
       activityTracker.stop();
-      set({ status: "locked", keys: [], error: null });
+      set({ status: "locked", keys: [], loading: false, error: null });
     },
 
     addKey: async (entry) => {
@@ -430,6 +444,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
         set({ error: msg });
         return;
       }
+      lockGeneration++;
       clearSessionKey();
       activityTracker.stop();
       set({
