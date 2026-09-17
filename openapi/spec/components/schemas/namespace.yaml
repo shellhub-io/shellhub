@@ -79,6 +79,13 @@ properties:
     type: integer
     minimum: 0
     example: 0
+  devices_removed_count:
+    description: >-
+      Number of devices that have been removed from the namespace. A removed
+      device frees its slot, so this count does not weigh against max_devices.
+    type: integer
+    minimum: 0
+    example: 4
   type:
     type: string
     enum:
@@ -105,3 +112,4 @@ required:
   - devices_pending_count
   - devices_accepted_count
   - devices_rejected_count
+  - devices_removed_count

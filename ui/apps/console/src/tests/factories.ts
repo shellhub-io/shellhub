@@ -72,6 +72,7 @@ export function mockNamespace(overrides: Partial<Namespace> = {}): Namespace {
     devices_pending_count: 0,
     devices_accepted_count: 0,
     devices_rejected_count: 0,
+    devices_removed_count: 0,
     ...overrides,
   };
 }
