@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   server:
-    image: server:test
+    image: server:test-${SHELLHUB_BUILD_EDITION:-community}
     pull_policy: never
     restart: on-failure:3
     healthcheck:
@@ -15,7 +15,7 @@ services:
       - SHELLHUB_OPENAPI_SCHEMA=file:///etc/shellhub/openapi.json
       - SHELLHUB_LOG_FORMAT=text
     volumes:
-      - ./openapi/static/openapi.json:/etc/shellhub/openapi.json:ro
+      - ./openapi/static/openapi-${SHELLHUB_EDITION:-community}.json:/etc/shellhub/openapi.json:ro
   gateway:
     image: gateway:test
     pull_policy: never
