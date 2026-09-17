@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/labstack/echo/v5"
@@ -27,10 +28,14 @@ const (
 	testUserID = "6f4c1b2a1e2f3a4b5c6d7e8f"
 )
 
+var testSigningKey = sync.OnceValues(func() (*rsa.PrivateKey, error) {
+	return rsa.GenerateKey(rand.Reader, 2048)
+})
+
 func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 	t.Helper()
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
 	bearer, err := jwttoken.EncodeUserClaims(
@@ -193,7 +198,7 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 	const deviceUID = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
 	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, privateKey)
@@ -219,6 +224,14 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 			expectedDevice: deviceUID,
 		},
 		{
+			description: "stamps the device identity on a route declared for any method",
+			register: func(a *Authenticator) {
+				a.AllowDevice(AnyMethod, "/api/namespaces")
+			},
+			expectedStatus: http.StatusOK,
+			expectedDevice: deviceUID,
+		},
+		{
 			description: "drops the device identity on an anonymous route",
 			register: func(a *Authenticator) {
 				a.AllowAnonymous(http.MethodGet, "/api/namespaces")
@@ -238,15 +251,38 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 			authenticator := NewAuthenticator(service)
 			tc.register(authenticator)
 
-			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+			var deviceSeen string
+
+			next := func(c *echo.Context) error {
+				deviceSeen = c.Request().Header.Get("X-Device-UID")
+
+				return c.NoContent(http.StatusOK)
+			}
 			require.NoError(t, authenticator.Middleware(next)(c))
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
-			if tc.expectedStatus == http.StatusOK {
-				assert.Equal(t, tc.expectedDevice, c.Request().Header.Get("X-Device-UID"))
-			}
+			assert.Equal(t, tc.expectedDevice, deviceSeen)
 
 			service.AssertExpectations(t)
 		})
 	}
+}
+
+func TestAuthenticatorUnregisteredRoutes(t *testing.T) {
+	routes := echo.Routes{
+		{Method: http.MethodGet, Path: "/api/devices"},
+		{Method: http.MethodPost, Path: "/api/devices/auth"},
+	}
+
+	authenticator := NewAuthenticator(nil)
+	authenticator.AllowAnonymous(http.MethodPost, "/api/devices/auth")
+	authenticator.AllowAnonymous(http.MethodGet, "/api/devices/auth")
+	authenticator.AllowAnonymous(AnyMethod, "/api/devices")
+	authenticator.AllowDevice(http.MethodGet, "/api/devices")
+	authenticator.AllowDevice(AnyMethod, "/api/sessions")
+
+	assert.ElementsMatch(t,
+		[]string{"GET /api/devices/auth", "* /api/sessions"},
+		authenticator.UnregisteredRoutes(routes),
+	)
 }

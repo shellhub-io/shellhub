@@ -31,27 +31,29 @@ var exemptPrefixes = []string{"/metrics"}
 // stamps it onto the canonical headers that [gateway.Context] reads.
 //
 // It fails closed: every route requires a valid credential unless it was
-// registered with [Authenticator.AllowAnonymous]. A new route is therefore
-// protected by default, and a typo in the allowlist leaves a public route
-// returning 401 rather than leaving a private one open.
+// registered with [Authenticator.AllowAnonymous], and a device token is refused
+// on every route not registered with [Authenticator.AllowDevice]. A new route is
+// therefore protected by default, and a typo in either allowlist breaks the route
+// it meant to open rather than opening one it did not.
 type Authenticator struct {
 	service AuthnService
 
-	anonymous map[string]struct{}
-	devices   map[string]struct{}
+	anonymous routeSet
+	devices   routeSet
 }
 
 // NewAuthenticator returns an authenticator that resolves credentials through service. Its
-// anonymous allowlist starts empty, so every route is guarded until one is declared.
+// anonymous and device allowlists start empty, so every route demands a credential and
+// refuses a device token until declared otherwise.
 func NewAuthenticator(service AuthnService) *Authenticator {
 	return &Authenticator{
 		service:   service,
-		anonymous: make(map[string]struct{}),
-		devices:   make(map[string]struct{}),
+		anonymous: make(routeSet),
+		devices:   make(routeSet),
 	}
 }
 
-// AnyMethod marks a route anonymous for every HTTP method, for routes
+// AnyMethod marks an allowlisted route for every HTTP method, for routes
 // registered with echo's Any.
 const AnyMethod = "*"
 
@@ -63,40 +65,27 @@ const AnyMethod = "*"
 // to present a valid credential, and still has forged identity headers
 // stripped; it simply does not demand one.
 func (a *Authenticator) AllowAnonymous(method, path string) {
-	a.anonymous[method+" "+path] = struct{}{}
-}
-
-// AnonymousRoutes returns the registered anonymous routes as "METHOD path"
-// keys. Tests use it to assert the allowlist matches the router.
-func (a *Authenticator) AnonymousRoutes() []string {
-	routes := make([]string, 0, len(a.anonymous))
-	for route := range a.anonymous {
-		routes = append(routes, route)
-	}
-
-	return routes
+	a.anonymous.add(method, path)
 }
 
 // AllowDevice marks a route as reachable with a device token. The path must be
-// the full registered pattern, including the group prefix.
+// the full registered pattern, including the group prefix. Pass [AnyMethod] as
+// the method to cover every verb.
 //
 // A device token is honoured on these routes only. Anywhere else it is refused
 // with 403, or, on an anonymous route, dropped so the request proceeds as
 // anonymous. A device holds no role, so without this fence it would pass every
 // check that only asks for a tenant.
 func (a *Authenticator) AllowDevice(method, path string) {
-	a.devices[method+" "+path] = struct{}{}
+	a.devices.add(method, path)
 }
 
-// DeviceRoutes returns the routes registered with [Authenticator.AllowDevice]
-// as "METHOD path" keys. Tests use it to assert the allowlist matches the router.
-func (a *Authenticator) DeviceRoutes() []string {
-	routes := make([]string, 0, len(a.devices))
-	for route := range a.devices {
-		routes = append(routes, route)
-	}
-
-	return routes
+// UnregisteredRoutes returns the "METHOD path" entries of both allowlists that
+// match none of routes. An [AnyMethod] entry matches any route on its path. A
+// dead entry fails safe, but silently breaks the route it meant to open, so
+// tests assert this is empty against the assembled router.
+func (a *Authenticator) UnregisteredRoutes(routes echo.Routes) []string {
+	return append(a.anonymous.unregistered(routes), a.devices.unregistered(routes)...)
 }
 
 // Middleware authenticates the request. Register it with echo's Use so it runs
@@ -107,7 +96,7 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
-		anonymous := a.isAnonymous(c)
+		anonymous := a.anonymous.contains(c)
 
 		identity, err := a.Resolve(c)
 		if err != nil {
@@ -118,7 +107,7 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			identity = nil
 		}
 
-		if identity != nil && identity.DeviceUID != "" && !routeIn(a.devices, c) {
+		if identity != nil && identity.DeviceUID != "" && !a.devices.contains(c) {
 			if !anonymous {
 				return c.NoContent(http.StatusForbidden)
 			}
@@ -151,20 +140,6 @@ func isExempt(path string) bool {
 	}
 
 	return false
-}
-
-func (a *Authenticator) isAnonymous(c *echo.Context) bool {
-	return routeIn(a.anonymous, c)
-}
-
-func routeIn(routes map[string]struct{}, c *echo.Context) bool {
-	if _, ok := routes[c.Request().Method+" "+c.Path()]; ok {
-		return true
-	}
-
-	_, ok := routes[AnyMethod+" "+c.Path()]
-
-	return ok
 }
 
 // Resolve turns the request's credential into an identity. It returns a nil
