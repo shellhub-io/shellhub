@@ -77,7 +77,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
     e.preventDefault();
     if (!canSubmit) return;
     await initialize(password, serverEnabled ? mode : "local");
-    if (!useVaultStore.getState().error && !useVaultStore.getState().loading) {
+    if (useVaultStore.getState().status === "unlocked") {
       onClose();
     }
   };

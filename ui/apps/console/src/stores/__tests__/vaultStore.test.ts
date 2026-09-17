@@ -1207,7 +1207,7 @@ describe("vaultStore", () => {
       );
     });
 
-    it("does not republish the new session key when the vault locks during loadData", async () => {
+    it("does not republish the new session key when a lock and a fresh unlock land during loadData", async () => {
       const backend = makeFakeBackend();
       const oldKey = makeFakeCryptoKey("old");
       const newKey = makeFakeCryptoKey("new");
@@ -1248,6 +1248,48 @@ describe("vaultStore", () => {
       expect(useVaultStore.getState().error).toBe(
         "Vault locked during password change",
       );
+    });
+
+    it("does not restore the old session key when the rollback runs after a lock", async () => {
+      const backend = makeFakeBackend();
+      const oldKey = makeFakeCryptoKey("old");
+      const newKey = makeFakeCryptoKey("new");
+      const oldMeta = makeMeta();
+      const oldData = makeVaultData();
+
+      backend.loadMeta.mockReturnValue(oldMeta);
+      backend.loadData.mockReturnValue(oldData);
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(oldKey);
+      mockVerify.mockResolvedValue(oldKey);
+      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey: newKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let rejectSaveData!: (err: Error) => void;
+      backend.saveData.mockReturnValueOnce(
+        new Promise<void>((_, reject) => {
+          rejectSaveData = reject;
+        }),
+      );
+
+      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
+
+      const promise = useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
+
+      await vi.waitFor(() => expect(backend.saveData).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+      useVaultStore.setState({ status: "unlocked" });
+      mockSetSession.mockClear();
+
+      rejectSaveData(new Error("Save failed"));
+      await promise;
+
+      expect(mockSetSession).not.toHaveBeenCalled();
+      expect(backend.saveData).toHaveBeenLastCalledWith(oldData);
+      expect(backend.saveMeta).toHaveBeenCalledWith(oldMeta);
+      expect(useVaultStore.getState().error).toBeNull();
     });
   });
 
