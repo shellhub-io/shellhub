@@ -331,7 +331,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(
 						[]models.APIKey{
 							{
-								ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -389,7 +389,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(
 						[]models.APIKey{
 							{
-								ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -502,7 +502,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(
 						[]models.APIKey{
 							{
-								ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",

@@ -480,10 +480,10 @@ func WithAPIKeyCreatedBy(userID string) APIKeyOption {
 	}
 }
 
-// WithAPIKeyID sets a specific ID (use sparingly, mainly for testing conflicts)
-func WithAPIKeyID(id string) APIKeyOption {
+// WithAPIKeyDigest sets a specific digest (use sparingly, mainly for testing conflicts)
+func WithAPIKeyDigest(digest string) APIKeyOption {
 	return func(key *models.APIKey) {
-		key.ID = id
+		key.Digest = digest
 	}
 }
 
@@ -495,7 +495,7 @@ func WithAPIKeyExpiresIn(expiresIn int64) APIKeyOption {
 }
 
 // CreateAPIKey creates an API key with default or customized values
-// Returns the generated API key ID (SHA256 hash)
+// Returns the generated API key digest (SHA256 hash)
 // If tenant/user are not provided via options, defaults will be created
 func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 	t.Helper()
@@ -507,7 +507,7 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 	hashedKey := hex.EncodeToString(keySum[:])
 
 	key := &models.APIKey{
-		ID:        hashedKey, // SHA256 hash of the plain key
+		Digest:    hashedKey, // SHA256 hash of the plain key
 		Name:      "apikey_" + uniqueHex(t, 16),
 		TenantID:  "", // Will be set below if not provided via options
 		Role:      authorizer.RoleAdministrator,

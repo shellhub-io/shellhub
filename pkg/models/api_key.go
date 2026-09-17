@@ -9,13 +9,14 @@ import (
 
 // APIKey is used to authenticate a request. It is similar to [UserAuthClaims] but only for
 // namespace information, which means that user-related routes are blocked for use with api keys.
-// The ID and key are never returned to the end user; the "external" identification must be made
-// by name and tenant only.
+// The digest and the key itself are never returned to the end user; the "external"
+// identification must be made by name and tenant only.
 //
 // Expired keys cannot be used for authentication. Use [APIKey.IsValid] to verify its validity.
 type APIKey struct {
-	// ID is the unique identifier of the API key. It is a SHA256 hash of a UUID.
-	ID string `json:"-"`
+	// Digest is the SHA256 hash of the key's plaintext, and is what identifies the key
+	// everywhere it is resolved. The plaintext is never persisted.
+	Digest string `json:"-"`
 	// Name is an external identifier for a given API key. It is not unique per document but
 	// is unique per tenant ID.
 	Name string `json:"name"`
@@ -49,6 +50,6 @@ func (a *APIKey) IsValid() bool {
 // APIKeyConflicts holds API keys attributes that must be unique for each item (per tenant ID) and can be utilized in queries
 // to identify conflicts.
 type APIKeyConflicts struct {
-	ID   string
-	Name string
+	Digest string
+	Name   string
 }

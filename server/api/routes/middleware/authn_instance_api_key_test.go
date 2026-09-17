@@ -134,7 +134,7 @@ func TestAuthenticatorResolveNamespaceAPIKeyIsNeverAdmin(t *testing.T) {
 		t.Run("role "+role.String(), func(t *testing.T) {
 			service := new(mocks.MockService)
 			service.On("AuthAPIKey", mock.Anything, namespaceKey).
-				Return(&models.APIKey{ID: "digest", Name: "ci", TenantID: testTenant, Role: role}, nil).
+				Return(&models.APIKey{Digest: "digest", Name: "ci", TenantID: testTenant, Role: role}, nil).
 				Once()
 
 			identity, err := NewAuthenticator(service).Resolve(apiKeyRequest(echo.New(), namespaceKey))

@@ -695,11 +695,11 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		return nil, err
 	}
 
-	fromCache := apiKey.ID != ""
+	fromCache := apiKey.Digest != ""
 	if !fromCache {
 		var err error
 		sc := scope.NewUnbounded("authenticating an API key by its digest, which api_keys_key_digest_unique makes name exactly one namespace")
-		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, digest); err != nil {
+		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyDigestResolver, digest); err != nil {
 			if errors.Is(err, store.ErrAmbiguous) {
 				log.WithError(err).Error("an API key digest resolved to more than one namespace; refusing to authenticate it")
 			}

@@ -24,7 +24,7 @@ type CreateAPIKey struct {
 // internal fields are dropped rather than serialized by accident.
 func CreateAPIKeyFromModel(m *models.APIKey) *CreateAPIKey {
 	return &CreateAPIKey{
-		ID:        m.ID,
+		ID:        m.Digest,
 		Name:      m.Name,
 		UserID:    m.CreatedBy,
 		TenantID:  m.TenantID,

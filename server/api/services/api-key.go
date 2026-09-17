@@ -85,12 +85,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	keySum := sha256.Sum256([]byte(plaintext))
 	hashedKey := hex.EncodeToString(keySum[:])
 
-	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{ID: hashedKey, Name: req.Name}); has {
+	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{Digest: hashedKey, Name: req.Name}); has {
 		return nil, NewErrAPIKeyDuplicated(conflicts)
 	}
 
 	data := &models.APIKey{
-		ID:        hashedKey,
+		Digest:    hashedKey,
 		Name:      req.Name,
 		TenantID:  req.TenantID,
 		Role:      req.Role,
@@ -102,12 +102,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, err
 	}
 
-	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey)
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyDigestResolver, hashedKey)
 	if err != nil {
 		return nil, err
 	}
 
-	apiKey.ID = plaintext
+	apiKey.Digest = plaintext
 
 	return responses.CreateAPIKeyFromModel(apiKey), nil
 }
@@ -169,7 +169,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return err
 	}
 
-	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.ID))
+	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.Digest))
 }
 
 func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
@@ -192,5 +192,5 @@ func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) 
 		return err
 	}
 
-	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.ID))
+	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.Digest))
 }

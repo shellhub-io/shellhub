@@ -70,7 +70,7 @@ func seedKeyDigest(t *testing.T, ctx context.Context, provider *pgprovider.Provi
 
 func (f *keyDigestFixture) apiKey(tenant, name string) *models.APIKey {
 	return &models.APIKey{
-		ID: collidingDigest, Name: name, TenantID: tenant,
+		Digest: collidingDigest, Name: name, TenantID: tenant,
 		Role: authorizer.RoleOwner, CreatedBy: f.users[tenant],
 		CreatedAt: clock.Now(), UpdatedAt: clock.Now(), ExpiresIn: -1,
 	}
@@ -126,7 +126,7 @@ func TestAPIKeyResolveRefusesAmbiguousDigest(t *testing.T) {
 	require.NoError(t, err)
 
 	sc := scope.NewUnbounded("test: the authenticator resolves a digest with no namespace to bound by")
-	apiKey, err := f.st.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, collidingDigest)
+	apiKey, err := f.st.APIKeyResolve(ctx, sc, store.APIKeyDigestResolver, collidingDigest)
 	assert.Nil(t, apiKey)
 	require.ErrorIs(t, err, store.ErrAmbiguous,
 		"a digest matching two namespaces must not authenticate into either of them")
@@ -149,7 +149,7 @@ func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
 	require.NoError(t, err)
 
 	lone := f.apiKey(f.victim, "lonekey")
-	lone.ID = strings.Repeat("a", 64)
+	lone.Digest = strings.Repeat("a", 64)
 	_, err = f.st.APIKeyCreate(ctx, lone)
 	require.NoError(t, err)
 
