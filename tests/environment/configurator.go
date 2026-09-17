@@ -2,32 +2,20 @@ package environment
 
 import (
 	"context"
-	"io"
-	"log"
 	"maps"
 	"sync"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
-	"github.com/joho/godotenv"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tc "github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
-
-var stackImages struct {
-	sync.Mutex
-	built bool
-}
 
 // DockerComposeConfigurator collects the environment a test stack needs before it is brought
 // up. Ports and network names are randomised so that concurrent test binaries do not collide.
 type DockerComposeConfigurator struct {
-	envs map[string]string
-	t    *testing.T
-	mu   *sync.Mutex
+	cfg Config
+	t   *testing.T
+	mu  *sync.Mutex
 }
 
 // New creates a new [DockerComposeConfigurator]. By default, it reads from the .env file, but
@@ -36,24 +24,25 @@ type DockerComposeConfigurator struct {
 func New(t *testing.T) *DockerComposeConfigurator {
 	t.Helper()
 
-	envs, err := godotenv.Read("../.env")
-	require.NoError(t, err)
-
-	envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
-	envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
-	envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
-	envs["SHELLHUB_LOG_LEVEL"] = "trace"
-
 	return &DockerComposeConfigurator{
-		envs: envs,
-		t:    t,
-		mu:   new(sync.Mutex),
+		cfg: Config{
+			Edition:  EditionCommunity,
+			HTTPPort: GetFreePort(t),
+			SSHPort:  GetFreePort(t),
+			Network:  "shellhub_network_" + uuid.Generate(),
+		},
+		t:  t,
+		mu: new(sync.Mutex),
 	}
 }
 
 // WithEnv sets an environment variable with the specified key and value.
 func (dcc *DockerComposeConfigurator) WithEnv(key, val string) *DockerComposeConfigurator {
-	dcc.envs[key] = val
+	if dcc.cfg.Envs == nil {
+		dcc.cfg.Envs = make(map[string]string)
+	}
+
+	dcc.cfg.Envs[key] = val
 
 	return dcc
 }
@@ -67,6 +56,13 @@ func (dcc *DockerComposeConfigurator) WithEnvs(envs map[string]string) *DockerCo
 	return dcc
 }
 
+// WithEdition selects the ShellHub edition the stack will run.
+func (dcc *DockerComposeConfigurator) WithEdition(edition Edition) *DockerComposeConfigurator {
+	dcc.cfg.Edition = edition
+
+	return dcc
+}
+
 // Clone clones a [DockerComposeConfigurator] instance, automatically assigning random ports
 // and network to available services. The new instance will use the provided testing.T.
 //
@@ -75,20 +71,28 @@ func (dcc *DockerComposeConfigurator) WithEnvs(envs map[string]string) *DockerCo
 func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigurator {
 	t.Helper()
 
-	clonedEnv := &DockerComposeConfigurator{
-		envs: make(map[string]string),
-		t:    t,
+	cloned := &DockerComposeConfigurator{
+		cfg: Config{
+			Edition:  dcc.cfg.Edition,
+			Database: dcc.cfg.Database,
+			CloudDir: dcc.cfg.CloudDir,
+		},
+		t:  t,
+		mu: dcc.mu,
 	}
 
-	maps.Copy(clonedEnv.envs, dcc.envs)
+	if dcc.cfg.Envs != nil {
+		cloned.cfg.Envs = make(map[string]string)
+		maps.Copy(cloned.cfg.Envs, dcc.cfg.Envs)
+	}
 
 	dcc.mu.Lock()
-	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
-	clonedEnv.envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
-	clonedEnv.envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
+	cloned.cfg.HTTPPort = GetFreePort(t)
+	cloned.cfg.SSHPort = GetFreePort(t)
+	cloned.cfg.Network = "shellhub_network_" + uuid.Generate()
 	dcc.mu.Unlock()
 
-	return clonedEnv
+	return cloned
 }
 
 // Up initiates the ShellHub instance, blocking until all services are in the running or
@@ -98,56 +102,11 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
 // [assert.FailNow] if an error arises.
 func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
-	dc := &DockerCompose{
-		envs:     dcc.envs,
-		services: make(map[Service]*tc.DockerContainer),
-		setupT:   dcc.t,
-		client: resty.New().
-			SetBaseURL("http://localhost:" + dcc.envs["SHELLHUB_HTTP_PORT"]).
-			SetContentLength(true),
-		down: nil,
-	}
-
-	onlyPostgresAllowed(dc.envs["SHELLHUB_DATABASE"])
-	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml", "../docker-compose.postgres.test.yml"}
-
-	stackImages.Lock()
-	buildsStackImages := !stackImages.built
-	if buildsStackImages {
-		defer stackImages.Unlock()
-
-		dockerFiles = append(dockerFiles, "../docker-compose.test.build.yml")
-	} else {
-		stackImages.Unlock()
-	}
-
-	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
+	stack, err := Up(ctx, dcc.cfg)
 	require.NoError(dcc.t, err)
 
-	dc.down = func() {
-		err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
-		require.NoError(dc.setupT, err)
-
-		for k := range dc.services {
-			dc.services[k] = nil
-		}
+	return &DockerCompose{
+		setupT: dcc.t,
+		stack:  stack,
 	}
-
-	services := []Service{ServiceGateway, ServiceServer}
-	if err := tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true)); !assert.NoError(dc.setupT, err) {
-		assert.FailNow(dc.setupT, err.Error())
-	}
-
-	if buildsStackImages {
-		stackImages.built = true
-	}
-
-	for _, service := range services {
-		composeService, err := tcDc.ServiceContainer(ctx, string(service))
-		require.NoError(dc.setupT, err)
-
-		dc.services[service] = composeService
-	}
-
-	return dc
 }
