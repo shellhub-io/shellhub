@@ -325,7 +325,7 @@ describe("vaultStore", () => {
       expect(backend.clearLegacyKeys).not.toHaveBeenCalled();
     });
 
-    it("rolls back and sets error when initialization fails", async () => {
+    it("sets an error and leaves storage alone when it fails before writing the header", async () => {
       const backend = makeFakeBackend();
       mockGetBackend.mockReturnValue(backend);
       mockCrypto.mockRejectedValue(new Error("Crypto failure"));
@@ -336,8 +336,62 @@ describe("vaultStore", () => {
       expect(state.status).toBe("uninitialized");
       expect(state.loading).toBe(false);
       expect(state.error).toBe("Crypto failure");
-      expect(backend.clear).toHaveBeenCalled();
+      expect(backend.clear).not.toHaveBeenCalled();
       expect(mockClearSession).toHaveBeenCalled();
+    });
+
+    it("clears the header it wrote when a superseded creation fails, so a legacy migration can be retried", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      const createdMeta = makeMeta();
+
+      backend.loadLegacyKeys.mockReturnValue([
+        {
+          id: 1,
+          name: "Old Key",
+          data: "-----BEGIN",
+          hasPassphrase: false,
+          fingerprint: "ff:ee:dd",
+        },
+      ]);
+      backend.loadMeta.mockResolvedValue(createdMeta);
+      mockGetBackend.mockReturnValue(backend);
+      mockCrypto.mockResolvedValue({ meta: createdMeta, derivedKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      let rejectSaveData!: (err: Error) => void;
+      backend.saveData.mockReturnValue(
+        new Promise<void>((_, reject) => {
+          rejectSaveData = reject;
+        }),
+      );
+
+      const promise = useVaultStore.getState().initialize("master-pass");
+      await vi.waitFor(() => expect(backend.saveData).toHaveBeenCalled());
+      useVaultStore.getState().lock();
+
+      rejectSaveData(new Error("Quota exceeded"));
+      await promise;
+
+      expect(backend.clear).toHaveBeenCalled();
+      expect(backend.clearLegacyKeys).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().error).toBeNull();
+    });
+
+    it("leaves the stored header alone when it belongs to a newer vault", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+
+      backend.loadMeta.mockResolvedValue({ ...makeMeta(), salt: "bmV3ZXI=" });
+      backend.saveData.mockRejectedValue(new Error("Quota exceeded"));
+      mockGetBackend.mockReturnValue(backend);
+      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey });
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      await useVaultStore.getState().initialize("master-pass");
+
+      expect(backend.clear).not.toHaveBeenCalled();
+      expect(useVaultStore.getState().error).toBe("Quota exceeded");
     });
 
     it("sets loading to true during initialization", async () => {

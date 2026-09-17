@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type {
   VaultStatus,
   VaultKeyEntry,
+  VaultMeta,
   LegacyPrivateKey,
   VaultSettings,
 } from "@/types/vault";
@@ -110,6 +111,16 @@ async function persistKeys(
   const backend = be ?? getBackend();
   const data = await encrypt(key, JSON.stringify(keys));
   await backend.saveData(data);
+}
+
+async function storedHeaderIs(
+  meta: VaultMeta | null,
+  backend: IVaultBackend,
+): Promise<boolean> {
+  if (!meta) return false;
+
+  const stored = await backend.loadMeta().catch(() => null);
+  return stored?.salt === meta.salt && stored?.verifier === meta.verifier;
 }
 
 function checkDuplicates(
@@ -238,9 +249,11 @@ export const useVaultStore = create<VaultState>((set, get) => {
         set({ storageMode: mode });
       }
       const backend = getBackend();
+      let createdMeta: VaultMeta | null = null;
       try {
         const { meta, derivedKey } = await createVaultMeta(masterPassword);
         await backend.saveMeta(meta);
+        createdMeta = meta;
 
         const legacyKeys = await backend.loadLegacyKeys();
         const keys = legacyKeys.length > 0 ? migrateLegacyKeys(legacyKeys) : [];
@@ -259,8 +272,10 @@ export const useVaultStore = create<VaultState>((set, get) => {
         if (superseded()) return;
         startTracker();
       } catch (err) {
+        if (await storedHeaderIs(createdMeta, backend)) {
+          await backend.clear().catch(() => undefined);
+        }
         if (superseded()) return;
-        await backend.clear().catch(() => undefined);
         clearSessionKey();
         const msg =
           err instanceof Error ? err.message : "Failed to create vault";
