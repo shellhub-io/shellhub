@@ -60,6 +60,8 @@ post:
                 type: string
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 get:
   operationId: getSessionRecord
   summary: Get session record
@@ -83,6 +85,8 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteSessionRecord
   summary: Delete session record
@@ -102,3 +106,5 @@ delete:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

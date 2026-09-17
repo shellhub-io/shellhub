@@ -26,6 +26,8 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 post:
   operationId: createNamespaceAdmin
   summary: Create namespace admin
@@ -63,6 +65,8 @@ post:
       $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteNamespaceAdmin
   summary: Delete namespace admin
@@ -86,3 +90,5 @@ delete:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

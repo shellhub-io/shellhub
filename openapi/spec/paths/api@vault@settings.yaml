@@ -38,3 +38,5 @@ put:
       $ref: ../components/responses/403.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

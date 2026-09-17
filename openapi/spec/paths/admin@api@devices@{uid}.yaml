@@ -24,6 +24,8 @@ get:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 delete:
   operationId: deleteDeviceAdmin
   summary: Delete device admin
@@ -44,6 +46,8 @@ delete:
       $ref: ../components/responses/403.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 patch:
   operationId: updateDeviceNameAdmin
   summary: Update device name Admin
@@ -82,3 +86,5 @@ patch:
       $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

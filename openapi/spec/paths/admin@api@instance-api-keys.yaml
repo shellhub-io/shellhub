@@ -43,6 +43,8 @@ get:
       $ref: ../components/responses/403.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
 post:
   operationId: createInstanceAPIKey
   summary: Create an instance API key
@@ -103,3 +105,5 @@ post:
       $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '503':
+      $ref: ../components/responses/503.yaml
