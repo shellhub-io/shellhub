@@ -8,4 +8,7 @@ var ErrUserNotFound = errors.New("user not found")
 var (
 	errMalformedUID = errors.New("malformed uid field")
 	errMalformedGID = errors.New("malformed gid field")
+
+	errAccountExpired  = errors.New("account has expired")
+	errPasswordExpired = errors.New("password has expired")
 )

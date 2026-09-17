@@ -36,6 +36,57 @@ func (_m *MockBackend) EXPECT() *MockBackend_Expecter {
 	return &MockBackend_Expecter{mock: &_m.Mock}
 }
 
+// AccountExpired provides a mock function for the type MockBackend
+func (_mock *MockBackend) AccountExpired(username string) bool {
+	ret := _mock.Called(username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccountExpired")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = returnFunc(username)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockBackend_AccountExpired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccountExpired'
+type MockBackend_AccountExpired_Call struct {
+	*mock.Call
+}
+
+// AccountExpired is a helper method to define mock.On call
+//   - username string
+func (_e *MockBackend_Expecter) AccountExpired(username any) *MockBackend_AccountExpired_Call {
+	return &MockBackend_AccountExpired_Call{Call: _e.mock.On("AccountExpired", username)}
+}
+
+func (_c *MockBackend_AccountExpired_Call) Run(run func(username string)) *MockBackend_AccountExpired_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockBackend_AccountExpired_Call) Return(b bool) *MockBackend_AccountExpired_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockBackend_AccountExpired_Call) RunAndReturn(run func(username string) bool) *MockBackend_AccountExpired_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AuthUser provides a mock function for the type MockBackend
 func (_mock *MockBackend) AuthUser(username string, password string) bool {
 	ret := _mock.Called(username, password)

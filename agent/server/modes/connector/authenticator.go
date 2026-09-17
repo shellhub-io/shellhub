@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"io"
 
+	cerrdefs "github.com/containerd/errdefs"
 	dockerclient "github.com/docker/docker/client"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
@@ -66,6 +67,26 @@ func getShadow(ctx context.Context, cli dockerclient.APIClient, container string
 	}
 
 	return shadow, nil
+}
+
+func accountExpiredInContainer(ctx context.Context, cli dockerclient.APIClient, container, username string) bool {
+	shadow, err := getShadow(ctx, cli, container)
+	if cerrdefs.IsNotFound(err) {
+		return false
+	}
+
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the shadow file from container")
+
+		return true
+	}
+
+	return osauth.AccountExpiredFromShadow(username, shadow)
 }
 
 // Password handles the server's SSH password authentication when server is running in connector mode.
@@ -163,6 +184,10 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 			},
 		).WithError(err).Error("failed to lookup for the user on passwd file")
 
+		return false
+	}
+
+	if accountExpiredInContainer(ctx, a.docker, *a.container, username) {
 		return false
 	}
 
