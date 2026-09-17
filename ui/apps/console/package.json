@@ -10,7 +10,11 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate": "../../scripts/generate-client.sh"
+    "generate": "../../scripts/generate-client.sh",
+    "e2e:test": "../../scripts/e2e.sh test",
+    "e2e:up": "../../scripts/e2e.sh up",
+    "e2e:down": "../../scripts/e2e.sh down",
+    "e2e:browsers": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -41,6 +45,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@tanstack/react-query-devtools": "^5.102.3",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.5",
