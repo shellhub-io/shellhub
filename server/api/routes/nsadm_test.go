@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -25,13 +26,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	memberHuman = models.Member{
+		ID:    "00000000-0000-4000-0000-000000000000",
+		Email: "human@test.com",
+		Role:  authorizer.RoleOwner,
+		Type:  models.UserTypeHuman,
+	}
+	expectedHuman = responses.Member{
+		ID:    "00000000-0000-4000-0000-000000000000",
+		Email: "human@test.com",
+		Role:  authorizer.RoleOwner,
+	}
+	memberService = models.Member{
+		ID:    "00000000-0000-4000-0000-000000000009",
+		Email: "bot@test.com",
+		Role:  authorizer.RoleService,
+		Type:  models.UserTypeService,
+	}
+)
+
 func TestCreateNamespace(t *testing.T) {
 	envstest.SetEdition(t, envs.Enterprise)
 
 	mock := mocks.NewMockService(t)
 
 	type Expected struct {
-		expectedSession *models.Namespace
+		expectedSession *responses.Namespace
 		expectedStatus  int
 	}
 	cases := []struct {
@@ -50,7 +71,7 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusNotFound,
-				expectedSession: &models.Namespace{},
+				expectedSession: &responses.Namespace{},
 			},
 		},
 		{
@@ -62,7 +83,7 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
-				expectedSession: &models.Namespace{},
+				expectedSession: &responses.Namespace{Members: []responses.Member{}},
 			},
 		},
 	}
@@ -82,7 +103,7 @@ func TestCreateNamespace(t *testing.T) {
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
-			var session models.Namespace
+			var session responses.Namespace
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
@@ -97,7 +118,7 @@ func TestGetNamespace(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
 	type Expected struct {
-		expectedSession *models.Namespace
+		expectedSession *responses.Namespace
 		expectedStatus  int
 	}
 	cases := []struct {
@@ -141,7 +162,20 @@ func TestGetNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
-				expectedSession: &models.Namespace{},
+				expectedSession: &responses.Namespace{Members: []responses.Member{}},
+			},
+		},
+		{
+			title: "success when the namespace holds a service account",
+			uid:   "123",
+			req:   "00000000-0000-4000-0000-000000000001",
+			requiredMocks: func() {
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000001").
+					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil)
+			},
+			expected: Expected{
+				expectedStatus:  http.StatusOK,
+				expectedSession: &responses.Namespace{Members: []responses.Member{expectedHuman}},
 			},
 		},
 	}
@@ -162,7 +196,7 @@ func TestGetNamespace(t *testing.T) {
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
-			var session *models.Namespace
+			var session *responses.Namespace
 			if rec.Result().StatusCode < http.StatusBadRequest {
 				if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 					assert.ErrorIs(t, io.EOF, err)
@@ -599,11 +633,12 @@ func TestGetNamespaceList(t *testing.T) {
 	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
-		description    string
-		query          string
-		requiredMocks  func()
-		expectedStatus int
-		expectedCount  int
+		description        string
+		query              string
+		requiredMocks      func()
+		expectedStatus     int
+		expectedCount      int
+		expectedNamespaces []responses.Namespace
 	}{
 		{
 			description:    "fails with bad filter query param",
@@ -659,8 +694,9 @@ func TestGetNamespaceList(t *testing.T) {
 					Return([]models.Namespace{}, 5, nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
-			expectedCount:  5,
+			expectedStatus:     http.StatusOK,
+			expectedCount:      5,
+			expectedNamespaces: []responses.Namespace{},
 		},
 		{
 			description: "succeeds with valid type+eq filter and name reaches service un-rewritten",
@@ -680,8 +716,9 @@ func TestGetNamespaceList(t *testing.T) {
 					Return([]models.Namespace{}, 2, nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
-			expectedCount:  2,
+			expectedStatus:     http.StatusOK,
+			expectedCount:      2,
+			expectedNamespaces: []responses.Namespace{},
 		},
 		{
 			description: "succeeds and returns X-Total-Count header",
@@ -692,8 +729,22 @@ func TestGetNamespaceList(t *testing.T) {
 					Return([]models.Namespace{}, 3, nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
-			expectedCount:  3,
+			expectedStatus:     http.StatusOK,
+			expectedCount:      3,
+			expectedNamespaces: []responses.Namespace{},
+		},
+		{
+			description: "succeeds and lists no service account among the members",
+			query:       "",
+			requiredMocks: func() {
+				svcMock.
+					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
+					Return([]models.Namespace{{Name: "namespace", Members: []models.Member{memberHuman, memberService}}}, 1, nil).
+					Once()
+			},
+			expectedStatus:     http.StatusOK,
+			expectedCount:      1,
+			expectedNamespaces: []responses.Namespace{{Name: "namespace", Members: []responses.Member{expectedHuman}}},
 		},
 	}
 
@@ -718,9 +769,87 @@ func TestGetNamespaceList(t *testing.T) {
 
 			if tc.expectedStatus == http.StatusOK {
 				assert.Equal(t, strconv.Itoa(tc.expectedCount), rec.Result().Header.Get("X-Total-Count"))
+
+				namespaces := []responses.Namespace{}
+				require.NoError(t, json.NewDecoder(rec.Result().Body).Decode(&namespaces))
+				assert.Equal(t, tc.expectedNamespaces, namespaces)
 			}
 		})
 	}
 
 	svcMock.AssertExpectations(t)
+}
+
+func TestNamespaceResponsesOmitServiceAccounts(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	cases := []struct {
+		description   string
+		method        string
+		url           string
+		body          string
+		requiredMocks func(svcMock *mocks.MockService)
+	}{
+		{
+			description: "edit namespace",
+			method:      http.MethodPut,
+			url:         "/api/namespaces/" + tenantID,
+			body:        `{"name":"namespace"}`,
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("EditNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceEdit")).
+					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
+					Once()
+			},
+		},
+		{
+			description: "add namespace member",
+			method:      http.MethodPost,
+			url:         "/api/namespaces/" + tenantID + "/members",
+			body:        `{"email":"human@test.com","role":"observer"}`,
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("AddNamespaceMember", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceAddMember")).
+					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
+					Once()
+			},
+		},
+		{
+			description: "remove namespace member",
+			method:      http.MethodDelete,
+			url:         "/api/namespaces/" + tenantID + "/members/" + memberHuman.ID,
+			body:        "",
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RemoveNamespaceMember", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceRemoveMember")).
+					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
+					Once()
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			svcMock := mocks.NewMockService(t)
+			tc.requiredMocks(svcMock)
+
+			req := httptest.NewRequestWithContext(t.Context(), tc.method, tc.url, strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-ID", "000000000000000000000000")
+			req.Header.Set("X-Tenant-ID", tenantID)
+			req.Header.Set("X-Forwarded-Host", "localhost")
+
+			rec := httptest.NewRecorder()
+			NewRouter(svcMock).ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
+
+			namespace := new(responses.Namespace)
+			require.NoError(t, json.NewDecoder(rec.Result().Body).Decode(namespace))
+			assert.Equal(t, []responses.Member{expectedHuman}, namespace.Members)
+
+			svcMock.AssertExpectations(t)
+		})
+	}
 }

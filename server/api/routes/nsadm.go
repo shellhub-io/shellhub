@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
@@ -64,7 +65,7 @@ func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
-	return c.JSON(http.StatusOK, namespaces)
+	return c.JSON(http.StatusOK, responses.NamespacesFromModel(namespaces))
 }
 
 // CreateNamespace creates a namespace owned by the caller.
@@ -84,7 +85,7 @@ func (h *Handler) CreateNamespace(c *gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, namespace)
+	return c.JSON(http.StatusOK, responses.NamespaceFromModel(namespace))
 }
 
 // GetNamespace serves one namespace by tenant ID.
@@ -114,7 +115,7 @@ func (h *Handler) GetNamespace(c *gateway.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, ns)
+	return c.JSON(http.StatusOK, responses.NamespaceFromModel(ns))
 }
 
 // ListNamespaceMembers serves who belongs to a namespace and in what role.
@@ -176,7 +177,7 @@ func (h *Handler) EditNamespace(c *gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
 }
 
 // AddNamespaceMember invites or adds a member in the requested role.
@@ -196,7 +197,7 @@ func (h *Handler) AddNamespaceMember(c *gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
 }
 
 // RemoveNamespaceMember removes another member from the namespace.
@@ -216,7 +217,7 @@ func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
 }
 
 // LeaveNamespace removes the caller from the namespace. It is separate from removing a member
