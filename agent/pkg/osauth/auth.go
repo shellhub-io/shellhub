@@ -4,8 +4,10 @@ package osauth
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/user"
 	"strconv"
@@ -16,6 +18,7 @@ import (
 	_ "github.com/GehirnInc/crypt/sha256_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha512_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	"github.com/shellhub-io/shellhub/agent/pkg/yescrypt"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,6 +43,26 @@ func (b *backend) AuthUser(username, password string) bool {
 	defer file.Close() //nolint:errcheck
 
 	return AuthUserFromShadow(username, password, file)
+}
+
+func (b *backend) AccountExpired(username string) bool {
+	if os.Geteuid() != 0 {
+		return false
+	}
+
+	file, err := os.Open(DefaultShadowFilename)
+	if errors.Is(err, fs.ErrNotExist) {
+		return false
+	}
+
+	if err != nil {
+		logrus.WithError(err).Error("Error opening shadow file")
+
+		return true
+	}
+	defer file.Close() //nolint:errcheck
+
+	return AccountExpiredFromShadow(username, file)
 }
 
 func (b *backend) LookupUser(username string) (*User, error) {
@@ -67,6 +90,49 @@ type shadowEntry struct {
 	Expire      int
 }
 
+const (
+	secondsPerDay       = 24 * 60 * 60
+	shadowFieldDisabled = -1
+)
+
+var (
+	errMalformedShadowField   = errors.New("malformed field")
+	errPasswordChangeRequired = errors.New("password must be changed before login")
+)
+
+func daysSinceEpoch() int {
+	return int(clock.Now().Unix() / secondsPerDay)
+}
+
+func (e shadowEntry) checkAccountExpiry(today int) error {
+	if e.Expire >= 0 && today >= e.Expire {
+		return errAccountExpired
+	}
+
+	return nil
+}
+
+func (e shadowEntry) checkPasswordAge(today int) error {
+	switch {
+	case e.Lastchanged == 0:
+		return errPasswordChangeRequired
+	case e.Lastchanged < 0, e.Maximum < 0, today < e.Lastchanged:
+		return nil
+	case today-e.Lastchanged >= e.Maximum:
+		return errPasswordExpired
+	default:
+		return nil
+	}
+}
+
+func (e shadowEntry) checkPasswordLogin(today int) error {
+	if err := e.checkAccountExpiry(today); err != nil {
+		return err
+	}
+
+	return e.checkPasswordAge(today)
+}
+
 // AuthUser attempts to authenticate username and password from [DefaultPasswdFilename].
 func AuthUser(username, password string) bool {
 	return DefaultBackend.AuthUser(username, password)
@@ -77,7 +143,16 @@ func LookupUser(username string) (*User, error) {
 	return DefaultBackend.LookupUser(username)
 }
 
-// AuthUserFromShadow attempts to authenticate username and password from file.
+// AccountExpired reports whether the account's entry in [DefaultShadowFilename] has expired. It
+// returns false when the agent is not root, since it then runs as a single user and cannot read
+// the shadow, and true when the shadow exists but cannot be read.
+func AccountExpired(username string) bool {
+	return DefaultBackend.AccountExpired(username)
+}
+
+// AuthUserFromShadow attempts to authenticate username and password from file. It refuses an
+// account whose shadow entry has expired, or whose password has aged out or must be changed,
+// even when the password matches, because the agent cannot run the change a local login would.
 func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 	entries, err := parseShadowReader(shadow)
 	if err != nil {
@@ -95,7 +170,46 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 		return false
 	}
 
-	return VerifyPasswordHash(entry.Password, password)
+	if !VerifyPasswordHash(entry.Password, password) {
+		return false
+	}
+
+	if err := entry.checkPasswordLogin(daysSinceEpoch()); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).WithError(err).Error("Refusing login")
+
+		return false
+	}
+
+	return true
+}
+
+// AccountExpiredFromShadow reports whether the account's entry in shadow has expired. It returns
+// true when shadow cannot be parsed, and false when the account has no entry, as an account
+// without one has no expiry to enforce.
+func AccountExpiredFromShadow(username string, shadow io.Reader) bool {
+	entries, err := parseShadowReader(shadow)
+	if err != nil {
+		logrus.WithError(err).Error("Error parsing shadow file")
+
+		return true
+	}
+
+	entry, ok := entries[username]
+	if !ok {
+		return false
+	}
+
+	if err := entry.checkAccountExpiry(daysSinceEpoch()); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).WithError(err).Error("Refusing login")
+
+		return true
+	}
+
+	return false
 }
 
 // LookupUserFromPasswd try to find a [PasswordEntry] for a username from a passwd file.
@@ -190,6 +304,12 @@ func parseShadowReader(r io.Reader) (map[string]shadowEntry, error) {
 		}
 
 		entry, err := parseShadowLine(string(line))
+		if errors.Is(err, errMalformedShadowField) {
+			logrus.WithError(err).Warnf("Skipping shadow line %d", lineno)
+
+			continue
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("shadow line %d: %w", lineno, err)
 		}
@@ -210,27 +330,34 @@ func parseShadowLine(line string) (shadowEntry, error) {
 	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
-	result.Lastchanged = parseIntString(parts[2])
-	result.Minimum = parseIntString(parts[3])
-	result.Maximum = parseIntString(parts[4])
-	result.Warn = parseIntString(parts[5])
-	result.Inactive = parseIntString(parts[6])
-	result.Expire = parseIntString(parts[7])
+	days := []*int{
+		&result.Lastchanged,
+		&result.Minimum,
+		&result.Maximum,
+		&result.Warn,
+		&result.Inactive,
+		&result.Expire,
+	}
+
+	for i, field := range days {
+		value, err := parseShadowDays(parts[2+i])
+		if err != nil {
+			return result, errMalformedShadowField
+		}
+
+		*field = value
+	}
 
 	return result, nil
 }
 
-func parseIntString(value string) int {
+func parseShadowDays(value string) (int, error) {
+	value = strings.TrimSpace(value)
 	if value == "" {
-		return 0
+		return shadowFieldDisabled, nil
 	}
 
-	number, err := strconv.Atoi(strings.TrimSpace(value))
-	if err != nil {
-		return 0
-	}
-
-	return number
+	return strconv.Atoi(value)
 }
 
 func singleUser() *User {

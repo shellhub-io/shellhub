@@ -6,7 +6,10 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -194,58 +197,183 @@ func TestPasswdReader(t *testing.T) {
 	}
 }
 
-func TestParseIntString(t *testing.T) {
+const testHash = "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN."
+
+func setToday(t *testing.T, days int64) {
+	t.Helper()
+
+	clockMock := clockmock.NewMockClock(t)
+	clockMock.On("Now").Return(time.Unix(days*secondsPerDay+12*60*60, 0).UTC()).Maybe()
+
+	previous := clock.DefaultBackend
+	clock.DefaultBackend = clockMock
+	t.Cleanup(func() { clock.DefaultBackend = previous })
+}
+
+func TestAuthUserFromShadowAging(t *testing.T) {
+	setToday(t, 20000)
+
 	tests := []struct {
-		name  string
-		input string
-		want  int
+		name     string
+		aging    string
+		password string
+		want     bool
 	}{
 		{
-			name:  "empty string",
-			input: "",
-			want:  0,
+			name:     "aging disabled",
+			aging:    "::::::",
+			password: "123",
+			want:     true,
 		},
 		{
-			name:  "whitespace only",
-			input: "   ",
-			want:  0,
+			name:     "aging fields blank with spaces",
+			aging:    " : : : : : : ",
+			password: "123",
+			want:     true,
 		},
 		{
-			name:  "valid integer",
-			input: "42",
-			want:  42,
+			name:     "within password maximum",
+			aging:    "19990:0:99999:7:::",
+			password: "123",
+			want:     true,
 		},
 		{
-			name:  "valid with surrounding spaces",
-			input: "  7  ",
-			want:  7,
+			name:     "account expires tomorrow",
+			aging:    "19990:0:99999:7::20001:",
+			password: "123",
+			want:     true,
 		},
 		{
-			name:  "negative integer",
-			input: "-3",
-			want:  -3,
+			name:     "account expires today",
+			aging:    "19990:0:99999:7::20000:",
+			password: "123",
+			want:     false,
 		},
 		{
-			name:  "plus sign",
-			input: "+5",
-			want:  5,
+			name:     "account expired",
+			aging:    "19990:0:99999:7::19999:",
+			password: "123",
+			want:     false,
 		},
 		{
-			name:  "non-numeric",
-			input: "abc",
-			want:  0,
+			name:     "account expired on epoch day zero",
+			aging:    "19990:0:99999:7::0:",
+			password: "123",
+			want:     false,
 		},
 		{
-			name:  "mixed numeric and alpha",
-			input: "12abc",
-			want:  0,
+			name:     "negative expire disables expiry",
+			aging:    "19990:0:99999:7::-5:",
+			password: "123",
+			want:     true,
+		},
+		{
+			name:     "password one day before maximum",
+			aging:    "19911:0:90:7:::",
+			password: "123",
+			want:     true,
+		},
+		{
+			name:     "password reaches maximum today",
+			aging:    "19910:0:90:7:::",
+			password: "123",
+			want:     false,
+		},
+		{
+			name:     "password aged out and inactive",
+			aging:    "19900:0:90:7:5::",
+			password: "123",
+			want:     false,
+		},
+		{
+			name:     "maximum set without last change",
+			aging:    ":0:90:7:::",
+			password: "123",
+			want:     true,
+		},
+		{
+			name:     "password change forced",
+			aging:    "0:0:99999:7:::",
+			password: "123",
+			want:     false,
+		},
+		{
+			name:     "last change in the future",
+			aging:    "20010:0:5:7:::",
+			password: "123",
+			want:     true,
+		},
+		{
+			name:     "wrong password on valid account",
+			aging:    "19990:0:99999:7:::",
+			password: "wrong",
+			want:     false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parseIntString(tt.input)
-			assert.Equal(t, tt.want, got)
+			shadow := strings.NewReader("user:" + testHash + ":" + tt.aging + "\n")
+
+			assert.Equal(t, tt.want, AuthUserFromShadow("user", tt.password, shadow))
+		})
+	}
+}
+
+func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
+	setToday(t, 20000)
+
+	shadow := "bad:" + testHash + ":19990:0:99999:7::never:\n" +
+		"good:" + testHash + ":19990:0:99999:7:::\n"
+
+	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(shadow)))
+	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(shadow)))
+}
+
+func TestAccountExpiredFromShadow(t *testing.T) {
+	setToday(t, 20000)
+
+	tests := []struct {
+		name     string
+		shadow   string
+		username string
+		want     bool
+	}{
+		{
+			name:     "account not expired",
+			shadow:   "user:*:19990:0:99999:7::20001:\n",
+			username: "user",
+			want:     false,
+		},
+		{
+			name:     "account expired",
+			shadow:   "user:*:19990:0:99999:7::20000:\n",
+			username: "user",
+			want:     true,
+		},
+		{
+			name:     "forced password change does not expire the account",
+			shadow:   "user:*:0:0:90:7:::\n",
+			username: "user",
+			want:     false,
+		},
+		{
+			name:     "account without an entry",
+			shadow:   "other:*:19990:0:99999:7::19000:\n",
+			username: "user",
+			want:     false,
+		},
+		{
+			name:     "unparsable shadow",
+			shadow:   "user:*\n",
+			username: "user",
+			want:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, AccountExpiredFromShadow(tt.username, strings.NewReader(tt.shadow)))
 		})
 	}
 }

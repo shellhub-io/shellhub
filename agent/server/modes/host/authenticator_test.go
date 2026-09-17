@@ -60,6 +60,23 @@ func TestPublicKey(t *testing.T) {
 				user: "test",
 			},
 			authenticator: &Authenticator{
+				deviceName: stringToRef("device"),
+				api:        new(clientMocks.MockClient),
+			},
+			name: "return false when the account has expired",
+			user: "",
+			key:  key,
+			requiredMocs: func(_ *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
+				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(true).Once()
+			},
+			expected: false,
+		},
+		{
+			ctx: &testSSHContext{
+				user: "test",
+			},
+			authenticator: &Authenticator{
 				authData: &models.DeviceAuthResponse{
 					Token: "token",
 				},
@@ -72,6 +89,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(nil, errors.New("error")).Once()
 			},
 			expected: false,
@@ -93,6 +111,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: "signature",
 				}, nil).Once()
@@ -116,6 +135,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
 				}, nil).Once()
@@ -139,6 +159,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
 				}, nil).Once()
@@ -162,6 +183,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
 				}, nil).Once()
@@ -185,6 +207,7 @@ func TestPublicKey(t *testing.T) {
 			key:  key,
 			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
+				osauthMock.On("AccountExpired", "test").Return(false).Once()
 
 				type Signature struct {
 					Username  string `json:"Username"`

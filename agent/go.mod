@@ -5,6 +5,7 @@ go 1.26.7
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/containerd/errdefs v1.0.0
 	github.com/docker/docker v28.5.3-0.20260325154711-31a1689cb0a1+incompatible
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/go-playground/assert/v2 v2.2.0
@@ -29,7 +30,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/x/conpty v0.2.0 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/distribution/reference v0.6.0 // indirect

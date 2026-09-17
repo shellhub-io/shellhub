@@ -70,6 +70,10 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh
 		return false
 	}
 
+	if osauth.AccountExpired(ctx.User()) {
+		return false
+	}
+
 	if key == nil {
 		return false
 	}
