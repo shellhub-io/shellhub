@@ -28,6 +28,7 @@ import { useNamespace } from "@/hooks/useNamespaces";
 import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
+import { roleSubjectCount as countRoleSubject } from "./subjectCount";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -79,12 +80,12 @@ function SubjectCell({
   policy,
   memberEmail,
   serviceAccountName,
-  roleMemberCount,
+  roleSubjectCount,
 }: {
   policy: AccessPolicy;
   memberEmail: (id: string) => string | undefined;
   serviceAccountName: (id: string) => string | undefined;
-  roleMemberCount: (role: string) => number;
+  roleSubjectCount: (role: string) => number;
 }) {
   const { type, value } = policy.subject;
 
@@ -112,7 +113,7 @@ function SubjectCell({
     );
   }
   if (type === "role") {
-    const n = roleMemberCount(value);
+    const n = roleSubjectCount(value);
     return (
       <Chip icon={<IdentificationIcon className={CHIP_ICON} strokeWidth={2} />}>
         {value}
@@ -231,8 +232,8 @@ export default function AccessPolicies() {
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
   const serviceAccountName = (id: string) =>
     serviceAccounts.find((s) => s.id === id)?.name;
-  const roleMemberCount = (role: string) =>
-    members.filter((m) => String(m.role) === role).length;
+  const roleSubjectCount = (role: string) =>
+    countRoleSubject({ role, members, serviceAccounts });
   const deletePolicy = useDeleteAccessPolicy();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
@@ -296,7 +297,7 @@ export default function AccessPolicies() {
           policy={p}
           memberEmail={memberEmail}
           serviceAccountName={serviceAccountName}
-          roleMemberCount={roleMemberCount}
+          roleSubjectCount={roleSubjectCount}
         />
       ),
     },

@@ -3,7 +3,11 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
-import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
+import {
+  mockAccessPolicy,
+  mockNamespace,
+  mockServiceAccount,
+} from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
@@ -63,5 +67,52 @@ describe("AccessPolicies", () => {
     await user.keyboard("{Escape}");
     await user.click(screen.getByText("all"));
     expect(await screen.findByTestId("policy-drawer")).toBeInTheDocument();
+  });
+
+  it("counts the service accounts a role=service subject matches", async () => {
+    sdk.listServiceAccounts.mockResolvedValue(
+      mockSdkResponse([
+        mockServiceAccount({ id: "sa-1", name: "ci-bot" }),
+        mockServiceAccount({ id: "sa-2", name: "deploy-bot" }),
+      ]),
+    );
+
+    renderList([
+      mockAccessPolicy({
+        id: "p1",
+        name: "bots",
+        subject: { type: "role", value: "service" },
+      }),
+    ]);
+
+    const row = await screen.findByRole("row", { name: /bots/ });
+
+    expect(within(row).getByText(/^service/)).toHaveTextContent(/service\D*2/);
+  });
+
+  it("counts the members a role=observer subject matches", async () => {
+    sdk.getNamespace.mockResolvedValue(
+      mockSdkResponse(
+        mockNamespace({
+          members: [
+            { id: "u1", role: "observer", email: "a@test.com" },
+            { id: "u2", role: "observer", email: "b@test.com" },
+            { id: "u3", role: "owner", email: "c@test.com" },
+          ],
+        }),
+      ),
+    );
+
+    renderList([
+      mockAccessPolicy({
+        id: "p2",
+        name: "watchers",
+        subject: { type: "role", value: "observer" },
+      }),
+    ]);
+
+    const row = await screen.findByRole("row", { name: /watchers/ });
+
+    expect(within(row).getByText(/^observer/)).toHaveTextContent(/observer\D*2/);
   });
 });

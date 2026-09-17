@@ -21,6 +21,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
+import {
+  SERVICE_ROLE,
+  roleSubjectCount as countRoleSubject,
+} from "./subjectCount";
 import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import { useTags } from "@/hooks/useTags";
 import {
@@ -362,11 +366,11 @@ function AccessPolicyDrawer({
 
   const members = (namespace?.members ?? []).filter(
     (m): m is NamespaceMember =>
-      !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
+      !!m.id && !!m.role && !!m.email && String(m.role) !== SERVICE_ROLE,
   );
   const { serviceAccounts } = useServiceAccounts();
-  const roleMemberCount = (role: string) =>
-    members.filter((m) => String(m.role) === role).length;
+  const roleSubjectCount = (role: string) =>
+    countRoleSubject({ role, members, serviceAccounts });
 
   const [name, setName] = useState("");
   const [action, setAction] = useState<"allow" | "deny">("allow");
@@ -523,7 +527,7 @@ function AccessPolicyDrawer({
     ) : subjectType === "role" ? (
       <Pill
         icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
-        count={roleMemberCount(roleValue)}
+        count={roleSubjectCount(roleValue)}
       >
         {roleValue}
       </Pill>
@@ -684,7 +688,7 @@ function AccessPolicyDrawer({
                         meta={
                           <>
                             <UsersIcon className="w-3.5 h-3.5" />{" "}
-                            {roleMemberCount(role)}
+                            {roleSubjectCount(role)}
                           </>
                         }
                         selected={subjectType === "role" && roleValue === role}
