@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
+import { mockNamespace as buildNamespace } from "@/tests/factories";
 import type { Namespace } from "@/client";
 import EditNamespaceDrawer from "../EditNamespaceDrawer";
 
@@ -18,11 +19,10 @@ vi.mock("@/components/common/Drawer", async () => ({
 
 const Wrapper = createTestWrapper();
 
-const mockNamespace: Namespace = {
+const mockNamespace = buildNamespace({
   name: "my-namespace",
   owner: "owner-1",
   tenant_id: "tenant-abc",
-  members: [],
   settings: {
     session_record: true,
     connection_announcement: "hello",
@@ -30,12 +30,7 @@ const mockNamespace: Namespace = {
     ssh_legacy_allowed: true,
   },
   max_devices: 10,
-  created_at: "2024-01-01T00:00:00Z",
-  billing: null,
-  devices_pending_count: 0,
-  devices_accepted_count: 3,
-  devices_rejected_count: 0,
-};
+});
 
 function renderDrawer(
   overrides: Partial<{
