@@ -143,15 +143,19 @@ func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
 
 	f := seedKeyDigest(t, ctx, provider)
 
-	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.victim, "prodkey"))
-	require.NoError(t, err)
-	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.attacker, "mallorykey"))
-	require.NoError(t, err)
+	seed := func(tenant, name, digest string) {
+		t.Helper()
 
-	lone := f.apiKey(f.victim, "lonekey")
-	lone.Digest = strings.Repeat("a", 64)
-	_, err = f.st.APIKeyCreate(ctx, lone)
-	require.NoError(t, err)
+		_, err := provider.DB().ExecContext(ctx, `
+			INSERT INTO api_keys (key_digest, namespace_id, name, role, user_id, created_at, updated_at, expires_in)
+			VALUES (?, ?, ?, 'owner', ?, now(), now(), -1)
+		`, digest, tenant, name, f.users[tenant])
+		require.NoError(t, err)
+	}
+
+	seed(f.victim, "prodkey", collidingDigest)
+	seed(f.attacker, "mallorykey", collidingDigest)
+	seed(f.victim, "lonekey", strings.Repeat("a", 64))
 
 	require.NoError(t, provider.ApplyNext(ctx), "the migration must survive pre-existing collisions")
 
@@ -160,8 +164,11 @@ func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
 	assert.Equal(t, []string{"lonekey"}, names,
 		"both sides of the collision are revoked; a key with an unshared digest is untouched")
 
-	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.victim, "reissued"))
-	require.NoError(t, err)
-	_, err = f.st.APIKeyCreate(ctx, f.apiKey(f.attacker, "recollide"))
-	require.ErrorIs(t, err, store.ErrDuplicate, "the migration leaves the index in place")
+	seed(f.victim, "reissued", collidingDigest)
+
+	_, err = provider.DB().ExecContext(ctx, `
+		INSERT INTO api_keys (key_digest, namespace_id, name, role, user_id, created_at, updated_at, expires_in)
+		VALUES (?, ?, 'recollide', 'owner', ?, now(), now(), -1)
+	`, collidingDigest, f.attacker, f.users[f.attacker])
+	require.ErrorContains(t, err, "api_keys_key_digest_unique", "the migration leaves the index in place")
 }

@@ -15,6 +15,7 @@ type APIKeyResolver uint
 const (
 	APIKeyDigestResolver APIKeyResolver = iota + 1
 	APIKeyNameResolver
+	APIKeyUUIDResolver
 )
 
 // APIKeyStore persists API keys. Only a key's hash is stored, so a lookup by key means a

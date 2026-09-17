@@ -170,6 +170,8 @@ func APIKeyResolverToString(resolver store.APIKeyResolver) (string, error) {
 	switch resolver {
 	case store.APIKeyDigestResolver:
 		return "key_digest", nil
+	case store.APIKeyUUIDResolver:
+		return "id", nil
 	case store.APIKeyNameResolver:
 		return "name", nil
 	default:

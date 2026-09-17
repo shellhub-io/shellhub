@@ -115,6 +115,38 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		assert.Nil(t, apiKey)
 	})
 
+	t.Run("carries a surrogate id, distinct from the digest and from another key's", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		firstDigest := s.CreateAPIKey(t, WithAPIKeyName("first"), WithAPIKeyTenant(tenantID))
+		secondDigest := s.CreateAPIKey(t, WithAPIKeyName("second"), WithAPIKeyTenant(tenantID))
+
+		first, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, firstDigest)
+		require.NoError(t, err)
+		second, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, secondDigest)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, first.ID)
+		assert.NotEqual(t, first.Digest, first.ID, "the id a foreign key points at is not credential material")
+		assert.NotEqual(t, first.ID, second.ID)
+	})
+
+	t.Run("resolves by the surrogate id", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
+
+		byDigest, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, digest)
+		require.NoError(t, err)
+
+		byID, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyUUIDResolver, byDigest.ID)
+		require.NoError(t, err)
+		require.NotNil(t, byID)
+		assert.Equal(t, "dev", byID.Name)
+	})
+
 	t.Run("succeeds resolving API key by ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
