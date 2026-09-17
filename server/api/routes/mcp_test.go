@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -27,7 +26,13 @@ const mcpCallerTenant = "00000000-0000-4000-0000-000000000000"
 func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *httptest.ResponseRecorder {
 	t.Helper()
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
+	return mcpCallAs(t, router, tenant, role, http.Header{"X-API-Key": []string{"mcp-api-key"}}, body)
+}
+
+func mcpCallAs(t *testing.T, router http.Handler, tenant, role string, credential http.Header, body string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Mcp-Session-Id", "mcp-session-00000000-0000-4000-8000-000000000000")
 	if tenant != "" {
@@ -35,6 +40,11 @@ func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *http
 	}
 	if role != "" {
 		req.Header.Set("X-Role", role)
+	}
+	for key, values := range credential {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
 	}
 
 	rec := httptest.NewRecorder()
@@ -143,6 +153,47 @@ func TestMCPListDevices(t *testing.T) {
 	assert.Contains(t, text, `"total": 1`)
 	assert.Contains(t, text, "uid1")
 	mock.AssertExpectations(t)
+}
+
+func TestMCPForwardsEveryCredentialsActor(t *testing.T) {
+	credentials := map[string]http.Header{
+		"a user token names the acting person": {"X-ID": []string{"000000000000000000000000"}},
+		"an API key names no person":           {"X-API-Key": []string{"mcp-api-key"}},
+		"an admin request carries only a username": {
+			"X-Username": []string{"admin"},
+			"X-Admin":    []string{"true"},
+		},
+	}
+
+	for description, credential := range credentials {
+		t.Run(description, func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+			mock.
+				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+				Return([]models.Device{{UID: "uid1"}}, 7, nil).
+				Once()
+
+			rec := mcpCallAs(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(), credential,
+				mcpToolCall("shellhub_list_devices", `{}`))
+
+			text, isErr := mcpToolResult(t, rec)
+			require.False(t, isErr, text)
+			assert.Contains(t, text, `"total": 7`)
+			mock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestMCPRefusesACallCarryingNoActor(t *testing.T) {
+	mock := mocks.NewMockService(t)
+
+	rec := mcpCallAs(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(), http.Header{},
+		mcpToolCall("shellhub_list_devices", `{}`))
+
+	text, isErr := mcpToolResult(t, rec)
+	assert.True(t, isErr)
+	assert.Contains(t, text, "unauthorized")
+	mock.AssertNotCalled(t, "ListDevices")
 }
 
 // TestMCPGetDevice ensures the uid arg becomes the path parameter.
