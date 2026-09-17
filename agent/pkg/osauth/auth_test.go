@@ -327,6 +327,7 @@ func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
 		"good:" + testHash + ":19990:0:99999:7:::\n"
 
 	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(shadow)))
+	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(shadow)))
 	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(shadow)))
 }
 
@@ -364,10 +365,28 @@ func TestAccountExpiredFromShadow(t *testing.T) {
 			want:     false,
 		},
 		{
-			name:     "unparsable shadow",
+			name:     "account line with the wrong field count",
 			shadow:   "user:*\n",
 			username: "user",
 			want:     true,
+		},
+		{
+			name:     "account line with a malformed expire field",
+			shadow:   "user:*:19990:0:99999:7::20000x:\n",
+			username: "user",
+			want:     true,
+		},
+		{
+			name:     "malformed line shadows a later valid one",
+			shadow:   "user:*:19990:0:99999:7::20000x:\nuser:*:19990:0:99999:7:::\n",
+			username: "user",
+			want:     true,
+		},
+		{
+			name:     "another account's line is malformed",
+			shadow:   "other:*\nuser:*:19990:0:99999:7:::\n",
+			username: "user",
+			want:     false,
 		},
 	}
 
@@ -431,11 +450,16 @@ func TestParseErrorsDoNotEchoFileContent(t *testing.T) {
 			name: "shadow field count",
 			data: "bad:" + poison + "\n",
 			parse: func(r io.Reader) error {
-				_, err := parseShadowReader(r)
+				line, err := io.ReadAll(r)
+				if err != nil {
+					return err
+				}
+
+				_, err = parseShadowLine(string(line))
 
 				return err
 			},
-			wantLine: "shadow line 1",
+			wantLine: "wrong number of fields",
 		},
 	}
 

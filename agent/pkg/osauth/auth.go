@@ -60,7 +60,7 @@ func (b *backend) AccountExpired(username string) bool {
 
 		return true
 	}
-	defer file.Close() //nolint:errcheck
+	defer file.Close() //nolint:errcheck // read-only file, nothing to flush
 
 	return AccountExpiredFromShadow(username, file)
 }
@@ -88,6 +88,7 @@ type shadowEntry struct {
 	Warn        int
 	Inactive    int
 	Expire      int
+	Malformed   bool
 }
 
 const (
@@ -154,18 +155,19 @@ func AccountExpired(username string) bool {
 // account whose shadow entry has expired, or whose password has aged out or must be changed,
 // even when the password matches, because the agent cannot run the change a local login would.
 func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
-	entries, err := parseShadowReader(shadow)
-	if err != nil {
-		logrus.WithError(err).Debug("Error parsing shadow file")
-
-		return false
-	}
-
-	entry, ok := entries[username]
+	entry, ok := parseShadowReader(shadow)[username]
 	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"username": username,
 		}).Error("User not found")
+
+		return false
+	}
+
+	if entry.Malformed {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).Error("Refusing login to an account with a malformed shadow entry")
 
 		return false
 	}
@@ -186,19 +188,20 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 }
 
 // AccountExpiredFromShadow reports whether the account's entry in shadow has expired. It returns
-// true when shadow cannot be parsed, and false when the account has no entry, as an account
-// without one has no expiry to enforce.
+// true when the account's line cannot be parsed, and false when the account has no entry, as an
+// account without one has no expiry to enforce.
 func AccountExpiredFromShadow(username string, shadow io.Reader) bool {
-	entries, err := parseShadowReader(shadow)
-	if err != nil {
-		logrus.WithError(err).Error("Error parsing shadow file")
-
-		return true
-	}
-
-	entry, ok := entries[username]
+	entry, ok := parseShadowReader(shadow)[username]
 	if !ok {
 		return false
+	}
+
+	if entry.Malformed {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).Error("Refusing login to an account with a malformed shadow entry")
+
+		return true
 	}
 
 	if err := entry.checkAccountExpiry(daysSinceEpoch()); err != nil {
@@ -289,7 +292,7 @@ func VerifyPasswordHash(hash, password string) bool {
 	return true
 }
 
-func parseShadowReader(r io.Reader) (map[string]shadowEntry, error) {
+func parseShadowReader(r io.Reader) map[string]shadowEntry {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]shadowEntry)
 
@@ -304,30 +307,32 @@ func parseShadowReader(r io.Reader) (map[string]shadowEntry, error) {
 		}
 
 		entry, err := parseShadowLine(string(line))
-		if errors.Is(err, errMalformedShadowField) {
-			logrus.WithError(err).Warnf("Skipping shadow line %d", lineno)
+		if err != nil {
+			logrus.WithError(err).Warnf("Refusing the account on shadow line %d", lineno)
+
+			entries[entry.Username] = shadowEntry{Username: entry.Username, Malformed: true}
 
 			continue
 		}
 
-		if err != nil {
-			return nil, fmt.Errorf("shadow line %d: %w", lineno, err)
+		if previous, ok := entries[entry.Username]; ok && previous.Malformed {
+			continue
 		}
 
 		entries[entry.Username] = entry
 	}
 
-	return entries, nil //nolint:nilerr
+	return entries
 }
 
 func parseShadowLine(line string) (shadowEntry, error) {
 	result := shadowEntry{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
+	result.Username = strings.TrimSpace(parts[0])
 	if len(parts) != 9 {
 		return result, fmt.Errorf("wrong number of fields: %d != 9", len(parts))
 	}
 
-	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
 	days := []*int{

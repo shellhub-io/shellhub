@@ -41,37 +41,49 @@ func NewAuthenticator(api client.Client, docker dockerclient.APIClient, authData
 	}
 }
 
-func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string) (io.Reader, error) {
-	passwdTar, _, err := cli.CopyFromContainer(ctx, container, "/etc/passwd")
-	if err != nil {
-		return nil, err
-	}
-
-	passwd := tar.NewReader(passwdTar)
-	if _, err := passwd.Next(); err != nil {
-		return nil, err
-	}
-
-	return passwd, nil
+type containerFile struct {
+	io.Reader
+	io.Closer
 }
 
-func getShadow(ctx context.Context, cli dockerclient.APIClient, container string) (io.Reader, error) {
-	shadowTar, _, err := cli.CopyFromContainer(ctx, container, "/etc/shadow")
+func readContainerFile(ctx context.Context, cli dockerclient.APIClient, container, path string) (io.ReadCloser, error) {
+	archive, _, err := cli.CopyFromContainer(ctx, container, path)
 	if err != nil {
 		return nil, err
 	}
 
-	shadow := tar.NewReader(shadowTar)
-	if _, err := shadow.Next(); err != nil {
+	file := tar.NewReader(archive)
+	if _, err := file.Next(); err != nil {
+		archive.Close() //nolint:errcheck // the read already failed, and that error is the one returned
+
 		return nil, err
 	}
 
-	return shadow, nil
+	return containerFile{Reader: file, Closer: archive}, nil
+}
+
+func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string) (io.ReadCloser, error) {
+	return readContainerFile(ctx, cli, container, "/etc/passwd")
+}
+
+func getShadow(ctx context.Context, cli dockerclient.APIClient, container string) (io.ReadCloser, error) {
+	return readContainerFile(ctx, cli, container, "/etc/shadow")
 }
 
 func accountExpiredInContainer(ctx context.Context, cli dockerclient.APIClient, container, username string) bool {
 	shadow, err := getShadow(ctx, cli, container)
 	if cerrdefs.IsNotFound(err) {
+		if _, inspectErr := cli.ContainerInspect(ctx, container); inspectErr != nil {
+			log.WithFields(
+				log.Fields{
+					"container": container,
+					"username":  username,
+				},
+			).WithError(inspectErr).Error("failed to inspect the container missing a shadow file")
+
+			return true
+		}
+
 		return false
 	}
 
@@ -85,6 +97,7 @@ func accountExpiredInContainer(ctx context.Context, cli dockerclient.APIClient, 
 
 		return true
 	}
+	defer shadow.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
 	return osauth.AccountExpiredFromShadow(username, shadow)
 }
@@ -102,6 +115,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 
 		return false
 	}
+	defer passwd.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
 	user, err := osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
@@ -137,6 +151,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 
 		return false
 	}
+	defer shadow.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
 	if !osauth.AuthUserFromShadow(username, password, shadow) {
 		log.WithFields(
@@ -174,6 +189,7 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 
 		return false
 	}
+	defer passwd.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
 	user, err := osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
