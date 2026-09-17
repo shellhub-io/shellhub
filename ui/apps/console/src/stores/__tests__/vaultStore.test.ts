@@ -392,7 +392,7 @@ describe("vaultStore", () => {
       expect(mockTrackerStart).not.toHaveBeenCalled();
     });
 
-    it("does not clear the session key when a superseded initialization fails", async () => {
+    it("leaves the scope's storage alone when a superseded initialization fails", async () => {
       const backend = makeFakeBackend();
       mockGetBackend.mockReturnValue(backend);
 
@@ -409,7 +409,7 @@ describe("vaultStore", () => {
       rejectMeta(new Error("Crypto failure"));
       await promise;
 
-      expect(backend.clear).toHaveBeenCalled();
+      expect(backend.clear).not.toHaveBeenCalled();
       expect(mockClearSession).not.toHaveBeenCalled();
       expect(useVaultStore.getState().error).toBeNull();
     });

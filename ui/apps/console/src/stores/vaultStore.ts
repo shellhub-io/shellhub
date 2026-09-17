@@ -259,8 +259,8 @@ export const useVaultStore = create<VaultState>((set, get) => {
         if (superseded()) return;
         startTracker();
       } catch (err) {
-        await backend.clear().catch(() => undefined);
         if (superseded()) return;
+        await backend.clear().catch(() => undefined);
         clearSessionKey();
         const msg =
           err instanceof Error ? err.message : "Failed to create vault";
