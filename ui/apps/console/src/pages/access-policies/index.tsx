@@ -6,6 +6,7 @@ import {
   UsersIcon,
   UserIcon,
   CpuChipIcon,
+  KeyIcon,
   GlobeAltIcon,
   CommandLineIcon,
   PencilSquareIcon,
@@ -26,6 +27,7 @@ import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useServiceAccounts } from "@/hooks/useServiceAccounts";
+import { useApiKeys } from "@/hooks/useApiKeys";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
 import { roleSubjectCount as countRoleSubject } from "./subjectCount";
@@ -80,11 +82,13 @@ function SubjectCell({
   policy,
   memberEmail,
   serviceAccountName,
+  apiKeyName,
   roleSubjectCount,
 }: {
   policy: AccessPolicy;
   memberEmail: (id: string) => string | undefined;
   serviceAccountName: (id: string) => string | undefined;
+  apiKeyName: (id: string) => string | undefined;
   roleSubjectCount: (role: string) => number;
 }) {
   const { type, value } = policy.subject;
@@ -96,8 +100,8 @@ function SubjectCell({
         icon={<ExclamationTriangleIcon className={CHIP_ICON} strokeWidth={2} />}
         title={
           policy.action === "deny"
-            ? "No member of this namespace matches this subject, so the rule blocks nobody."
-            : "No member of this namespace matches this subject, so the rule grants nothing."
+            ? "Nothing in this namespace matches this subject, so the rule blocks nobody."
+            : "Nothing in this namespace matches this subject, so the rule grants nothing."
         }
       >
         {type === "all-members" ? "All members" : value}
@@ -123,6 +127,18 @@ function SubjectCell({
       </Chip>
     );
   }
+  if (type === "api-key") {
+    return (
+      <Chip
+        tone="primary"
+        icon={<KeyIcon className={CHIP_ICON} strokeWidth={2} />}
+        title={apiKeyName(value) ? undefined : value}
+      >
+        {apiKeyName(value) ?? `${value.slice(0, 12)}…`}
+      </Chip>
+    );
+  }
+
   const sa = serviceAccountName(value);
   if (sa) {
     return (
@@ -228,10 +244,12 @@ export default function AccessPolicies() {
   const { serviceAccounts } = useServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
 
+  const { apiKeys } = useApiKeys({ perPage: 100 });
   const members = ns?.members ?? [];
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
   const serviceAccountName = (id: string) =>
     serviceAccounts.find((s) => s.id === id)?.name;
+  const apiKeyName = (id: string) => apiKeys.find((k) => k.id === id)?.name;
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members, serviceAccounts });
   const deletePolicy = useDeleteAccessPolicy();
@@ -297,6 +315,7 @@ export default function AccessPolicies() {
           policy={p}
           memberEmail={memberEmail}
           serviceAccountName={serviceAccountName}
+          apiKeyName={apiKeyName}
           roleSubjectCount={roleSubjectCount}
         />
       ),
