@@ -136,8 +136,6 @@ var (
 	ErrSSHIdentityNotFound             = errors.New("ssh identity not found", ErrLayer, ErrCodeNotFound)
 	ErrSSHIdentityDuplicated           = errors.New("ssh identity duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrSSHIdentityInvalid              = errors.New("ssh identity public key invalid", ErrLayer, ErrCodeInvalid)
-	ErrServiceAccountNotFound          = errors.New("service account not found", ErrLayer, ErrCodeNotFound)
-	ErrMemberIsServiceAccount          = errors.New("a service account is not managed through the member routes", ErrLayer, ErrCodeForbidden)
 	ErrTokenSigned                     = errors.New("token signed", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion                   = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound                 = errors.New("session not found", ErrLayer, ErrCodeNotFound)
@@ -404,18 +402,6 @@ func NewErrSSHIdentityDuplicated(fingerprint string, next error) error {
 // be parsed.
 func NewErrSSHIdentityInvalid(data string, next error) error {
 	return NewErrInvalid(ErrSSHIdentityInvalid, map[string]any{"data": data}, next)
-}
-
-// NewErrServiceAccountNotFound returns an error when the service account is not found
-// in the namespace.
-func NewErrServiceAccountNotFound(id string, next error) error {
-	return NewErrNotFound(ErrServiceAccountNotFound, id, next)
-}
-
-// NewErrMemberIsServiceAccount returns an error when the member addressed is a service account,
-// which holds a membership but is managed through the service-account routes.
-func NewErrMemberIsServiceAccount() error {
-	return NewErrForbidden(ErrMemberIsServiceAccount, nil)
 }
 
 // NewErrPublicKeyInvalid returns an error when the public key is invalid.

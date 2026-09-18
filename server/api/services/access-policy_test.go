@@ -84,29 +84,6 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     false,
 		},
 		{
-			description: "grants a service account although its role holds no permissions",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(&models.Namespace{
-						TenantID: tenantID,
-						Members:  []models.Member{{ID: userID, Role: authorizer.RoleService, Type: models.UserTypeService}},
-					}, nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
-							Logins:  []string{"*"},
-						},
-					}, 1, nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
 			description: "fails closed when the policy store errors",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
@@ -406,31 +383,6 @@ func TestAuthorize(t *testing.T) {
 							RequireReauth: true,
 						},
 					}, 2, nil).Once()
-			},
-			expectedAllowed: true,
-			expectedReauth:  false,
-			expectedErr:     false,
-		},
-		{
-			description: "does not flag re-auth for a service account even when the policy requires it",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(&models.Namespace{
-						TenantID: tenantID,
-						Members:  []models.Member{{ID: userID, Role: authorizer.RoleObserver, Type: models.UserTypeService}},
-					}, nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject:       models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:        models.PublicKeyFilter{},
-							Logins:        []string{"*"},
-							RequireReauth: true,
-						},
-					}, 1, nil).Once()
 			},
 			expectedAllowed: true,
 			expectedReauth:  false,
@@ -943,10 +895,7 @@ func TestNormalizeSourceIPs(t *testing.T) {
 }
 
 func TestSubjectMatches(t *testing.T) {
-	const (
-		saID  = "00000000-0000-0000-0000-00000000000a"
-		keyID = "c629572a-b643-4301-90fe-4572b00d007e"
-	)
+	const keyID = "c629572a-b643-4301-90fe-4572b00d007e"
 
 	cases := []struct {
 		description string
@@ -963,24 +912,10 @@ func TestSubjectMatches(t *testing.T) {
 			expected:    true,
 		},
 		{
-			description: "all-members does NOT match a service account (footgun)",
-			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
-			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
-			role:        authorizer.RoleService,
-			expected:    false,
-		},
-		{
 			description: "all-members does NOT match an API key, which is not a member",
 			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
 			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
 			role:        authorizer.RoleAdministrator,
-			expected:    false,
-		},
-		{
-			description: "a human role subject does not match a service account",
-			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "observer"},
-			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
-			role:        authorizer.RoleService,
 			expected:    false,
 		},
 		{
@@ -989,27 +924,6 @@ func TestSubjectMatches(t *testing.T) {
 			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
 			role:        authorizer.RoleAdministrator,
 			expected:    false,
-		},
-		{
-			description: "role=service matches a service account",
-			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
-			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
-			role:        authorizer.RoleService,
-			expected:    false,
-		},
-		{
-			description: "role=service does not match a human observer",
-			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
-			principal:   models.Principal{Kind: models.PrincipalUser, ID: "human-id"},
-			role:        authorizer.RoleObserver,
-			expected:    false,
-		},
-		{
-			description: "user subject matches a service account by id",
-			subject:     models.PolicySubject{Type: models.PolicySubjectUser, Value: saID},
-			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
-			role:        authorizer.RoleService,
-			expected:    true,
 		},
 		{
 			description: "an api-key subject matches that key",
@@ -1077,15 +991,13 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 	const (
 		tenantID   = "00000000-0000-4000-0000-000000000000"
 		memberID   = "11111111-1111-4111-1111-111111111111"
-		serviceID  = "22222222-2222-4222-2222-222222222222"
 		strangerID = "33333333-3333-4333-3333-333333333333"
 	)
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
 		Members: []models.Member{
-			{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman},
-			{ID: serviceID, Role: authorizer.RoleService, Type: models.UserTypeService},
+			{ID: memberID, Role: authorizer.RoleOperator},
 		},
 	}
 
@@ -1095,7 +1007,6 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 		rejected    bool
 	}{
 		{"a member of the namespace is accepted", requests.AccessPolicySubject{Type: "user", Value: memberID}, false},
-		{"a service account is accepted, since it is a member too", requests.AccessPolicySubject{Type: "user", Value: serviceID}, false},
 		{"a user of another namespace is rejected", requests.AccessPolicySubject{Type: "user", Value: strangerID}, true},
 		{"a role the authorizer defines is accepted", requests.AccessPolicySubject{Type: "role", Value: "operator"}, false},
 		{"owner is accepted, though a member cannot be assigned it", requests.AccessPolicySubject{Type: "role", Value: "owner"}, false},
@@ -1152,7 +1063,7 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
-		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator}},
 	}
 
 	storeMock := storemock.NewMockStore(t)
@@ -1186,7 +1097,7 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
-		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator}},
 	}
 
 	stored := []models.AccessPolicy{
@@ -1233,7 +1144,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
-		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator, Type: models.UserTypeHuman}},
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator}},
 	}
 
 	reads := []struct {

@@ -38,11 +38,6 @@ func TestRoleFromString(t *testing.T) {
 			role:        "observer",
 			expected:    authorizer.RoleObserver,
 		},
-		{
-			description: "succeeds with 'service'",
-			role:        "service",
-			expected:    authorizer.RoleService,
-		},
 	}
 
 	for _, tc := range cases {
@@ -61,11 +56,6 @@ func TestRoleAssignable(t *testing.T) {
 		{
 			description: "refuses an invalid role",
 			role:        authorizer.RoleInvalid,
-			expected:    false,
-		},
-		{
-			description: "refuses the service role",
-			role:        authorizer.RoleService,
 			expected:    false,
 		},
 		{
@@ -244,11 +234,6 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.DeviceDetails,
 				authorizer.SessionDetails,
 			},
-		},
-		{
-			description: "succeeds with 'service'",
-			role:        authorizer.RoleService,
-			expected:    []authorizer.Permission{},
 		},
 	}
 

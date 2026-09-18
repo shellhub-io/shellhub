@@ -40,7 +40,6 @@ type Service interface {
 	SSHApprovalService
 	AccessPolicyService
 	SSHIdentityService
-	ServiceAccountService
 	WebReauthService
 	UserService
 	SSHKeysService

@@ -19,59 +19,17 @@ func TestNamespaceFromModel(t *testing.T) {
 		expected    []responses.Member
 	}{
 		{
-			description: "drops the service account",
+			description: "carries every member through",
 			namespace: &models.Namespace{
 				Members: []models.Member{
-					{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-					{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService},
+					{ID: "owner", Email: "owner@test.com", Role: authorizer.RoleOwner},
+					{ID: "observer", Email: "observer@test.com", Role: authorizer.RoleObserver},
 				},
 			},
 			expected: []responses.Member{
-				{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
+				{ID: "owner", Email: "owner@test.com", Role: authorizer.RoleOwner},
+				{ID: "observer", Email: "observer@test.com", Role: authorizer.RoleObserver},
 			},
-		},
-		{
-			description: "drops a service account that does not carry the service role",
-			namespace: &models.Namespace{
-				Members: []models.Member{
-					{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner, Type: models.UserTypeHuman},
-					{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleObserver, Type: models.UserTypeService},
-				},
-			},
-			expected: []responses.Member{
-				{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-			},
-		},
-		{
-			description: "keeps a member whose type is empty",
-			namespace: &models.Namespace{
-				Members: []models.Member{
-					{ID: "legacy", Email: "legacy@test.com", Role: authorizer.RoleObserver},
-				},
-			},
-			expected: []responses.Member{
-				{ID: "legacy", Email: "legacy@test.com", Role: authorizer.RoleObserver},
-			},
-		},
-		{
-			description: "keeps a member whose type is human",
-			namespace: &models.Namespace{
-				Members: []models.Member{
-					{ID: "human", Email: "human@test.com", Role: authorizer.RoleOperator, Type: models.UserTypeHuman},
-				},
-			},
-			expected: []responses.Member{
-				{ID: "human", Email: "human@test.com", Role: authorizer.RoleOperator},
-			},
-		},
-		{
-			description: "projects an empty list when every member is a service account",
-			namespace: &models.Namespace{
-				Members: []models.Member{
-					{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService},
-				},
-			},
-			expected: []responses.Member{},
 		},
 		{
 			description: "projects an empty list when the namespace has no members",
@@ -108,7 +66,6 @@ func TestNamespaceFromModelDoesNotMutateSource(t *testing.T) {
 	namespace := &models.Namespace{
 		Members: []models.Member{
 			{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-			{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService},
 		},
 	}
 
@@ -118,7 +75,6 @@ func TestNamespaceFromModelDoesNotMutateSource(t *testing.T) {
 		t,
 		[]models.Member{
 			{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-			{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService},
 		},
 		namespace.Members,
 	)
@@ -183,18 +139,16 @@ func TestNamespacesFromModel(t *testing.T) {
 			expected:    []responses.Namespace{},
 		},
 		{
-			description: "drops the service account from each namespace",
+			description: "projects the members of every namespace",
 			namespaces: []models.Namespace{
 				{
 					Name: "first",
 					Members: []models.Member{
 						{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-						{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService},
 					},
 				},
 				{
 					Name:    "second",
-					Members: []models.Member{{ID: "bot", Email: "bot@test.com", Role: authorizer.RoleService, Type: models.UserTypeService}},
 				},
 			},
 			expected: []responses.Namespace{

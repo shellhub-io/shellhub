@@ -132,26 +132,6 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 		assert.Equal(t, tenantID, ns.TenantID)
 	})
 
-	t.Run("carries the member's principal type", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		serviceID := s.CreateUser(t, WithUserType(models.UserTypeService))
-
-		require.NoError(t, st.NamespaceCreateMembership(
-			ctx,
-			scope.MustBounded(tenantID),
-			&models.Member{ID: serviceID, Role: authorizer.RoleService},
-		))
-
-		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-		require.NoError(t, err)
-
-		member, ok := ns.FindMember(serviceID)
-		require.True(t, ok)
-		assert.Equal(t, models.UserTypeService, member.Type)
-	})
-
 	t.Run("resolve by name", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

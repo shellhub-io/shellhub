@@ -23,12 +23,6 @@ const (
 	RoleAdministrator Role = "administrator"
 	// RoleOwner represents a namespace owner. The owner has all permissions.
 	RoleOwner Role = "owner"
-	// RoleService is the role of a service account: a non-human, SSH-only principal with no
-	// permissions and no authority. It exists so human-role policies never match a service
-	// account (roles are matched by exact equality) and a role=service subject can target all
-	// service accounts at once. What makes a principal a service account is [models.UserType],
-	// not this role.
-	RoleService Role = "service"
 )
 
 // RoleFromString returns the Role corresponding to the given string.
@@ -43,8 +37,6 @@ func RoleFromString(str string) Role {
 		return RoleOperator
 	case "observer":
 		return RoleObserver
-	case "service":
-		return RoleService
 	default:
 		return RoleInvalid
 	}
@@ -56,7 +48,7 @@ func (r Role) Assignable() bool {
 	switch r {
 	case RoleOwner, RoleAdministrator, RoleOperator, RoleObserver:
 		return true
-	case RoleInvalid, RoleService:
+	case RoleInvalid:
 		return false
 	}
 
@@ -75,8 +67,6 @@ func (r Role) String() string {
 		return "operator"
 	case RoleObserver:
 		return "observer"
-	case RoleService:
-		return "service"
 	default:
 		return ""
 	}
@@ -110,8 +100,6 @@ func (r Role) Permissions() []Permission {
 		permissions = operatorPermissions
 	case RoleObserver:
 		permissions = observerPermissions
-	case RoleService:
-		permissions = servicePermissions
 	default:
 	}
 
