@@ -3,6 +3,7 @@ import {
   confirmSshApprovalMutation,
   rejectSshApprovalMutation,
   createSshIdentityMutation,
+  createApiKeySshIdentityMutation,
   renameSshIdentityMutation,
   deleteSshIdentityMutation,
 } from "../client";
@@ -35,6 +36,18 @@ export function useCreateSSHIdentity() {
   const invalidate = useInvalidateByIds("listSshIdentities");
   return useMutation({
     ...createSshIdentityMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * Enrols an SSH identity that an API key owns, which is how an automation is given a way to
+ * reach a device. Needs the permission to manage identities, not just to add one's own.
+ */
+export function useCreateApiKeySSHIdentity() {
+  const invalidate = useInvalidateByIds("listSshIdentities");
+  return useMutation({
+    ...createApiKeySshIdentityMutation(),
     onSuccess: invalidate,
   });
 }
