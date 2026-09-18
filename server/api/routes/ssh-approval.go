@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
@@ -58,11 +59,12 @@ func (h *Handler) ConfirmSSHApproval(c *gateway.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	if err := h.service.ConfirmSSHApproval(c.Ctx(), userID, req); err != nil {
+	confirmationCode, err := h.service.ConfirmSSHApproval(c.Ctx(), userID, req)
+	if err != nil {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, models.SSHApprovalConfirmation{ConfirmationCode: confirmationCode})
 }
 
 // RejectSSHApproval rejects a pending login.

@@ -17,17 +17,19 @@ type WebReauthService interface {
 	// WebReauthVerify validates the step-up factor for the logged-in user and, on
 	// success, stamps the re-auth freshness marker. Community verifies the
 	// account password; the enterprise overlay adds TOTP for MFA users.
-	WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) error
+	// WebReauthVerify returns the confirmation code the person carries back to
+	// the terminal, empty when the request released no parked login.
+	WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) (string, error)
 }
 
-func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) error {
+func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) (string, error) {
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil {
-		return NewErrUserNotFound(req.UserID, err)
+		return "", NewErrUserNotFound(req.UserID, err)
 	}
 
 	if !user.Password.Compare(req.Password) {
-		return NewErrUserPasswordNotMatch(nil)
+		return "", NewErrUserPasswordNotMatch(nil)
 	}
 
 	return StampWebReauth(ctx, s.store, req)
@@ -42,18 +44,20 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 // key resolves to their own account, which is stricter than the membership the
 // approval routes check. So no separate permission gate is needed here — and a
 // login can only be released by the person whose key it is.
-func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify) error {
+func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify) (string, error) {
 	sc, err := scope.NewBounded(req.TenantID)
 	if err != nil {
-		return NewErrForbidden(ErrForbidden, err)
+		return "", NewErrForbidden(ErrForbidden, err)
 	}
 
 	identity, err := st.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, req.Fingerprint)
 	if err != nil || identity.PrincipalID != req.UserID {
-		return NewErrForbidden(ErrForbidden, nil)
+		return "", NewErrForbidden(ErrForbidden, nil)
 	}
 
-	return st.WithTransaction(ctx, func(ctx context.Context) error {
+	var confirmationCode string
+
+	err = st.WithTransaction(ctx, func(ctx context.Context) error {
 		if err := st.SSHIdentityTouchReauth(ctx, req.TenantID, req.Fingerprint); err != nil {
 			return err
 		}
@@ -62,33 +66,50 @@ func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauth
 			return nil
 		}
 
-		return releaseSSHApproval(ctx, st, req)
+		code, err := releaseSSHApproval(ctx, st, req)
+		if err != nil {
+			return err
+		}
+
+		confirmationCode = code
+
+		return nil
 	})
+	if err != nil {
+		return "", err
+	}
+
+	return confirmationCode, nil
 }
 
-func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebReauthVerify) error {
+func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebReauthVerify) (string, error) {
 	now := clock.Now()
 
 	approval, err := st.SSHApprovalGet(ctx, pairingcode.Normalize(req.ApprovalCode), now)
 	if err != nil {
-		return NewErrSSHApprovalCodeNotFound(req.ApprovalCode, err)
+		return "", NewErrSSHApprovalCodeNotFound(req.ApprovalCode, err)
 	}
 
 	mismatched := approval.Kind != models.SSHApprovalReauth ||
 		approval.TenantID != req.TenantID ||
 		approval.Fingerprint != req.Fingerprint
 	if mismatched {
-		return NewErrForbidden(ErrForbidden, nil)
+		return "", NewErrForbidden(ErrForbidden, nil)
 	}
 
-	claimed, err := st.SSHApprovalDecide(ctx, approval.Code, models.SSHApprovalConfirmed, req.UserID, now)
+	confirmationCode, err := pairingcode.New(pairingcode.DeviceCodeLength)
 	if err != nil {
-		return err
+		return "", err
+	}
+
+	claimed, err := st.SSHApprovalDecide(ctx, approval.Code, models.SSHApprovalConfirmed, req.UserID, confirmationCode, now)
+	if err != nil {
+		return "", err
 	}
 
 	if !claimed {
-		return NewErrSSHApprovalCodeNotFound(req.ApprovalCode, nil)
+		return "", NewErrSSHApprovalCodeNotFound(req.ApprovalCode, nil)
 	}
 
-	return nil
+	return confirmationCode, nil
 }

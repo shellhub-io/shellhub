@@ -22,6 +22,7 @@ const (
 	StateCreated                     // StateCreated represents a session that has been created but not yet registered with the API.
 	StateDialed                      // StateDialed represents a session that has been connected to a device.
 	StateEvaluated                   // StateEvaluated represents a evaluated session.
+	StateChallenged                  // StateChallenged represents a session parked on a person's decision, waiting for the answer to its challenge.
 	StateRegistered                  // StateRegistered represents a session that has been registered with the API but not yet connected to an agent.
 	StateFinished                    // StateFinished represents a session that has been completed.
 )
@@ -36,6 +37,8 @@ func (s State) String() string {
 		return "dialed"
 	case StateEvaluated:
 		return "evaluated"
+	case StateChallenged:
+		return "challenged"
 	case StateRegistered:
 		return "registered"
 	case StateFinished:

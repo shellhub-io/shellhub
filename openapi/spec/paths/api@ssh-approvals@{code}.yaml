@@ -3,8 +3,8 @@ get:
   summary: Get an SSH login approval
   description: |
     Return the details of a pending SSH login approval so the user can review it
-    before deciding. The gateway holds a pure-OpenSSH login open while it waits
-    for the decision, and prints the code and this URL in the terminal banner.
+    before deciding. The gateway holds a pure-OpenSSH login open at its approval
+    prompt, where it shows the code and this URL.
 
     An approval is one of two kinds. An `identity` approval binds the presented
     key as a new identity. A `reauth` approval creates nothing: an access policy
@@ -38,7 +38,7 @@ get:
               code:
                 description: |
                   The correlation code, echoed back so the page can visually
-                  match it against the code shown in the terminal banner.
+                  match it against the code shown on the approval prompt.
                 type: string
                 example: WXYZ-2K7Q
               kind:

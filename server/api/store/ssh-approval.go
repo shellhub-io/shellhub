@@ -23,7 +23,9 @@ type SSHApprovalStore interface {
 	// claim, so a double submit cannot write two decisions onto one code. Call it
 	// inside a transaction with the decision's durable effect, so the gateway
 	// never polls a confirmation whose effect has not landed.
-	SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error)
+	// confirmationCode is stored alongside a confirmation, for the person to
+	// carry from the console to their terminal.
+	SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID, confirmationCode string, now time.Time) (bool, error)
 
 	// SSHApprovalCleanup deletes approvals that expired before the given time.
 	SSHApprovalCleanup(ctx context.Context, before time.Time) (int64, error)

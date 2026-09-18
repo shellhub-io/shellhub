@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -9,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -86,7 +88,7 @@ func TestWebReauthVerify(t *testing.T) {
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache))
 
-			err := service.WebReauthVerify(ctx, tc.req)
+			_, err := service.WebReauthVerify(ctx, tc.req)
 			if tc.expectedErr {
 				require.Error(t, err)
 			} else {
@@ -178,11 +180,11 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			storeMock.On("SSHApprovalGet", mock.Anything, code, now).Return(tc.approval, tc.approvalErr).Once()
 
 			if tc.expectDecide {
-				storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, now).
+				storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, mock.Anything, now).
 					Return(tc.claimed, nil).Once()
 			}
 
-			err := StampWebReauth(ctx, store.Store(storeMock), &requests.WebReauthVerify{
+			_, err := StampWebReauth(ctx, store.Store(storeMock), &requests.WebReauthVerify{
 				TenantID:     tenantID,
 				UserID:       userID,
 				Fingerprint:  fingerprint,
@@ -198,4 +200,56 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			storeMock.AssertExpectations(t)
 		})
 	}
+}
+
+// TestStampWebReauthReturnsNoCodeWhenTheCommitFails pins what the caller gets
+// on the path where the approval is decided inside the transaction and the
+// commit then fails: no code. The code was minted for a decision that rolled
+// back, and a caller that put it in a redirect would hand the browser a
+// live-looking secret for a login nothing released.
+func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID    = "00000000-0000-4000-0000-000000000000"
+		userID      = "00000000-0000-0000-0000-00000000000a"
+		fingerprint = "SHA256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+		code        = "WXYZ2K7Q"
+	)
+
+	clockMock.On("Now").Return(now)
+	storeMock := new(storemock.MockStore)
+	queryOptionsMock := new(storemock.MockQueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+		Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
+	storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error {
+			if err := cb(ctx); err != nil {
+				return err
+			}
+
+			return errors.New("commit failed")
+		}).Once()
+	storeMock.On("SSHIdentityTouchReauth", mock.Anything, tenantID, fingerprint).Return(nil).Once()
+	storeMock.On("SSHApprovalGet", mock.Anything, code, now).
+		Return(&models.SSHApproval{
+			Code: code, TenantID: tenantID, Kind: models.SSHApprovalReauth,
+			Fingerprint: fingerprint, State: models.SSHApprovalPending,
+		}, nil).Once()
+	storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, mock.Anything, now).
+		Return(true, nil).Once()
+
+	confirmationCode, err := StampWebReauth(ctx, store.Store(storeMock), &requests.WebReauthVerify{
+		TenantID:     tenantID,
+		UserID:       userID,
+		Fingerprint:  fingerprint,
+		ApprovalCode: code,
+	})
+
+	require.Error(t, err)
+	assert.Empty(t, confirmationCode, "a code minted inside a transaction that did not commit must not reach the caller")
+
+	storeMock.AssertExpectations(t)
 }

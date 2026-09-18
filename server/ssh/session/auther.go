@@ -12,7 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -64,7 +64,16 @@ type Auth interface {
 
 	// Evaluate runs once the credential is proven, and is where anything with a
 	// cost or a side effect belongs. It's not always necessary.
+	//
+	// Returning ErrApprovalRequired parks the login: the credential is good but
+	// a person has to decide, and the gateway asks them over a second
+	// authentication method. Evaluate never waits for that decision itself.
 	Evaluate(*Session) error
+
+	// Approved finishes what Evaluate parked, and runs only after Evaluate
+	// returned ErrApprovalRequired and the approval came back confirmed.
+	// approver is who confirmed it.
+	Approved(session *Session, approver string) error
 }
 
 type publicKeyAuth struct {
@@ -82,6 +91,10 @@ func (*publicKeyAuth) Auth() authFunc {
 }
 
 func (*publicKeyAuth) Evaluate(*Session) error {
+	return nil
+}
+
+func (*publicKeyAuth) Approved(*Session, string) error {
 	return nil
 }
 
@@ -149,43 +162,31 @@ func (*passwordAuth) Evaluate(*Session) error {
 	return nil
 }
 
+func (*passwordAuth) Approved(*Session, string) error {
+	return nil
+}
+
 func (*passwordAuth) Offer(*Session) error {
 	return nil
 }
 
-const approvalWaitTimeout = 90 * time.Second
-
-// ApprovalWaitTimeout is [approvalWaitTimeout] for callers that have to size a
-// deadline around it — the SSH server's handshake timeout, above all, which
-// would otherwise cut off a login the user is about to approve.
-const ApprovalWaitTimeout = approvalWaitTimeout
-
-const approvalAskInterval = 250 * time.Millisecond
-
-func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(gctx, approvalWaitTimeout)
-	defer cancel()
-
-	for {
-		status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{
-			Code: s.ApprovalCode,
-			Wait: true,
-		})
-		if err == nil {
-			switch status.State {
-			case models.SSHApprovalConfirmed:
-				return status.UserID, nil
-			case models.SSHApprovalRejected:
-				return "", ErrApprovalRejected
-			default:
-			}
+func (s *Session) approvalDecision(ctx context.Context) (string, error) {
+	status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{Code: s.ApprovalCode})
+	if err != nil {
+		if errors.Is(err, services.ErrSSHApprovalCodeNotFound) {
+			return "", ErrApprovalExpired
 		}
 
-		select {
-		case <-ctx.Done():
-			return "", ErrApprovalTimeout
-		case <-time.After(approvalAskInterval):
-		}
+		return "", err
+	}
+
+	switch status.State {
+	case models.SSHApprovalConfirmed:
+		return status.UserID, nil
+	case models.SSHApprovalRejected:
+		return "", ErrApprovalRejected
+	default:
+		return "", ErrApprovalPending
 	}
 }
 
@@ -241,20 +242,17 @@ func (*approvalAuth) Offer(*Session) error {
 }
 
 func (a *approvalAuth) Evaluate(session *Session) error {
-	if err := session.openApproval(a.ctx, models.SSHApprovalIdentity, nil); err != nil {
+	if err := session.beginChallenge(a.ctx, a, models.SSHApprovalIdentity, nil); err != nil {
 		return err
 	}
 
-	sendBanner(a.ctx, buildAddKeyBanner(sshconf.Domain, sshconf.AutoSSL, session.ApprovalCode, session.Fingerprint))
+	return ErrApprovalRequired
+}
 
-	approver, err := session.awaitApproval(a.ctx)
-	if err != nil {
-		return err
-	}
-
+func (a *approvalAuth) Approved(session *Session, approver string) error {
 	session.UserID = approver
 
-	_, err = session.authorize(a.ctx)
+	_, err := session.authorize(a.ctx)
 
 	return err
 }
@@ -279,29 +277,21 @@ func (*identityAuth) Offer(*Session) error {
 func (a *identityAuth) Evaluate(session *Session) error {
 	dec, err := session.authorize(a.ctx)
 	if err != nil {
-		if session.Web {
-			sendBanner(a.ctx, banner.Message(banner.KindAccessDenied))
-		}
-
 		return err
 	}
 
-	if dec.RequireReauth && needsReauth(session.LastReauthAt, dec.ReauthPeriod) {
-		if err := session.openApproval(a.ctx, models.SSHApprovalReauth, dec.ReauthPeriod); err != nil {
-			return err
-		}
-
-		if session.Web {
-			sendBanner(a.ctx, banner.MessageWithCode(banner.KindReauthRequired, session.ApprovalCode))
-		} else {
-			sendBanner(a.ctx, buildReauthBanner(sshconf.Domain, sshconf.AutoSSL, session.ApprovalCode))
-		}
-
-		if _, err := session.awaitApproval(a.ctx); err != nil {
-			return err
-		}
+	if !dec.RequireReauth || !needsReauth(session.LastReauthAt, dec.ReauthPeriod) {
+		return nil
 	}
 
+	if err := session.beginChallenge(a.ctx, a, models.SSHApprovalReauth, dec.ReauthPeriod); err != nil {
+		return err
+	}
+
+	return ErrApprovalRequired
+}
+
+func (*identityAuth) Approved(*Session, string) error {
 	return nil
 }
 
@@ -382,4 +372,22 @@ var (
 	// ErrApprovalTimeout is returned when no decision arrives before the wait
 	// deadline or the client disconnects.
 	ErrApprovalTimeout = errors.New("ssh login approval timed out")
+	// ErrApprovalRequired is returned by Evaluate when the credential is good
+	// but a person still has to decide. It is not a failure: the caller parks
+	// the login and asks the client over a second authentication method.
+	ErrApprovalRequired = errors.New("ssh login needs approval")
+	// ErrApprovalPending is returned when the client answered its challenge but
+	// nobody has decided yet.
+	ErrApprovalPending = errors.New("ssh login not approved yet")
+	// ErrApprovalExpired is returned when the approval is no longer on record,
+	// which is what a client that sat at the prompt past the approval's TTL
+	// gets. Reconnecting mints a new one.
+	ErrApprovalExpired = errors.New("ssh login approval expired")
+	// ErrConfirmationMismatch is returned when the answer typed at the terminal
+	// is not the confirmation code the console showed the approver.
+	ErrConfirmationMismatch = errors.New("ssh login confirmation code does not match")
+	// ErrChallengeAlreadyIssued is returned when a connection that already had
+	// its one approval prompt asks for another, which is how a client holding
+	// several unenrolled keys is kept to a single prompt.
+	ErrChallengeAlreadyIssued = errors.New("ssh login already prompted for approval")
 )

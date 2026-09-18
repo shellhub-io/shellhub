@@ -94,7 +94,7 @@ func TestHandlersDropAConnectionThatHasNotBeenEvaluated(t *testing.T) {
 		},
 		{
 			name: "public key verified",
-			call: func(ctx gliderssh.Context) bool { return PublicKeyVerified(ctx, key) },
+			call: func(ctx gliderssh.Context) bool { return PublicKeyVerified(ctx, key) == nil },
 		},
 	}
 
@@ -118,6 +118,6 @@ func TestHandlersWithoutAStoredConnDoNotPanic(t *testing.T) {
 	assert.NotPanics(t, func() {
 		assert.False(t, PasswordHandler(newStubContext(), "secret"))
 		assert.False(t, PublicKeyOffer(newStubContext(), key))
-		assert.False(t, PublicKeyVerified(newStubContext(), key))
+		assert.Error(t, PublicKeyVerified(newStubContext(), key))
 	})
 }

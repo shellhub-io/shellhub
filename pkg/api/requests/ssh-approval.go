@@ -25,15 +25,11 @@ type SSHApprovalCreate struct {
 	ReauthPeriod *int `json:"reauth_period" validate:""`
 }
 
-// SSHApprovalStatus is the request data for the status endpoint the gateway
-// polls. The code is validated (normalized + checked) in the service.
+// SSHApprovalStatus asks for the decision on one parked login. The gateway reads
+// it once, after the client answers its approval prompt, and the code is
+// normalized and checked in the service rather than here.
 type SSHApprovalStatus struct {
 	Code string `param:"code" validate:"required"`
-	// Wait asks the API to hold the request open until the login is decided
-	// instead of answering "pending" right away. The gateway sets it so the
-	// person is not left staring at a frozen terminal for a poll interval after
-	// they already decided.
-	Wait bool `query:"wait" validate:""`
 }
 
 // SSHApprovalGet is the request data for the endpoint the console page uses to

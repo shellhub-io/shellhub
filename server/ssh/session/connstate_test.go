@@ -30,6 +30,7 @@ func TestStatePredicates(t *testing.T) {
 		{StateCreated, false, false},
 		{StateDialed, false, false},
 		{StateEvaluated, true, false},
+		{StateChallenged, true, false},
 		{StateRegistered, true, false},
 		{StateFinished, true, true},
 	}
@@ -75,7 +76,7 @@ func TestAuthenticableSessionRefusesAndClosesBeforeEvaluation(t *testing.T) {
 }
 
 func TestAuthenticableSessionReturnsTheSessionOnceEvaluated(t *testing.T) {
-	for _, state := range []State{StateEvaluated, StateRegistered, StateFinished} {
+	for _, state := range []State{StateEvaluated, StateChallenged, StateRegistered, StateFinished} {
 		ctx := newStubContext()
 		conn := new(recordingConn)
 		StoreConn(ctx, conn)
