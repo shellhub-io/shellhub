@@ -90,7 +90,7 @@ waiting for somebody to approve it in the console — which for a playbook run m
 Nobody is watching for that prompt at 3am.
 
 For scheduled runs, put the key on a
-[service account](/manage/access-control/service-accounts) rather than a person's identity. The
+[automation access](/manage/access-control/automation-access) rather than a person's identity. The
 run is then attributed to `ansible-runner` in the session list, and it does not break when
 somebody leaves.
 
@@ -99,12 +99,12 @@ somebody leaves.
 Every host in the play is authorized separately, as its own connection. A play across fifty
 devices is fifty authorizations.
 
-So the policy needs to cover the whole set — usually a policy granting the service account a tag,
+So the policy needs to cover the whole set — usually a policy granting the API key a tag,
 with the unix login the playbook uses:
 
 | Name | Effect | Subject | Devices | Logins |
 |---|---|---|---|---|
-| Ansible to fleet | allow | Service account `ansible-runner` | tag `production` | `root` |
+| Ansible to fleet | allow | API key `ansible-runner` | tag `production` | `root` |
 
 A device the policy misses fails in the play as unreachable, which is the correct behavior and
 looks like a network problem. If a subset of hosts fails, check the policy before the network.
@@ -124,5 +124,5 @@ a persisted connection is authorized once, when it opens.
 
 ## Where to go next
 
-- [Service Accounts](/manage/access-control/service-accounts) — The right principal for a runner.
+- [Automation Access](/manage/access-control/automation-access) — The right principal for a runner.
 - [SSH Client Configuration](/connect/ssh-clients) — Aliases and multiplexing.

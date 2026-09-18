@@ -12,21 +12,22 @@ unpredictably or is over-privileged.
 
 ## Set it up correctly, once
 
-**1. Create a service account.** Not a person's key. On the SSH Identities page, add a key for a
-new service account named for the pipeline — `ci-deploy`.
+**1. Give the pipeline its own key.** Not a person's. Create an API key named for the pipeline,
+`ci-deploy`, then on the SSH Identities page add an SSH key for that API key.
 
 Two things this buys you: the session list attributes deploys to `ci-deploy` rather than to
 whoever set it up, and the pipeline does not break the week that person leaves. See
-[Service Accounts](/manage/access-control/service-accounts).
+[Automation Access](/manage/access-control/automation-access).
 
 **2. Add the key ahead of time.** A key that is not yet an identity parks the login waiting for a
 browser approval. In a pipeline that is a hang, then a timeout, on a job nobody is watching.
 
-**3. Write a policy for it.** An `all-members` allow does **not** cover a service account:
+**3. Write a policy for it.** An `all-members` allow does **not** cover an automation, which is
+not a member:
 
 | Name | Effect | Subject | Devices | Logins |
 |---|---|---|---|---|
-| Deploy to production | allow | Service account `ci-deploy` | tag `production` | `deploy` |
+| Deploy to production | allow | API key `ci-deploy` | tag `production` | `deploy` |
 
 Grant the unix login it actually needs. If the deploy runs as `deploy`, do not grant `root`.
 
@@ -77,14 +78,14 @@ $ curl -s -H "X-API-Key: $SHELLHUB_API_KEY" \
 ```
 
 That needs both credentials, and they are different things: an
-[API key](/api#creating-a-key) to list devices, and the service account's SSH key to connect. Neither
-substitutes for the other.
+[API key](/api#creating-a-key) to list devices over HTTP, and the SSH key that key owns to
+connect. Neither substitutes for the other, though both belong to the same principal.
 
 For anything beyond a loop, use [Ansible](/api/ansible).
 
 ## Short-lived credentials
 
-For a genuinely one-shot job — a provisioning run, a migration — a service account key can be
+For a genuinely one-shot job — a provisioning run, a migration — an automation's key can be
 **single use**: spent after one connection. Combined with an expiry, that is the tightest
 credential available.
 
@@ -101,6 +102,6 @@ recorded too.
 
 ## Where to go next
 
-- [Service Accounts](/manage/access-control/service-accounts) — The principal a pipeline should hold.
+- [Automation Access](/manage/access-control/automation-access) — The principal a pipeline should hold.
 - [Ansible](/api/ansible) — Beyond a shell loop.
 - [Install Keys](/manage/devices/install-keys) — Enrolling what the pipeline creates.

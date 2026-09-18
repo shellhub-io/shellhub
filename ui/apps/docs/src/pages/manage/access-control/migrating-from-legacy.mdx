@@ -18,7 +18,7 @@ Moving across is a switch you make when you are ready. This page is what to do b
 
 | | Legacy | Identity |
 |---|---|---|
-| Proves who you are | A public key registered in the namespace | An identity bound to a person or service account |
+| Proves who you are | A public key registered in the namespace | An identity bound to a person or an automation |
 | Decides what you reach | The key's device ACL, plus firewall rules | Access policies |
 | An unlisted device | Reachable unless a rule blocks it | Unreachable until a policy grants it |
 | Source IP | A firewall rule can grant on it | Only narrows a grant; never grants |
@@ -38,7 +38,7 @@ do not carry them across.
 
 **2. Turn each key into an identity.** Add the ones you are keeping on the SSH Identities page,
 each bound to the right member. For automation, create a
-[service account](/manage/access-control/service-accounts) rather than binding the key to whoever
+[automation access](/manage/access-control/automation-access) rather than binding the key to whoever
 set it up. Doing this before the switch means nobody sits through a first-use approval.
 
 **3. Translate your firewall rules.** A deny rule usually becomes a deny policy. An allow rule

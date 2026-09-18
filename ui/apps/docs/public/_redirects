@@ -177,6 +177,9 @@
 /get-started/install/wsl          /get-started/install  301
 /get-started/install/wsl/         /get-started/install  301
 
+/manage/access-control/service-accounts   /manage/access-control/automation-access  301
+/manage/access-control/service-accounts/  /manage/access-control/automation-access  301
+
 /api/api-keys   /api#creating-a-key     301
 /api/api-keys/  /api#creating-a-key     301
 /api/openapi    /api#the-specification  301
