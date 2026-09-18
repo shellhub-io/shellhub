@@ -240,7 +240,6 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
-
 	if active.ID == member.ID {
 		return NewErrAuthForbidden()
 	}
@@ -276,7 +275,6 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
-
 
 	if active.ID == passive.ID {
 		return nil, NewErrAuthForbidden()

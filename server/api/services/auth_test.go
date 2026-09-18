@@ -2906,7 +2906,7 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 	storeMock, service := newAPIKeyAuthFixture(t, cache)
 
 	apiKey := &models.APIKey{
-		Digest:        testKeyDigest,
+		Digest:    testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
 		CreatedBy: "creator-id",
@@ -2964,7 +2964,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 	storeMock, service := newAPIKeyAuthFixture(t, cache)
 
 	apiKey := &models.APIKey{
-		Digest:        testKeyDigest,
+		Digest:    testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
 		CreatedBy: "creator-id",
@@ -3026,7 +3026,7 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
 		Return(
 			&models.APIKey{
-				Digest:        testKeyDigest,
+				Digest:    testKeyDigest,
 				Name:      "dev",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				CreatedBy: "creator-id",

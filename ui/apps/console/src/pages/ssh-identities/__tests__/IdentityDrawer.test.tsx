@@ -41,6 +41,18 @@ vi.mock("@/components/common/fields/KeyFileInput", () => ({
   ),
 }));
 
+function renderForApiKey() {
+  return render(
+    <IdentityDrawer
+      open
+      editIdentity={null}
+      apiKeyName="ci-deploy"
+      onClose={vi.fn()}
+    />,
+    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+  );
+}
+
 function renderDrawer() {
   return render(<IdentityDrawer open editIdentity={null} onClose={vi.fn()} />, {
     wrapper: createTestWrapper({ initialEntries: ["/"] }),
@@ -89,12 +101,10 @@ describe("IdentityDrawer", () => {
     expect(sdk.createApiKeySshIdentity).not.toHaveBeenCalled();
   });
 
-  it("enrols the key for the chosen API key, by name", async () => {
+  it("enrols for the API key it was opened from", async () => {
     const user = userEvent.setup();
-    renderDrawer();
+    renderForApiKey();
 
-    await user.click(screen.getByText("An API key"));
-    await user.selectOptions(screen.getByRole("combobox"), "ci-deploy");
     await user.type(screen.getByLabelText("Name"), "deploy");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
     await user.click(screen.getByRole("button", { name: /add key/i }));
@@ -112,10 +122,8 @@ describe("IdentityDrawer", () => {
 
   it("burns the key after one session when the toggle is on", async () => {
     const user = userEvent.setup();
-    renderDrawer();
+    renderForApiKey();
 
-    await user.click(screen.getByText("An API key"));
-    await user.selectOptions(screen.getByRole("combobox"), "ci-deploy");
     await user.type(screen.getByLabelText("Name"), "deploy");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
     await user.click(screen.getByRole("switch", { name: /single-use key/i }));
@@ -128,12 +136,5 @@ describe("IdentityDrawer", () => {
         }),
       ),
     );
-  });
-
-  it("hides the API key option without permission", () => {
-    useAuthStore.setState({ role: "observer" });
-    renderDrawer();
-
-    expect(screen.queryByText("An API key")).not.toBeInTheDocument();
   });
 });

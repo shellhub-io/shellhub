@@ -248,6 +248,122 @@ func TestReenrollSSHIdentity(t *testing.T) {
 	}
 }
 
+// TestListSSHIdentitiesWidensOnlyForAManager covers the one decision the service makes here:
+// whether the listing is the caller's own identities or every member's. What each filter then
+// selects is SQL, and TestSSHIdentityListSeparatesPeopleFromAutomations reads it back from a
+// real database.
+func TestListSSHIdentitiesWidensOnlyForAManager(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		userID   = "user1"
+	)
+
+	for _, tc := range []struct {
+		description   string
+		allPrincipals bool
+		wantOwnOnly   bool
+	}{
+		{"a caller who sees only their own", false, true},
+		{"a caller who sees every member's", true, false},
+	} {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := new(storemock.MockStore)
+			queryOptionsMock := new(storemock.MockQueryOptions)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+			filter := store.QueryOption(func(context.Context) error { return nil })
+			queryOptionsMock.On("WithoutAPIKeyOwner").Return(filter).Once()
+			if tc.wantOwnOnly {
+				queryOptionsMock.On("WithUserID", userID).Return(filter).Once()
+			}
+
+			storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
+				Return([]models.SSHIdentity{}, 0, nil).Once()
+
+			service := NewService(storeMock, privateKey, publicKey, nil)
+
+			_, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{
+				TenantID: tenantID, UserID: userID, AllPrincipals: tc.allPrincipals,
+			})
+			require.NoError(t, err)
+
+			queryOptionsMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestListAPIKeySSHIdentities(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		keyName  = "ci"
+		keyID    = "c629572a-b643-4301-90fe-4572b00d007e"
+	)
+
+	t.Run("refuses an automation listing another key's credentials", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(&models.APIKey{ID: keyID, Name: keyName, TenantID: tenantID}, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.ListAPIKeySSHIdentities(ctx, &requests.APIKeySSHIdentityList{
+			TenantID: tenantID, KeyName: keyName,
+			CallerAPIKeyID: "22222222-2222-4222-8222-222222222222",
+		})
+		require.Equal(t, NewErrForbidden(ErrForbidden, nil), err)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("lists by the key's id, not by the name it was asked for", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(&models.APIKey{ID: keyID, Name: keyName, TenantID: tenantID}, nil).Once()
+
+		filter := store.QueryOption(func(context.Context) error { return nil })
+		queryOptionsMock.On("WithAPIKeyID", keyID).Return(filter).Once()
+
+		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: keyID}}, 1, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		identities, err := service.ListAPIKeySSHIdentities(ctx, &requests.APIKeySSHIdentityList{
+			TenantID: tenantID, KeyName: keyName,
+		})
+		require.NoError(t, err)
+		require.Len(t, identities, 1)
+
+		storeMock.AssertExpectations(t)
+		queryOptionsMock.AssertExpectations(t)
+	})
+
+	t.Run("refuses a key no namespace carries", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "ghost").
+			Return(nil, store.ErrNoDocuments).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.ListAPIKeySSHIdentities(ctx, &requests.APIKeySSHIdentityList{
+			TenantID: tenantID, KeyName: "ghost",
+		})
+		require.ErrorContains(t, err, "APIKey not found")
+
+		storeMock.AssertExpectations(t)
+	})
+}
+
 func TestCreateAPIKeySSHIdentity(t *testing.T) {
 	ctx := context.TODO()
 
@@ -285,6 +401,47 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, keyID, identity.PrincipalID)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("lets an automation enrol against itself", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(apiKey, nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+			Return(nil, store.ErrNoDocuments).Once()
+		storeMock.On("SSHIdentityCreate", ctx, mock.Anything).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: keyID}, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
+			TenantID: tenantID, KeyName: keyName, Name: "rotated", Data: authorized,
+			CallerAPIKeyID: keyID,
+		})
+		require.NoError(t, err)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("refuses an automation enrolling against another key", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(apiKey, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
+			TenantID: tenantID, KeyName: keyName, Name: "planted", Data: authorized,
+			CallerAPIKeyID: "22222222-2222-4222-8222-222222222222",
+		})
+		require.Equal(t, NewErrForbidden(ErrForbidden, nil), err)
 
 		storeMock.AssertExpectations(t)
 	})
@@ -601,8 +758,9 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock := new(storemock.MockStore)
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
 		queryOptionsMock.On("WithUserID", userID).Return(nil).Once()
-		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
+		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything, mock.Anything).
 			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, 1, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
@@ -618,7 +776,8 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock := new(storemock.MockStore)
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
-		storeMock.On("SSHIdentityList", ctx, mock.Anything).
+		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
+		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
 			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, 2, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)

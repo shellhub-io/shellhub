@@ -175,6 +175,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			TenantID: apiKey.TenantID,
 			Role:     apiKey.Role,
 			APIKey:   key,
+			APIKeyID: apiKey.ID,
 		}, nil
 	}
 

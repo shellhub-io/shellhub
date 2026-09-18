@@ -21,7 +21,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "full fields",
 			model: &models.APIKey{
-				Digest:        "digest-abc123",
+				Digest:    "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
 				Role:      authorizer.RoleAdministrator,
@@ -44,7 +44,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "observer role and zero ExpiresIn",
 			model: &models.APIKey{
-				Digest:        "digest-def456",
+				Digest:    "digest-def456",
 				Name:      "read-only-key",
 				TenantID:  "namespace-id-2",
 				Role:      authorizer.RoleObserver,
@@ -102,7 +102,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   3600,
 			},
 			expected: &models.APIKey{
-				Digest:        "digest-abc123",
+				Digest:    "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
 				Role:      authorizer.RoleAdministrator,
@@ -125,7 +125,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   0,
 			},
 			expected: &models.APIKey{
-				Digest:        "digest-def456",
+				Digest:    "digest-def456",
 				Name:      "no-expiry-key",
 				TenantID:  "namespace-id-2",
 				Role:      authorizer.RoleObserver,

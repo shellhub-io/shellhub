@@ -22,7 +22,7 @@ type Session struct {
 	Username  string  `json:"username"`
 	// UserID is the ShellHub account that authorized this session via browser
 	// approval. Empty for password/public-key logins and web-terminal sessions.
-	UserID        string          `json:"user_id,omitempty"`
+	UserID string `json:"user_id,omitempty"`
 	// APIKeyID is the API key this session acts as, when an automation opened it.
 	APIKeyID      string          `json:"api_key_id,omitempty"`
 	IPAddress     string          `json:"ip_address"`

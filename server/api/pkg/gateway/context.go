@@ -144,6 +144,13 @@ func (c *Context) ID() *models.ID {
 	return nil
 }
 
+// APIKeyID returns the surrogate id of the API key the request authenticated with, and an
+// empty string for every other credential. A handler reads it to tell an automation acting on
+// itself from one acting on another key.
+func (c *Context) APIKeyID() string {
+	return c.Request().Header.Get("X-API-Key-ID")
+}
+
 // Ctx returns the request's [context.Context], which is cancelled when the client goes away.
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()

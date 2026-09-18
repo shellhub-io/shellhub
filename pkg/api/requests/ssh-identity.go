@@ -47,6 +47,20 @@ type APIKeySSHIdentityCreate struct {
 	// SingleUse burns the identity once a session has been established with it, which is what
 	// a one-shot job wants: upload a key, connect, and leave nothing reusable behind.
 	SingleUse bool `json:"single_use"`
+	// CallerAPIKeyID is the id of the API key the request authenticated with, empty for a
+	// person. The handler sets it, and the service refuses a key that names another key, so
+	// a leaked key can rotate its own credential and plant none.
+	CallerAPIKeyID string `json:"-"`
+}
+
+// APIKeySSHIdentityList is the request data for listing the SSH identities an API key owns.
+type APIKeySSHIdentityList struct {
+	// KeyName is the API key whose credentials are listed.
+	KeyName  string `param:"name" validate:"required"`
+	TenantID string `json:"-"`
+	// CallerAPIKeyID is the id of the API key the request authenticated with, empty for a
+	// person. The handler sets it, and the service refuses a key that names another key.
+	CallerAPIKeyID string `json:"-"`
 }
 
 // SSHIdentityIDParam represents an SSH identity id as a path param.
@@ -60,6 +74,9 @@ type SSHIdentityUpdate struct {
 	TenantID string `json:"-"`
 	UserID   string `json:"-"`
 	Name     string `json:"name" validate:"required"`
+	// Manage reports whether the caller holds the SSHIdentityManage permission,
+	// allowing them to rename an identity that is not their own.
+	Manage bool `json:"-"`
 }
 
 // SSHIdentityDelete is the request data for revoking an enrolled SSH identity.

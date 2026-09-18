@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ChevronRightIcon,
   KeyIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -7,6 +8,8 @@ import {
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { useTableSort } from "@/hooks/useTableSort";
 import { type ApiKey } from "@/client";
@@ -17,11 +20,57 @@ import { ExpiredBadge, RoleBadge } from "./constants";
 import { isExpired } from "./helpers";
 import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyDrawer from "./GenerateKeyDrawer";
+import KeySshAccessDrawer from "./KeySshAccessDrawer";
 import EditKeyDrawer from "./EditKeyDrawer";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { pageCount } from "@/utils/pagination";
 
 type SortField = "name" | "created_at" | "expires_in";
+
+function SSHAccessCell({
+  name,
+  enabled,
+  onManage,
+}: {
+  name: string;
+  enabled: boolean;
+  onManage: () => void;
+}) {
+  const { identities, isLoading } = useApiKeySshIdentities(name, enabled);
+
+  if (!enabled) {
+    return <span className="text-xs text-text-muted">&mdash;</span>;
+  }
+
+  if (isLoading) {
+    return (
+      <span className="inline-block w-20 h-6 rounded-md bg-surface animate-pulse" />
+    );
+  }
+
+  const held = identities.length;
+
+  return (
+    <button
+      type="button"
+      onClick={onManage}
+      aria-label={`Manage SSH access for ${name}`}
+      className={cn(
+        "group inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-md text-xs font-medium border transition-colors",
+        held > 0
+          ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+          : "bg-card text-text-muted border-border border-dashed hover:text-text-secondary hover:border-border-light",
+      )}
+    >
+      <KeyIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+      {held === 0 ? "Not set up" : held === 1 ? "1 key" : `${held} keys`}
+      <ChevronRightIcon
+        className="w-3 h-3 shrink-0 opacity-30 group-hover:opacity-70 transition-opacity"
+        strokeWidth={2}
+      />
+    </button>
+  );
+}
 
 type ApiKeyListParams = {
   page: number;
@@ -50,9 +99,11 @@ function ApiKeysTab() {
   });
 
   const deleteKey = useDeleteApiKey();
+  const canManageIdentities = useHasPermission("sshIdentity:manage");
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
+  const [sshTarget, setSshTarget] = useState<ApiKey | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const closeDelete = () => {
@@ -99,6 +150,17 @@ function ApiKeysTab() {
       render: (key) => <RoleBadge role={key.role} />,
     },
     {
+      key: "ssh",
+      header: "SSH access",
+      render: (key) => (
+        <SSHAccessCell
+          name={key.name}
+          enabled={canManageIdentities}
+          onManage={() => setSshTarget(key)}
+        />
+      ),
+    },
+    {
       key: "created_at",
       header: "Created",
       sortable: true,
@@ -116,7 +178,10 @@ function ApiKeysTab() {
         const expired = isExpired(key.expires_in);
         return (
           <span
-            className={cn("text-xs", expired ? "text-accent-red" : "text-text-secondary")}
+            className={cn(
+              "text-xs",
+              expired ? "text-accent-red" : "text-text-secondary",
+            )}
           >
             {formatExpiry(key.expires_in)}
           </span>
@@ -197,6 +262,12 @@ function ApiKeysTab() {
             </p>
           </div>
         }
+      />
+
+      <KeySshAccessDrawer
+        open={!!sshTarget}
+        apiKey={sshTarget}
+        onClose={() => setSshTarget(null)}
       />
 
       <GenerateKeyDrawer

@@ -18,6 +18,7 @@ const (
 	DeleteAPIKeyURL = "/namespaces/api-key/:name"
 
 	CreateAPIKeySSHIdentityURL = "/namespaces/api-key/:name/ssh-identities"
+	ListAPIKeySSHIdentitiesURL = "/namespaces/api-key/:name/ssh-identities"
 )
 
 // CreateAPIKey mints a key for the caller's namespace and returns its plaintext, which is the
@@ -117,7 +118,9 @@ func (h *Handler) DeleteAPIKey(c *gateway.Context) error {
 
 // CreateAPIKeySSHIdentity enrolls an SSH public key an API key owns, which is how an automation
 // is given a way to reach a device. The route is gated by SSHIdentityManage rather than
-// SSHIdentityAdd: adding is about one's own key, and this adds one to something else.
+// SSHIdentityAdd: adding is about one's own key, and this adds one to something else. An
+// automation calling it may only name itself, so a key rotates its own credential and plants
+// none on its neighbours.
 func (h *Handler) CreateAPIKeySSHIdentity(c *gateway.Context) error {
 	req := new(requests.APIKeySSHIdentityCreate)
 
@@ -133,10 +136,39 @@ func (h *Handler) CreateAPIKeySSHIdentity(c *gateway.Context) error {
 		req.TenantID = c.Tenant().ID
 	}
 
+	req.CallerAPIKeyID = c.APIKeyID()
+
 	identity, err := h.service.CreateAPIKeySSHIdentity(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
 
 	return c.JSON(http.StatusOK, identity)
+}
+
+// ListAPIKeySSHIdentities returns the SSH credentials an API key owns, so the key and what it
+// can connect with are read in one place.
+func (h *Handler) ListAPIKeySSHIdentities(c *gateway.Context) error {
+	req := new(requests.APIKeySSHIdentityList)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
+	req.CallerAPIKeyID = c.APIKeyID()
+
+	identities, err := h.service.ListAPIKeySSHIdentities(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, identities)
 }

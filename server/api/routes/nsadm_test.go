@@ -759,4 +759,3 @@ func TestGetNamespaceList(t *testing.T) {
 
 	svcMock.AssertExpectations(t)
 }
-

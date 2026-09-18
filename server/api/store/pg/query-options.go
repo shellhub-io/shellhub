@@ -181,6 +181,32 @@ func (*queryOptions) WithUserID(userID string) store.QueryOption {
 	}
 }
 
+func (*queryOptions) WithAPIKeyID(apiKeyID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		wrapper.query = wrapper.query.Where("api_key_id = ?", apiKeyID)
+
+		return nil
+	}
+}
+
+func (*queryOptions) WithoutAPIKeyOwner() store.QueryOption {
+	return func(ctx context.Context) error {
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		wrapper.query = wrapper.query.Where("api_key_id IS NULL")
+
+		return nil
+	}
+}
+
 // ScopeOption turns a namespace scope into the query predicate that enforces it. A bounded scope
 // becomes a namespace_id predicate; an unbounded scope adds nothing, which is the whole point of it
 // having to carry a reason. A scope that was never constructed is rejected.

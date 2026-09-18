@@ -467,7 +467,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-
 	if !slices.Contains(user.Preferences.AuthMethods, models.UserAuthMethodLocal) {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}

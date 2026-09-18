@@ -66,13 +66,13 @@ func TestSSHIdentityAPIKeyOwnerMigration(t *testing.T) {
 		INSERT INTO ssh_identities (id, namespace_id, user_id, api_key_id, fingerprint, data, name, source, created_at)
 		VALUES (gen_random_uuid(), ?, ?, ?, 'SHA256:both', 'ssh-ed25519 AAAA key', 'both', 'manual', now())
 	`, tenant, ownerID, keyID)
-	assert.Error(t, err, "an identity owned by a person and a key at once is refused")
+	require.Error(t, err, "an identity owned by a person and a key at once is refused")
 
 	_, err = db.ExecContext(ctx, `
 		INSERT INTO ssh_identities (id, namespace_id, fingerprint, data, name, source, created_at)
 		VALUES (gen_random_uuid(), ?, 'SHA256:orphan', 'ssh-ed25519 AAAA key', 'orphan', 'manual', now())
 	`, tenant)
-	assert.Error(t, err, "an identity owned by nobody is refused")
+	require.Error(t, err, "an identity owned by nobody is refused")
 
 	execSQL(t, ctx, db, "DELETE FROM api_keys WHERE name = 'ci'")
 

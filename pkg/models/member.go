@@ -52,4 +52,3 @@ type Member struct {
 	// sign in until an admin approves it.
 	AwaitingApproval bool `json:"awaiting_approval,omitempty"`
 }
-

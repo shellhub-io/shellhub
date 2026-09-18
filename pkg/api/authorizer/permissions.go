@@ -78,7 +78,6 @@ const (
 	SSHIdentityManage
 )
 
-
 var observerPermissions = []Permission{
 	DeviceDetails,
 
