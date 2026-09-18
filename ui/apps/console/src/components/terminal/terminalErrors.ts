@@ -123,6 +123,7 @@ export const WS_KIND = {
   ERROR: 4,
   SESSION: 5,
   REAUTH: 6,
+  REAUTH_DONE: 7,
 } as const;
 
 /**

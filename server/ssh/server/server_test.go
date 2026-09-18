@@ -76,7 +76,7 @@ func reachableDevice(t *testing.T) *servicemocks.MockService {
 }
 
 func bannerKind(message string) banner.Kind {
-	kind, _ := banner.Classify(message)
+	kind := banner.Classify(message)
 
 	return kind
 }

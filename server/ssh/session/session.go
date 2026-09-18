@@ -851,45 +851,6 @@ func groupCode(code string) string {
 	return code[:half] + " " + code[half:]
 }
 
-func buildAddKeyBanner(domain string, autoSSL bool, code, fingerprint string) string {
-	lines := []string{
-		"",
-		"  ShellHub doesn't know this SSH key yet.",
-		"",
-		"  Open the link to add it to your identities. This login",
-		"  continues once you do:",
-		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/new/"+code),
-		"",
-		"  Security code:  " + groupCode(code),
-		"  Key:            " + fingerprint,
-		"",
-		"  Waiting...",
-		"",
-	}
-
-	return strings.Join(lines, "\r\n")
-}
-
-func buildReauthBanner(domain string, autoSSL bool, code string) string {
-	lines := []string{
-		"",
-		"  An access policy asks you to re-authenticate.",
-		"",
-		"  Open the link to do it in the console. This login",
-		"  continues once you do:",
-		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/confirm/"+code),
-		"",
-		"  Security code:  " + groupCode(code),
-		"",
-		"  Waiting...",
-		"",
-	}
-
-	return strings.Join(lines, "\r\n")
-}
-
 // Auth authenticate a [Session] based on the provided context.
 //
 // As a client may try to create N sessions with the same context, a [snapshot] is used
