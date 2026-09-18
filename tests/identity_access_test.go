@@ -19,25 +19,95 @@ import (
 const approvalWait = 60 * time.Second
 
 func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer) error {
-	return dialSSHForApproval(ctx, addr, sshid, signer, nil)
+	return dialSSHForApproval(ctx, addr, sshid, signer, nil, nil)
 }
 
-func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Signer, banners chan<- string) error {
-	config := &ssh.ClientConfig{
-		User:            sshid,
-		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
-	}
+func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Signer, prompts chan<- string, answers <-chan string) error {
+	auth := []ssh.AuthMethod{ssh.PublicKeys(signer)}
 
-	if banners != nil {
-		config.BannerCallback = func(message string) error {
+	if prompts != nil {
+		challenge := func(_, instruction string, questions []string, _ []bool) ([]string, error) {
 			select {
-			case banners <- message:
+			case prompts <- instruction:
 			default:
 			}
 
-			return nil
+			if len(questions) == 0 {
+				return nil, nil
+			}
+
+			select {
+			case answer := <-answers:
+				return []string{answer}, nil
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
 		}
+
+		auth = append(auth, ssh.KeyboardInteractive(challenge))
+	}
+
+	config := &ssh.ClientConfig{
+		User:            sshid,
+		Auth:            auth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
+	}
+
+	dialer := new(net.Dialer)
+
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		_ = conn.Close()
+
+		return err
+	}
+
+	_ = ssh.NewClient(c, chans, reqs).Close()
+
+	return nil
+}
+
+func enrollIdentity(t *testing.T, ctx context.Context, compose *environment.DockerCompose, publicKey string) {
+	t.Helper()
+
+	resp, err := compose.R(ctx).
+		SetBody(map[string]string{"name": "enrolled", "data": publicKey, "source": "manual"}).
+		Post("/api/ssh-identities")
+	require.NoError(t, err)
+	require.Contains(t, []int{200, 201}, resp.StatusCode(), "failed to enroll the identity: %s", resp.String())
+}
+
+func dialSSHWithKeys(ctx context.Context, addr, sshid string, signers []ssh.Signer, prompts chan<- string, answers <-chan string) error {
+	challenge := func(_, instruction string, questions []string, _ []bool) ([]string, error) {
+		select {
+		case prompts <- instruction:
+		default:
+		}
+
+		if len(questions) == 0 {
+			return nil, nil
+		}
+
+		select {
+		case answer := <-answers:
+			return []string{answer}, nil
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	config := &ssh.ClientConfig{
+		User: sshid,
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeysCallback(func() ([]ssh.Signer, error) { return signers, nil }),
+			ssh.KeyboardInteractive(challenge),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
 	}
 
 	dialer := new(net.Dialer)
@@ -85,11 +155,12 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		signer, _ := newSigner(t)
 
-		banners := make(chan string, 8)
+		prompts := make(chan string, 8)
+		answers := make(chan string, 1)
 		dialed := make(chan error, 1)
 
 		go func() {
-			dialed <- dialSSHForApproval(ctx, compose.SSHAddress(), deviceSSHID(device), signer, banners)
+			dialed <- dialSSHForApproval(ctx, compose.SSHAddress(), deviceSSHID(device), signer, prompts, answers)
 		}()
 
 		var code string
@@ -98,8 +169,8 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		for code == "" {
 			select {
-			case message := <-banners:
-				if match := approvalCodePattern.FindStringSubmatch(message); match != nil {
+			case instruction := <-prompts:
+				if match := approvalCodePattern.FindStringSubmatch(instruction); match != nil {
 					code = match[1]
 				}
 			case err := <-dialed:
@@ -110,13 +181,18 @@ func TestIdentityAccessPolicy(t *testing.T) {
 			}
 		}
 
-		resp, err := compose.R(ctx).Post("/api/ssh-approvals/" + code + "/confirm")
+		confirmation := new(models.SSHApprovalConfirmation)
+		resp, err := compose.R(ctx).SetResult(confirmation).Post("/api/ssh-approvals/" + code + "/confirm")
 		require.NoError(t, err)
 		require.Equal(t, 200, resp.StatusCode())
+		require.NotEmpty(t, confirmation.ConfirmationCode,
+			"confirming has to hand back a code, since that is what the terminal asks for")
+
+		answers <- confirmation.ConfirmationCode
 
 		select {
 		case err := <-dialed:
-			require.NoError(t, err, "the login should resume once the approval is confirmed")
+			require.NoError(t, err, "the login should resume once the confirmation code is typed")
 		case <-time.After(approvalWait):
 			require.Fail(t, "the login never resumed after the approval was confirmed")
 		}
@@ -130,6 +206,64 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		assert.Equal(t, models.SSHIdentitySourceApproval, identities[0].Source)
 		assert.Equal(t, ssh.FingerprintSHA256(signer.PublicKey()), identities[0].Fingerprint,
 			"the identity should hold the key that dialled")
+	})
+
+	t.Run("a client that cannot answer a challenge is refused at once", func(t *testing.T) {
+		ctx := context.Background()
+		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+		_, device := startAcceptedAgent(t, ctx, compose)
+
+		signer, _ := newSigner(t)
+
+		started := time.Now()
+		err := dialSSH(ctx, compose.SSHAddress(), deviceSSHID(device), signer)
+		elapsed := time.Since(started)
+
+		require.Error(t, err, "an unenrolled key must not get in without an approval")
+
+		// The elapsed time is the assertion that matters. Reintroducing a wait on
+		// the server side fails the login with this very same error, only a minute
+		// and a half later, so asserting on the error alone would not notice.
+		assert.Less(t, elapsed, 5*time.Second,
+			"a client with no way to answer must be refused, not held while someone is asked")
+	})
+
+	t.Run("an agent full of unenrolled keys is asked once and still gets in", func(t *testing.T) {
+		ctx := context.Background()
+		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+		_, device := startAcceptedAgent(t, ctx, compose)
+
+		enrolled, enrolledKey := newSigner(t)
+		enrollIdentity(t, ctx, compose, enrolledKey)
+
+		first, _ := newSigner(t)
+		second, _ := newSigner(t)
+
+		prompts := make(chan string, 8)
+		answers := make(chan string, 4)
+		dialed := make(chan error, 1)
+
+		started := time.Now()
+
+		go func() {
+			dialed <- dialSSHWithKeys(ctx, compose.SSHAddress(), deviceSSHID(device),
+				[]ssh.Signer{first, second, enrolled}, prompts, answers)
+		}()
+
+		// Refusing the one prompt has to leave the client its remaining keys, so
+		// the enrolled one behind the unenrolled ones still logs in.
+		answers <- ""
+
+		select {
+		case err := <-dialed:
+			require.NoError(t, err, "the enrolled key behind the unenrolled ones should still get in")
+		case <-time.After(approvalWait):
+			require.Fail(t, "the login never finished")
+		}
+
+		assert.Less(t, time.Since(started), 15*time.Second,
+			"each unenrolled key used to cost a full approval window")
+		assert.Len(t, prompts, 1, "one connection is asked once, however many keys it holds")
 	})
 
 	tests := []struct {
