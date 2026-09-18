@@ -2,13 +2,18 @@
 // with Docker Compose. Internally, it uses [github.com/testcontainers/testcontainers-go]
 // to manage services.
 //
-// To get started, call [New], which creates a new [DockerComposeConfigurator]. A configurator
-// is a helper struct to manage "docker-compose". By default, a new configurator reads from
-// `.env` to set up all environment variables. The following example creates a new configurator
-// with a variable "SHELLHUB_ENVIRONMENT" set to "development":
+// The core is [Up], which takes a [Config] and returns a [Stack]. A Stack returns errors and
+// has no dependency on [testing.T], so standalone binaries (such as cmd/stack) can use it.
+//
+// For tests, [New] creates a [DockerComposeConfigurator] that wraps [Config] with randomised
+// ports and network, and [DockerComposeConfigurator.Up] wraps [Up] with [require.NoError]:
 //
 //	func TestSomething(t *testing.T) {
+//	    ctx := context.Background()
 //	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
+//
+//	    dockerCompose := cfg.Up(ctx)
+//	    t.Cleanup(dockerCompose.Down)
 //	}
 //
 // To avoid boilerplate between test cases, a clone of a configurator can be made; a clone
@@ -21,22 +26,6 @@
 //	    // Both `cloneA` and `cloneB` have a "SHELLHUB_ENVIRONMENT" env
 //	}
 //
-// Every configurator is associated with a [testing.T], which is used to make standard
-// assertions.
-//
-// To start the instance, you can call [DockerComposeConfigurator.Up], which returns a
-// [DockerCompose]. A Docker Compose is a code representation of the running instance;
-// it also has a [DockerCompose.Down] method, which stops and cleans up all allocated
-// resources for the instance. Generally, it is passed to [testing.T.Cleanup]:
-//
-//	func TestSomething(t *testing.T) {
-//	    ctx := context.Background()
-//	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
-//
-//	    dockerCompose := cfg.Up(ctx)
-//	    t.Cleanup(dockerCompose.Down)
-//	}
-//
 // The running instance provides helper methods to facilitate docker-compose manipulation
 // and communication. It also provides helper methods for generic pipelines (e.g., creating a user).
 //
@@ -47,8 +36,8 @@
 //	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
 //
-//	    dockerCompose.NewUser(t, "john_doe", "john.doe@test.com", "secret") // Create a new user
-//	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000", "legacy") // And a namespace
+//	    dockerCompose.NewUser(t, "john_doe", "john.doe@test.com", "secret")
+//	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000", "legacy")
 //	    credentials := dockerCompose.AuthUser(t, "john_doe", "secret")
 //	    // Do something ...
 //	}

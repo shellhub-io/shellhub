@@ -5,6 +5,10 @@ services:
       context: .
       dockerfile: server/Dockerfile
       target: production
+      args:
+        EDITION: ${SHELLHUB_BUILD_EDITION:-community}
+      additional_contexts:
+        cloud-src: ${SHELLHUB_CLOUD_SRC:-.}
   gateway:
     pull_policy: build
     build:
