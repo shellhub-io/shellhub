@@ -8,7 +8,7 @@ type AccessPolicyFilter struct {
 
 // AccessPolicySubject identifies who an access policy grants access to.
 type AccessPolicySubject struct {
-	Type  string `json:"type" validate:"required,oneof=user role all-members"`
+	Type  string `json:"type" validate:"required,oneof=user role api-key all-members"`
 	Value string `json:"value"`
 }
 

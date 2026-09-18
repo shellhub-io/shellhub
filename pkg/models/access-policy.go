@@ -13,6 +13,9 @@ const (
 	PolicySubjectUser PolicySubjectType = "user"
 	// PolicySubjectRole grants every member holding a role, named in Value.
 	PolicySubjectRole PolicySubjectType = "role"
+	// PolicySubjectAPIKey grants a single API key, identified by its id in Value. An
+	// automation is not a member, so all-members and role never reach one.
+	PolicySubjectAPIKey PolicySubjectType = "api-key"
 	// PolicySubjectAllMembers grants every member of the namespace; Value is empty.
 	PolicySubjectAllMembers PolicySubjectType = "all-members"
 )

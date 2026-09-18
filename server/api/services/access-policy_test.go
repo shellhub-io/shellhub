@@ -941,77 +941,107 @@ func TestNormalizeSourceIPs(t *testing.T) {
 }
 
 func TestSubjectMatches(t *testing.T) {
-	const saID = "00000000-0000-0000-0000-00000000000a"
+	const (
+		saID  = "00000000-0000-0000-0000-00000000000a"
+		keyID = "c629572a-b643-4301-90fe-4572b00d007e"
+	)
 
 	cases := []struct {
 		description string
 		subject     models.PolicySubject
-		userID      string
+		principal   models.Principal
 		role        authorizer.Role
-		userType    models.UserType
 		expected    bool
 	}{
 		{
-			description: "all-members matches a human",
+			description: "all-members matches a person",
 			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
-			userID:      "human-id",
+			principal:   models.Principal{Kind: models.PrincipalUser, ID: "human-id"},
 			role:        authorizer.RoleObserver,
-			userType:    models.UserTypeHuman,
 			expected:    true,
 		},
 		{
 			description: "all-members does NOT match a service account (footgun)",
 			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
-			userID:      saID,
+			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
 			role:        authorizer.RoleService,
-			userType:    models.UserTypeService,
+			expected:    false,
+		},
+		{
+			description: "all-members does NOT match an API key, which is not a member",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
+			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
+			role:        authorizer.RoleAdministrator,
 			expected:    false,
 		},
 		{
 			description: "a human role subject does not match a service account",
 			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "observer"},
-			userID:      saID,
+			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
 			role:        authorizer.RoleService,
-			userType:    models.UserTypeService,
+			expected:    false,
+		},
+		{
+			description: "a role subject never matches an API key, whatever role the key holds",
+			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "administrator"},
+			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
+			role:        authorizer.RoleAdministrator,
 			expected:    false,
 		},
 		{
 			description: "role=service matches a service account",
 			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
-			userID:      saID,
+			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
 			role:        authorizer.RoleService,
-			userType:    models.UserTypeService,
-			expected:    true,
+			expected:    false,
 		},
 		{
 			description: "role=service does not match a human observer",
 			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
-			userID:      "human-id",
+			principal:   models.Principal{Kind: models.PrincipalUser, ID: "human-id"},
 			role:        authorizer.RoleObserver,
-			userType:    models.UserTypeHuman,
 			expected:    false,
 		},
 		{
 			description: "user subject matches a service account by id",
 			subject:     models.PolicySubject{Type: models.PolicySubjectUser, Value: saID},
-			userID:      saID,
+			principal:   models.Principal{Kind: models.PrincipalService, ID: saID},
 			role:        authorizer.RoleService,
-			userType:    models.UserTypeService,
 			expected:    true,
 		},
 		{
-			description: "empty type is treated as human for all-members",
+			description: "an api-key subject matches that key",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID},
+			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
+			role:        authorizer.RoleAdministrator,
+			expected:    true,
+		},
+		{
+			description: "an api-key subject matches nothing else",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID},
+			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: "another-key"},
+			role:        authorizer.RoleAdministrator,
+			expected:    false,
+		},
+		{
+			description: "a user subject does not match a key that happens to share the id",
+			subject:     models.PolicySubject{Type: models.PolicySubjectUser, Value: keyID},
+			principal:   models.Principal{Kind: models.PrincipalAPIKey, ID: keyID},
+			role:        authorizer.RoleAdministrator,
+			expected:    false,
+		},
+		{
+			description: "empty kind is treated as a person for all-members",
 			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
-			userID:      "legacy-id",
+			principal:   models.Principal{Kind: models.PrincipalUser, ID: "legacy-id"},
 			role:        authorizer.RoleObserver,
-			userType:    "",
 			expected:    true,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			require.Equal(t, tc.expected, subjectMatches(tc.subject, tc.userID, tc.role, tc.userType))
+			require.Equal(t, tc.expected, subjectMatches(tc.subject, tc.principal, tc.role))
 		})
 	}
 }
@@ -1077,6 +1107,8 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 				Return(namespace, nil).Once()
+			storeMock.On("APIKeyList", ctx, mock.Anything).
+				Return([]models.APIKey{}, 0, nil).Maybe()
 
 			if !tc.rejected {
 				queryOptionsMock := new(storemock.MockQueryOptions)
@@ -1126,6 +1158,7 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 		Return(&models.AccessPolicy{ID: policyID}, nil).Once()
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 		Return(namespace, nil).Once()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -1165,6 +1198,7 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 		Return(namespace, nil).Once()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
 	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, len(stored), nil).Once()
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
@@ -1211,6 +1245,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
 
 				return service.GetAccessPolicy(ctx, &requests.AccessPolicyGet{
 					AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
@@ -1223,6 +1258,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 			read: func(service *APIService, storeMock *storemock.MockStore, role string) (*models.AccessPolicy, error) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
 				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
 				storeMock.On("AccessPolicyCreate", ctx, mock.Anything).Return(policyID, nil).Once()
 				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
@@ -1243,6 +1279,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Twice()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
 				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
 				storeMock.On("AccessPolicyUpdate", ctx, mock.Anything).Return(nil).Once()
 
