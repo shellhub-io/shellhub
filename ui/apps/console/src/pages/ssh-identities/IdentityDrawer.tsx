@@ -11,6 +11,8 @@ import {
   useRenameSSHIdentity,
 } from "@/hooks/useSSHIdentityMutations";
 import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
+import { useCreateApiKeySSHIdentity } from "@/hooks/useSSHIdentityMutations";
+import { useApiKeys } from "@/hooks/useApiKeys";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import type { SshIdentity } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
@@ -28,11 +30,12 @@ import {
 } from "@/utils/sshIdentity";
 import KeyExpiryField from "@/components/common/KeyExpiryField";
 import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
+import { INPUT, LABEL } from "@/utils/styles";
 
-// Who a newly added key belongs to: the caller, or a new service account. Enrolling for a
-// service account gives an automated system its own identity instead of binding the key to a
-// person. Only offered to callers who can create service accounts; rename never shows it.
-type Target = "self" | "service-account";
+// Who a newly added key belongs to: the caller, an API key, or a new service account.
+// Enrolling for an API key gives an automation its own credential instead of binding the key to
+// a person. Offered only to callers who may manage identities; rename never shows it.
+type Target = "self" | "api-key" | "service-account";
 
 /**
  * Enrols or renames an SSH identity. On edit only the name changes — the key is what the
@@ -50,7 +53,10 @@ function IdentityDrawer({
   const createIdentity = useCreateSSHIdentity();
   const renameIdentity = useRenameSSHIdentity();
   const createServiceAccount = useCreateServiceAccount();
+  const createApiKeyIdentity = useCreateApiKeySSHIdentity();
   const canCreateServiceAccount = useHasPermission("serviceAccount:create");
+  const canManageIdentities = useHasPermission("sshIdentity:manage");
+  const { apiKeys } = useApiKeys({ perPage: 100 });
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isEdit = !!editIdentity;
 
@@ -58,6 +64,7 @@ function IdentityDrawer({
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
+  const [apiKeyName, setApiKeyName] = useState("");
   const [expiresIn, setExpiresIn] = useState("-1");
   const [singleUse, setSingleUse] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +75,7 @@ function IdentityDrawer({
     setName(editIdentity?.name ?? "");
     setKeyData("");
     setKeyError(null);
+    setApiKeyName("");
     setExpiresIn("-1");
     setSingleUse(false);
     setSubmitting(false);
@@ -75,6 +83,7 @@ function IdentityDrawer({
   });
 
   const isServiceAccount = !isEdit && target === "service-account";
+  const isAPIKey = !isEdit && target === "api-key";
 
   const handleKeyDataChange = (v: string) => {
     setKeyData(v);
@@ -89,7 +98,7 @@ function IdentityDrawer({
 
   const confirmDisabled = isEdit
     ? !name.trim()
-    : !name.trim() || !keyData.trim() || !!keyError;
+    : !name.trim() || !keyData.trim() || !!keyError || (isAPIKey && !apiKeyName);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -101,6 +110,15 @@ function IdentityDrawer({
         await renameIdentity.mutateAsync({
           path: { id: editIdentity.id },
           body: { name: name.trim() },
+        });
+      } else if (isAPIKey) {
+        await createApiKeyIdentity.mutateAsync({
+          path: { name: apiKeyName },
+          body: {
+            name: name.trim(),
+            data: keyData.trim(),
+            ...serviceAccountLifecyclePayload(expiresIn, singleUse),
+          },
         });
       } else if (isServiceAccount) {
         await createServiceAccount.mutateAsync({
@@ -166,7 +184,7 @@ function IdentityDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {!isEdit && canCreateServiceAccount && (
+        {!isEdit && (canCreateServiceAccount || canManageIdentities) && (
           <RadioGroupField
             label="Add this key for"
             value={target}
@@ -178,6 +196,14 @@ function IdentityDrawer({
               label="Myself"
               description="The key becomes your own identity."
             />
+            {canManageIdentities && (
+              <RadioCard
+                value="api-key"
+                icon={<CpuChipIcon className="w-4 h-4" />}
+                label="An API key"
+                description="An automation connects with it. Where it may reach is set by access policies."
+              />
+            )}
             <RadioCard
               value="service-account"
               icon={<CpuChipIcon className="w-4 h-4" />}
@@ -185,6 +211,27 @@ function IdentityDrawer({
               description="A non-human identity for an automated system, separate from you."
             />
           </RadioGroupField>
+        )}
+
+        {isAPIKey && (
+          <div>
+            <label htmlFor="ssh-identity-api-key" className={LABEL}>
+              API key
+            </label>
+            <select
+              id="ssh-identity-api-key"
+              value={apiKeyName}
+              onChange={(e) => setApiKeyName(e.target.value)}
+              className={INPUT}
+            >
+              <option value="">Choose an API key...</option>
+              {apiKeys.map((key) => (
+                <option key={key.id} value={key.name}>
+                  {key.name}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
 
         <InputField
@@ -230,14 +277,14 @@ function IdentityDrawer({
           />
         )}
 
-        {!isEdit && !isServiceAccount && (
+        {!isEdit && !isServiceAccount && !isAPIKey && (
           <KeyExpiryField
             expiresIn={expiresIn}
             onExpiresInChange={setExpiresIn}
           />
         )}
 
-        {isServiceAccount && (
+        {(isServiceAccount || isAPIKey) && (
           <ServiceAccountLifecycleFields
             expiresIn={expiresIn}
             onExpiresInChange={setExpiresIn}
