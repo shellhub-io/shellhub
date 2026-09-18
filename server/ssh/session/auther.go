@@ -365,6 +365,11 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 		return nil, ErrAccessDenied
 	}
 
+	s.UserID = ""
+	s.PrincipalKind = ""
+	s.LastReauthAt = nil
+	s.SingleUse = false
+
 	return AuthApproval(ctx), nil
 }
 
