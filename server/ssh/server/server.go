@@ -99,6 +99,11 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			log.Fields{
 				"uid":   ctx.SessionID(),
 				"sshid": ctx.User(),
+				// What the client says it is. It is the only thing identifying
+				// the far end while a connection is still pre-auth, and which
+				// client it was decides how a failure reads: one that never
+				// offers a key looks the same in the log as one that has none.
+				"client": ctx.ClientVersion(),
 			})
 
 		defer func() {
