@@ -17,8 +17,8 @@ const (
 	SSHIdentitySourceApproval SSHIdentitySource = "approval"
 )
 
-// SSHIdentity binds an SSH public key to a principal (a human user or a service
-// account) within a namespace. In the identity SSH access mode the key is the
+// SSHIdentity binds an SSH public key to a principal (a person or an API key)
+// within a namespace. In the identity SSH access mode the key is the
 // credential: a connection whose presented key's fingerprint resolves to an
 // identity is recognized as that principal, without a browser step. A fingerprint
 // maps to exactly one identity per namespace (UNIQUE(namespace_id, fingerprint));
@@ -53,8 +53,8 @@ type SSHIdentity struct {
 	// an Access Policy's reauth_period freshness window. Distinct from LastUsedAt.
 	LastReauthAt *time.Time `json:"last_reauth_at"`
 	// ExpiresAt, SingleUse, and ConsumedAt are the key's lifecycle: it is dead
-	// once expired or consumed. Any identity may carry a TTL; SingleUse is only
-	// offered to a service account, whose one key serves one automated run.
+	// once expired or consumed. Any identity may carry a TTL; only an identity
+	// an API key owns may be single-use, for a one-shot automated run.
 	// ExpiresAt nil means it never expires.
 	ExpiresAt *time.Time `json:"expires_at"`
 	SingleUse bool       `json:"single_use"`

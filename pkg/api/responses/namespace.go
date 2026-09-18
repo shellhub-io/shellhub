@@ -18,8 +18,8 @@ type Member struct {
 	AwaitingApproval bool              `json:"awaiting_approval,omitempty"`
 }
 
-// Namespace is what the namespace routes return. Its Members holds people only; a service
-// account is listed by GET /api/service-accounts instead.
+// Namespace is what the namespace routes return. Its Members holds people. An automation is
+// an API key, holds no membership, and is listed by GET /api/namespaces/api-key.
 type Namespace struct {
 	Name     string                    `json:"name"`
 	Owner    string                    `json:"owner"`
