@@ -259,9 +259,16 @@ func validateAccessPolicySubject(namespace *models.Namespace, apiKeys []models.A
 			})
 		}
 	case models.PolicySubjectRole:
-		if authorizer.RoleFromString(subject.Value) == authorizer.RoleInvalid {
+		role := authorizer.RoleFromString(subject.Value)
+		if role == authorizer.RoleInvalid {
 			return NewErrAccessPolicyInvalidField(map[string]string{
 				"subject.value": "must be a role this namespace defines",
+			})
+		}
+
+		if !role.HasPermission(authorizer.DeviceConnect) {
+			return NewErrAccessPolicyInvalidField(map[string]string{
+				"subject.value": "must be a role that can connect to a device",
 			})
 		}
 	case models.PolicySubjectAPIKey:
@@ -374,6 +381,10 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 
 func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {
 	for _, member := range namespace.Members {
+		if !member.Role.HasPermission(authorizer.DeviceConnect) {
+			continue
+		}
+
 		principal := models.Principal{Kind: models.PrincipalUser, ID: member.ID}
 		if subjectMatches(subject, principal, member.Role) {
 			return true
@@ -381,6 +392,10 @@ func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.AP
 	}
 
 	for _, key := range apiKeys {
+		if !key.IsValid() {
+			continue
+		}
+
 		principal := models.Principal{Kind: models.PrincipalAPIKey, ID: key.ID}
 		if subjectMatches(subject, principal, key.Role) {
 			return true

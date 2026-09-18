@@ -1011,6 +1011,7 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 		{"a role the authorizer defines is accepted", requests.AccessPolicySubject{Type: "role", Value: "operator"}, false},
 		{"owner is accepted, though a member cannot be assigned it", requests.AccessPolicySubject{Type: "role", Value: "owner"}, false},
 		{"an invented role is rejected", requests.AccessPolicySubject{Type: "role", Value: "superadmin"}, true},
+		{"a role that cannot connect is rejected", requests.AccessPolicySubject{Type: "role", Value: "observer"}, true},
 		{"all-members with no value is accepted", requests.AccessPolicySubject{Type: "all-members"}, false},
 		{"all-members carrying a value is rejected", requests.AccessPolicySubject{Type: "all-members", Value: memberID}, true},
 	}
@@ -1084,6 +1085,27 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
+
+	t.Run("a role that cannot connect is refused here too", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+			Return(&models.AccessPolicy{ID: policyID}, nil).Once()
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(namespace, nil).Once()
+		storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+
+		service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+		_, err := service.UpdateAccessPolicy(ctx, &requests.AccessPolicyUpdate{
+			AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+			TenantID:            tenantID,
+			Name:                "rule",
+			Subject:             requests.AccessPolicySubject{Type: "role", Value: "observer"},
+			Logins:              []string{"root"},
+		})
+
+		require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
+	})
 }
 
 func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
@@ -1093,11 +1115,22 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 		tenantID   = "00000000-0000-4000-0000-000000000000"
 		memberID   = "11111111-1111-4111-1111-111111111111"
 		departedID = "44444444-4444-4444-4444-444444444444"
+		observerID = "55555555-5555-4555-8555-555555555555"
+		liveKeyID  = "66666666-6666-4666-8666-666666666666"
+		deadKeyID  = "77777777-7777-4777-8777-777777777777"
 	)
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
-		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator}},
+		Members: []models.Member{
+			{ID: memberID, Role: authorizer.RoleOperator},
+			{ID: observerID, Role: authorizer.RoleObserver},
+		},
+	}
+
+	apiKeys := []models.APIKey{
+		{ID: liveKeyID, Name: "live", TenantID: tenantID, ExpiresIn: -1},
+		{ID: deadKeyID, Name: "dead", TenantID: tenantID, ExpiresIn: now.Add(-time.Hour).Unix()},
 	}
 
 	stored := []models.AccessPolicy{
@@ -1106,13 +1139,18 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 		{ID: "c", Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "operator"}},
 		{ID: "d", Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "owner"}},
 		{ID: "e", Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers}},
+		{ID: "f", Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "observer"}},
+		{ID: "g", Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: observerID}},
+		{ID: "h", Subject: models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: liveKeyID}},
+		{ID: "i", Subject: models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: deadKeyID}},
 	}
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 		Return(namespace, nil).Once()
-	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return(apiKeys, len(apiKeys), nil).Maybe()
 	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, len(stored), nil).Once()
+	clockMock.On("Now").Return(now)
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -1130,6 +1168,10 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 		"c": true,
 		"d": false,
 		"e": true,
+		"f": false,
+		"g": false,
+		"h": true,
+		"i": false,
 	}, matches)
 }
 

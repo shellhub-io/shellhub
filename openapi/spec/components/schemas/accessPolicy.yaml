@@ -56,10 +56,13 @@ properties:
     example: 43200
   subject_matches:
     description: |
-      Whether any current member of the namespace satisfies `subject`. A policy
-      whose subject matches nobody is inert: an allow grants nothing and a deny
-      blocks nothing, while the rule still reads as if it were in force. It is
-      computed when the policy is read, so it follows membership without a write.
+      Whether anything `subject` names could reach a device. A policy for which
+      nothing can is inert: an allow grants nothing and a deny blocks nothing,
+      while the rule still reads as if it were in force. A subject may name
+      nobody at all, or name only principals refused before any policy is read:
+      a member whose role cannot connect (`observer`), or an expired API key. It
+      is computed when the policy is read, so it follows membership and expiry
+      without a write.
     type: boolean
     readOnly: true
     example: true
