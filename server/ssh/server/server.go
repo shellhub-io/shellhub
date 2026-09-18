@@ -97,12 +97,8 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
-				"uid":   ctx.SessionID(),
-				"sshid": ctx.User(),
-				// What the client says it is. It is the only thing identifying
-				// the far end while a connection is still pre-auth, and which
-				// client it was decides how a failure reads: one that never
-				// offers a key looks the same in the log as one that has none.
+				"uid":    ctx.SessionID(),
+				"sshid":  ctx.User(),
 				"client": ctx.ClientVersion(),
 			})
 
@@ -172,12 +168,6 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 			case err == nil:
 				return ctx.Permissions().Permissions, nil
 			case errors.Is(err, session.ErrApprovalRequired):
-				// The key is good but a person has to decide. Asking over
-				// keyboard-interactive puts the wait in the client's hands: one
-				// that cannot prompt anybody fails here and now instead of
-				// holding the connection open. Permissions must be nil beside a
-				// partial success, and the error must not be wrapped, because
-				// x/crypto type-asserts it rather than unwrapping.
 				return nil, &gossh.PartialSuccessError{
 					Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
 						KeyboardInteractiveCallback: auth.ApprovalChallenge(ctx, auth.PublicKeyOfferCallback(ctx)),
@@ -198,13 +188,8 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 
 			return nil, &gossh.PartialSuccessError{
 				Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
-					PublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey) (*gossh.Permissions, error) {
-						if ok := auth.PublicKeyOffer(ctx, key); !ok {
-							return nil, errPermissionDenied
-						}
-
-						return ctx.Permissions().Permissions, nil
-					},
+					PublicKeyCallback:           auth.PublicKeyOfferCallback(ctx),
+					KeyboardInteractiveCallback: auth.ApprovalChallenge(ctx, auth.PublicKeyOfferCallback(ctx)),
 				},
 			}
 		},
