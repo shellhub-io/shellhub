@@ -79,6 +79,8 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
 	}
 
+	principal := models.Principal{Kind: principalKindOfMember(*member), ID: userID}
+
 	policies, _, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return nil, err
@@ -89,7 +91,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, member.Type, login, sourceIP)
+		matched, err := policyApplies(policy, dev, principal, member.Role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("deny access policy failed to evaluate; denying")
@@ -112,7 +114,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, member.Type, login, sourceIP)
+		matched, err := policyApplies(policy, dev, principal, member.Role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("access policy failed to evaluate; treating as non-match")
@@ -149,8 +151,8 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 	return &models.Decision{Allowed: true, RequireReauth: requireReauth, ReauthPeriod: reauthPeriod}, nil
 }
 
-func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, userType models.UserType, login, sourceIP string) (bool, error) {
-	if !subjectMatches(policy.Subject, userID, role, userType) {
+func policyApplies(policy models.AccessPolicy, dev *models.Device, principal models.Principal, role authorizer.Role, login, sourceIP string) (bool, error) {
+	if !subjectMatches(policy.Subject, principal, role) {
 		return false, nil
 	}
 
@@ -227,7 +229,7 @@ func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID strin
 	return count > 0, nil
 }
 
-func validateAccessPolicySubject(namespace *models.Namespace, subject requests.AccessPolicySubject) error {
+func validateAccessPolicySubject(namespace *models.Namespace, apiKeys []models.APIKey, subject requests.AccessPolicySubject) error {
 	switch models.PolicySubjectType(subject.Type) {
 	case models.PolicySubjectUser:
 		if _, ok := namespace.FindMember(subject.Value); !ok {
@@ -241,6 +243,12 @@ func validateAccessPolicySubject(namespace *models.Namespace, subject requests.A
 				"subject.value": "must be a role this namespace defines",
 			})
 		}
+	case models.PolicySubjectAPIKey:
+		if !apiKeyExists(apiKeys, subject.Value) {
+			return NewErrAccessPolicyInvalidField(map[string]string{
+				"subject.value": "must be an API key of this namespace",
+			})
+		}
 	case models.PolicySubjectAllMembers:
 		if subject.Value != "" {
 			return NewErrAccessPolicyInvalidField(map[string]string{
@@ -252,14 +260,29 @@ func validateAccessPolicySubject(namespace *models.Namespace, subject requests.A
 	return nil
 }
 
-func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role, userType models.UserType) bool {
+func apiKeyExists(apiKeys []models.APIKey, id string) bool {
+	for _, key := range apiKeys {
+		if key.ID == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+// subjectMatches reports whether a policy's subject names this principal. Taking the principal
+// rather than a bare id is what keeps an API key's id from being compared against a user
+// subject: the kind decides which subjects can match at all, and only a person is a member.
+func subjectMatches(subject models.PolicySubject, principal models.Principal, role authorizer.Role) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
-		return userType != models.UserTypeService
+		return principal.Kind == models.PrincipalUser
 	case models.PolicySubjectRole:
-		return subject.Value == role.String()
+		return principal.Kind == models.PrincipalUser && subject.Value == role.String()
 	case models.PolicySubjectUser:
-		return subject.Value == userID
+		return principal.Kind != models.PrincipalAPIKey && subject.Value == principal.ID
+	case models.PolicySubjectAPIKey:
+		return principal.Kind == models.PrincipalAPIKey && subject.Value == principal.ID
 	default:
 		return false
 	}
@@ -314,26 +337,50 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
+	apiKeys, _, err := s.store.APIKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
 	policies, _, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := range policies {
-		policies[i].SubjectMatches = subjectMatchesAnyMember(namespace, policies[i].Subject)
+		policies[i].SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policies[i].Subject)
 	}
 
 	return policies, nil
 }
 
-func subjectMatchesAnyMember(namespace *models.Namespace, subject models.PolicySubject) bool {
+// subjectMatchesAnyPrincipal reports whether anything in the namespace the subject could name
+// exists. Leaving the API keys out would render a live SSH-granting policy as matching nobody,
+// which is the defect this flag was added to fix, returning in a new shape.
+func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {
 	for _, member := range namespace.Members {
-		if subjectMatches(subject, member.ID, member.Role, member.Type) {
+		principal := models.Principal{Kind: principalKindOfMember(member), ID: member.ID}
+		if subjectMatches(subject, principal, member.Role) {
+			return true
+		}
+	}
+
+	for _, key := range apiKeys {
+		principal := models.Principal{Kind: models.PrincipalAPIKey, ID: key.ID}
+		if subjectMatches(subject, principal, key.Role) {
 			return true
 		}
 	}
 
 	return false
+}
+
+func principalKindOfMember(member models.Member) models.PrincipalKind {
+	if member.Type == models.UserTypeService {
+		return models.PrincipalService
+	}
+
+	return models.PrincipalUser
 }
 
 func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error) {
@@ -352,7 +399,12 @@ func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolic
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	policy.SubjectMatches = subjectMatchesAnyMember(namespace, policy.Subject)
+	apiKeys, _, err := s.store.APIKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	policy.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policy.Subject)
 
 	return policy, nil
 }
@@ -368,7 +420,12 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if err := validateAccessPolicySubject(namespace, req.Subject); err != nil {
+	apiKeys, _, err := s.store.APIKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateAccessPolicySubject(namespace, apiKeys, req.Subject); err != nil {
 		return nil, err
 	}
 
@@ -399,7 +456,7 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	created.SubjectMatches = subjectMatchesAnyMember(namespace, created.Subject)
+	created.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, created.Subject)
 
 	return created, nil
 }
@@ -419,7 +476,12 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if err := validateAccessPolicySubject(namespace, req.Subject); err != nil {
+	apiKeys, _, err := s.store.APIKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateAccessPolicySubject(namespace, apiKeys, req.Subject); err != nil {
 		return nil, err
 	}
 
@@ -450,7 +512,7 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	updated.SubjectMatches = subjectMatchesAnyMember(namespace, updated.Subject)
+	updated.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, updated.Subject)
 
 	return updated, nil
 }

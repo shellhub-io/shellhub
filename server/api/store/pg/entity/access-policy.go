@@ -20,6 +20,7 @@ type AccessPolicy struct {
 	SubjectType   string    `bun:"subject_type"`
 	SubjectUserID *string   `bun:"subject_user_id,nullzero"`
 	SubjectRole   *string   `bun:"subject_role,nullzero"`
+	SubjectAPIKey *string   `bun:"subject_api_key_id,nullzero"`
 	Logins        []string  `bun:"logins,array"`
 	SourceIP      []string  `bun:"source_ip,array"`
 	RequireReauth bool      `bun:"require_reauth"`
@@ -58,6 +59,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		SubjectType:   string(model.Subject.Type),
 		SubjectUserID: subjectColumn(model.Subject, models.PolicySubjectUser),
 		SubjectRole:   subjectColumn(model.Subject, models.PolicySubjectRole),
+		SubjectAPIKey: subjectColumn(model.Subject, models.PolicySubjectAPIKey),
 		Logins:        model.Logins,
 		SourceIP:      model.SourceIP,
 		RequireReauth: model.RequireReauth,
@@ -133,6 +135,8 @@ func subjectValue(entity *AccessPolicy) string {
 		return *entity.SubjectUserID
 	case entity.SubjectRole != nil:
 		return *entity.SubjectRole
+	case entity.SubjectAPIKey != nil:
+		return *entity.SubjectAPIKey
 	default:
 		return ""
 	}

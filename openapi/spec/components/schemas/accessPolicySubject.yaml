@@ -3,6 +3,9 @@ description: |
 
   - `user` — a single member, identified by `value` (user ID).
   - `role` — every member with the role named in `value`.
+  - `api-key` — a single API key, identified by `value` (the key's ID). This is how an
+    automation is granted access. An automation is not a member, so `all-members` and
+    `role` never reach one.
   - `all-members` — every member of the namespace; `value` is empty.
 type: object
 properties:
@@ -12,12 +15,13 @@ properties:
     enum:
       - user
       - role
+      - api-key
       - all-members
     example: all-members
   value:
     description: |
-      The subject's value: a user ID (`user`), a role name (`role`), or an empty
-      string (`all-members`).
+      The subject's value: a user ID (`user`), a role name (`role`), an API key ID
+      (`api-key`), or an empty string (`all-members`).
     type: string
     example: ''
 required:
