@@ -241,13 +241,6 @@ func (*approvalAuth) Offer(*Session) error {
 }
 
 func (a *approvalAuth) Evaluate(session *Session) error {
-	release, err := session.holdApprovalSlot()
-	if err != nil {
-		return err
-	}
-
-	defer release()
-
 	if err := session.openApproval(a.ctx, models.SSHApprovalIdentity, nil); err != nil {
 		return err
 	}
@@ -294,13 +287,6 @@ func (a *identityAuth) Evaluate(session *Session) error {
 	}
 
 	if dec.RequireReauth && needsReauth(session.LastReauthAt, dec.ReauthPeriod) {
-		release, err := session.holdApprovalSlot()
-		if err != nil {
-			return err
-		}
-
-		defer release()
-
 		if err := session.openApproval(a.ctx, models.SSHApprovalReauth, dec.ReauthPeriod); err != nil {
 			return err
 		}
