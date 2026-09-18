@@ -96,8 +96,8 @@ function SubjectCell({
         icon={<ExclamationTriangleIcon className={CHIP_ICON} strokeWidth={2} />}
         title={
           policy.action === "deny"
-            ? "Nothing in this namespace matches this subject, so the rule blocks nobody."
-            : "Nothing in this namespace matches this subject, so the rule grants nothing."
+            ? "Nobody this subject names can connect, so the rule blocks nobody."
+            : "Nobody this subject names can connect, so the rule grants nothing."
         }
       >
         {type === "all-members" ? "All members" : value}

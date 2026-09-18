@@ -21,7 +21,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import { roleSubjectCount as countRoleSubject } from "./subjectCount";
+import {
+  POLICY_SUBJECT_ROLES,
+  roleSubjectCount as countRoleSubject,
+} from "./subjectCount";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTags } from "@/hooks/useTags";
 import {
@@ -29,7 +32,6 @@ import {
   useUpdateAccessPolicy,
 } from "@/hooks/useAccessPolicyMutations";
 import type { AccessPolicy, AccessPolicyRequest } from "@/client";
-import { ROLES } from "@/pages/team/helpers";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
 import Drawer from "@/components/common/Drawer";
@@ -666,7 +668,7 @@ function AccessPolicyDrawer({
                 </div>
                 <div className="max-h-56 overflow-y-auto">
                   {whoTab === "role" &&
-                    ROLES.map((role) => (
+                    POLICY_SUBJECT_ROLES.map((role) => (
                       <Row
                         key={role}
                         icon={<ShieldCheckIcon className="w-4 h-4" />}
