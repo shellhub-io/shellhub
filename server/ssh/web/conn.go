@@ -116,6 +116,14 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 		}
 
 		message.Data = sig
+	case messageKindReauthDone:
+		var code string
+
+		if err := json.Unmarshal(data, &code); err != nil {
+			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
+		}
+
+		message.Data = code
 	default:
 		return 0, errors.Join(ErrConnReadMessageKindInvalid)
 	}

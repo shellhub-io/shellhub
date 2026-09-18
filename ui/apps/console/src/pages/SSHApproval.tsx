@@ -70,7 +70,7 @@ export default function SSHApproval({
   flow: Flow;
   code?: string;
   onClose?: () => void;
-  onDecided?: () => void;
+  onDecided?: (confirmationCode: string) => void;
 }) {
   const params = useParams<{ code: string }>();
   const navigate = useNavigate();
@@ -83,6 +83,8 @@ export default function SSHApproval({
     totalSeconds,
     confirm,
     reject,
+    confirmationCode,
+    setConfirmationCode,
     markConfirmed,
     deciding,
     actionError,
@@ -100,8 +102,8 @@ export default function SSHApproval({
 
   const reauth = flow === "confirm";
 
-  const decided = (landed: boolean) => {
-    if (landed && !routed) onDecided?.();
+  const decided = (confirmationCode: string | null) => {
+    if (confirmationCode !== null && !routed) onDecided?.(confirmationCode);
   };
 
   const actual: Flow = details?.kind === "reauth" ? "confirm" : "new";
@@ -125,9 +127,10 @@ export default function SSHApproval({
             actionError={actionError}
             onConfirm={() => void confirm().then(decided)}
             onReject={() => void reject().then(decided)}
-            onReauthed={() => {
+            onReauthed={(code) => {
+              setConfirmationCode(code);
               markConfirmed();
-              decided(true);
+              decided(code);
             }}
           />
         )}
@@ -138,12 +141,21 @@ export default function SSHApproval({
             icon={<CheckCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
             title={reauth ? "Re-authenticated" : "Key added"}
             description={
-              reauth
-                ? `Back to your terminal: the login continues on its own.${reauthWindowSentence(details?.reauthPeriod ?? 0)}`
-                : "It's in your SSH Identities. Back to your terminal: the login continues on its own."
+              (routed && confirmationCode
+                ? reauth
+                  ? "Type this code at your terminal to continue the login."
+                  : "It's in your SSH Identities. Type this code at your terminal to continue the login."
+                : reauth
+                  ? "Your terminal can continue the login."
+                  : "It's in your SSH Identities.") +
+              (reauth ? reauthWindowSentence(details?.reauthPeriod ?? 0) : "")
             }
             action={<DoneButton onClick={close} />}
-          />
+          >
+            {routed && confirmationCode && (
+              <CodeBlock label="Confirmation code" code={confirmationCode} />
+            )}
+          </ResultMessage>
         )}
 
         {phase === "rejected" && (
@@ -209,7 +221,7 @@ function PendingRequest({
   actionError: string;
   onConfirm: () => void;
   onReject: () => void;
-  onReauthed: () => void;
+  onReauthed: (confirmationCode: string) => void;
 }) {
   const reauth = details.kind === "reauth";
   const [step, setStep] = useState<"review" | "verify">("review");
@@ -397,7 +409,7 @@ function ReauthFactor({
 }: {
   fingerprint: string;
   approvalCode: string;
-  onDone: () => void;
+  onDone: (confirmationCode: string) => void;
   onBack: () => void;
 }) {
   const mfaEnabled = useAuthStore((s) => s.mfaEnabled);
@@ -418,9 +430,12 @@ function ReauthFactor({
 
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
-      if (event.data === "sso-reauth-ok") {
-        onDone();
-      } else if (event.data === "sso-reauth-error") {
+      const message = event.data as
+        | { type?: string; confirmationCode?: string }
+        | undefined;
+      if (message?.type === "sso-reauth-ok") {
+        onDone(message.confirmationCode ?? "");
+      } else if (message?.type === "sso-reauth-error") {
         setError(
           "Re-authentication with your provider failed. Please try again.",
         );
@@ -462,7 +477,7 @@ function ReauthFactor({
     setSubmitting(true);
     setError(null);
     try {
-      await webTerminalReauth({
+      const result = await webTerminalReauth({
         body: {
           ...(mfaEnabled ? { code: otp.getValue() } : { password }),
           fingerprint,
@@ -470,7 +485,7 @@ function ReauthFactor({
         },
         throwOnError: true,
       });
-      onDone();
+      onDone(result.data?.confirmation_code ?? "");
     } catch (err) {
       setError(
         isSdkError(err) && err.status === 403
@@ -727,6 +742,31 @@ function StatusMessage({ label }: { label: string }) {
   );
 }
 
+/**
+ * The code the approver carries back to their terminal. It is shown only on the
+ * routed screen: the web terminal answers its own prompt, so there is nothing
+ * for anyone to type there.
+ */
+function CodeBlock({ label, code }: { label: string; code: string }) {
+  return (
+    <div className="mb-6">
+      <div className="font-mono text-2xs uppercase tracking-wider text-text-muted mb-2">
+        {label}
+      </div>
+      <div className="font-mono text-2xl tracking-[0.3em] text-primary select-all">
+        {groupCode(code)}
+      </div>
+    </div>
+  );
+}
+
+/** Splits an eight-character code in half, the way the terminal prints it. */
+function groupCode(code: string) {
+  if (code.length !== 8) return code;
+
+  return `${code.slice(0, 4)} ${code.slice(4)}`;
+}
+
 function SpecRow({
   label,
   value,
@@ -767,12 +807,14 @@ function ResultMessage({
   title,
   description,
   action,
+  children,
 }: {
   tone: keyof typeof TONES;
   icon: React.ReactNode;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="text-center animate-slide-up">
@@ -785,6 +827,7 @@ function ResultMessage({
       <p className="text-sm text-text-secondary leading-relaxed mb-6">
         {description}
       </p>
+      {children}
       {action}
     </div>
   );

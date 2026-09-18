@@ -147,6 +147,22 @@ describe("SSHApproval", () => {
     expect(await screen.findByText("Key added")).toBeInTheDocument();
   });
 
+  it("shows the confirmation code the person has to type at their terminal", async () => {
+    sdk.getSshApproval.mockResolvedValue(approval());
+    sdk.confirmSshApproval.mockResolvedValue(
+      mockSdkResponse({ confirmation_code: "CONF7788" }),
+    );
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: /add key/i }),
+    );
+
+    expect(await screen.findByText("CONF 7788")).toBeInTheDocument();
+    expect(screen.getByText(/type this code at your terminal/i)).toBeInTheDocument();
+  });
+
   it("rejects the request and reports the outcome", async () => {
     sdk.getSshApproval.mockResolvedValue(approval());
     sdk.rejectSshApproval.mockResolvedValue(mockSdkResponse(undefined));

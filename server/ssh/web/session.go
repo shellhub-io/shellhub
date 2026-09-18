@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -30,7 +31,7 @@ type BannerError struct {
 // once at construction time. Use this constructor — never build a BannerError
 // literal — so that Message and kind always agree.
 func NewBannerError(message string) *BannerError {
-	kind, _ := banner.Classify(message)
+	kind := banner.Classify(message)
 
 	return &BannerError{
 		Message: message,
@@ -64,23 +65,92 @@ func mapBannerError(e *BannerError) error {
 	}
 }
 
-func bannerCallback(conn *Conn) func(string) error {
+func bannerCallback(_ *Conn) func(string) error {
 	return func(message string) error {
 		if message == "" {
 			return nil
 		}
 
-		if kind, code := banner.Classify(message); kind == banner.KindReauthRequired && code != "" {
-			if _, err := conn.WriteMessage(&Message{Kind: messageKindReauth, Data: code}); err != nil {
-				log.WithError(err).Error("failed to forward the re-auth code to the browser")
+		return NewBannerError(message)
+	}
+}
 
-				return NewBannerError(message)
-			}
+// challengeName is what the gateway names an approval challenge. The bridge
+// matches it exactly rather than reading the prose a terminal would show.
+const challengeName = "shellhub-approval"
 
-			return nil
+// approvalChallenge answers the gateway's approval challenge on the browser's
+// behalf: it forwards the code the console needs, then blocks until the person
+// decides there.
+//
+// The wait is unbounded here on purpose. It ends when the browser answers, when
+// the socket drops, or when the gateway's own handshake budget expires, and a
+// person reading a dialog is slower than anything the bridge should be guessing
+// at.
+func approvalChallenge(conn *Conn) ssh.KeyboardInteractiveChallenge {
+	return func(name, _ string, questions []string, _ []bool) ([]string, error) {
+		if name != challengeName || len(questions) == 0 {
+			return make([]string, len(questions)), nil
 		}
 
-		return NewBannerError(message)
+		if _, err := conn.WriteMessage(&Message{Kind: messageKindReauth, Data: questions[0]}); err != nil {
+			return nil, errors.Join(ErrConnWriteMessageFailedFrame, err)
+		}
+
+		code, err := awaitBrowserApproval(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		return []string{code}, nil
+	}
+}
+
+// awaitBrowserApproval reads until the browser answers the approval, discarding
+// the frames a terminal keeps sending meanwhile. A resize arriving while someone
+// reads the dialog must not be mistaken for their answer.
+func awaitBrowserApproval(conn *Conn) (string, error) {
+	type answer struct {
+		code string
+		err  error
+	}
+
+	answered := make(chan answer, 1)
+
+	go func() {
+		for {
+			message := new(Message)
+			if _, err := conn.ReadMessage(message); err != nil {
+				answered <- answer{code: "", err: err}
+
+				return
+			}
+
+			if message.Kind != messageKindReauthDone {
+				continue
+			}
+
+			code, ok := message.Data.(string)
+			if !ok {
+				answered <- answer{code: "", err: ErrConnReadMessageJSONInvalid}
+
+				return
+			}
+
+			answered <- answer{code: code, err: nil}
+
+			return
+		}
+	}()
+
+	expiry := time.NewTimer(services.SSHApprovalTTL)
+	defer expiry.Stop()
+
+	select {
+	case got := <-answered:
+		return got.code, got.err
+	case <-expiry.C:
+		return "", ErrApprovalNotAnswered
 	}
 }
 
@@ -96,11 +166,11 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 			publicKey: &pubKey,
 		}
 
-		return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+		return []ssh.AuthMethod{ssh.PublicKeys(signer), ssh.KeyboardInteractive(approvalChallenge(conn))}, nil
 	}
 
 	if creds.isPassword() {
-		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
+		return []ssh.AuthMethod{ssh.Password(creds.Password), ssh.KeyboardInteractive(approvalChallenge(conn))}, nil
 	}
 
 	device, err := service.GetDevice(ctx, scope.NewUnbounded(reasonWebHandoffDeviceResolve), models.UID(creds.Device))
@@ -123,7 +193,7 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 		publicKey: &pubKey,
 	}
 
-	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+	return []ssh.AuthMethod{ssh.PublicKeys(signer), ssh.KeyboardInteractive(approvalChallenge(conn))}, nil
 }
 
 // Signer authenticates to the device with a key the server never holds: each signature is

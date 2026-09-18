@@ -7,10 +7,16 @@ import { useEffect } from "react";
  */
 export default function SsoReauthComplete() {
   useEffect(() => {
-    const status = new URLSearchParams(window.location.search).get("status");
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
     const opener = window.opener as Window | null;
     opener?.postMessage(
-      status === "ok" ? "sso-reauth-ok" : "sso-reauth-error",
+      status === "ok"
+        ? {
+            type: "sso-reauth-ok",
+            confirmationCode: params.get("confirmation_code") ?? "",
+          }
+        : { type: "sso-reauth-error" },
       window.location.origin,
     );
     window.close();
