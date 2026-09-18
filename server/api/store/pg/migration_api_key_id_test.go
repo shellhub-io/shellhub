@@ -54,7 +54,7 @@ func TestAPIKeySurrogateIDMigration(t *testing.T) {
 		INSERT INTO api_keys (id, key_digest, namespace_id, name, role, user_id, created_at, updated_at)
 		VALUES (?, '3333333333333333333333333333333333333333333333333333333333333333', ?, 'third', 'administrator', ?, now(), now())
 	`, ids[0], tenant, ownerID)
-	assert.Error(t, err, "the surrogate id is unique on its own")
+	require.Error(t, err, "the surrogate id is unique on its own")
 
 	var count int
 	require.NoError(t, db.NewRaw(`

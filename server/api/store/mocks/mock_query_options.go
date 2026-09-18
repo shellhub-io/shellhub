@@ -197,6 +197,59 @@ func (_c *MockQueryOptions_Sort_Call) RunAndReturn(run func(sorter *query.Sorter
 	return _c
 }
 
+// WithAPIKeyID provides a mock function for the type MockQueryOptions
+func (_mock *MockQueryOptions) WithAPIKeyID(apiKeyID string) store.QueryOption {
+	ret := _mock.Called(apiKeyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithAPIKeyID")
+	}
+
+	var r0 store.QueryOption
+	if returnFunc, ok := ret.Get(0).(func(string) store.QueryOption); ok {
+		r0 = returnFunc(apiKeyID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+	return r0
+}
+
+// MockQueryOptions_WithAPIKeyID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithAPIKeyID'
+type MockQueryOptions_WithAPIKeyID_Call struct {
+	*mock.Call
+}
+
+// WithAPIKeyID is a helper method to define mock.On call
+//   - apiKeyID string
+func (_e *MockQueryOptions_Expecter) WithAPIKeyID(apiKeyID any) *MockQueryOptions_WithAPIKeyID_Call {
+	return &MockQueryOptions_WithAPIKeyID_Call{Call: _e.mock.On("WithAPIKeyID", apiKeyID)}
+}
+
+func (_c *MockQueryOptions_WithAPIKeyID_Call) Run(run func(apiKeyID string)) *MockQueryOptions_WithAPIKeyID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockQueryOptions_WithAPIKeyID_Call) Return(queryOption store.QueryOption) *MockQueryOptions_WithAPIKeyID_Call {
+	_c.Call.Return(queryOption)
+	return _c
+}
+
+func (_c *MockQueryOptions_WithAPIKeyID_Call) RunAndReturn(run func(apiKeyID string) store.QueryOption) *MockQueryOptions_WithAPIKeyID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WithDeviceStatus provides a mock function for the type MockQueryOptions
 func (_mock *MockQueryOptions) WithDeviceStatus(deviceStatus models.DeviceStatus) store.QueryOption {
 	ret := _mock.Called(deviceStatus)
@@ -352,6 +405,52 @@ func (_c *MockQueryOptions_WithUserID_Call) Return(queryOption store.QueryOption
 }
 
 func (_c *MockQueryOptions_WithUserID_Call) RunAndReturn(run func(userID string) store.QueryOption) *MockQueryOptions_WithUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithoutAPIKeyOwner provides a mock function for the type MockQueryOptions
+func (_mock *MockQueryOptions) WithoutAPIKeyOwner() store.QueryOption {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithoutAPIKeyOwner")
+	}
+
+	var r0 store.QueryOption
+	if returnFunc, ok := ret.Get(0).(func() store.QueryOption); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+	return r0
+}
+
+// MockQueryOptions_WithoutAPIKeyOwner_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithoutAPIKeyOwner'
+type MockQueryOptions_WithoutAPIKeyOwner_Call struct {
+	*mock.Call
+}
+
+// WithoutAPIKeyOwner is a helper method to define mock.On call
+func (_e *MockQueryOptions_Expecter) WithoutAPIKeyOwner() *MockQueryOptions_WithoutAPIKeyOwner_Call {
+	return &MockQueryOptions_WithoutAPIKeyOwner_Call{Call: _e.mock.On("WithoutAPIKeyOwner")}
+}
+
+func (_c *MockQueryOptions_WithoutAPIKeyOwner_Call) Run(run func()) *MockQueryOptions_WithoutAPIKeyOwner_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockQueryOptions_WithoutAPIKeyOwner_Call) Return(queryOption store.QueryOption) *MockQueryOptions_WithoutAPIKeyOwner_Call {
+	_c.Call.Return(queryOption)
+	return _c
+}
+
+func (_c *MockQueryOptions_WithoutAPIKeyOwner_Call) RunAndReturn(run func() store.QueryOption) *MockQueryOptions_WithoutAPIKeyOwner_Call {
 	_c.Call.Return(run)
 	return _c
 }

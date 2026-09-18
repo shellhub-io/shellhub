@@ -232,6 +232,30 @@ func (s *Suite) TestSSHIdentityListFiltersByOwner(t *testing.T) {
 	assert.Equal(t, []string{"laptop"}, sshIdentityNames(identities))
 }
 
+// TestSSHIdentityListSeparatesPeopleFromAutomations covers the split the console depends on:
+// the identity page is about people, and what an API key owns is read through that key.
+func (s *Suite) TestSSHIdentityListSeparatesPeopleFromAutomations(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	f := seedSSHIdentityOwners(t, ctx, s)
+	opts := st.Options()
+
+	people, _, err := st.SSHIdentityList(ctx, scope.MustBounded(f.tenantID), opts.WithoutAPIKeyOwner())
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"laptop", "someone-elses"}, sshIdentityNames(people))
+
+	mine, _, err := st.SSHIdentityList(ctx, scope.MustBounded(f.tenantID), opts.WithoutAPIKeyOwner(), opts.WithUserID(f.userID))
+	require.NoError(t, err)
+	assert.Equal(t, []string{"laptop"}, sshIdentityNames(mine))
+
+	automation, _, err := st.SSHIdentityList(ctx, scope.MustBounded(f.tenantID), opts.WithAPIKeyID(f.keyID))
+	require.NoError(t, err)
+	assert.Equal(t, []string{"deploy"}, sshIdentityNames(automation))
+}
+
 // TestSSHIdentityGoesWithTheMembership verifies that leaving a namespace revokes the keys enrolled
 // there. The key is a credential the namespace granted: a returning member enrolls again rather
 // than resuming one nobody re-authorized.

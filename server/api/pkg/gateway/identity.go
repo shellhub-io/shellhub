@@ -15,6 +15,7 @@ type Identity struct {
 	TenantID  string
 	DeviceUID string
 	APIKey    string
+	APIKeyID  string
 	Role      authorizer.Role
 	Admin     bool
 }
@@ -25,6 +26,7 @@ var identityHeaders = []string{
 	"X-Tenant-ID",
 	"X-Device-UID",
 	"X-API-Key",
+	"X-API-Key-ID",
 	"X-Role",
 	"X-Admin",
 }
@@ -56,6 +58,7 @@ func (i *Identity) WriteTo(header http.Header) {
 	set("X-Tenant-ID", i.TenantID)
 	set("X-Device-UID", i.DeviceUID)
 	set("X-API-Key", i.APIKey)
+	set("X-API-Key-ID", i.APIKeyID)
 	set("X-Role", i.Role.String())
 
 	if i.Admin {

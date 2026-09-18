@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/netip"
 	"strings"
@@ -78,7 +79,11 @@ func (s *service) Authorize(ctx context.Context, tenantID string, principal mode
 	switch principal.Kind {
 	case models.PrincipalAPIKey:
 		apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyUUIDResolver, principal.ID)
-		if err != nil || !apiKey.IsValid() {
+		if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+			return nil, err
+		}
+
+		if apiKey == nil || !apiKey.IsValid() {
 			return &models.Decision{Allowed: false, Reason: models.ReasonKeyExpired}, nil
 		}
 	case models.PrincipalUser:

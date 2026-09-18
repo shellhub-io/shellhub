@@ -59,19 +59,31 @@ type SSHIdentityService interface {
 	// ListSSHIdentities returns the caller's own enrolled identities, or every
 	// member's when req.AllPrincipals is set. The handler sets AllPrincipals from
 	// SSHIdentityManage; nothing here checks permissions.
+	//
+	// It lists people only. A credential an API key owns is read through that key, at
+	// ListAPIKeySSHIdentities, so this listing never mixes a person with an automation.
 	ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error)
 
 	// CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the
 	// caller and returns the stored identity.
 	CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error)
 
+	// ListAPIKeySSHIdentities returns the SSH identities an API key owns, naming the key by
+	// name. It returns ErrAPIKeyNotFound when no key in the namespace carries that name, and
+	// ErrForbidden when an API key asks for a key other than itself.
+	ListAPIKeySSHIdentities(ctx context.Context, req *requests.APIKeySSHIdentityList) ([]models.SSHIdentity, error)
+
 	// CreateAPIKeySSHIdentity enrolls a pasted OpenSSH public key that an API key owns,
 	// naming the key by name and storing the identity against its id. It returns
-	// ErrAPIKeyNotFound when no key in the namespace carries that name, and
-	// ErrSSHIdentityDuplicated when the fingerprint is already enrolled there.
+	// ErrAPIKeyNotFound when no key in the namespace carries that name,
+	// ErrSSHIdentityDuplicated when the fingerprint is already enrolled there, and
+	// ErrForbidden when an API key enrols against a key other than itself.
 	CreateAPIKeySSHIdentity(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error)
 
-	// RenameSSHIdentity renames one of the caller's own identities.
+	// RenameSSHIdentity renames an enrolled identity. Renaming the caller's own needs
+	// SSHIdentityAdd; renaming another member's, or one an API key owns, needs
+	// SSHIdentityManage (signalled by req.Manage, resolved at the handler). It returns
+	// ErrForbidden when neither holds.
 	RenameSSHIdentity(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)
 
 	// DeleteSSHIdentity revokes an identity. Revoking the caller's own needs
@@ -183,7 +195,7 @@ func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdenti
 		return nil, err
 	}
 
-	var opts []store.QueryOption
+	opts := []store.QueryOption{s.store.Options().WithoutAPIKeyOwner()}
 	if !req.AllPrincipals {
 		opts = append(opts, s.store.Options().WithUserID(req.UserID))
 	}
@@ -216,6 +228,29 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 	})
 }
 
+func (s *service) ListAPIKeySSHIdentities(ctx context.Context, req *requests.APIKeySSHIdentityList) ([]models.SSHIdentity, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.KeyName)
+	if err != nil {
+		return nil, NewErrAPIKeyNotFound(req.KeyName, err)
+	}
+
+	if req.CallerAPIKeyID != "" && req.CallerAPIKeyID != apiKey.ID {
+		return nil, NewErrForbidden(ErrForbidden, nil)
+	}
+
+	identities, _, err := s.store.SSHIdentityList(ctx, sc, s.store.Options().WithAPIKeyID(apiKey.ID))
+	if err != nil {
+		return nil, err
+	}
+
+	return identities, nil
+}
+
 func (s *service) CreateAPIKeySSHIdentity(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
@@ -225,6 +260,10 @@ func (s *service) CreateAPIKeySSHIdentity(ctx context.Context, req *requests.API
 	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.KeyName)
 	if err != nil {
 		return nil, NewErrAPIKeyNotFound(req.KeyName, err)
+	}
+
+	if req.CallerAPIKeyID != "" && req.CallerAPIKeyID != apiKey.ID {
+		return nil, NewErrForbidden(ErrForbidden, nil)
 	}
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(req.Data)) //nolint:dogsled
@@ -256,7 +295,7 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return nil, NewErrSSHIdentityNotFound(req.ID, err)
 	}
 
-	if identity.PrincipalID != req.UserID {
+	if identity.PrincipalID != req.UserID && !req.Manage {
 		return nil, NewErrForbidden(ErrForbidden, nil)
 	}
 

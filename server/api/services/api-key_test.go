@@ -535,7 +535,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -567,14 +567,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -610,14 +610,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -653,14 +653,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "administrator",
@@ -709,14 +709,14 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
 				}
 
 				updatedAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "newName",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -794,7 +794,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",
@@ -819,7 +819,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				existingAPIKey := &models.APIKey{
-					Digest:       "existing-id",
+					Digest:   "existing-id",
 					Name:     "dev",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Role:     "operator",

@@ -1,3 +1,42 @@
+get:
+  operationId: listApiKeySshIdentities
+  summary: List the SSH identities an API key owns
+  description: |
+    List the SSH credentials enrolled for an API key, so the key and what it can connect
+    with are read in one place.
+
+    Requires the `SSHIdentityManage` permission, the same one enrolling asks for.
+  tags:
+    - community
+    - api-keys
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: name
+      schema:
+        type: string
+        description: The API key name.
+        example: ci-deploy
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success to list the API key's SSH identities.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/sshIdentity.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
 post:
   operationId: createApiKeySshIdentity
   summary: Enroll an SSH identity for an API key

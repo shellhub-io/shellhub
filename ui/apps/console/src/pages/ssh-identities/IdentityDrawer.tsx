@@ -1,9 +1,5 @@
 import { useState, FormEvent } from "react";
-import {
-  ExclamationCircleIcon,
-  UserIcon,
-  CpuChipIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
@@ -11,15 +7,11 @@ import {
   useRenameSSHIdentity,
 } from "@/hooks/useSSHIdentityMutations";
 import { useCreateApiKeySSHIdentity } from "@/hooks/useSSHIdentityMutations";
-import { useApiKeys } from "@/hooks/useApiKeys";
-import { useHasPermission } from "@/hooks/useHasPermission";
 import type { SshIdentity } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
-import RadioCard from "@/components/common/fields/RadioCard";
-import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import IdentityLifecycleFields from "@/components/common/IdentityLifecycleFields";
 import {
   keyExpiryPayload,
@@ -29,56 +21,50 @@ import {
 } from "@/utils/sshIdentity";
 import KeyExpiryField from "@/components/common/KeyExpiryField";
 import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
-import { INPUT, LABEL } from "@/utils/styles";
-
-// Who a newly added key belongs to: the caller, or an API key. Enrolling for an API key gives
-// an automation its own credential instead of binding the key to a person. Offered only to
-// callers who may manage identities; rename never shows it.
-type Target = "self" | "api-key";
 
 /**
  * Enrols or renames an SSH identity. On edit only the name changes — the key is what the
  * identity is.
+ *
+ * apiKeyName switches the owner from the caller to that API key, which is how an automation
+ * gets a credential. The owner is never a choice here: the identities page enrols for the
+ * person, and an API key's own screen enrols for the key, so each caller already knows.
  */
 function IdentityDrawer({
   open,
   editIdentity,
+  apiKeyName,
   onClose,
 }: {
   open: boolean;
   editIdentity: SshIdentity | null;
+  apiKeyName?: string;
   onClose: () => void;
 }) {
   const createIdentity = useCreateSSHIdentity();
   const renameIdentity = useRenameSSHIdentity();
   const createApiKeyIdentity = useCreateApiKeySSHIdentity();
-  const canManageIdentities = useHasPermission("sshIdentity:manage");
-  const { apiKeys } = useApiKeys({ perPage: 100 });
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isEdit = !!editIdentity;
 
-  const [target, setTarget] = useState<Target>("self");
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
-  const [apiKeyName, setApiKeyName] = useState("");
   const [expiresIn, setExpiresIn] = useState("-1");
   const [singleUse, setSingleUse] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
-    setTarget("self");
     setName(editIdentity?.name ?? "");
     setKeyData("");
     setKeyError(null);
-    setApiKeyName("");
     setExpiresIn("-1");
     setSingleUse(false);
     setSubmitting(false);
     setError(null);
   });
-  const isAPIKey = !isEdit && target === "api-key";
+  const isAPIKey = !isEdit && !!apiKeyName;
 
   const handleKeyDataChange = (v: string) => {
     setKeyData(v);
@@ -93,7 +79,7 @@ function IdentityDrawer({
 
   const confirmDisabled = isEdit
     ? !name.trim()
-    : !name.trim() || !keyData.trim() || !!keyError || (isAPIKey && !apiKeyName);
+    : !name.trim() || !keyData.trim() || !!keyError;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -108,7 +94,7 @@ function IdentityDrawer({
         });
       } else if (isAPIKey) {
         await createApiKeyIdentity.mutateAsync({
-          path: { name: apiKeyName },
+          path: { name: apiKeyName ?? "" },
           body: {
             name: name.trim(),
             data: keyData.trim(),
@@ -169,48 +155,6 @@ function IdentityDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {!isEdit && canManageIdentities && (
-          <RadioGroupField
-            label="Add this key for"
-            value={target}
-            onChange={setTarget}
-          >
-            <RadioCard
-              value="self"
-              icon={<UserIcon className="w-4 h-4" />}
-              label="Myself"
-              description="The key becomes your own identity."
-            />
-            <RadioCard
-              value="api-key"
-              icon={<CpuChipIcon className="w-4 h-4" />}
-              label="An API key"
-              description="An automation connects with it. Where it may reach is set by access policies."
-            />
-          </RadioGroupField>
-        )}
-
-        {isAPIKey && (
-          <div>
-            <label htmlFor="ssh-identity-api-key" className={LABEL}>
-              API key
-            </label>
-            <select
-              id="ssh-identity-api-key"
-              value={apiKeyName}
-              onChange={(e) => setApiKeyName(e.target.value)}
-              className={INPUT}
-            >
-              <option value="">Choose an API key...</option>
-              {apiKeys.map((key) => (
-                <option key={key.id} value={key.name}>
-                  {key.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <InputField
           id="ssh-identity-name"
           label="Name"

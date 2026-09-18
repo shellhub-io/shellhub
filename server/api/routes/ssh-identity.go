@@ -77,7 +77,8 @@ func (h *Handler) CreateSSHIdentity(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, identity)
 }
 
-// UpdateSSHIdentity renames one of the caller's own identities.
+// UpdateSSHIdentity renames an identity. Renaming one's own needs the enroll permission;
+// renaming one that belongs to another member, or to an API key, needs the manage permission.
 func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 	req := new(requests.SSHIdentityUpdate)
 	if err := c.Bind(req); err != nil {
@@ -93,7 +94,13 @@ func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
+	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
+	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	req.UserID = userID
+	req.Manage = manage
 	if c.Tenant() != nil {
 		req.TenantID = c.Tenant().ID
 	}

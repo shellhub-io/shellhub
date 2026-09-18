@@ -148,7 +148,7 @@ func TestNamespacesFromModel(t *testing.T) {
 					},
 				},
 				{
-					Name:    "second",
+					Name: "second",
 				},
 			},
 			expected: []responses.Namespace{

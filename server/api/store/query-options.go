@@ -28,6 +28,13 @@ type QueryOptions interface {
 	// WithUserID matches records whose user_id column equals the given user.
 	WithUserID(userID string) QueryOption
 
+	// WithAPIKeyID matches records whose api_key_id column equals the given key, which is
+	// how the credentials an automation owns are told from a person's.
+	WithAPIKeyID(apiKeyID string) QueryOption
+
+	// WithoutAPIKeyOwner matches records no API key owns, leaving the ones a person does.
+	WithoutAPIKeyOwner() QueryOption
+
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
 

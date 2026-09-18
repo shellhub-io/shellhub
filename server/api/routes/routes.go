@@ -146,6 +146,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyUpdate))
 	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyDelete))
 	publicAPI.POST(CreateAPIKeySSHIdentityURL, gateway.Handler(handler.CreateAPIKeySSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
+	publicAPI.GET(ListAPIKeySSHIdentitiesURL, gateway.Handler(handler.ListAPIKeySSHIdentities), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
 
 	publicAPI.POST(CreateInstallKeyURL, gateway.Handler(handler.CreateInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyCreate))
 	publicAPI.GET(ListInstallKeysURL, gateway.Handler(handler.ListInstallKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyList))
@@ -243,7 +244,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
 
 	publicAPI.POST(WebReauthURL, gateway.Handler(handler.WebReauthVerify))
-
 
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))

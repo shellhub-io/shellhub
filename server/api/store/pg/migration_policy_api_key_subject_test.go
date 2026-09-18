@@ -64,10 +64,10 @@ func TestAccessPolicyAPIKeySubjectMigration(t *testing.T) {
 
 	require.NoError(t, policy("reaches-the-automation", "api-key", nil, &keyID))
 
-	assert.Error(t, policy("names-nothing", "api-key", nil, nil),
+	require.Error(t, policy("names-nothing", "api-key", nil, nil),
 		"an api-key subject with no key is refused")
 	owner := ownerID
-	assert.Error(t, policy("names-both", "api-key", &owner, &keyID),
+	require.Error(t, policy("names-both", "api-key", &owner, &keyID),
 		"a subject cannot be a person and a key at once")
 
 	execSQL(t, ctx, db, "DELETE FROM api_keys WHERE name = 'ci'")

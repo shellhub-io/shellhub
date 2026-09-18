@@ -12,6 +12,7 @@ const sdk = vi.hoisted(() =>
   mockSdkGen({
     apiKeyList: vi.fn(),
     apiKeyDelete: vi.fn(),
+    listApiKeySshIdentities: vi.fn(),
   }),
 );
 
@@ -45,6 +46,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   sdk.apiKeyList.mockResolvedValue(paginatedResponse([mockApiKey()]));
   sdk.apiKeyDelete.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.listApiKeySshIdentities.mockResolvedValue(mockSdkResponse([]));
   useAuthStore.setState({ role: "owner" });
 });
 
@@ -232,5 +234,38 @@ describe("ApiKeysTab — URL sync with prefix 'key'", () => {
         }),
       );
     });
+  });
+
+  it("says what a key can connect with, and what it cannot", async () => {
+    sdk.apiKeyList.mockResolvedValue(
+      paginatedResponse([
+        mockApiKey({ id: "key-with", name: "ci-deploy" }),
+        mockApiKey({ id: "key-without", name: "reporting" }),
+      ]),
+    );
+    sdk.listApiKeySshIdentities.mockImplementation(
+      ({ path }: { path: { name: string } }) =>
+        Promise.resolve(
+          mockSdkResponse(
+            path.name === "ci-deploy"
+              ? [{ id: "i1", name: "deploy", principal_id: "key-with" }]
+              : [],
+          ),
+        ),
+    );
+
+    renderTab();
+
+    await waitFor(() =>
+      expect(screen.getByRole("row", { name: /ci-deploy/ })).toHaveTextContent(
+        /1 key/,
+      ),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("row", { name: /reporting/ })).toHaveTextContent(
+        /Not set up/,
+      ),
+    );
   });
 });
