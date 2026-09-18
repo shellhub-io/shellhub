@@ -39,10 +39,12 @@ type Data struct {
 	IPAddress string
 	// Web reports whether the session originated from the web terminal.
 	Web bool
-	// UserID is the ShellHub account bound to this session: resolved from the
-	// presented key in identity mode, or set by the enrollment/step-up approval.
-	// Empty in legacy mode.
-	UserID string
+	// UserID is the principal bound to this session: resolved from the presented key
+	// in identity mode, or set by the enrollment/step-up approval. Empty in legacy
+	// mode. PrincipalKind says which table it names, because an automation is an API
+	// key rather than an account.
+	UserID        string
+	PrincipalKind models.PrincipalKind
 	// ApprovalCode is the JIT code minted in identity mode; the gateway polls
 	// its decision for enrollment or step-up. Empty otherwise. The enrollment URL
 	// derived from it is sent as a mid-handshake banner only once the presented
@@ -463,7 +465,8 @@ func (s *Session) register(ctx context.Context) error {
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
-		UserID:    s.UserID,
+		UserID:    s.userIDForSession(),
+		APIKeyID:  s.apiKeyIDForSession(),
 		IPAddress: s.IPAddress,
 		Type:      "none",
 		Term:      "none",
@@ -1009,4 +1012,20 @@ func (s *Session) Finish() error {
 	})
 
 	return nil
+}
+
+func (s *Session) userIDForSession() string {
+	if s.PrincipalKind == models.PrincipalAPIKey {
+		return ""
+	}
+
+	return s.UserID
+}
+
+func (s *Session) apiKeyIDForSession() string {
+	if s.PrincipalKind == models.PrincipalAPIKey {
+		return s.UserID
+	}
+
+	return ""
 }

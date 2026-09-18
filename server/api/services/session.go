@@ -70,6 +70,7 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		DeviceUID: models.UID(session.DeviceUID),
 		Username:  session.Username,
 		UserID:    session.UserID,
+		APIKeyID:  session.APIKeyID,
 		IPAddress: session.IPAddress,
 		Type:      session.Type,
 		Term:      session.Term,

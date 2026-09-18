@@ -30,7 +30,12 @@ type AccessPolicyService interface {
 	// grant what the role withholds. Service accounts are exempt by user type:
 	// [authorizer.RoleService] holds no permissions by design, and their access comes
 	// entirely from the policies.
-	Authorize(ctx context.Context, tenantID, userID, deviceUID, login, sourceIP string) (*models.Decision, error)
+	//
+	// An API key principal holds no membership and no role at all, so it goes straight
+	// to the policies. It is refused with [models.ReasonKeyExpired] when the key itself
+	// is no longer valid, and never has re-authentication demanded of it: there is no
+	// browser to run one in.
+	Authorize(ctx context.Context, tenantID string, principal models.Principal, deviceUID, login, sourceIP string) (*models.Decision, error)
 
 	// ListAccessPolicies returns every access policy in the namespace.
 	ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error)
@@ -54,7 +59,7 @@ type AccessPolicyService interface {
 	DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error
 }
 
-func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, login, sourceIP string) (*models.Decision, error) {
+func (s *service) Authorize(ctx context.Context, tenantID string, principal models.Principal, deviceUID, login, sourceIP string) (*models.Decision, error) {
 	sc, err := BoundTo(tenantID)
 	if err != nil {
 		return nil, err
@@ -70,16 +75,29 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	member, ok := namespace.FindMember(userID)
-	if !ok {
+	var role authorizer.Role
+
+	switch principal.Kind {
+	case models.PrincipalAPIKey:
+		apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyUUIDResolver, principal.ID)
+		if err != nil || !apiKey.IsValid() {
+			return &models.Decision{Allowed: false, Reason: models.ReasonKeyExpired}, nil
+		}
+	case models.PrincipalUser:
+		member, ok := namespace.FindMember(principal.ID)
+		if !ok {
+			return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
+		}
+
+		if !member.IsService() && !member.Role.HasPermission(authorizer.DeviceConnect) {
+			return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
+		}
+
+		principal.Kind = principalKindOfMember(*member)
+		role = member.Role
+	default:
 		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
 	}
-
-	if !member.IsService() && !member.Role.HasPermission(authorizer.DeviceConnect) {
-		return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
-	}
-
-	principal := models.Principal{Kind: principalKindOfMember(*member), ID: userID}
 
 	policies, _, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
@@ -91,7 +109,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, principal, member.Role, login, sourceIP)
+		matched, err := policyApplies(policy, dev, principal, role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("deny access policy failed to evaluate; denying")
@@ -114,7 +132,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, principal, member.Role, login, sourceIP)
+		matched, err := policyApplies(policy, dev, principal, role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("access policy failed to evaluate; treating as non-match")
@@ -143,7 +161,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: login}, nil
 	}
 
-	if member.IsService() {
+	if principal.Kind != models.PrincipalUser {
 		requireReauth = false
 		reauthPeriod = nil
 	}
@@ -270,9 +288,6 @@ func apiKeyExists(apiKeys []models.APIKey, id string) bool {
 	return false
 }
 
-// subjectMatches reports whether a policy's subject names this principal. Taking the principal
-// rather than a bare id is what keeps an API key's id from being compared against a user
-// subject: the kind decides which subjects can match at all, and only a person is a member.
 func subjectMatches(subject models.PolicySubject, principal models.Principal, role authorizer.Role) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
@@ -280,7 +295,7 @@ func subjectMatches(subject models.PolicySubject, principal models.Principal, ro
 	case models.PolicySubjectRole:
 		return principal.Kind == models.PrincipalUser && subject.Value == role.String()
 	case models.PolicySubjectUser:
-		return principal.Kind != models.PrincipalAPIKey && subject.Value == principal.ID
+		return principal.Kind == models.PrincipalUser && subject.Value == principal.ID
 	case models.PolicySubjectAPIKey:
 		return principal.Kind == models.PrincipalAPIKey && subject.Value == principal.ID
 	default:
@@ -354,9 +369,6 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 	return policies, nil
 }
 
-// subjectMatchesAnyPrincipal reports whether anything in the namespace the subject could name
-// exists. Leaving the API keys out would render a live SSH-granting policy as matching nobody,
-// which is the defect this flag was added to fix, returning in a new shape.
 func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {
 	for _, member := range namespace.Members {
 		principal := models.Principal{Kind: principalKindOfMember(member), ID: member.ID}

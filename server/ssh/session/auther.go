@@ -190,7 +190,12 @@ func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
 }
 
 func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
-	dec, err := s.service.Authorize(ctx, s.Namespace.TenantID, s.UserID, s.Device.UID, s.Target.Username, s.IPAddress)
+	principal := models.Principal{Kind: s.PrincipalKind, ID: s.UserID}
+	if principal.Kind == "" {
+		principal.Kind = models.PrincipalUser
+	}
+
+	dec, err := s.service.Authorize(ctx, s.Namespace.TenantID, principal, s.Device.UID, s.Target.Username, s.IPAddress)
 	if err == nil && dec != nil && dec.Allowed {
 		return dec, nil
 	}
@@ -363,6 +368,7 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 		}
 
 		s.UserID = identity.PrincipalID
+		s.PrincipalKind = identity.PrincipalType
 		s.LastReauthAt = identity.LastReauthAt
 		s.SingleUse = identity.SingleUse
 

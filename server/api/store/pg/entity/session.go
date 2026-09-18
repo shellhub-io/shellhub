@@ -21,6 +21,7 @@ type Session struct {
 	DeviceID      string    `bun:"device_id"`
 	Username      string    `bun:"username"`
 	UserID        string    `bun:"user_id,nullzero"`
+	APIKeyID      string    `bun:"api_key_id,nullzero"`
 	IPAddress     string    `bun:"ip_address"`
 	StartedAt     time.Time `bun:"started_at"`
 	SeenAt        time.Time `bun:"seen_at"`
@@ -58,6 +59,7 @@ func SessionFromModel(model *models.Session) *Session {
 		DeviceID:      string(model.DeviceUID),
 		Username:      model.Username,
 		UserID:        model.UserID,
+		APIKeyID:      model.APIKeyID,
 		IPAddress:     model.IPAddress,
 		StartedAt:     model.StartedAt,
 		SeenAt:        model.LastSeen,
@@ -83,6 +85,7 @@ func SessionToModel(entity *Session) *models.Session {
 		DeviceUID:     models.UID(strings.TrimSpace(entity.DeviceID)),
 		Username:      entity.Username,
 		UserID:        entity.UserID,
+		APIKeyID:      entity.APIKeyID,
 		IPAddress:     entity.IPAddress,
 		StartedAt:     entity.StartedAt,
 		LastSeen:      entity.SeenAt,
