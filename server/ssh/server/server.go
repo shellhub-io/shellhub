@@ -63,7 +63,11 @@ var keepAlive = net.KeepAliveConfig{
 	Count:    9,
 }
 
-const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
+// handshakeBudget bounds the whole pre-auth phase, which now includes a person
+// reading a prompt, walking to the console and typing a code back. It is a wall
+// clock deadline set at accept and never extended, so it has to cover the slow
+// human as well as the handshake itself.
+const handshakeBudget = 3 * time.Minute
 
 // Server is the public SSH endpoint. Clients connect to it; it reaches their devices through
 // the reverse tunnels held by dialer.
@@ -157,11 +161,26 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	return &gossh.ServerConfig{ //nolint:exhaustruct
 		NoClientAuth: true,
 		VerifiedPublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey, _ *gossh.Permissions, _ string) (*gossh.Permissions, error) {
-			if ok := auth.PublicKeyVerified(ctx, key); !ok {
+			err := auth.PublicKeyVerified(ctx, key)
+
+			switch {
+			case err == nil:
+				return ctx.Permissions().Permissions, nil
+			case errors.Is(err, session.ErrApprovalRequired):
+				// The key is good but a person has to decide. Asking over
+				// keyboard-interactive puts the wait in the client's hands: one
+				// that cannot prompt anybody fails here and now instead of
+				// holding the connection open. Permissions must be nil beside a
+				// partial success, and the error must not be wrapped, because
+				// x/crypto type-asserts it rather than unwrapping.
+				return nil, &gossh.PartialSuccessError{
+					Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
+						KeyboardInteractiveCallback: auth.ApprovalChallenge(ctx, auth.PublicKeyOfferCallback(ctx)),
+					},
+				}
+			default:
 				return nil, errPermissionDenied
 			}
-
-			return ctx.Permissions().Permissions, nil
 		},
 		PreAuthConnCallback: func(conn gossh.ServerPreAuthConn) {
 			session.StorePreAuthConn(ctx, conn)

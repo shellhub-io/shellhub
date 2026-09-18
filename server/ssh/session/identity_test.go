@@ -154,7 +154,7 @@ func TestResolveKeyAuth(t *testing.T) {
 		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
 	})
 
-	t.Run("the approval is parked once the key is proven", func(t *testing.T) {
+	t.Run("the approval is parked once the key is proven, and nothing waits on it", func(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
@@ -168,18 +168,43 @@ func TestResolveKeyAuth(t *testing.T) {
 			})).
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
-		serviceMock.EXPECT().
-			GetSSHApprovalStatus(mock.Anything, mock.Anything).
-			Return(&models.SSHApprovalStatus{State: models.SSHApprovalRejected}, nil). //nolint:exhaustruct
-			Once()
 
 		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
 
-		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
+		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRequired,
+			"evaluating parks the login and hands the wait to the client, it does not poll")
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
+	})
+
+	t.Run("a second unenrolled key on the same connection is not prompted again", func(t *testing.T) {
+		otherKey := newTestSSHKey(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", mock.Anything).
+			Return(nil, false, nil).
+			Twice()
+		serviceMock.EXPECT().
+			CreateSSHApproval(mock.Anything, mock.Anything).
+			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		ctx := newStubContext()
+
+		first, err := sess.ResolveKeyAuth(ctx, pubKey)
+		require.NoError(t, err)
+		require.ErrorIs(t, first.Evaluate(sess), ErrApprovalRequired)
+
+		second, err := sess.ResolveKeyAuth(ctx, otherKey)
+		require.NoError(t, err)
+
+		require.ErrorIs(t, second.Evaluate(sess), ErrChallengeAlreadyIssued,
+			"an agent full of unenrolled keys must cost one approval, not one per key")
+		assert.Equal(t, "AB12CD34", sess.ApprovalCode, "the parked approval stays the first one")
 	})
 
 	t.Run("an unenrolled key does not inherit the identity of a key offered before it", func(t *testing.T) {

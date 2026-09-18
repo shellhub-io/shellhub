@@ -5461,8 +5461,8 @@ func (_c *MockStore_SSHApprovalCreate_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // SSHApprovalDecide provides a mock function for the type MockStore
-func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error) {
-	ret := _mock.Called(ctx, code, state, userID, now)
+func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time) (bool, error) {
+	ret := _mock.Called(ctx, code, state, userID, confirmationCode, now)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SSHApprovalDecide")
@@ -5470,16 +5470,16 @@ func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, stat
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, time.Time) (bool, error)); ok {
-		return returnFunc(ctx, code, state, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) (bool, error)); ok {
+		return returnFunc(ctx, code, state, userID, confirmationCode, now)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, time.Time) bool); ok {
-		r0 = returnFunc(ctx, code, state, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) bool); ok {
+		r0 = returnFunc(ctx, code, state, userID, confirmationCode, now)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.SSHApprovalState, string, time.Time) error); ok {
-		r1 = returnFunc(ctx, code, state, userID, now)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) error); ok {
+		r1 = returnFunc(ctx, code, state, userID, confirmationCode, now)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -5496,12 +5496,13 @@ type MockStore_SSHApprovalDecide_Call struct {
 //   - code string
 //   - state models.SSHApprovalState
 //   - userID string
+//   - confirmationCode string
 //   - now time.Time
-func (_e *MockStore_Expecter) SSHApprovalDecide(ctx any, code any, state any, userID any, now any) *MockStore_SSHApprovalDecide_Call {
-	return &MockStore_SSHApprovalDecide_Call{Call: _e.mock.On("SSHApprovalDecide", ctx, code, state, userID, now)}
+func (_e *MockStore_Expecter) SSHApprovalDecide(ctx any, code any, state any, userID any, confirmationCode any, now any) *MockStore_SSHApprovalDecide_Call {
+	return &MockStore_SSHApprovalDecide_Call{Call: _e.mock.On("SSHApprovalDecide", ctx, code, state, userID, confirmationCode, now)}
 }
 
-func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time)) *MockStore_SSHApprovalDecide_Call {
+func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time)) *MockStore_SSHApprovalDecide_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -5519,9 +5520,13 @@ func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, co
 		if args[3] != nil {
 			arg3 = args[3].(string)
 		}
-		var arg4 time.Time
+		var arg4 string
 		if args[4] != nil {
-			arg4 = args[4].(time.Time)
+			arg4 = args[4].(string)
+		}
+		var arg5 time.Time
+		if args[5] != nil {
+			arg5 = args[5].(time.Time)
 		}
 		run(
 			arg0,
@@ -5529,6 +5534,7 @@ func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, co
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -5539,7 +5545,7 @@ func (_c *MockStore_SSHApprovalDecide_Call) Return(b bool, err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_SSHApprovalDecide_Call) RunAndReturn(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error)) *MockStore_SSHApprovalDecide_Call {
+func (_c *MockStore_SSHApprovalDecide_Call) RunAndReturn(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time) (bool, error)) *MockStore_SSHApprovalDecide_Call {
 	_c.Call.Return(run)
 	return _c
 }

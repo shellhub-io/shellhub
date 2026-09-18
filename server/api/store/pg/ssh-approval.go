@@ -36,13 +36,14 @@ func (pg *Pg) SSHApprovalGet(ctx context.Context, code string, now time.Time) (*
 }
 
 // SSHApprovalDecide implements [store.SSHApprovalStore].
-func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, now time.Time) (bool, error) {
+func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID, confirmationCode string, now time.Time) (bool, error) {
 	db := pg.GetConnection(ctx)
 
 	res, err := db.NewUpdate().
 		Model((*entity.SSHApproval)(nil)).
 		Set("state = ?", string(state)).
 		Set("decided_by = ?", userID).
+		Set("confirmation_code = ?", confirmationCode).
 		Where("code = ?", code).
 		Where("state = ?", string(models.SSHApprovalPending)).
 		Where("expires_at > ?", now).

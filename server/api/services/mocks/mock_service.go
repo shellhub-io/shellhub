@@ -956,20 +956,29 @@ func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx
 }
 
 // ConfirmSSHApproval provides a mock function for the type MockService
-func (_mock *MockService) ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) error {
+func (_mock *MockService) ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) (string, error) {
 	ret := _mock.Called(ctx, userID, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ConfirmSSHApproval")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *requests.SSHApprovalConfirm) error); ok {
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *requests.SSHApprovalConfirm) (string, error)); ok {
+		return returnFunc(ctx, userID, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *requests.SSHApprovalConfirm) string); ok {
 		r0 = returnFunc(ctx, userID, req)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *requests.SSHApprovalConfirm) error); ok {
+		r1 = returnFunc(ctx, userID, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockService_ConfirmSSHApproval_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConfirmSSHApproval'
@@ -1008,12 +1017,12 @@ func (_c *MockService_ConfirmSSHApproval_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockService_ConfirmSSHApproval_Call) Return(err error) *MockService_ConfirmSSHApproval_Call {
-	_c.Call.Return(err)
+func (_c *MockService_ConfirmSSHApproval_Call) Return(s string, err error) *MockService_ConfirmSSHApproval_Call {
+	_c.Call.Return(s, err)
 	return _c
 }
 
-func (_c *MockService_ConfirmSSHApproval_Call) RunAndReturn(run func(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) error) *MockService_ConfirmSSHApproval_Call {
+func (_c *MockService_ConfirmSSHApproval_Call) RunAndReturn(run func(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) (string, error)) *MockService_ConfirmSSHApproval_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7585,20 +7594,29 @@ func (_c *MockService_UserMembershipInvitationList_Call) RunAndReturn(run func(c
 }
 
 // WebReauthVerify provides a mock function for the type MockService
-func (_mock *MockService) WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) error {
+func (_mock *MockService) WebReauthVerify(ctx context.Context, req *requests.WebReauthVerify) (string, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for WebReauthVerify")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebReauthVerify) error); ok {
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebReauthVerify) (string, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebReauthVerify) string); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.WebReauthVerify) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockService_WebReauthVerify_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebReauthVerify'
@@ -7631,12 +7649,12 @@ func (_c *MockService_WebReauthVerify_Call) Run(run func(ctx context.Context, re
 	return _c
 }
 
-func (_c *MockService_WebReauthVerify_Call) Return(err error) *MockService_WebReauthVerify_Call {
-	_c.Call.Return(err)
+func (_c *MockService_WebReauthVerify_Call) Return(s string, err error) *MockService_WebReauthVerify_Call {
+	_c.Call.Return(s, err)
 	return _c
 }
 
-func (_c *MockService_WebReauthVerify_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebReauthVerify) error) *MockService_WebReauthVerify_Call {
+func (_c *MockService_WebReauthVerify_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebReauthVerify) (string, error)) *MockService_WebReauthVerify_Call {
 	_c.Call.Return(run)
 	return _c
 }

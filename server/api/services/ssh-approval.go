@@ -15,11 +15,16 @@ import (
 
 const sshApprovalTTL = 90 * time.Second
 
+// SSHApprovalTTL is [sshApprovalTTL] for callers that have to size a deadline
+// around it — the SSH server's handshake budget, which must outlast an approval
+// a person is still allowed to confirm.
+const SSHApprovalTTL = sshApprovalTTL
+
 // SSHApprovalService mediates connections that need a person to approve them: the gateway
-// parks the request, shows a code in the banner, and waits for someone to act on it.
+// parks the request behind a prompt, and the console confirms it with a code the person types back.
 type SSHApprovalService interface {
 	// CreateSSHApproval stores a pending approval and returns a short-lived code
-	// the SSH gateway embeds in the terminal banner. The code itself is the
+	// the SSH gateway shows on its approval prompt. The code itself is the
 	// secret; it expires with a short TTL.
 	CreateSSHApproval(ctx context.Context, req *requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error)
 
@@ -35,7 +40,10 @@ type SSHApprovalService interface {
 	// ConfirmSSHApproval confirms a pending approval and binds the approving user
 	// to it. The user must be a member of the target's namespace with the session
 	// approve permission.
-	ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) error
+	//
+	// It returns the confirmation code to show the approver, which they carry to
+	// the terminal the login is waiting at.
+	ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) (string, error)
 
 	// RejectSSHApproval rejects a pending approval. Same authorization as
 	// confirm.
@@ -75,39 +83,19 @@ func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprov
 	}, nil
 }
 
-const statusWaitTimeout = 20 * time.Second
-
-const statusWaitInterval = 200 * time.Millisecond
-
 func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApprovalStatus) (*models.SSHApprovalStatus, error) {
 	code := pairingcode.Normalize(req.Code)
 
-	budget := time.NewTimer(statusWaitTimeout)
-	defer budget.Stop()
-
-	for {
-		approval, err := s.store.SSHApprovalGet(ctx, code, clock.Now())
-		if err != nil {
-			return nil, NewErrSSHApprovalCodeNotFound(code, err)
-		}
-
-		status := &models.SSHApprovalStatus{
-			State:  approval.State,
-			UserID: approval.DecidedBy,
-		}
-
-		if !req.Wait || approval.State != models.SSHApprovalPending {
-			return status, nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return status, nil
-		case <-budget.C:
-			return status, nil
-		case <-time.After(statusWaitInterval):
-		}
+	approval, err := s.store.SSHApprovalGet(ctx, code, clock.Now())
+	if err != nil {
+		return nil, NewErrSSHApprovalCodeNotFound(code, err)
 	}
+
+	return &models.SSHApprovalStatus{
+		State:            approval.State,
+		UserID:           approval.DecidedBy,
+		ConfirmationCode: approval.ConfirmationCode,
+	}, nil
 }
 
 func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*models.SSHApprovalRequest, error) {
@@ -145,15 +133,24 @@ func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*mod
 	}, nil
 }
 
-func (s *service) ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) error {
-	return s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalConfirmed, req.ExpiresIn)
+func (s *service) ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) (string, error) {
+	confirmationCode, err := pairingcode.New(pairingcode.DeviceCodeLength)
+	if err != nil {
+		return "", err
+	}
+
+	if err := s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalConfirmed, confirmationCode, req.ExpiresIn); err != nil {
+		return "", err
+	}
+
+	return confirmationCode, nil
 }
 
 func (s *service) RejectSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalReject) error {
-	return s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalRejected, nil)
+	return s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalRejected, "", nil)
 }
 
-func (s *service) decideSSHApproval(ctx context.Context, userID, code string, decision models.SSHApprovalState, expiresIn *int) error {
+func (s *service) decideSSHApproval(ctx context.Context, userID, code string, decision models.SSHApprovalState, confirmationCode string, expiresIn *int) error {
 	code = pairingcode.Normalize(code)
 	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
 		return NewErrSSHApprovalCodeNotFound(code, nil)
@@ -191,7 +188,7 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 	}
 
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		claimed, err := s.store.SSHApprovalDecide(ctx, code, decision, userID, now)
+		claimed, err := s.store.SSHApprovalDecide(ctx, code, decision, userID, confirmationCode, now)
 		if err != nil {
 			return err
 		}

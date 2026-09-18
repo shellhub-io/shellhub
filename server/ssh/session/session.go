@@ -45,10 +45,10 @@ type Data struct {
 	// key rather than an account.
 	UserID        string
 	PrincipalKind models.PrincipalKind
-	// ApprovalCode is the JIT code minted in identity mode; the gateway polls
-	// its decision for enrollment or step-up. Empty otherwise. The enrollment URL
-	// derived from it is sent as a mid-handshake banner only once the presented
-	// key turns out to be unenrolled, so an enrolled key never sees it.
+	// ApprovalCode is the JIT code minted in identity mode, for enrollment or
+	// step-up. Empty otherwise. It reaches the person on the approval prompt,
+	// inside the console URL they open, and only once the presented key turns
+	// out to be unenrolled, so an enrolled key never sees it.
 	ApprovalCode string
 	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
 	// identity mode; it is the identity lookup key.
@@ -155,7 +155,21 @@ type Session struct {
 
 	seats seats
 
+	// challenge is the approval this connection is parked on. It is set at most
+	// once per connection, so a client offering several unenrolled keys is asked
+	// about one of them and refused the rest without being prompted again.
+	challenge *challenge
+
 	Data
+}
+
+// challenge carries an approval from the stage that opened it to the stage that
+// answers it. The Auth is held rather than resolved again because the answering
+// stage has no key to resolve from.
+type challenge struct {
+	auth     Auth
+	kind     models.SSHApprovalKind
+	attempts int
 }
 
 // Seat represent a passenger in a session.
@@ -720,6 +734,98 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 	return nil
 }
 
+func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSHApprovalKind, reauthPeriod *int) error {
+	if s.challenge != nil {
+		return ErrChallengeAlreadyIssued
+	}
+
+	if err := s.openApproval(ctx, kind, reauthPeriod); err != nil {
+		return err
+	}
+
+	s.challenge = &challenge{auth: auth, kind: kind, attempts: 0}
+
+	return nil
+}
+
+// Confirm checks the answer the client gave to its challenge and reports who
+// approved the login.
+//
+// The answer is not the authorization. The approval a person made in the console
+// is, and the confirmation code only proves they reached that screen: a client
+// that cannot prompt anyone answers with an empty string, which fails here the
+// same way a wrong code does, and immediately rather than after a wait.
+func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
+	if s.challenge == nil {
+		return "", ErrAccessDenied
+	}
+
+	s.challenge.attempts++
+
+	approver, err := s.approvalDecision(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{Code: s.ApprovalCode, Wait: false})
+	if err != nil {
+		return "", ErrApprovalExpired
+	}
+
+	if status.ConfirmationCode == "" || pairingcode.Normalize(answer) != status.ConfirmationCode {
+		return "", ErrConfirmationMismatch
+	}
+
+	return approver, nil
+}
+
+// EnrollInstruction is what a person sees when the key they presented is not
+// enrolled yet.
+func (s *Session) EnrollInstruction() string {
+	return strings.Join([]string{
+		"",
+		"  ShellHub doesn't know this SSH key yet.",
+		"",
+		"  Open the link to add it to your identities:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/new/"+s.ApprovalCode),
+		"",
+		"  Security code:  " + groupCode(s.ApprovalCode),
+		"  Key:            " + s.Fingerprint,
+		"",
+		"  The console gives you a confirmation code once you add it.",
+		"",
+	}, "\r\n")
+}
+
+// ReauthInstruction is what a person sees when a policy asks them to
+// re-authenticate before the login continues.
+func (s *Session) ReauthInstruction() string {
+	return strings.Join([]string{
+		"",
+		"  An access policy asks you to re-authenticate.",
+		"",
+		"  Open the link to do it in the console:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/confirm/"+s.ApprovalCode),
+		"",
+		"  Security code:  " + groupCode(s.ApprovalCode),
+		"",
+		"  The console gives you a confirmation code once you do.",
+		"",
+	}, "\r\n")
+}
+
+// Challenged reports whether this connection is parked on an approval, and
+// returns what the client has to be told about.
+func (s *Session) Challenged() (models.SSHApprovalKind, bool) {
+	if s.challenge == nil {
+		return "", false
+	}
+
+	return s.challenge.kind, true
+}
+
 // IsIdentityMode reports whether the session's namespace uses the identity-based
 // SSH access mode, where the presented key is the identity.
 func (s *Session) IsIdentityMode() bool {
@@ -801,40 +907,74 @@ func buildReauthBanner(domain string, autoSSL bool, code string) string {
 // returned if any occurs.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
+
 	switch state {
-	case StateEvaluated:
+	case StateEvaluated, StateChallenged:
 		if err := auth.Evaluate(sess); err != nil {
+			if errors.Is(err, ErrApprovalRequired) {
+				advance(ctx, sess, StateChallenged)
+			}
+
 			return err
 		}
 
-		if err := sess.register(ctx); err != nil {
-			return err
-		}
-
-		advance(ctx, sess, StateRegistered)
-
-		fallthrough
+		return sess.finish(ctx, auth)
 	case StateRegistered:
-		if err := sess.connect(ctx, auth.Auth()); err != nil {
-			return err
-		}
-
-		if sess.SingleUse {
-			won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
-			if err != nil {
-				return err
-			}
-
-			if !won {
-				return ErrAccessDenied
-			}
-		}
-
-		if err := sess.authenticate(ctx); err != nil {
-			return err
-		}
+		return sess.join(ctx, auth)
 	default:
 		return errors.New("invalid session state")
+	}
+}
+
+// Resume finishes a login that Auth parked on an approval, once the client has
+// answered its challenge and the approval came back confirmed by approver.
+func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
+	sess, state := ObtainSession(ctx)
+	if state != StateChallenged || sess.challenge == nil {
+		return errors.New("invalid session state")
+	}
+
+	auth := sess.challenge.auth
+
+	if err := auth.Approved(sess, approver); err != nil {
+		return err
+	}
+
+	return sess.finish(ctx, auth)
+}
+
+func (s *Session) finish(ctx gliderssh.Context, auth Auth) error {
+	sess, _ := ObtainSession(ctx)
+
+	if err := sess.register(ctx); err != nil {
+		return err
+	}
+
+	advance(ctx, sess, StateRegistered)
+
+	return sess.join(ctx, auth)
+}
+
+func (s *Session) join(ctx gliderssh.Context, auth Auth) error {
+	sess, _ := ObtainSession(ctx)
+
+	if err := sess.connect(ctx, auth.Auth()); err != nil {
+		return err
+	}
+
+	if sess.SingleUse {
+		won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
+		if err != nil {
+			return err
+		}
+
+		if !won {
+			return ErrAccessDenied
+		}
+	}
+
+	if err := sess.authenticate(ctx); err != nil {
+		return err
 	}
 
 	advance(ctx, sess, StateFinished)

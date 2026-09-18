@@ -68,11 +68,11 @@ func (s *Suite) TestSSHApprovalDecideIsClaimedOnce(t *testing.T) {
 
 	s.newPendingApproval(t, tenantID, "BBBB2222", now.Add(time.Minute))
 
-	claimed, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalConfirmed, userID, now)
+	claimed, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalConfirmed, userID, "CONF1234", now)
 	require.NoError(t, err)
 	assert.True(t, claimed)
 
-	claimedAgain, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalRejected, userID, now)
+	claimedAgain, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalRejected, userID, "", now)
 	require.NoError(t, err)
 	assert.False(t, claimedAgain, "a second submit must not overwrite the decision")
 
@@ -80,6 +80,10 @@ func (s *Suite) TestSSHApprovalDecideIsClaimedOnce(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, models.SSHApprovalConfirmed, approval.State)
 	assert.Equal(t, userID, approval.DecidedBy)
+	assert.Equal(t, "CONF1234", approval.ConfirmationCode,
+		"the code the person types at their terminal has to survive the round trip, and this is the only seam with a real database")
+	assert.NotEqual(t, approval.DecidedBy, approval.ConfirmationCode,
+		"decided_by and confirmation_code are adjacent same-typed arguments, so a transposition has to fail here")
 }
 
 // TestSSHApprovalCleanupRemovesOnlyTheExpired verifies the cron prunes by expiry alone.
