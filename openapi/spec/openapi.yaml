@@ -218,6 +218,8 @@ paths:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:
     $ref: paths/api@namespaces@api-key@{key}.yaml
+  /api/namespaces/api-key/{name}/ssh-identities:
+    $ref: paths/api@namespaces@api-key@{name}@ssh-identities.yaml
   /api/namespaces/install-key:
     $ref: paths/api@namespaces@install-key.yaml
   /api/namespaces/install-key/{key}:

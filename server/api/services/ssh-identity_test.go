@@ -248,6 +248,92 @@ func TestReenrollSSHIdentity(t *testing.T) {
 	}
 }
 
+func TestCreateAPIKeySSHIdentity(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		keyName  = "ci"
+		keyID    = "c629572a-b643-4301-90fe-4572b00d007e"
+		digest   = "1111111111111111111111111111111111111111111111111111111111111111"
+	)
+
+	authorized, fingerprint := newTestPublicKey(t)
+
+	apiKey := &models.APIKey{ID: keyID, Digest: digest, Name: keyName, TenantID: tenantID}
+
+	t.Run("stores the key's id as the owner, not its name", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(apiKey, nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+			Return(nil, store.ErrNoDocuments).Once()
+		storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
+			return identity.PrincipalID == keyID &&
+				identity.PrincipalType == models.PrincipalAPIKey &&
+				identity.SingleUse
+		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: keyID, PrincipalType: models.PrincipalAPIKey}, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		identity, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
+			TenantID: tenantID, KeyName: keyName, Name: "deploy", Data: authorized, SingleUse: true,
+		})
+		require.NoError(t, err)
+		require.Equal(t, keyID, identity.PrincipalID)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("computes the expiry the request asked for", func(t *testing.T) {
+		clockMock.On("Now").Return(now).Twice()
+
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
+			Return(apiKey, nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+			Return(nil, store.ErrNoDocuments).Once()
+		storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
+			return identity.ExpiresAt != nil && identity.ExpiresAt.Equal(now.AddDate(0, 0, 7))
+		})).Return("id1", nil).Once()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
+			Return(&models.SSHIdentity{ID: "id1"}, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		days := 7
+		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
+			TenantID: tenantID, KeyName: keyName, Data: authorized, ExpiresIn: &days,
+		})
+		require.NoError(t, err)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("refuses a key no namespace carries", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "ghost").
+			Return(nil, store.ErrNoDocuments).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
+			TenantID: tenantID, KeyName: "ghost", Data: authorized,
+		})
+		require.ErrorContains(t, err, "APIKey not found")
+
+		storeMock.AssertExpectations(t)
+	})
+}
+
 func TestCreateSSHIdentity(t *testing.T) {
 	ctx := context.TODO()
 
