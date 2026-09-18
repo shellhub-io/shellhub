@@ -1,7 +1,6 @@
 -- An access policy can now name an API key, which is how an automation is told where it may
--- connect (docs/adr/0001-automation-principal.md). It is a typed column beside the other two
--- rather than a value in a shared one, for the reason 028 gives: a value nothing constrains
--- stores a rule that can never match anyone.
+-- connect. It is a typed column beside the other two rather than a value in a shared one, for
+-- the reason 028 gives: a value nothing constrains stores a rule that can never match anyone.
 --
 -- The cascade mirrors what 028 did for the member subject. Revoking the key removes the policy
 -- naming it, instead of leaving a rule the console still renders as in force.

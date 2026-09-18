@@ -1,6 +1,5 @@
 -- An SSH identity is a credential, and until now the only thing that could hold one was a person.
--- An automation is an API key, so a key must be able to hold one too
--- (docs/adr/0001-automation-principal.md).
+-- An automation is an API key, so a key must be able to hold one too.
 --
 -- Two nullable columns rather than an owner_type and an owner_id, because a foreign key needs a
 -- column whose every value has one referent table. Keeping real foreign keys is what buys the

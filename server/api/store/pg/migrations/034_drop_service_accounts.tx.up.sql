@@ -1,7 +1,6 @@
 -- Service accounts are gone: the automation is the API key, and an SSH identity is a credential
--- it owns (docs/adr/0001-automation-principal.md). The species of the principal used to be
--- written twice, in users.type and again in memberships.role, and that duplication produced
--- four defects in two days.
+-- it owns. The species of the principal used to be written twice, in users.type and again in
+-- memberships.role, and that duplication produced four defects in two days.
 --
 -- Destructive, knowingly. No stable release ever had service accounts, but v0.27.0-rc.3 through
 -- rc.11 did, so a release candidate or a development database holds real rows. Each one loses
