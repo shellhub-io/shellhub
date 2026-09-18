@@ -117,8 +117,9 @@ const (
 	// the device, leaving default-deny to stand. Carries Login.
 	ReasonNoGrant DenialReason = "no_grant"
 	// ReasonRoleCannotConnect refuses because the member's namespace role does not hold
-	// authorizer.DeviceConnect, which no policy can grant. Service accounts never reach
-	// it: they are exempted by user type before the role is read.
+	// authorizer.DeviceConnect, which no policy can grant. An API key never reaches it:
+	// it holds no membership, so Authorize skips the role check and goes straight to
+	// the policies.
 	ReasonRoleCannotConnect DenialReason = "role_cannot_connect"
 	// ReasonKeyExpired refuses because the API key the connection acts as has expired.
 	// Deleting a key removes the identities it enrolled; expiry does not, so the key's

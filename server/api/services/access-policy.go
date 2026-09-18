@@ -30,8 +30,9 @@ type AccessPolicyService interface {
 	// [models.ReasonRoleCannotConnect] before any policy is read, since no policy could
 	// grant what the role withholds.
 	//
-	// An API key principal holds no membership and no role at all, so it goes straight
-	// to the policies. It is refused with [models.ReasonKeyExpired] when the key itself
+	// An API key principal holds no membership, so there is no namespace role to read
+	// and it goes straight to the policies. The role the key carries gates its HTTP
+	// routes, not SSH. It is refused with [models.ReasonKeyExpired] when the key itself
 	// is no longer valid, and never has re-authentication demanded of it: there is no
 	// browser to run one in.
 	Authorize(ctx context.Context, tenantID string, principal models.Principal, deviceUID, login, sourceIP string) (*models.Decision, error)

@@ -60,9 +60,9 @@ type Data struct {
 	// key resolution and compared against a policy's reauth_period to decide
 	// whether a fresh re-auth is still needed. Nil when it never re-authed.
 	LastReauthAt *time.Time
-	// SingleUse marks a single-use identity (service accounts only), read at key
-	// resolution. When set, the key is burned once this session establishes, so a
-	// second connection with it is rejected.
+	// SingleUse marks a single-use identity, read at key resolution. Only an
+	// identity an API key owns can be single-use. When set, the key is burned
+	// once this session establishes, so a second connection with it is rejected.
 	SingleUse bool
 }
 
