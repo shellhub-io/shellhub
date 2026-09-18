@@ -97,7 +97,6 @@ func (s *service) Authorize(ctx context.Context, tenantID string, principal mode
 			return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
 		}
 
-		principal.Kind = models.PrincipalUser
 		role = member.Role
 	default:
 		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
