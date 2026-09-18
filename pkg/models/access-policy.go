@@ -72,10 +72,12 @@ type AccessPolicy struct {
 	// means "always", the only setting that is genuinely per login. Only
 	// meaningful when RequireReauth is set.
 	ReauthPeriod *int `json:"reauth_period"`
-	// SubjectMatches reports whether any current member of the namespace satisfies Subject. A
-	// policy whose subject matches nobody is inert: an allow grants nothing and a deny blocks
-	// nothing. Computed when a policy is read, never stored, so it follows membership without a
-	// write.
+	// SubjectMatches reports whether anything Subject names could reach a device. A policy for
+	// which nothing can is inert: an allow grants nothing and a deny blocks nothing. A subject
+	// may name nobody at all, or name only principals Authorize refuses before it reads a
+	// policy: a member whose role lacks authorizer.DeviceConnect, or an expired API key.
+	// Computed when a policy is read, never stored, so it follows membership and expiry
+	// without a write.
 	SubjectMatches bool `json:"subject_matches"`
 
 	CreatedAt time.Time `json:"created_at"`
