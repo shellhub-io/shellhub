@@ -120,6 +120,10 @@ const (
 	// authorizer.DeviceConnect, which no policy can grant. Service accounts never reach
 	// it: they are exempted by user type before the role is read.
 	ReasonRoleCannotConnect DenialReason = "role_cannot_connect"
+	// ReasonKeyExpired refuses because the API key the connection acts as has expired.
+	// Deleting a key removes the identities it enrolled; expiry does not, so the key's
+	// own validity has to be asked at connect time.
+	ReasonKeyExpired DenialReason = "key_expired"
 )
 
 // Decision is the outcome of an Access Policy authorization check.

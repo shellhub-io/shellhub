@@ -42,6 +42,9 @@ type SessionCreate struct {
 	// UserID is the ShellHub account that authorized the session via browser
 	// approval. Empty for password/public-key and web-terminal sessions.
 	UserID string `json:"user_id" validate:""`
+	// APIKeyID is the API key the session acts as, when an automation opened it. It is
+	// separate from UserID because the two name different tables.
+	APIKeyID string `json:"api_key_id" validate:""`
 }
 
 // SessionFinish is the structure to represent the request data for finish session endpoint.

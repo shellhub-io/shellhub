@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -11,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -873,7 +875,7 @@ func TestAuthorize(t *testing.T) {
 
 			service := NewService(storeMock, privateKey, publicKey, nil)
 
-			decision, err := service.Authorize(ctx, tenantID, userID, deviceID, tc.login, tc.sourceIP)
+			decision, err := service.Authorize(ctx, tenantID, models.Principal{Kind: models.PrincipalUser, ID: userID}, deviceID, tc.login, tc.sourceIP)
 			if tc.expectedErr {
 				require.Error(t, err)
 			} else {
@@ -1323,4 +1325,104 @@ func storedAccessPolicyWithRole(tenantID, id, role string) *models.AccessPolicy 
 		TenantID: tenantID,
 		Subject:  models.PolicySubject{Type: models.PolicySubjectRole, Value: role},
 	}
+}
+
+// TestAuthorizeAnAPIKeyPrincipal covers the branch an automation takes. It holds no membership,
+// so everything the human path reads from one has to come from somewhere else or not be read at
+// all, and the two places that silently widen access if got wrong are asserted: an expired key
+// must not connect, and re-authentication must never be demanded of something with no browser.
+func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		deviceID = "device-1"
+		keyID    = "c629572a-b643-4301-90fe-4572b00d007e"
+	)
+
+	device := &models.Device{UID: deviceID, TenantID: tenantID}
+	principal := models.Principal{Kind: models.PrincipalAPIKey, ID: keyID}
+	validKey := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: -1}
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members:  []models.Member{{ID: "someone-else", Role: authorizer.RoleOwner}},
+	}
+
+	newService := func(t *testing.T, policies []models.AccessPolicy, apiKey *models.APIKey, apiKeyErr error) Service {
+		t.Helper()
+
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
+			Return(device, nil).Once()
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(namespace, nil).Once()
+		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyUUIDResolver, keyID).
+			Return(apiKey, apiKeyErr).Once()
+
+		if apiKeyErr == nil && apiKey.IsValid() {
+			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(policies, len(policies), nil).Once()
+		}
+
+		return NewService(storeMock, privateKey, publicKey, nil)
+	}
+
+	grant := func(subject models.PolicySubject, reauth bool) []models.AccessPolicy {
+		return []models.AccessPolicy{{
+			Subject:       subject,
+			Filter:        models.PublicKeyFilter{},
+			Logins:        []string{"*"},
+			Action:        models.PolicyActionAllow,
+			RequireReauth: reauth,
+		}}
+	}
+
+	t.Run("is allowed by a policy naming it, with no membership anywhere", func(t *testing.T) {
+		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID}, false), validKey, nil)
+
+		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
+		require.NoError(t, err)
+		assert.True(t, decision.Allowed)
+	})
+
+	t.Run("is never asked to re-authenticate", func(t *testing.T) {
+		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID}, true), validKey, nil)
+
+		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
+		require.NoError(t, err)
+		require.True(t, decision.Allowed)
+		assert.False(t, decision.RequireReauth, "an automation has no browser to run one in")
+	})
+
+	t.Run("is not swept in by all-members", func(t *testing.T) {
+		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAllMembers}, false), validKey, nil)
+
+		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
+		require.NoError(t, err)
+		assert.False(t, decision.Allowed)
+		assert.Equal(t, models.ReasonNoGrant, decision.Reason)
+	})
+
+	t.Run("is refused once the key expires", func(t *testing.T) {
+		clockMock.On("Now").Return(now).Twice()
+
+		expired := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: now.Add(-time.Hour).Unix()}
+		service := newService(t, nil, expired, nil)
+
+		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
+		require.NoError(t, err)
+		assert.False(t, decision.Allowed)
+		assert.Equal(t, models.ReasonKeyExpired, decision.Reason)
+	})
+
+	t.Run("is refused once the key is gone", func(t *testing.T) {
+		service := newService(t, nil, nil, store.ErrNoDocuments)
+
+		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
+		require.NoError(t, err)
+		assert.False(t, decision.Allowed)
+		assert.Equal(t, models.ReasonKeyExpired, decision.Reason)
+	})
 }
