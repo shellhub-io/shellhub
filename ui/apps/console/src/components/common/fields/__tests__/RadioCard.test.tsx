@@ -17,16 +17,16 @@ describe("RadioCard", () => {
           description="The key becomes your own identity."
         />
         <RadioCard
-          value="service-account"
+          value="api-key"
           icon={<UserIcon />}
-          label="A new service account"
-          description="A non-human identity for an automated system, separate from you."
+          label="An API key"
+          description="An automation connects with it, separate from you."
         />
       </RadioGroupField>,
     );
 
     expect(
-      screen.getByRole("radio", { name: "A new service account" }),
+      screen.getByRole("radio", { name: "An API key" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Myself" })).toBeInTheDocument();
   });
@@ -44,16 +44,16 @@ describe("RadioCard", () => {
           description="The key becomes your own identity."
         />
         <RadioCard
-          value="service-account"
+          value="api-key"
           icon={<UserIcon />}
-          label="A new service account"
-          description="A non-human identity for an automated system, separate from you."
+          label="An API key"
+          description="An automation connects with it, separate from you."
         />
       </RadioGroupField>,
     );
 
-    await user.click(screen.getByRole("radio", { name: "A new service account" }));
+    await user.click(screen.getByRole("radio", { name: "An API key" }));
 
-    expect(onChange).toHaveBeenCalledWith("service-account");
+    expect(onChange).toHaveBeenCalledWith("api-key");
   });
 });

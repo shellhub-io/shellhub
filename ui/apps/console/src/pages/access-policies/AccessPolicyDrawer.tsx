@@ -2,7 +2,6 @@ import { useState, useRef, KeyboardEvent, FormEvent, ReactNode } from "react";
 import {
   UsersIcon,
   UserIcon,
-  CpuChipIcon,
   KeyIcon,
   ShieldCheckIcon,
   TagIcon,
@@ -22,11 +21,7 @@ import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import {
-  SERVICE_ROLE,
-  roleSubjectCount as countRoleSubject,
-} from "./subjectCount";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
+import { roleSubjectCount as countRoleSubject } from "./subjectCount";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTags } from "@/hooks/useTags";
 import {
@@ -40,7 +35,7 @@ import InputField from "@/components/common/fields/InputField";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 
-type SubjectType = "all-members" | "role" | "user" | "api-key" | "service-account";
+type SubjectType = "all-members" | "role" | "user" | "api-key";
 type FilterOption = "all" | "tags";
 
 const ANY_LOGIN = ["*"];
@@ -367,20 +362,17 @@ function AccessPolicyDrawer({
   const isEdit = !!editPolicy;
 
   const members = (namespace?.members ?? []).filter(
-    (m): m is NamespaceMember =>
-      !!m.id && !!m.role && !!m.email && String(m.role) !== SERVICE_ROLE,
+    (m): m is NamespaceMember => !!m.id && !!m.role && !!m.email,
   );
-  const { serviceAccounts } = useServiceAccounts();
   const { apiKeys } = useApiKeys({ perPage: 100 });
   const roleSubjectCount = (role: string) =>
-    countRoleSubject({ role, members, serviceAccounts });
+    countRoleSubject({ role, members });
 
   const [name, setName] = useState("");
   const [action, setAction] = useState<"allow" | "deny">("allow");
   const [subjectType, setSubjectType] = useState<SubjectType>("all-members");
   const [roleValue, setRoleValue] = useState<string>("administrator");
   const [userValue, setUserValue] = useState<string>("");
-  const [saValue, setSaValue] = useState<string>("");
   const [apiKeyValue, setApiKeyValue] = useState<string>("");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -393,40 +385,26 @@ function AccessPolicyDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [whoTab, setWhoTab] = useState<"role" | "user" | "api-key" | "service-account">(
-    "role",
-  );
+  const [whoTab, setWhoTab] = useState<"role" | "user" | "api-key">("role");
   const [devTab, setDevTab] = useState<FilterOption>("all");
 
   useResetOnOpen(open, () => {
     const filterInit: FilterOption =
       editPolicy && editPolicy.filter.tags.length > 0 ? "tags" : "all";
     const editValue = editPolicy?.subject.value ?? "";
-    const editIsServiceAccount =
-      editPolicy?.subject.type === "user" &&
-      serviceAccounts.some((sa) => sa.id === editValue);
 
-    const subjInit: SubjectType = editIsServiceAccount
-      ? "service-account"
-      : ((editPolicy?.subject.type as SubjectType | undefined) ?? "all-members");
+    const subjInit: SubjectType = editPolicy?.subject.type ?? "all-members";
 
     setName(editPolicy?.name ?? "");
     setAction(editPolicy?.action ?? "allow");
     setSubjectType(subjInit);
-    setApiKeyValue(
-      editPolicy?.subject.type === "api-key" ? editValue : "",
-    );
+    setApiKeyValue(editPolicy?.subject.type === "api-key" ? editValue : "");
     setRoleValue(
       editPolicy?.subject.type === "role"
         ? editPolicy.subject.value
         : "administrator",
     );
-    setUserValue(
-      editPolicy?.subject.type === "user" && !editIsServiceAccount
-        ? editValue
-        : "",
-    );
-    setSaValue(editIsServiceAccount ? editValue : "");
+    setUserValue(editPolicy?.subject.type === "user" ? editValue : "");
     setWhoTab(subjInit === "all-members" ? "role" : subjInit);
     setFilterOption(filterInit);
     setDevTab(filterInit);
@@ -448,8 +426,6 @@ function AccessPolicyDrawer({
   const buildSubject = (): AccessPolicyRequest["subject"] => {
     if (subjectType === "role") return { type: "role", value: roleValue };
     if (subjectType === "user") return { type: "user", value: userValue };
-    if (subjectType === "service-account")
-      return { type: "user", value: saValue };
     if (subjectType === "api-key")
       return { type: "api-key", value: apiKeyValue };
     return { type: "all-members", value: "" };
@@ -459,15 +435,12 @@ function AccessPolicyDrawer({
       return { tags: selectedTags };
     return {};
   };
-  // An automation has no browser, so asking it to re-authenticate would only hang the
-  // connection. The server suppresses it either way; the form does not offer it.
-  const reauthApplies =
-    subjectType !== "service-account" && subjectType !== "api-key";
+  const canReauthenticate = (type: typeof subjectType) => type !== "api-key";
+  const reauthApplies = canReauthenticate(subjectType);
 
   const confirmDisabled =
     !name.trim() ||
     (subjectType === "user" && !userValue) ||
-    (subjectType === "service-account" && !saValue) ||
     (subjectType === "api-key" && !apiKeyValue) ||
     (filterOption === "tags" &&
       (selectedTags.length === 0 || selectedTags.length > 3)) ||
@@ -475,15 +448,12 @@ function AccessPolicyDrawer({
     sourceIpDraftError;
 
   const memberById = (id: string) => members.find((m) => m.id === id);
-  const saById = (id: string) => serviceAccounts.find((s) => s.id === id);
   const apiKeyById = (id: string) => apiKeys.find((k) => k.id === id);
 
   const subjectLabel = (): string => {
     if (subjectType === "role") return `the ${roleValue} role`;
     if (subjectType === "user")
       return memberById(userValue)?.email ?? "a member";
-    if (subjectType === "service-account")
-      return saById(saValue)?.name ?? "a service account";
     if (subjectType === "api-key")
       return apiKeyById(apiKeyValue)?.name ?? "an API key";
     return "all members";
@@ -547,10 +517,6 @@ function AccessPolicyDrawer({
       >
         {roleValue}
       </Pill>
-    ) : subjectType === "service-account" ? (
-      <Pill icon={<CpuChipIcon className="w-3.5 h-3.5" />}>
-        {saById(saValue)?.name ?? "select…"}
-      </Pill>
     ) : subjectType === "api-key" ? (
       <Pill icon={<KeyIcon className="w-3.5 h-3.5" />}>
         {apiKeyById(apiKeyValue)?.name ?? "select…"}
@@ -561,7 +527,7 @@ function AccessPolicyDrawer({
       </Pill>
     ) : (
       <span className="text-sm text-text-muted">
-        Select a role, member, or service account…
+        Select a role, member, or API key…
       </span>
     );
 
@@ -697,13 +663,6 @@ function AccessPolicyDrawer({
                   >
                     API keys
                   </button>
-                  <button
-                    type="button"
-                    className={TABBTN(whoTab === "service-account")}
-                    onClick={() => setWhoTab("service-account")}
-                  >
-                    Service accounts
-                  </button>
                 </div>
                 <div className="max-h-56 overflow-y-auto">
                   {whoTab === "role" &&
@@ -761,30 +720,6 @@ function AccessPolicyDrawer({
                     ) : (
                       <p className="px-2 py-3 text-xs text-text-muted">
                         No API keys yet.
-                      </p>
-                    ))}
-                  {whoTab === "service-account" &&
-                    (serviceAccounts.length ? (
-                      serviceAccounts.map((sa) => (
-                        <Row
-                          key={sa.id}
-                          icon={<CpuChipIcon className="w-4 h-4" />}
-                          label={sa.name}
-                          sub="service account"
-                          selected={
-                            subjectType === "service-account" &&
-                            saValue === sa.id
-                          }
-                          onClick={() => {
-                            setSubjectType("service-account");
-                            setSaValue(sa.id);
-                            close();
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <p className="px-2 py-3 text-xs text-text-muted">
-                        No service accounts yet.
                       </p>
                     ))}
                 </div>
@@ -881,7 +816,7 @@ function AccessPolicyDrawer({
         />
 
         {/* Require re-authentication — toggle card, with the freshness window
-            nested inside once enabled. Hidden for service accounts, which cannot
+            nested inside once enabled. Hidden for an API key, which cannot
             re-authenticate. */}
         {reauthApplies && (
           <div

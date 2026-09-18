@@ -7,10 +7,7 @@ properties:
   tenant_id:
     $ref: namespaceTenantID.yaml
   members:
-    description: >-
-      The namespace's human members. A service account is a non-human
-      principal that exists for SSH and is listed by GET /api/service-accounts,
-      so it is never a member here.
+    description: The namespace's members.
     type: array
     items:
       type: object

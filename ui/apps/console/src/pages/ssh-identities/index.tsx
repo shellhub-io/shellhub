@@ -129,7 +129,7 @@ export default function SSHIdentities() {
       key: "name",
       header: "Name",
       render: (i) => {
-        const isService = i.principal_type === "service";
+        const isAutomation = i.principal_type === "api-key";
         const source = sshIdentitySource(i.source, isCurrentBrowser(i));
         const SourceIcon = SOURCE_ICON[i.source ?? "manual"] ?? KeyIcon;
 
@@ -138,12 +138,12 @@ export default function SSHIdentities() {
             <span
               className={cn(
                 "grid place-items-center w-8 h-8 rounded-lg shrink-0",
-                isService
+                isAutomation
                   ? "bg-accent-yellow/10 text-accent-yellow"
                   : "bg-primary/10 text-primary",
               )}
             >
-              {isService ? (
+              {isAutomation ? (
                 <CpuChipIcon className="w-4 h-4" strokeWidth={2} />
               ) : (
                 <KeyIcon className="w-4 h-4" strokeWidth={2} />
@@ -185,15 +185,15 @@ export default function SSHIdentities() {
       key: "user",
       header: "Principal",
       render: (i) => {
-        const isService = i.principal_type === "service";
+        const isAutomation = i.principal_type === "api-key";
 
         return (
           <UserBadge
             name={i.principal_name}
-            email={isService ? undefined : i.principal_email}
-            secondary={isService ? "Service account" : undefined}
+            email={isAutomation ? undefined : i.principal_email}
+            secondary={isAutomation ? "API key" : undefined}
             trailing={
-              !isService && i.principal_id === userId ? (
+              !isAutomation && i.principal_id === userId ? (
                 <span className="px-1.5 py-0.5 rounded text-2xs font-medium bg-primary/10 text-primary">
                   you
                 </span>

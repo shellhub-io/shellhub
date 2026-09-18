@@ -5,7 +5,6 @@ import {
   TagIcon,
   UsersIcon,
   UserIcon,
-  CpuChipIcon,
   KeyIcon,
   GlobeAltIcon,
   CommandLineIcon,
@@ -26,7 +25,6 @@ import { cn } from "@shellhub/design-system/cn";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
 import { useNamespace } from "@/hooks/useNamespaces";
-import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
@@ -81,13 +79,11 @@ function Chip({
 function SubjectCell({
   policy,
   memberEmail,
-  serviceAccountName,
   apiKeyName,
   roleSubjectCount,
 }: {
   policy: AccessPolicy;
   memberEmail: (id: string) => string | undefined;
-  serviceAccountName: (id: string) => string | undefined;
   apiKeyName: (id: string) => string | undefined;
   roleSubjectCount: (role: string) => number;
 }) {
@@ -139,17 +135,6 @@ function SubjectCell({
     );
   }
 
-  const sa = serviceAccountName(value);
-  if (sa) {
-    return (
-      <Chip
-        tone="primary"
-        icon={<CpuChipIcon className={CHIP_ICON} strokeWidth={2} />}
-      >
-        {sa}
-      </Chip>
-    );
-  }
   const email = memberEmail(value);
   return (
     <Chip
@@ -241,17 +226,14 @@ export default function AccessPolicies() {
   const { policies, isLoading } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const { serviceAccounts } = useServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
 
   const { apiKeys } = useApiKeys({ perPage: 100 });
   const members = ns?.members ?? [];
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
-  const serviceAccountName = (id: string) =>
-    serviceAccounts.find((s) => s.id === id)?.name;
   const apiKeyName = (id: string) => apiKeys.find((k) => k.id === id)?.name;
   const roleSubjectCount = (role: string) =>
-    countRoleSubject({ role, members, serviceAccounts });
+    countRoleSubject({ role, members });
   const deletePolicy = useDeleteAccessPolicy();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
@@ -314,7 +296,6 @@ export default function AccessPolicies() {
         <SubjectCell
           policy={p}
           memberEmail={memberEmail}
-          serviceAccountName={serviceAccountName}
           apiKeyName={apiKeyName}
           roleSubjectCount={roleSubjectCount}
         />

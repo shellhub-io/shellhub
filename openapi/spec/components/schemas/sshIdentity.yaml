@@ -30,7 +30,6 @@ properties:
     enum:
       - user
       - api-key
-      - service
     example: user
   fingerprint:
     description: SSH public key fingerprint.
@@ -80,8 +79,8 @@ properties:
     example: 2026-01-02T00:00:00.000Z
   expires_at:
     description: |
-      When the key stops working (service-account key lifecycle), or null if it
-      never expires. Human identities are always null.
+      When the key stops working, or null if it never expires. A person's key is
+      usually null; an automation's is bounded to the job that needs it.
     type: string
     format: date-time
     nullable: true
@@ -90,7 +89,7 @@ properties:
   single_use:
     description: |
       Whether the key authorizes exactly one established SSH session, then is
-      consumed (service-account key lifecycle). Human identities are false.
+      consumed. This is what a one-shot job wants; a person's key is false.
     type: boolean
     readOnly: true
     example: false

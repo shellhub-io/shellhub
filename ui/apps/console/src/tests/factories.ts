@@ -11,7 +11,6 @@ import type {
   MembershipInvitation,
   Namespace,
   PublicKeyResponse,
-  ServiceAccount,
   Session,
   SshIdentity,
   Subscription,
@@ -383,22 +382,6 @@ export function mockInvitation(
     status: "pending",
     status_updated_at: "2024-01-01T00:00:00Z",
     role: "observer",
-    ...overrides,
-  };
-}
-
-/**
- * Builds a service account for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockServiceAccount(
-  overrides: Partial<ServiceAccount> = {},
-): ServiceAccount {
-  return {
-    id: "sa-1",
-    name: "ci-bot",
-    created_at: "2024-01-01T00:00:00Z",
-    identities: [],
     ...overrides,
   };
 }

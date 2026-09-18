@@ -24,10 +24,10 @@ export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
 }
 
 /**
- * The same expiry, plus the single-use flag that only a service-account key
- * carries.
+ * The same expiry, plus the single-use flag an automation's key carries: it authorizes one
+ * session and is then consumed.
  */
-export function serviceAccountLifecyclePayload(
+export function identityLifecyclePayload(
   expiresIn: string,
   singleUse: boolean,
 ): { single_use: boolean; expires_in?: number } {

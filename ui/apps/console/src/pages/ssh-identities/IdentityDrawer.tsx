@@ -10,7 +10,6 @@ import {
   useCreateSSHIdentity,
   useRenameSSHIdentity,
 } from "@/hooks/useSSHIdentityMutations";
-import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
 import { useCreateApiKeySSHIdentity } from "@/hooks/useSSHIdentityMutations";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -21,10 +20,10 @@ import InputField from "@/components/common/fields/InputField";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
-import ServiceAccountLifecycleFields from "@/components/common/ServiceAccountLifecycleFields";
+import IdentityLifecycleFields from "@/components/common/IdentityLifecycleFields";
 import {
   keyExpiryPayload,
-  serviceAccountLifecyclePayload,
+  identityLifecyclePayload,
   sshIdentitySource,
   isAlreadyEnrolled,
 } from "@/utils/sshIdentity";
@@ -32,10 +31,10 @@ import KeyExpiryField from "@/components/common/KeyExpiryField";
 import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
 import { INPUT, LABEL } from "@/utils/styles";
 
-// Who a newly added key belongs to: the caller, an API key, or a new service account.
-// Enrolling for an API key gives an automation its own credential instead of binding the key to
-// a person. Offered only to callers who may manage identities; rename never shows it.
-type Target = "self" | "api-key" | "service-account";
+// Who a newly added key belongs to: the caller, or an API key. Enrolling for an API key gives
+// an automation its own credential instead of binding the key to a person. Offered only to
+// callers who may manage identities; rename never shows it.
+type Target = "self" | "api-key";
 
 /**
  * Enrols or renames an SSH identity. On edit only the name changes — the key is what the
@@ -52,9 +51,7 @@ function IdentityDrawer({
 }) {
   const createIdentity = useCreateSSHIdentity();
   const renameIdentity = useRenameSSHIdentity();
-  const createServiceAccount = useCreateServiceAccount();
   const createApiKeyIdentity = useCreateApiKeySSHIdentity();
-  const canCreateServiceAccount = useHasPermission("serviceAccount:create");
   const canManageIdentities = useHasPermission("sshIdentity:manage");
   const { apiKeys } = useApiKeys({ perPage: 100 });
   const browserKeyFingerprint = useBrowserKeyFingerprint();
@@ -81,8 +78,6 @@ function IdentityDrawer({
     setSubmitting(false);
     setError(null);
   });
-
-  const isServiceAccount = !isEdit && target === "service-account";
   const isAPIKey = !isEdit && target === "api-key";
 
   const handleKeyDataChange = (v: string) => {
@@ -117,15 +112,7 @@ function IdentityDrawer({
           body: {
             name: name.trim(),
             data: keyData.trim(),
-            ...serviceAccountLifecyclePayload(expiresIn, singleUse),
-          },
-        });
-      } else if (isServiceAccount) {
-        await createServiceAccount.mutateAsync({
-          body: {
-            name: name.trim(),
-            data: keyData.trim(),
-            ...serviceAccountLifecyclePayload(expiresIn, singleUse),
+            ...identityLifecyclePayload(expiresIn, singleUse),
           },
         });
       } else {
@@ -157,9 +144,7 @@ function IdentityDrawer({
     ? "Saving..."
     : isEdit
       ? "Save Changes"
-      : isServiceAccount
-        ? "Create Service Account"
-        : "Add Key";
+      : "Add Key";
 
   return (
     <Drawer
@@ -184,7 +169,7 @@ function IdentityDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {!isEdit && (canCreateServiceAccount || canManageIdentities) && (
+        {!isEdit && canManageIdentities && (
           <RadioGroupField
             label="Add this key for"
             value={target}
@@ -196,19 +181,11 @@ function IdentityDrawer({
               label="Myself"
               description="The key becomes your own identity."
             />
-            {canManageIdentities && (
-              <RadioCard
-                value="api-key"
-                icon={<CpuChipIcon className="w-4 h-4" />}
-                label="An API key"
-                description="An automation connects with it. Where it may reach is set by access policies."
-              />
-            )}
             <RadioCard
-              value="service-account"
+              value="api-key"
               icon={<CpuChipIcon className="w-4 h-4" />}
-              label="A new service account"
-              description="A non-human identity for an automated system, separate from you."
+              label="An API key"
+              description="An automation connects with it. Where it may reach is set by access policies."
             />
           </RadioGroupField>
         )}
@@ -236,12 +213,12 @@ function IdentityDrawer({
 
         <InputField
           id="ssh-identity-name"
-          label={isServiceAccount ? "Service account name" : "Name"}
+          label="Name"
           value={name}
           onChange={setName}
           placeholder={
-            isServiceAccount
-              ? "Name for the service account, e.g. ci-bot"
+            isAPIKey
+              ? "Name used to identify the key, e.g. deploy"
               : "Name used to identify the key, e.g. laptop"
           }
         />
@@ -270,22 +247,22 @@ function IdentityDrawer({
             placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5..."
             rows={3}
             hint={
-              isServiceAccount
-                ? "Paste the OpenSSH public key the automated system will connect with."
+              isAPIKey
+                ? "Paste the OpenSSH public key the automation will connect with."
                 : "Paste an OpenSSH public key to add it ahead of time (e.g. a CI or server key)."
             }
           />
         )}
 
-        {!isEdit && !isServiceAccount && !isAPIKey && (
+        {!isEdit && !isAPIKey && (
           <KeyExpiryField
             expiresIn={expiresIn}
             onExpiresInChange={setExpiresIn}
           />
         )}
 
-        {(isServiceAccount || isAPIKey) && (
-          <ServiceAccountLifecycleFields
+        {isAPIKey && (
+          <IdentityLifecycleFields
             expiresIn={expiresIn}
             onExpiresInChange={setExpiresIn}
             singleUse={singleUse}

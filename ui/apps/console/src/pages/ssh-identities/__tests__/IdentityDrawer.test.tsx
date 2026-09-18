@@ -10,7 +10,8 @@ const sdk = vi.hoisted(() =>
   mockSdkGen({
     createSshIdentity: vi.fn(),
     renameSshIdentity: vi.fn(),
-    createServiceAccount: vi.fn(),
+    createApiKeySshIdentity: vi.fn(),
+    apiKeyList: vi.fn(),
   }),
 );
 
@@ -51,7 +52,21 @@ const KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqk test@host";
 beforeEach(() => {
   vi.clearAllMocks();
   sdk.createSshIdentity.mockResolvedValue(mockSdkResponse({}));
-  sdk.createServiceAccount.mockResolvedValue(mockSdkResponse({}));
+  sdk.createApiKeySshIdentity.mockResolvedValue(mockSdkResponse({}));
+  sdk.apiKeyList.mockResolvedValue(
+    mockSdkResponse([
+      {
+        id: "c629572a-b643-4301-90fe-4572b00d007e",
+        name: "ci-deploy",
+        tenant_id: "00000000-0000-4000-0000-000000000000",
+        created_by: "user-1",
+        role: "administrator",
+        expires_in: -1,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
+    ]),
+  );
   useAuthStore.setState({ role: "owner" });
 });
 
@@ -60,7 +75,7 @@ describe("IdentityDrawer", () => {
     const user = userEvent.setup();
     renderDrawer();
 
-    await user.type(screen.getByLabelText(/name/i), "laptop");
+    await user.type(screen.getByLabelText("Name"), "laptop");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
     await user.click(screen.getByRole("button", { name: /add key/i }));
 
@@ -71,55 +86,54 @@ describe("IdentityDrawer", () => {
         }),
       ),
     );
-    expect(sdk.createServiceAccount).not.toHaveBeenCalled();
+    expect(sdk.createApiKeySshIdentity).not.toHaveBeenCalled();
   });
 
-  it("creates a service account when that target is chosen", async () => {
+  it("enrols the key for the chosen API key, by name", async () => {
     const user = userEvent.setup();
     renderDrawer();
 
-    await user.click(screen.getByText("A new service account"));
-    await user.type(screen.getByLabelText(/name/i), "ci-bot");
+    await user.click(screen.getByText("An API key"));
+    await user.selectOptions(screen.getByRole("combobox"), "ci-deploy");
+    await user.type(screen.getByLabelText("Name"), "deploy");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
-    await user.click(
-      screen.getByRole("button", { name: /create service account/i }),
-    );
+    await user.click(screen.getByRole("button", { name: /add key/i }));
 
     await waitFor(() =>
-      expect(sdk.createServiceAccount).toHaveBeenCalledWith(
+      expect(sdk.createApiKeySshIdentity).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: { name: "ci-bot", data: KEY, single_use: false },
+          path: { name: "ci-deploy" },
+          body: { name: "deploy", data: KEY, single_use: false },
         }),
       ),
     );
     expect(sdk.createSshIdentity).not.toHaveBeenCalled();
   });
 
-  it("creates a single-use service account when the toggle is on", async () => {
+  it("burns the key after one session when the toggle is on", async () => {
     const user = userEvent.setup();
     renderDrawer();
 
-    await user.click(screen.getByText("A new service account"));
-    await user.type(screen.getByLabelText(/name/i), "ci-bot");
+    await user.click(screen.getByText("An API key"));
+    await user.selectOptions(screen.getByRole("combobox"), "ci-deploy");
+    await user.type(screen.getByLabelText("Name"), "deploy");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
     await user.click(screen.getByRole("switch", { name: /single-use key/i }));
-    await user.click(
-      screen.getByRole("button", { name: /create service account/i }),
-    );
+    await user.click(screen.getByRole("button", { name: /add key/i }));
 
     await waitFor(() =>
-      expect(sdk.createServiceAccount).toHaveBeenCalledWith(
+      expect(sdk.createApiKeySshIdentity).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: { name: "ci-bot", data: KEY, single_use: true },
+          body: expect.objectContaining({ single_use: true }),
         }),
       ),
     );
   });
 
-  it("hides the service-account option without permission", () => {
+  it("hides the API key option without permission", () => {
     useAuthStore.setState({ role: "observer" });
     renderDrawer();
 
-    expect(screen.queryByText("A new service account")).not.toBeInTheDocument();
+    expect(screen.queryByText("An API key")).not.toBeInTheDocument();
   });
 });
