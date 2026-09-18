@@ -78,7 +78,6 @@ const (
 	SSHIdentityManage
 )
 
-var servicePermissions = []Permission{}
 
 var observerPermissions = []Permission{
 	DeviceDetails,

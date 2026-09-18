@@ -48,8 +48,7 @@ type InvitationService interface {
 
 	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the
 	// copyable accept-invite link. When an existing account is added and direct membership is
-	// enabled (enterprise), the member is added directly and an empty link is returned. An email
-	// that resolves to a service account is refused with ErrMemberIsServiceAccount.
+	// enabled (enterprise), the member is added directly and an empty link is returned.
 	GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)
 
 	// UserMembershipInvitationList lists membership invitations for a user.

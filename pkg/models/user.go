@@ -42,38 +42,6 @@ func (o UserOrigin) String() string {
 	return string(o)
 }
 
-// UserType separates a person from a service account. It is not the membership role — the role
-// says what a principal may do in a namespace, the type says what kind of principal it is.
-type UserType string
-
-const (
-	// UserTypeHuman is a regular person: signs in to the console, may hold API keys, and is
-	// authorized by their membership role.
-	UserTypeHuman UserType = "human"
-
-	// UserTypeService is a service account: a non-human principal that only holds an SSH
-	// identity for automated systems. It never signs in to the console and is not an API
-	// principal. This type is the human/service discriminator, not the membership role, so it
-	// stays valid if roles ever become groups.
-	UserTypeService UserType = "service"
-)
-
-func (t UserType) String() string {
-	return string(t)
-}
-
-// IsService reports whether t is the service-account type. An empty type is a person, which is
-// how a principal loaded without its user row reads.
-func (t UserType) IsService() bool {
-	return t == UserTypeService
-}
-
-// IsService reports whether the user is a service account. It reports false for an empty type,
-// which is a person.
-func (u User) IsService() bool {
-	return u.Type.IsService()
-}
-
 // UserAuthMethod is a way a user may authenticate. A user can hold several at once, so this is a
 // set rather than a mode.
 type UserAuthMethod string
@@ -94,9 +62,6 @@ func (a UserAuthMethod) String() string {
 // what ties a user to one, so a user with no memberships is valid and simply sees nothing.
 type User struct {
 	ID string `json:"id,omitempty"`
-	// Type distinguishes a human user from a service account. It defaults to
-	// [UserTypeHuman]; service accounts are created only through the service-account flow.
-	Type UserType `json:"type"`
 	// Origin specifies the the user's signup method.
 	Origin UserOrigin `json:"-"`
 

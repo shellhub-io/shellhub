@@ -222,7 +222,6 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...s
 	query := db.NewSelect().
 		Model(&entities).
 		Relation("User").
-		Where("membership.user_id IN (SELECT id FROM users WHERE type != ?)", string(models.UserTypeService)).
 		OrderExpr("membership.created_at ASC")
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "membership")

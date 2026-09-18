@@ -81,18 +81,10 @@ func SSHIdentityToModel(e *SSHIdentity) *models.SSHIdentity {
 	case e.User != nil:
 		identity.PrincipalName = e.User.Name
 		identity.PrincipalEmail = e.User.Email
-		identity.PrincipalType = principalKindOfUser(e.User.Type)
+		identity.PrincipalType = models.PrincipalUser
 	}
 
 	return identity
-}
-
-func principalKindOfUser(userType string) models.PrincipalKind {
-	if userType == string(models.UserTypeService) {
-		return models.PrincipalService
-	}
-
-	return models.PrincipalUser
 }
 
 func userOwner(model *models.SSHIdentity) string {

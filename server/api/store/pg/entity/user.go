@@ -15,7 +15,6 @@ type User struct {
 	CreatedAt        time.Time       `bun:"created_at"`
 	UpdatedAt        time.Time       `bun:"updated_at"`
 	LastLogin        time.Time       `bun:"last_login,nullzero"`
-	Type             string          `bun:"type"`
 	Origin           string          `bun:"origin"`
 	ExternalID       string          `bun:"external_id,nullzero"`
 	Status           string          `bun:"status"`
@@ -58,17 +57,11 @@ func UserFromModel(model *models.User) *User {
 		status = string(models.UserStatusConfirmed)
 	}
 
-	userType := model.Type.String()
-	if userType == "" {
-		userType = string(models.UserTypeHuman)
-	}
-
 	return &User{
 		ID:               model.ID,
 		CreatedAt:        model.CreatedAt,
 		UpdatedAt:        time.Time{},
 		LastLogin:        model.LastLogin,
-		Type:             userType,
 		Origin:           origin,
 		ExternalID:       model.ExternalID,
 		Status:           status,
@@ -97,7 +90,6 @@ func UserToModel(entity *User) *models.User {
 
 	return &models.User{
 		ID:               entity.ID,
-		Type:             models.UserType(entity.Type),
 		Origin:           models.UserOrigin(entity.Origin),
 		ExternalID:       entity.ExternalID,
 		Status:           models.UserStatus(entity.Status),

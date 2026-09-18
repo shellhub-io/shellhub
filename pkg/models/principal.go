@@ -12,10 +12,6 @@ const (
 	// PrincipalAPIKey is an automation, a row in api_keys. It holds no membership and no role
 	// over SSH: where it may connect is decided by access policies alone.
 	PrincipalAPIKey PrincipalKind = "api-key"
-
-	// PrincipalService is a service account, the synthetic user an automation used to be. It
-	// exists only while such rows do, and goes when they are deleted.
-	PrincipalService PrincipalKind = "service"
 )
 
 // Principal is who a request or a connection is acting as. Carrying the kind beside the id is

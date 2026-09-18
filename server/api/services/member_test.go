@@ -38,40 +38,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when the email belongs to a service account",
-			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "svc-0000@service.local",
-				MemberRole:    authorizer.RoleAdministrator,
-			},
-			requiredMocks: func(ctx context.Context) {
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Name:     "namespace",
-					Owner:    "000000000000000000000000",
-					Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(ns, nil).
-					Once()
-				storeMock.
-					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "svc-0000@service.local").
-					Return(&models.User{ID: "000000000000000000000009", Type: models.UserTypeService}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrMemberIsServiceAccount(),
-			},
-		},
-		{
 			description: "fails when the namespace was not found",
 			req: &requests.NamespaceAddMember{
 				ForwardedHost: "localhost",
@@ -351,68 +317,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					Once()
 			},
 			expected: NewErrRoleForbidden(),
-		},
-		{
-			description: "[community|enterprise|cloud] fails when the member is a service account",
-			req: &requests.NamespaceUpdateMember{
-				UserID:     "000000000000000000000000",
-				TenantID:   "00000000-0000-4000-0000-000000000000",
-				MemberID:   "000000000000000000000001",
-				MemberRole: authorizer.RoleAdministrator,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-							{
-								ID:   "000000000000000000000001",
-								Role: authorizer.RoleService,
-								Type: models.UserTypeService,
-							},
-						},
-					}, nil).
-					Once()
-			},
-			expected: NewErrMemberIsServiceAccount(),
-		},
-		{
-			description: "[community|enterprise|cloud] fails when the member is a service account already carrying a human role",
-			req: &requests.NamespaceUpdateMember{
-				UserID:     "000000000000000000000000",
-				TenantID:   "00000000-0000-4000-0000-000000000000",
-				MemberID:   "000000000000000000000001",
-				MemberRole: authorizer.RoleAdministrator,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-							{
-								ID:   "000000000000000000000001",
-								Role: authorizer.RoleAdministrator,
-								Type: models.UserTypeService,
-							},
-						},
-					}, nil).
-					Once()
-			},
-			expected: NewErrMemberIsServiceAccount(),
 		},
 		{
 			description: "[community|enterprise|cloud] BFLA: fails when operator tries to act on an admin (current-role guard)",
@@ -774,58 +678,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 		requiredMocks func(context.Context)
 		expected      Expected
 	}{
-		{
-			description: "[community|enterprise|cloud] fails when the member is a service account",
-			req: &requests.NamespaceRemoveMember{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				MemberID: "000000000000000000000001",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-							{ID: "000000000000000000000001", Role: authorizer.RoleService, Type: models.UserTypeService},
-						},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrMemberIsServiceAccount(),
-			},
-		},
-		{
-			description: "[community|enterprise|cloud] fails when the member is a service account already carrying a human role",
-			req: &requests.NamespaceRemoveMember{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				MemberID: "000000000000000000000001",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-							{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator, Type: models.UserTypeService},
-						},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrMemberIsServiceAccount(),
-			},
-		},
 		{
 			description: "[community single-namespace] deletes the orphaned account after removing its last membership",
 			req: &requests.NamespaceRemoveMember{

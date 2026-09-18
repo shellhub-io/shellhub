@@ -38,10 +38,9 @@ type Namespace struct {
 	Type       models.Type     `json:"type"`
 }
 
-// NamespaceFromModel projects the stored namespace onto the response, dropping the service
-// accounts from its members. It returns nil for a nil namespace, and its Members is never nil, so
-// a namespace with no human member serializes as an empty array rather than null. A member whose
-// type is empty counts as a person.
+// NamespaceFromModel projects the stored namespace onto the response. It returns nil for a nil
+// namespace, and its Members is never nil, so a namespace with no member serializes as an empty
+// array rather than null.
 func NamespaceFromModel(m *models.Namespace) *Namespace {
 	if m == nil {
 		return nil
@@ -50,10 +49,6 @@ func NamespaceFromModel(m *models.Namespace) *Namespace {
 	members := make([]Member, 0, len(m.Members))
 
 	for _, member := range m.Members {
-		if member.IsService() {
-			continue
-		}
-
 		members = append(members, Member{
 			ID:               member.ID,
 			AddedAt:          member.AddedAt,

@@ -31,18 +31,11 @@ var (
 		ID:    "00000000-0000-4000-0000-000000000000",
 		Email: "human@test.com",
 		Role:  authorizer.RoleOwner,
-		Type:  models.UserTypeHuman,
 	}
 	expectedHuman = responses.Member{
 		ID:    "00000000-0000-4000-0000-000000000000",
 		Email: "human@test.com",
 		Role:  authorizer.RoleOwner,
-	}
-	memberService = models.Member{
-		ID:    "00000000-0000-4000-0000-000000000009",
-		Email: "bot@test.com",
-		Role:  authorizer.RoleService,
-		Type:  models.UserTypeService,
 	}
 )
 
@@ -163,19 +156,6 @@ func TestGetNamespace(t *testing.T) {
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
 				expectedSession: &responses.Namespace{Members: []responses.Member{}},
-			},
-		},
-		{
-			title: "success when the namespace holds a service account",
-			uid:   "123",
-			req:   "00000000-0000-4000-0000-000000000001",
-			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000001").
-					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil)
-			},
-			expected: Expected{
-				expectedStatus:  http.StatusOK,
-				expectedSession: &responses.Namespace{Members: []responses.Member{expectedHuman}},
 			},
 		},
 	}
@@ -734,12 +714,12 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedNamespaces: []responses.Namespace{},
 		},
 		{
-			description: "succeeds and lists no service account among the members",
+			description: "succeeds and carries the members through",
 			query:       "",
 			requiredMocks: func() {
 				svcMock.
 					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
-					Return([]models.Namespace{{Name: "namespace", Members: []models.Member{memberHuman, memberService}}}, 1, nil).
+					Return([]models.Namespace{{Name: "namespace", Members: []models.Member{memberHuman}}}, 1, nil).
 					Once()
 			},
 			expectedStatus:     http.StatusOK,
@@ -780,76 +760,3 @@ func TestGetNamespaceList(t *testing.T) {
 	svcMock.AssertExpectations(t)
 }
 
-func TestNamespaceResponsesOmitServiceAccounts(t *testing.T) {
-	const tenantID = "00000000-0000-4000-0000-000000000000"
-
-	cases := []struct {
-		description   string
-		method        string
-		url           string
-		body          string
-		requiredMocks func(svcMock *mocks.MockService)
-	}{
-		{
-			description: "edit namespace",
-			method:      http.MethodPut,
-			url:         "/api/namespaces/" + tenantID,
-			body:        `{"name":"namespace"}`,
-			requiredMocks: func(svcMock *mocks.MockService) {
-				svcMock.
-					On("EditNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceEdit")).
-					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
-					Once()
-			},
-		},
-		{
-			description: "add namespace member",
-			method:      http.MethodPost,
-			url:         "/api/namespaces/" + tenantID + "/members",
-			body:        `{"email":"human@test.com","role":"observer"}`,
-			requiredMocks: func(svcMock *mocks.MockService) {
-				svcMock.
-					On("AddNamespaceMember", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceAddMember")).
-					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
-					Once()
-			},
-		},
-		{
-			description: "remove namespace member",
-			method:      http.MethodDelete,
-			url:         "/api/namespaces/" + tenantID + "/members/" + memberHuman.ID,
-			body:        "",
-			requiredMocks: func(svcMock *mocks.MockService) {
-				svcMock.
-					On("RemoveNamespaceMember", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceRemoveMember")).
-					Return(&models.Namespace{Members: []models.Member{memberHuman, memberService}}, nil).
-					Once()
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			svcMock := mocks.NewMockService(t)
-			tc.requiredMocks(svcMock)
-
-			req := httptest.NewRequestWithContext(t.Context(), tc.method, tc.url, strings.NewReader(tc.body))
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", tenantID)
-			req.Header.Set("X-Forwarded-Host", "localhost")
-
-			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
-
-			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
-
-			namespace := new(responses.Namespace)
-			require.NoError(t, json.NewDecoder(rec.Result().Body).Decode(namespace))
-			assert.Equal(t, []responses.Member{expectedHuman}, namespace.Members)
-
-			svcMock.AssertExpectations(t)
-		})
-	}
-}

@@ -206,7 +206,7 @@ func TestAuthorize(t *testing.T) {
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
-			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 			Return(&models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: "user"}, nil).
 			Once()
 
@@ -239,7 +239,7 @@ func TestAuthorize(t *testing.T) {
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
-			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 			Return(&models.Decision{Allowed: false, Reason: models.ReasonDeniedByPolicy, PolicyName: "block contractors"}, nil).
 			Once()
 
@@ -263,7 +263,7 @@ func TestAuthorize(t *testing.T) {
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
-			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 			Return(nil, errors.New("the store is unreachable")).
 			Once()
 
@@ -290,7 +290,7 @@ func TestAuthorize(t *testing.T) {
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
-			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 			Return(nil, nil).
 			Once()
 
@@ -311,7 +311,7 @@ func TestAuthorize(t *testing.T) {
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
-			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 			Return(&models.Decision{Allowed: true, RequireReauth: true}, nil).
 			Once()
 

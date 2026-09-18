@@ -27,9 +27,7 @@ type AccessPolicyService interface {
 	//
 	// A member whose role lacks [authorizer.DeviceConnect] is refused with
 	// [models.ReasonRoleCannotConnect] before any policy is read, since no policy could
-	// grant what the role withholds. Service accounts are exempt by user type:
-	// [authorizer.RoleService] holds no permissions by design, and their access comes
-	// entirely from the policies.
+	// grant what the role withholds.
 	//
 	// An API key principal holds no membership and no role at all, so it goes straight
 	// to the policies. It is refused with [models.ReasonKeyExpired] when the key itself
@@ -89,11 +87,11 @@ func (s *service) Authorize(ctx context.Context, tenantID string, principal mode
 			return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
 		}
 
-		if !member.IsService() && !member.Role.HasPermission(authorizer.DeviceConnect) {
+		if !member.Role.HasPermission(authorizer.DeviceConnect) {
 			return &models.Decision{Allowed: false, Reason: models.ReasonRoleCannotConnect}, nil
 		}
 
-		principal.Kind = principalKindOfMember(*member)
+		principal.Kind = models.PrincipalUser
 		role = member.Role
 	default:
 		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
@@ -371,7 +369,7 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 
 func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {
 	for _, member := range namespace.Members {
-		principal := models.Principal{Kind: principalKindOfMember(member), ID: member.ID}
+		principal := models.Principal{Kind: models.PrincipalUser, ID: member.ID}
 		if subjectMatches(subject, principal, member.Role) {
 			return true
 		}
@@ -385,14 +383,6 @@ func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.AP
 	}
 
 	return false
-}
-
-func principalKindOfMember(member models.Member) models.PrincipalKind {
-	if member.Type == models.UserTypeService {
-		return models.PrincipalService
-	}
-
-	return models.PrincipalUser
 }
 
 func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error) {

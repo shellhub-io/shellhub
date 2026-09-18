@@ -13,7 +13,6 @@ type Store interface {
 	AccessPolicyStore
 	SSHIdentityStore
 	SSHApprovalStore
-	ServiceAccountStore
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore

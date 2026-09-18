@@ -195,11 +195,6 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 			expectedCode: http.StatusForbidden,
 		},
 		{
-			description:  "service account is refused",
-			role:         authorizer.RoleService.String(),
-			expectedCode: http.StatusForbidden,
-		},
-		{
 			description:  "an identity carrying no role is refused",
 			role:         "",
 			expectedCode: http.StatusForbidden,
