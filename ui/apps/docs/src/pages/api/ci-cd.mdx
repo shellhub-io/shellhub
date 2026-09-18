@@ -13,7 +13,7 @@ unpredictably or is over-privileged.
 ## Set it up correctly, once
 
 **1. Give the pipeline its own key.** Not a person's. Create an API key named for the pipeline,
-`ci-deploy`, then on the SSH Identities page add an SSH key for that API key.
+`ci-deploy`, then open its **SSH access** on the **Team** page and add an SSH key for it.
 
 Two things this buys you: the session list attributes deploys to `ci-deploy` rather than to
 whoever set it up, and the pipeline does not break the week that person leaves. See

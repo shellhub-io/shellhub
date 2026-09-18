@@ -29,10 +29,13 @@ automation depends on.
 
 ## Giving a key a way in
 
-Create the API key first, on the **Team** page under **API Keys**. Then, on the **SSH Identities**
-page, use **Add a Key**, choose to add it for an API key, pick the key, and paste the public key
-the automation will connect with.
+Create the API key first, on the **Team** page under **API Keys**. The table there has an **SSH
+access** column saying what each key can connect with. Open the key's cell, choose **Add SSH key**,
+and paste the public key the automation will connect with.
 
+A key's credentials live with the key, not on the **SSH Identities** page, which is about people.
+That page shows your own identities and, for a manager, other members' identities; it never lists
+what an automation holds.
 
 Enrolling a key for an API key needs permission to manage SSH identities, which an administrator
 and an owner hold. Adding your own key is not enough: opening a door for something else is a
