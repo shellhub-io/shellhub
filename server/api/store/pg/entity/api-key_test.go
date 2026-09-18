@@ -21,6 +21,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "full fields",
 			model: &models.APIKey{
+				ID:        "c629572a-b643-4301-90fe-4572b00d007e",
 				Digest:    "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
@@ -31,6 +32,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 				ExpiresIn: 3600,
 			},
 			expected: &APIKey{
+				ID:          "c629572a-b643-4301-90fe-4572b00d007e",
 				KeyDigest:   "digest-abc123",
 				Name:        "my-api-key",
 				NamespaceID: "namespace-id-1",
@@ -44,6 +46,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 		{
 			name: "observer role and zero ExpiresIn",
 			model: &models.APIKey{
+				ID:        "9f1f3b2e-1d9a-4a6f-8f2c-2b3f4a5d6e70",
 				Digest:    "digest-def456",
 				Name:      "read-only-key",
 				TenantID:  "namespace-id-2",
@@ -54,6 +57,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 				ExpiresIn: 0,
 			},
 			expected: &APIKey{
+				ID:          "9f1f3b2e-1d9a-4a6f-8f2c-2b3f4a5d6e70",
 				KeyDigest:   "digest-def456",
 				Name:        "read-only-key",
 				NamespaceID: "namespace-id-2",
@@ -68,15 +72,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := APIKeyFromModel(tt.model)
-			assert.Equal(t, tt.expected.KeyDigest, result.KeyDigest)
-			assert.Equal(t, tt.expected.Name, result.Name)
-			assert.Equal(t, tt.expected.NamespaceID, result.NamespaceID)
-			assert.Equal(t, tt.expected.Role, result.Role)
-			assert.Equal(t, tt.expected.UserID, result.UserID)
-			assert.Equal(t, tt.expected.CreatedAt, result.CreatedAt)
-			assert.Equal(t, tt.expected.UpdatedAt, result.UpdatedAt)
-			assert.Equal(t, tt.expected.ExpiresIn, result.ExpiresIn)
+			assert.Equal(t, tt.expected, APIKeyFromModel(tt.model))
 		})
 	}
 }
@@ -92,6 +88,7 @@ func TestAPIKeyToModel(t *testing.T) {
 		{
 			name: "full fields",
 			entity: &APIKey{
+				ID:          "c629572a-b643-4301-90fe-4572b00d007e",
 				KeyDigest:   "digest-abc123",
 				Name:        "my-api-key",
 				NamespaceID: "namespace-id-1",
@@ -102,6 +99,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   3600,
 			},
 			expected: &models.APIKey{
+				ID:        "c629572a-b643-4301-90fe-4572b00d007e",
 				Digest:    "digest-abc123",
 				Name:      "my-api-key",
 				TenantID:  "namespace-id-1",
@@ -115,6 +113,7 @@ func TestAPIKeyToModel(t *testing.T) {
 		{
 			name: "zero ExpiresIn",
 			entity: &APIKey{
+				ID:          "9f1f3b2e-1d9a-4a6f-8f2c-2b3f4a5d6e70",
 				KeyDigest:   "digest-def456",
 				Name:        "no-expiry-key",
 				NamespaceID: "namespace-id-2",
@@ -125,6 +124,7 @@ func TestAPIKeyToModel(t *testing.T) {
 				ExpiresIn:   0,
 			},
 			expected: &models.APIKey{
+				ID:        "9f1f3b2e-1d9a-4a6f-8f2c-2b3f4a5d6e70",
 				Digest:    "digest-def456",
 				Name:      "no-expiry-key",
 				TenantID:  "namespace-id-2",
@@ -139,15 +139,7 @@ func TestAPIKeyToModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := APIKeyToModel(tt.entity)
-			assert.Equal(t, tt.expected.Digest, result.Digest)
-			assert.Equal(t, tt.expected.Name, result.Name)
-			assert.Equal(t, tt.expected.TenantID, result.TenantID)
-			assert.Equal(t, tt.expected.Role, result.Role)
-			assert.Equal(t, tt.expected.CreatedBy, result.CreatedBy)
-			assert.Equal(t, tt.expected.CreatedAt, result.CreatedAt)
-			assert.Equal(t, tt.expected.UpdatedAt, result.UpdatedAt)
-			assert.Equal(t, tt.expected.ExpiresIn, result.ExpiresIn)
+			assert.Equal(t, tt.expected, APIKeyToModel(tt.entity))
 		})
 	}
 }
