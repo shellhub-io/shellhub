@@ -32,12 +32,12 @@ A type and a value:
 |---|---|---|
 | `user` | The user's id | That one user |
 | `role` | The role name | Every member holding that role |
-| `all-members` | Empty | Every member **except service accounts** |
+| `api-key` | The API key's id | That one automation |
+| `all-members` | Empty | Every member of the namespace |
 
-The service account carve-out applies only to `all-members`. A `role` subject already excludes
-service accounts by exact match, so `all-members` is the one place a service account could be
-swept into an over-broad allow by accident. Grant one deliberately, with a `user` or `role`
-subject.
+An automation is an API key, not a member, so `all-members` and `role` never reach one. That is
+structural rather than a carve-out: there is no membership to match against. Grant an automation
+deliberately, with an `api-key` subject.
 
 A connection from someone who is not a member of the namespace is refused before policies are
 consulted at all.
@@ -88,9 +88,9 @@ matching allow requires it, at the shortest window. Without that, a broad grant 
 would shadow the narrow policy you wrote specifically to protect production.
 
 <Callout variant="warning">
-Service accounts never re-authenticate. Re-auth is an interactive step and there is no
-human to complete it — demanding one would hang the connection. A service account's freshness
-comes from its key's lifecycle instead: expiry, and single use.
+An automation never re-authenticates. Re-auth is an interactive step and there is no human to
+complete it, so demanding one would hang the connection. Its freshness comes from the key's
+lifecycle instead: expiry, and single use.
 </Callout>
 
 ### `reauth_period`

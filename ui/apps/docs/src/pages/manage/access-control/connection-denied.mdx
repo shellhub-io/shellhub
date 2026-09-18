@@ -62,9 +62,9 @@ Work through it in this order:
 **Is there any allow for this principal at all?** A new member starts with nothing. Only the owner
 is covered by the starter policy. See [Members](/manage/team).
 
-**Is this a service account?** An `all-members` allow does **not** cover service accounts. They
-need a policy naming them. See
-[Service Accounts](/manage/access-control/service-accounts).
+**Is this an automation?** An `all-members` allow does **not** cover an API key, which is not a
+member. It needs a policy naming it. See
+[Automation Access](/manage/access-control/automation-access).
 
 **Does the filter cover this device?** A tag filter matches only devices actually carrying the
 tag; check the device has it.

@@ -220,8 +220,8 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/access-control/policy-reference",
           },
           {
-            label: "Service Accounts",
-            href: "/manage/access-control/service-accounts",
+            label: "Automation Access",
+            href: "/manage/access-control/automation-access",
           },
           {
             label: "Login Approvals",

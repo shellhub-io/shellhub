@@ -18,12 +18,9 @@ itself.
 | **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
 | **Owner** | Everything |
 
-There is also an internal **service** role, carried by
-[service accounts](/manage/access-control/service-accounts). It has no permissions and no
-authority — a service account exists to hold SSH identities and connect over SSH, not to
-administer anything. Its right to connect comes from its access policies rather than from the
-role, which is why the permission the other roles carry is not needed here. A service account
-cannot use the browser terminal.
+These are the roles a person holds. An automation holds none: it is an API key, and where it may
+reach over SSH comes from the policies naming it. See
+[automation access](/manage/access-control/automation-access).
 
 ## Roles do not grant device access
 
@@ -56,8 +53,9 @@ Now the role is doing both jobs: it says what somebody can do in the console, an
 policy — what they can reach. Adding a member as an operator grants both at once.
 
 <Callout variant="warning">
-A role subject matches by exact name, which means it never matches a service account.
-Grant those deliberately. See [Service Accounts](/manage/access-control/service-accounts).
+A role subject matches a member by role, so it never reaches an automation, which holds no
+membership at all. Grant those deliberately, by naming the API key. See
+[Automation Access](/manage/access-control/automation-access).
 </Callout>
 
 ## Choosing

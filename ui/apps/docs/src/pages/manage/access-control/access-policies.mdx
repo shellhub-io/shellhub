@@ -35,12 +35,12 @@ allow, however specific.
 | All members | Every member of the namespace |
 | Role | Everyone holding that role, so the grant follows the role rather than the person |
 | User | One person |
-| Service account | An automated system connecting on its own identity |
+| API key | An automation connecting on its own identity |
 
 <Callout variant="warning">
-**All members excludes service accounts.** A broad `all-members` allow will not sweep
-a service account in by accident. Grant one on purpose, with a user or role subject. A role
-subject already excludes them by exact match.
+**All members means members.** An automation is an API key, not a member, so a broad
+`all-members` allow never sweeps one in and neither does a role subject. Grant an automation on
+purpose, by naming its key.
 </Callout>
 
 **Devices** — which devices are covered:
@@ -86,7 +86,7 @@ deploys.
 | Operators to fleet | allow | Role: operator | tag `production` | `deploy` |
 | Contractor to lab | allow | User: contractor | tag `lab` | any |
 | No root anywhere | deny | All members | All devices | `root` |
-| Pipeline deploys | allow | Service account `ci-bot` | tag `production` | `deploy` |
+| Pipeline deploys | allow | API key `ci-deploy` | tag `production` | `deploy` |
 
 What this buys you:
 

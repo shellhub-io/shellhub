@@ -1,7 +1,7 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
 title: SSH Identities
-description: Bind SSH keys to a person or a service account, and revoke them in one place.
+description: Bind SSH keys to a person or an automation, and revoke them in one place.
 ---
 
 import Callout from "../../../components/Callout.astro";
@@ -9,7 +9,8 @@ import Shot from '../../../components/Shot.astro';
 
 # SSH Identities
 
-An SSH identity binds a public key to a principal — a person, or a service account. The key is
+An SSH identity binds a public key to a principal — a person, or an API key acting as an
+automation. The key is
 the credential; the identity is who it belongs to.
 
 Identities are scoped to a namespace. The same key can be an identity in more than one namespace,
@@ -54,8 +55,8 @@ step.
 When adding, you choose who it belongs to:
 
 - **Yourself** — another of your own identities. Name it for where it lives, like `laptop`.
-- **A new service account** — a non-human identity for an automated system, separate from you.
-  Name it for the system, like `ci-bot`.
+- **An API key** — an automation connects with it, separate from you. Pick the key, and name
+  the credential for the job, like `deploy`.
 
 Two things are rejected: a string that is not a valid public key, and a key that is already an
 identity in this namespace.
@@ -71,8 +72,8 @@ Two optional limits:
 
 **Expiry.** A key can carry an expiry, after which it stops being an identity. Nil means never.
 
-**Single use.** Only offered for a service account's key, whose one key serves one automated run.
-Once consumed, it is spent.
+**Single use.** Offered for an automation's key, where one key serves one run. Once consumed, it
+is spent.
 
 The console marks a key approaching its deadline or already spent, so a stale identity is visible
 in the list rather than discovered at connection time.
@@ -104,6 +105,6 @@ Worth knowing because they answer different questions:
 
 ## Where to go next
 
-- [Service Accounts](/manage/access-control/service-accounts) — Identities with no human behind them.
+- [Automation Access](/manage/access-control/automation-access) — Identities with no human behind them.
 - [Access Policies](/manage/access-control/access-policies) — Deciding what an identity reaches.
 - [Login Approvals](/manage/access-control/login-approvals) — The approve-once flow.
