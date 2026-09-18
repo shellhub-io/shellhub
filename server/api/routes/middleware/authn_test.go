@@ -40,6 +40,7 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 
 	bearer, err := jwttoken.EncodeUserClaims(
 		authorizer.UserClaims{ID: testUserID, TenantID: testTenant, Username: "john"},
+		"http://localhost",
 		privateKey,
 	)
 	require.NoError(t, err)
