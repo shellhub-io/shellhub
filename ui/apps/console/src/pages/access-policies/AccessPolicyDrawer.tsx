@@ -3,6 +3,7 @@ import {
   UsersIcon,
   UserIcon,
   CpuChipIcon,
+  KeyIcon,
   ShieldCheckIcon,
   TagIcon,
   CommandLineIcon,
@@ -26,6 +27,7 @@ import {
   roleSubjectCount as countRoleSubject,
 } from "./subjectCount";
 import { useServiceAccounts } from "@/hooks/useServiceAccounts";
+import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTags } from "@/hooks/useTags";
 import {
   useCreateAccessPolicy,
@@ -38,7 +40,7 @@ import InputField from "@/components/common/fields/InputField";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 
-type SubjectType = "all-members" | "role" | "user" | "service-account";
+type SubjectType = "all-members" | "role" | "user" | "api-key" | "service-account";
 type FilterOption = "all" | "tags";
 
 const ANY_LOGIN = ["*"];
@@ -369,6 +371,7 @@ function AccessPolicyDrawer({
       !!m.id && !!m.role && !!m.email && String(m.role) !== SERVICE_ROLE,
   );
   const { serviceAccounts } = useServiceAccounts();
+  const { apiKeys } = useApiKeys({ perPage: 100 });
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members, serviceAccounts });
 
@@ -378,6 +381,7 @@ function AccessPolicyDrawer({
   const [roleValue, setRoleValue] = useState<string>("administrator");
   const [userValue, setUserValue] = useState<string>("");
   const [saValue, setSaValue] = useState<string>("");
+  const [apiKeyValue, setApiKeyValue] = useState<string>("");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [logins, setLogins] = useState<string[]>(ANY_LOGIN);
@@ -389,7 +393,7 @@ function AccessPolicyDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [whoTab, setWhoTab] = useState<"role" | "user" | "service-account">(
+  const [whoTab, setWhoTab] = useState<"role" | "user" | "api-key" | "service-account">(
     "role",
   );
   const [devTab, setDevTab] = useState<FilterOption>("all");
@@ -404,11 +408,14 @@ function AccessPolicyDrawer({
 
     const subjInit: SubjectType = editIsServiceAccount
       ? "service-account"
-      : (editPolicy?.subject.type ?? "all-members");
+      : ((editPolicy?.subject.type as SubjectType | undefined) ?? "all-members");
 
     setName(editPolicy?.name ?? "");
     setAction(editPolicy?.action ?? "allow");
     setSubjectType(subjInit);
+    setApiKeyValue(
+      editPolicy?.subject.type === "api-key" ? editValue : "",
+    );
     setRoleValue(
       editPolicy?.subject.type === "role"
         ? editPolicy.subject.value
@@ -443,6 +450,8 @@ function AccessPolicyDrawer({
     if (subjectType === "user") return { type: "user", value: userValue };
     if (subjectType === "service-account")
       return { type: "user", value: saValue };
+    if (subjectType === "api-key")
+      return { type: "api-key", value: apiKeyValue };
     return { type: "all-members", value: "" };
   };
   const buildFilter = (): AccessPolicyRequest["filter"] => {
@@ -450,12 +459,16 @@ function AccessPolicyDrawer({
       return { tags: selectedTags };
     return {};
   };
-  const reauthApplies = subjectType !== "service-account";
+  // An automation has no browser, so asking it to re-authenticate would only hang the
+  // connection. The server suppresses it either way; the form does not offer it.
+  const reauthApplies =
+    subjectType !== "service-account" && subjectType !== "api-key";
 
   const confirmDisabled =
     !name.trim() ||
     (subjectType === "user" && !userValue) ||
     (subjectType === "service-account" && !saValue) ||
+    (subjectType === "api-key" && !apiKeyValue) ||
     (filterOption === "tags" &&
       (selectedTags.length === 0 || selectedTags.length > 3)) ||
     logins.length === 0 ||
@@ -463,6 +476,7 @@ function AccessPolicyDrawer({
 
   const memberById = (id: string) => members.find((m) => m.id === id);
   const saById = (id: string) => serviceAccounts.find((s) => s.id === id);
+  const apiKeyById = (id: string) => apiKeys.find((k) => k.id === id);
 
   const subjectLabel = (): string => {
     if (subjectType === "role") return `the ${roleValue} role`;
@@ -470,6 +484,8 @@ function AccessPolicyDrawer({
       return memberById(userValue)?.email ?? "a member";
     if (subjectType === "service-account")
       return saById(saValue)?.name ?? "a service account";
+    if (subjectType === "api-key")
+      return apiKeyById(apiKeyValue)?.name ?? "an API key";
     return "all members";
   };
   const deviceLabel = (): string => {
@@ -534,6 +550,10 @@ function AccessPolicyDrawer({
     ) : subjectType === "service-account" ? (
       <Pill icon={<CpuChipIcon className="w-3.5 h-3.5" />}>
         {saById(saValue)?.name ?? "select…"}
+      </Pill>
+    ) : subjectType === "api-key" ? (
+      <Pill icon={<KeyIcon className="w-3.5 h-3.5" />}>
+        {apiKeyById(apiKeyValue)?.name ?? "select…"}
       </Pill>
     ) : userValue ? (
       <Pill icon={<UserIcon className="w-3.5 h-3.5" />}>
@@ -672,6 +692,13 @@ function AccessPolicyDrawer({
                   </button>
                   <button
                     type="button"
+                    className={TABBTN(whoTab === "api-key")}
+                    onClick={() => setWhoTab("api-key")}
+                  >
+                    API keys
+                  </button>
+                  <button
+                    type="button"
                     className={TABBTN(whoTab === "service-account")}
                     onClick={() => setWhoTab("service-account")}
                   >
@@ -712,6 +739,29 @@ function AccessPolicyDrawer({
                           close();
                         }}
                       />
+                    ))}
+                  {whoTab === "api-key" &&
+                    (apiKeys.length ? (
+                      apiKeys.map((key) => (
+                        <Row
+                          key={key.id}
+                          icon={<KeyIcon className="w-4 h-4" />}
+                          label={key.name}
+                          sub="API key"
+                          selected={
+                            subjectType === "api-key" && apiKeyValue === key.id
+                          }
+                          onClick={() => {
+                            setSubjectType("api-key");
+                            setApiKeyValue(key.id);
+                            close();
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <p className="px-2 py-3 text-xs text-text-muted">
+                        No API keys yet.
+                      </p>
                     ))}
                   {whoTab === "service-account" &&
                     (serviceAccounts.length ? (
