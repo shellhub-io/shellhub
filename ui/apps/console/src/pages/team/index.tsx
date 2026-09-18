@@ -2,27 +2,18 @@ import { useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
-import { useHasPermission } from "@/hooks/useHasPermission";
 import PageHeader from "@/components/common/PageHeader";
 import MembersTab from "./MembersTab";
 import ApiKeysTab from "./ApiKeysTab";
-import ServiceAccountsTab from "./ServiceAccountsTab";
 
-/**
- * The team page: members, API keys and service accounts. The service accounts tab is only shown
- * to a role that may see them.
- */
+/** The team page: members and API keys. */
 export default function Team() {
   const [tab, setTab] = useState("members");
   const tenant = useAuthStore((s) => s.tenant);
-  const canViewServiceAccounts = useHasPermission("serviceAccount:view");
 
   const tabs = [
     { label: "Members", value: "members" },
     { label: "API Keys", value: "api-keys" },
-    ...(canViewServiceAccounts
-      ? [{ label: "Service Accounts", value: "service-accounts" }]
-      : []),
   ];
 
   return (
@@ -56,9 +47,6 @@ export default function Team() {
       {/* Tab content */}
       {tab === "members" && tenant && <MembersTab tenantId={tenant} />}
       {tab === "api-keys" && <ApiKeysTab />}
-      {tab === "service-accounts" && canViewServiceAccounts && (
-        <ServiceAccountsTab />
-      )}
     </div>
   );
 }

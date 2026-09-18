@@ -4,14 +4,13 @@ import { cn } from "@shellhub/design-system/cn";
 import KeyExpiryField from "@/components/common/KeyExpiryField";
 
 /**
- * The service-account key lifecycle controls, shared by the two places a
- * service account is created. Expiration is the same field a person's key
- * gets; single-use is the part that stays service-account only, because on a
- * person's key it would lock them out after one login.
+ * The lifecycle controls an automation's key carries. Expiration is the same field a person's
+ * key gets; single-use is the part that stays automation-only, because on a person's key it
+ * would lock them out after one login.
  *
  * expiresIn is an EXPIRY_OPTIONS value as a string ("-1" = never).
  */
-export default function ServiceAccountLifecycleFields({
+export default function IdentityLifecycleFields({
   expiresIn,
   onExpiresInChange,
   singleUse,

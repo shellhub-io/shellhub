@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   sshIdentityStatus,
   sshIdentityEndOfLife,
-  serviceAccountLifecyclePayload,
+  identityLifecyclePayload,
   sshIdentitySource,
   shortFingerprint,
   isAlreadyEnrolled,
@@ -64,15 +64,15 @@ describe("sshIdentityStatus", () => {
   });
 });
 
-describe("serviceAccountLifecyclePayload", () => {
+describe("identityLifecyclePayload", () => {
   it("omits expires_in when the selection is never (-1)", () => {
-    expect(serviceAccountLifecyclePayload("-1", true)).toEqual({
+    expect(identityLifecyclePayload("-1", true)).toEqual({
       single_use: true,
     });
   });
 
   it("sends a positive selection as expires_in days", () => {
-    expect(serviceAccountLifecyclePayload("30", false)).toEqual({
+    expect(identityLifecyclePayload("30", false)).toEqual({
       single_use: false,
       expires_in: 30,
     });
