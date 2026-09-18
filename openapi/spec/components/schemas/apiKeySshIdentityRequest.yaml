@@ -1,0 +1,31 @@
+description: |
+  SSH identity enrollment payload for a key that an API key owns, which is how an
+  automation is given a way to reach a device.
+type: object
+properties:
+  name:
+    description: User-supplied label for the key.
+    type: string
+    example: deploy
+  data:
+    description: |
+      The SSH public key to enroll, in OpenSSH `authorized_keys` format.
+    type: string
+    example: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqk ci@pipeline
+  expires_in:
+    description: |
+      How many days the key should keep working. Omit it for a key that never
+      expires. The gateway refuses a login whose key has expired.
+    type: integer
+    minimum: 1
+    example: 30
+  single_use:
+    description: |
+      Burn the identity once a session has been established with it. This is what a
+      one-shot job wants: upload a key, connect, and leave nothing reusable behind.
+    type: boolean
+    default: false
+    example: true
+required:
+  - name
+  - data

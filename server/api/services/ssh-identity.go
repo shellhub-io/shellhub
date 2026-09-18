@@ -65,6 +65,12 @@ type SSHIdentityService interface {
 	// caller and returns the stored identity.
 	CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error)
 
+	// CreateAPIKeySSHIdentity enrolls a pasted OpenSSH public key that an API key owns,
+	// naming the key by name and storing the identity against its id. It returns
+	// ErrAPIKeyNotFound when no key in the namespace carries that name, and
+	// ErrSSHIdentityDuplicated when the fingerprint is already enrolled there.
+	CreateAPIKeySSHIdentity(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error)
+
 	// RenameSSHIdentity renames one of the caller's own identities.
 	RenameSSHIdentity(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)
 
@@ -207,6 +213,35 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		Name:        req.Name,
 		Source:      req.Source,
 		ExpiresAt:   sshIdentityExpiry(req.ExpiresIn),
+	})
+}
+
+func (s *service) CreateAPIKeySSHIdentity(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.KeyName)
+	if err != nil {
+		return nil, NewErrAPIKeyNotFound(req.KeyName, err)
+	}
+
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(req.Data)) //nolint:dogsled
+	if err != nil {
+		return nil, NewErrSSHIdentityInvalid(req.Data, err)
+	}
+
+	return s.enrollSSHIdentity(ctx, &models.SSHIdentity{
+		TenantID:      req.TenantID,
+		PrincipalID:   apiKey.ID,
+		PrincipalType: models.PrincipalAPIKey,
+		Fingerprint:   ssh.FingerprintSHA256(pubKey),
+		Data:          ssh.MarshalAuthorizedKey(pubKey),
+		Name:          req.Name,
+		Source:        models.SSHIdentitySourceManual,
+		ExpiresAt:     sshIdentityExpiry(req.ExpiresIn),
+		SingleUse:     req.SingleUse,
 	})
 }
 

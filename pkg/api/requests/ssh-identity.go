@@ -30,6 +30,25 @@ type SSHIdentityCreate struct {
 	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1"`
 }
 
+// APIKeySSHIdentityCreate is the request data for enrolling an SSH public key that an API key
+// owns rather than a person. The key is addressed by name, which is the published convention
+// for its routes; the identity is stored against the key's id, so a later rename does not move
+// what the key owns.
+type APIKeySSHIdentityCreate struct {
+	// KeyName is the API key the identity belongs to.
+	KeyName  string `param:"name" validate:"required"`
+	TenantID string `json:"-"`
+	Name     string `json:"name" validate:""`
+	// Data is the OpenSSH public key to enroll.
+	Data string `json:"data" validate:"required"`
+	// ExpiresIn is how many days the key should keep working, omitted for a key that never
+	// expires.
+	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1"`
+	// SingleUse burns the identity once a session has been established with it, which is what
+	// a one-shot job wants: upload a key, connect, and leave nothing reusable behind.
+	SingleUse bool `json:"single_use"`
+}
+
 // SSHIdentityIDParam represents an SSH identity id as a path param.
 type SSHIdentityIDParam struct {
 	ID string `param:"id" validate:"required"`

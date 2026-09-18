@@ -1,0 +1,53 @@
+post:
+  operationId: createApiKeySshIdentity
+  summary: Enroll an SSH identity for an API key
+  description: |
+    Enroll an SSH public key that an API key owns, so an automation can reach a device
+    over SSH. Where it may connect is decided by access policies naming the key; this
+    only gives it a credential.
+
+    Requires the `SSHIdentityManage` permission. `SSHIdentityAdd`, which every role
+    holds, is about the caller's own key and is not enough to open a door for something
+    else.
+
+    The key is named in the path, and the identity is stored against the key's id, so
+    renaming the key afterwards does not move what it owns. Revoking the key removes
+    the identities it enrolled.
+  tags:
+    - community
+    - api-keys
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: name
+      schema:
+        type: string
+        description: The API key name.
+        example: ci-deploy
+      required: true
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/apiKeySshIdentityRequest.yaml
+  responses:
+    '200':
+      description: Success to enroll an SSH identity for the API key.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/sshIdentity.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1158,6 +1158,74 @@ func (_c *MockService_CreateAPIKey_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// CreateAPIKeySSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) CreateAPIKeySSHIdentity(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAPIKeySSHIdentity")
+	}
+
+	var r0 *models.SSHIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.APIKeySSHIdentityCreate) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.APIKeySSHIdentityCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateAPIKeySSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAPIKeySSHIdentity'
+type MockService_CreateAPIKeySSHIdentity_Call struct {
+	*mock.Call
+}
+
+// CreateAPIKeySSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.APIKeySSHIdentityCreate
+func (_e *MockService_Expecter) CreateAPIKeySSHIdentity(ctx any, req any) *MockService_CreateAPIKeySSHIdentity_Call {
+	return &MockService_CreateAPIKeySSHIdentity_Call{Call: _e.mock.On("CreateAPIKeySSHIdentity", ctx, req)}
+}
+
+func (_c *MockService_CreateAPIKeySSHIdentity_Call) Run(run func(ctx context.Context, req *requests.APIKeySSHIdentityCreate)) *MockService_CreateAPIKeySSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.APIKeySSHIdentityCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.APIKeySSHIdentityCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateAPIKeySSHIdentity_Call) Return(sSHIdentity *models.SSHIdentity, err error) *MockService_CreateAPIKeySSHIdentity_Call {
+	_c.Call.Return(sSHIdentity, err)
+	return _c
+}
+
+func (_c *MockService_CreateAPIKeySSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.APIKeySSHIdentityCreate) (*models.SSHIdentity, error)) *MockService_CreateAPIKeySSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccessPolicy provides a mock function for the type MockService
 func (_mock *MockService) CreateAccessPolicy(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error) {
 	ret := _mock.Called(ctx, req)

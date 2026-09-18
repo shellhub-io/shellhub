@@ -16,6 +16,8 @@ const (
 	ListAPIKeysURL  = "/namespaces/api-key"
 	UpdateAPIKeyURL = "/namespaces/api-key/:name"
 	DeleteAPIKeyURL = "/namespaces/api-key/:name"
+
+	CreateAPIKeySSHIdentityURL = "/namespaces/api-key/:name/ssh-identities"
 )
 
 // CreateAPIKey mints a key for the caller's namespace and returns its plaintext, which is the
@@ -111,4 +113,30 @@ func (h *Handler) DeleteAPIKey(c *gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+// CreateAPIKeySSHIdentity enrolls an SSH public key an API key owns, which is how an automation
+// is given a way to reach a device. The route is gated by SSHIdentityManage rather than
+// SSHIdentityAdd: adding is about one's own key, and this adds one to something else.
+func (h *Handler) CreateAPIKeySSHIdentity(c *gateway.Context) error {
+	req := new(requests.APIKeySSHIdentityCreate)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
+	identity, err := h.service.CreateAPIKeySSHIdentity(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, identity)
 }
