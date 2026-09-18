@@ -3,10 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSdkResponse } from "@/tests/sdk";
-import {
-  mockAccessPolicy,
-  mockNamespace,
-} from "@/tests/factories";
+import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
@@ -66,13 +63,13 @@ describe("AccessPolicies", () => {
     expect(await screen.findByTestId("policy-drawer")).toBeInTheDocument();
   });
 
-  it("counts the members a role=observer subject matches", async () => {
+  it("counts the members a role subject matches", async () => {
     sdk.getNamespace.mockResolvedValue(
       mockSdkResponse(
         mockNamespace({
           members: [
-            { id: "u1", role: "observer", email: "a@test.com" },
-            { id: "u2", role: "observer", email: "b@test.com" },
+            { id: "u1", role: "operator", email: "a@test.com" },
+            { id: "u2", role: "operator", email: "b@test.com" },
             { id: "u3", role: "owner", email: "c@test.com" },
           ],
         }),
@@ -82,13 +79,15 @@ describe("AccessPolicies", () => {
     renderList([
       mockAccessPolicy({
         id: "p2",
-        name: "watchers",
-        subject: { type: "role", value: "observer" },
+        name: "ops access",
+        subject: { type: "role", value: "operator" },
       }),
     ]);
 
-    const row = await screen.findByRole("row", { name: /watchers/ });
+    const row = await screen.findByRole("row", { name: /ops access/ });
 
-    expect(within(row).getByText(/^observer/)).toHaveTextContent(/observer\D*2/);
+    expect(within(row).getByText(/^operator/)).toHaveTextContent(
+      /operator\D*2/,
+    );
   });
 });
