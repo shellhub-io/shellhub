@@ -26,25 +26,31 @@ OpenSSH client.
 This is the approve-once model. The alternative — approving every login — is what
 `require_reauth` is for, and it is off by default.
 
-The server answers in the terminal, as an SSH banner mid-handshake — which is how it reaches a
-stock client with nothing installed:
+The server asks in the terminal, as a keyboard-interactive prompt, which is how it reaches a
+stock client with nothing installed, including one run with `-q`:
 
 ```
   ShellHub doesn't know this SSH key yet.
 
-  Open the link to add it to your identities. This login
-  continues once you do:
+  Open the link to add it to your identities:
 
     https://cloud.shellhub.io/ssh-identities/new/2TV899JA
 
   Security code:  2TV8 99JA
   Key:            SHA256:2Ur4mPvXqE9V78JBIR26G4zpPW0IWs9ci690kNbQ
 
-  Waiting...
+  The console gives you a confirmation code once you add it.
+
+Confirmation code:
 ```
 
-There is nothing to type. Open the link, approve, and the handshake finishes into an ordinary
-session.
+Open the link and approve. The console then shows a confirmation code; type it at the prompt and
+the handshake finishes into an ordinary session.
+
+The code is what proves you reached the console, which following a link does not. It is also why
+a client with nobody in front of it (a CI job, a script, anything using an SSH library) is
+refused straight away instead of hanging: it has no way to answer, and the server does not wait
+for an answer that is not coming.
 
 <Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
 
@@ -58,10 +64,11 @@ link, printed in pairs so it can be read aloud; the fingerprint is the key that 
 Both appear again in the browser, and they are what tells you the page you are approving belongs
 to the connection in front of you rather than to somebody else's attempt at the same moment.
 
-**The login is held for 90 seconds.** Miss it and the connection fails; connect again and a fresh
-link appears. Three logins from one address may wait at a time, and 256 across the server — beyond
-that a connection is refused rather than parked, so opening a handful of terminals at once is fine
-and something scripted against this path is not.
+**The approval is valid for 90 seconds.** Miss it and the connection fails; connect again and a
+fresh link appears. What waits is the prompt in your own terminal, so a client that cannot answer
+one is refused rather than parked, and no connection to the device is opened until the login is
+through. The connection you are logging in from is held until you answer, for at most three
+minutes.
 
 Rejecting refuses the connection and binds nothing.
 
