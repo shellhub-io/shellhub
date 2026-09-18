@@ -48,7 +48,9 @@ func ApprovalChallenge(ctx gliderssh.Context, offer offerFunc) challengeFunc {
 
 		kind, ok := sess.Challenged()
 		if !ok {
-			return nil, session.ErrAccessDenied
+			logger.Info("a connection with no key to approve reached the challenge")
+
+			return nil, deny(challenge, sess.NoKeyReason())
 		}
 
 		for attempt := range maxChallengeAnswers {
@@ -94,7 +96,7 @@ func ApprovalChallenge(ctx gliderssh.Context, offer offerFunc) challengeFunc {
 // When next is given, the refusal hands the remaining authentication methods
 // back to the client instead of ending the conversation.
 func deny(challenge gossh.KeyboardInteractiveChallenge, reason string, next ...offerFunc) error {
-	_, _ = challenge(challengeName, "", []string{reason + "\r\nPress Enter to disconnect. "}, []bool{true})
+	_, _ = challenge(challengeName, reason, []string{""}, []bool{false})
 
 	if len(next) > 0 && next[0] != nil {
 		return &gossh.PartialSuccessError{

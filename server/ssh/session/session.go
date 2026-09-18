@@ -779,6 +779,20 @@ func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
 	return approver, nil
 }
 
+// NoKeyReason is what a person sees when they reach the gateway with no SSH key
+// at all, in a namespace that signs people in by key.
+func (s *Session) NoKeyReason() string {
+	return strings.Join([]string{
+		"",
+		"  This namespace signs you in by SSH key, and your client offered none.",
+		"",
+		"  Add one to your identities, then connect again:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities"),
+		"",
+	}, "\r\n")
+}
+
 // EnrollInstruction is what a person sees when the key they presented is not
 // enrolled yet.
 func (s *Session) EnrollInstruction() string {

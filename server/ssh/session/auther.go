@@ -279,9 +279,6 @@ func (a *identityAuth) Evaluate(session *Session) error {
 	dec, err := session.authorize(a.ctx)
 	if err != nil {
 		if session.Web {
-			// The bridge reads this to tell the browser it was the policy that
-			// refused, and not a bad key. It is the connection-level banner the
-			// server already sends for such failures, not the approval channel.
 			sendBanner(a.ctx, banner.Message(banner.KindAccessDenied))
 		}
 
