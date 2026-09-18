@@ -181,6 +181,44 @@ func TestResolveKeyAuth(t *testing.T) {
 		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
 	})
+
+	t.Run("an unenrolled key does not inherit the identity of a key offered before it", func(t *testing.T) {
+		otherKey := newTestSSHKey(t)
+		otherFingerprint := gossh.FingerprintSHA256(otherKey)
+		lastReauthAt := clock.Now()
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(&models.SSHIdentity{ //nolint:exhaustruct
+				PrincipalID:   "user1",
+				PrincipalType: models.PrincipalUser,
+				LastReauthAt:  &lastReauthAt,
+				SingleUse:     true,
+			}, true, nil).
+			Once()
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", otherFingerprint).
+			Return(nil, false, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		ctx := newStubContext()
+
+		_, err := sess.ResolveKeyAuth(ctx, pubKey)
+		require.NoError(t, err)
+		require.Equal(t, "user1", sess.UserID)
+
+		auth, err := sess.ResolveKeyAuth(ctx, otherKey)
+		require.NoError(t, err)
+		assert.IsType(t, &approvalAuth{}, auth)
+
+		assert.Empty(t, sess.UserID, "the approver alone decides who an unenrolled key logs in as")
+		assert.Empty(t, sess.PrincipalKind)
+		assert.Nil(t, sess.LastReauthAt)
+		assert.False(t, sess.SingleUse, "burning the previous key's single-use identity would be wrong")
+		assert.Equal(t, otherFingerprint, sess.Fingerprint)
+	})
 }
 
 func captureLogs(t *testing.T) *test.Hook {
