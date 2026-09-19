@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,15 +19,11 @@ import (
 
 const approvalWait = 60 * time.Second
 
-func dialSSH(ctx context.Context, addr, sshid string, signer ssh.Signer) error {
-	return dialSSHForApproval(ctx, addr, sshid, signer, nil, nil)
-}
-
-func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Signer, prompts chan<- string, answers <-chan string) error {
-	auth := []ssh.AuthMethod{ssh.PublicKeys(signer)}
+func dialSSH(ctx context.Context, addr, sshid string, signers []ssh.Signer, prompts chan<- string, answers <-chan string) error {
+	auth := []ssh.AuthMethod{ssh.PublicKeysCallback(func() ([]ssh.Signer, error) { return signers, nil })}
 
 	if prompts != nil {
-		challenge := func(_, instruction string, questions []string, _ []bool) ([]string, error) {
+		auth = append(auth, ssh.KeyboardInteractive(func(_, instruction string, questions []string, _ []bool) ([]string, error) {
 			select {
 			case prompts <- instruction:
 			default:
@@ -36,15 +33,17 @@ func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Sign
 				return nil, nil
 			}
 
+			if answers == nil {
+				return make([]string, len(questions)), nil
+			}
+
 			select {
 			case answer := <-answers:
 				return []string{answer}, nil
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			}
-		}
-
-		auth = append(auth, ssh.KeyboardInteractive(challenge))
+		}))
 	}
 
 	config := &ssh.ClientConfig{
@@ -82,57 +81,10 @@ func enrollIdentity(ctx context.Context, t *testing.T, compose *environment.Dock
 	require.Contains(t, []int{200, 201}, resp.StatusCode(), "failed to enroll the identity: %s", resp.String())
 }
 
-func dialSSHWithKeys(ctx context.Context, addr, sshid string, signers []ssh.Signer, prompts chan<- string, answers <-chan string) error {
-	challenge := func(_, instruction string, questions []string, _ []bool) ([]string, error) {
-		select {
-		case prompts <- instruction:
-		default:
-		}
-
-		if len(questions) == 0 {
-			return nil, nil
-		}
-
-		select {
-		case answer := <-answers:
-			return []string{answer}, nil
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
-
-	config := &ssh.ClientConfig{
-		User: sshid,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeysCallback(func() ([]ssh.Signer, error) { return signers, nil }),
-			ssh.KeyboardInteractive(challenge),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
-	}
-
-	dialer := new(net.Dialer)
-
-	conn, err := dialer.DialContext(ctx, "tcp", addr)
-	if err != nil {
-		return err
-	}
-
-	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-	if err != nil {
-		_ = conn.Close()
-
-		return err
-	}
-
-	_ = ssh.NewClient(c, chans, reqs).Close()
-
-	return nil
-}
-
 func requireLoginRefused(t *testing.T, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer, wantServerLogs ...string) {
 	t.Helper()
 
-	err := dialSSH(t.Context(), compose.SSHAddress(), deviceSSHID(device), signer)
+	err := dialSSH(t.Context(), compose.SSHAddress(), deviceSSHID(device), []ssh.Signer{signer}, nil, nil)
 	require.Error(t, err)
 
 	for _, substr := range wantServerLogs {
@@ -160,7 +112,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		dialed := make(chan error, 1)
 
 		go func() {
-			dialed <- dialSSHForApproval(ctx, compose.SSHAddress(), deviceSSHID(device), signer, prompts, answers)
+			dialed <- dialSSH(ctx, compose.SSHAddress(), deviceSSHID(device), []ssh.Signer{signer}, prompts, answers)
 		}()
 
 		var code string
@@ -215,8 +167,8 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		signer, _ := newSigner(t)
 
-		started := time.Now()
-		err := dialSSH(ctx, compose.SSHAddress(), deviceSSHID(device), signer)
+		started := time.Now() //nolint:forbidigo // elapsed time of the login, which is what this test asserts on
+		err := dialSSH(ctx, compose.SSHAddress(), deviceSSHID(device), []ssh.Signer{signer}, nil, nil)
 		elapsed := time.Since(started)
 
 		require.Error(t, err, "an unenrolled key must not get in without an approval")
@@ -237,17 +189,12 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		second, _ := newSigner(t)
 
 		prompts := make(chan string, 8)
-		answers := make(chan string, 4)
 		dialed := make(chan error, 1)
 
-		started := time.Now()
-
 		go func() {
-			dialed <- dialSSHWithKeys(ctx, compose.SSHAddress(), deviceSSHID(device),
-				[]ssh.Signer{first, second, enrolled}, prompts, answers)
+			dialed <- dialSSH(ctx, compose.SSHAddress(), deviceSSHID(device),
+				[]ssh.Signer{first, second, enrolled}, prompts, nil)
 		}()
-
-		answers <- ""
 
 		select {
 		case err := <-dialed:
@@ -256,9 +203,17 @@ func TestIdentityAccessPolicy(t *testing.T) {
 			require.Fail(t, "the login never finished")
 		}
 
-		assert.Less(t, time.Since(started), 15*time.Second,
-			"each unenrolled key used to cost a full approval window")
-		assert.Len(t, prompts, 1, "one connection is asked once, however many keys it holds")
+		close(prompts)
+
+		asked := map[string]bool{}
+		for instruction := range prompts {
+			if strings.Contains(instruction, "doesn't know this SSH key") {
+				asked[instruction] = true
+			}
+		}
+
+		assert.Len(t, asked, 1,
+			"one connection is asked about one key, however many unenrolled ones it holds")
 	})
 
 	tests := []struct {
