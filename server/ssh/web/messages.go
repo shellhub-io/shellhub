@@ -9,9 +9,6 @@ const (
 	messageKindError
 	messageKindSession
 	messageKindReauth
-	// messageKindReauthDone carries the browser's answer to an approval: the
-	// confirmation code the console showed, or empty when the person dismissed
-	// the dialog. It is the only inbound kind the bridge waits on mid-handshake.
 	messageKindReauthDone
 )
 

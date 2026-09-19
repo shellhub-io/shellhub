@@ -42,10 +42,6 @@ async function decided(decision: "confirm" | "reject") {
   return { result, returned };
 }
 
-// The value decide returns is not a detail of this hook: SSHApproval passes it to
-// onDecided, TerminalInstance puts it straight on the wire as REAUTH_DONE, and the
-// gateway reads an empty answer as a dismissal that ends the login rather than one
-// worth asking about again. The three outcomes have to stay distinguishable.
 describe("useSSHApproval decide", () => {
   it("hands back the confirmation code so the terminal can be answered with it", async () => {
     sdk.confirmSshApproval.mockResolvedValue(

@@ -63,11 +63,7 @@ var keepAlive = net.KeepAliveConfig{
 	Count:    9,
 }
 
-// handshakeBudget bounds the whole pre-auth phase, which now includes a person
-// reading a prompt, walking to the console and typing a code back. It is a wall
-// clock deadline set at accept and never extended, so it has to cover the slow
-// human as well as the handshake itself.
-const handshakeBudget = 3 * time.Minute
+const handshakeBudget = services.SSHApprovalTTL + 90*time.Second
 
 // Server is the public SSH endpoint. Clients connect to it; it reaches their devices through
 // the reverse tunnels held by dialer.

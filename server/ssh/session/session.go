@@ -155,21 +155,14 @@ type Session struct {
 
 	seats seats
 
-	// challenge is the approval this connection is parked on. It is set at most
-	// once per connection, so a client offering several unenrolled keys is asked
-	// about one of them and refused the rest without being prompted again.
 	challenge *challenge
 
 	Data
 }
 
-// challenge carries an approval from the stage that opened it to the stage that
-// answers it. The Auth is held rather than resolved again because the answering
-// stage has no key to resolve from.
 type challenge struct {
-	auth     Auth
-	kind     models.SSHApprovalKind
-	attempts int
+	auth Auth
+	kind models.SSHApprovalKind
 }
 
 // Seat represent a passenger in a session.
@@ -743,7 +736,7 @@ func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSH
 		return err
 	}
 
-	s.challenge = &challenge{auth: auth, kind: kind, attempts: 0}
+	s.challenge = &challenge{auth: auth, kind: kind}
 
 	return nil
 }
@@ -760,23 +753,16 @@ func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
 		return "", ErrAccessDenied
 	}
 
-	s.challenge.attempts++
-
-	approver, err := s.approvalDecision(ctx)
+	status, err := s.approvalDecision(ctx)
 	if err != nil {
 		return "", err
-	}
-
-	status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{Code: s.ApprovalCode, Wait: false})
-	if err != nil {
-		return "", ErrApprovalExpired
 	}
 
 	if status.ConfirmationCode == "" || pairingcode.Normalize(answer) != status.ConfirmationCode {
 		return "", ErrConfirmationMismatch
 	}
 
-	return approver, nil
+	return status.UserID, nil
 }
 
 // NoKeyReason is what a person sees when they reach the gateway with no SSH key
