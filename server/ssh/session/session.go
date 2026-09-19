@@ -1,9 +1,11 @@
 package session
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -561,13 +563,24 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
-	conn, chans, reqs, err := gossh.NewClientConn(s.agent.conn, Addr, config)
+	greeted, err := awaitAgentGreeting(s.agent.conn)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Error("Error when trying to hear the agent out before the handshake")
+
+		s.dropAgentConn()
+
+		return err
+	}
+
+	conn, chans, reqs, err := gossh.NewClientConn(greeted, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
-		s.agent.conn = nil
+		s.dropAgentConn()
 
 		return err
 	}
@@ -635,6 +648,39 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 // dial procedure for, which happens when an agent is newer than the server.
 var ErrDialUnknown = errors.New("unknown protocol version")
 
+func (s *Session) dropAgentConn() {
+	if s.agent.conn == nil {
+		return
+	}
+
+	if err := s.agent.conn.Close(); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Debug("failed to close the tunnel stream of a handshake that did not finish")
+	}
+
+	s.agent.conn = nil
+}
+
+func awaitAgentGreeting(conn net.Conn) (net.Conn, error) { //nolint:ireturn // net.Conn is what the handshake takes
+	var greeting [1]byte
+
+	if _, err := io.ReadFull(conn, greeting[:]); err != nil {
+		return nil, err
+	}
+
+	return &greetedConn{Conn: conn, rest: io.MultiReader(bytes.NewReader(greeting[:]), conn)}, nil
+}
+
+type greetedConn struct {
+	net.Conn
+	rest io.Reader
+}
+
+func (c *greetedConn) Read(p []byte) (int, error) {
+	return c.rest.Read(p)
+}
+
 // Online reports whether the device has sent a heartbeat recently enough to be
 // worth connecting to. It reads the flag the device lookup already computed, so
 // it costs nothing and opens no tunnel, and it is a filter rather than a
@@ -648,8 +694,11 @@ func (s *Session) Online() bool {
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
 // V2 transports a multistream protocol selection is performed using the
 // ProtoSSHOpen identifier followed by a JSON envelope with the session
-// id. After this method returns s.agent.conn is a raw channel ready for
-// SSH key exchange and channel opens.
+// id. After this method returns s.agent.conn is the raw stream, and not yet
+// ready to be written to: the device has still to be heard from first, which
+// connect does, because a version line written before the device has read the
+// stream's header is taken into its header reader and never reaches its SSH
+// server.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
