@@ -121,8 +121,8 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			return banner.Message(banner.KindConnectionFailed)
 		}
 
-		if err := sess.Dial(ctx); err != nil {
-			logger.WithError(err).Error("destination device is offline or cannot be reached")
+		if !sess.Online() {
+			logger.Error("destination device is offline or cannot be reached")
 
 			return banner.Message(banner.KindConnectionFailed)
 		}

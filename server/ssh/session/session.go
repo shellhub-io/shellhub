@@ -157,6 +157,8 @@ type Session struct {
 
 	challenge *challenge
 
+	registered bool
+
 	Data
 }
 
@@ -487,6 +489,8 @@ func (s *Session) register(ctx context.Context) error {
 		return err
 	}
 
+	s.registered = true
+
 	return nil
 }
 
@@ -631,6 +635,15 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 // dial procedure for, which happens when an agent is newer than the server.
 var ErrDialUnknown = errors.New("unknown protocol version")
 
+// Online reports whether the device has sent a heartbeat recently enough to be
+// worth connecting to. It reads the flag the device lookup already computed, so
+// it costs nothing and opens no tunnel, and it is a filter rather than a
+// guarantee: a device that stopped answering within the heartbeat window still
+// reads online here and fails later, when the session actually dials it.
+func (s *Session) Online() bool {
+	return s.Device != nil && s.Device.Online
+}
+
 // Dial establishes the underlying transport to the target device. For V1
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
 // V2 transports a multistream protocol selection is performed using the
@@ -667,8 +680,8 @@ func (s *Session) checkLicense(ctx context.Context) error {
 }
 
 // Evaluate decides whether the session is allowed to proceed, applying the licence, the
-// firewall rules and the namespace's own restrictions. It runs after the device is dialled
-// and before the client is joined to it.
+// firewall rules and the namespace's own restrictions. It runs before the client has
+// authenticated, and needs no tunnel to the device.
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	if envs.IsEnterprise() {
 		if err := s.checkLicense(ctx); err != nil {
@@ -1077,6 +1090,8 @@ func (s *Session) closeOnAgent() {
 
 // Finish tears the session down: it stops the event stream, asks the device to close the
 // session over a connection dialled for that purpose, and deactivates the session on the API.
+// A login abandoned before it authenticated never registered and has nothing to deactivate,
+// so that step is skipped rather than reported as a failure.
 //
 // It runs once however many times it is called, and reports every failure to the log rather
 // than to the caller, because each teardown step is worth attempting whatever the one before
@@ -1097,10 +1112,12 @@ func (s *Session) Finish() error {
 			go s.closeOnAgent()
 		}
 
-		if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-				Error("Error when trying to finish the session")
+		if s.registered {
+			if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+					Error("Error when trying to finish the session")
+			}
 		}
 
 		log.WithFields(
