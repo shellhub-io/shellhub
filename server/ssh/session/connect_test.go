@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -80,4 +81,19 @@ func TestConnectReachesTheAgentThroughTheTunnel(t *testing.T) {
 	require.NoError(t, err, "the session must hold a usable SSH client after connect")
 
 	assert.NoError(t, channel.Close())
+}
+
+// TestConnectFailsWhenTheDeviceCannotBeDialled pins where an unreachable device is now
+// caught. The tunnel is opened here rather than before authentication, so this is the
+// only path that meets a device that went away.
+func TestConnectFailsWhenTheDeviceCannotBeDialled(t *testing.T) {
+	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
+
+	stub := &dialertest.Stub{Err: dialer.ErrNoConnection} //nolint:exhaustruct // the recording field starts empty and is appended to under the mutex
+	sess := newTestSession(nil, stub)
+
+	err := sess.connect(newStubContext(), noAuth)
+
+	require.ErrorIs(t, err, ErrDial, "a device that cannot be reached must fail the login")
+	assert.Nil(t, sess.agent.client, "a failed dial must leave no client behind")
 }

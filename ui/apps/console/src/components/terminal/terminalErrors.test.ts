@@ -210,4 +210,23 @@ describe("resolveError", () => {
       expect(link!.label).toBe("Access policies");
     });
   });
+  describe("a refusal the gateway explained", () => {
+    it("shows the gateway's reason instead of the generic failure", () => {
+      const result = resolveError(
+        "the login approval was refused: This login was rejected in the console.",
+        "uid-5",
+        true,
+      );
+
+      expect(result.title).toBe("Login not approved");
+      expect(result.message).toBe("This login was rejected in the console.");
+      expect(result.reconnect).toBe(true);
+    });
+
+    it("leaves an unprefixed string on the generic path", () => {
+      const result = resolveError("some other failure", "uid-5", true);
+
+      expect(result.message).toBe("An unexpected error occurred.");
+    });
+  });
 });

@@ -9,6 +9,7 @@ const (
 	messageKindError
 	messageKindSession
 	messageKindReauth
+	messageKindReauthDone
 )
 
 // MessageMinSize is the minimum size of a message in bytes. This is used to validate if the message is valid.

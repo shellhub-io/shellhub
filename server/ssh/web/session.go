@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
+	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -14,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/challenge"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -30,7 +34,7 @@ type BannerError struct {
 // once at construction time. Use this constructor — never build a BannerError
 // literal — so that Message and kind always agree.
 func NewBannerError(message string) *BannerError {
-	kind, _ := banner.Classify(message)
+	kind := banner.Classify(message)
 
 	return &BannerError{
 		Message: message,
@@ -64,19 +68,9 @@ func mapBannerError(e *BannerError) error {
 	}
 }
 
-func bannerCallback(conn *Conn) func(string) error {
+func bannerCallback() func(string) error {
 	return func(message string) error {
 		if message == "" {
-			return nil
-		}
-
-		if kind, code := banner.Classify(message); kind == banner.KindReauthRequired && code != "" {
-			if _, err := conn.WriteMessage(&Message{Kind: messageKindReauth, Data: code}); err != nil {
-				log.WithError(err).Error("failed to forward the re-auth code to the browser")
-
-				return NewBannerError(message)
-			}
-
 			return nil
 		}
 
@@ -84,7 +78,105 @@ func bannerCallback(conn *Conn) func(string) error {
 	}
 }
 
-func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
+type refusal struct {
+	mu     sync.Mutex
+	reason string
+}
+
+func (r *refusal) refuse(reason string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.reason = reason
+}
+
+func (r *refusal) Err() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.reason == "" {
+		return nil
+	}
+
+	return fmt.Errorf("%w: %s", ErrApprovalRefused, r.reason)
+}
+
+func approvalChallenge(conn *Conn, refused *refusal) ssh.KeyboardInteractiveChallenge {
+	return func(name, instruction string, questions []string, _ []bool) ([]string, error) {
+		switch name {
+		case challenge.Approval:
+			if len(questions) == 0 || questions[0] == "" {
+				return nil, ErrApprovalCodeMissing
+			}
+
+			if _, err := conn.WriteMessage(&Message{Kind: messageKindReauth, Data: questions[0]}); err != nil {
+				return nil, errors.Join(ErrConnWriteMessageFailedFrame, err)
+			}
+
+			code, err := awaitBrowserApproval(conn)
+			if err != nil {
+				return nil, err
+			}
+
+			return []string{code}, nil
+		case challenge.Denied:
+			log.WithField("reason", instruction).Debug("the gateway refused the web terminal's login")
+
+			refused.refuse(strings.TrimSpace(instruction))
+
+			return make([]string, len(questions)), nil
+		default:
+			return make([]string, len(questions)), nil
+		}
+	}
+}
+
+func awaitBrowserApproval(conn *Conn) (string, error) {
+	type answer struct {
+		code string
+		err  error
+	}
+
+	answered := make(chan answer, 1)
+
+	go func() {
+		for {
+			message := new(Message)
+			if _, err := conn.ReadMessage(message); err != nil {
+				answered <- answer{code: "", err: err}
+
+				return
+			}
+
+			if message.Kind != messageKindReauthDone {
+				continue
+			}
+
+			code, ok := message.Data.(string)
+			if !ok {
+				answered <- answer{code: "", err: ErrConnReadMessageJSONInvalid}
+
+				return
+			}
+
+			answered <- answer{code: code, err: nil}
+
+			return
+		}
+	}()
+
+	expiry := time.NewTimer(services.SSHApprovalTTL)
+	defer expiry.Stop()
+
+	select {
+	case got := <-answered:
+		return got.code, got.err
+	case <-expiry.C:
+		return "", ErrApprovalNotAnswered
+	}
+}
+
+func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials, refused *refusal) ([]ssh.AuthMethod, error) {
 	if creds.PublicKey != "" {
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
 		if err != nil {
@@ -96,11 +188,11 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 			publicKey: &pubKey,
 		}
 
-		return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+		return withApproval(ssh.PublicKeys(signer), conn, refused), nil
 	}
 
 	if creds.isPassword() {
-		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
+		return withApproval(ssh.Password(creds.Password), conn, refused), nil
 	}
 
 	device, err := service.GetDevice(ctx, scope.NewUnbounded(reasonWebHandoffDeviceResolve), models.UID(creds.Device))
@@ -123,7 +215,11 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 		publicKey: &pubKey,
 	}
 
-	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+	return withApproval(ssh.PublicKeys(signer), conn, refused), nil
+}
+
+func withApproval(credential ssh.AuthMethod, conn *Conn, refused *refusal) []ssh.AuthMethod {
+	return []ssh.AuthMethod{credential, ssh.KeyboardInteractive(approvalChallenge(conn, refused))}
 }
 
 // Signer authenticates to the device with a key the server never holds: each signature is
@@ -182,7 +278,9 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
-	auth, err := getAuth(ctx, service, conn, creds)
+	refused := new(refusal)
+
+	auth, err := getAuth(ctx, service, conn, creds, refused)
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 
@@ -199,7 +297,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
-		BannerCallback:  bannerCallback(conn),
+		BannerCallback:  bannerCallback(),
 	})
 	if err != nil {
 		var e *BannerError
@@ -211,6 +309,14 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		}
 
 		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		if refusedErr := refused.Err(); refusedErr != nil {
+			return refusedErr
+		}
+
+		if errors.Is(err, ErrApprovalNotAnswered) || errors.Is(err, ErrApprovalCodeMissing) {
+			return ErrApprovalNotAnswered
+		}
 
 		if creds.isPublicKey() || creds.PublicKey != "" {
 			return ErrForbiddenPublicKey

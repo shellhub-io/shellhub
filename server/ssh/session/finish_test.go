@@ -23,6 +23,7 @@ func newConnectedSession(t *testing.T, tunnel dialer.TunnelDialer) (*Session, *s
 
 	sess := newTestSession(service, tunnel)
 	sess.Events = NewEvents(sess.UID, service)
+	sess.registered = true
 
 	require.NoError(t, sess.connect(newStubContext(), noAuth))
 
@@ -85,10 +86,25 @@ func TestFinishSkipsTheCloseWhenTheDeviceWasNeverReached(t *testing.T) {
 
 	sess := newTestSession(service, stub)
 	sess.Events = NewEvents(sess.UID, service)
+	sess.registered = true
 
 	require.NoError(t, sess.Finish())
 
 	assert.Empty(t, stub.Dials(), "a session that never reached the device has nothing to close")
+}
+
+// TestFinishSkipsTheDeactivationWhenTheLoginNeverRegistered covers the login abandoned at the
+// approval prompt. It holds no session on the API, so asking for one to be deactivated reports
+// a missing session as a failure on a path that did nothing wrong.
+func TestFinishSkipsTheDeactivationWhenTheLoginNeverRegistered(t *testing.T) {
+	service := servicemocks.NewMockService(t)
+
+	sess := newTestSession(service, dialertest.NewAgent(t))
+	sess.Events = NewEvents(sess.UID, service)
+
+	require.NoError(t, sess.Finish())
+
+	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything)
 }
 
 // TestFinishRunsOnce keeps finalisation idempotent: the close request is sent, and the session

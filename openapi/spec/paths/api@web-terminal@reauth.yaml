@@ -46,13 +46,30 @@ post:
             approval_code:
               description: |
                 The held login to release. Distinct from `code`, which is the TOTP.
-                A native client reads it from its terminal banner; the web terminal
-                receives it in-band and never shows it.
+                A native client reads it from the prompt the gateway shows it; the
+                web terminal receives it in-band and never shows it.
               type: string
               example: WXYZ2K7Q
   responses:
     '200':
-      description: Step-up accepted; the window is refreshed and any held login released.
+      description: |
+        Step-up accepted; the window is refreshed and any held login released. The response carries the confirmation code to
+        show the approver: they type it at the terminal their login is waiting at,
+        which is what proves they reached this screen rather than merely followed
+        a link.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - confirmation_code
+            properties:
+              confirmation_code:
+                description: |
+                  The code the approver types back at their terminal. Empty when
+                  the request released no held login.
+                type: string
+                example: WXYZ2K7Q
     '401':
       $ref: ../components/responses/401.yaml
     '403':

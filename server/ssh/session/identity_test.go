@@ -154,7 +154,7 @@ func TestResolveKeyAuth(t *testing.T) {
 		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
 	})
 
-	t.Run("the approval is parked once the key is proven", func(t *testing.T) {
+	t.Run("the approval is parked once the key is proven, and nothing waits on it", func(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
@@ -168,18 +168,118 @@ func TestResolveKeyAuth(t *testing.T) {
 			})).
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
-		serviceMock.EXPECT().
-			GetSSHApprovalStatus(mock.Anything, mock.Anything).
-			Return(&models.SSHApprovalStatus{State: models.SSHApprovalRejected}, nil). //nolint:exhaustruct
-			Once()
 
 		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
 
-		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
+		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRequired,
+			"evaluating parks the login and hands the wait to the client, it does not poll")
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
+	})
+
+	t.Run("a second unenrolled key on the same connection is not prompted again", func(t *testing.T) {
+		otherKey := newTestSSHKey(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", mock.Anything).
+			Return(nil, false, nil).
+			Twice()
+		serviceMock.EXPECT().
+			CreateSSHApproval(mock.Anything, mock.Anything).
+			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		ctx := newStubContext()
+
+		first, err := sess.ResolveKeyAuth(ctx, pubKey)
+		require.NoError(t, err)
+		require.ErrorIs(t, first.Evaluate(sess), ErrApprovalRequired)
+
+		second, err := sess.ResolveKeyAuth(ctx, otherKey)
+		require.NoError(t, err)
+
+		require.ErrorIs(t, second.Evaluate(sess), ErrChallengeAlreadyIssued,
+			"an agent full of unenrolled keys must cost one approval, not one per key")
+		assert.Equal(t, "AB12CD34", sess.ApprovalCode, "the parked approval stays the first one")
+	})
+
+	t.Run("an enrolled key still logs in after another key's approval was refused", func(t *testing.T) {
+		enrolled := newTestSSHKey(t)
+		enrolledFingerprint := gossh.FingerprintSHA256(enrolled)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(nil, false, nil).
+			Once()
+		serviceMock.EXPECT().
+			CreateSSHApproval(mock.Anything, mock.Anything).
+			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
+			Once()
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", enrolledFingerprint).
+			Return(&models.SSHIdentity{PrincipalID: "user1"}, true, nil). //nolint:exhaustruct
+			Once()
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", mock.Anything, "device-uid", "user", "127.0.0.1").
+			Return(&models.Decision{Allowed: true}, nil). //nolint:exhaustruct
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		ctx := newStubContext()
+
+		unenrolled, err := sess.ResolveKeyAuth(ctx, pubKey)
+		require.NoError(t, err)
+		require.ErrorIs(t, unenrolled.Evaluate(sess), ErrApprovalRequired)
+
+		advance(ctx, sess, StateChallenged)
+
+		good, err := sess.ResolveKeyAuth(ctx, enrolled)
+		require.NoError(t, err)
+		require.NoError(t, good.Evaluate(sess),
+			"a refused approval must not cost the client the enrolled key it offers next")
+	})
+
+	t.Run("an unenrolled key does not inherit the identity of a key offered before it", func(t *testing.T) {
+		otherKey := newTestSSHKey(t)
+		otherFingerprint := gossh.FingerprintSHA256(otherKey)
+		lastReauthAt := clock.Now()
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(&models.SSHIdentity{ //nolint:exhaustruct
+				PrincipalID:   "user1",
+				PrincipalType: models.PrincipalUser,
+				LastReauthAt:  &lastReauthAt,
+				SingleUse:     true,
+			}, true, nil).
+			Once()
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", otherFingerprint).
+			Return(nil, false, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		ctx := newStubContext()
+
+		_, err := sess.ResolveKeyAuth(ctx, pubKey)
+		require.NoError(t, err)
+		require.Equal(t, "user1", sess.UserID)
+
+		auth, err := sess.ResolveKeyAuth(ctx, otherKey)
+		require.NoError(t, err)
+		assert.IsType(t, &approvalAuth{}, auth)
+
+		assert.Empty(t, sess.UserID, "the approver alone decides who an unenrolled key logs in as")
+		assert.Empty(t, sess.PrincipalKind)
+		assert.Nil(t, sess.LastReauthAt)
+		assert.False(t, sess.SingleUse, "burning the previous key's single-use identity would be wrong")
+		assert.Equal(t, otherFingerprint, sess.Fingerprint)
 	})
 }
 
@@ -325,4 +425,31 @@ func TestAuthorize(t *testing.T) {
 		assert.True(t, dec.RequireReauth)
 		assert.Empty(t, hook.AllEntries())
 	})
+}
+
+// TestAReauthIsStillAskedAfterADismissedEnrollment is the case the one-prompt
+// rule must not swallow. An agent offering an unenrolled key before the enrolled
+// one opens an enrollment prompt; dismissing it leaves the connection carrying a
+// challenge, and the enrolled key that follows needs a re-auth of its own. Those
+// are different questions about different keys, and refusing the second one
+// leaves the person unable to log in with the key that would have worked.
+func TestAReauthIsStillAskedAfterADismissedEnrollment(t *testing.T) {
+	serviceMock := servicemocks.NewMockService(t)
+	serviceMock.EXPECT().
+		CreateSSHApproval(mock.Anything, mock.Anything).
+		Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil). //nolint:exhaustruct // only the code is read
+		Twice()
+
+	sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+
+	require.NoError(t, sess.beginChallenge(context.Background(), nil, models.SSHApprovalIdentity, nil))
+
+	require.ErrorIs(t,
+		sess.beginChallenge(context.Background(), nil, models.SSHApprovalIdentity, nil),
+		ErrChallengeAlreadyIssued,
+		"a second unenrolled key must not cost a second enrollment prompt")
+
+	require.NoError(t,
+		sess.beginChallenge(context.Background(), nil, models.SSHApprovalReauth, nil),
+		"a re-auth for an enrolled key is another question, and has to be asked")
 }

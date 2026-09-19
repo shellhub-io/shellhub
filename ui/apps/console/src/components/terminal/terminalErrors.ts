@@ -123,6 +123,7 @@ export const WS_KIND = {
   ERROR: 4,
   SESSION: 5,
   REAUTH: 6,
+  REAUTH_DONE: 7,
 } as const;
 
 /**
@@ -216,6 +217,8 @@ export function parseMessage(
   return null;
 }
 
+const APPROVAL_REFUSED_PREFIX = "the login approval was refused: ";
+
 /**
  * Turns a server error string into the banner's contents. Identity mode changes the advice —
  * the same failure has a different remedy when access is granted by identity rather than by
@@ -226,6 +229,16 @@ export function resolveError(
   deviceUid: string,
   isIdentityMode: boolean,
 ): TerminalError {
+  if (raw.startsWith(APPROVAL_REFUSED_PREFIX)) {
+    return {
+      title: "Login not approved",
+      message: raw.slice(APPROVAL_REFUSED_PREFIX.length).trim(),
+      reconnect: true,
+      hints: [],
+      links: [],
+    };
+  }
+
   const entry = errorMap[raw];
   if (!entry) {
     return {

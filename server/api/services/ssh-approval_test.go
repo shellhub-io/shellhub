@@ -43,7 +43,7 @@ func TestCreateSSHApproval(t *testing.T) {
 				approval.Fingerprint == "SHA256:abc" &&
 				approval.State == models.SSHApprovalPending &&
 				approval.RequestedAt.Equal(now) &&
-				approval.ExpiresAt.Equal(now.Add(sshApprovalTTL))
+				approval.ExpiresAt.Equal(now.Add(SSHApprovalTTL))
 		})).
 		Return(nil).
 		Once()
@@ -53,7 +53,7 @@ func TestCreateSSHApproval(t *testing.T) {
 	approval, err := service.CreateSSHApproval(context.TODO(), req)
 	require.NoError(t, err)
 	require.Regexp(t, `^[2-9A-HJKMNP-TV-Z]{8}$`, approval.Code)
-	require.Equal(t, int(sshApprovalTTL.Seconds()), approval.ExpiresIn)
+	require.Equal(t, int(SSHApprovalTTL.Seconds()), approval.ExpiresIn)
 
 	storeMock.AssertExpectations(t)
 }
@@ -82,7 +82,7 @@ func TestGetSSHApprovalStatus(t *testing.T) {
 			expected: Expected{status: nil, err: NewErrSSHApprovalCodeNotFound("WXYZ2K7Q", store.ErrNoDocuments)},
 		},
 		{
-			description: "reports pending without waiting when not asked to wait",
+			description: "reports pending on a single read",
 			req:         &requests.SSHApprovalStatus{Code: "WXYZ2K7Q"},
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.
@@ -91,24 +91,6 @@ func TestGetSSHApprovalStatus(t *testing.T) {
 					Once()
 			},
 			expected: Expected{status: &models.SSHApprovalStatus{State: models.SSHApprovalPending}, err: nil},
-		},
-		{
-			description: "waits through a pending read and answers on the decision",
-			req:         &requests.SSHApprovalStatus{Code: "WXYZ2K7Q", Wait: true},
-			requiredMocks: func(storeMock *storemock.MockStore) {
-				storeMock.
-					On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-					Return(&models.SSHApproval{State: models.SSHApprovalPending}, nil).
-					Once()
-				storeMock.
-					On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-					Return(&models.SSHApproval{State: models.SSHApprovalConfirmed, DecidedBy: "owner1"}, nil).
-					Once()
-			},
-			expected: Expected{
-				status: &models.SSHApprovalStatus{State: models.SSHApprovalConfirmed, UserID: "owner1"},
-				err:    nil,
-			},
 		},
 		{
 			description: "returns the approver once decided",
@@ -159,7 +141,7 @@ func TestGetSSHApproval(t *testing.T) {
 		Fingerprint: "SHA256:fingerprint",
 		Kind:        models.SSHApprovalIdentity,
 		State:       models.SSHApprovalPending,
-		ExpiresAt:   now.Add(sshApprovalTTL),
+		ExpiresAt:   now.Add(SSHApprovalTTL),
 	}
 
 	type Expected struct {
@@ -242,7 +224,7 @@ func TestGetSSHApproval(t *testing.T) {
 					Code:        "WXYZ2K7Q",
 					Fingerprint: "SHA256:fingerprint",
 					Kind:        models.SSHApprovalIdentity,
-					ExpiresIn:   int(sshApprovalTTL.Seconds()),
+					ExpiresIn:   int(SSHApprovalTTL.Seconds()),
 					Namespace:   "namespace1",
 				},
 				err: nil,
@@ -368,7 +350,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
 				storeMock.
-					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", now).
+					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
 					Return(false, nil).
 					Once()
 			},
@@ -389,7 +371,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
 				storeMock.
-					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", now).
+					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
 					Return(true, nil).
 					Once()
 			},
@@ -441,11 +423,11 @@ func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
 
 	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
-	err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
+	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
 	require.Error(t, err)
 
 	storeMock.AssertExpectations(t)
-	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	storeMock.AssertNotCalled(t, "SSHIdentityTouchReauth", mock.Anything, mock.Anything, mock.Anything)
 }
 
@@ -482,7 +464,7 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 		Once()
 	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalConfirmed, "owner1", now).
+		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalConfirmed, "owner1", mock.Anything, now).
 		Return(true, nil).
 		Once()
 
@@ -507,7 +489,7 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 
 	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
-	err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
+	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
 	require.NoError(t, err)
 
 	storeMock.AssertExpectations(t)
@@ -543,7 +525,7 @@ func TestRejectSSHApproval(t *testing.T) {
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 		Once()
 	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", now).
+		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
 		Return(true, nil).
 		Once()
 

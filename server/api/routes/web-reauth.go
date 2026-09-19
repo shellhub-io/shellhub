@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
@@ -35,9 +36,10 @@ func (h *Handler) WebReauthVerify(c *gateway.Context) error {
 		req.TenantID = c.Tenant().ID
 	}
 
-	if err := h.service.WebReauthVerify(c.Ctx(), req); err != nil {
+	confirmationCode, err := h.service.WebReauthVerify(c.Ctx(), req)
+	if err != nil {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, models.SSHApprovalConfirmation{ConfirmationCode: confirmationCode})
 }

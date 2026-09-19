@@ -28,7 +28,10 @@ var (
 	ErrConnReadMessageSocketWrite  = errors.New("failed to write the message's data to socket")
 	ErrConnReadMessageJSONInvalid  = errors.New("failed to parse the message from json")
 	ErrConnReadMessageKindInvalid  = errors.New("this kind of message is invalid")
+	ErrApprovalNotAnswered         = errors.New("the browser did not answer the approval before it expired")
+	ErrApprovalRefused             = errors.New("the login approval was refused")
 	ErrConnWriteMessageFailedFrame = errors.New("failed to create frame")
+	ErrApprovalCodeMissing         = errors.New("the gateway's approval challenge carried no code")
 	ErrConnReadMessageInputTooLong = errors.New("input is too long, maximum allowed is 4096 runes")
 )
 

@@ -39,7 +39,24 @@ post:
               example: 30
   responses:
     '200':
-      description: Success to confirm the SSH login approval.
+      description: |
+        The approval was confirmed. The response carries the confirmation code to
+        show the approver: they type it at the terminal their login is waiting at,
+        which is what proves they reached this screen rather than merely followed
+        a link.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - confirmation_code
+            properties:
+              confirmation_code:
+                description: |
+                  The code the approver types back at their terminal. Empty when
+                  the request released no held login.
+                type: string
+                example: WXYZ2K7Q
     '401':
       $ref: ../components/responses/401.yaml
     '404':

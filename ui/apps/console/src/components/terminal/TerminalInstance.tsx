@@ -48,6 +48,15 @@ export default function TerminalInstance({
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+
+  const answerApproval = (confirmationCode: string) => {
+    const ws = wsRef.current;
+    if (ws?.readyState !== WebSocket.OPEN) return;
+
+    ws.send(
+      JSON.stringify({ kind: WS_KIND.REAUTH_DONE, data: confirmationCode }),
+    );
+  };
   const observerRef = useRef<ResizeObserver | null>(null);
   const prevVisibleRef = useRef(visible);
   const resizeRegisteredRef = useRef(false);
@@ -411,10 +420,12 @@ export default function TerminalInstance({
           flow="confirm"
           code={approvalCode}
           onClose={() => {
+            answerApproval("");
             setApprovalCode(null);
             setError(WS_REAUTH_CANCELLED);
           }}
-          onDecided={() => {
+          onDecided={(confirmationCode) => {
+            answerApproval(confirmationCode);
             setApprovalCode(null);
             requestAnimationFrame(() => termRef.current?.focus());
           }}

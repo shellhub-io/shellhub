@@ -63,7 +63,7 @@ var keepAlive = net.KeepAliveConfig{
 	Count:    9,
 }
 
-const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
+const handshakeBudget = services.SSHApprovalTTL + 90*time.Second
 
 // Server is the public SSH endpoint. Clients connect to it; it reaches their devices through
 // the reverse tunnels held by dialer.
@@ -93,8 +93,9 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
-				"uid":   ctx.SessionID(),
-				"sshid": ctx.User(),
+				"uid":    ctx.SessionID(),
+				"sshid":  ctx.User(),
+				"client": ctx.ClientVersion(),
 			})
 
 		defer func() {
@@ -120,8 +121,8 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			return banner.Message(banner.KindConnectionFailed)
 		}
 
-		if err := sess.Dial(ctx); err != nil {
-			logger.WithError(err).Error("destination device is offline or cannot be reached")
+		if !sess.Online() {
+			logger.Error("destination device is offline or cannot be reached")
 
 			return banner.Message(banner.KindConnectionFailed)
 		}
@@ -157,11 +158,20 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	return &gossh.ServerConfig{ //nolint:exhaustruct
 		NoClientAuth: true,
 		VerifiedPublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey, _ *gossh.Permissions, _ string) (*gossh.Permissions, error) {
-			if ok := auth.PublicKeyVerified(ctx, key); !ok {
+			err := auth.PublicKeyVerified(ctx, key)
+
+			switch {
+			case err == nil:
+				return ctx.Permissions().Permissions, nil
+			case errors.Is(err, session.ErrApprovalRequired):
+				return nil, &gossh.PartialSuccessError{
+					Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
+						KeyboardInteractiveCallback: auth.ApprovalChallenge(ctx, auth.PublicKeyOfferCallback(ctx)),
+					},
+				}
+			default:
 				return nil, errPermissionDenied
 			}
-
-			return ctx.Permissions().Permissions, nil
 		},
 		PreAuthConnCallback: func(conn gossh.ServerPreAuthConn) {
 			session.StorePreAuthConn(ctx, conn)
@@ -174,13 +184,8 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 
 			return nil, &gossh.PartialSuccessError{
 				Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
-					PublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey) (*gossh.Permissions, error) {
-						if ok := auth.PublicKeyOffer(ctx, key); !ok {
-							return nil, errPermissionDenied
-						}
-
-						return ctx.Permissions().Permissions, nil
-					},
+					PublicKeyCallback:           auth.PublicKeyOfferCallback(ctx),
+					KeyboardInteractiveCallback: auth.ApprovalChallenge(ctx, auth.PublicKeyOfferCallback(ctx)),
 				},
 			}
 		},

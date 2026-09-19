@@ -1,9 +1,12 @@
 package session
 
 import (
+	"bytes"
 	"context"
+	"crypto/subtle"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -45,10 +48,10 @@ type Data struct {
 	// key rather than an account.
 	UserID        string
 	PrincipalKind models.PrincipalKind
-	// ApprovalCode is the JIT code minted in identity mode; the gateway polls
-	// its decision for enrollment or step-up. Empty otherwise. The enrollment URL
-	// derived from it is sent as a mid-handshake banner only once the presented
-	// key turns out to be unenrolled, so an enrolled key never sees it.
+	// ApprovalCode is the JIT code minted in identity mode, for enrollment or
+	// step-up. Empty otherwise. It reaches the person on the approval prompt,
+	// inside the console URL they open, and only once the presented key turns
+	// out to be unenrolled, so an enrolled key never sees it.
 	ApprovalCode string
 	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
 	// identity mode; it is the identity lookup key.
@@ -155,7 +158,16 @@ type Session struct {
 
 	seats seats
 
+	challenge *challenge
+
+	registered bool
+
 	Data
+}
+
+type challenge struct {
+	auth Auth
+	kind models.SSHApprovalKind
 }
 
 // Seat represent a passenger in a session.
@@ -480,6 +492,8 @@ func (s *Session) register(ctx context.Context) error {
 		return err
 	}
 
+	s.registered = true
+
 	return nil
 }
 
@@ -550,13 +564,24 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
-	conn, chans, reqs, err := gossh.NewClientConn(s.agent.conn, Addr, config)
+	greeted, err := awaitAgentGreeting(s.agent.conn)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Error("Error when trying to hear the agent out before the handshake")
+
+		s.dropAgentConn()
+
+		return err
+	}
+
+	conn, chans, reqs, err := gossh.NewClientConn(greeted, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
-		s.agent.conn = nil
+		s.dropAgentConn()
 
 		return err
 	}
@@ -624,12 +649,57 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 // dial procedure for, which happens when an agent is newer than the server.
 var ErrDialUnknown = errors.New("unknown protocol version")
 
+func (s *Session) dropAgentConn() {
+	if s.agent.conn == nil {
+		return
+	}
+
+	if err := s.agent.conn.Close(); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Debug("failed to close the tunnel stream of a handshake that did not finish")
+	}
+
+	s.agent.conn = nil
+}
+
+func awaitAgentGreeting(conn net.Conn) (net.Conn, error) { //nolint:ireturn // net.Conn is what the handshake takes
+	var greeting [1]byte
+
+	if _, err := io.ReadFull(conn, greeting[:]); err != nil {
+		return nil, err
+	}
+
+	return &greetedConn{Conn: conn, rest: io.MultiReader(bytes.NewReader(greeting[:]), conn)}, nil
+}
+
+type greetedConn struct {
+	net.Conn
+	rest io.Reader
+}
+
+func (c *greetedConn) Read(p []byte) (int, error) {
+	return c.rest.Read(p)
+}
+
+// Online reports whether the device has sent a heartbeat recently enough to be
+// worth connecting to. It reads the flag the device lookup already computed, so
+// it costs nothing and opens no tunnel, and it is a filter rather than a
+// guarantee: a device that stopped answering within the heartbeat window still
+// reads online here and fails later, when the session actually dials it.
+func (s *Session) Online() bool {
+	return s.Device != nil && s.Device.Online
+}
+
 // Dial establishes the underlying transport to the target device. For V1
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
 // V2 transports a multistream protocol selection is performed using the
 // ProtoSSHOpen identifier followed by a JSON envelope with the session
-// id. After this method returns s.agent.conn is a raw channel ready for
-// SSH key exchange and channel opens.
+// id. After this method returns s.agent.conn is the raw stream, and not yet
+// ready to be written to: the device has still to be heard from first, which
+// connect does, because a version line written before the device has read the
+// stream's header is taken into its header reader and never reaches its SSH
+// server.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
@@ -660,8 +730,8 @@ func (s *Session) checkLicense(ctx context.Context) error {
 }
 
 // Evaluate decides whether the session is allowed to proceed, applying the licence, the
-// firewall rules and the namespace's own restrictions. It runs after the device is dialled
-// and before the client is joined to it.
+// firewall rules and the namespace's own restrictions. It runs before the client has
+// authenticated, and needs no tunnel to the device.
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	if envs.IsEnterprise() {
 		if err := s.checkLicense(ctx); err != nil {
@@ -720,6 +790,117 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 	return nil
 }
 
+func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSHApprovalKind, reauthPeriod *int) error {
+	if s.challenge != nil && s.challenge.kind == kind {
+		return ErrChallengeAlreadyIssued
+	}
+
+	if err := s.openApproval(ctx, kind, reauthPeriod); err != nil {
+		return err
+	}
+
+	s.challenge = &challenge{auth: auth, kind: kind}
+
+	return nil
+}
+
+// Confirm checks the answer the client gave to its challenge and reports who
+// approved the login.
+//
+// The answer is not the authorization. The approval a person made in the console
+// is, and the confirmation code only proves they reached that screen. An empty
+// answer is a dismissed dialog or a client with nobody to prompt, and reports
+// ErrPromptDismissed rather than something worth asking again for. The stored
+// decision is still read first, because rejecting in the console answers with
+// that same empty frame and the person has to be told which of the two it was.
+func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
+	if s.challenge == nil {
+		return "", ErrAccessDenied
+	}
+
+	typed := pairingcode.Normalize(strings.TrimSpace(answer))
+
+	status, err := s.approvalDecision(ctx)
+	if err != nil {
+		if typed == "" && errors.Is(err, ErrApprovalPending) {
+			return "", ErrPromptDismissed
+		}
+
+		return "", err
+	}
+
+	if typed == "" {
+		return "", ErrPromptDismissed
+	}
+
+	if subtle.ConstantTimeCompare([]byte(typed), []byte(status.ConfirmationCode)) != 1 {
+		return "", ErrConfirmationMismatch
+	}
+
+	return status.UserID, nil
+}
+
+// NoKeyReason is what a person sees when they reach the gateway with no SSH key
+// at all, in a namespace that signs people in by key.
+func (s *Session) NoKeyReason() string {
+	return strings.Join([]string{
+		"",
+		"  This namespace signs you in by SSH key, and your client offered none.",
+		"",
+		"  Add one to your identities, then connect again:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities"),
+		"",
+	}, "\r\n")
+}
+
+// EnrollInstruction is what a person sees when the key they presented is not
+// enrolled yet.
+func (s *Session) EnrollInstruction() string {
+	return strings.Join([]string{
+		"",
+		"  ShellHub doesn't know this SSH key yet.",
+		"",
+		"  Open the link to add it to your identities:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/new/"+s.ApprovalCode),
+		"",
+		"  Security code:  " + groupCode(s.ApprovalCode),
+		"  Key:            " + s.Fingerprint,
+		"",
+		"  The console gives you a confirmation code once you add it.",
+		"",
+	}, "\r\n")
+}
+
+// ReauthInstruction is what a person sees when a policy asks them to
+// re-authenticate before the login continues.
+func (s *Session) ReauthInstruction() string {
+	return strings.Join([]string{
+		"",
+		"  An access policy asks you to re-authenticate.",
+		"",
+		"  Open the link to do it in the console:",
+		"",
+		"    " + consoleURL(sshconf.Domain, sshconf.AutoSSL, "/ssh-identities/confirm/"+s.ApprovalCode),
+		"",
+		"  Security code:  " + groupCode(s.ApprovalCode),
+		"",
+		"  The console gives you a confirmation code once you do.",
+		"",
+	}, "\r\n")
+}
+
+// Challenged reports whether this connection is parked on an approval, and
+// returns what the client has to be told about.
+func (s *Session) Challenged() (models.SSHApprovalKind, bool) {
+	if s.challenge == nil {
+		return "", false
+	}
+
+	return s.challenge.kind, true
+}
+
 // IsIdentityMode reports whether the session's namespace uses the identity-based
 // SSH access mode, where the presented key is the identity.
 func (s *Session) IsIdentityMode() bool {
@@ -745,45 +926,6 @@ func groupCode(code string) string {
 	return code[:half] + " " + code[half:]
 }
 
-func buildAddKeyBanner(domain string, autoSSL bool, code, fingerprint string) string {
-	lines := []string{
-		"",
-		"  ShellHub doesn't know this SSH key yet.",
-		"",
-		"  Open the link to add it to your identities. This login",
-		"  continues once you do:",
-		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/new/"+code),
-		"",
-		"  Security code:  " + groupCode(code),
-		"  Key:            " + fingerprint,
-		"",
-		"  Waiting...",
-		"",
-	}
-
-	return strings.Join(lines, "\r\n")
-}
-
-func buildReauthBanner(domain string, autoSSL bool, code string) string {
-	lines := []string{
-		"",
-		"  An access policy asks you to re-authenticate.",
-		"",
-		"  Open the link to do it in the console. This login",
-		"  continues once you do:",
-		"",
-		"    " + consoleURL(domain, autoSSL, "/ssh-identities/confirm/"+code),
-		"",
-		"  Security code:  " + groupCode(code),
-		"",
-		"  Waiting...",
-		"",
-	}
-
-	return strings.Join(lines, "\r\n")
-}
-
 // Auth authenticate a [Session] based on the provided context.
 //
 // As a client may try to create N sessions with the same context, a [snapshot] is used
@@ -801,40 +943,74 @@ func buildReauthBanner(domain string, autoSSL bool, code string) string {
 // returned if any occurs.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
+
 	switch state {
-	case StateEvaluated:
+	case StateEvaluated, StateChallenged:
 		if err := auth.Evaluate(sess); err != nil {
+			if errors.Is(err, ErrApprovalRequired) {
+				advance(ctx, sess, StateChallenged)
+			}
+
 			return err
 		}
 
-		if err := sess.register(ctx); err != nil {
-			return err
-		}
-
-		advance(ctx, sess, StateRegistered)
-
-		fallthrough
+		return sess.finish(ctx, auth)
 	case StateRegistered:
-		if err := sess.connect(ctx, auth.Auth()); err != nil {
-			return err
-		}
-
-		if sess.SingleUse {
-			won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
-			if err != nil {
-				return err
-			}
-
-			if !won {
-				return ErrAccessDenied
-			}
-		}
-
-		if err := sess.authenticate(ctx); err != nil {
-			return err
-		}
+		return sess.join(ctx, auth)
 	default:
-		return errors.New("invalid session state")
+		return ErrInvalidSessionState
+	}
+}
+
+// Resume finishes a login that Auth parked on an approval, once the client has
+// answered its challenge and the approval came back confirmed by approver.
+func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
+	sess, state := ObtainSession(ctx)
+	if state != StateChallenged || sess.challenge == nil {
+		return ErrInvalidSessionState
+	}
+
+	auth := sess.challenge.auth
+
+	if err := auth.Approved(sess, approver); err != nil {
+		return err
+	}
+
+	return sess.finish(ctx, auth)
+}
+
+func (s *Session) finish(ctx gliderssh.Context, auth Auth) error {
+	sess, _ := ObtainSession(ctx)
+
+	if err := sess.register(ctx); err != nil {
+		return err
+	}
+
+	advance(ctx, sess, StateRegistered)
+
+	return sess.join(ctx, auth)
+}
+
+func (s *Session) join(ctx gliderssh.Context, auth Auth) error {
+	sess, _ := ObtainSession(ctx)
+
+	if err := sess.connect(ctx, auth.Auth()); err != nil {
+		return err
+	}
+
+	if sess.SingleUse {
+		won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
+		if err != nil {
+			return err
+		}
+
+		if !won {
+			return ErrAccessDenied
+		}
+	}
+
+	if err := sess.authenticate(ctx); err != nil {
+		return err
 	}
 
 	advance(ctx, sess, StateFinished)
@@ -976,6 +1152,8 @@ func (s *Session) closeOnAgent() {
 
 // Finish tears the session down: it stops the event stream, asks the device to close the
 // session over a connection dialled for that purpose, and deactivates the session on the API.
+// A login abandoned before it authenticated never registered and has nothing to deactivate,
+// so that step is skipped rather than reported as a failure.
 //
 // It runs once however many times it is called, and reports every failure to the log rather
 // than to the caller, because each teardown step is worth attempting whatever the one before
@@ -996,10 +1174,12 @@ func (s *Session) Finish() error {
 			go s.closeOnAgent()
 		}
 
-		if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-				Error("Error when trying to finish the session")
+		if s.registered {
+			if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+					Error("Error when trying to finish the session")
+			}
 		}
 
 		log.WithFields(

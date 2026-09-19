@@ -31,7 +31,7 @@ const (
 
 // SSHApproval is a decision the SSH gateway parked while it holds a pure-OpenSSH
 // login open, for a member to resolve in the console. The code is its identity
-// and its secret: the gateway prints it in the terminal banner.
+// and its secret: the gateway shows it on its approval prompt.
 type SSHApproval struct {
 	Code        string          `json:"code"`
 	TenantID    string          `json:"tenant_id"`
@@ -51,9 +51,14 @@ type SSHApproval struct {
 	// DecidedBy is the account that resolved the approval. On an identity
 	// approval it is the account the key binds to, and the gateway adopts it as
 	// the session's identity.
-	DecidedBy   string    `json:"decided_by"`
-	RequestedAt time.Time `json:"requested_at"`
-	ExpiresAt   time.Time `json:"expires_at"`
+	DecidedBy string `json:"decided_by"`
+	// ConfirmationCode is minted when the approval is confirmed and shown only in
+	// the console, to the person who confirmed it. They type it at the terminal,
+	// which is what proves they reached the console rather than merely following
+	// a link. Empty until confirmed.
+	ConfirmationCode string    `json:"confirmation_code"`
+	RequestedAt      time.Time `json:"requested_at"`
+	ExpiresAt        time.Time `json:"expires_at"`
 }
 
 // SSHApprovalCreated is the response to creating an approval: the short code the
@@ -63,12 +68,21 @@ type SSHApprovalCreated struct {
 	ExpiresIn int    `json:"expires_in_seconds"`
 }
 
-// SSHApprovalStatus is what the SSH gateway polls while it holds the login open.
+// SSHApprovalStatus is what the SSH gateway reads once, after the client answers its approval prompt.
 // UserID carries the approving account once the decision is made, so the gateway
 // can bind it to the session.
 type SSHApprovalStatus struct {
 	State  SSHApprovalState `json:"state"`
 	UserID string           `json:"user_id,omitempty"`
+	// ConfirmationCode is what the person was shown in the console and has to
+	// type at the terminal. Empty unless State is confirmed.
+	ConfirmationCode string `json:"confirmation_code,omitempty"`
+}
+
+// SSHApprovalConfirmation is the answer to confirming an approval: the code the
+// person carries from the console to the terminal their login is waiting at.
+type SSHApprovalConfirmation struct {
+	ConfirmationCode string `json:"confirmation_code"`
 }
 
 // SSHApprovalRequest is the detail the console renders so the user sees which
@@ -81,7 +95,7 @@ type SSHApprovalRequest struct {
 	RequestedAt time.Time        `json:"requested_at"`
 	State       SSHApprovalState `json:"state"`
 	// Code echoes the correlation code so the page can display it for the user to
-	// visually match against their terminal banner (anti-phishing).
+	// visually match against their approval prompt (anti-phishing).
 	Code string `json:"code"`
 	// Fingerprint is the presented key's fingerprint, shown front-and-center when
 	// the key is becoming an identity.
