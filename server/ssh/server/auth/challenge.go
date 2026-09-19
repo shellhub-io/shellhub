@@ -106,6 +106,8 @@ func reasonOf(err error) string {
 		return "This login was never approved in the console."
 	case errors.Is(err, session.ErrConfirmationMismatch):
 		return "That confirmation code is not the one the console showed."
+	case errors.Is(err, session.ErrPromptDismissed):
+		return "This prompt was dismissed, or this client cannot answer it. Connect again to get a new request."
 	case errors.Is(err, session.ErrAccessDenied):
 		return "An access policy does not allow this login."
 	default:

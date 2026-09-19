@@ -388,8 +388,19 @@ var (
 	// ErrConfirmationMismatch is returned when the answer typed at the terminal
 	// is not the confirmation code the console showed the approver.
 	ErrConfirmationMismatch = errors.New("ssh login confirmation code does not match")
-	// ErrChallengeAlreadyIssued is returned when a connection that already had
-	// its one approval prompt asks for another, which is how a client holding
-	// several unenrolled keys is kept to a single prompt.
+	// ErrInvalidSessionState is returned when a connection asks to authenticate
+	// from a state the session cannot serve, which is a client reusing a context
+	// the gateway has already taken past that point.
+	ErrInvalidSessionState = errors.New("invalid session state")
+	// ErrPromptDismissed is returned when the challenge came back with no answer
+	// at all, which is a dismissed dialog or a client with nobody to ask. Unlike
+	// a wrong code it is not worth asking again for.
+	ErrPromptDismissed = errors.New("ssh login prompt dismissed")
+	// ErrChallengeAlreadyIssued is returned when a connection asks a second time
+	// about the same thing, which is how a client holding several unenrolled keys
+	// is kept to a single enrollment prompt. A different kind still gets asked: a
+	// key that is enrolled and needs a re-auth is another question about another
+	// key, and refusing it would strand a client whose earlier prompt was
+	// dismissed.
 	ErrChallengeAlreadyIssued = errors.New("ssh login already prompted for approval")
 )

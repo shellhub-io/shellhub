@@ -3,6 +3,7 @@ package session
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	"errors"
 	"fmt"
 	"io"
@@ -790,7 +791,7 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 }
 
 func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSHApprovalKind, reauthPeriod *int) error {
-	if s.challenge != nil {
+	if s.challenge != nil && s.challenge.kind == kind {
 		return ErrChallengeAlreadyIssued
 	}
 
@@ -807,20 +808,32 @@ func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSH
 // approved the login.
 //
 // The answer is not the authorization. The approval a person made in the console
-// is, and the confirmation code only proves they reached that screen: a client
-// that cannot prompt anyone answers with an empty string, which fails here the
-// same way a wrong code does, and immediately rather than after a wait.
+// is, and the confirmation code only proves they reached that screen. An empty
+// answer is a dismissed dialog or a client with nobody to prompt, and reports
+// ErrPromptDismissed rather than something worth asking again for. The stored
+// decision is still read first, because rejecting in the console answers with
+// that same empty frame and the person has to be told which of the two it was.
 func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
 	if s.challenge == nil {
 		return "", ErrAccessDenied
 	}
 
+	typed := pairingcode.Normalize(strings.TrimSpace(answer))
+
 	status, err := s.approvalDecision(ctx)
 	if err != nil {
+		if typed == "" && errors.Is(err, ErrApprovalPending) {
+			return "", ErrPromptDismissed
+		}
+
 		return "", err
 	}
 
-	if status.ConfirmationCode == "" || pairingcode.Normalize(answer) != status.ConfirmationCode {
+	if typed == "" {
+		return "", ErrPromptDismissed
+	}
+
+	if subtle.ConstantTimeCompare([]byte(typed), []byte(status.ConfirmationCode)) != 1 {
 		return "", ErrConfirmationMismatch
 	}
 
@@ -945,7 +958,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	case StateRegistered:
 		return sess.join(ctx, auth)
 	default:
-		return errors.New("invalid session state")
+		return ErrInvalidSessionState
 	}
 }
 
@@ -954,7 +967,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
 	sess, state := ObtainSession(ctx)
 	if state != StateChallenged || sess.challenge == nil {
-		return errors.New("invalid session state")
+		return ErrInvalidSessionState
 	}
 
 	auth := sess.challenge.auth
