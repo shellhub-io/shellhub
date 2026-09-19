@@ -1,13 +1,16 @@
 package web
 
 import (
+	"encoding/json"
 	"io"
 	"net"
 	"testing"
 	"testing/iotest"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/challenge"
 	"github.com/shellhub-io/shellhub/server/ssh/web/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -249,4 +252,112 @@ func TestBannerWireClassify(t *testing.T) {
 			assert.Equal(t, tc.kind, e.Kind(), "Kind extracted over the wire must match the banner sent by the server")
 		})
 	}
+}
+
+// TestApprovalChallengeCarriesTheCodeToTheBrowser pins the contract between the
+// gateway and this bridge: the gateway puts the approval code in the challenge's
+// question, and the bridge forwards exactly that to the browser and answers with
+// whatever the browser sends back.
+//
+// It calls the bridge's challenge callback directly. The gateway half of this
+// contract is pinned separately, by TestWebChallengeCarriesTheCodeInTheQuestion
+// in the auth package; neither catches a field mismatch alone.
+func TestApprovalChallengeCarriesTheCodeToTheBrowser(t *testing.T) {
+	const code = "WXYZ2K7Q"
+
+	browser, bridge := net.Pipe()
+
+	t.Cleanup(func() {
+		browser.Close() //nolint:errcheck
+		bridge.Close()  //nolint:errcheck
+	})
+
+	conn := &Conn{Socket: bridge}
+
+	answered := make(chan []string, 1)
+
+	go func() {
+		answers, err := approvalChallenge(conn, new(refusal))(challenge.Approval, "", []string{code}, []bool{true})
+		if err != nil {
+			close(answered)
+
+			return
+		}
+
+		answered <- answers
+	}()
+
+	forwarded := struct {
+		Kind messageKind `json:"kind"`
+		Data string      `json:"data"`
+	}{}
+
+	require.NoError(t, json.NewDecoder(browser).Decode(&forwarded))
+
+	assert.Equal(t, messageKindReauth, forwarded.Kind, "the browser is told an approval is waiting")
+	assert.Equal(t, code, forwarded.Data, "the code has to survive the trip, or the modal opens on nothing")
+
+	_, err := (&Conn{Socket: browser}).WriteMessage(&Message{Kind: messageKindReauthDone, Data: "CONF7788"})
+	require.NoError(t, err)
+
+	select {
+	case answers, ok := <-answered:
+		require.True(t, ok, "the challenge failed instead of answering")
+		require.Len(t, answers, 1)
+		assert.Equal(t, "CONF7788", answers[0], "what the person confirmed is what answers the challenge")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the bridge never answered the challenge")
+	}
+}
+
+// TestApprovalChallengeRefusesAnEmptyCode covers the shape of the bug this test
+// file exists to catch: a gateway that names the challenge correctly but leaves
+// the code out would otherwise open a modal on an empty string.
+func TestApprovalChallengeRefusesAnEmptyCode(t *testing.T) {
+	_, bridge := net.Pipe()
+
+	t.Cleanup(func() { bridge.Close() }) //nolint:errcheck
+
+	_, err := approvalChallenge(&Conn{Socket: bridge}, new(refusal))(challenge.Approval, "", []string{""}, []bool{true})
+
+	require.ErrorIs(t, err, ErrApprovalCodeMissing)
+}
+
+// TestDeniedChallengeIsNotAnApproval verifies the bridge does not treat a
+// refusal as something the person can answer: a modal opened here would wait on
+// a decision the gateway has already made.
+func TestDeniedChallengeIsNotAnApproval(t *testing.T) {
+	_, bridge := net.Pipe()
+
+	t.Cleanup(func() { bridge.Close() }) //nolint:errcheck
+
+	answers, err := approvalChallenge(&Conn{Socket: bridge}, new(refusal))(challenge.Denied, "a reason", []string{""}, []bool{false})
+
+	require.NoError(t, err)
+	assert.Equal(t, []string{""}, answers, "a refusal is answered with nothing, not forwarded to the browser")
+}
+
+// TestDeniedChallengeCarriesTheReasonToTheBrowser is why the refusal is recorded
+// rather than only logged. A refusal has no answer the gateway reads, so the
+// dial that follows fails as a plain authentication error, and the browser was
+// being told its key is not authorized for the device on a login the person had
+// just rejected themselves.
+func TestDeniedChallengeCarriesTheReasonToTheBrowser(t *testing.T) {
+	_, bridge := net.Pipe()
+
+	t.Cleanup(func() { bridge.Close() }) //nolint:errcheck
+
+	refused := new(refusal)
+
+	require.NoError(t, refused.Err(), "a login nobody refused carries no reason")
+
+	_, err := approvalChallenge(&Conn{Socket: bridge}, refused)(
+		challenge.Denied, "This login was rejected in the console.", []string{""}, []bool{false})
+	require.NoError(t, err)
+
+	got := refused.Err()
+
+	require.ErrorIs(t, got, ErrApprovalRefused)
+	assert.Equal(t, "the login approval was refused: This login was rejected in the console.", got.Error(),
+		"the console matches this exact prefix to render the reason, so the whole string is the contract")
 }

@@ -13,12 +13,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const sshApprovalTTL = 90 * time.Second
-
-// SSHApprovalTTL is [sshApprovalTTL] for callers that have to size a deadline
-// around it — the SSH server's handshake budget, which must outlast an approval
-// a person is still allowed to confirm.
-const SSHApprovalTTL = sshApprovalTTL
+// SSHApprovalTTL is how long an approval can be confirmed for. A caller holding
+// a login open while someone decides must outlast it, or it cuts off a person
+// the console would still accept.
+const SSHApprovalTTL = 90 * time.Second
 
 // SSHApprovalService mediates connections that need a person to approve them: the gateway
 // parks the request behind a prompt, and the console confirms it with a code the person types back.
@@ -72,14 +70,14 @@ func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprov
 		ReauthPeriod: req.ReauthPeriod,
 		State:        models.SSHApprovalPending,
 		RequestedAt:  now,
-		ExpiresAt:    now.Add(sshApprovalTTL),
+		ExpiresAt:    now.Add(SSHApprovalTTL),
 	}); err != nil {
 		return nil, err
 	}
 
 	return &models.SSHApprovalCreated{
 		Code:      code,
-		ExpiresIn: int(sshApprovalTTL.Seconds()),
+		ExpiresIn: int(SSHApprovalTTL.Seconds()),
 	}, nil
 }
 

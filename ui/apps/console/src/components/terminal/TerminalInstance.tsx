@@ -49,12 +49,6 @@ export default function TerminalInstance({
   const fitRef = useRef<FitAddon | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  /**
-   * Answers the approval challenge the gateway is blocked on. An empty code is
-   * the honest answer when the person dismissed the dialog: it tells the gateway
-   * to refuse now, instead of leaving it to time out and look like a dropped
-   * connection.
-   */
   const answerApproval = (confirmationCode: string) => {
     const ws = wsRef.current;
     if (ws?.readyState !== WebSocket.OPEN) return;

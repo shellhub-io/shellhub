@@ -171,23 +171,23 @@ func (*passwordAuth) Offer(*Session) error {
 	return nil
 }
 
-func (s *Session) approvalDecision(ctx context.Context) (string, error) {
+func (s *Session) approvalDecision(ctx context.Context) (*models.SSHApprovalStatus, error) {
 	status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{Code: s.ApprovalCode})
 	if err != nil {
 		if errors.Is(err, services.ErrSSHApprovalCodeNotFound) {
-			return "", ErrApprovalExpired
+			return nil, ErrApprovalExpired
 		}
 
-		return "", err
+		return nil, err
 	}
 
 	switch status.State {
 	case models.SSHApprovalConfirmed:
-		return status.UserID, nil
+		return status, nil
 	case models.SSHApprovalRejected:
-		return "", ErrApprovalRejected
+		return nil, ErrApprovalRejected
 	default:
-		return "", ErrApprovalPending
+		return nil, ErrApprovalPending
 	}
 }
 
@@ -374,9 +374,6 @@ var (
 	// ErrAccessDenied is returned when no Access Policy grants the approved
 	// identity access to the target device as the requested login.
 	ErrAccessDenied = errors.New("ssh access denied by policy")
-	// ErrApprovalTimeout is returned when no decision arrives before the wait
-	// deadline or the client disconnects.
-	ErrApprovalTimeout = errors.New("ssh login approval timed out")
 	// ErrApprovalRequired is returned by Evaluate when the credential is good
 	// but a person still has to decide. It is not a failure: the caller parks
 	// the login and asks the client over a second authentication method.

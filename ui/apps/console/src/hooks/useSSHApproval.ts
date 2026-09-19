@@ -56,7 +56,6 @@ export function useSSHApproval(code: string) {
   const [totalSeconds, setTotalSeconds] = useState(APPROVAL_TTL_SECONDS);
   const [deciding, setDeciding] = useState(false);
   const [actionError, setActionError] = useState("");
-  /** What the approver types back at the terminal. Only set once confirmed. */
   const [confirmationCode, setConfirmationCode] = useState("");
   const expiresAtRef = useRef(0);
   const confirmMutation = useConfirmSSHApproval();

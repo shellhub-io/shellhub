@@ -72,7 +72,7 @@ func dialSSHForApproval(ctx context.Context, addr, sshid string, signer ssh.Sign
 	return nil
 }
 
-func enrollIdentity(t *testing.T, ctx context.Context, compose *environment.DockerCompose, publicKey string) {
+func enrollIdentity(ctx context.Context, t *testing.T, compose *environment.DockerCompose, publicKey string) {
 	t.Helper()
 
 	resp, err := compose.R(ctx).
@@ -221,9 +221,6 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 		require.Error(t, err, "an unenrolled key must not get in without an approval")
 
-		// The elapsed time is the assertion that matters. Reintroducing a wait on
-		// the server side fails the login with this very same error, only a minute
-		// and a half later, so asserting on the error alone would not notice.
 		assert.Less(t, elapsed, 5*time.Second,
 			"a client with no way to answer must be refused, not held while someone is asked")
 	})
@@ -234,7 +231,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 		_, device := startAcceptedAgent(t, ctx, compose)
 
 		enrolled, enrolledKey := newSigner(t)
-		enrollIdentity(t, ctx, compose, enrolledKey)
+		enrollIdentity(ctx, t, compose, enrolledKey)
 
 		first, _ := newSigner(t)
 		second, _ := newSigner(t)
@@ -250,8 +247,6 @@ func TestIdentityAccessPolicy(t *testing.T) {
 				[]ssh.Signer{first, second, enrolled}, prompts, answers)
 		}()
 
-		// Refusing the one prompt has to leave the client its remaining keys, so
-		// the enrolled one behind the unenrolled ones still logs in.
 		answers <- ""
 
 		select {

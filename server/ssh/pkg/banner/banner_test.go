@@ -144,7 +144,3 @@ func TestClassifyUnknownInputsReturnKindNone(t *testing.T) {
 		})
 	}
 }
-
-// A banner carrying an approval code still classifies as its Kind, and hands the
-// code back: it is how the web bridge learns which held login to open a screen
-// for.

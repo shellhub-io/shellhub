@@ -742,11 +742,6 @@ function StatusMessage({ label }: { label: string }) {
   );
 }
 
-/**
- * The code the approver carries back to their terminal. It is shown only on the
- * routed screen: the web terminal answers its own prompt, so there is nothing
- * for anyone to type there.
- */
 function CodeBlock({ label, code }: { label: string; code: string }) {
   return (
     <div className="mb-6">
@@ -760,7 +755,6 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
   );
 }
 
-/** Splits an eight-character code in half, the way the terminal prints it. */
 function groupCode(code: string) {
   if (code.length !== 8) return code;
 
