@@ -51,7 +51,9 @@ func (t *TunnelV2) Handle(protocol string, handler HandlerFunc) {
 		log.WithField("protocol", protocol).Debug("handling connection")
 		defer log.WithField("protocol", protocol).Debug("handling connection closed")
 
-		return handler(NewContext(context.TODO(), rwc), rwc)
+		ctx := NewContext(context.TODO(), rwc)
+
+		return handler(ctx, ctx.Stream())
 	})
 }
 
