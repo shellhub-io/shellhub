@@ -68,7 +68,7 @@ func reachableDevice(t *testing.T) *servicemocks.MockService {
 
 	service := servicemocks.NewMockService(t)
 	service.On("LookupDevice", mock.Anything, "namespace", "device").
-		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
+		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id", Online: true}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
 	service.On("GetNamespace", mock.Anything, "tenant-id").
 		Return(&models.Namespace{Name: "namespace", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it names the session with
 
@@ -102,22 +102,28 @@ func TestBannerHandlerNewSessionFailure(t *testing.T) {
 		"BannerHandler must return KindConnectionFailed when NewSession fails")
 }
 
-// TestBannerHandlerDialFailure drives the real session against a tunnel that will not dial,
-// which is the only substitution the banner path needs to fail on an unreachable device.
-func TestBannerHandlerDialFailure(t *testing.T) {
-	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrUnreachable, dialer.ErrInvalidArgument} {
-		t.Run(failure.Error(), func(t *testing.T) {
-			deps := stubDeps()
+func offlineDevice(t *testing.T) *servicemocks.MockService {
+	t.Helper()
 
-			stub := &dialertest.Stub{Err: failure} //nolint:exhaustruct // the recording field starts empty and is appended to under the mutex
+	service := servicemocks.NewMockService(t)
+	service.On("LookupDevice", mock.Anything, "namespace", "device").
+		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id", Online: false}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
+	service.On("GetNamespace", mock.Anything, "tenant-id").
+		Return(&models.Namespace{Name: "namespace", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it names the session with
 
-			h := newBannerHandlerWithDeps(stub, reachableDevice(t), nil, deps)
-			result := h(newStubCtx(validSSHID))
+	return service
+}
 
-			assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
-				"BannerHandler must return KindConnectionFailed when the device cannot be dialled")
-		})
-	}
+func TestBannerHandlerOfflineDevice(t *testing.T) {
+	agent := dialertest.NewAgent(t)
+
+	h := newBannerHandlerWithDeps(agent, offlineDevice(t), nil, stubDeps())
+	result := h(newStubCtx(validSSHID))
+
+	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
+		"BannerHandler must return KindConnectionFailed when the device is not reporting in")
+	assert.Empty(t, agent.Dials(),
+		"an offline device must be refused from what the lookup already knows, without a tunnel")
 }
 
 func TestBannerHandlerEvaluateFailure(t *testing.T) {
@@ -141,8 +147,8 @@ func TestBannerHandlerSuccess(t *testing.T) {
 
 	assert.Empty(t, result,
 		"BannerHandler must return an empty string on the success path")
-	assert.Len(t, agent.Dials(), 1,
-		"BannerHandler must reach the device exactly once")
+	assert.Empty(t, agent.Dials(),
+		"the tunnel to the device must not be opened before the client has authenticated")
 }
 
 func TestBannerHandlerRecoversFromPanic(t *testing.T) {
