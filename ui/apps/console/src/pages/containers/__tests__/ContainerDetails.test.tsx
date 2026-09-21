@@ -3,26 +3,14 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { Device } from "@/client";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import {
   mockContainer as mockContainerFactory,
   mockNamespace,
 } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getContainer: vi.fn(),
-    updateContainer: vi.fn(),
-    createTag: vi.fn(),
-    pushTagToContainer: vi.fn(),
-    pullTagFromContainer: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-    getTags: vi.fn(),
-  }),
-);
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (
@@ -72,11 +60,11 @@ vi.mock("@/utils/sshid", () => ({
   buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
 }));
 
-const mockNavigate = vi.fn();
-
 const { searchParamsRef } = vi.hoisted(() => ({
   searchParamsRef: { current: new URLSearchParams() },
 }));
+
+const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -109,6 +97,14 @@ function makeContainer(overrides: Partial<Device> = {}): Device {
   });
 }
 
+function setContainer(overrides: Partial<Device> = {}) {
+  server.use(
+    http.get("*/api/containers/:uid", () =>
+      HttpResponse.json(makeContainer(overrides)),
+    ),
+  );
+}
+
 function renderPage() {
   return render(<ContainerDetails />, {
     wrapper: createTestWrapper({ initialEntries: ["/containers/test-uid"] }),
@@ -117,18 +113,31 @@ function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  searchParamsRef.current = new URLSearchParams();
   seedAuthStore();
-  sdk.getContainer.mockResolvedValue(mockSdkResponse(null));
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  searchParamsRef.current = new URLSearchParams();
+  server.use(
+    http.get("*/api/containers/:uid", () => HttpResponse.json(null)),
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.get("*/api/tags", () => HttpResponse.json([])),
+    http.put(
+      "*/api/containers/:uid",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.post("*/api/tags", () => new HttpResponse(null, { status: 204 })),
+    http.post(
+      "*/api/containers/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.delete(
+      "*/api/containers/:uid/tags/:name",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.getTags.mockResolvedValue(mockSdkResponse([]));
-  sdk.updateContainer.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pushTagToContainer.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.pullTagFromContainer.mockResolvedValue(mockSdkResponse(undefined));
   mockRequestAction.mockReset();
   mockNavigate.mockReset();
   capturedOnSuccess = undefined;
@@ -137,7 +146,9 @@ beforeEach(() => {
 describe("ContainerDetails", () => {
   describe("loading and missing states", () => {
     it("renders a spinner while loading", () => {
-      sdk.getContainer.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/containers/:uid", () => new Promise(() => {})),
+      );
       renderPage();
       expect(
         screen.getByLabelText("Loading container details"),
@@ -145,7 +156,11 @@ describe("ContainerDetails", () => {
     });
 
     it("tells the user the container is missing when the query fails", async () => {
-      sdk.getContainer.mockRejectedValue({ status: 404 });
+      server.use(
+        http.get("*/api/containers/:uid", () =>
+          HttpResponse.json({}, { status: 404 }),
+        ),
+      );
       renderPage();
       expect(
         await screen.findByText("Container not found"),
@@ -162,7 +177,7 @@ describe("ContainerDetails", () => {
 
   describe("container data", () => {
     beforeEach(() => {
-      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      setContainer();
     });
 
     it("renders the container name as a heading", async () => {
@@ -196,22 +211,16 @@ describe("ContainerDetails", () => {
   });
 
   it("renders tag names flattened out of the generated tag objects", async () => {
-    sdk.getContainer.mockResolvedValue(
-      mockSdkResponse(
-        makeContainer({
-          tags: [{ name: "production" }, { name: "edge" }],
-        } as unknown as Partial<Device>),
-      ),
-    );
+    setContainer({
+      tags: [{ name: "production" }, { name: "edge" }],
+    } as unknown as Partial<Device>);
     renderPage();
     expect(await screen.findByText("production")).toBeInTheDocument();
     expect(screen.getByText("edge")).toBeInTheDocument();
   });
 
   it("hides the SSHID banner for a container that is not accepted", async () => {
-    sdk.getContainer.mockResolvedValue(
-      mockSdkResponse(makeContainer({ status: "pending" })),
-    );
+    setContainer({ status: "pending" });
     renderPage();
     await screen.findByRole("heading", { name: "my-container" });
     expect(
@@ -229,14 +238,10 @@ describe("ContainerDetails", () => {
       "calls requestAction('%s' → %s)",
       async (status, buttonName, expectedAction) => {
         const user = userEvent.setup();
-        sdk.getContainer.mockResolvedValue(
-          mockSdkResponse(
-            makeContainer({
-              status: status as Device["status"],
-              online: false,
-            }),
-          ),
-        );
+        setContainer({
+          status: status as Device["status"],
+          online: false,
+        });
         renderPage();
 
         await user.click(
@@ -252,9 +257,7 @@ describe("ContainerDetails", () => {
 
     it("calls requestAction('remove') from the trash button on an accepted container", async () => {
       const user = userEvent.setup();
-      sdk.getContainer.mockResolvedValue(
-        mockSdkResponse(makeContainer({ status: "accepted" })),
-      );
+      setContainer({ status: "accepted" });
       renderPage();
 
       await user.click(
@@ -270,7 +273,7 @@ describe("ContainerDetails", () => {
 
   describe("onSuccess callback wiring", () => {
     it("navigates to /containers after a container is removed", async () => {
-      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      setContainer();
       renderPage();
       await screen.findByRole("heading", { name: "my-container" });
 
@@ -281,9 +284,7 @@ describe("ContainerDetails", () => {
     });
 
     it("stays on the page after any other action", async () => {
-      sdk.getContainer.mockResolvedValue(
-        mockSdkResponse(makeContainer({ status: "pending" })),
-      );
+      setContainer({ status: "pending" });
       renderPage();
       await screen.findByRole("heading", { name: "my-container" });
 
@@ -297,7 +298,7 @@ describe("ContainerDetails", () => {
   describe("connect deep link", () => {
     it("opens the connect drawer for a role that can connect", async () => {
       searchParamsRef.current = new URLSearchParams({ connect: "true" });
-      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      setContainer();
       renderPage();
 
       expect(
@@ -308,7 +309,7 @@ describe("ContainerDetails", () => {
     it("does not open the connect drawer for an observer", async () => {
       searchParamsRef.current = new URLSearchParams({ connect: "true" });
       seedAuthStore({ role: "observer" });
-      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
+      setContainer();
       renderPage();
       await screen.findByRole("heading", { name: "my-container" });
 

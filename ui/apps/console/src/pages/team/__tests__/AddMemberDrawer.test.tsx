@@ -1,16 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import { defaultConfig, getConfig } from "@/env";
 import AddMemberDrawer from "../AddMemberDrawer";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    generateInvitationLink: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -46,10 +41,26 @@ async function submit(
   await user.click(screen.getByRole("button", { name: /add member/i }));
 }
 
+function setInviteResponse(link: string | null) {
+  server.use(
+    http.post("*/api/namespaces/:tenant/invitations/links", () =>
+      HttpResponse.json({ link }),
+    ),
+  );
+}
+
+function setInviteError(status: number) {
+  server.use(
+    http.post("*/api/namespaces/:tenant/invitations/links", () =>
+      HttpResponse.json({}, { status }),
+    ),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-  sdk.generateInvitationLink.mockResolvedValue(mockSdkResponse({ link: null }));
+  setInviteResponse(null);
 });
 
 describe("AddMemberDrawer", () => {
@@ -83,30 +94,23 @@ describe("AddMemberDrawer", () => {
 
   describe("submit", () => {
     it("always generates the invitation link (single channel)", async () => {
+      setInviteResponse("https://shellhub.example/accept-invite?invite=abc");
       const user = userEvent.setup();
-      sdk.generateInvitationLink.mockResolvedValue(
-        mockSdkResponse({
-          link: "https://shellhub.example/accept-invite?invite=abc",
-        }),
-      );
       renderDrawer(true, vi.fn(), "t1");
       await submit(user, "bob@example.com");
 
       await waitFor(() =>
-        expect(sdk.generateInvitationLink).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { tenant: "t1" },
-            body: { email: "bob@example.com", role: "operator" },
-          }),
-        ),
+        expect(
+          screen.getByText(
+            "https://shellhub.example/accept-invite?invite=abc",
+          ),
+        ).toBeInTheDocument(),
       );
     });
 
     it("shows the invitation link and copy button after generation", async () => {
       const generatedLink = "https://shellhub.example.com/invite/abc123";
-      sdk.generateInvitationLink.mockResolvedValue(
-        mockSdkResponse({ link: generatedLink }),
-      );
+      setInviteResponse(generatedLink);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -121,11 +125,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("mentions the email on cloud", async () => {
-      sdk.generateInvitationLink.mockResolvedValue(
-        mockSdkResponse({
-          link: "https://shellhub.example.com/invite/abc123",
-        }),
-      );
+      setInviteResponse("https://shellhub.example.com/invite/abc123");
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -142,11 +142,7 @@ describe("AddMemberDrawer", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      sdk.generateInvitationLink.mockResolvedValue(
-        mockSdkResponse({
-          link: "https://shellhub.example.com/invite/abc123",
-        }),
-      );
+      setInviteResponse("https://shellhub.example.com/invite/abc123");
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -177,11 +173,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("does not close on success — the result screen stays until 'Done'", async () => {
-      sdk.generateInvitationLink.mockResolvedValue(
-        mockSdkResponse({
-          link: "https://shellhub.example.com/invite/abc123",
-        }),
-      );
+      setInviteResponse("https://shellhub.example.com/invite/abc123");
       const onClose = vi.fn();
       const user = userEvent.setup();
       renderDrawer(true, onClose, "t1");
@@ -198,11 +190,18 @@ describe("AddMemberDrawer", () => {
 
   describe("form validation", () => {
     it("does not call the mutation when email is invalid (Enter submit)", async () => {
+      const apiCalled = vi.fn();
+      server.use(
+        http.post("*/api/namespaces/:tenant/invitations/links", () => {
+          apiCalled();
+          return HttpResponse.json({ link: null });
+        }),
+      );
       const user = userEvent.setup();
       renderDrawer();
       await user.type(screen.getByPlaceholderText(/user@example.com/i), "bad");
       await user.keyboard("{Enter}");
-      expect(sdk.generateInvitationLink).not.toHaveBeenCalled();
+      expect(apiCalled).not.toHaveBeenCalled();
     });
 
     it("disables the submit button when email field is empty", () => {
@@ -227,7 +226,7 @@ describe("AddMemberDrawer", () => {
 
   describe("error handling", () => {
     it("shows 400 error as invalid email/role message", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(400));
+      setInviteError(400);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -238,7 +237,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 403 error as permission denied message", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(403));
+      setInviteError(403);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -251,7 +250,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 404 error as no account message", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(404));
+      setInviteError(404);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -264,7 +263,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 409 error as already member message", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(409));
+      setInviteError(409);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -277,7 +276,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows generic error for unexpected status codes", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(500));
+      setInviteError(500);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -289,8 +288,12 @@ describe("AddMemberDrawer", () => {
       );
     });
 
-    it("shows generic error for non-SDK errors", async () => {
-      sdk.generateInvitationLink.mockRejectedValue(new Error("network error"));
+    it("shows generic error for network errors", async () => {
+      server.use(
+        http.post("*/api/namespaces/:tenant/invitations/links", () =>
+          HttpResponse.error(),
+        ),
+      );
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);

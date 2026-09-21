@@ -1,13 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { setTags } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { makeSdkError } from "@/tests/sdk";
-import { mockTags } from "@/tests/mockTags";
 import TagsSection from "../TagsSection";
-
-vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 function renderTagsSection({
   uid = "test-uid",
@@ -43,7 +40,7 @@ describe("TagsSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthStore.setState({ role: "owner" });
-    mockTags(["existing", "shared", "deploy"]);
+    setTags(["existing", "shared", "deploy"]);
   });
 
   describe("rendering", () => {
@@ -140,7 +137,7 @@ describe("TagsSection", () => {
       { status: 400, message: /not a valid tag name/ },
     ])("shows API error for status $status", async ({ status, message }) => {
       renderTagsSection({
-        addTag: vi.fn().mockRejectedValue(makeSdkError(status)),
+        addTag: vi.fn().mockRejectedValue({ status }),
       });
 
       await typeAndSubmit("newtag");
@@ -185,7 +182,7 @@ describe("TagsSection", () => {
       const user = userEvent.setup();
       renderTagsSection({
         tags: ["prod"],
-        removeTag: vi.fn().mockRejectedValue(makeSdkError(403)),
+        removeTag: vi.fn().mockRejectedValue({ status: 403 }),
       });
 
       await user.click(

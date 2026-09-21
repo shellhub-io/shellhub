@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
-import { mockNamespace as buildNamespace } from "@/tests/factories";
 import type { Namespace } from "@/client";
 import EditNamespaceDrawer from "../EditNamespaceDrawer";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    editNamespaceAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -19,10 +13,11 @@ vi.mock("@/components/common/Drawer", async () => ({
 
 const Wrapper = createTestWrapper();
 
-const mockNamespace = buildNamespace({
+const mockNamespace: Namespace = {
   name: "my-namespace",
   owner: "owner-1",
   tenant_id: "tenant-abc",
+  members: [],
   settings: {
     session_record: true,
     connection_announcement: "hello",
@@ -30,7 +25,15 @@ const mockNamespace = buildNamespace({
     ssh_legacy_allowed: true,
   },
   max_devices: 10,
-});
+  created_at: "2024-01-01T00:00:00Z",
+  billing: null,
+  devices_pending_count: 0,
+  devices_accepted_count: 3,
+  devices_rejected_count: 0,
+  devices_removed_count: 0,
+};
+
+const editSpy = vi.fn();
 
 function renderDrawer(
   overrides: Partial<{
@@ -50,7 +53,18 @@ function renderDrawer(
 describe("EditNamespaceDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sdk.editNamespaceAdmin.mockResolvedValue(mockSdkResponse(undefined));
+    editSpy.mockReset();
+    server.use(
+      http.put("*/admin/api/namespaces-update/:tenantID", async ({ request, params }) => {
+        let body = await request.json();
+        if (typeof body === "string") body = JSON.parse(body);
+        editSpy({
+          path: { tenantID: params.tenantID },
+          body,
+        });
+        return HttpResponse.json({});
+      }),
+    );
   });
 
   describe("rendering — closed", () => {
@@ -174,7 +188,7 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.editNamespaceAdmin).toHaveBeenCalledWith(
+        expect(editSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { tenantID: "tenant-abc" },
             body: expect.objectContaining({
@@ -197,7 +211,7 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.editNamespaceAdmin).toHaveBeenCalledWith(
+        expect(editSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({
               owner: "owner-1",
@@ -218,7 +232,7 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(sdk.editNamespaceAdmin).toHaveBeenCalledWith(
+        expect(editSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({
               settings: expect.objectContaining({ session_record: false }),
@@ -241,7 +255,11 @@ describe("EditNamespaceDrawer", () => {
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue({ status: 409 });
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -256,7 +274,11 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("shows generic error for non-409 SDK errors", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue({ status: 500 });
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -271,7 +293,11 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("shows generic error for non-SDK errors", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.error(),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -286,7 +312,11 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.error(),
+        ),
+      );
       renderDrawer();
 
       await userEvent.click(
@@ -299,7 +329,11 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("does not call onClose when update fails", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.error(),
+        ),
+      );
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -321,7 +355,7 @@ describe("EditNamespaceDrawer", () => {
     it("does not call editNamespaceAdmin when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.editNamespaceAdmin).not.toHaveBeenCalled();
+      expect(editSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -354,7 +388,11 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      sdk.editNamespaceAdmin.mockRejectedValue(new Error("fail"));
+      server.use(
+        http.put("*/admin/api/namespaces-update/:tenantID", () =>
+          HttpResponse.error(),
+        ),
+      );
       const { rerender } = renderDrawer({ namespace: mockNamespace });
 
       await userEvent.click(

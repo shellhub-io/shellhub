@@ -1,17 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { renderHookWithClient } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
+import { server } from "@/tests/msw";
+import { defaultHandlers } from "@/tests/handlers";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useSupportIdentifier } from "../useSupportIdentifier";
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespaceSupport: vi.fn(),
-  }),
-);
-
 beforeEach(() => {
-  vi.clearAllMocks();
+  server.use(...defaultHandlers);
+  seedAuthStore();
 });
 
 describe("useSupportIdentifier", () => {
@@ -21,7 +19,6 @@ describe("useSupportIdentifier", () => {
         useSupportIdentifier("tenant-123", false),
       );
 
-      expect(sdk.getNamespaceSupport).not.toHaveBeenCalled();
       expect(result.current.identifier).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isError).toBe(false);
@@ -30,20 +27,17 @@ describe("useSupportIdentifier", () => {
 
   describe("when tenantId is empty", () => {
     it("does not fire the query when tenantId is empty string", () => {
-      renderHookWithClient(() => useSupportIdentifier("", true));
+      const { result } = renderHookWithClient(() =>
+        useSupportIdentifier("", true),
+      );
 
-      expect(sdk.getNamespaceSupport).not.toHaveBeenCalled();
+      expect(result.current.identifier).toBeNull();
+      expect(result.current.isLoading).toBe(false);
     });
 
     it("does not fire the query when tenantId is null", () => {
-      renderHookWithClient(() => useSupportIdentifier(null, true));
-
-      expect(sdk.getNamespaceSupport).not.toHaveBeenCalled();
-    });
-
-    it("returns null identifier when disabled by empty tenantId", () => {
       const { result } = renderHookWithClient(() =>
-        useSupportIdentifier("", true),
+        useSupportIdentifier(null, true),
       );
 
       expect(result.current.identifier).toBeNull();
@@ -53,8 +47,10 @@ describe("useSupportIdentifier", () => {
 
   describe("when enabled with a valid tenant", () => {
     it("returns the identifier from the response", async () => {
-      sdk.getNamespaceSupport.mockResolvedValue(
-        mockSdkResponse({ identifier: "abc123" }),
+      server.use(
+        http.get("*/api/namespaces/:tenant/support", () =>
+          HttpResponse.json({ identifier: "abc123" }),
+        ),
       );
 
       const { result } = renderHookWithClient(() =>
@@ -69,7 +65,13 @@ describe("useSupportIdentifier", () => {
 
   describe("retry policy", () => {
     it("retries the query exactly once on failure (transient blip recovery)", async () => {
-      sdk.getNamespaceSupport.mockRejectedValue(new Error("network error"));
+      let callCount = 0;
+      server.use(
+        http.get("*/api/namespaces/:tenant/support", () => {
+          callCount++;
+          return HttpResponse.json(null, { status: 500 });
+        }),
+      );
 
       const { result } = renderHookWithClient(() =>
         useSupportIdentifier("tenant-123", true),
@@ -77,7 +79,7 @@ describe("useSupportIdentifier", () => {
 
       await waitFor(() => expect(result.current.isError).toBe(true));
 
-      expect(sdk.getNamespaceSupport).toHaveBeenCalledTimes(2);
+      expect(callCount).toBe(2);
     });
   });
 });

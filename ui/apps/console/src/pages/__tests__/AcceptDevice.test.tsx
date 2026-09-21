@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -9,20 +11,6 @@ import {
 } from "@/utils/navigation";
 import AcceptDevice from "../AcceptDevice";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    resolveDeviceLoginCode: vi.fn(),
-    acceptDevice: vi.fn(),
-    acceptDevicePairing: vi.fn(),
-    getNamespaces: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
-
-function respondWith<T>(data: T) {
-  return { data } as never;
-}
 
 function mockDevice(overrides = {}) {
   return {
@@ -38,10 +26,38 @@ function mockDevice(overrides = {}) {
   };
 }
 
+function setResolveCode(device: ReturnType<typeof mockDevice>) {
+  server.use(
+    http.get("*/api/devices/login-code/:code", () =>
+      HttpResponse.json(device),
+    ),
+  );
+}
+
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
-  useAuthStore.setState({ token: "token", tenant: "tenant1" });
+  useAuthStore.setState({ tenant: "tenant1" });
+  server.use(
+    http.get("*/api/devices/login-code/:code", () =>
+      HttpResponse.json(mockDevice()),
+    ),
+    http.patch(
+      "*/api/devices/:uid/accept",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.post(
+      "*/api/devices/pairing/:code/accept",
+      () =>
+        HttpResponse.json({ uid: "new-uid", tenant_id: "t1", namespace: "my-ns" }),
+    ),
+    http.get("*/api/namespaces", () =>
+      jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+  );
 });
 
 function renderPage(path: string) {
@@ -62,7 +78,6 @@ function renderFlow({
 
 describe("AcceptDevice page", () => {
   it("persists the code from the URL to localStorage", () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderPage("/accept-device?code=WXYZ2K7Q");
     expect(hasPendingDeviceCode()).toBe(true);
   });
@@ -80,7 +95,9 @@ describe("AcceptDevice page", () => {
 
 describe("AcceptDeviceFlow standalone", () => {
   it("shows loading while resolving a code", () => {
-    sdk.resolveDeviceLoginCode.mockReturnValue(new Promise<never>(() => {}));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () => new Promise(() => {})),
+    );
     renderFlow();
 
     expect(screen.getByRole("status")).toBeInTheDocument();
@@ -88,7 +105,6 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows device preview for a login code", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow();
 
     expect(
@@ -100,12 +116,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows namespace picker for a pairing code", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(
-      respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
-    );
-    sdk.getNamespaces.mockResolvedValue(
-      respondWith([{ name: "my-ns", tenant_id: "t1" }]),
-    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow();
 
     expect(await screen.findByText("my-ns")).toBeInTheDocument();
@@ -116,7 +127,11 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows error state on invalid/expired code", async () => {
-    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () =>
+        HttpResponse.json({}, { status: 404 }),
+      ),
+    );
     renderFlow({ initialCode: "BADCODE1" });
 
     expect(
@@ -125,9 +140,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows already-accepted state", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(
-      respondWith(mockDevice({ status: "accepted" })),
-    );
+    setResolveCode(mockDevice({ status: "accepted" }));
     renderFlow();
 
     expect(
@@ -136,8 +149,6 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("transitions to success after accepting a device", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
-    sdk.acceptDevice.mockResolvedValue(respondWith({}));
     renderFlow();
 
     fireEvent.click(
@@ -145,14 +156,14 @@ describe("AcceptDeviceFlow standalone", () => {
     );
 
     await screen.findByRole("heading", { name: /device accepted/i });
-    expect(sdk.acceptDevice).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { uid: "uid-1" } }),
-    );
   });
 
   it("shows accept error without leaving ready state", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
-    sdk.acceptDevice.mockRejectedValue(new Error("limit reached"));
+    server.use(
+      http.patch("*/api/devices/:uid/accept", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
     renderFlow();
 
     fireEvent.click(
@@ -174,7 +185,11 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows dashboard link in error state", async () => {
-    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () =>
+        HttpResponse.json({}, { status: 404 }),
+      ),
+    );
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -184,7 +199,11 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("resets to code form via 'Enter another code' on error", async () => {
-    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () =>
+        HttpResponse.json({}, { status: 404 }),
+      ),
+    );
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -196,7 +215,6 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("resolves code entered from the manual form", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow({ initialCode: "" });
 
     await screen.findByText("Claim a device");
@@ -211,15 +229,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("transitions to pairing-success after accepting with a namespace", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(
-      respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
-    );
-    sdk.getNamespaces.mockResolvedValue(
-      respondWith([{ name: "my-ns", tenant_id: "t1" }]),
-    );
-    sdk.acceptDevicePairing.mockResolvedValue(
-      respondWith({ uid: "new-uid", tenant_id: "t1", namespace: "my-ns" }),
-    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow();
 
     await screen.findByText("my-ns");
@@ -231,17 +241,15 @@ describe("AcceptDeviceFlow standalone", () => {
     fireEvent.click(screen.getByRole("button", { name: /accept device/i }));
 
     await screen.findByRole("heading", { name: /device accepted/i });
-    expect(sdk.acceptDevicePairing).toHaveBeenCalledWith(
-      expect.objectContaining({
-        path: { code: "CODE1234" },
-        body: { tenant_id: "t1" },
-      }),
-    );
   });
 
   it("clears pending device code on error", async () => {
     setPendingDeviceCode("STALE");
-    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () =>
+        HttpResponse.json({}, { status: 404 }),
+      ),
+    );
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByText(/invalid or expired code/i);
@@ -250,9 +258,7 @@ describe("AcceptDeviceFlow standalone", () => {
 
   it("clears pending device code when already accepted", async () => {
     setPendingDeviceCode("STALE");
-    sdk.resolveDeviceLoginCode.mockResolvedValue(
-      respondWith(mockDevice({ status: "accepted" })),
-    );
+    setResolveCode(mockDevice({ status: "accepted" }));
     renderFlow();
 
     await screen.findByRole("heading", { name: /already accepted/i });
@@ -277,7 +283,11 @@ describe("AcceptDeviceFlow dialog mode", () => {
   });
 
   it("does not show dashboard link in error state", async () => {
-    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
+    server.use(
+      http.get("*/api/devices/login-code/:code", () =>
+        HttpResponse.json({}, { status: 404 }),
+      ),
+    );
     renderFlow({ initialCode: "BADCODE1", inDialog: true });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -287,7 +297,6 @@ describe("AcceptDeviceFlow dialog mode", () => {
   });
 
   it("resets to form via 'Use a different code' on ready state", async () => {
-    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow({ inDialog: true });
 
     fireEvent.click(

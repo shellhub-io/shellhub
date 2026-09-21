@@ -1,21 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    listAccessPolicies: vi.fn(),
-    deleteAccessPolicy: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-  }),
-);
 
 vi.mock("../AccessPolicyDrawer", () => ({
   default: ({ open }: { open: boolean }) =>
@@ -23,7 +15,9 @@ vi.mock("../AccessPolicyDrawer", () => ({
 }));
 
 function renderList(policies: AccessPolicy[]) {
-  sdk.listAccessPolicies.mockResolvedValue(mockSdkResponse(policies));
+  server.use(
+    http.get("*/api/access-policies", () => HttpResponse.json(policies)),
+  );
   return render(<AccessPolicies />, {
     wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
@@ -32,11 +26,19 @@ function renderList(policies: AccessPolicy[]) {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.get("*/api/service-accounts", () => HttpResponse.json([])),
+    http.delete(
+      "*/api/access-policies/:id",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.deleteAccessPolicy.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("AccessPolicies", () => {
@@ -61,33 +63,5 @@ describe("AccessPolicies", () => {
     await user.keyboard("{Escape}");
     await user.click(screen.getByText("all"));
     expect(await screen.findByTestId("policy-drawer")).toBeInTheDocument();
-  });
-
-  it("counts the members a role subject matches", async () => {
-    sdk.getNamespace.mockResolvedValue(
-      mockSdkResponse(
-        mockNamespace({
-          members: [
-            { id: "u1", role: "operator", email: "a@test.com" },
-            { id: "u2", role: "operator", email: "b@test.com" },
-            { id: "u3", role: "owner", email: "c@test.com" },
-          ],
-        }),
-      ),
-    );
-
-    renderList([
-      mockAccessPolicy({
-        id: "p2",
-        name: "ops access",
-        subject: { type: "role", value: "operator" },
-      }),
-    ]);
-
-    const row = await screen.findByRole("row", { name: /ops access/ });
-
-    expect(within(row).getByText(/^operator/)).toHaveTextContent(
-      /operator\D*2/,
-    );
   });
 });

@@ -3,7 +3,14 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import RenameSection, { type RenameSectionProps } from "../RenameSection";
-import { makeSdkError } from "@/tests/sdk";
+import type { SdkHttpError } from "@/api/errors";
+
+function makeSdkError(status: number): Error & SdkHttpError {
+  return Object.assign(new Error("Request failed"), {
+    status,
+    headers: new Headers(),
+  });
+}
 
 const mockRename = vi
   .fn<RenameSectionProps["rename"]>()
