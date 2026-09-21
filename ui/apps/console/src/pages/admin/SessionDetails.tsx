@@ -140,9 +140,7 @@ export default function AdminSessionDetails() {
                   {type.label}
                 </span>
               ) : (
-                <span className="text-text-secondary capitalize">
-                  {session.type}
-                </span>
+                <span className="text-text-secondary">unknown</span>
               )}
             </InfoItem>
 

@@ -73,7 +73,6 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		UserID:    session.UserID,
 		APIKeyID:  session.APIKeyID,
 		IPAddress: session.IPAddress,
-		Type:      session.Type,
 		Term:      session.Term,
 		Web:       session.Web,
 		Position: models.SessionPosition{
@@ -117,10 +116,6 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 
 	if model.Authenticated != nil {
 		session.Authenticated = *model.Authenticated
-	}
-
-	if model.Type != nil {
-		session.Type = *model.Type
 	}
 
 	if model.Recorded != nil {

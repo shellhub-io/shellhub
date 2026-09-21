@@ -33,10 +33,8 @@ func TestSessionFromModel(t *testing.T) {
 				IPAddress:     "192.168.1.1",
 				StartedAt:     now,
 				LastSeen:      now,
-				Closed:        false,
 				Authenticated: true,
 				Recorded:      true,
-				Type:          "shell",
 				Term:          "xterm-256color",
 				Position: models.SessionPosition{
 					Longitude: 1.23,
@@ -52,10 +50,8 @@ func TestSessionFromModel(t *testing.T) {
 				assert.Equal(t, "192.168.1.1", result.IPAddress)
 				assert.Equal(t, now, result.StartedAt)
 				assert.Equal(t, now, result.SeenAt)
-				assert.False(t, result.Closed)
 				assert.True(t, result.Authenticated)
 				assert.True(t, result.Recorded)
-				assert.Equal(t, "shell", result.Type)
 				assert.Equal(t, "xterm-256color", result.Term)
 				assert.InDelta(t, 1.23, result.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Latitude, 0.001)
@@ -64,15 +60,13 @@ func TestSessionFromModel(t *testing.T) {
 			},
 		},
 		{
-			name: "empty Type defaults to shell",
+			name: "carries no position when the model has none",
 			model: &models.Session{
-				UID:  "session-uid-2",
-				Type: "",
+				UID: "session-uid-2",
 			},
 			check: func(t *testing.T, result *Session) {
 				t.Helper()
 
-				assert.Equal(t, "shell", result.Type)
 				assert.InDelta(t, 0.0, result.Longitude, 0.001)
 				assert.InDelta(t, 0.0, result.Latitude, 0.001)
 			},
@@ -107,10 +101,8 @@ func TestSessionToModel(t *testing.T) {
 				StartedAt:     now,
 				SeenAt:        now,
 				Active:        true,
-				Closed:        false,
 				Authenticated: true,
 				Recorded:      true,
-				Type:          "shell",
 				Term:          "xterm",
 				Longitude:     1.23,
 				Latitude:      4.56,
@@ -132,10 +124,8 @@ func TestSessionToModel(t *testing.T) {
 				assert.Equal(t, now, result.StartedAt)
 				assert.Equal(t, now, result.LastSeen)
 				assert.True(t, result.Active)
-				assert.False(t, result.Closed)
 				assert.True(t, result.Authenticated)
 				assert.True(t, result.Recorded)
-				assert.Equal(t, "shell", result.Type)
 				assert.Equal(t, "xterm", result.Term)
 				assert.InDelta(t, 1.23, result.Position.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Position.Latitude, 0.001)
@@ -150,7 +140,6 @@ func TestSessionToModel(t *testing.T) {
 			entity: &Session{
 				ID:       "session-uid-2",
 				DeviceID: "device-uid-2",
-				Type:     "exec",
 				Device:   nil,
 			},
 			check: func(t *testing.T, result *models.Session) {
@@ -165,7 +154,6 @@ func TestSessionToModel(t *testing.T) {
 			entity: &Session{
 				ID:       "  session-uid-3  ",
 				DeviceID: "  device-uid-3  ",
-				Type:     "shell",
 			},
 			check: func(t *testing.T, result *models.Session) {
 				t.Helper()

@@ -267,7 +267,7 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			fp := &query.FilterProperty{Name: "closed", Operator: "bool", Value: tc.value}
+			fp := &query.FilterProperty{Name: "recorded", Operator: "bool", Value: tc.value}
 			sqlCond, args, ok, err := ParseFilterProperty(fp, "session")
 			assert.Equal(t, tc.wantOk, ok)
 
@@ -280,7 +280,7 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, "? = ?", sqlCond)
 			require.Len(t, args, 2)
-			assert.Equal(t, bun.Ident("session.closed"), args[0])
+			assert.Equal(t, bun.Ident("session.recorded"), args[0])
 			assert.Equal(t, tc.wantBool, args[1])
 		})
 	}
@@ -455,4 +455,39 @@ func TestParseFilterProperty_Active(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseFilterProperty_Closed(t *testing.T) {
+	const membership = `(SELECT 1 FROM "active_sessions" WHERE "active_sessions"."session_id" = "session"."id")`
+
+	cases := []struct {
+		description string
+		value       any
+		wantSQL     string
+	}{
+		{description: "closed true is every session not in the active set", value: true, wantSQL: `NOT EXISTS ` + membership},
+		{description: "closed false is only the active set", value: false, wantSQL: `EXISTS ` + membership},
+		{description: "closed accepts the JSON number form", value: float64(1), wantSQL: `NOT EXISTS ` + membership},
+		{description: "closed accepts the string form", value: "true", wantSQL: `NOT EXISTS ` + membership},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			fp := &query.FilterProperty{Name: "closed", Operator: "bool", Value: tc.value}
+
+			sqlCond, args, ok, err := ParseFilterProperty(fp, "session")
+			require.NoError(t, err)
+			assert.True(t, ok)
+			assert.Equal(t, tc.wantSQL, sqlCond)
+			assert.Empty(t, args, "membership needs no bound arguments")
+		})
+	}
+
+	t.Run("rejects a value that is not a boolean", func(t *testing.T) {
+		fp := &query.FilterProperty{Name: "closed", Operator: "bool", Value: "yes"}
+
+		_, _, ok, err := ParseFilterProperty(fp, "session")
+		require.Error(t, err)
+		assert.False(t, ok)
+	})
 }

@@ -487,7 +487,6 @@ func (s *Session) register(ctx context.Context) error {
 		UserID:    s.userIDForSession(),
 		APIKeyID:  s.apiKeyIDForSession(),
 		IPAddress: s.IPAddress,
-		Type:      "none",
 		Term:      "none",
 		Web:       s.Web,
 	})

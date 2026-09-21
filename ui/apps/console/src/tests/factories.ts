@@ -137,7 +137,6 @@ export function mockSession(overrides: Partial<Session> = {}): Session {
     active: false,
     authenticated: true,
     recorded: false,
-    type: "term",
     term: "xterm",
     web: false,
     position: { latitude: 0, longitude: 0 },

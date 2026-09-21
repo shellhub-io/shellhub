@@ -193,7 +193,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		}
 	})
 
-	t.Run("filters by closed bool true", func(t *testing.T) {
+	t.Run("filters by closed bool true, meaning every session that is not running", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		device1 := s.CreateDevice(t)
@@ -216,14 +216,14 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
-		assert.Len(t, sessions, 1)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
-			assert.True(t, s.Closed)
+			assert.False(t, s.Active)
 		}
 	})
 
-	t.Run("filters by closed bool false", func(t *testing.T) {
+	t.Run("filters by closed bool false, meaning only the sessions still running", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		device1 := s.CreateDevice(t)
@@ -246,10 +246,10 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
-		assert.Len(t, sessions, 3)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
-			assert.False(t, s.Closed)
+			assert.True(t, s.Active)
 		}
 	})
 
@@ -449,18 +449,6 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 			Authenticated: true,
 			StartedAt:     time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 			TenantID:      tenantID,
-		})
-		require.NoError(t, err)
-	})
-
-	t.Run("succeeds when updating Type field", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("user3"))
-
-		err := st.SessionUpdate(ctx, &models.Session{
-			UID:  string(sessionUID),
-			Type: "exec",
 		})
 		require.NoError(t, err)
 	})

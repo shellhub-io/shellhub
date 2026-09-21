@@ -37,13 +37,6 @@ properties:
   recorded:
     description: Session's recorded status
     type: boolean
-  type:
-    description: Session's type
-    type: string
-    enum:
-      - web
-      - term
-    example: web
   term:
     description: Session's terminal
     type: string
@@ -114,7 +107,6 @@ required:
   - active
   - authenticated
   - recorded
-  - type
   - term
   - web
   - position

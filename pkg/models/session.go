@@ -12,8 +12,7 @@ type SessionPosition struct {
 }
 
 // Session is one SSH connection to one device, live or finished. It is created when the
-// connection is established and outlives it: Active says whether it is still running, and Closed
-// distinguishes a session that ended cleanly from one whose device vanished.
+// connection is established and outlives it: Active says whether it is still running.
 type Session struct {
 	UID       string  `json:"uid"`
 	DeviceUID UID     `json:"device_uid,omitempty"`
@@ -29,10 +28,8 @@ type Session struct {
 	StartedAt     time.Time       `json:"started_at"`
 	LastSeen      time.Time       `json:"last_seen"`
 	Active        bool            `json:"active"`
-	Closed        bool            `json:"-"`
 	Authenticated bool            `json:"authenticated"`
 	Recorded      bool            `json:"recorded"`
-	Type          string          `json:"type"`
 	Term          string          `json:"term"`
 	Web           bool            `json:"web"`
 	Position      SessionPosition `json:"position"`
@@ -68,9 +65,8 @@ type Status struct {
 // SessionUpdate is a partial update to a session: a nil field is left alone, which is why every
 // field is a pointer.
 type SessionUpdate struct {
-	Recorded      *bool   `json:"recorded"`
-	Authenticated *bool   `json:"authenticated"`
-	Type          *string `json:"type"`
+	Recorded      *bool `json:"recorded"`
+	Authenticated *bool `json:"authenticated"`
 }
 
 // SessionEventType names the SSH request an event came from. The values are the wire names from

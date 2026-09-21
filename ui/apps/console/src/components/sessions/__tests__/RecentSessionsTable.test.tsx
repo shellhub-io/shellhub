@@ -33,7 +33,6 @@ function makeSession(overrides: Partial<Session> = {}): Session {
     active: false,
     authenticated: true,
     recorded: false,
-    type: "term",
     term: "xterm",
     position: { latitude: 0, longitude: 0 },
     events: { types: ["term"], seats: [] },

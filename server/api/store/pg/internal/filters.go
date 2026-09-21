@@ -67,22 +67,32 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
 }
 
-func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error) {
-	var isActive bool
+func fromClosedFilter(value any) (string, []any, bool, error) {
+	closed, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
+	}
 
+	return fromActiveFilter(!closed, "session")
+}
+
+func parseBoolFilterValue(value any) (bool, error) {
 	switch v := value.(type) {
 	case bool:
-		isActive = v
+		return v, nil
 	case float64:
-		isActive = v != 0
+		return v != 0, nil
 	case string:
-		var err error
-		isActive, err = strconv.ParseBool(v)
-		if err != nil {
-			return "", nil, false, err
-		}
+		return strconv.ParseBool(v)
 	default:
-		return "", nil, false, ErrUnsupportedBoolType
+		return false, ErrUnsupportedBoolType
+	}
+}
+
+func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error) {
+	isActive, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
 	}
 
 	if tableAlias == "session" {
@@ -122,6 +132,10 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 
 	if fp.Name == "active" {
 		return fromActiveFilter(fp.Value, tableAlias)
+	}
+
+	if fp.Name == "closed" && tableAlias == "session" {
+		return fromClosedFilter(fp.Value)
 	}
 
 	if tableAlias == "session" && fp.Name == "device_uid" {

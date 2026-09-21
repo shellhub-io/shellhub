@@ -130,8 +130,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 	result, err := db.NewUpdate().
 		Model(e).
 		OmitZero().
-		ExcludeColumn("closed", "authenticated", "recorded").
-		Set("closed = ?", e.Closed).
+		ExcludeColumn("authenticated", "recorded").
 		Set("authenticated = ?", e.Authenticated).
 		Set("recorded = ?", e.Recorded).
 		Where("id = ?", e.ID).
@@ -249,7 +248,6 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 
 		result, err := db.NewUpdate().
 			Model((*entity.Session)(nil)).
-			Set("closed = ?", true).
 			Set("seen_at = ?", clock.Now()).
 			Where("id = ?", string(uid)).
 			Exec(ctx)
