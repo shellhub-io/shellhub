@@ -102,18 +102,16 @@ describe("MfaLogin", () => {
     expect(recoveryLink).toHaveAttribute("href", "/mfa-recover");
   });
 
-  it("disables submit button when code is incomplete", () => {
+  it.each([
+    [3, true],
+    [6, false],
+  ])("a %i-digit code leaves submit disabled: %s", (digits, disabled) => {
     renderMfaLogin();
-    fillCode(3);
+    fillCode(digits);
 
-    expect(screen.getByRole("button", { name: /verify/i })).toBeDisabled();
-  });
-
-  it("enables submit button when code is complete", () => {
-    renderMfaLogin();
-    fillCode();
-
-    expect(screen.getByRole("button", { name: /verify/i })).not.toBeDisabled();
+    const verify = screen.getByRole("button", { name: /verify/i });
+    if (disabled) expect(verify).toBeDisabled();
+    else expect(verify).not.toBeDisabled();
   });
 
   it("shows loading state during submission", () => {

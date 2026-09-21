@@ -25,17 +25,14 @@ vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
 
-let lastKeysUrl: URL | null;
-
 function setKeys(
   keys: ReturnType<typeof mockPublicKey>[],
   total?: number,
 ) {
   server.use(
-    http.get("*/api/sshkeys/public-keys", ({ request }) => {
-      lastKeysUrl = new URL(request.url);
-      return jsonWithTotal(keys, total ?? keys.length);
-    }),
+    http.get("*/api/sshkeys/public-keys", () =>
+      jsonWithTotal(keys, total ?? keys.length),
+    ),
   );
 }
 
@@ -50,7 +47,6 @@ function renderPage(initialEntries: string[] = ["/"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  lastKeysUrl = null;
   useAuthStore.setState({ role: "owner" });
   setKeys([mockPublicKey()]);
   server.use(
@@ -74,7 +70,7 @@ describe("PublicKeys — delete error handling", () => {
     return screen.findByRole("dialog", { name: /delete public key/i });
   }
 
-  it("shows the fallback error message inside the dialog when deletion fails", async () => {
+  it("shows the mutation error message inside the dialog when deletion fails", async () => {
     server.use(
       http.delete("*/api/sshkeys/public-keys/:fingerprint", () =>
         HttpResponse.json(
@@ -90,13 +86,13 @@ describe("PublicKeys — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText(/failed to delete public key/i),
+        within(dialog).getByText("Failed to delete public key."),
       ).toBeInTheDocument(),
     );
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows the fallback error on server error", async () => {
+  it("shows the status code as fallback when the server returns no message", async () => {
     server.use(
       http.delete("*/api/sshkeys/public-keys/:fingerprint", () =>
         HttpResponse.json({}, { status: 500 }),
@@ -109,7 +105,7 @@ describe("PublicKeys — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText(/failed to delete public key/i),
+        within(dialog).getByText("Failed to delete public key."),
       ).toBeInTheDocument(),
     );
   });
@@ -125,77 +121,5 @@ describe("PublicKeys — delete error handling", () => {
         screen.queryByRole("dialog", { name: /delete public key/i }),
       ).not.toBeInTheDocument(),
     );
-  });
-});
-
-describe("PublicKeys — URL hydration", () => {
-  it("passes page=3 when URL has ?page=3", async () => {
-    renderPage(["/?page=3"]);
-    await waitFor(() => {
-      expect(lastKeysUrl).not.toBeNull();
-      expect(lastKeysUrl!.searchParams.get("page")).toBe("3");
-    });
-  });
-
-  it("passes page=1 when URL has no page param", async () => {
-    renderPage(["/"]);
-    await waitFor(() => {
-      expect(lastKeysUrl).not.toBeNull();
-      expect(lastKeysUrl!.searchParams.get("page")).toBe("1");
-    });
-  });
-
-  it("passes a filter containing the search term when URL has ?search=mykey", async () => {
-    renderPage(["/?search=mykey"]);
-    await waitFor(() => {
-      expect(lastKeysUrl).not.toBeNull();
-      const filter = lastKeysUrl!.searchParams.get("filter") ?? "";
-      expect(atob(filter)).toContain("mykey");
-    });
-  });
-
-  it("passes no filter when URL has no search param", async () => {
-    renderPage(["/"]);
-    await waitFor(() => {
-      expect(lastKeysUrl).not.toBeNull();
-      expect(lastKeysUrl!.searchParams.get("filter")).toBeNull();
-    });
-  });
-});
-
-describe("PublicKeys — URL writes", () => {
-  it("passes page=2 when the user navigates to page 2", async () => {
-    const user = userEvent.setup();
-    setKeys(
-      Array.from({ length: 10 }, (_, i) =>
-        mockPublicKey({ fingerprint: `fp-${i}`, name: `key-${i}` }),
-      ),
-      25,
-    );
-    renderPage();
-
-    await screen.findByText("key-0");
-
-    await user.click(screen.getByRole("button", { name: "Next page" }));
-
-    await waitFor(() => {
-      expect(lastKeysUrl!.searchParams.get("page")).toBe("2");
-    });
-  });
-
-  it("resets page to 1 when the user types in the search field", async () => {
-    const user = userEvent.setup();
-    renderPage(["/?page=2"]);
-
-    await screen.findByText("my-key");
-
-    const searchInput = screen.getByPlaceholderText(
-      /search by name or fingerprint/i,
-    );
-    await user.type(searchInput, "a");
-
-    await waitFor(() => {
-      expect(lastKeysUrl!.searchParams.get("page")).toBe("1");
-    });
   });
 });

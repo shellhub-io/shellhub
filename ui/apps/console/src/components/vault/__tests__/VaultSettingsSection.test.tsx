@@ -85,19 +85,14 @@ beforeEach(() => {
 });
 
 describe("VaultSettingsSection", () => {
-  describe("when vault is not unlocked", () => {
-    it("renders nothing when locked", () => {
-      useVaultStore.setState({ status: "locked" });
+  it.each(["locked", "uninitialized"] as const)(
+    "renders nothing when %s",
+    (status) => {
+      useVaultStore.setState({ status });
       const { container } = renderSection();
       expect(container).toBeEmptyDOMElement();
-    });
-
-    it("renders nothing when uninitialized", () => {
-      useVaultStore.setState({ status: "uninitialized" });
-      const { container } = renderSection();
-      expect(container).toBeEmptyDOMElement();
-    });
-  });
+    },
+  );
 
   describe("Auto-lock timeout menu", () => {
     it("renders all 5 timeout options when opened", async () => {
@@ -119,7 +114,13 @@ describe("VaultSettingsSection", () => {
       ]);
     });
 
-    it("calls updateAutoLockSettings with correct timeout when an option is selected", async () => {
+    it.each([
+      ["30 minutes", 30],
+      [/never/i, 0],
+    ] as const)("selecting %s persists a timeout of %i", async (
+      option,
+      expected,
+    ) => {
       setUnlocked({ autoLockTimeoutMinutes: 15 });
       const updateAutoLockSettings = vi.fn();
       useVaultStore.setState({ updateAutoLockSettings });
@@ -129,126 +130,58 @@ describe("VaultSettingsSection", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /auto-lock timeout/i }),
       );
-      await userEvent.click(
-        screen.getByRole("menuitem", { name: "30 minutes" }),
-      );
+      await userEvent.click(screen.getByRole("menuitem", { name: option }));
 
       expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        autoLockTimeoutMinutes: 30,
+        autoLockTimeoutMinutes: expected,
       });
     });
 
-    it("calls updateAutoLockSettings with 0 when Never is selected", async () => {
-      setUnlocked({ autoLockTimeoutMinutes: 15 });
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
-
-      renderSection();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      );
-      await userEvent.click(screen.getByRole("menuitem", { name: /never/i }));
-
-      expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        autoLockTimeoutMinutes: 0,
-      });
-    });
-
-    it("reflects the persisted timeout value on first paint (15 min)", () => {
-      setUnlocked({ autoLockTimeoutMinutes: 15 });
+    it.each([
+      [15, "15 minutes"],
+      [0, "Never"],
+    ])("a persisted timeout of %i paints as '%s'", (minutes, label) => {
+      setUnlocked({ autoLockTimeoutMinutes: minutes });
       renderSection();
 
       expect(
         screen.getByRole("button", { name: /auto-lock timeout/i }),
-      ).toHaveTextContent("15 minutes");
-    });
-
-    it("reflects the persisted timeout value on first paint (Never)", () => {
-      setUnlocked({ autoLockTimeoutMinutes: 0 });
-      renderSection();
-
-      expect(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      ).toHaveTextContent("Never");
+      ).toHaveTextContent(label);
     });
   });
 
   describe("Lock-when-tab-hidden checkbox", () => {
-    it("renders the lock-when-hidden checkbox with a description", () => {
-      setUnlocked();
-      renderSection();
+    function hiddenCheckbox() {
+      return screen.getByRole("checkbox", { name: /lock when hidden/i });
+    }
 
-      const checkbox = screen.getByRole("checkbox", {
-        name: /lock when hidden/i,
-      });
-      expect(checkbox).toBeInTheDocument();
-    });
+    it.each([false, true])(
+      "toggling from lockOnHidden=%s persists the opposite",
+      async (lockOnHidden) => {
+        setUnlocked({ lockOnHidden });
+        const updateAutoLockSettings = vi.fn();
+        useVaultStore.setState({ updateAutoLockSettings });
 
-    it("renders the description text about switching away", () => {
-      setUnlocked();
-      renderSection();
+        renderSection();
 
-      expect(
-        screen.getByText(
-          /locks the vault about a minute after you switch away or minimize/i,
-        ),
-      ).toBeInTheDocument();
-    });
+        await userEvent.click(hiddenCheckbox());
 
-    it("calls updateAutoLockSettings with lockOnHidden:true when checked", async () => {
-      setUnlocked({ lockOnHidden: false });
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
+        expect(updateAutoLockSettings).toHaveBeenCalledWith({
+          lockOnHidden: !lockOnHidden,
+        });
+      },
+    );
 
-      renderSection();
+    it.each([true, false])(
+      "a persisted lockOnHidden=%s paints the checkbox accordingly",
+      (lockOnHidden) => {
+        setUnlocked({ lockOnHidden });
+        renderSection();
 
-      const checkbox = screen.getByRole("checkbox", {
-        name: /lock when hidden/i,
-      });
-      await userEvent.click(checkbox);
-
-      expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        lockOnHidden: true,
-      });
-    });
-
-    it("calls updateAutoLockSettings with lockOnHidden:false when unchecked", async () => {
-      setUnlocked({ lockOnHidden: true });
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
-
-      renderSection();
-
-      const checkbox = screen.getByRole("checkbox", {
-        name: /lock when hidden/i,
-      });
-      await userEvent.click(checkbox);
-
-      expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        lockOnHidden: false,
-      });
-    });
-
-    it("reflects persisted lockOnHidden=true on first paint (checked)", () => {
-      setUnlocked({ lockOnHidden: true });
-      renderSection();
-
-      const checkbox = screen.getByRole("checkbox", {
-        name: /lock when hidden/i,
-      });
-      expect(checkbox).toBeChecked();
-    });
-
-    it("reflects persisted lockOnHidden=false on first paint (unchecked)", () => {
-      setUnlocked({ lockOnHidden: false });
-      renderSection();
-
-      const checkbox = screen.getByRole("checkbox", {
-        name: /lock when hidden/i,
-      });
-      expect(checkbox).not.toBeChecked();
-    });
+        if (lockOnHidden) expect(hiddenCheckbox()).toBeChecked();
+        else expect(hiddenCheckbox()).not.toBeChecked();
+      },
+    );
   });
 
   describe("Change master password", () => {
@@ -304,205 +237,60 @@ describe("VaultSettingsSection", () => {
   });
 
   describe("Storage row", () => {
-    it("is visible when isVaultServerEnabled() returns true", () => {
-      vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-      useVaultStore.setState({ storageMode: "local" });
-      setUnlocked();
-      renderSection();
+    it.each([true, false])(
+      "isVaultServerEnabled()=%s decides whether the row renders",
+      (enabled) => {
+        vi.mocked(isVaultServerEnabled).mockReturnValue(enabled);
+        useVaultStore.setState({ storageMode: "local" });
+        setUnlocked();
+        renderSection();
 
-      expect(screen.getByText(/^storage$/i)).toBeInTheDocument();
-    });
-
-    it("is absent when isVaultServerEnabled() returns false", () => {
-      vi.mocked(isVaultServerEnabled).mockReturnValue(false);
-      useVaultStore.setState({ storageMode: "local" });
-      setUnlocked();
-      renderSection();
-
-      expect(screen.queryByText(/^storage$/i)).not.toBeInTheDocument();
-    });
+        const row = screen.queryByText(/^storage$/i);
+        if (enabled) expect(row).toBeInTheDocument();
+        else expect(row).not.toBeInTheDocument();
+      },
+    );
   });
 
-  describe("SettingsCard layout (unit 5)", () => {
-    describe("Vault Settings card", () => {
-      it("renders a heading 'Vault Settings'", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByRole("heading", { name: "Vault Settings" }),
-        ).toBeInTheDocument();
-      });
-
-      it("renders row title 'Change Master Password'", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getAllByText("Change Master Password").length,
-        ).toBeGreaterThanOrEqual(1);
-      });
-
-      it("renders row description for Change Master Password", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByText("Re-encrypt all keys with a new password."),
-        ).toBeInTheDocument();
-      });
-
-      it("renders a 'Change' button with aria-label 'Change master password'", () => {
-        setUnlocked();
-        renderSection();
-        const btn = screen.getByRole("button", {
-          name: "Change master password",
-        });
-        expect(btn).toHaveTextContent("Change");
-      });
-
-      it("renders row title 'Auto-lock Timeout'", () => {
-        setUnlocked();
-        renderSection();
-        expect(screen.getByText("Auto-lock Timeout")).toBeInTheDocument();
-      });
-
-      it("renders row description for Auto-lock Timeout", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByText(
-            "Automatically lock the vault after this period of inactivity.",
-          ),
-        ).toBeInTheDocument();
-      });
-
-      it("renders row title 'Lock when hidden'", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getAllByText("Lock when hidden").length,
-        ).toBeGreaterThanOrEqual(1);
-      });
-
-      it("renders a 'Lock' button with aria-label 'Lock vault'", () => {
-        setUnlocked();
-        renderSection();
-        const btn = screen.getByRole("button", { name: "Lock vault" });
-        expect(btn).toHaveTextContent("Lock");
-      });
-
-      it("renders row title 'Lock Vault'", () => {
-        setUnlocked();
-        renderSection();
-        expect(screen.getByText("Lock Vault")).toBeInTheDocument();
-      });
-
-      it("renders row description for Lock Vault", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByText("Clear decrypted keys from memory."),
-        ).toBeInTheDocument();
-      });
+  describe("Storage row copy", () => {
+    beforeEach(() => {
+      vi.mocked(isVaultServerEnabled).mockReturnValue(true);
     });
 
-    describe("Storage row (unit 5)", () => {
-      it("renders 'Move' button label when storageMode is server", () => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-        useVaultStore.setState({ storageMode: "server" });
-        setUnlocked();
-        renderSection();
+    it.each([
+      [
+        "server",
+        "Move",
+        "Synced with the ShellHub server. Click to move it to this device.",
+      ],
+      [
+        "local",
+        "Sync",
+        "Stored in this browser only. Click to sync it to the ShellHub server.",
+      ],
+    ] as const)("a %s vault offers '%s'", (storageMode, action, copy) => {
+      useVaultStore.setState({ storageMode });
+      setUnlocked();
+      renderSection();
 
-        const btn = screen.getByRole("button", {
-          name: "Change vault storage location",
-        });
-        expect(btn).toHaveTextContent("Move");
-      });
-
-      it("renders 'Sync' button label when storageMode is local", () => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-        useVaultStore.setState({ storageMode: "local" });
-        setUnlocked();
-        renderSection();
-
-        const btn = screen.getByRole("button", {
-          name: "Change vault storage location",
-        });
-        expect(btn).toHaveTextContent("Sync");
-      });
-
-      it("renders description for server storageMode", () => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-        useVaultStore.setState({ storageMode: "server" });
-        setUnlocked();
-        renderSection();
-
-        expect(
-          screen.getByText(
-            "Synced with the ShellHub server. Click to move it to this device.",
-          ),
-        ).toBeInTheDocument();
-      });
-
-      it("renders description for local storageMode", () => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-        useVaultStore.setState({ storageMode: "local" });
-        setUnlocked();
-        renderSection();
-
-        expect(
-          screen.getByText(
-            "Stored in this browser only. Click to sync it to the ShellHub server.",
-          ),
-        ).toBeInTheDocument();
-      });
-
-      it("opens VaultSyncDialog when storage button is clicked", async () => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(true);
-        useVaultStore.setState({ storageMode: "local" });
-        setUnlocked();
-        renderSection();
-
-        const btn = screen.getByRole("button", {
-          name: "Change vault storage location",
-        });
-        await userEvent.click(btn);
-
-        expect(
-          screen.getByRole("heading", { name: /sync/i }),
-        ).toBeInTheDocument();
-      });
+      expect(
+        screen.getByRole("button", { name: "Change vault storage location" }),
+      ).toHaveTextContent(action);
+      expect(screen.getByText(copy)).toBeInTheDocument();
     });
 
-    describe("Danger Zone card (unit 5)", () => {
-      it("renders a heading 'Danger Zone'", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByRole("heading", { name: "Danger Zone" }),
-        ).toBeInTheDocument();
-      });
+    it("opens VaultSyncDialog when storage button is clicked", async () => {
+      useVaultStore.setState({ storageMode: "local" });
+      setUnlocked();
+      renderSection();
 
-      it("renders row title 'Reset Vault'", () => {
-        setUnlocked();
-        renderSection();
-        expect(screen.getByText("Reset Vault")).toBeInTheDocument();
-      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Change vault storage location" }),
+      );
 
-      it("renders row description for Reset Vault", () => {
-        setUnlocked();
-        renderSection();
-        expect(
-          screen.getByText(
-            "Permanently delete all stored keys. This cannot be undone.",
-          ),
-        ).toBeInTheDocument();
-      });
-
-      it("renders a 'Reset' button with aria-label 'Reset vault'", () => {
-        setUnlocked();
-        renderSection();
-        const btn = screen.getByRole("button", { name: "Reset vault" });
-        expect(btn).toHaveTextContent("Reset");
-      });
+      expect(
+        screen.getByRole("heading", { name: /sync/i }),
+      ).toBeInTheDocument();
     });
   });
 });

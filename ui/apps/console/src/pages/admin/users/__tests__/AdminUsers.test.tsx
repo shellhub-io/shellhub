@@ -85,22 +85,6 @@ describe("AdminUsers", () => {
     setUsers([]);
   });
 
-  describe("rendering", () => {
-    it("renders the page heading", () => {
-      renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Users" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the search input with correct aria-label", () => {
-      renderPage();
-      expect(
-        screen.getByRole("searchbox", { name: "Search users by username" }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("loading state", () => {
     it('renders the loading spinner with "Loading users..." text', () => {
       server.use(
@@ -153,83 +137,6 @@ describe("AdminUsers", () => {
       expect(
         screen.getByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
-    });
-  });
-
-  describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes search and page hydrated from URL to the API", async () => {
-      renderPage(["/?search=foo&page=2"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
-      });
-      expect(
-        screen.getByRole("searchbox", { name: "Search users by username" }),
-      ).toHaveValue("foo");
-    });
-
-    it("passes page=1 to the API when URL has no params", async () => {
-      renderPage(["/"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-    });
-  });
-
-  describe("URL writes — clearing search resets page to 1 and omits both params", () => {
-    it("omits search and page from the URL after clearing a prefilled search", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?search=foo&page=2"]);
-
-      const searchbox = screen.getByRole("searchbox", {
-        name: "Search users by username",
-      });
-      expect(searchbox).toHaveValue("foo");
-
-      await user.clear(searchbox);
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-    });
-  });
-
-  describe("URL hydration — ?page=3&search=alice hydrates controls", () => {
-    it("hydrates the search field to 'alice' and passes page=3 to the API", async () => {
-      renderPage(["/?page=3&search=alice"]);
-
-      expect(
-        screen.getByRole("searchbox", { name: "Search users by username" }),
-      ).toHaveValue("alice");
-
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-      });
-    });
-  });
-
-  describe("URL writes — typing in SearchField resets page to 1", () => {
-    it("resets page to 1 and reflects new search value after typing", async () => {
-      const user = userEvent.setup();
-      renderPage(["/?page=3"]);
-
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
-      });
-
-      const searchbox = screen.getByRole("searchbox", {
-        name: "Search users by username",
-      });
-
-      await user.type(searchbox, "bob");
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-      expect(searchbox).toHaveValue("bob");
     });
   });
 

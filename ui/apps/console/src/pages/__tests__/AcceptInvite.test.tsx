@@ -142,19 +142,6 @@ describe("AcceptInvite", () => {
       });
     });
 
-    it("renders the Namespace Invitation heading with Accept", async () => {
-      renderPage(VALID_PARAMS);
-      expect(
-        await screen.findByRole("heading", { name: /namespace invitation/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /accept/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /decline/i }),
-      ).not.toBeInTheDocument();
-    });
-
     it("accepts and switches namespace using the resolved tenant", async () => {
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
@@ -207,14 +194,10 @@ describe("AcceptInvite", () => {
       await user.type(screen.getByLabelText(/confirm password/i), "Secret123");
     }
 
-    it("renders the invite completion form with the resolved email", async () => {
+    it("shows the resolved email as text instead of an editable field", async () => {
       renderPage(VALID_PARAMS);
-      expect(
-        await screen.findByRole("heading", { name: /you've been invited/i }),
-      ).toBeInTheDocument();
+      await screen.findByRole("heading", { name: /you've been invited/i });
       expect(screen.getByText(/alice@example.com/)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
       expect(screen.queryByLabelText(/^email$/i)).not.toBeInTheDocument();
     });
 

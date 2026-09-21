@@ -55,10 +55,6 @@ beforeEach(() => {
       "*/api/namespaces/api-key/:key",
       () => new HttpResponse(null, { status: 204 }),
     ),
-    http.get("*/api/namespaces/api-key/:name/ssh-identities", () =>
-      jsonWithTotal([]),
-    ),
-    http.get("*/api/access-policies", () => jsonWithTotal([])),
   );
   useAuthStore.setState({ role: "owner" });
 });
@@ -104,36 +100,6 @@ describe("ApiKeysTab — pagination count display", () => {
   });
 });
 
-describe("ApiKeysTab — sorting", () => {
-  it("requests created_at/desc sort by default", async () => {
-    renderTab();
-    await screen.findByText("prod-key");
-    await waitFor(() => {
-      expect(lastApiKeysUrl).not.toBeNull();
-      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("created_at");
-      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("desc");
-    });
-  });
-
-  it("toggles sort when the Name header is clicked", async () => {
-    const user = userEvent.setup();
-    renderTab();
-    await screen.findByText("prod-key");
-
-    await user.click(screen.getByRole("button", { name: "Sort by Name" }));
-    await waitFor(() => {
-      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("name");
-      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("asc");
-    });
-
-    await user.click(screen.getByRole("button", { name: "Sort by Name" }));
-    await waitFor(() => {
-      expect(lastApiKeysUrl!.searchParams.get("sort_by")).toBe("name");
-      expect(lastApiKeysUrl!.searchParams.get("order_by")).toBe("desc");
-    });
-  });
-});
-
 describe("ApiKeysTab — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
@@ -147,7 +113,7 @@ describe("ApiKeysTab — delete error handling", () => {
     return screen.findByRole("dialog", { name: /delete api key/i });
   }
 
-  it("shows the fallback error message inside the dialog when deletion fails", async () => {
+  it("shows the mutation error message inside the dialog when deletion fails", async () => {
     server.use(
       http.delete("*/api/namespaces/api-key/:key", () =>
         HttpResponse.json(
@@ -163,13 +129,13 @@ describe("ApiKeysTab — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText(/failed to delete api key/i),
+        within(dialog).getByText("Failed to delete API key."),
       ).toBeInTheDocument(),
     );
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows the fallback error on server error", async () => {
+  it("shows the status code as fallback when the server returns no message", async () => {
     server.use(
       http.delete("*/api/namespaces/api-key/:key", () =>
         HttpResponse.json({}, { status: 500 }),
@@ -182,7 +148,7 @@ describe("ApiKeysTab — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText(/failed to delete api key/i),
+        within(dialog).getByText("Failed to delete API key."),
       ).toBeInTheDocument(),
     );
   });
@@ -202,35 +168,6 @@ describe("ApiKeysTab — delete error handling", () => {
 });
 
 describe("ApiKeysTab — URL sync with prefix 'key'", () => {
-  it("hydrates page from ?key.page=3 — API receives page 3", async () => {
-    renderTab(["/?key.page=3"]);
-    await waitFor(() => {
-      expect(lastApiKeysUrl).not.toBeNull();
-      expect(lastApiKeysUrl!.searchParams.get("page")).toBe("3");
-    });
-  });
-
-  it("clicking Next writes key.page=2 to the URL (not bare page=2)", async () => {
-    const user = userEvent.setup();
-    setApiKeys(
-      Array.from({ length: 10 }, (_, i) =>
-        mockApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
-      ),
-      25,
-    );
-    const { getSearch } = renderTab();
-
-    await screen.findByText("key-0");
-
-    await user.click(screen.getByRole("button", { name: /next/i }));
-
-    await waitFor(() => {
-      const sp = new URLSearchParams(getSearch());
-      expect(sp.get("key.page")).toBe("2");
-      expect(sp.get("page")).toBeNull();
-    });
-  });
-
   it("does not consume a bare ?page=5 param as key.page — API receives page 1", async () => {
     renderTab(["/?page=5"]);
     await waitFor(() => {

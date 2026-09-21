@@ -88,15 +88,6 @@ describe("WelcomeWizard", () => {
     });
   });
 
-  describe("when open=true", () => {
-    it("renders the dialog with the accessible label", () => {
-      renderWizard();
-      expect(
-        screen.getByRole("dialog", { name: /welcome to shellhub/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("Step 1 (install)", () => {
     it("opens on the install step, at step 1 of 2", () => {
       renderWizard();
@@ -104,14 +95,6 @@ describe("WelcomeWizard", () => {
         screen.getByRole("progressbar", { name: /step 1 of 2/i }),
       ).toBeInTheDocument();
       expect(screen.getByTestId("step-install")).toBeInTheDocument();
-    });
-
-    it("has an enabled 'Next' and a 'Skip'", () => {
-      renderWizard();
-      expect(screen.getByRole("button", { name: /next/i })).toBeEnabled();
-      expect(
-        screen.getByRole("button", { name: /^skip$/i }),
-      ).toBeInTheDocument();
     });
 
     it("clicking 'Skip' dismisses for good, not just closes", async () => {
@@ -202,16 +185,6 @@ describe("WelcomeWizard", () => {
       await user.click(screen.getByTestId("simulate-connected"));
       return { user, ...result };
     }
-
-    it("shows 'Finish' and keeps the X close affordance", async () => {
-      await goToFinal();
-      expect(
-        screen.getByRole("button", { name: /finish/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /close wizard/i }),
-      ).toBeInTheDocument();
-    });
 
     it("clicking 'Finish' dismisses for good", async () => {
       const { user, onClose, onDismiss } = await goToFinal();

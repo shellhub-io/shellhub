@@ -1,5 +1,4 @@
-import { useState, useId, type FormEvent } from "react";
-import { isSdkError } from "@/api/errors";
+import { useId } from "react";
 import {
   XMarkIcon,
   BookOpenIcon,
@@ -12,44 +11,11 @@ import {
 } from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
 import NamespaceNameField from "./fields/NamespaceNameField";
-import {
-  NAMESPACE_NAME_MIN_LENGTH,
-  validateNamespaceName,
-} from "@/utils/validation";
+import { NAMESPACE_NAME_MIN_LENGTH } from "@/utils/validation";
 import { isEnterpriseOrCloud } from "@/env";
-import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
+import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
 
 const FORM_ID = "create-namespace-form";
-
-function CloudForm({
-  inputId,
-  name,
-  setName,
-  displayError,
-  resetError,
-  onSubmit,
-}: {
-  inputId: string;
-  name: string;
-  setName: (v: string) => void;
-  displayError: string | null;
-  resetError: () => void;
-  onSubmit: (e: FormEvent) => void;
-}) {
-  return (
-    <form id={FORM_ID} onSubmit={onSubmit}>
-      <NamespaceNameField
-        id={inputId}
-        value={name}
-        onChange={(v) => {
-          setName(v);
-          resetError();
-        }}
-        error={displayError}
-      />
-    </form>
-  );
-}
 
 interface CreateNamespaceDialogProps {
   open: boolean;
@@ -67,50 +33,7 @@ export default function CreateNamespaceDialog({
   const titleId = `create-ns-title-${autoId}`;
   const inputId = `create-ns-input-${autoId}`;
   const isPremium = isEnterpriseOrCloud();
-
-  const [name, setName] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const createNs = useCreateNamespace();
-
-  const displayError = validationError ?? submitError ?? null;
-
-  const resetError = () => {
-    setValidationError(null);
-    setSubmitError(null);
-    createNs.reset();
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const err = validateNamespaceName(name);
-    if (err) {
-      setValidationError(err);
-      return;
-    }
-    setValidationError(null);
-    setSubmitError(null);
-    try {
-      await createNs.mutateAsync(name);
-      onClose();
-    } catch (caught) {
-      if (isSdkError(caught)) {
-        if (caught.status === 409) {
-          setSubmitError("A namespace with this name already exists.");
-        } else if (caught.status === 403) {
-          setSubmitError(
-            "You have reached the namespace limit or do not have permission.",
-          );
-        } else if (caught.status === 400) {
-          setSubmitError("The namespace name is invalid.");
-        } else {
-          setSubmitError("An unexpected error occurred. Please try again.");
-        }
-      } else {
-        setSubmitError("An unexpected error occurred. Please try again.");
-      }
-    }
-  };
+  const form = useNamespaceCreateForm(onClose);
 
   if (!isPremium) return null;
 
@@ -139,14 +62,14 @@ export default function CreateNamespaceDialog({
 
       {/* Body */}
       <div className="px-6 py-5 space-y-5">
-        <CloudForm
-          inputId={inputId}
-          name={name}
-          setName={setName}
-          displayError={displayError}
-          resetError={resetError}
-          onSubmit={(e) => void handleSubmit(e)}
-        />
+        <form id={FORM_ID} onSubmit={(e) => void form.submit(e)}>
+          <NamespaceNameField
+            id={inputId}
+            value={form.name}
+            onChange={form.changeName}
+            error={form.error}
+          />
+        </form>
       </div>
 
       {/* Footer */}
@@ -168,8 +91,8 @@ export default function CreateNamespaceDialog({
           <Button
             type="submit"
             form={FORM_ID}
-            loading={createNs.isPending}
-            disabled={name.length < NAMESPACE_NAME_MIN_LENGTH}
+            loading={form.isPending}
+            disabled={form.name.length < NAMESPACE_NAME_MIN_LENGTH}
           >
             Create
           </Button>

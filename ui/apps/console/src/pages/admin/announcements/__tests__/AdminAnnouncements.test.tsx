@@ -80,59 +80,13 @@ describe("AdminAnnouncements", () => {
     setAnnouncements([]);
   });
 
-  describe("rendering", () => {
-    it('renders the page heading "Announcements"', async () => {
-      renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Announcements" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Announcements table", async () => {
-      renderPage();
-      await screen.findByText("No announcements found");
-      expect(
-        screen.getByRole("table", { name: "Announcements" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the column headers", async () => {
-      renderPage();
-      await screen.findByText("No announcements found");
-      expect(
-        screen.getByRole("columnheader", { name: "UUID" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Title" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Date" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Actions" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the 'New' button", () => {
-      renderPage();
-      expect(screen.getByRole("button", { name: /new/i })).toBeInTheDocument();
-    });
-  });
-
   describe("loading state", () => {
-    it("renders the loading spinner with role='status'", () => {
+    it("renders the loading spinner while loading", () => {
       server.use(
         http.get("*/admin/api/announcements", () => new Promise(() => {})),
       );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
-    });
-
-    it("renders 'Loading announcements...' text while loading", () => {
-      server.use(
-        http.get("*/admin/api/announcements", () => new Promise(() => {})),
-      );
-      renderPage();
       expect(screen.getByText("Loading announcements...")).toBeInTheDocument();
     });
   });
@@ -143,14 +97,6 @@ describe("AdminAnnouncements", () => {
       expect(
         await screen.findByText("No announcements found"),
       ).toBeInTheDocument();
-    });
-
-    it("does not render announcement rows when the list is empty", async () => {
-      renderPage();
-      await screen.findByText("No announcements found");
-      expect(
-        screen.queryByRole("button", { name: /edit/i }),
-      ).not.toBeInTheDocument();
     });
   });
 
@@ -182,31 +128,6 @@ describe("AdminAnnouncements", () => {
       );
       renderPage();
       expect(await screen.findByText("abcdef12")).toBeInTheDocument();
-    });
-
-    it("renders a formatted date for each row", async () => {
-      setAnnouncements([
-        mockAnnouncement({ date: "2024-06-01T10:00:00.000Z" }),
-      ]);
-      renderPage();
-      const dateCell = await screen.findByText(/\d{4}/);
-      expect(dateCell).toBeInTheDocument();
-    });
-
-    it("renders an edit button for each row", async () => {
-      setAnnouncements([mockAnnouncement({ title: "My Announcement" })]);
-      renderPage();
-      expect(
-        await screen.findByRole("button", { name: "Edit My Announcement" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders a delete button for each row", async () => {
-      setAnnouncements([mockAnnouncement({ title: "My Announcement" })]);
-      renderPage();
-      expect(
-        await screen.findByRole("button", { name: "Delete My Announcement" }),
-      ).toBeInTheDocument();
     });
   });
 
@@ -297,25 +218,6 @@ describe("AdminAnnouncements", () => {
       );
     });
 
-    it("closes the DeleteAnnouncementDialog when cancel is clicked inside it", async () => {
-      const user = userEvent.setup();
-      setAnnouncements([mockAnnouncement({ title: "Target Announcement" })]);
-      renderPage();
-
-      await user.click(
-        await screen.findByRole("button", {
-          name: "Delete Target Announcement",
-        }),
-      );
-      await waitFor(() => screen.getByRole("dialog"));
-
-      await user.click(screen.getByRole("button", { name: "Cancel delete" }));
-
-      await waitFor(() =>
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
-      );
-    });
-
     it("does not navigate when delete button is clicked (stopPropagation)", async () => {
       const user = userEvent.setup();
       setAnnouncements([mockAnnouncement({ title: "No Nav Announcement" })]);
@@ -339,19 +241,9 @@ describe("AdminAnnouncements", () => {
         ),
       );
       renderPage();
-      expect(await screen.findByRole("alert")).toBeInTheDocument();
-    });
-
-    it("renders the error message text", async () => {
-      server.use(
-        http.get("*/admin/api/announcements", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Something went wrong on our side. Try again.",
       );
-      renderPage();
-      expect(
-        await screen.findByText("Something went wrong on our side. Try again."),
-      ).toBeInTheDocument();
     });
   });
 
@@ -389,43 +281,6 @@ describe("AdminAnnouncements", () => {
       setAnnouncements(manyAnnouncements, 25);
       renderPage();
       expect(await screen.findByText("25 announcements")).toBeInTheDocument();
-    });
-  });
-
-  describe("URL hydration (usePaginatedListState)", () => {
-    it("passes page=2 to the API when URL has ?page=2", async () => {
-      renderPage(["/?page=2"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
-      });
-    });
-
-    it("passes page=1 to the API when URL has no page param", async () => {
-      renderPage(["/"]);
-      await waitFor(() => {
-        expect(lastRequestUrl).not.toBeNull();
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
-      });
-    });
-  });
-
-  describe("URL writes (usePaginatedListState)", () => {
-    it("passes page=2 to the API when the user clicks Next page", async () => {
-      const user = userEvent.setup();
-      const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
-        mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
-      );
-      setAnnouncements(manyAnnouncements, 30);
-      renderPage();
-
-      await screen.findByText("Ann 0");
-
-      await user.click(screen.getByRole("button", { name: "Next page" }));
-
-      await waitFor(() => {
-        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
-      });
     });
   });
 

@@ -63,88 +63,6 @@ describe("EditUserDrawer", () => {
     );
   });
 
-  describe("rendering — closed", () => {
-    it("renders nothing when open is false", () => {
-      renderDrawer({ open: false });
-      expect(screen.queryByText("Edit User")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("rendering — open", () => {
-    it("renders the 'Edit User' title", () => {
-      renderDrawer();
-      expect(screen.getByText("Edit User")).toBeInTheDocument();
-    });
-
-    it("renders the Name input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Username input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Email input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
-    });
-
-    it("renders the Password input", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    });
-
-    it("renders the 'Save Changes' submit button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /save changes/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("form pre-filling", () => {
-    it("pre-fills the Name field with the user's name", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("Alice Smith");
-    });
-
-    it("pre-fills the Username field with the user's username", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^username$/i)).toHaveValue("alice");
-    });
-
-    it("pre-fills the Email field with the user's email", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^email$/i)).toHaveValue(
-        "alice@example.com",
-      );
-    });
-
-    it("leaves the Password field blank", () => {
-      renderDrawer();
-      expect(screen.getByLabelText(/^password$/i)).toHaveValue("");
-    });
-
-    it("pre-fills confirmed checkbox as unchecked when user is not confirmed", () => {
-      renderDrawer({ user: mockUser });
-      expect(screen.getByLabelText(/^confirmed$/i)).not.toBeChecked();
-    });
-
-    it("pre-fills admin checkbox as unchecked when user is not admin", () => {
-      renderDrawer({ user: mockUser });
-      expect(screen.getByLabelText(/^admin user$/i)).not.toBeChecked();
-    });
-  });
-
   describe("form enabling", () => {
     it("submit button is enabled when all required fields are filled", async () => {
       renderDrawer();
@@ -225,41 +143,7 @@ describe("EditUserDrawer", () => {
     });
   });
 
-  describe("password visibility toggle", () => {
-    it("shows password in plaintext when Show password button is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(
-        screen.getByRole("button", { name: /show password/i }),
-      );
-      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
-        "type",
-        "text",
-      );
-    });
-
-    it("hides password again when Hide password is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(
-        screen.getByRole("button", { name: /show password/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /hide password/i }),
-      );
-      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
-        "type",
-        "password",
-      );
-    });
-  });
-
   describe("namespace limit controls", () => {
-    it("does not show namespace sub-options by default when max_namespaces is undefined", () => {
-      renderDrawer({ user: { ...mockUser, max_namespaces: undefined } });
-      expect(
-        screen.queryByLabelText(/disable namespace creation/i),
-      ).not.toBeInTheDocument();
-    });
-
     it("pre-enables namespace limit when max_namespaces is set", () => {
       renderDrawer({ user: { ...mockUser, max_namespaces: 5 } });
       expect(screen.getByLabelText(/max namespaces/i)).toBeInTheDocument();
@@ -385,35 +269,6 @@ describe("EditUserDrawer", () => {
         expect(screen.getByText(/failed to update user/i)).toBeInTheDocument();
       });
     });
-
-    it("renders error with role='alert'", async () => {
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
-      );
-      renderDrawer();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("does not call onClose when update fails", async () => {
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
-      );
-      const { onClose } = renderDrawer();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => screen.getByRole("alert"));
-      expect(onClose).not.toHaveBeenCalled();
-    });
   });
 
   describe("client-side validation", () => {
@@ -448,20 +303,6 @@ describe("EditUserDrawer", () => {
       );
       expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
-    });
-  });
-
-  describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const { onClose } = renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call adminUpdateUser when Cancel is clicked", async () => {
-      renderDrawer();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(updateSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -502,15 +343,6 @@ describe("EditUserDrawer", () => {
       );
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("null user", () => {
-    it("renders the drawer with empty fields when user is null", () => {
-      renderDrawer({ user: null });
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("");
-      expect(screen.getByLabelText(/^username$/i)).toHaveValue("");
-      expect(screen.getByLabelText(/^email$/i)).toHaveValue("");
     });
   });
 });

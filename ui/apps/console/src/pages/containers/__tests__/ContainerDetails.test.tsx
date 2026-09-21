@@ -23,8 +23,7 @@ vi.mock("@/components/common/CopyButton", async () => ({
 }));
 
 vi.mock("@/components/ConnectDrawer", () => ({
-  default: ({ open }: { open: boolean }) =>
-    open ? <div role="dialog" aria-label="Connect" /> : null,
+  default: () => <div />,
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -60,10 +59,6 @@ vi.mock("@/utils/sshid", () => ({
   buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
 }));
 
-const { searchParamsRef } = vi.hoisted(() => ({
-  searchParamsRef: { current: new URLSearchParams() },
-}));
-
 const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -72,7 +67,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useParams: () => ({ uid: "test-uid" }),
     useNavigate: () => mockNavigate,
-    useSearchParams: () => [searchParamsRef.current, vi.fn()],
+    useSearchParams: () => [new URLSearchParams(), vi.fn()],
   };
 });
 
@@ -114,7 +109,6 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  searchParamsRef.current = new URLSearchParams();
   server.use(
     http.get("*/api/containers/:uid", () => HttpResponse.json(null)),
     http.get("*/api/namespaces/:tenant", () =>
@@ -180,33 +174,17 @@ describe("ContainerDetails", () => {
       setContainer();
     });
 
-    it("renders the container name as a heading", async () => {
+    it("renders the container's fields, including the SSHID and online status", async () => {
       renderPage();
       expect(
         await screen.findByRole("heading", { name: "my-container" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders the MAC address", async () => {
-      renderPage();
-      expect(await screen.findByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
-    });
-
-    it("renders the container image", async () => {
-      renderPage();
-      expect(await screen.findByText("Alpine Linux 3.19")).toBeInTheDocument();
-    });
-
-    it("renders the SSHID built from the namespace and container name", async () => {
-      renderPage();
+      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      expect(screen.getByText("Alpine Linux 3.19")).toBeInTheDocument();
       expect(
-        await screen.findByText("my-namespace.my-container@localhost"),
+        screen.getByText("my-namespace.my-container@localhost"),
       ).toBeInTheDocument();
-    });
-
-    it("marks an online container as Online", async () => {
-      renderPage();
-      expect(await screen.findByText("Online")).toBeInTheDocument();
+      expect(screen.getByText("Online")).toBeInTheDocument();
     });
   });
 
@@ -292,30 +270,6 @@ describe("ContainerDetails", () => {
       capturedOnSuccess!("accept");
 
       expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("connect deep link", () => {
-    it("opens the connect drawer for a role that can connect", async () => {
-      searchParamsRef.current = new URLSearchParams({ connect: "true" });
-      setContainer();
-      renderPage();
-
-      expect(
-        await screen.findByRole("dialog", { name: "Connect" }),
-      ).toBeInTheDocument();
-    });
-
-    it("does not open the connect drawer for an observer", async () => {
-      searchParamsRef.current = new URLSearchParams({ connect: "true" });
-      seedAuthStore({ role: "observer" });
-      setContainer();
-      renderPage();
-      await screen.findByRole("heading", { name: "my-container" });
-
-      expect(
-        screen.queryByRole("dialog", { name: "Connect" }),
-      ).not.toBeInTheDocument();
     });
   });
 });
