@@ -169,9 +169,10 @@ func TestAuthenticatorMiddlewareStaleToken(t *testing.T) {
 	c, rec := authenticatedRequest(echo.New(), bearer)
 
 	next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
-	require.NoError(t, NewAuthenticator(service).Middleware(next)(c))
+	renderRefusal(t, c, NewAuthenticator(service).Middleware(next)(c))
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
+	assertRefusalCarriesABody(t, rec)
 	service.AssertExpectations(t)
 }
 
@@ -259,10 +260,19 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 
 				return c.NoContent(http.StatusOK)
 			}
-			require.NoError(t, authenticator.Middleware(next)(c))
+			err := authenticator.Middleware(next)(c)
+			if tc.expectedStatus == http.StatusOK {
+				require.NoError(t, err)
+			}
+
+			renderRefusal(t, c, err)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 			assert.Equal(t, tc.expectedDevice, deviceSeen)
+
+			if tc.expectedStatus != http.StatusOK {
+				assertRefusalCarriesABody(t, rec)
+			}
 
 			service.AssertExpectations(t)
 		})

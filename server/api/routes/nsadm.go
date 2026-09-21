@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -105,13 +106,17 @@ func (h *Handler) GetNamespace(c *gateway.Context) error {
 	}
 
 	ns, err := h.service.GetNamespace(c.Ctx(), req.Tenant)
-	if err != nil || ns == nil {
-		return c.NoContent(http.StatusNotFound)
+	if err != nil {
+		return err
+	}
+
+	if ns == nil {
+		return errs.NewErrNotFound(nil)
 	}
 
 	if uid != "" {
 		if _, ok := ns.FindMember(uid); !ok {
-			return c.NoContent(http.StatusForbidden)
+			return errs.NewErrForbidden(nil)
 		}
 	}
 
@@ -221,7 +226,9 @@ func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
 }
 
 // LeaveNamespace removes the caller from the namespace. It is separate from removing a member
-// because leaving needs no permission over others.
+// because leaving needs no permission over others. It answers 200 with a replacement token when
+// the caller leaves the namespace their own token names, and 204 otherwise, because that token
+// keeps working and there is nothing to hand back.
 func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 	req := new(requests.LeaveNamespace)
 
@@ -240,7 +247,7 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 	case res != nil:
 		return c.JSON(http.StatusOK, res)
 	default:
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusNoContent)
 	}
 }
 

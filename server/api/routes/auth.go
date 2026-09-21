@@ -66,11 +66,11 @@ func (h *Handler) AuthLocalUser(c *gateway.Context) error {
 	c.Response().Header().Set("X-MFA-Token", mfaToken)
 
 	if lockout > 0 {
-		return c.NoContent(http.StatusTooManyRequests)
+		return errs.NewErrTooManyRequests(nil)
 	}
 
 	if mfaToken != "" {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	if err != nil {

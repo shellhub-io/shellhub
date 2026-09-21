@@ -15,6 +15,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -221,6 +222,7 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 			}
 
 			e := echo.New()
+			e.HTTPErrorHandler = handlers.NewErrors(nil)
 			e.Use(gateway.WithContext(nil))
 
 			require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
@@ -248,6 +250,15 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 			assert.Equal(t, test.expectedCode, res.StatusCode)
 
 			if test.expectedCode != http.StatusOK {
+				var refusal struct {
+					Message string `json:"message"`
+					Error   string `json:"error"`
+				}
+
+				require.NoError(t, json.NewDecoder(res.Body).Decode(&refusal))
+				assert.True(t, refusal.Message != "" || refusal.Error != "",
+					"a refusal must name what failed, through the error handler's message or this route's own error")
+
 				return
 			}
 

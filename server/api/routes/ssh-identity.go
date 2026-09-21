@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // The SSH identity routes, relative to the API's base path.
@@ -28,7 +29,7 @@ func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	req.UserID = userID
@@ -61,7 +62,7 @@ func (h *Handler) CreateSSHIdentity(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	req.UserID = userID
@@ -91,12 +92,12 @@ func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
 	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
-		return c.NoContent(http.StatusForbidden)
+		return errs.NewErrForbidden(nil)
 	}
 
 	req.UserID = userID
@@ -127,12 +128,12 @@ func (h *Handler) DeleteSSHIdentity(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
 	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
-		return c.NoContent(http.StatusForbidden)
+		return errs.NewErrForbidden(nil)
 	}
 
 	req.UserID = userID

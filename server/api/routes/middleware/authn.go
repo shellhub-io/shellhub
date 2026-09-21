@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"crypto/rsa"
-	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v5"
@@ -12,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -109,7 +109,7 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if identity != nil && identity.DeviceUID != "" && !a.devices.contains(c) {
 			if !anonymous {
-				return c.NoContent(http.StatusForbidden)
+				return routes.NewErrForbidden(nil)
 			}
 
 			identity = nil
@@ -123,7 +123,7 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		identity.WriteTo(c.Request().Header)
 
 		if identity == nil && !anonymous {
-			return c.NoContent(http.StatusUnauthorized)
+			return routes.NewErrUnauthorized(nil)
 		}
 
 		return next(c)

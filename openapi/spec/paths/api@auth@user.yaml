@@ -35,6 +35,23 @@ post:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '429':
+      description: Too Many Requests
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 1711575401
+        X-MFA-Token:
+          schema:
+            type: string
+            description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
+            example: ''
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml
 get:

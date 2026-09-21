@@ -384,6 +384,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		headers       map[string]string
 		requiredMocks func()
 		expected      int
+		expectedToken string
 	}{
 		{
 			description: "fails with api key",
@@ -411,7 +412,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			expected: http.StatusInternalServerError,
 		},
 		{
-			description: "success to leave the namespace",
+			description: "answers no content when the service mints no replacement token",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			headers: map[string]string{
 				"X-ID":        "000000000000000000000000",
@@ -423,7 +424,23 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 					Return(nil, nil).
 					Once()
 			},
-			expected: http.StatusOK,
+			expected: http.StatusNoContent,
+		},
+		{
+			description: "answers the replacement token the service mints",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return(&models.UserAuthResponse{Token: "replacement"}, nil).
+					Once()
+			},
+			expected:      http.StatusOK,
+			expectedToken: "replacement",
 		},
 	}
 
@@ -442,6 +459,18 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(tt, tc.expected, rec.Result().StatusCode)
+
+			if tc.expected == http.StatusNoContent {
+				assert.Empty(tt, rec.Body.String())
+			}
+
+			if tc.expectedToken == "" {
+				return
+			}
+
+			auth := new(models.UserAuthResponse)
+			require.NoError(tt, json.Unmarshal(rec.Body.Bytes(), auth))
+			assert.Equal(tt, tc.expectedToken, auth.Token)
 		})
 	}
 

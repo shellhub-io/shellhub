@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // The device login-code routes, relative to the API's base path.
@@ -25,7 +26,7 @@ func (h *Handler) CreateDeviceLoginCode(c *gateway.Context) error {
 	uid := c.DeviceUID()
 	tenant := c.Tenant()
 	if uid == "" || tenant == nil {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	code, err := h.service.CreateDeviceLoginCode(c.Ctx(), uid, tenant.ID)
@@ -41,7 +42,7 @@ func (h *Handler) CreateDeviceLoginCode(c *gateway.Context) error {
 func (h *Handler) GetDeviceAuthStatus(c *gateway.Context) error {
 	uid := c.DeviceUID()
 	if uid == "" {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	sc, err := c.Scope()
@@ -72,7 +73,7 @@ func (h *Handler) ResolveDeviceLoginCode(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	preview, err := h.service.ResolveDeviceLoginCode(c.Ctx(), userID, req.Code)

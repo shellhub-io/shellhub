@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // WebReauthURL is where the browser submits a step-up factor. The enterprise
@@ -28,7 +29,7 @@ func (h *Handler) WebReauthVerify(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	req.UserID = userID

@@ -27,6 +27,8 @@ type DockerCompose struct {
 
 	client *resty.Client
 
+	anonymous *resty.Client
+
 	envs map[string]string
 
 	down func()
@@ -49,6 +51,15 @@ func (dc *DockerCompose) R(ctx context.Context) *resty.Request {
 func (dc *DockerCompose) JWT(jwt string) {
 	dc.client.SetAuthScheme("Bearer")
 	dc.client.SetAuthToken(jwt)
+}
+
+// Anonymous returns a request carrying no credential, whatever token [DockerCompose.JWT] has
+// installed on the shared client. It comes from a client of its own because resty falls back to
+// the client's token whenever a request sets none, so no per-request call can take a credential
+// away. Call SetAuthToken on the returned request to authenticate as someone other than the
+// bearer [DockerCompose.R] carries.
+func (dc *DockerCompose) Anonymous(ctx context.Context) *resty.Request {
+	return dc.anonymous.R().SetContext(ctx)
 }
 
 // Env retrieves a environment variable with the specified key.

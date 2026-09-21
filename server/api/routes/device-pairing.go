@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // The device pairing routes. Create and status are unauthenticated (the code is the secret)
@@ -45,12 +46,12 @@ func (h *Handler) CreateDevicePairing(c *gateway.Context) error {
 func (h *Handler) PrepareDevicePairing(c *gateway.Context) error {
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	tenant, ok := c.GetTennat()
 	if !ok {
-		return c.NoContent(http.StatusForbidden)
+		return errs.NewErrForbidden(nil)
 	}
 
 	pairing, err := h.service.PrepareDevicePairing(c.Ctx(), userID, tenant)
@@ -95,7 +96,7 @@ func (h *Handler) AcceptDevicePairing(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	accepted, err := h.service.AcceptDevicePairing(c.Ctx(), userID, req)
