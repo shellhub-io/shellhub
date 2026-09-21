@@ -19,6 +19,7 @@ import (
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -52,7 +53,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 func TestAllowlistsMatchRegisteredRoutes(t *testing.T) {
 	router, authn, service := authenticatedRouter(t)
 
-	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil), service, &sshhttp.Config{})
+	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil), service, session.NewRegistry(), &sshhttp.Config{})
 
 	assert.Empty(t, authn.UnregisteredRoutes(router.Router().Routes()))
 }

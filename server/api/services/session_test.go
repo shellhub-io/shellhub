@@ -6,11 +6,14 @@ import (
 	"net"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -490,6 +493,54 @@ func TestDeactivateSession(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func TestKeepAliveSession(t *testing.T) {
+	ctx := context.TODO()
+
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
+	prevClock := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClock })
+	clock.DefaultBackend = clockMock
+	clockMock.On("Now").Return(now)
+
+	cases := []struct {
+		name          string
+		uid           models.UID
+		requiredMocks func(*storemock.MockStore)
+		expected      error
+	}{
+		{
+			name: "fails when the session is not found",
+			uid:  models.UID("_uid"),
+			requiredMocks: func(m *storemock.MockStore) {
+				m.On("SessionKeepAlive", ctx, models.UID("_uid"), now).Return(store.ErrNoDocuments).Once()
+			},
+			expected: NewErrSessionNotFound("_uid", store.ErrNoDocuments),
+		},
+		{
+			name: "succeeds when the session exists",
+			uid:  models.UID("_uid"),
+			requiredMocks: func(m *storemock.MockStore) {
+				m.On("SessionKeepAlive", ctx, models.UID("_uid"), now).Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			tc.requiredMocks(storeMock)
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			err := service.KeepAliveSession(ctx, tc.uid)
+			assert.Equal(t, tc.expected, err)
+
+			storeMock.AssertExpectations(t)
+		})
+	}
 }
 
 func TestUpdateSession(t *testing.T) {

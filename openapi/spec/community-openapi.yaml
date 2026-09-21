@@ -135,6 +135,8 @@ paths:
     $ref: paths/api@sessions.yaml
   /api/sessions/{uid}:
     $ref: paths/api@sessions@{uid}.yaml
+  /api/sessions/{uid}/close:
+    $ref: paths/api@sessions@{uid}@close.yaml
   /api/sshkeys/public-keys:
     $ref: paths/api@sshkeys@public-keys.yaml
   /api/sshkeys/public-keys/{fingerprint}:

@@ -707,3 +707,67 @@ func (m *mockSessionRecordingPruner) DeleteRecordings(ctx context.Context, uids 
 
 	return purged, args.Error(1)
 }
+
+func TestService_ActiveSessionCleanup(t *testing.T) {
+	ctx := context.Background()
+	now := time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
+
+	clockMock := clockmock.NewMockClock(t)
+	prevClock := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClock })
+	clock.DefaultBackend = clockMock
+	clockMock.On("Now").Return(now).Maybe()
+
+	cases := []struct {
+		description    string
+		timeout        time.Duration
+		expectedCutoff time.Time
+		reaped         int64
+		storeErr       error
+		expected       error
+	}{
+		{
+			description:    "cuts off at now minus the timeout",
+			timeout:        5 * time.Minute,
+			expectedCutoff: now.Add(-5 * time.Minute),
+			reaped:         2,
+			expected:       nil,
+		},
+		{
+			description:    "clamps a timeout below the floor instead of honouring it",
+			timeout:        10 * time.Second,
+			expectedCutoff: now.Add(-sessionKeepAliveMinTimeout),
+			reaped:         0,
+			expected:       nil,
+		},
+		{
+			description:    "clamps a zero timeout rather than retiring every live session",
+			timeout:        0,
+			expectedCutoff: now.Add(-sessionKeepAliveMinTimeout),
+			reaped:         0,
+			expected:       nil,
+		},
+		{
+			description:    "propagates the store error",
+			timeout:        5 * time.Minute,
+			expectedCutoff: now.Add(-5 * time.Minute),
+			storeErr:       errors.New("boom"),
+			expected:       errors.New("boom"),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			storeMock.On("ActiveSessionCleanup", ctx, tc.expectedCutoff).
+				Return(tc.reaped, tc.storeErr).Once()
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache())
+
+			err := service.ActiveSessionCleanup(tc.timeout)(ctx)
+			assert.Equal(t, tc.expected, err)
+
+			storeMock.AssertExpectations(t)
+		})
+	}
+}

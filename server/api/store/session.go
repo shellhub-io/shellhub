@@ -40,6 +40,11 @@ type SessionStore interface {
 	// SessionUpdate updates a session. It returns an error if any.
 	SessionUpdate(ctx context.Context, session *models.Session) error
 
+	// SessionKeepAlive stamps the session as still live: it advances the session's last-seen time
+	// and puts the session back in the active set if ActiveSessionCleanup took it out. It returns
+	// ErrNoDocuments when no session has the given UID.
+	SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time) error
+
 	// ActiveSessionCreate creates an active session entry. It returns an error if any.
 	ActiveSessionCreate(ctx context.Context, session *models.Session) error
 	// ActiveSessionResolve fetches an active session using a specific resolver. It returns the active session if found and an error, if any.
@@ -49,6 +54,11 @@ type SessionStore interface {
 
 	// ActiveSessionDelete removes active session entries. It returns an error if any.
 	ActiveSessionDelete(ctx context.Context, uid models.UID) error
+
+	// ActiveSessionCleanup retires every active session whose last keep-alive predates before by
+	// dropping its active-session row. It returns how many it retired.
+	// Unlike ActiveSessionDelete, it leaves seen_at as it was.
+	ActiveSessionCleanup(ctx context.Context, before time.Time) (int64, error)
 
 	// SessionEventsCreate creates a session event. It returns an error if any.
 	SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error

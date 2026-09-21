@@ -24,7 +24,10 @@ const (
 	CronEnrollmentCallbackCleanup = worker.CronSpec("0 4 * * *")
 	CronSSHApprovalCleanup        = worker.CronSpec("*/10 * * * *")
 	CronSessionCleanup            = worker.CronSpec("0 1 * * *")
+	CronActiveSessionCleanup      = worker.CronSpec("* * * * *")
 )
+
+const sessionKeepAliveMinTimeout = 2 * time.Minute
 
 const (
 	sessionCleanupBatchSize = 1000
@@ -62,6 +65,34 @@ func (s *service) SSHApprovalCleanup() worker.CronHandler {
 
 		if deleted > 0 {
 			log.WithField("deleted", deleted).Info("pruned expired ssh approvals")
+		}
+
+		return nil
+	}
+}
+
+// ActiveSessionCleanup retires sessions the gateway stopped keeping alive, which is what a
+// process that died mid-session leaves behind. Unlike SessionCleanup it deletes no history: the
+// session row survives, only its membership of the active set goes.
+//
+// A timeout shorter than sessionKeepAliveMinTimeout is raised to it, once, when the handler is
+// built.
+func (s *service) ActiveSessionCleanup(timeout time.Duration) worker.CronHandler {
+	if timeout < sessionKeepAliveMinTimeout {
+		log.WithFields(log.Fields{"configured": timeout, "using": sessionKeepAliveMinTimeout}).
+			Warn("session keep-alive timeout below the minimum; using the minimum")
+
+		timeout = sessionKeepAliveMinTimeout
+	}
+
+	return func(ctx context.Context) error {
+		reaped, err := s.store.ActiveSessionCleanup(ctx, clock.Now().Add(-timeout))
+		if err != nil {
+			return err
+		}
+
+		if reaped > 0 {
+			log.WithField("reaped", reaped).Info("retired sessions whose keep-alive stopped")
 		}
 
 		return nil

@@ -28,8 +28,9 @@ func newIdentitySession(service services.Service, mode string) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
-		UID:     "test-uid",
-		service: service,
+		UID:      "test-uid",
+		service:  service,
+		sessions: NewRegistry(),
 		Data: Data{
 			Target:       tgt,
 			IPAddress:    "127.0.0.1",

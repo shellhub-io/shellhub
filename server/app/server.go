@@ -83,6 +83,13 @@ type Env struct {
 	// commitment and the volume are both known, so it is the deployment that sets this rather
 	// than the binary assuming one. docker-compose.enterprise.yml does exactly that.
 	SessionRetentionDays int `env:"SHELLHUB_SESSION_RETENTION_DAYS,default=0"`
+
+	// SessionKeepAliveTimeout is how long a session may go without a keep-alive before the
+	// reaper stops counting it as active. The gateway ticks every 30s, so the default is ten
+	// missed ticks: enough to ride out a GC pause, a database failover or a slow update behind a
+	// vacuum, on a decision a user sees on screen. A value below the two-minute floor is raised
+	// to it rather than honoured.
+	SessionKeepAliveTimeout time.Duration `env:"SHELLHUB_SESSION_KEEPALIVE_TIMEOUT,default=5m"`
 }
 
 type sshEnv struct {
@@ -213,6 +220,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronEphemeralCleanup, service.EphemeralCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronEnrollmentCallbackCleanup, service.EnrollmentCallbackCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
+	s.worker.HandleCron(services.CronActiveSessionCleanup, service.ActiveSessionCleanup(s.env.SessionKeepAliveTimeout), asynq.Unique())
 
 	if retention := time.Duration(s.env.SessionRetentionDays) * 24 * time.Hour; retention > 0 {
 		s.worker.HandleCron(services.CronSessionCleanup, service.SessionCleanup(retention), asynq.Unique())
@@ -275,7 +283,9 @@ func (s *Server) setupSSH(service services.Service) error {
 		log.WithError(err).Warning("failed to register the dialer connection metrics")
 	}
 
-	sshhttp.Register(s.router, s.authn, d, service, &sshhttp.Config{
+	sessions := session.NewRegistry()
+
+	sshhttp.Register(s.router, s.authn, d, service, sessions, &sshhttp.Config{
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
@@ -291,7 +301,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		pprof.Register(s.router)
 	}
 
-	s.ssh, err = sshserver.NewServer(d, service, handoff, &sshserver.Options{
+	s.ssh, err = sshserver.NewServer(d, service, handoff, sessions, &sshserver.Options{
 		ConnectTimeout:               env.ConnectTimeout,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
 		HostKeyFile:                  env.HostKeyFile,
