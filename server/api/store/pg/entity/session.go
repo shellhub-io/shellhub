@@ -25,10 +25,8 @@ type Session struct {
 	IPAddress     string    `bun:"ip_address"`
 	StartedAt     time.Time `bun:"started_at"`
 	SeenAt        time.Time `bun:"seen_at"`
-	Closed        bool      `bun:"closed"`
 	Authenticated bool      `bun:"authenticated"`
 	Recorded      bool      `bun:"recorded"`
-	Type          string    `bun:"type"`
 	Term          string    `bun:"term"`
 	Web           bool      `bun:"web"`
 	Longitude     float64   `bun:"longitude"`
@@ -48,11 +46,6 @@ type Session struct {
 
 // SessionFromModel projects a session into its row form.
 func SessionFromModel(model *models.Session) *Session {
-	sessionType := model.Type
-	if sessionType == "" {
-		sessionType = "shell"
-	}
-
 	session := &Session{
 		ID:            model.UID,
 		NamespaceID:   model.TenantID,
@@ -63,10 +56,8 @@ func SessionFromModel(model *models.Session) *Session {
 		IPAddress:     model.IPAddress,
 		StartedAt:     model.StartedAt,
 		SeenAt:        model.LastSeen,
-		Closed:        model.Closed,
 		Authenticated: model.Authenticated,
 		Recorded:      model.Recorded,
-		Type:          sessionType,
 		Term:          model.Term,
 		Web:           model.Web,
 		Longitude:     model.Position.Longitude,
@@ -90,10 +81,8 @@ func SessionToModel(entity *Session) *models.Session {
 		StartedAt:     entity.StartedAt,
 		LastSeen:      entity.SeenAt,
 		Active:        entity.Active,
-		Closed:        entity.Closed,
 		Authenticated: entity.Authenticated,
 		Recorded:      entity.Recorded,
-		Type:          entity.Type,
 		Term:          entity.Term,
 		Web:           entity.Web,
 		Position: models.SessionPosition{

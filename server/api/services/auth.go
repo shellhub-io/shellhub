@@ -415,7 +415,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			continue
 		}
 
-		if session.Closed {
+		if !session.Active {
 			continue
 		}
 

@@ -357,11 +357,11 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
-					Return(&models.Session{UID: "session_1", Closed: true}, nil).
+					Return(&models.Session{UID: "session_1", Active: false}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
-					Return(&models.Session{UID: "session_2", Closed: true}, nil).
+					Return(&models.Session{UID: "session_2", Active: false}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -418,7 +418,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
-					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Return(&models.Session{UID: "session_1", Active: true}, nil).
 					Once()
 				storeMock.
 					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
@@ -434,7 +434,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
-					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Return(&models.Session{UID: "session_2", Active: true}, nil).
 					Once()
 				storeMock.
 					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
@@ -808,7 +808,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
-					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Return(&models.Session{UID: "session_1", Active: true}, nil).
 					Once()
 				storeMock.
 					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_1").
@@ -824,7 +824,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
-					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Return(&models.Session{UID: "session_2", Active: true}, nil).
 					Once()
 				storeMock.
 					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_2").
@@ -1074,7 +1074,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
-					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Return(&models.Session{UID: "session_1", Active: true}, nil).
 					Once()
 				storeMock.
 					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_1").
@@ -1090,7 +1090,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
-					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Return(&models.Session{UID: "session_2", Active: true}, nil).
 					Once()
 				storeMock.
 					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_2").
