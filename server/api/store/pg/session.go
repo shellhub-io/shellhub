@@ -152,6 +152,38 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 	return nil
 }
 
+// SessionKeepAlive implements [store.SessionStore].
+func (pg *Pg) SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time) error {
+	return pg.WithTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
+
+		result, err := db.NewUpdate().
+			Model((*entity.Session)(nil)).
+			Set("seen_at = ?", at).
+			Where("id = ?", string(uid)).
+			Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		if rowsAffected < 1 {
+			return store.ErrNoDocuments
+		}
+
+		active := &entity.ActiveSession{SessionID: string(uid), SeenAt: at, CreatedAt: at}
+		if _, err := db.NewInsert().Model(active).On("CONFLICT (session_id) DO NOTHING").Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		return nil
+	})
+}
+
 // ActiveSessionCreate implements [store.SessionStore].
 func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) error {
 	db := pg.GetConnection(ctx)
@@ -238,6 +270,49 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 
 		return nil
 	})
+}
+
+// ActiveSessionCleanup implements [store.SessionStore].
+func (pg *Pg) ActiveSessionCleanup(ctx context.Context, before time.Time) (int64, error) {
+	var reaped int64
+
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
+
+		uids := make([]string, 0)
+
+		if err := db.NewSelect().
+			Model((*entity.ActiveSession)(nil)).
+			Column("session_id").
+			Where("EXISTS (SELECT 1 FROM sessions WHERE sessions.id = active_session.session_id AND sessions.seen_at < ?)", before).
+			Scan(ctx, &uids); err != nil {
+			return fromSQLError(err)
+		}
+
+		if len(uids) == 0 {
+			return nil
+		}
+
+		result, err := db.NewDelete().
+			Model((*entity.ActiveSession)(nil)).
+			Where("session_id IN (?)", bun.List(uids)).
+			Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		reaped, err = result.RowsAffected()
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return reaped, nil
 }
 
 // SessionEventsCreate implements [store.SessionStore].

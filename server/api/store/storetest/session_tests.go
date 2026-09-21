@@ -1000,3 +1000,168 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 		assert.Equal(t, []string{string(uid)}, listUIDs(t))
 	})
 }
+
+// TestSessionKeepAlive covers the keep-alive write, which advances seen_at and leaves every other
+// column of the session as it was.
+func (s *Suite) TestSessionKeepAlive(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("fails when the session is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.SessionKeepAlive(ctx, "nonexistent", clock.Now())
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("advances seen_at and leaves every other column alone", func(t *testing.T) {
+		provider, ok := s.provider.(dbAccessor)
+		if !ok {
+			t.Skip("provider does not expose the raw DB; the untouched columns cannot be asserted")
+		}
+		db := provider.DB()
+
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t, WithSessionActive(true))
+
+		read := func() map[string]any {
+			got := map[string]any{}
+			require.NoError(t, db.NewSelect().
+				Table("sessions").
+				Where("id = ?", string(uid)).
+				Scan(ctx, &got))
+
+			return got
+		}
+
+		before := read()
+		seenAt, ok := before["seen_at"].(time.Time)
+		require.True(t, ok, "seen_at scans as a time: %T", before["seen_at"])
+
+		at := seenAt.Add(90 * time.Second)
+		require.NoError(t, st.SessionKeepAlive(ctx, uid, at))
+
+		after := read()
+
+		advanced, ok := after["seen_at"].(time.Time)
+		require.True(t, ok, "seen_at scans as a time: %T", after["seen_at"])
+		assert.WithinDuration(t, at, advanced, time.Second, "seen_at must advance to the given time")
+
+		delete(before, "seen_at")
+		delete(after, "seen_at")
+		assert.Equal(t, before, after)
+	})
+}
+
+// TestActiveSessionCleanup covers the reaper: it retires the active sessions whose seen_at is older
+// than the cutoff, and leaves their session row and seen_at in place.
+func (s *Suite) TestActiveSessionCleanup(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	provider, ok := s.provider.(dbAccessor)
+	if !ok {
+		t.Skip("provider does not expose the raw DB; seen_at cannot be backdated")
+	}
+	db := provider.DB()
+
+	staleSeenAt := time.Date(2024, 3, 1, 10, 0, 0, 0, time.UTC)
+	cutoff := time.Date(2024, 3, 1, 10, 5, 0, 0, time.UTC)
+
+	staleSession := func(t *testing.T, active bool) models.UID {
+		t.Helper()
+
+		uid := s.CreateSession(t, WithSessionActive(active))
+		_, err := db.NewUpdate().
+			Table("sessions").
+			Set("seen_at = ?", staleSeenAt).
+			Where("id = ?", string(uid)).
+			Exec(ctx)
+		require.NoError(t, err)
+
+		return uid
+	}
+
+	isActive := func(t *testing.T, uid models.UID) bool {
+		t.Helper()
+		count, err := db.NewSelect().
+			Table("active_sessions").
+			Where("session_id = ?", string(uid)).
+			Count(ctx)
+		require.NoError(t, err)
+
+		return count > 0
+	}
+
+	t.Run("retires a stale session and keeps a fresh one", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		stale := staleSession(t, true)
+		fresh := s.CreateSession(t, WithSessionActive(true))
+
+		reaped, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), reaped)
+
+		assert.False(t, isActive(t, stale), "the stale session must lose its active row")
+		assert.True(t, isActive(t, fresh), "the fresh session must survive")
+	})
+
+	t.Run("leaves the reaped session's row and its last-seen time in place", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := staleSession(t, true)
+
+		_, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+
+		var seen time.Time
+		require.NoError(t, db.NewSelect().
+			Table("sessions").
+			Column("seen_at").
+			Where("id = ?", string(uid)).
+			Scan(ctx, &seen))
+
+		assert.WithinDuration(t, staleSeenAt, seen, time.Second, "seen_at must record when the session was last alive")
+		assert.False(t, isActive(t, uid), "the session row survives, only its membership of the active set goes")
+	})
+
+	t.Run("ignores a stale session that is already inactive", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		staleSession(t, false)
+
+		reaped, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), reaped)
+	})
+
+	t.Run("hands a reaped session back to the active set when its keep-alive resumes", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := staleSession(t, true)
+
+		_, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+		require.False(t, isActive(t, uid))
+
+		require.NoError(t, st.SessionKeepAlive(ctx, uid, cutoff.Add(time.Minute)))
+
+		assert.True(t, isActive(t, uid), "a gateway still ticking the session is still holding it")
+	})
+
+	t.Run("is idempotent", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		staleSession(t, true)
+
+		first, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), first)
+
+		second, err := st.ActiveSessionCleanup(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), second)
+	})
+}

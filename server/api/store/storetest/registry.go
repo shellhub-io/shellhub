@@ -69,6 +69,8 @@ var Groups = []Group{
 		(*Suite).TestSessionEventsList,
 		(*Suite).TestSessionEventsDelete,
 		(*Suite).TestSessionCleanup,
+		(*Suite).TestSessionKeepAlive,
+		(*Suite).TestActiveSessionCleanup,
 	}},
 	{Name: "TagStore", Tests: []TestFunc{
 		(*Suite).TestTagCreate,

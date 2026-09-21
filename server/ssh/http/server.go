@@ -10,6 +10,7 @@ import (
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -51,12 +52,13 @@ var upgrader = websocket.Upgrader{
 // authn is the API's authenticator, used to declare which of these routes are
 // reachable without a credential and which accept a device token. It must not be
 // nil.
-func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
+func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, sessions *session.Registry, cfg *Config) *Handlers {
 	handlers := &Handlers{
-		Dialer:  d,
-		Tunnels: d.Manager,
-		Service: service,
-		Config:  cfg,
+		Dialer:   d,
+		Tunnels:  d.Manager,
+		Service:  service,
+		Sessions: sessions,
+		Config:   cfg,
 	}
 
 	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)

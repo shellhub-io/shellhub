@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,6 +30,9 @@ type Handlers struct {
 	Dialer  dialer.TunnelDialer
 	Tunnels *dialer.Manager
 	Service services.Service
+	// Sessions is the set of sessions this process owns. The close endpoint reads it to tell a
+	// session whose teardown will run from one that has been orphaned by a restart.
+	Sessions *session.Registry
 }
 
 const (
@@ -88,10 +92,18 @@ const (
 	HandleRevdialPath = "/ssh/revdial"
 )
 
-// HandleSSHClose receives a notification from the agent that an SSH
-// session should be closed. It dials the device (choosing the correct
-// transport version) and then performs the version-specific close
-// sequence: HTTP GET for V1 or multistream + JSON payload for V2.
+// HandleSSHClose asks for an SSH session to be closed. It dials the device to end the session
+// there, choosing the correct transport version, and then answers according to whether this
+// process still owns the session.
+//
+// It returns 200 when the session is closed, which is the case for a session no gateway holds:
+// nothing else would ever deactivate it, so this call does. It returns 202 when a gateway still
+// holds the session, because that gateway's teardown is what closes it, and ErrDeviceTunnelDial
+// when the device backing such a session cannot be reached. It returns 404 for a session no
+// gateway holds that is not in the caller's namespace, which it leaves untouched.
+//
+// The device's answer never decides this. A device ignores a close for a session it does not
+// have, so the dial succeeding says nothing about whether the session existed.
 func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	var data struct {
 		UID    string `param:"uid"`
@@ -110,6 +122,8 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
+	owned := h.Sessions.Has(data.UID)
+
 	if _, err := h.Dialer.DialTo(ctx, tenant, data.Device, dialer.SSHCloseTarget{SessionID: data.UID}); err != nil {
 		logger := log.WithError(err).
 			WithFields(log.Fields{"session": data.UID, "device": data.Device})
@@ -120,7 +134,30 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 			logger.Error("failed to send the ssh close message: " + dialer.Describe(err))
 		}
 
-		return ErrDeviceTunnelDial
+		if owned {
+			return ErrDeviceTunnelDial
+		}
+	}
+
+	if owned {
+		return c.NoContent(http.StatusAccepted)
+	}
+
+	sc, err := scope.NewBounded(tenant)
+	if err != nil {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if _, err := h.Service.GetSession(ctx, sc, models.UID(data.UID)); err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	if err := h.Service.DeactivateSession(ctx, models.UID(data.UID)); err != nil {
+		log.WithError(err).
+			WithField("session", data.UID).
+			Error("failed to deactivate a session no gateway owns")
+
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)

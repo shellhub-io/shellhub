@@ -61,9 +61,10 @@ func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Sessi
 	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
-		UID:     "test-uid",
-		service: service,
-		dialer:  tunnel,
+		UID:      "test-uid",
+		service:  service,
+		dialer:   tunnel,
+		sessions: NewRegistry(),
 		Data: Data{
 			Target:    tgt,
 			IPAddress: "127.0.0.1",

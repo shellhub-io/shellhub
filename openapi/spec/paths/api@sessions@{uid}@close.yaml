@@ -6,8 +6,7 @@ post:
     - jwt: []
     - api-key: []
   tags:
-    - cloud
-
+    - community
     - sessions
   parameters:
     - $ref: ../components/parameters/path/sessionUIDPath.yaml
@@ -23,8 +22,14 @@ post:
             - device
   responses:
     '200':
-      description: Success to close session.
+      description: The session is closed. No gateway was still holding it, so it was retired on the spot.
+    '202':
+      description: >-
+        The close request reached the device. A gateway still holds this session and closes it when
+        the client's connection drops, so it may show as active for a moment longer.
     '400':
       $ref: ../components/responses/400.yaml
+    '404':
+      description: No gateway holds the session and it is not in the caller's namespace, so nothing was closed.
     '500':
       $ref: ../components/responses/500.yaml

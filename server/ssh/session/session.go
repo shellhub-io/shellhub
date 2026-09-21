@@ -149,12 +149,18 @@ type Session struct {
 	agent  *Agent
 	client *Client
 
-	service services.Service
-	dialer  dialer.TunnelDialer
+	service  services.Service
+	dialer   dialer.TunnelDialer
+	sessions *Registry
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
 	once *sync.Once
+
+	keepaliveMu      sync.Mutex
+	keepaliveStopped bool
+	keepaliveCancel  context.CancelFunc
+	keepaliveDone    chan struct{}
 
 	seats seats
 
@@ -279,7 +285,7 @@ func (s *seats) SetType(seat int, kind string) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *Registry) (*Session, error) {
 	sshid := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
@@ -348,10 +354,11 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 	}
 
 	session := &Session{
-		UID:     ctx.SessionID(),
-		service: service,
-		dialer:  dialer,
-		Events:  NewEvents(ctx.SessionID(), service),
+		UID:      ctx.SessionID(),
+		service:  service,
+		dialer:   dialer,
+		sessions: sessions,
+		Events:   NewEvents(ctx.SessionID(), service),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -493,6 +500,8 @@ func (s *Session) register(ctx context.Context) error {
 	}
 
 	s.registered = true
+	s.sessions.Add(s.UID)
+	s.startKeepAlive(ctx, keepAliveInterval)
 
 	return nil
 }
@@ -1176,6 +1185,9 @@ func (s *Session) Finish() error {
 		if s.agent.conn != nil {
 			go s.closeOnAgent()
 		}
+
+		s.stopKeepAlive()
+		s.sessions.Remove(s.UID)
 
 		if s.registered {
 			if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {

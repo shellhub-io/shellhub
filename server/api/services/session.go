@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"net"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -97,14 +98,15 @@ func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
-	session, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
-	if err != nil {
+	err := s.store.SessionKeepAlive(ctx, uid, clock.Now())
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, store.ErrNoDocuments):
 		return NewErrSessionNotFound(uid, err)
+	default:
+		return err
 	}
-
-	session.LastSeen = clock.Now()
-
-	return s.store.SessionUpdate(ctx, session)
 }
 
 func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {

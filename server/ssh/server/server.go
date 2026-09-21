@@ -74,7 +74,7 @@ type Server struct {
 }
 
 type bannerDeps struct {
-	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
+	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry) (*session.Session, error)
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
 
@@ -85,11 +85,11 @@ func defaultBannerDeps() bannerDeps {
 	}
 }
 
-func newBannerHandler(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store) gliderssh.BannerHandler {
-	return newBannerHandlerWithDeps(d, service, handoff, defaultBannerDeps())
+func newBannerHandler(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry) gliderssh.BannerHandler {
+	return newBannerHandlerWithDeps(d, service, handoff, sessions, defaultBannerDeps())
 }
 
-func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
+func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
@@ -114,7 +114,7 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			return banner.Message(banner.KindInvalidSSHID)
 		}
 
-		sess, err := deps.newSession(ctx, d, service, handoff)
+		sess, err := deps.newSession(ctx, d, service, handoff, sessions)
 		if err != nil {
 			logger.WithError(err).Error("failed to create the session")
 
@@ -194,7 +194,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 
 // NewServer builds the SSH server, wiring the connection handlers to dialer, the session
 // bookkeeping to service, and the web terminal's credential handoff to handoff.
-func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
+func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, opts *Options) (*Server, error) {
 	session.Configure(session.Config{
 		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
 		Domain:                       opts.Domain,
@@ -218,7 +218,7 @@ func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *we
 			return wrapped
 		},
 		ServerConfigCallback: newServerConfigCallback,
-		BannerHandler:        newBannerHandler(dialer, service, handoff),
+		BannerHandler:        newBannerHandler(dialer, service, handoff, sessions),
 		PasswordHandler:      auth.PasswordHandler,
 		PublicKeyHandler:     auth.PublicKeyOffer,
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
