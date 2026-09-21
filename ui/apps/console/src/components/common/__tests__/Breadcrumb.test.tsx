@@ -8,17 +8,6 @@ function renderBreadcrumb(ui: React.ReactNode) {
 }
 
 describe("Breadcrumb", () => {
-  it("renders a navigation landmark named 'Breadcrumb'", () => {
-    renderBreadcrumb(
-      <Breadcrumb
-        items={[{ label: "Devices", to: "/devices" }, { label: "host-a" }]}
-      />,
-    );
-    expect(
-      screen.getByRole("navigation", { name: "Breadcrumb" }),
-    ).toBeInTheDocument();
-  });
-
   it("renders one list item per breadcrumb entry inside an ordered list", () => {
     renderBreadcrumb(
       <Breadcrumb

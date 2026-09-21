@@ -42,77 +42,35 @@ function renderGuard(initialPath = "/dashboard") {
 }
 
 describe("NamespaceGuard", () => {
-  describe("loading state", () => {
-    it("shows a loading spinner while namespaces are not yet loaded", () => {
-      server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
-      renderGuard();
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    });
-
-    it("does not render the outlet while loading", () => {
-      server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
-      renderGuard();
-      expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
-    });
+  it("holds the outlet back behind a spinner while namespaces load", () => {
+    server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
+    renderGuard();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
   });
 
-  describe("with namespaces", () => {
-    it("renders the outlet when namespaces exist", async () => {
-      server.use(
-        http.get("*/api/namespaces", () =>
-          jsonWithTotal([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
-        ),
-      );
-      renderGuard();
-      expect(await screen.findByText("dashboard content")).toBeInTheDocument();
-    });
-
-    it("does not show the create-namespace screen when namespaces exist", async () => {
-      server.use(
-        http.get("*/api/namespaces", () =>
-          jsonWithTotal([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
-        ),
-      );
-      renderGuard();
-      expect(await screen.findByText("dashboard content")).toBeInTheDocument();
-      expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();
-    });
+  it("renders the outlet when namespaces exist", async () => {
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([mockNamespace({ tenant_id: "t1", name: "ns1" })]),
+      ),
+    );
+    renderGuard();
+    expect(await screen.findByText("dashboard content")).toBeInTheDocument();
+    expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();
   });
 
-  describe("without namespaces — non-profile route", () => {
-    it("shows the create-namespace screen", async () => {
-      renderGuard("/dashboard");
-      expect(await screen.findByTestId("create-namespace")).toBeInTheDocument();
-    });
-
-    it("does not render the outlet", async () => {
-      renderGuard("/dashboard");
-      expect(await screen.findByTestId("create-namespace")).toBeInTheDocument();
-      expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
-    });
-
-    it("renders UserMenu in the minimal header", async () => {
-      renderGuard("/dashboard");
-      expect(await screen.findByTestId("user-menu")).toBeInTheDocument();
-    });
+  it("replaces a non-profile route with the create-namespace screen and its minimal header", async () => {
+    renderGuard("/dashboard");
+    expect(await screen.findByTestId("create-namespace")).toBeInTheDocument();
+    expect(screen.getByTestId("user-menu")).toBeInTheDocument();
+    expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
   });
 
-  describe("without namespaces — /profile route", () => {
-    it("renders the outlet instead of the create-namespace screen", async () => {
-      renderGuard("/profile");
-      expect(await screen.findByText("profile content")).toBeInTheDocument();
-    });
-
-    it("does not show the create-namespace screen", async () => {
-      renderGuard("/profile");
-      expect(await screen.findByText("profile content")).toBeInTheDocument();
-      expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();
-    });
-
-    it("does not show the minimal header", async () => {
-      renderGuard("/profile");
-      expect(await screen.findByText("profile content")).toBeInTheDocument();
-      expect(screen.queryByTestId("user-menu")).not.toBeInTheDocument();
-    });
+  it("lets /profile through without namespaces", async () => {
+    renderGuard("/profile");
+    expect(await screen.findByText("profile content")).toBeInTheDocument();
+    expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("user-menu")).not.toBeInTheDocument();
   });
 });

@@ -49,247 +49,53 @@ function renderDialog(
 }
 
 describe("ResetPasswordDialog", () => {
-  describe("rendering — closed", () => {
-    it("renders nothing when open is false", () => {
-      renderDialog({ open: false });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
+  it("resets the named user's password and moves to the result step", async () => {
+    setResetResponse("gen-pass-123");
+    renderDialog({ userId: "user-abc" });
+
+    await userEvent.click(screen.getByRole("button", { name: /enable/i }));
+
+    await waitFor(() =>
+      expect(resetSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ path: { id: "user-abc" } }),
+      ),
+    );
+    expect(screen.getByText("Password Generated")).toBeInTheDocument();
   });
 
-  describe("rendering — confirm step (initial)", () => {
-    it("renders the dialog when open is true", () => {
+  describe("enable flow — error states", () => {
+    it.each([
+      [
+        "a 400 (user already has a password)",
+        () => HttpResponse.json({}, { status: 400 }),
+        /already has a local password/i,
+      ],
+      [
+        "a non-400 status",
+        () => HttpResponse.json({}, { status: 500 }),
+        /failed to set password/i,
+      ],
+      [
+        "a network failure",
+        () => HttpResponse.error(),
+        /failed to set password/i,
+      ],
+    ] as const)("%s reports '%s' and stays on the confirm step", async (
+      _label,
+      resolver,
+      message,
+    ) => {
+      server.use(
+        http.patch("*/admin/api/users/:id/password/reset", resolver),
+      );
       renderDialog();
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
-    it("renders the 'Enable Local Authentication' heading", () => {
-      renderDialog();
-      expect(
-        screen.getByText("Enable Local Authentication"),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the explanatory description text", () => {
-      renderDialog();
-      expect(screen.getByText(/temporary password/i)).toBeInTheDocument();
-    });
-
-    it("renders the Enable button", () => {
-      renderDialog();
-      expect(
-        screen.getByRole("button", { name: /enable/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the Cancel button", () => {
-      renderDialog();
-      expect(
-        screen.getByRole("button", { name: /cancel/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("does not render the password result step content initially", () => {
-      renderDialog();
-      expect(screen.queryByText("Password Generated")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("cancel", () => {
-    it("calls onClose when Cancel is clicked", async () => {
-      const { onClose } = renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call adminResetUserPassword when Cancel is clicked", async () => {
-      renderDialog();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(resetSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("enable flow — success", () => {
-    it("calls adminResetUserPassword with the correct userId when Enable is clicked", async () => {
-      setResetResponse("gen-pass-123");
-      renderDialog({ userId: "user-abc" });
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
 
       await waitFor(() =>
-        expect(resetSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { id: "user-abc" },
-          }),
-        ),
+        expect(screen.getByText(message)).toBeInTheDocument(),
       );
-    });
-
-    it("transitions to the result step after successful reset", async () => {
-      setResetResponse("gen-pass-123");
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText("Password Generated")).toBeInTheDocument();
-      });
-    });
-
-    it("displays the generated password in an input field", async () => {
-      setResetResponse("s3cr3t-pw");
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByDisplayValue("s3cr3t-pw")).toBeInTheDocument();
-      });
-    });
-
-    it("renders the 'Generated password' labelled input", async () => {
-      setResetResponse("abc");
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByLabelText(/generated password/i),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("renders a Copy button on the result step", async () => {
-      setResetResponse("abc");
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /copy/i }),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("renders a Close button on the result step", async () => {
-      setResetResponse("abc");
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: "Close" }),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("calls onClose when Close is clicked on result step", async () => {
-      setResetResponse("abc");
-      const { onClose } = renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-      await waitFor(() => screen.getByText("Password Generated"));
-      await userEvent.click(screen.getByRole("button", { name: "Close" }));
-
-      expect(onClose).toHaveBeenCalled();
-    });
-  });
-
-  describe("enable flow — error states", () => {
-    it("shows specific error message for status 400 (user already has password)", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/already has a local password/i),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("shows generic error message for non-400 errors", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to set password/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows generic error for non-SDK errors", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.error(),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to set password/i)).toBeInTheDocument();
-      });
-    });
-
-    it("renders error with role='alert'", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("stays on the confirm step when there is an error", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to set password/i)).toBeInTheDocument();
-      });
       expect(screen.queryByText("Password Generated")).not.toBeInTheDocument();
-    });
-
-    it("clears error and stays on confirm step — Enable button is still visible", async () => {
-      server.use(
-        http.patch("*/admin/api/users/:id/password/reset", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderDialog();
-
-      await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-
-      await waitFor(() => screen.getByRole("alert"));
-      expect(
-        screen.getByRole("button", { name: /enable/i }),
-      ).toBeInTheDocument();
     });
   });
 

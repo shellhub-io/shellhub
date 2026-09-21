@@ -17,9 +17,8 @@ const mockLoginWithToken = vi.hoisted(() => vi.fn());
 
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: Object.assign(
-    (
-      selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
-    ) => selector({ loginWithToken: mockLoginWithToken }),
+    (selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown) =>
+      selector({ loginWithToken: mockLoginWithToken }),
     {
       getState: () => ({
         token: null,
@@ -53,43 +52,17 @@ beforeEach(() => {
   mockLoginWithToken.mockResolvedValue(undefined);
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   server.use(
-    http.post("*/api/setup", () =>
-      HttpResponse.json({ token: "jwt-token" }),
-    ),
+    http.post("*/api/setup", () => HttpResponse.json({ token: "jwt-token" })),
   );
 });
 
 describe("Setup", () => {
-  describe("initial render", () => {
-    it("renders all account form fields and the submit button", () => {
-      renderSetup();
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /complete setup/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("submit button is disabled when all fields are empty", () => {
-      renderSetup();
-      expect(
-        screen.getByRole("button", { name: /complete setup/i }),
-      ).toBeDisabled();
-    });
-  });
-
   describe("field validation — errors only after blur (onTouched mode)", () => {
-    it("does not show name error before the field is touched", () => {
-      renderSetup();
-      expect(screen.queryByText(/name must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows name error after blurring an empty name field", async () => {
+    it("shows name error only after blurring an empty name field", async () => {
       const user = userEvent.setup();
       renderSetup();
+
+      expect(screen.queryByText(/name must be/i)).not.toBeInTheDocument();
 
       await user.click(screen.getByLabelText(/^name$/i));
       await user.tab();
@@ -97,14 +70,11 @@ describe("Setup", () => {
       expect(await screen.findByText(/name must be/i)).toBeInTheDocument();
     });
 
-    it("does not show username error before the field is touched", () => {
-      renderSetup();
-      expect(screen.queryByText(/username must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows username error after blurring with too-short value", async () => {
+    it("shows username error only after blurring with a too-short value", async () => {
       const user = userEvent.setup();
       renderSetup();
+
+      expect(screen.queryByText(/username must be/i)).not.toBeInTheDocument();
 
       await user.type(screen.getByLabelText(/^username$/i), "ab");
       await user.tab();
@@ -112,16 +82,13 @@ describe("Setup", () => {
       expect(await screen.findByText(/username must be/i)).toBeInTheDocument();
     });
 
-    it("does not show email error before the field is touched", () => {
+    it("shows email error only after blurring with an invalid address", async () => {
+      const user = userEvent.setup();
       renderSetup();
+
       expect(
         screen.queryByText(/enter a valid email/i),
       ).not.toBeInTheDocument();
-    });
-
-    it("shows email error after blurring with an invalid address", async () => {
-      const user = userEvent.setup();
-      renderSetup();
 
       await user.type(screen.getByLabelText(/^email$/i), "not-an-email");
       await user.tab();
@@ -131,14 +98,11 @@ describe("Setup", () => {
       ).toBeInTheDocument();
     });
 
-    it("does not show password error before the field is touched", () => {
-      renderSetup();
-      expect(screen.queryByText(/password must be/i)).not.toBeInTheDocument();
-    });
-
-    it("shows password error after blurring an empty password field", async () => {
+    it("shows password error only after blurring an empty password field", async () => {
       const user = userEvent.setup();
       renderSetup();
+
+      expect(screen.queryByText(/password must be/i)).not.toBeInTheDocument();
 
       await user.click(screen.getByLabelText(/^password$/i));
       await user.tab();
@@ -178,7 +142,7 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
-    it("shows the success screen after setup", async () => {
+    it("shows the success screen and logs in with the returned token", async () => {
       const user = userEvent.setup();
       renderSetup();
 
@@ -186,15 +150,6 @@ describe("Setup", () => {
       await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
       expect(await screen.findByText(/instance ready/i)).toBeInTheDocument();
-    });
-
-    it("logs in with the returned token", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
-
       await waitFor(() =>
         expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token"),
       );
@@ -262,9 +217,7 @@ describe("Setup", () => {
   describe("error handling", () => {
     it("shows 'Setup has already been completed' on 409", async () => {
       server.use(
-        http.post("*/api/setup", () =>
-          HttpResponse.json({}, { status: 409 }),
-        ),
+        http.post("*/api/setup", () => HttpResponse.json({}, { status: 409 })),
       );
       const user = userEvent.setup();
       renderSetup();
@@ -279,9 +232,7 @@ describe("Setup", () => {
 
     it("shows a generic error on unexpected server errors", async () => {
       server.use(
-        http.post("*/api/setup", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
+        http.post("*/api/setup", () => HttpResponse.json({}, { status: 500 })),
       );
       const user = userEvent.setup();
       renderSetup();

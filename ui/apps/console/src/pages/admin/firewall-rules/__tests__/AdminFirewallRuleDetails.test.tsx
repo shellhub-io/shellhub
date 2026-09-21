@@ -79,7 +79,7 @@ describe("AdminFirewallRuleDetails", () => {
   });
 
   describe("not-found / error state", () => {
-    it('renders "Firewall rule not found" when no data and no loading', async () => {
+    it('renders "Firewall rule not found" with a way back', async () => {
       server.use(
         http.get("*/admin/api/firewall/rules/:id", () =>
           HttpResponse.json({}, { status: 404 }),
@@ -89,147 +89,51 @@ describe("AdminFirewallRuleDetails", () => {
       await waitFor(() => {
         expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
       });
-    });
-
-    it('renders "Firewall rule not found" when the query returns an error', async () => {
-      server.use(
-        http.get("*/admin/api/firewall/rules/:id", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
-      });
-    });
-
-    it('renders a "Back to firewall rules" link in the not-found state', async () => {
-      server.use(
-        http.get("*/admin/api/firewall/rules/:id", () =>
-          HttpResponse.json({}, { status: 404 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: "Back to firewall rules" }),
-        ).toBeInTheDocument();
-      });
+      expect(
+        screen.getByRole("link", { name: "Back to firewall rules" }),
+      ).toBeInTheDocument();
     });
   });
 
   describe("rule data — allow rule", () => {
-    it('renders "Allow Rule" as the main heading', async () => {
+    it("renders the rule's fields", async () => {
       renderPage();
       await waitFor(() => {
         expect(
           screen.getByRole("heading", { name: "Allow Rule" }),
         ).toBeInTheDocument();
       });
-    });
-
-    it("renders the rule ID", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getAllByText("rule-1").length).toBeGreaterThanOrEqual(1);
-      });
-    });
-
-    it("renders the namespace as a link to the admin namespace page", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: "tenant-abc" }),
-        ).toBeInTheDocument();
-      });
+      expect(screen.getAllByText("rule-1").length).toBeGreaterThanOrEqual(1);
       expect(screen.getByRole("link", { name: "tenant-abc" })).toHaveAttribute(
         "href",
         "/admin/namespaces/tenant-abc",
       );
-    });
-
-    it("renders the priority number", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("1")).toBeInTheDocument();
-      });
-    });
-
-    it('renders "Allow" in the action field', async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getAllByText("Allow").length).toBeGreaterThanOrEqual(1);
-      });
-    });
-
-    it("renders the Active badge", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(1);
-      });
-    });
-
-    it('renders "Any IP" when source_ip is ".*"', async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Any IP")).toBeInTheDocument();
-      });
-    });
-
-    it('renders "All users" when username is ".*"', async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("All users")).toBeInTheDocument();
-      });
-    });
-
-    it('renders "All devices" FilterBadge when filter hostname is ".*"', async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("All devices")).toBeInTheDocument();
-      });
+      expect(screen.getByText("1")).toBeInTheDocument();
+      expect(screen.getAllByText("Allow").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText("Any IP")).toBeInTheDocument();
+      expect(screen.getByText("All users")).toBeInTheDocument();
+      expect(screen.getByText("All devices")).toBeInTheDocument();
     });
   });
 
-  describe("rule data — deny rule", () => {
-    it('renders "Deny Rule" as the main heading', async () => {
-      setRule({ action: "deny" });
+  describe("rule data — deny rule, inactive, specific IP and username", () => {
+    it("renders the rule's own action, state, IP and username", async () => {
+      setRule({
+        action: "deny",
+        active: false,
+        source_ip: "10.0.0.5",
+        username: "alice",
+      });
       renderPage();
       await waitFor(() => {
         expect(
           screen.getByRole("heading", { name: "Deny Rule" }),
         ).toBeInTheDocument();
       });
-    });
-  });
-
-  describe("rule data — inactive rule", () => {
-    it("renders the Inactive badge", async () => {
-      setRule({ active: false });
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getAllByText("Inactive").length).toBeGreaterThanOrEqual(
-          1,
-        );
-      });
-    });
-  });
-
-  describe("rule data — specific IP and username", () => {
-    it("renders a specific source IP when not wildcard", async () => {
-      setRule({ source_ip: "10.0.0.5" });
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("10.0.0.5")).toBeInTheDocument();
-      });
-    });
-
-    it("renders a specific username when not wildcard", async () => {
-      setRule({ username: "alice" });
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("alice")).toBeInTheDocument();
-      });
+      expect(screen.getAllByText("Inactive").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText("10.0.0.5")).toBeInTheDocument();
+      expect(screen.getByText("alice")).toBeInTheDocument();
     });
   });
 

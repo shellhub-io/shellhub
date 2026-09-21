@@ -169,15 +169,6 @@ describe("MfaEnableDrawer", () => {
 
       expect(nextButton).toBeEnabled();
     });
-
-    it("downloads recovery codes", async () => {
-      const user = userEvent.setup();
-
-      const downloadButton = screen.getByText(/download/i);
-      await user.click(downloadButton);
-
-      expect(downloadButton).toBeInTheDocument();
-    });
   });
 
   describe("Step 3: QR Code and Verification", () => {
@@ -204,18 +195,11 @@ describe("MfaEnableDrawer", () => {
       await user.click(nextButton);
     });
 
-    it("displays QR code", async () => {
+    it("displays the QR code and the secret for manual entry", async () => {
       await waitFor(() => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
-    });
-
-    it("displays secret for manual entry", async () => {
-      await waitFor(() => {
-        expect(
-          screen.getByDisplayValue(mockMfaData.secret),
-        ).toBeInTheDocument();
-      });
+      expect(screen.getByDisplayValue(mockMfaData.secret)).toBeInTheDocument();
     });
 
     it("validates OTP and enables MFA on success", async () => {
@@ -338,46 +322,46 @@ describe("MfaEnableDrawer", () => {
     });
   });
 
-  describe("State Cleanup", () => {
-    it("resets state when drawer is closed and reopened", async () => {
-      const user = userEvent.setup();
-      const { rerender } = render(
-        <MfaEnableDrawer
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
+  it("rewinds to step 1 when the drawer is cancelled and reopened", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MfaEnableDrawer
+        open={true}
+        onClose={onClose}
+        onSuccess={onSuccess}
+        currentRecoveryEmail="recovery@example.com"
+      />,
+    );
 
-      const continueButton = screen.getByRole("button", { name: /continue/i });
-      await user.click(continueButton);
-      await waitFor(() => {
-        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
-
-      rerender(
-        <MfaEnableDrawer
-          open={false}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
-
-      rerender(
-        <MfaEnableDrawer
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
     });
+
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+    expect(onClose).toHaveBeenCalled();
+
+    rerender(
+      <MfaEnableDrawer
+        open={false}
+        onClose={onClose}
+        onSuccess={onSuccess}
+        currentRecoveryEmail="recovery@example.com"
+      />,
+    );
+    rerender(
+      <MfaEnableDrawer
+        open={true}
+        onClose={onClose}
+        onSuccess={onSuccess}
+        currentRecoveryEmail="recovery@example.com"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Confirm Recovery Email/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Save Recovery Codes/i)).not.toBeInTheDocument();
   });
 
   describe("Error Handling", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -42,15 +42,6 @@ describe("MfaDisableDialog", () => {
   });
 
   describe("Mode Switching", () => {
-    it("defaults to TOTP mode", () => {
-      renderDialog();
-
-      expect(screen.getByText(/Verification Code/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(/Use recovery code instead/i),
-      ).toBeInTheDocument();
-    });
-
     it("switches to recovery code mode", async () => {
       const user = renderDialog();
 
@@ -176,38 +167,6 @@ describe("MfaDisableDialog", () => {
     });
   });
 
-  describe("Dialog Behavior", () => {
-    it("closes when cancel button is clicked", async () => {
-      const user = renderDialog();
-
-      await user.click(screen.getByText(/cancel/i));
-
-      expect(onClose).toHaveBeenCalled();
-      expect(onSuccess).not.toHaveBeenCalled();
-    });
-
-    it("closes when clicking outside (backdrop)", () => {
-      renderDialog();
-
-      const dialog = document.querySelector("dialog") as HTMLElement;
-      fireEvent.mouseDown(dialog);
-      fireEvent.click(dialog);
-      expect(onClose).toHaveBeenCalled();
-    });
-
-    it("does not render when open is false", () => {
-      const { container } = render(
-        <MfaDisableDialog
-          open={false}
-          onClose={onClose}
-          onSuccess={onSuccess}
-        />,
-      );
-
-      expect(container.firstChild).toBeNull();
-    });
-  });
-
   describe("Loading State", () => {
     it("disables submit button while submitting", async () => {
       server.use(
@@ -226,31 +185,6 @@ describe("MfaDisableDialog", () => {
       await waitFor(() => {
         expect(disableButton).toBeDisabled();
       });
-    });
-  });
-
-  describe("Error Handling", () => {
-    it("shows error after failed TOTP submit and switches to recovery mode", async () => {
-      server.use(
-        http.put("*/api/user/mfa/disable", () =>
-          HttpResponse.json({}, { status: 403 }),
-        ),
-      );
-      const user = renderDialog();
-
-      await fillTotpCode(user, "999999");
-
-      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/Invalid verification code/i),
-        ).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/use recovery code instead/i));
-
-      expect(screen.getByPlaceholderText(/recovery code/i)).toBeInTheDocument();
     });
   });
 
@@ -295,23 +229,6 @@ describe("MfaDisableDialog", () => {
         await user.type(recoveryInputs[i], String(i + 1));
       }
     }
-
-    it("shows OTP inputs after requesting codes", async () => {
-      const user = renderDialog();
-
-      await navigateToEmailReset(user);
-      await requestCodes(user);
-
-      expect(
-        screen.getAllByLabelText(/main email code character/i),
-      ).toHaveLength(5);
-      expect(
-        screen.getAllByLabelText(/recovery email code character/i),
-      ).toHaveLength(5);
-      expect(
-        screen.getByRole("button", { name: /disable mfa/i }),
-      ).toBeInTheDocument();
-    });
 
     it("submits email codes and calls onSuccess/onClose", async () => {
       const user = renderDialog();

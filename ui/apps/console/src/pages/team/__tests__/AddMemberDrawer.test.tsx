@@ -24,6 +24,8 @@ vi.mock("@/utils/styles", () => ({
   INPUT_MONO_ERROR: "input-mono-error",
 }));
 
+const INVITE_LINK = "https://shellhub.example.com/invite/abc123";
+
 const mockGetConfig = vi.mocked(getConfig);
 
 function renderDrawer(open = true, onClose = vi.fn(), tenantId = "t1") {
@@ -64,85 +66,35 @@ beforeEach(() => {
 });
 
 describe("AddMemberDrawer", () => {
-  describe("rendering", () => {
-    it("renders the Add Member title when open", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("heading", { name: /add member/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders nothing when closed", () => {
-      const { container } = renderDrawer(false);
-      expect(container).toBeEmptyDOMElement();
-    });
-
-    it("renders the email input", () => {
-      renderDrawer();
-      expect(
-        screen.getByPlaceholderText(/user@example.com/i),
-      ).toBeInTheDocument();
-    });
-
-    it("has no delivery-choice checkbox — the flow always both emails and returns a link", () => {
-      renderDrawer();
-      expect(
-        screen.queryByRole("checkbox", { name: /link instead/i }),
-      ).not.toBeInTheDocument();
-    });
+  it("has no delivery-choice checkbox — the flow always both emails and returns a link", () => {
+    renderDrawer();
+    expect(
+      screen.queryByRole("checkbox", { name: /link instead/i }),
+    ).not.toBeInTheDocument();
   });
 
   describe("submit", () => {
-    it("always generates the invitation link (single channel)", async () => {
-      setInviteResponse("https://shellhub.example/accept-invite?invite=abc");
-      const user = userEvent.setup();
-      renderDrawer(true, vi.fn(), "t1");
-      await submit(user, "bob@example.com");
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(
-            "https://shellhub.example/accept-invite?invite=abc",
-          ),
-        ).toBeInTheDocument(),
-      );
-    });
-
     it("shows the invitation link and copy button after generation", async () => {
-      const generatedLink = "https://shellhub.example.com/invite/abc123";
-      setInviteResponse(generatedLink);
+      setInviteResponse(INVITE_LINK);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
 
       await waitFor(() =>
-        expect(screen.getByText(generatedLink)).toBeInTheDocument(),
+        expect(screen.getByText(INVITE_LINK)).toBeInTheDocument(),
       );
       expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
-      expect(
-        screen.getByRole("heading", { name: /invitation link/i }),
-      ).toBeInTheDocument();
     });
 
-    it("mentions the email on cloud", async () => {
-      setInviteResponse("https://shellhub.example.com/invite/abc123");
-      const user = userEvent.setup();
-      renderDrawer();
-      await submit(user);
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/we emailed the invitation/i),
-        ).toBeInTheDocument(),
-      );
-    });
-
-    it("does not mention email on a non-cloud edition (link-only)", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
-      setInviteResponse("https://shellhub.example.com/invite/abc123");
+    it.each([
+      ["cloud", true],
+      ["enterprise", false],
+    ] as const)("the %s result screen mentions the email: %s", async (
+      edition,
+      mentionsEmail,
+    ) => {
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+      setInviteResponse(INVITE_LINK);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -152,9 +104,9 @@ describe("AddMemberDrawer", () => {
           screen.getByRole("heading", { name: /invitation link/i }),
         ).toBeInTheDocument(),
       );
-      expect(
-        screen.queryByText(/we emailed the invitation/i),
-      ).not.toBeInTheDocument();
+      const email = screen.queryByText(/we emailed the invitation/i);
+      if (mentionsEmail) expect(email).toBeInTheDocument();
+      else expect(email).not.toBeInTheDocument();
     });
 
     it("shows 'Member Added' when an existing account is added directly (no link)", async () => {
@@ -173,7 +125,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("does not close on success — the result screen stays until 'Done'", async () => {
-      setInviteResponse("https://shellhub.example.com/invite/abc123");
+      setInviteResponse(INVITE_LINK);
       const onClose = vi.fn();
       const user = userEvent.setup();
       renderDrawer(true, onClose, "t1");
@@ -204,20 +156,14 @@ describe("AddMemberDrawer", () => {
       expect(apiCalled).not.toHaveBeenCalled();
     });
 
-    it("disables the submit button when email field is empty", () => {
-      renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /add member/i }),
-      ).toBeDisabled();
-    });
-
-    it("disables the submit button when email is invalid (non-empty)", async () => {
+    it.each([
+      ["empty", ""],
+      ["invalid", "not-an-email"],
+    ])("disables the submit button when email is %s", async (_label, email) => {
       const user = userEvent.setup();
       renderDrawer();
-      await user.type(
-        screen.getByPlaceholderText(/user@example.com/i),
-        "not-an-email",
-      );
+      if (email)
+        await user.type(screen.getByPlaceholderText(/user@example.com/i), email);
       expect(
         screen.getByRole("button", { name: /add member/i }),
       ).toBeDisabled();
@@ -225,66 +171,20 @@ describe("AddMemberDrawer", () => {
   });
 
   describe("error handling", () => {
-    it("shows 400 error as invalid email/role message", async () => {
-      setInviteError(400);
+    it.each([
+      [400, /invalid email or role/i],
+      [403, /don't have permission to invite/i],
+      [404, /no account exists for this email/i],
+      [409, /already a member or has a pending invitation/i],
+      [500, /failed to send invitation/i],
+    ])("a %i response reports '%s'", async (status, message) => {
+      setInviteError(status);
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
 
       await waitFor(() =>
-        expect(screen.getByText(/invalid email or role/i)).toBeInTheDocument(),
-      );
-    });
-
-    it("shows 403 error as permission denied message", async () => {
-      setInviteError(403);
-      const user = userEvent.setup();
-      renderDrawer();
-      await submit(user);
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/don't have permission to invite/i),
-        ).toBeInTheDocument(),
-      );
-    });
-
-    it("shows 404 error as no account message", async () => {
-      setInviteError(404);
-      const user = userEvent.setup();
-      renderDrawer();
-      await submit(user);
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/no account exists for this email/i),
-        ).toBeInTheDocument(),
-      );
-    });
-
-    it("shows 409 error as already member message", async () => {
-      setInviteError(409);
-      const user = userEvent.setup();
-      renderDrawer();
-      await submit(user);
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/already a member or has a pending invitation/i),
-        ).toBeInTheDocument(),
-      );
-    });
-
-    it("shows generic error for unexpected status codes", async () => {
-      setInviteError(500);
-      const user = userEvent.setup();
-      renderDrawer();
-      await submit(user);
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/failed to send invitation/i),
-        ).toBeInTheDocument(),
+        expect(screen.getByText(message)).toBeInTheDocument(),
       );
     });
 

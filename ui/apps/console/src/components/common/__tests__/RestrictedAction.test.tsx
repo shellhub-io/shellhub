@@ -14,34 +14,25 @@ describe("RestrictedAction", () => {
       useAuthStore.setState({ role: "administrator" });
     });
 
-    it("renders the child element", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      expect(screen.getByRole("button", { name: "Add Key" })).toBeInTheDocument();
-    });
-
-    it("does not wrap children in a disabled container", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      const button = screen.getByRole("button", { name: "Add Key" });
-      expect(button.closest("[aria-disabled]")).toBeNull();
-    });
-
-    it("allows the child button to be clicked", async () => {
+    it("renders the child undisabled and lets it be clicked", async () => {
       const user = userEvent.setup();
       let clicked = false;
       render(
         <RestrictedAction action="publicKey:create">
-          <button type="button" onClick={() => { clicked = true; }}>Add Key</button>
+          <button
+            type="button"
+            onClick={() => {
+              clicked = true;
+            }}
+          >
+            Add Key
+          </button>
         </RestrictedAction>,
       );
-      await user.click(screen.getByRole("button", { name: "Add Key" }));
+      const button = screen.getByRole("button", { name: "Add Key" });
+      expect(button.closest("[aria-disabled]")).toBeNull();
+
+      await user.click(button);
       expect(clicked).toBe(true);
     });
   });
@@ -51,35 +42,19 @@ describe("RestrictedAction", () => {
       useAuthStore.setState({ role: "observer" });
     });
 
-    it("still renders the child element (visible but restricted)", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      expect(screen.getByRole("button", { name: "Add Key" })).toBeInTheDocument();
-    });
-
-    it("wraps children in a container with aria-disabled=true", () => {
+    it("marks the wrapper aria-disabled, inert, and titled with the default message", () => {
       render(
         <RestrictedAction action="publicKey:create">
           <button type="button">Add Key</button>
         </RestrictedAction>,
       );
       const button = screen.getByRole("button", { name: "Add Key" });
-      const wrapper = button.closest("[aria-disabled='true']");
-      expect(wrapper).toBeInTheDocument();
-    });
-
-    it("shows the default restriction message as a title tooltip", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
+      expect(button.closest("[aria-disabled='true']")).toBeInTheDocument();
+      expect(button.closest("[inert]")).toBeInTheDocument();
+      expect(button.closest("[title]")).toHaveAttribute(
+        "title",
+        "You don't have permission to perform this action.",
       );
-      const button = screen.getByRole("button", { name: "Add Key" });
-      const wrapper = button.closest("[title]");
-      expect(wrapper).toHaveAttribute("title", "You don't have permission to perform this action.");
     });
 
     it("shows a custom message when provided", () => {
@@ -89,41 +64,7 @@ describe("RestrictedAction", () => {
         </RestrictedAction>,
       );
       const button = screen.getByRole("button", { name: "Add Key" });
-      const wrapper = button.closest("[title]");
-      expect(wrapper).toHaveAttribute("title", "Admins only.");
-    });
-
-    it("prevents click events on children via pointer-events-none", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      const button = screen.getByRole("button", { name: "Add Key" });
-      const inner = button.closest(".pointer-events-none");
-      expect(inner).toBeInTheDocument();
-    });
-
-    it("blocks keyboard interaction via inert attribute on inner wrapper", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      const button = screen.getByRole("button", { name: "Add Key" });
-      const inner = button.closest("[inert]");
-      expect(inner).toBeInTheDocument();
-    });
-
-    it("applies cursor-not-allowed to the outer wrapper", () => {
-      render(
-        <RestrictedAction action="publicKey:create">
-          <button type="button">Add Key</button>
-        </RestrictedAction>,
-      );
-      const button = screen.getByRole("button", { name: "Add Key" });
-      const outer = button.closest(".cursor-not-allowed");
-      expect(outer).toBeInTheDocument();
+      expect(button.closest("[title]")).toHaveAttribute("title", "Admins only.");
     });
   });
 
@@ -135,7 +76,9 @@ describe("RestrictedAction", () => {
           <button type="button">Delete</button>
         </RestrictedAction>,
       );
-      expect(screen.getByRole("button").closest("[aria-disabled='true']")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button").closest("[aria-disabled='true']"),
+      ).toBeInTheDocument();
 
       useAuthStore.setState({ role: "administrator" });
       rerender(

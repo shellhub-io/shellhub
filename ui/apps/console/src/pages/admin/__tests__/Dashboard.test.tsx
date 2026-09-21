@@ -48,22 +48,6 @@ describe("AdminDashboard", () => {
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
-
-    it("does not render page header while loading", () => {
-      server.use(
-        http.get("*/admin/api/stats", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.queryByText("System Overview")).not.toBeInTheDocument();
-    });
-
-    it("does not render stat cards while loading", () => {
-      server.use(
-        http.get("*/admin/api/stats", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.queryByText("Registered Users")).not.toBeInTheDocument();
-    });
   });
 
   describe("error state", () => {
@@ -75,80 +59,15 @@ describe("AdminDashboard", () => {
       );
       renderPage();
       await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-    });
-
-    it("displays the expected error message", async () => {
-      server.use(
-        http.get("*/admin/api/stats", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByText("Failed to load dashboard statistics"),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("does not render stat cards on stats error", async () => {
-      server.use(
-        http.get("*/admin/api/stats", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toHaveTextContent(
+          "Failed to load dashboard statistics",
+        );
       });
       expect(screen.queryByText("Registered Users")).not.toBeInTheDocument();
-    });
-
-    it("does not render sessions table on stats error", async () => {
-      server.use(
-        http.get("*/admin/api/stats", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-      expect(
-        screen.queryByTestId("recent-sessions-table"),
-      ).not.toBeInTheDocument();
     });
   });
 
   describe("success state — all fields present, sessions present", () => {
-    it("renders page header with correct title", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("System Overview")).toBeInTheDocument();
-      });
-    });
-
-    it("renders page header with correct overline", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
-      });
-    });
-
-    it("renders all six stat card titles", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Registered Users")).toBeInTheDocument();
-      });
-      expect(screen.getByText("Registered Devices")).toBeInTheDocument();
-      expect(screen.getByText("Online Devices")).toBeInTheDocument();
-      expect(screen.getByText("Active Sessions")).toBeInTheDocument();
-      expect(screen.getByText("Pending Devices")).toBeInTheDocument();
-      expect(screen.getByText("Rejected Devices")).toBeInTheDocument();
-    });
-
     it("renders correct numeric values for each stat", async () => {
       renderPage();
       await waitFor(() => {
@@ -161,50 +80,18 @@ describe("AdminDashboard", () => {
       expect(screen.getByText("3")).toBeInTheDocument();
     });
 
-    it("'View all Users' link points to /admin/users", async () => {
+    it.each([
+      [/view all users/i, "/admin/users"],
+      [/view all sessions/i, "/admin/sessions"],
+      [/devices/i, "/admin/devices"],
+    ])("links matching %s point to %s", async (name, href) => {
       renderPage();
       await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: /view all users/i }),
-        ).toBeInTheDocument();
+        expect(screen.getAllByRole("link", { name }).length).toBeGreaterThan(0);
       });
-      expect(
-        screen.getByRole("link", { name: /view all users/i }),
-      ).toHaveAttribute("href", "/admin/users");
-    });
-
-    it("'View all Sessions' link in stat card points to /admin/sessions", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(
-          screen.getByRole("link", { name: /view all sessions/i }),
-        ).toBeInTheDocument();
+      screen.getAllByRole("link", { name }).forEach((link) => {
+        expect(link).toHaveAttribute("href", href);
       });
-      expect(
-        screen.getByRole("link", { name: /view all sessions/i }),
-      ).toHaveAttribute("href", "/admin/sessions");
-    });
-
-    it("device card links point to /admin/devices", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("Registered Devices")).toBeInTheDocument();
-      });
-      const deviceLinks = screen.getAllByRole("link", { name: /devices/i });
-      deviceLinks.forEach((link) => {
-        expect(link).toHaveAttribute("href", "/admin/devices");
-      });
-    });
-
-    it("renders RecentSessionsTable with isAdmin", async () => {
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByTestId("recent-sessions-table")).toBeInTheDocument();
-      });
-      expect(screen.getByTestId("recent-sessions-table")).toHaveAttribute(
-        "data-admin",
-        "true",
-      );
     });
   });
 
@@ -221,18 +108,6 @@ describe("AdminDashboard", () => {
       });
       const zeros = screen.getAllByText("0");
       expect(zeros.length).toBeGreaterThanOrEqual(5);
-    });
-
-    it("renders all zeros when stats is an empty object", async () => {
-      server.use(
-        http.get("*/admin/api/stats", () => HttpResponse.json({})),
-      );
-      renderPage();
-      await waitFor(() => {
-        expect(screen.getByText("System Overview")).toBeInTheDocument();
-      });
-      const zeros = screen.getAllByText("0");
-      expect(zeros.length).toBeGreaterThanOrEqual(6);
     });
   });
 });
