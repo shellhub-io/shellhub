@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // Authorize refuses the request unless the identity resolved by authentication holds the
@@ -15,7 +15,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		gCtx, ok := gateway.From(c)
 		if !ok {
-			return c.NoContent(http.StatusForbidden)
+			return routes.NewErrForbidden(nil)
 		}
 
 		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx)
@@ -24,7 +24,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 		tenant := gateway.TenantFromContext(ctx)
 
 		if id != nil && tenant == nil && !gCtx.IsAdmin() {
-			return c.NoContent(http.StatusForbidden)
+			return routes.NewErrForbidden(nil)
 		}
 
 		return next(c)
@@ -35,7 +35,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		if key := c.Request().Header.Get("X-API-Key"); key != "" {
-			return c.NoContent(http.StatusForbidden)
+			return routes.NewErrForbidden(nil)
 		}
 
 		return next(c)
@@ -43,13 +43,13 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // RequiresPermission reports whether the client has the specified permission.
-// If not, it returns an [http.StatusForbidden] response. Otherwise, it executes
-// the next handler.
+// If not, it refuses with [routes.ErrForbidden]. Otherwise, it executes the next
+// handler.
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			if ctx, ok := gateway.From(c); !ok || !ctx.Role().HasPermission(permission) {
-				return c.NoContent(http.StatusForbidden)
+				return routes.NewErrForbidden(nil)
 			}
 
 			return next(c)
@@ -60,7 +60,7 @@ func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 // RequiresTenant enforces that the caller's tenant scope matches the tenant
 // provided in the given URL path parameter. It fails closed: if either the
 // caller's tenant or the path parameter is missing or they don't match, it
-// returns [http.StatusForbidden]. Callers coming through the admin panel
+// refuses with [routes.ErrForbidden]. Callers coming through the admin panel
 // bypass this check; they are identified by the /admin/api gateway, which
 // strips X-ID and keeps X-Admin: true. An admin user who hits the regular
 // /api/* surface still carries X-ID and is subject to the tenant guard.
@@ -69,7 +69,7 @@ func RequiresTenant(param string) echo.MiddlewareFunc {
 		return func(c *echo.Context) error {
 			ctx, ok := gateway.From(c)
 			if !ok {
-				return c.NoContent(http.StatusForbidden)
+				return routes.NewErrForbidden(nil)
 			}
 
 			if ctx.ID() == nil && ctx.IsAdmin() {
@@ -79,7 +79,7 @@ func RequiresTenant(param string) echo.MiddlewareFunc {
 			path := c.Param(param)
 			tenant := ctx.Tenant()
 			if path == "" || tenant == nil || tenant.ID != path {
-				return c.NoContent(http.StatusForbidden)
+				return routes.NewErrForbidden(nil)
 			}
 
 			return next(c)

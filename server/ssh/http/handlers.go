@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
+	routeserrors "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
@@ -115,7 +116,7 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	}
 
 	if role := authorizer.RoleFromString(c.Request().Header.Get("X-Role")); !role.HasPermission(authorizer.SessionClose) {
-		return c.NoContent(http.StatusForbidden)
+		return routeserrors.NewErrForbidden(nil)
 	}
 
 	ctx := c.Request().Context()
@@ -145,11 +146,11 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 
 	sc, err := scope.NewBounded(tenant)
 	if err != nil {
-		return c.NoContent(http.StatusForbidden)
+		return routeserrors.NewErrForbidden(err)
 	}
 
 	if _, err := h.Service.GetSession(ctx, sc, models.UID(data.UID)); err != nil {
-		return c.NoContent(http.StatusNotFound)
+		return err
 	}
 
 	if err := h.Service.DeactivateSession(ctx, models.UID(data.UID)); err != nil {

@@ -1,12 +1,14 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
@@ -26,6 +28,7 @@ func newCloseRequest(t *testing.T, role string) (*echo.Context, *httptest.Respon
 
 	e := echo.New()
 	e.Binder = handlers.NewBinder()
+	e.HTTPErrorHandler = handlers.NewErrors(nil)
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/sessions/session-uid/close", strings.NewReader(`{"device":"device-uid"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -91,8 +94,15 @@ func TestHandleSSHCloseAuthorization(t *testing.T) {
 
 			h := &Handlers{} //nolint:exhaustruct // Dialer must not be reached for forbidden roles.
 
-			require.NoError(t, h.HandleSSHClose(c))
+			if err := h.HandleSSHClose(c); err != nil {
+				c.Echo().HTTPErrorHandler(c, err)
+			}
+
 			assert.Equal(t, http.StatusForbidden, rec.Code)
+
+			body := responses.Error{} //nolint:exhaustruct // the decoder fills it from the response body
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "a refusal must answer a JSON error body")
+			assert.NotEmpty(t, body.Message, "a refusal's body must say why")
 		})
 	}
 }
@@ -130,8 +140,12 @@ func TestHandleSSHCloseLeavesAnotherNamespacesSessionAlone(t *testing.T) {
 		Sessions: session.NewRegistry(),
 	}
 
-	require.NoError(t, h.HandleSSHClose(c))
+	c.Echo().HTTPErrorHandler(c, h.HandleSSHClose(c))
 	assert.Equal(t, http.StatusNotFound, rec.Code, "a session outside the caller's namespace is not the caller's to retire")
+
+	body := responses.Error{} //nolint:exhaustruct // the decoder fills it from the response body
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "a refusal must answer a JSON error body")
+	assert.NotEmpty(t, body.Message, "a refusal's body must say why")
 
 	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything)
 }

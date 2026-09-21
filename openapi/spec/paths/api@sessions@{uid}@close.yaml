@@ -29,7 +29,15 @@ post:
         the client's connection drops, so it may show as active for a moment longer.
     '400':
       $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
     '404':
       description: No gateway holds the session and it is not in the caller's namespace, so nothing was closed.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml

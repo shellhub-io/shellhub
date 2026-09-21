@@ -62,6 +62,10 @@ post:
             type: string
             description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
             example: 'bf265bf8-0065-4f44-a3ac-55eb3134c6ec'
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '403':
       $ref: ../components/responses/403.yaml
     '404':
@@ -79,5 +83,9 @@ post:
             type: string
             description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
             example: ''
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml

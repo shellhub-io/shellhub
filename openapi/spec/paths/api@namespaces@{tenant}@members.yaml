@@ -42,9 +42,10 @@ delete:
   summary: Leave Namespace
   description: |
     Allows the authenticated user to leave the specified namespace. Owners
-    cannot leave a namespace; they must delete it instead. If the user attempts
-    to leave their current authenticated namespace, the response will provide a
-    new token that excludes this namespace.
+    cannot leave a namespace; they must delete it instead. Leaving the
+    namespace the caller's own token names answers a replacement token that
+    excludes it; leaving any other namespace answers no content, because that
+    token keeps working.
   tags:
     - community
     - members
@@ -55,11 +56,17 @@ delete:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
   responses:
     '200':
-      description: Successfully left the namespace.
+      description: |
+        Successfully left the namespace the caller's token named. The body is a
+        replacement token that excludes it.
       content:
         application/json:
           schema:
             $ref: ../components/schemas/userAuth.yaml
+    '204':
+      description: |
+        Successfully left a namespace the caller's token did not name. That
+        token keeps working, so there is nothing to send back.
     '400':
       $ref: ../components/responses/400.yaml
     '401':

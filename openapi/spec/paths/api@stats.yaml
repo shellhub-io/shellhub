@@ -37,6 +37,8 @@ get:
                 type: integer
                 minimum: 0
     '401':
-      description: Unauthorized
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
     '500':
       $ref: ../components/responses/500.yaml

@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 // The SSH approval routes. Create and status are internal endpoints the SSH gateway calls;
@@ -31,7 +32,7 @@ func (h *Handler) GetSSHApproval(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	approval, err := h.service.GetSSHApproval(c.Ctx(), userID, req.Code)
@@ -56,7 +57,7 @@ func (h *Handler) ConfirmSSHApproval(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	confirmationCode, err := h.service.ConfirmSSHApproval(c.Ctx(), userID, req)
@@ -80,7 +81,7 @@ func (h *Handler) RejectSSHApproval(c *gateway.Context) error {
 
 	userID, ok := c.GetID()
 	if !ok {
-		return c.NoContent(http.StatusUnauthorized)
+		return errs.NewErrUnauthorized(nil)
 	}
 
 	if err := h.service.RejectSSHApproval(c.Ctx(), userID, req); err != nil {

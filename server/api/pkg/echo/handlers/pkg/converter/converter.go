@@ -46,6 +46,14 @@ func FromErrRouteToHTTPStatus(code int) int {
 		return http.StatusBadRequest
 	case routes.ErrCodeUnauthorized:
 		return http.StatusUnauthorized
+	case routes.ErrCodeForbidden:
+		return http.StatusForbidden
+	case routes.ErrCodeNotFound:
+		return http.StatusNotFound
+	case routes.ErrCodeTooManyRequests:
+		return http.StatusTooManyRequests
+	case routes.ErrCodePaymentRequired:
+		return http.StatusPaymentRequired
 	default:
 		return http.StatusInternalServerError
 	}

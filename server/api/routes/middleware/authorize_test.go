@@ -73,8 +73,13 @@ func TestRequiresTenant(t *testing.T) {
 				handler = gateway.WithContext(nil)(handler)
 			}
 
-			_ = handler(c)
+			renderRefusal(t, c, handler(c))
+
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+
+			if tc.expected != http.StatusOK {
+				assertRefusalCarriesABody(t, rec)
+			}
 		})
 	}
 }

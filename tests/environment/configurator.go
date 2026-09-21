@@ -98,14 +98,19 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
 // [assert.FailNow] if an error arises.
 func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
-	dc := &DockerCompose{
-		envs:     dcc.envs,
-		services: make(map[Service]*tc.DockerContainer),
-		setupT:   dcc.t,
-		client: resty.New().
+	newClient := func() *resty.Client {
+		return resty.New().
 			SetBaseURL("http://localhost:" + dcc.envs["SHELLHUB_HTTP_PORT"]).
-			SetContentLength(true),
-		down: nil,
+			SetContentLength(true)
+	}
+
+	dc := &DockerCompose{
+		envs:      dcc.envs,
+		services:  make(map[Service]*tc.DockerContainer),
+		setupT:    dcc.t,
+		client:    newClient(),
+		anonymous: newClient(),
+		down:      nil,
 	}
 
 	onlyPostgresAllowed(dc.envs["SHELLHUB_DATABASE"])

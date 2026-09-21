@@ -58,6 +58,18 @@ post:
       $ref: '../components/responses/401.yaml'
     '403':
       description: The caller's role cannot connect, or the device is in another namespace
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '../components/schemas/apiError.yaml'
+              - type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: Error description
     '400':
       description: Invalid request body or credential error
       content:
