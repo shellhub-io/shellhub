@@ -1,21 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { server } from "@/tests/msw";
+import { defaultHandlers } from "@/tests/handlers";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createWebSshSession: vi.fn(),
-    getNamespace: vi.fn(),
-  }),
-);
 
 const { default: TerminalInstance } = await import("../TerminalInstance");
 
-function makeSession(overrides: Partial<TerminalSession> = {}): TerminalSession {
+function makeSession(
+  overrides: Partial<TerminalSession> = {},
+): TerminalSession {
   return {
     id: "session-1",
     deviceUid: "device-uid",
@@ -35,16 +32,24 @@ function renderTerminal() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  server.use(
+    ...defaultHandlers,
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace()),
+    ),
+  );
   seedAuthStore();
   useTerminalStore.setState({ sessions: [makeSession()] });
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
 });
 
 describe("TerminalInstance", () => {
   it("tells an observer their role is the reason, and offers no retry", async () => {
     seedAuthStore({ role: "observer" });
-    sdk.createWebSshSession.mockRejectedValue(makeSdkError(403));
+    server.use(
+      http.post("*/ws/ssh/session", () =>
+        HttpResponse.json(null, { status: 403 }),
+      ),
+    );
     renderTerminal();
 
     const banner = await screen.findByRole("alert");
@@ -58,7 +63,11 @@ describe("TerminalInstance", () => {
   });
 
   it("offers a retry when the session fails for any other reason", async () => {
-    sdk.createWebSshSession.mockRejectedValue(makeSdkError(500));
+    server.use(
+      http.post("*/ws/ssh/session", () =>
+        HttpResponse.json(null, { status: 500 }),
+      ),
+    );
     renderTerminal();
 
     const banner = await screen.findByRole("alert");

@@ -2,8 +2,9 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
@@ -47,14 +48,6 @@ vi.mock("@/utils/sshKeys", () => ({
   validatePrivateKey: vi.fn(() => ({ valid: false, encrypted: false })),
   getFingerprint: vi.fn(() => "fp"),
 }));
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-    createSshIdentity: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -296,11 +289,16 @@ function getState() {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  server.use(
+    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.post(
+      "*/api/ssh-identities",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
   );
-  sdk.createSshIdentity.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("SecureVault", () => {

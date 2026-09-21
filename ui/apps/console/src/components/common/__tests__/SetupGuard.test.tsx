@@ -1,19 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
+import { VALID_JWT } from "@/tests/seedAuthStore";
 import SetupGuard from "../SetupGuard";
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getInfo: vi.fn(),
-  }),
-);
-
 function mockSetup(done: boolean) {
-  sdk.getInfo.mockResolvedValue({
-    data: { setup: done },
-  });
+  server.use(http.get("*/info", () => HttpResponse.json({ setup: done })));
 }
 
 function renderAt(path: string) {
@@ -31,7 +26,7 @@ function renderAt(path: string) {
 }
 
 beforeEach(() => {
-  sdk.getInfo.mockReset();
+  vi.clearAllMocks();
   useAuthStore.setState({ token: null });
 });
 
@@ -42,7 +37,7 @@ describe("SetupGuard", () => {
     expect(await screen.findByText("setup page")).toBeInTheDocument();
 
     await act(async () => {
-      useAuthStore.setState({ token: "issued-token" });
+      useAuthStore.setState({ token: VALID_JWT });
     });
 
     expect(screen.getByText("setup page")).toBeInTheDocument();
@@ -57,7 +52,7 @@ describe("SetupGuard", () => {
 
   it("does not bounce an authenticated user on / back to /setup while setup state is stale", async () => {
     mockSetup(false);
-    useAuthStore.setState({ token: "issued-token" });
+    useAuthStore.setState({ token: VALID_JWT });
     renderAt("/");
 
     expect(await screen.findByText("app content")).toBeInTheDocument();

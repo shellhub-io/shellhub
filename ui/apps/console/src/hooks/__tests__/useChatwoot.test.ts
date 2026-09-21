@@ -1,18 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { getConfig, defaultConfig } from "@/env";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import { tearDownChatwoot } from "../chatwootRuntime";
 import { useChatwoot } from "../useChatwoot";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespace: vi.fn(),
-    getNamespaceSupport: vi.fn(),
-  }),
-);
 
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -49,17 +43,23 @@ describe("useChatwoot", () => {
       name: "Test User",
       tenant: "tenant-abc",
     });
-    sdk.getNamespace.mockResolvedValue(
-      mockSdkResponse({
-        name: "my-ns",
-        billing: {
-          customer_id: "cus_123",
-          subscription: { id: "sub_123", status: "active", current_period_end: 0 },
-        },
-      }),
-    );
-    sdk.getNamespaceSupport.mockResolvedValue(
-      mockSdkResponse({ identifier: "abc123" }),
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json({
+          name: "my-ns",
+          billing: {
+            customer_id: "cus_123",
+            subscription: {
+              id: "sub_123",
+              status: "active",
+              current_period_end: 0,
+            },
+          },
+        }),
+      ),
+      http.get("*/api/namespaces/:tenant/support", () =>
+        HttpResponse.json({ identifier: "abc123" }),
+      ),
     );
   });
 
@@ -117,7 +117,9 @@ describe("useChatwoot", () => {
 
   describe("status: loading (namespace not resolved)", () => {
     it("returns 'loading' when namespace is null", () => {
-      sdk.getNamespace.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/namespaces/:tenant", () => new Promise(() => {})),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
@@ -129,8 +131,13 @@ describe("useChatwoot", () => {
 
   describe("status: no-subscription", () => {
     it("returns 'no-subscription' when the namespace has no subscription", async () => {
-      sdk.getNamespace.mockResolvedValue(
-        mockSdkResponse({ name: "my-ns", billing: { customer_id: "cus_123" } }),
+      server.use(
+        http.get("*/api/namespaces/:tenant", () =>
+          HttpResponse.json({
+            name: "my-ns",
+            billing: { customer_id: "cus_123" },
+          }),
+        ),
       );
 
       const { result } = renderHook(() => useChatwoot(), {
@@ -143,7 +150,11 @@ describe("useChatwoot", () => {
     });
 
     it("returns 'no-subscription' when namespace has no billing object", async () => {
-      sdk.getNamespace.mockResolvedValue(mockSdkResponse({ name: "my-ns" }));
+      server.use(
+        http.get("*/api/namespaces/:tenant", () =>
+          HttpResponse.json({ name: "my-ns" }),
+        ),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
@@ -157,25 +168,32 @@ describe("useChatwoot", () => {
 
   describe("status: loading (identifier fetching)", () => {
     it("returns 'loading' while support identifier is being fetched", async () => {
-      sdk.getNamespaceSupport.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get(
+          "*/api/namespaces/:tenant/support",
+          () => new Promise(() => {}),
+        ),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
       });
 
-      await waitFor(() => expect(sdk.getNamespaceSupport).toHaveBeenCalled());
-      expect(result.current.status).toBe("loading");
+      await waitFor(() => expect(result.current.status).toBe("loading"));
     });
 
     it("returns 'loading' when identifier response has no identifier field", async () => {
-      sdk.getNamespaceSupport.mockResolvedValue(mockSdkResponse({}));
+      server.use(
+        http.get("*/api/namespaces/:tenant/support", () =>
+          HttpResponse.json({}),
+        ),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
       });
 
-      await waitFor(() => expect(sdk.getNamespaceSupport).toHaveBeenCalled());
-      expect(result.current.status).toBe("loading");
+      await waitFor(() => expect(result.current.status).toBe("loading"));
     });
   });
 
@@ -339,7 +357,9 @@ describe("useChatwoot", () => {
     });
 
     it("does not call toggle when status is not ready (loading)", () => {
-      sdk.getNamespace.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/api/namespaces/:tenant", () => new Promise(() => {})),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
@@ -365,7 +385,11 @@ describe("useChatwoot", () => {
 
   describe("status: unavailable (identifier endpoint errors)", () => {
     it("flips to 'unavailable' when /support returns an error", async () => {
-      sdk.getNamespaceSupport.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/api/namespaces/:tenant/support", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
@@ -526,9 +550,6 @@ describe("useChatwoot", () => {
         expect(first.result.current.status).toBe("unavailable");
 
         first.unmount();
-        sdk.getNamespaceSupport.mockResolvedValue(
-          mockSdkResponse({ identifier: "xyz789" }),
-        );
         const second = renderHook(() => useChatwoot(), {
           wrapper: createTestWrapper(),
         });

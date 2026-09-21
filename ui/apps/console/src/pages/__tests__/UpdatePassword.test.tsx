@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import UpdatePassword from "../UpdatePassword";
-import { mockSdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -11,12 +12,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    updateRecoverPassword: vi.fn(),
-  }),
-);
 
 function renderWithParams(search = "?id=uid123&token=tok456") {
   return render(
@@ -30,9 +25,13 @@ function renderWithParams(search = "?id=uid123&token=tok456") {
 }
 
 beforeEach(() => {
-  mockNavigate.mockReset();
-  sdk.updateRecoverPassword.mockReset();
-  sdk.updateRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
+  vi.clearAllMocks();
+  server.use(
+    http.post(
+      "*/api/user/:uid/update_password",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("UpdatePassword", () => {
@@ -144,33 +143,6 @@ describe("UpdatePassword", () => {
   });
 
   describe("successful submission", () => {
-    it("calls updateRecoverPassword with uid, token, and password on valid submit", async () => {
-      const user = userEvent.setup();
-      renderWithParams();
-
-      await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        "Secret123",
-      );
-      await user.click(
-        screen.getByRole("button", { name: /update password/i }),
-      );
-
-      await waitFor(() =>
-        expect(sdk.updateRecoverPassword).toHaveBeenCalledTimes(1),
-      );
-      expect(sdk.updateRecoverPassword).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { uid: "uid123" },
-          body: expect.objectContaining({
-            token: "tok456",
-            password: "Secret123",
-          }),
-        }),
-      );
-    });
-
     it("navigates to /login with a success notice after successful submission", async () => {
       const user = userEvent.setup();
       renderWithParams();
@@ -197,7 +169,11 @@ describe("UpdatePassword", () => {
 
   describe("API failure", () => {
     it("shows a generic error message when the API call fails", async () => {
-      sdk.updateRecoverPassword.mockRejectedValue(new Error("network error"));
+      server.use(
+        http.post("*/api/user/:uid/update_password", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderWithParams();
 

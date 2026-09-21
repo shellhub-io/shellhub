@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 
@@ -16,16 +17,6 @@ vi.mock("react-router-dom", async () => {
     );
   return { ...actual, useLocation: () => mockLocation };
 });
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getSubscription: vi.fn(),
-    getNamespace: vi.fn(),
-    getNamespaceToken: vi.fn(),
-    createSubscription: vi.fn(),
-    createBillingPortalSession: vi.fn(),
-  }),
-);
 
 vi.mock("@/api/errors", () => ({
   isSdkError: (err: unknown): boolean =>
@@ -59,43 +50,56 @@ function renderSection() {
   );
 }
 
-function billingRecord(subscribed: boolean) {
-  return {
-    customer_id: "cus_123",
-    subscription: subscribed
-      ? { id: "sub_123", status: "active" as const, current_period_end: 0 }
-      : undefined,
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-  };
-}
-
 function setStatus(
   status: string,
   extra: { end_at?: number; invoices?: unknown[] } = {},
 ) {
-  sdk.getNamespace.mockResolvedValue(
-    mockSdkResponse(mockNamespace({ billing: billingRecord(true) })),
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(
+        mockNamespace({
+          billing: {
+            customer_id: "cus_123",
+            subscription: {
+              id: "sub_123",
+              status: "active" as const,
+              current_period_end: 0,
+            },
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+          },
+        }),
+      ),
+    ),
+    http.get("*/api/billing/subscription", () =>
+      HttpResponse.json({ status, ...extra }),
+    ),
   );
-  sdk.getSubscription.mockResolvedValue(mockSdkResponse({ status, ...extra }));
 }
 
 function setInactive() {
-  sdk.getNamespace.mockResolvedValue(
-    mockSdkResponse(mockNamespace({ billing: null })),
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockNamespace({ billing: null })),
+    ),
+    http.get("*/api/billing/subscription", () => HttpResponse.json(null)),
   );
-  sdk.getSubscription.mockResolvedValue(mockSdkResponse(null));
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
-  sdk.getNamespaceToken.mockResolvedValue(
-    mockSdkResponse({ token: "jwt-token", role: "owner" }),
-  );
-  sdk.createSubscription.mockResolvedValue(mockSdkResponse(undefined));
-  sdk.createBillingPortalSession.mockResolvedValue(
-    mockSdkResponse({ url: "https://billing.stripe.com/session" }),
+  server.use(
+    http.get("*/api/auth/token/:tenant", () =>
+      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+    ),
+    http.post(
+      "*/api/billing/subscription",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.post("*/api/billing/portal", () =>
+      HttpResponse.json({ url: "https://billing.stripe.com/session" }),
+    ),
   );
   setInactive();
 });

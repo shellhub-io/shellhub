@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { renderHookWithClient } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getLicense: vi.fn(),
-  }),
-);
 
 import { useAdminLicense } from "../useAdminLicense";
 
@@ -40,19 +35,22 @@ describe("useAdminLicense", () => {
   describe("enterprise admin — valid license", () => {
     it("calls getLicense and returns installedLicense", async () => {
       const license = makeLicense();
-      sdk.getLicense.mockResolvedValue(mockSdkResponse(license));
+      server.use(
+        http.get("*/admin/api/license", () => HttpResponse.json(license)),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      expect(sdk.getLicense).toHaveBeenCalledTimes(1);
       expect(result.current.installedLicense).toEqual(license);
     });
 
     it("sets isExpired to false when license is not expired", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: false })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: false })),
+        ),
       );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
@@ -64,7 +62,11 @@ describe("useAdminLicense", () => {
 
   describe("enterprise admin — 400 (no license stored)", () => {
     it("normalizes 400 to installedLicense null", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -73,7 +75,11 @@ describe("useAdminLicense", () => {
     });
 
     it("sets isExpired to true when no license is installed", async () => {
-      sdk.getLicense.mockRejectedValue(makeSdkError(400));
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json({}, { status: 400 }),
+        ),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -84,8 +90,10 @@ describe("useAdminLicense", () => {
 
   describe("enterprise admin — expired license", () => {
     it("sets isExpired to true when license.expired is true", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(makeLicense({ expired: true })),
+        ),
       );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
@@ -95,8 +103,12 @@ describe("useAdminLicense", () => {
     });
 
     it("keeps isExpired false for a non-expired license still in its grace period", async () => {
-      sdk.getLicense.mockResolvedValue(
-        mockSdkResponse(makeLicense({ expired: false, grace_period: true })),
+      server.use(
+        http.get("*/admin/api/license", () =>
+          HttpResponse.json(
+            makeLicense({ expired: false, grace_period: true }),
+          ),
+        ),
       );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
@@ -109,13 +121,20 @@ describe("useAdminLicense", () => {
   describe("cloud admin — bypass", () => {
     it("does NOT call getLicense on cloud deployments", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      let called = false;
+      server.use(
+        http.get("*/admin/api/license", () => {
+          called = true;
+          return HttpResponse.json(makeLicense());
+        }),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await new Promise((r) => setTimeout(r, 20));
-
-      expect(sdk.getLicense).not.toHaveBeenCalled();
-      expect(result.current.isLoading).toBe(false);
+      await waitFor(() => {
+        expect(called).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+      });
     });
 
     it("returns isExpired false on cloud deployments", async () => {
@@ -123,21 +142,29 @@ describe("useAdminLicense", () => {
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await new Promise((r) => setTimeout(r, 20));
-      expect(result.current.isExpired).toBe(false);
+      await waitFor(() =>
+        expect(result.current.isExpired).toBe(false),
+      );
     });
   });
 
   describe("non-admin on enterprise", () => {
     it("does NOT call getLicense when user is not admin", async () => {
       useAuthStore.setState({ isAdmin: false });
+      let called = false;
+      server.use(
+        http.get("*/admin/api/license", () => {
+          called = true;
+          return HttpResponse.json(makeLicense());
+        }),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await new Promise((r) => setTimeout(r, 20));
-
-      expect(sdk.getLicense).not.toHaveBeenCalled();
-      expect(result.current.isLoading).toBe(false);
+      await waitFor(() => {
+        expect(called).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+      });
     });
 
     it("returns isExpired false when user is not admin", async () => {
@@ -145,8 +172,9 @@ describe("useAdminLicense", () => {
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await new Promise((r) => setTimeout(r, 20));
-      expect(result.current.isExpired).toBe(false);
+      await waitFor(() =>
+        expect(result.current.isExpired).toBe(false),
+      );
     });
   });
 });

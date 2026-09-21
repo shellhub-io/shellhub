@@ -1,16 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import GenerateKeyDrawer from "../GenerateKeyDrawer";
-import { mockSdkResponse } from "@/tests/sdk";
+import { server } from "@/tests/msw";
+import { defaultHandlers } from "@/tests/handlers";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import { createTestWrapper } from "@/tests/wrapper";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    apiKeyCreate: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -21,20 +18,23 @@ const CREDENTIAL = "2f6a1d8e-5b0c-4e77-9a3f-0c1d2e3f4a5b";
 
 describe("GenerateKeyDrawer", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    sdk.apiKeyCreate.mockResolvedValue(
-      mockSdkResponse({
-        id: SURROGATE_ID,
-        key: CREDENTIAL,
-        tenant_id: "00000000-0000-4000-0000-000000000000",
-        created_by: "user-123",
-        role: "administrator",
-        name: "prod-key",
-        expires_in: 0,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      }),
+    server.use(
+      ...defaultHandlers,
+      http.post("*/api/namespaces/api-key", () =>
+        HttpResponse.json({
+          id: SURROGATE_ID,
+          key: CREDENTIAL,
+          tenant_id: "00000000-0000-4000-0000-000000000000",
+          created_by: "user-123",
+          role: "administrator",
+          name: "prod-key",
+          expires_in: 0,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        }),
+      ),
     );
+    seedAuthStore();
   });
 
   it("shows the credential, never the identifier", async () => {

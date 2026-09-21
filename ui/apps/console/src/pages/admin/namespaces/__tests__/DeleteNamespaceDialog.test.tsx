@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import DeleteNamespaceDialog from "../DeleteNamespaceDialog";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    deleteNamespaceAdmin: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
@@ -22,9 +17,17 @@ const mockNamespace = {
 
 const Wrapper = createTestWrapper();
 
+const deleteSpy = vi.fn();
+
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.deleteNamespaceAdmin.mockResolvedValue(mockSdkResponse(undefined));
+  deleteSpy.mockReset();
+  server.use(
+    http.delete("*/admin/api/namespaces/:tenant", ({ params }) => {
+      deleteSpy({ path: { tenant: params.tenant } });
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
 });
 
 function renderDialog(
@@ -106,7 +109,7 @@ describe("DeleteNamespaceDialog", () => {
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
-        expect(sdk.deleteNamespaceAdmin).toHaveBeenCalledWith(
+        expect(deleteSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { tenant: "tenant-xyz" },
           }),
@@ -154,7 +157,11 @@ describe("DeleteNamespaceDialog", () => {
 
   describe("confirm — error handling", () => {
     it("shows generic error message on failure", async () => {
-      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -167,7 +174,11 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("shows error for SDK errors", async () => {
-      sdk.deleteNamespaceAdmin.mockRejectedValue({ status: 500 });
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -180,7 +191,11 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("does not call onDeleted when deletion fails", async () => {
-      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -190,7 +205,11 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("does not call onClose when deletion fails", async () => {
-      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -210,7 +229,7 @@ describe("DeleteNamespaceDialog", () => {
     it("does not call deleteNamespaceAdmin when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(sdk.deleteNamespaceAdmin).not.toHaveBeenCalled();
+      expect(deleteSpy).not.toHaveBeenCalled();
     });
 
     it("does not call onDeleted when Cancel is clicked", async () => {
@@ -229,9 +248,7 @@ describe("DeleteNamespaceDialog", () => {
     it("does not call deleteNamespaceAdmin when confirmed with null namespace", async () => {
       renderDialog({ namespace: null });
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-      await waitFor(() =>
-        expect(sdk.deleteNamespaceAdmin).not.toHaveBeenCalled(),
-      );
+      await waitFor(() => expect(deleteSpy).not.toHaveBeenCalled());
     });
   });
 

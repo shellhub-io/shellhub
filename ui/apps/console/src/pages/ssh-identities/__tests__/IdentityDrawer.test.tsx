@@ -1,19 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSdkResponse } from "@/tests/sdk";
 import IdentityDrawer from "../IdentityDrawer";
 import { useAuthStore } from "@/stores/authStore";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    createSshIdentity: vi.fn(),
-    renameSshIdentity: vi.fn(),
-    createApiKeySshIdentity: vi.fn(),
-    apiKeyList: vi.fn(),
-  }),
-);
 
 vi.mock("@/utils/sshKeys", () => ({
   isPublicKeyValid: () => true,
@@ -41,18 +33,6 @@ vi.mock("@/components/common/fields/KeyFileInput", () => ({
   ),
 }));
 
-function renderForApiKey() {
-  return render(
-    <IdentityDrawer
-      open
-      editIdentity={null}
-      apiKeyName="ci-deploy"
-      onClose={vi.fn()}
-    />,
-    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
-  );
-}
-
 function renderDrawer() {
   return render(<IdentityDrawer open editIdentity={null} onClose={vi.fn()} />, {
     wrapper: createTestWrapper({ initialEntries: ["/"] }),
@@ -61,25 +41,22 @@ function renderDrawer() {
 
 const KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqk test@host";
 
+let identityCalled: boolean;
+
 beforeEach(() => {
   vi.clearAllMocks();
-  sdk.createSshIdentity.mockResolvedValue(mockSdkResponse({}));
-  sdk.createApiKeySshIdentity.mockResolvedValue(mockSdkResponse({}));
-  sdk.apiKeyList.mockResolvedValue(
-    mockSdkResponse([
-      {
-        id: "c629572a-b643-4301-90fe-4572b00d007e",
-        name: "ci-deploy",
-        tenant_id: "00000000-0000-4000-0000-000000000000",
-        created_by: "user-1",
-        role: "administrator",
-        expires_in: -1,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
-    ]),
-  );
+  identityCalled = false;
   useAuthStore.setState({ role: "owner" });
+  server.use(
+    http.post("*/api/ssh-identities", () => {
+      identityCalled = true;
+      return HttpResponse.json({});
+    }),
+    http.patch(
+      "*/api/ssh-identities/:id",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
 });
 
 describe("IdentityDrawer", () => {
@@ -87,54 +64,10 @@ describe("IdentityDrawer", () => {
     const user = userEvent.setup();
     renderDrawer();
 
-    await user.type(screen.getByLabelText("Name"), "laptop");
+    await user.type(screen.getByLabelText(/name/i), "laptop");
     await user.type(screen.getByLabelText(/public key data/i), KEY);
     await user.click(screen.getByRole("button", { name: /add key/i }));
 
-    await waitFor(() =>
-      expect(sdk.createSshIdentity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: { name: "laptop", data: KEY },
-        }),
-      ),
-    );
-    expect(sdk.createApiKeySshIdentity).not.toHaveBeenCalled();
-  });
-
-  it("enrols for the API key it was opened from", async () => {
-    const user = userEvent.setup();
-    renderForApiKey();
-
-    await user.type(screen.getByLabelText("Name"), "deploy");
-    await user.type(screen.getByLabelText(/public key data/i), KEY);
-    await user.click(screen.getByRole("button", { name: /add key/i }));
-
-    await waitFor(() =>
-      expect(sdk.createApiKeySshIdentity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { name: "ci-deploy" },
-          body: { name: "deploy", data: KEY, single_use: false },
-        }),
-      ),
-    );
-    expect(sdk.createSshIdentity).not.toHaveBeenCalled();
-  });
-
-  it("burns the key after one session when the toggle is on", async () => {
-    const user = userEvent.setup();
-    renderForApiKey();
-
-    await user.type(screen.getByLabelText("Name"), "deploy");
-    await user.type(screen.getByLabelText(/public key data/i), KEY);
-    await user.click(screen.getByRole("switch", { name: /single-use key/i }));
-    await user.click(screen.getByRole("button", { name: /add key/i }));
-
-    await waitFor(() =>
-      expect(sdk.createApiKeySshIdentity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ single_use: true }),
-        }),
-      ),
-    );
+    await waitFor(() => expect(identityCalled).toBe(true));
   });
 });

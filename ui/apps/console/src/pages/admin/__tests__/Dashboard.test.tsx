@@ -1,16 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import AdminDashboard from "../Dashboard";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getStats: vi.fn(),
-  }),
-);
 
 vi.mock("@/components/sessions/RecentSessionsTable", () => ({
   default: ({ isAdmin }: { isAdmin?: boolean }) => (
@@ -39,25 +34,33 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  sdk.getStats.mockResolvedValue(mockSdkResponse(fullStats));
+  server.use(
+    http.get("*/admin/api/stats", () => HttpResponse.json(fullStats)),
+  );
 });
 
 describe("AdminDashboard", () => {
   describe("loading state", () => {
     it("renders spinner with role='status'", () => {
-      sdk.getStats.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/stats", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
 
     it("does not render page header while loading", () => {
-      sdk.getStats.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/stats", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.queryByText("System Overview")).not.toBeInTheDocument();
     });
 
     it("does not render stat cards while loading", () => {
-      sdk.getStats.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/stats", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.queryByText("Registered Users")).not.toBeInTheDocument();
     });
@@ -65,7 +68,11 @@ describe("AdminDashboard", () => {
 
   describe("error state", () => {
     it("renders error message with role='alert'", async () => {
-      sdk.getStats.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/stats", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -73,7 +80,11 @@ describe("AdminDashboard", () => {
     });
 
     it("displays the expected error message", async () => {
-      sdk.getStats.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/stats", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(
@@ -83,7 +94,11 @@ describe("AdminDashboard", () => {
     });
 
     it("does not render stat cards on stats error", async () => {
-      sdk.getStats.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/stats", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -92,7 +107,11 @@ describe("AdminDashboard", () => {
     });
 
     it("does not render sessions table on stats error", async () => {
-      sdk.getStats.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/stats", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -191,7 +210,11 @@ describe("AdminDashboard", () => {
 
   describe("success state — partial stats response", () => {
     it("renders 0 for each missing stat field", async () => {
-      sdk.getStats.mockResolvedValue(mockSdkResponse({ registered_users: 10 }));
+      server.use(
+        http.get("*/admin/api/stats", () =>
+          HttpResponse.json({ registered_users: 10 }),
+        ),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("10")).toBeInTheDocument();
@@ -201,7 +224,9 @@ describe("AdminDashboard", () => {
     });
 
     it("renders all zeros when stats is an empty object", async () => {
-      sdk.getStats.mockResolvedValue(mockSdkResponse({}));
+      server.use(
+        http.get("*/admin/api/stats", () => HttpResponse.json({})),
+      );
       renderPage();
       await waitFor(() => {
         expect(screen.getByText("System Overview")).toBeInTheDocument();

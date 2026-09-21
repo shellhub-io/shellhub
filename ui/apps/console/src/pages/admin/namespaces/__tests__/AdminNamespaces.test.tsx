@@ -8,8 +8,9 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import AdminNamespaces from "../index";
-import { makeSdkError, paginatedResponse } from "@/tests/sdk";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -41,11 +42,19 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getNamespacesAdmin: vi.fn(),
-  }),
-);
+let lastRequestUrl: URL | null;
+
+function setNamespaces(
+  namespaces: ReturnType<typeof mockNamespace>[],
+  total?: number,
+) {
+  server.use(
+    http.get("*/admin/api/namespaces", ({ request }) => {
+      lastRequestUrl = new URL(request.url);
+      return jsonWithTotal(namespaces, total ?? namespaces.length);
+    }),
+  );
+}
 
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
@@ -59,8 +68,9 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("AdminNamespaces", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastRequestUrl = null;
     useAuthStore.setState({ isAdmin: true });
-    sdk.getNamespacesAdmin.mockResolvedValue(paginatedResponse([]));
+    setNamespaces([]);
   });
 
   describe("rendering", () => {
@@ -81,7 +91,9 @@ describe("AdminNamespaces", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading namespaces..." text', () => {
-      sdk.getNamespacesAdmin.mockReturnValue(new Promise(() => {}));
+      server.use(
+        http.get("*/admin/api/namespaces", () => new Promise(() => {})),
+      );
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading namespaces...")).toBeInTheDocument();
@@ -99,12 +111,10 @@ describe("AdminNamespaces", () => {
 
   describe("namespace rows", () => {
     it("renders a row for each returned namespace", async () => {
-      sdk.getNamespacesAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockNamespace({ tenant_id: "t-1", name: "namespace-alpha" }),
-          mockNamespace({ tenant_id: "t-2", name: "namespace-beta" }),
-        ]),
-      );
+      setNamespaces([
+        mockNamespace({ tenant_id: "t-1", name: "namespace-alpha" }),
+        mockNamespace({ tenant_id: "t-2", name: "namespace-beta" }),
+      ]);
       renderPage();
       expect(await screen.findByText("namespace-alpha")).toBeInTheDocument();
       expect(screen.getByText("namespace-beta")).toBeInTheDocument();
@@ -112,11 +122,9 @@ describe("AdminNamespaces", () => {
 
     it("navigates to namespace detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      sdk.getNamespacesAdmin.mockResolvedValue(
-        paginatedResponse([
-          mockNamespace({ tenant_id: "tenant-xyz", name: "clickable-ns" }),
-        ]),
-      );
+      setNamespaces([
+        mockNamespace({ tenant_id: "tenant-xyz", name: "clickable-ns" }),
+      ]);
       renderPage();
       await user.click(await screen.findByText("clickable-ns"));
       expect(mockNavigate).toHaveBeenCalledWith("/admin/namespaces/tenant-xyz");
@@ -125,7 +133,11 @@ describe("AdminNamespaces", () => {
 
   describe("error state", () => {
     it("renders an error alert when the SDK returns an error", async () => {
-      sdk.getNamespacesAdmin.mockRejectedValue(makeSdkError(500));
+      server.use(
+        http.get("*/admin/api/namespaces", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       renderPage();
       expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
@@ -135,28 +147,22 @@ describe("AdminNamespaces", () => {
   });
 
   describe("URL hydration — controls reflect URL params on mount", () => {
-    it("passes search and page hydrated from URL to the SDK", async () => {
+    it("passes search and page hydrated from URL to the API", async () => {
       renderPage(["/?search=myns&page=3"]);
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 3 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("3");
       });
       expect(
         screen.getByRole("searchbox", { name: "Search namespaces by name" }),
       ).toHaveValue("myns");
     });
 
-    it("passes page=1 and no filter to the SDK when URL has no params", async () => {
+    it("passes page=1 and no filter to the API when URL has no params", async () => {
       renderPage(["/"]);
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
@@ -174,17 +180,13 @@ describe("AdminNamespaces", () => {
       await user.clear(searchbox);
 
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
     });
   });
 
   describe("URL hydration — ?page=2&search=dev hydrates controls", () => {
-    it("hydrates the search field to 'dev' and passes page=2 to the SDK", async () => {
+    it("hydrates the search field to 'dev' and passes page=2 to the API", async () => {
       renderPage(["/?page=2&search=dev"]);
 
       expect(
@@ -192,11 +194,8 @@ describe("AdminNamespaces", () => {
       ).toHaveValue("dev");
 
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
     });
   });
@@ -207,11 +206,8 @@ describe("AdminNamespaces", () => {
       renderPage(["/?page=2"]);
 
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 2 }),
-          }),
-        );
+        expect(lastRequestUrl).not.toBeNull();
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("2");
       });
 
       const searchbox = screen.getByRole("searchbox", {
@@ -221,11 +217,7 @@ describe("AdminNamespaces", () => {
       await user.type(searchbox, "dev");
 
       await waitFor(() => {
-        expect(sdk.getNamespacesAdmin).toHaveBeenCalledWith(
-          expect.objectContaining({
-            query: expect.objectContaining({ page: 1 }),
-          }),
-        );
+        expect(lastRequestUrl!.searchParams.get("page")).toBe("1");
       });
       expect(searchbox).toHaveValue("dev");
     });
@@ -240,7 +232,7 @@ describe("AdminNamespaces", () => {
       vi.useRealTimers();
     });
 
-    it("does not pass the new search to the SDK until the debounce delay elapses", async () => {
+    it("does not pass the new search to the API until the debounce delay elapses", async () => {
       renderPage(["/"]);
 
       const searchbox = screen.getByRole("searchbox", {
@@ -251,18 +243,17 @@ describe("AdminNamespaces", () => {
         fireEvent.change(searchbox, { target: { value: "dev" } });
       });
 
-      const hasFilter = (calls: unknown[][]) =>
-        calls.some(
-          ([args]) => (args as { query?: { filter?: string } })?.query?.filter,
-        );
-      expect(hasFilter(sdk.getNamespacesAdmin.mock.calls)).toBe(false);
+      const hasFilter = () =>
+        lastRequestUrl !== null &&
+        lastRequestUrl.searchParams.get("filter") !== null;
+      expect(hasFilter()).toBe(false);
 
       act(() => {
         vi.advanceTimersByTime(350);
       });
 
       await waitFor(() => {
-        expect(hasFilter(sdk.getNamespacesAdmin.mock.calls)).toBe(true);
+        expect(hasFilter()).toBe(true);
       });
     });
   });

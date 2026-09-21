@@ -1,23 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { act, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { renderHookWithClient } from "@/tests/wrapper";
-import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
-
-const sdk = vi.hoisted(() =>
-  mockSdkGen({
-    getSshApproval: vi.fn(),
-    confirmSshApproval: vi.fn(),
-    rejectSshApproval: vi.fn(),
-  }),
-);
-
+import { server } from "@/tests/msw";
+import { defaultHandlers } from "@/tests/handlers";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useSSHApproval } from "../useSSHApproval";
 
 const pending = {
   code: "WXYZ2K7Q",
   kind: "identity",
   state: "pending",
-  device: { name: "device" },
+  device_name: "device",
   username: "gustavo",
   ip_address: "10.0.0.1",
   fingerprint: "SHA256:aaa",
@@ -25,8 +19,13 @@ const pending = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  sdk.getSshApproval.mockResolvedValue(mockSdkResponse(pending));
+  server.use(
+    ...defaultHandlers,
+    http.get("*/api/ssh-approvals/:code", () =>
+      HttpResponse.json(pending),
+    ),
+  );
+  seedAuthStore();
 });
 
 async function decided(decision: "confirm" | "reject") {
@@ -44,8 +43,10 @@ async function decided(decision: "confirm" | "reject") {
 
 describe("useSSHApproval decide", () => {
   it("hands back the confirmation code so the terminal can be answered with it", async () => {
-    sdk.confirmSshApproval.mockResolvedValue(
-      mockSdkResponse({ confirmation_code: "CONF7788" }),
+    server.use(
+      http.post("*/api/ssh-approvals/:code/confirm", () =>
+        HttpResponse.json({ confirmation_code: "CONF7788" }),
+      ),
     );
 
     const { result, returned } = await decided("confirm");
@@ -56,7 +57,11 @@ describe("useSSHApproval decide", () => {
   });
 
   it("hands back an empty code on a reject, which is what dismisses the login", async () => {
-    sdk.rejectSshApproval.mockResolvedValue(mockSdkResponse({}));
+    server.use(
+      http.post("*/api/ssh-approvals/:code/reject", () =>
+        HttpResponse.json({}),
+      ),
+    );
 
     const { result, returned } = await decided("reject");
 
@@ -65,7 +70,11 @@ describe("useSSHApproval decide", () => {
   });
 
   it("hands back nothing when the request is already gone, and says so", async () => {
-    sdk.confirmSshApproval.mockRejectedValue(makeSdkError(404));
+    server.use(
+      http.post("*/api/ssh-approvals/:code/confirm", () =>
+        HttpResponse.json(null, { status: 404 }),
+      ),
+    );
 
     const { result, returned } = await decided("confirm");
 
