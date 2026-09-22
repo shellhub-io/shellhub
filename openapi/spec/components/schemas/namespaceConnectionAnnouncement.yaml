@@ -1,0 +1,5 @@
+description: A connection announcement is a custom string written during a session when a connection is established on a device within the namespace.
+type: string
+minLength: 0
+maxLength: 4096
+example: my awesome connection announcement

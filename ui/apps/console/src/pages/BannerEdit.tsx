@@ -32,13 +32,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     try {
       await editNs.mutateAsync({
         path: { tenant: ns.tenant_id },
-        body: {
-          settings: {
-            connection_announcement: text,
-            session_record: ns.settings?.session_record ?? false,
-            ssh_access_mode: ns.settings?.ssh_access_mode ?? "legacy",
-          },
-        },
+        body: { settings: { connection_announcement: text } },
       });
       void navigate("/settings");
     } catch {

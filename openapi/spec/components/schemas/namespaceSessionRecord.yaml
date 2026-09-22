@@ -1,0 +1,3 @@
+description: The session records define when the namespace should save or not record a session. This can be used to check logged activity when connecting to a device.
+type: boolean
+example: true

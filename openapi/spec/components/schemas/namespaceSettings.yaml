@@ -2,16 +2,9 @@ description: Namespace's settings.
 type: object
 properties:
   session_record:
-    description: The session records define when the namespace should save or not record a session. This can be used to check logged activity when connecting to a device.
-    type: boolean
-    example: true
+    $ref: namespaceSessionRecord.yaml
   connection_announcement:
-    description: A connection announcement is a custom string written during a session when a connection is established on a device within the namespace.
-    type: string
-    minLength: 0
-    maxLength: 4096
-    format: alphanumunicode
-    example: my awesome connection announcement
+    $ref: namespaceConnectionAnnouncement.yaml
   ssh_access_mode:
     description: |
       The SSH access model governing the namespace.
@@ -22,7 +15,7 @@ properties:
     enum:
       - legacy
       - identity
-    default: identity
+    readOnly: true
     example: identity
   ssh_legacy_allowed:
     description: |
@@ -31,7 +24,6 @@ properties:
       namespaces born in identity mode can never leave it. Server-controlled.
     type: boolean
     readOnly: true
-    default: false
     example: false
 required:
   - session_record
