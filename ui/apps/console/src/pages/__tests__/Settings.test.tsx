@@ -119,11 +119,25 @@ describe("Settings", () => {
       });
       renderSettings();
       expect(await screen.findByText("Identity")).toBeInTheDocument();
+      expect(screen.queryByText("Legacy")).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Legacy" }),
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Identity" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the mode a namespace is in when it cannot switch back", async () => {
+      setNamespace({
+        ssh_access_mode: "legacy",
+        ssh_legacy_allowed: false,
+      });
+      renderSettings();
+      expect(await screen.findByText("Legacy")).toBeInTheDocument();
+      expect(screen.queryByText("Identity")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Legacy" }),
       ).not.toBeInTheDocument();
     });
   });
