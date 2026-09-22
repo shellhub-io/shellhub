@@ -527,11 +527,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	tenantID := ""
-	role := ""
+
+	var role *authorizer.Role
+
 	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.ID); ns != nil && ns.TenantID != "" {
 		if m, _ := ns.FindMember(user.ID); m != nil {
 			tenantID = ns.TenantID
-			role = m.Role.String()
+			role = &m.Role
 		}
 	}
 
@@ -579,11 +581,14 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
-		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
 		Admin:         user.Admin,
+	}
+
+	if tenantID != "" {
+		res.Tenant = &tenantID
 	}
 
 	return res, 0, "", nil
@@ -596,7 +601,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}
 
 	tenantID := ""
-	role := ""
+
+	var role *authorizer.Role
 
 	switch req.TenantID {
 	case "":
@@ -611,7 +617,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		}
 
 		tenantID = namespace.TenantID
-		role = member.Role.String()
+		role = &member.Role
 	default:
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
@@ -624,7 +630,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		}
 
 		tenantID = namespace.TenantID
-		role = member.Role.String()
+		role = &member.Role
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
 			if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
@@ -651,7 +657,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		log.WithError(err).Warn("unable to cache the user's auth token")
 	}
 
-	return &models.UserAuthResponse{
+	res := &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
 		AuthMethods:   user.Preferences.AuthMethods,
@@ -660,12 +666,17 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
-		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
 		Admin:         user.Admin,
-	}, nil
+	}
+
+	if tenantID != "" {
+		res.Tenant = &tenantID
+	}
+
+	return res, nil
 }
 
 // apiKeyCacheTTL bounds how long AuthAPIKey serves a key from the cache when nothing revokes it first.

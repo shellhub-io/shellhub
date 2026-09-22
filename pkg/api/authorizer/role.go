@@ -55,8 +55,9 @@ func (r Role) Assignable() bool {
 	return false
 }
 
-// String converts the given role to its corresponding string.
-// If the string is not a valid role, it returns "N/A".
+// String converts the given role to its corresponding string. Every role outside the four
+// assignable ones, RoleInvalid included, converts to the empty string, so a caller that must
+// tell an absent role from a real one tests the Role itself rather than this result.
 func (r Role) String() string {
 	switch r {
 	case RoleOwner:

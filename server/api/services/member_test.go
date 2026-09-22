@@ -1435,8 +1435,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Name:        "john doe",
 					User:        "john_doe",
 					Email:       "john.doe@test.com",
-					Tenant:      "",
-					Role:        "",
 					Token:       "must ignore",
 				},
 				err: nil,

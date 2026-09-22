@@ -230,7 +230,8 @@ func TestIdentityAccessPolicy(t *testing.T) {
 				compose.NewMember(t, "member", ShellHubNamespaceName, string(authorizer.RoleOperator))
 
 				auth := compose.AuthUser(t, "member", ShellHubPassword)
-				require.Equal(t, ShellHubNamespace, auth.Tenant)
+				require.NotNil(t, auth.Tenant)
+				require.Equal(t, ShellHubNamespace, *auth.Tenant)
 
 				signer, data := newSigner(t)
 				compose.EnrollIdentityAs(t, auth.Token, "member", data)

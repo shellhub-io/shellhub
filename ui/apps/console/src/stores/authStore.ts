@@ -37,7 +37,11 @@ interface AuthState {
   loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
-  setSession: (data: { token: string; tenant: string; role?: Role }) => void;
+  setSession: (data: {
+    token: string;
+    tenant: string;
+    role?: Role | null;
+  }) => void;
   updateProfile: (data: {
     name?: string;
     username?: string;
@@ -181,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setSession: ({ token, tenant, role }) => {
-        set({ token, tenant, role: role ?? get().role });
+        set({ token, tenant, role: role === undefined ? get().role : role });
       },
 
       updateProfile: async (data) => {

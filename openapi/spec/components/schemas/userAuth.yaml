@@ -19,9 +19,15 @@ properties:
     type: string
     format: email
   tenant:
-    $ref: namespaceTenantID.yaml
+    type: string
+    nullable: true
+    allOf:
+      - $ref: namespaceTenantID.yaml
   role:
-    $ref: namespaceMemberRole.yaml
+    type: string
+    nullable: true
+    allOf:
+      - $ref: namespaceMemberRole.yaml
   mfa:
     type: boolean
     description: Indicates whether the user has MFA enabled.

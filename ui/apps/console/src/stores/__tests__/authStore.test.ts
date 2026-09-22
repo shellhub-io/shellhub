@@ -236,6 +236,16 @@ describe("authStore", () => {
 
       expect(useAuthStore.getState().role).toBe("owner");
     });
+
+    it("clears the stored role when given an explicit null role", () => {
+      useAuthStore.setState({ role: "owner" });
+
+      useAuthStore
+        .getState()
+        .setSession({ token: "new-jwt", tenant: "new-tenant", role: null });
+
+      expect(useAuthStore.getState().role).toBeNull();
+    });
   });
 
   describe("fetchUser", () => {
