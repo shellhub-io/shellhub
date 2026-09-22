@@ -15,6 +15,7 @@ import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
 import LegacyAccessGuard from "./components/common/LegacyAccessGuard";
+import IdentityAccessGuard from "./components/common/IdentityAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
@@ -244,7 +245,12 @@ export default function App() {
                   />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
-                  <Route path="/access-policies" element={<AccessPolicies />} />
+                  <Route element={<IdentityAccessGuard />}>
+                    <Route
+                      path="/access-policies"
+                      element={<AccessPolicies />}
+                    />
+                  </Route>
                   {/* The two approvals a native login can wait on. Both write to
                       the identity — one creates it, the other refreshes its
                       re-auth window — so both open over the identity list. */}

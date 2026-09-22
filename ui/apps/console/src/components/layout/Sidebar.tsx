@@ -68,52 +68,42 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     });
   }
 
-  const security: NavItem[] = [];
-
-  if (isIdentityMode) {
-    security.push({
-      to: "/sessions",
-      label: "Sessions",
-      icon: <CommandLineIcon className={navIcon} />,
-    });
-  }
-
-  if (!isIdentityMode) {
-    security.push({
-      to: "/sshkeys/public-keys",
-      label: "Public Keys",
-      icon: <KeyIcon className={navIcon} />,
-    });
-  }
-
-  security.push(
-    {
-      to: "/access-policies",
-      label: "Access Policies",
-      icon: <ShieldCheckIcon className={navIcon} />,
-    },
-    {
-      to: "/ssh-identities",
-      label: "SSH Identities",
-      icon: <FingerPrintIcon className={navIcon} />,
-    },
-  );
-
-  if (!isIdentityMode) {
-    security.push(
-      {
-        to: "/firewall-rules",
-        label: "Firewall Rules",
-        icon: <ShieldExclamationIcon className={navIcon} />,
-        premium: true,
-      },
-      {
-        to: "/secure-vault",
-        label: "Secure Vault",
-        icon: <LockClosedIcon className={navIcon} />,
-      },
-    );
-  }
+  const security: NavItem[] = isIdentityMode
+    ? [
+        {
+          to: "/sessions",
+          label: "Sessions",
+          icon: <CommandLineIcon className={navIcon} />,
+        },
+        {
+          to: "/access-policies",
+          label: "Access Policies",
+          icon: <ShieldCheckIcon className={navIcon} />,
+        },
+        {
+          to: "/ssh-identities",
+          label: "SSH Identities",
+          icon: <FingerPrintIcon className={navIcon} />,
+        },
+      ]
+    : [
+        {
+          to: "/sshkeys/public-keys",
+          label: "Public Keys",
+          icon: <KeyIcon className={navIcon} />,
+        },
+        {
+          to: "/firewall-rules",
+          label: "Firewall Rules",
+          icon: <ShieldExclamationIcon className={navIcon} />,
+          premium: true,
+        },
+        {
+          to: "/secure-vault",
+          label: "Secure Vault",
+          icon: <LockClosedIcon className={navIcon} />,
+        },
+      ];
 
   return [
     {
