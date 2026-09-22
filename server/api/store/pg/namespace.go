@@ -40,6 +40,10 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
 	}
 
+	if namespace.Settings.SSHAccessMode == models.SSHAccessModeLegacy {
+		namespace.Settings.SSHLegacyAllowed = true
+	}
+
 	if namespace.Owner != "" {
 		if _, ok := namespace.FindMember(namespace.Owner); !ok {
 			namespace.Members = append(namespace.Members, models.Member{

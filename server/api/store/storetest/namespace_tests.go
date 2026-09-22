@@ -357,7 +357,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.Equal(t, models.PolicyActionAllow, policies[0].Action)
 	})
 
-	t.Run("explicit legacy mode is preserved and not seeded", func(t *testing.T) {
+	t.Run("explicit legacy mode grants the legacy permission and is not seeded", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		userID := s.CreateUser(t)
@@ -375,6 +375,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		assert.Equal(t, models.SSHAccessModeLegacy, ns.Settings.SSHAccessMode)
+		assert.True(t, ns.Settings.SSHLegacyAllowed)
 
 		_, count, err := st.AccessPolicyList(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
