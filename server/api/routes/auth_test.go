@@ -289,7 +289,7 @@ func TestAuthLocalUser(t *testing.T) {
 						Name:   "john doe",
 						User:   "john_doe",
 						Email:  "john.doe@test.com",
-						Tenant: "00000000-0000-4000-0000-000000000000",
+						Tenant: new("00000000-0000-4000-0000-000000000000"),
 						Token:  "not-empty",
 					}, int64(0), "", nil).
 					Once()
@@ -300,7 +300,7 @@ func TestAuthLocalUser(t *testing.T) {
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
+					Tenant: new("00000000-0000-4000-0000-000000000000"),
 					Token:  "not-empty",
 				},
 				headers: map[string]string{
@@ -375,7 +375,7 @@ func TestCreateUserToken(t *testing.T) {
 						Name:   "john doe",
 						User:   "john_doe",
 						Email:  "john.doe@test.com",
-						Tenant: "00000000-0000-4000-0000-000000000000",
+						Tenant: new("00000000-0000-4000-0000-000000000000"),
 						Token:  "not-empty",
 					}, nil).
 					Once()
@@ -386,7 +386,7 @@ func TestCreateUserToken(t *testing.T) {
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
+					Tenant: new("00000000-0000-4000-0000-000000000000"),
 					Token:  "not-empty",
 				},
 				status: http.StatusOK,
@@ -407,7 +407,7 @@ func TestCreateUserToken(t *testing.T) {
 						Name:   "john doe",
 						User:   "john_doe",
 						Email:  "john.doe@test.com",
-						Tenant: "00000000-0000-4000-0000-000000000001",
+						Tenant: new("00000000-0000-4000-0000-000000000001"),
 						Token:  "not-empty",
 					}, nil).
 					Once()
@@ -418,7 +418,7 @@ func TestCreateUserToken(t *testing.T) {
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000001",
+					Tenant: new("00000000-0000-4000-0000-000000000001"),
 					Token:  "not-empty",
 				},
 				status: http.StatusOK,
@@ -529,4 +529,45 @@ func TestAuthPublicKey(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testing.T) {
+	svcMock := mocks.NewMockService(t)
+	svcMock.
+		On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{UserID: "000000000000000000000000"}).
+		Return(&models.UserAuthResponse{
+			ID:    "000000000000000000000000",
+			Name:  "john doe",
+			User:  "john_doe",
+			Email: "john.doe@test.com",
+			Token: "not-empty",
+		}, nil).
+		Once()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/auth/user", nil)
+	req.Header.Set("X-ID", "000000000000000000000000")
+	rec := httptest.NewRecorder()
+
+	NewRouter(svcMock).ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Result().StatusCode)
+
+	body, err := io.ReadAll(rec.Result().Body)
+	require.NoError(t, err)
+
+	require.JSONEq(t, `{
+		"id": "000000000000000000000000",
+		"name": "john doe",
+		"user": "john_doe",
+		"email": "john.doe@test.com",
+		"recovery_email": "",
+		"origin": "",
+		"auth_methods": null,
+		"tenant": null,
+		"role": null,
+		"token": "not-empty",
+		"mfa": false,
+		"max_namespaces": 0,
+		"admin": false
+	}`, string(body))
 }

@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
@@ -170,7 +171,8 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 
 // UserAuthResponse is what a successful login returns: the token the client authenticates with
 // from then on, plus enough of the user and their current namespace for the console to render
-// without a second round trip.
+// without a second round trip. Tenant and Role are nil together when the user holds no
+// membership, which is every user between confirming their account and joining a namespace.
 type UserAuthResponse struct {
 	Token         string           `json:"token"`
 	User          string           `json:"user"`
@@ -178,10 +180,10 @@ type UserAuthResponse struct {
 	AuthMethods   []UserAuthMethod `json:"auth_methods"`
 	Name          string           `json:"name"`
 	ID            string           `json:"id"`
-	Tenant        string           `json:"tenant"`
+	Tenant        *string          `json:"tenant"`
 	Email         string           `json:"email"`
 	RecoveryEmail string           `json:"recovery_email"`
-	Role          string           `json:"role"`
+	Role          *authorizer.Role `json:"role"`
 	MFA           bool             `json:"mfa"`
 	MaxNamespaces int              `json:"max_namespaces"`
 	Admin         bool             `json:"admin"`
