@@ -1,0 +1,13 @@
+description: The mutable parts of a namespace. Every field is optional; only what is sent is changed.
+type: object
+properties:
+  name:
+    $ref: namespaceName.yaml
+  settings:
+    description: Namespace's settings. The SSH access mode has its own endpoint and is not accepted here.
+    type: object
+    properties:
+      session_record:
+        $ref: namespaceSessionRecord.yaml
+      connection_announcement:
+        $ref: namespaceConnectionAnnouncement.yaml

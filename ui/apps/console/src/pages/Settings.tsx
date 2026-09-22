@@ -364,13 +364,7 @@ export default function Settings() {
     editNs.mutate(
       {
         path: { tenant: tenantId },
-        body: {
-          settings: {
-            session_record: !sessionRecord,
-            connection_announcement: banner,
-            ssh_access_mode: sshAccessMode,
-          },
-        },
+        body: { settings: { session_record: !sessionRecord } },
       },
       { onSettled: () => setTogglingRecord(false) },
     );

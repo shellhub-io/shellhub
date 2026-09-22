@@ -39,12 +39,7 @@ put:
     content:
       application/json:
         schema:
-          type: object
-          properties:
-            name:
-              $ref: ../components/schemas/namespaceName.yaml
-            settings:
-              $ref: ../components/schemas/namespaceSettings.yaml
+          $ref: ../components/schemas/namespaceEdit.yaml
   responses:
     '200':
       description: Success to edit a namespace.

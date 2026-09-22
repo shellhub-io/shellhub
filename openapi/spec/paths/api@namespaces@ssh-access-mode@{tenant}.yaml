@@ -25,7 +25,6 @@ put:
               enum:
                 - legacy
                 - identity
-              default: legacy
           required:
             - ssh_access_mode
   responses:
