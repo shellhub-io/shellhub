@@ -315,6 +315,17 @@ function BannerPreview({
   );
 }
 
+const SSH_ACCESS_MODES = {
+  legacy: {
+    label: "Legacy",
+    selected: "bg-hover-strong text-text-secondary border-border-light",
+  },
+  identity: {
+    label: "Identity",
+    selected: "bg-primary/15 text-primary border-primary/25",
+  },
+} as const;
+
 /**
  * The namespace settings page: members, access, billing, the vault and the banner. One long page
  * with anchored sections, so a link can land on the section it means.
@@ -343,7 +354,7 @@ export default function Settings() {
 
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
-  const sshAccessMode = settings?.ssh_access_mode ?? "legacy";
+  const sshAccessMode = settings?.ssh_access_mode ?? "identity";
   const sshLegacyAllowed = settings?.ssh_legacy_allowed ?? false;
   const banner = settings?.connection_announcement ?? "";
 
@@ -530,32 +541,34 @@ export default function Settings() {
               <div
                 className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateSshAccessMode || switchingAccessMode ? "opacity-40 pointer-events-none" : ""}`}
               >
-                <button
-                  type="button"
-                  onClick={() => handleSetAccessMode("legacy")}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    sshAccessMode === "legacy"
-                      ? "bg-hover-strong text-text-secondary border border-border-light"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  Legacy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSetAccessMode("identity")}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    sshAccessMode === "identity"
-                      ? "bg-primary/15 text-primary border border-primary/25"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  Identity
-                </button>
+                {(
+                  Object.keys(
+                    SSH_ACCESS_MODES,
+                  ) as (keyof typeof SSH_ACCESS_MODES)[]
+                ).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handleSetAccessMode(mode)}
+                    className={cn(
+                      "h-full px-2.5 text-2xs font-medium rounded border transition-all duration-150",
+                      sshAccessMode === mode
+                        ? SSH_ACCESS_MODES[mode].selected
+                        : "text-text-muted hover:text-text-secondary border-transparent",
+                    )}
+                  >
+                    {SSH_ACCESS_MODES[mode].label}
+                  </button>
+                ))}
               </div>
             ) : (
-              <span className="inline-flex items-center h-7 px-2.5 text-2xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
-                Identity
+              <span
+                className={cn(
+                  "inline-flex items-center h-7 px-2.5 text-2xs font-medium rounded-md border",
+                  SSH_ACCESS_MODES[sshAccessMode].selected,
+                )}
+              >
+                {SSH_ACCESS_MODES[sshAccessMode].label}
               </span>
             )}
           </SettingsRow>
