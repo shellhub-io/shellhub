@@ -11,7 +11,7 @@ require (
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v5 v5.3.1
-	github.com/mattn/go-shellwords v1.0.14
+	github.com/mattn/go-shellwords v1.0.15
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/openwall/yescrypt-go v1.0.0
 	github.com/pkg/errors v0.9.1
