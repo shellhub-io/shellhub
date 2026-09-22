@@ -20,15 +20,15 @@
     "lint:spelling": "cspell \"src/**/*.mdx\" --no-progress"
   },
   "dependencies": {
-    "@astrojs/mdx": "^8.0.0",
+    "@astrojs/mdx": "^8.0.1",
     "@astrojs/react": "^6.0.5",
     "@astrojs/sitemap": "^3.7.4",
     "@shellhub/design-system": "*",
     "asciinema-player": "^3.17.0",
-    "astro": "^7.3.1"
+    "astro": "^7.3.2"
   },
   "devDependencies": {
-    "@redocly/cli": "^2.51.2",
+    "@redocly/cli": "^2.53.0",
     "@types/jsdom": "^30.0.0",
     "cspell": "^10.3.1",
     "mdx2vast": "^0.5.0",
