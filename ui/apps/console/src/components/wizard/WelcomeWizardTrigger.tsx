@@ -9,16 +9,16 @@ import { isWizardDemo } from "./demo";
 
 /**
  * Mounts the WelcomeWizard automatically when:
- *   - The current tenant has never dismissed the wizard for good
+ *   - The current tenant has never dismissed the wizard
  *   - The namespace has no accepted device yet
  *
  * Onboarding is "done" only once a device is accepted, not when any device
- * appears, so a device left pending (the user ran the command but closed
- * before accepting) still reopens the wizard.
+ * appears, so a user who leaves a device pending without dismissing the
+ * wizard gets it again on the next page load.
  *
  * Rendered inside AppLayout so it works regardless of which page the user
- * lands on. Closing merely defers it (reappears next visit); only an explicit
- * skip or finishing marks the tenant as "seen".
+ * lands on. Any dismissal (close, skip, finish, Advanced Install) marks the
+ * tenant as "seen".
  *
  * Eligibility is decided ONCE, from the device state at page load: this outer
  * component waits for stats+tenant to resolve, then mounts the gate, which
@@ -59,22 +59,11 @@ function WelcomeWizardGate({
 
   const show = !dismissed && (isWizardDemo() || eligible);
 
-  const handleClose = () => {
-    setDismissed(true);
-    void refetch();
-  };
-
   const handleDismiss = () => {
     markWelcomeSeen(tenant);
     setDismissed(true);
     void refetch();
   };
 
-  return (
-    <WelcomeWizard
-      open={show}
-      onClose={handleClose}
-      onDismiss={handleDismiss}
-    />
-  );
+  return <WelcomeWizard open={show} onDismiss={handleDismiss} />;
 }

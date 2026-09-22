@@ -14,28 +14,18 @@ vi.mock("@/utils/welcomeState", () => ({
 vi.mock("../WelcomeWizard", () => ({
   default: ({
     open,
-    onClose,
     onDismiss,
   }: {
     open: boolean;
-    onClose: () => void;
     onDismiss: () => void;
   }) =>
     open ? (
-      <>
-        <button
-          type="button"
-          aria-label="Close wizard"
-          data-testid="welcome-wizard"
-          onClick={onClose}
-        />
-        <button
-          type="button"
-          aria-label="Dismiss wizard"
-          data-testid="wizard-dismiss"
-          onClick={onDismiss}
-        />
-      </>
+      <button
+        type="button"
+        aria-label="Close wizard"
+        data-testid="welcome-wizard"
+        onClick={onDismiss}
+      />
     ) : null,
 }));
 
@@ -78,21 +68,13 @@ describe("WelcomeWizardTrigger", () => {
       expect(await screen.findByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
-    it("hides the wizard when closed without marking it seen", async () => {
+    it("marks it seen when closed", async () => {
       renderTrigger();
       (await screen.findByTestId("welcome-wizard")).click();
       await waitFor(() => {
         expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
       });
-      expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
-    });
-
-    it("calls markWelcomeSeen with the tenant id when dismissed for good", async () => {
-      renderTrigger();
-      (await screen.findByTestId("wizard-dismiss")).click();
-      await waitFor(() => {
-        expect(mockMarkWelcomeSeen).toHaveBeenCalledWith("tenant-456");
-      });
+      expect(mockMarkWelcomeSeen).toHaveBeenCalledWith("tenant-456");
     });
 
     it("refetches stats when wizard is closed", async () => {
