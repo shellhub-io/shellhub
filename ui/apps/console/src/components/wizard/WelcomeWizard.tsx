@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   XMarkIcon,
@@ -20,7 +20,6 @@ import { isWizardDemo, DEMO_DEVICE } from "./demo";
 
 interface WelcomeWizardProps {
   open: boolean;
-  onClose: () => void;
   onDismiss: () => void;
 }
 
@@ -28,14 +27,11 @@ const PAIRING_CODE_LENGTH = 8;
 const TOTAL_STEPS = 2;
 
 /**
- * The first-run wizard: connect a first device, then show what to do with it. onDismiss is
- * distinct from onClose — dismissing means do not offer it again.
+ * The first-run wizard: connect a first device, then show what to do with it. Close, skip,
+ * finish and Advanced Install all call onDismiss. What a dismissal persists is the caller's
+ * decision.
  */
-export default function WelcomeWizard({
-  open,
-  onClose,
-  onDismiss,
-}: WelcomeWizardProps) {
+export default function WelcomeWizard({ open, onDismiss }: WelcomeWizardProps) {
   const [step, setStep] = useState(1);
   const [showCode, setShowCode] = useState(false);
   const [device, setDevice] = useState<{ uid: string; name: string } | null>(
@@ -74,15 +70,10 @@ export default function WelcomeWizard({
     if (accepted) connect(accepted);
   };
 
-  const handleClose = useCallback(
-    () => (step < TOTAL_STEPS ? onClose() : onDismiss()),
-    [step, onClose, onDismiss],
-  );
-
   return (
     <BaseDialog
       open={open}
-      onClose={handleClose}
+      onClose={onDismiss}
       focusOnOpen={false}
       size="xl"
       aria-label="Welcome to ShellHub"
@@ -106,7 +97,7 @@ export default function WelcomeWizard({
           ))}
         </div>
 
-        <IconButton onClick={handleClose} aria-label="Close wizard">
+        <IconButton onClick={onDismiss} aria-label="Close wizard">
           <XMarkIcon className="w-4 h-4" />
         </IconButton>
       </header>
@@ -140,7 +131,7 @@ export default function WelcomeWizard({
         {step === 1 && !showCode ? (
           <Link
             to="/devices/add"
-            onClick={handleClose}
+            onClick={onDismiss}
             className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
           >
             <AdjustmentsHorizontalIcon className="w-4 h-4" />

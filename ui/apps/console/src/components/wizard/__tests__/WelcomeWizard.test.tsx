@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -67,13 +67,12 @@ beforeEach(() => {
   );
 });
 
-function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
+function renderWizard(open = true, onDismiss = vi.fn()) {
   return {
-    onClose,
     onDismiss,
     ...render(
       <MemoryRouter>
-        <WelcomeWizard open={open} onClose={onClose} onDismiss={onDismiss} />
+        <WelcomeWizard open={open} onDismiss={onDismiss} />
       </MemoryRouter>,
       { wrapper: createTestWrapper() },
     ),
@@ -97,23 +96,35 @@ describe("WelcomeWizard", () => {
       expect(screen.getByTestId("step-install")).toBeInTheDocument();
     });
 
-    it("clicking 'Skip' dismisses for good, not just closes", async () => {
+    it.each([
+      { label: "Skip", role: "button" as const, name: /^skip$/i },
+      { label: "the X", role: "button" as const, name: /close wizard/i },
+      {
+        label: "Advanced Install",
+        role: "link" as const,
+        name: /advanced install/i,
+      },
+    ])("clicking $label dismisses for good", async ({ role, name }) => {
       const user = userEvent.setup();
-      const { onClose, onDismiss } = renderWizard();
+      const { onDismiss } = renderWizard();
 
-      await user.click(screen.getByRole("button", { name: /^skip$/i }));
+      await user.click(screen.getByRole(role, { name }));
 
       expect(onDismiss).toHaveBeenCalledOnce();
-      expect(onClose).not.toHaveBeenCalled();
     });
 
-    it("clicking the X (aria-label 'Close wizard') defers via onClose", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderWizard();
+    it("Escape dismisses for good", () => {
+      const { onDismiss } = renderWizard();
+      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
+      expect(onDismiss).toHaveBeenCalledOnce();
+    });
 
-      await user.click(screen.getByRole("button", { name: /close wizard/i }));
-
-      expect(onClose).toHaveBeenCalledOnce();
+    it("a backdrop click dismisses for good", () => {
+      const { onDismiss } = renderWizard();
+      const dialog = document.querySelector("dialog") as HTMLElement;
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
+      expect(onDismiss).toHaveBeenCalledOnce();
     });
 
     it("auto-advances to the final step when the device connects via the link", async () => {
@@ -179,70 +190,14 @@ describe("WelcomeWizard", () => {
   });
 
   describe("Final step", () => {
-    async function goToFinal() {
-      const user = userEvent.setup();
-      const result = renderWizard();
-      await user.click(screen.getByTestId("simulate-connected"));
-      return { user, ...result };
-    }
-
     it("clicking 'Finish' dismisses for good", async () => {
-      const { user, onClose, onDismiss } = await goToFinal();
+      const user = userEvent.setup();
+      const { onDismiss } = renderWizard();
+      await user.click(screen.getByTestId("simulate-connected"));
 
       await user.click(screen.getByRole("button", { name: /finish/i }));
 
-      expect(onDismiss).toHaveBeenCalled();
-      expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it("clicking the X on the final step dismisses for good", async () => {
-      const { user, onClose, onDismiss } = await goToFinal();
-
-      await user.click(screen.getByRole("button", { name: /close wizard/i }));
-
       expect(onDismiss).toHaveBeenCalledOnce();
-      expect(onClose).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("closing routes to defer or dismiss by step", () => {
-    async function goToFinal() {
-      const user = userEvent.setup();
-      const result = renderWizard();
-      await user.click(screen.getByTestId("simulate-connected"));
-      result.onClose.mockClear();
-      result.onDismiss.mockClear();
-      return result;
-    }
-
-    it("Escape defers (onClose) on step 1 but dismisses (onDismiss) on the final step", async () => {
-      const { onClose, onDismiss } = renderWizard();
-      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
-      expect(onClose).toHaveBeenCalled();
-      expect(onDismiss).not.toHaveBeenCalled();
-      cleanup();
-
-      const final = await goToFinal();
-      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
-      expect(final.onDismiss).toHaveBeenCalled();
-      expect(final.onClose).not.toHaveBeenCalled();
-    });
-
-    it("backdrop click defers on step 1 but dismisses on the final step", async () => {
-      const { onClose, onDismiss } = renderWizard();
-      let dialog = document.querySelector("dialog") as HTMLElement;
-      fireEvent.mouseDown(dialog);
-      fireEvent.click(dialog);
-      expect(onClose).toHaveBeenCalled();
-      expect(onDismiss).not.toHaveBeenCalled();
-      cleanup();
-
-      const final = await goToFinal();
-      dialog = document.querySelector("dialog") as HTMLElement;
-      fireEvent.mouseDown(dialog);
-      fireEvent.click(dialog);
-      expect(final.onDismiss).toHaveBeenCalled();
-      expect(final.onClose).not.toHaveBeenCalled();
     });
   });
 });
