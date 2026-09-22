@@ -21,6 +21,8 @@ import IdentityDrawer from "@/pages/ssh-identities/IdentityDrawer";
 import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
 import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { useAuthStore } from "@/stores/authStore";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatDateShort } from "@/utils/date";
 import { type ApiKey, type SshIdentity } from "@/client";
@@ -85,6 +87,9 @@ function KeySshAccessDrawer({
   const keyName = apiKey?.name ?? "";
   const { identities, isLoading } = useApiKeySshIdentities(keyName, open);
   const { policies } = useAccessPolicies();
+  const { tenant } = useAuthStore();
+  const { namespace } = useNamespace(tenant ?? "");
+  const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
   const deleteIdentity = useDeleteSSHIdentity();
   const invalidate = useInvalidateByIds("listApiKeySshIdentities");
   const [addOpen, setAddOpen] = useState(false);
@@ -210,14 +215,19 @@ function KeySshAccessDrawer({
 
             {reaching.length === 0 ? (
               <p className="text-xs text-text-muted">
-                No policy names this key yet.{" "}
-                <Link
-                  to="/access-policies"
-                  className="text-primary hover:underline"
-                >
-                  Write one
-                </Link>
-                .
+                No policy names this key yet.
+                {isIdentityMode && (
+                  <>
+                    {" "}
+                    <Link
+                      to="/access-policies"
+                      className="text-primary hover:underline"
+                    >
+                      Write one
+                    </Link>
+                    .
+                  </>
+                )}
               </p>
             ) : (
               <ul className="space-y-1.5">
