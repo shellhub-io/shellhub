@@ -86,7 +86,6 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		UserID:    session.UserID,
 		APIKeyID:  session.APIKeyID,
 		IPAddress: session.IPAddress,
-		Term:      session.Term,
 		Web:       session.Web,
 		Position: models.SessionPosition{
 			Longitude: position.Longitude,

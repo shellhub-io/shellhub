@@ -36,7 +36,6 @@ type SessionCreate struct {
 	DeviceUID string `json:"device_uid" validate:"required"`
 	Username  string `json:"username" validate:"required"`
 	IPAddress string `json:"ip_address" validate:"required"`
-	Term      string `json:"term" validate:""`
 	Web       bool   `json:"web" validate:""`
 	// UserID is the ShellHub account that authorized the session via browser
 	// approval. Empty for password/public-key and web-terminal sessions.
