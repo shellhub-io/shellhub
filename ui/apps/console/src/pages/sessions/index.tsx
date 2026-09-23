@@ -21,7 +21,7 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatRelative, formatDuration } from "@/utils/date";
-import { sessionType } from "@/utils/session";
+import { sessionHasTerminal, sessionType } from "@/utils/session";
 import { isEnterpriseOrCloud } from "@/env";
 import {
   Callout,
@@ -264,7 +264,7 @@ export default function Sessions() {
       header: "",
       render: (s) => {
         const local = localBySessionUid.get(s.uid);
-        const isShell = sessionType(s)?.label === "shell";
+        const hasTerminal = sessionHasTerminal(s);
         const canPlay = Boolean(local) || s.recorded;
         const playing = logsLoading && playTarget === s.uid;
         const needsPermission = !local && s.recorded;
@@ -287,7 +287,7 @@ export default function Sessions() {
         );
         return (
           <div className="flex items-center justify-end gap-1.5">
-            {isShell &&
+            {hasTerminal &&
               (needsPermission ? (
                 <RestrictedAction action="session:play">
                   {playButton}
