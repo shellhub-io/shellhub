@@ -327,9 +327,50 @@ func TestGetSession(t *testing.T) {
 				session := &models.Session{UID: "uid", TenantID: "00000000-0000-4000-0000-000000000000"}
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(session, nil).Once()
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+					Return([]models.SessionEvent{}, nil).Once()
 			},
 			expected: Expected{
-				session: &models.Session{UID: "uid", TenantID: "00000000-0000-4000-0000-000000000000"},
+				session: &models.Session{
+					UID:      "uid",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Events:   models.SessionEvents{Items: []models.SessionEvent{}},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:  "assigns the timeline to the session it resolved",
+			scope: boundedScope,
+			uid:   models.UID("uid"),
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
+					Return(&models.Session{UID: "uid"}, nil).Once()
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+					Return([]models.SessionEvent{{Type: models.SessionEventTypeShell}}, nil).Once()
+			},
+			expected: Expected{
+				session: &models.Session{
+					UID: "uid",
+					Events: models.SessionEvents{
+						Items: []models.SessionEvent{{Type: models.SessionEventTypeShell}},
+					},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:  "returns the session without a timeline when the events query fails",
+			scope: boundedScope,
+			uid:   models.UID("uid"),
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
+					Return(&models.Session{UID: "uid"}, nil).Once()
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+					Return(nil, goerrors.New("error")).Once()
+			},
+			expected: Expected{
+				session: &models.Session{UID: "uid"},
 				err:     nil,
 			},
 		},

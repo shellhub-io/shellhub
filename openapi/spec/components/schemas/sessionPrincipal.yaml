@@ -1,0 +1,23 @@
+description: >-
+  Who opened the session: the person or the API key that presented the credential. It is always one
+  concrete actor, which is what separates it from an access policy's subject, where a role or every
+  member can be named. It also answers a different question from the session's username, the
+  account on the device, which is shared by everyone who connects as the same device user.
+type: object
+properties:
+  kind:
+    description: Whether a person or an automation opened the session.
+    type: string
+    enum:
+      - user
+      - api-key
+    example: user
+  id:
+    description: >-
+      The identifier of the user or API key, in the table the kind names. It carries no name: a
+      reader resolves that from the namespace's members and API keys.
+    type: string
+    example: 00000000-0000-4000-0000-000000000000
+required:
+  - kind
+  - id

@@ -21,9 +21,15 @@ type Session struct {
 	Username  string  `json:"username"`
 	// UserID is the ShellHub account that authorized this session via browser
 	// approval. Empty for password/public-key logins and web-terminal sessions.
-	UserID string `json:"user_id,omitempty"`
-	// APIKeyID is the API key this session acts as, when an automation opened it.
-	APIKeyID      string          `json:"api_key_id,omitempty"`
+	// It is not serialized; readers get Principal.
+	UserID string `json:"-"`
+	// APIKeyID is the API key this session acts as, when an automation opened it. Like UserID, it
+	// is written here and read through Principal.
+	APIKeyID string `json:"-"`
+	// Principal is who opened the session: the person or the API key that presented the
+	// credential, projected from UserID and APIKeyID. It is absent, rather than empty, under the
+	// legacy access model, where a session has no principal by design.
+	Principal     *Principal      `json:"principal,omitempty"`
 	IPAddress     string          `json:"ip_address"`
 	StartedAt     time.Time       `json:"started_at"`
 	LastSeen      time.Time       `json:"last_seen"`
@@ -98,14 +104,16 @@ const (
 
 // SessionEvent represents a session event.
 type SessionEvent struct {
-	// Session is the session UID where the event occurred.
-	Session string `json:"session"`
+	// Session is the session UID where the event occurred. It is not serialized.
+	Session string `json:"-"`
 	// Type of the session. Normally, it is the SSH request name.
 	Type SessionEventType `json:"type"`
 	// Timestamp contains the time when the event was logged.
 	Timestamp time.Time `json:"timestamp"`
-	// Data is a generic structure containing data of the event, normally the unmarshaling data of the request.
-	Data any `json:"data"`
+	// Data is the event's payload. Its shape follows the request: an object for one that carries
+	// fields, and an empty string for one the protocol defines as having no body, such as shell.
+	// It is omitted when the event carried no payload at all.
+	Data any `json:"data,omitempty"`
 	// Seat is the seat where the event occurred.
 	Seat int `json:"seat"`
 }
@@ -116,6 +124,15 @@ type SessionEvents struct {
 	Types []string `json:"types"`
 	// Seats contains a list of seats of events.
 	Seats []int `json:"seats"`
+	// First is the type of the event the session opened with, taken from the request types that
+	// open a channel: pty-req, shell, exec and subsystem. It is empty when the session recorded
+	// none of them.
+	First SessionEventType `json:"first,omitempty"`
+	// Items is the session's timeline, oldest first, carried by the by-uid request alone and
+	// never by the list. It excludes terminal output and is capped, so it is not necessarily
+	// every event the session recorded, and it is absent both when there is nothing to show and
+	// when the read failed.
+	Items []SessionEvent `json:"items,omitempty"`
 }
 
 // SessionSeat stores a session's seat.

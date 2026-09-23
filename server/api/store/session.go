@@ -70,6 +70,11 @@ type SessionStore interface {
 	SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...QueryOption) ([]models.SessionEvent, int, error)
 	// SessionEventsDelete removes session events based on filters. It returns an error if any.
 	SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error
+	// SessionEventsTimeline returns a session's events oldest first, across every seat, at most
+	// limit of them, and never the terminal output type. It returns an empty slice when the
+	// session recorded nothing a reader can follow, and a limit that is not positive returns
+	// nothing.
+	SessionEventsTimeline(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error)
 
 	// SessionUpdateDeviceUID updates device UID references across sessions. It returns an error if any.
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
