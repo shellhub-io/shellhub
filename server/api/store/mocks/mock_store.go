@@ -6668,6 +6668,80 @@ func (_c *MockStore_SessionEventsList_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// SessionEventsTimeline provides a mock function for the type MockStore
+func (_mock *MockStore) SessionEventsTimeline(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error) {
+	ret := _mock.Called(ctx, uid, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionEventsTimeline")
+	}
+
+	var r0 []models.SessionEvent
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, int) ([]models.SessionEvent, error)); ok {
+		return returnFunc(ctx, uid, limit)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, int) []models.SessionEvent); ok {
+		r0 = returnFunc(ctx, uid, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.SessionEvent)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, models.UID, int) error); ok {
+		r1 = returnFunc(ctx, uid, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SessionEventsTimeline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SessionEventsTimeline'
+type MockStore_SessionEventsTimeline_Call struct {
+	*mock.Call
+}
+
+// SessionEventsTimeline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - uid models.UID
+//   - limit int
+func (_e *MockStore_Expecter) SessionEventsTimeline(ctx any, uid any, limit any) *MockStore_SessionEventsTimeline_Call {
+	return &MockStore_SessionEventsTimeline_Call{Call: _e.mock.On("SessionEventsTimeline", ctx, uid, limit)}
+}
+
+func (_c *MockStore_SessionEventsTimeline_Call) Run(run func(ctx context.Context, uid models.UID, limit int)) *MockStore_SessionEventsTimeline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 models.UID
+		if args[1] != nil {
+			arg1 = args[1].(models.UID)
+		}
+		var arg2 int
+		if args[2] != nil {
+			arg2 = args[2].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SessionEventsTimeline_Call) Return(sessionEvents []models.SessionEvent, err error) *MockStore_SessionEventsTimeline_Call {
+	_c.Call.Return(sessionEvents, err)
+	return _c
+}
+
+func (_c *MockStore_SessionEventsTimeline_Call) RunAndReturn(run func(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error)) *MockStore_SessionEventsTimeline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SessionKeepAlive provides a mock function for the type MockStore
 func (_mock *MockStore) SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time) error {
 	ret := _mock.Called(ctx, uid, at)

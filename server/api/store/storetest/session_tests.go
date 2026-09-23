@@ -1153,3 +1153,216 @@ func (s *Suite) TestActiveSessionCleanup(t *testing.T) {
 		assert.Equal(t, int64(0), second)
 	})
 }
+
+// TestSessionEventsFirst tests that a session reports the event it opened with, taken from the
+// types that open a channel rather than from the earliest row.
+func (s *Suite) TestSessionEventsFirst(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	base := clock.Now()
+
+	seed := func(t *testing.T, uid models.UID, event models.SessionEventType, offset time.Duration) {
+		t.Helper()
+
+		require.NoError(t, st.SessionEventsCreate(ctx, &models.SessionEvent{
+			Session:   string(uid),
+			Type:      event,
+			Timestamp: base.Add(offset),
+			Data:      map[string]any{},
+			Seat:      0,
+		}))
+	}
+
+	resolve := func(t *testing.T, uid models.UID) *models.Session {
+		t.Helper()
+
+		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(uid))
+		require.NoError(t, err)
+		require.NotNil(t, session)
+
+		return session
+	}
+
+	t.Run("ignores an environment request recorded before the pty request", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeEnv, 0)
+		seed(t, uid, models.SessionEventTypePtyRequest, time.Millisecond)
+		seed(t, uid, models.SessionEventTypeShell, 2*time.Millisecond)
+
+		assert.Equal(t, models.SessionEventTypePtyRequest, resolve(t, uid).Events.First)
+	})
+
+	t.Run("ignores terminal output recorded before the shell", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypePtyOutput, 0)
+		seed(t, uid, models.SessionEventTypeShell, time.Millisecond)
+
+		assert.Equal(t, models.SessionEventTypeShell, resolve(t, uid).Events.First)
+	})
+
+	t.Run("answers exec for a command session", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeExec, 0)
+		seed(t, uid, models.SessionEventTypeExitStatus, time.Millisecond)
+
+		assert.Equal(t, models.SessionEventTypeExec, resolve(t, uid).Events.First)
+	})
+
+	t.Run("answers subsystem for a transfer", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeSubsystem, 0)
+
+		assert.Equal(t, models.SessionEventTypeSubsystem, resolve(t, uid).Events.First)
+	})
+
+	t.Run("is empty when nothing opened a channel", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeEnv, 0)
+		seed(t, uid, models.SessionEventTypeWindowChange, time.Millisecond)
+
+		assert.Empty(t, resolve(t, uid).Events.First)
+	})
+
+	t.Run("does not read another session's events", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		other := s.CreateSession(t)
+		seed(t, other, models.SessionEventTypeExec, 0)
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeShell, time.Millisecond)
+
+		assert.Equal(t, models.SessionEventTypeShell, resolve(t, uid).Events.First)
+	})
+}
+
+// TestSessionEventsTimeline tests that a session's timeline is ordered, capped, and free of the
+// terminal output that the recording carries.
+func (s *Suite) TestSessionEventsTimeline(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	base := clock.Now()
+
+	seed := func(t *testing.T, uid models.UID, event models.SessionEventType, offset time.Duration) {
+		t.Helper()
+
+		require.NoError(t, st.SessionEventsCreate(ctx, &models.SessionEvent{
+			Session:   string(uid),
+			Type:      event,
+			Timestamp: base.Add(offset),
+			Data:      map[string]any{"offset": offset.String()},
+			Seat:      0,
+		}))
+	}
+
+	types := func(events []models.SessionEvent) []models.SessionEventType {
+		got := make([]models.SessionEventType, len(events))
+		for i, event := range events {
+			got[i] = event.Type
+		}
+
+		return got
+	}
+
+	t.Run("excludes terminal output and keeps every other type", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypePtyRequest, 0)
+		seed(t, uid, models.SessionEventTypePtyOutput, time.Millisecond)
+		seed(t, uid, models.SessionEventTypeShell, 2*time.Millisecond)
+		seed(t, uid, models.SessionEventTypePtyOutput, 3*time.Millisecond)
+		seed(t, uid, models.SessionEventTypeExitStatus, 4*time.Millisecond)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []models.SessionEventType{
+			models.SessionEventTypePtyRequest,
+			models.SessionEventTypeShell,
+			models.SessionEventTypeExitStatus,
+		}, types(events))
+	})
+
+	t.Run("orders oldest first whatever the insertion order", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeExitStatus, 3*time.Millisecond)
+		seed(t, uid, models.SessionEventTypeExec, time.Millisecond)
+		seed(t, uid, models.SessionEventTypeEnv, 0)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []models.SessionEventType{
+			models.SessionEventTypeEnv,
+			models.SessionEventTypeExec,
+			models.SessionEventTypeExitStatus,
+		}, types(events))
+	})
+
+	t.Run("truncates the tail at the limit", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypePtyRequest, 0)
+		seed(t, uid, models.SessionEventTypeShell, time.Millisecond)
+		seed(t, uid, models.SessionEventTypeExitStatus, 2*time.Millisecond)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 2)
+		require.NoError(t, err)
+		assert.Equal(t, []models.SessionEventType{
+			models.SessionEventTypePtyRequest,
+			models.SessionEventTypeShell,
+		}, types(events))
+	})
+
+	t.Run("returns an empty slice rather than nil when there is nothing to show", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypePtyOutput, 0)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 100)
+		require.NoError(t, err)
+		assert.NotNil(t, events)
+		assert.Empty(t, events)
+	})
+
+	t.Run("does not read another session's events", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		other := s.CreateSession(t)
+		seed(t, other, models.SessionEventTypeExec, 0)
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeShell, time.Millisecond)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []models.SessionEventType{models.SessionEventTypeShell}, types(events))
+	})
+
+	t.Run("carries each event's payload", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateSession(t)
+		seed(t, uid, models.SessionEventTypeExec, 0)
+
+		events, err := st.SessionEventsTimeline(ctx, uid, 100)
+		require.NoError(t, err)
+		require.Len(t, events, 1)
+		assert.Equal(t, map[string]any{"offset": "0s"}, events[0].Data)
+	})
+}

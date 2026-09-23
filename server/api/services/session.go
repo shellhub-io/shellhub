@@ -54,11 +54,24 @@ func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *request
 	return s.store.SessionList(ctx, sc, opts...)
 }
 
+const sessionTimelineMaxEvents = 1000
+
 func (s *service) GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error) {
 	session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
 	}
+
+	events, err := s.store.SessionEventsTimeline(ctx, uid, sessionTimelineMaxEvents)
+	if err != nil {
+		log.WithError(err).
+			WithField("session_uid", session.UID).
+			Warn("failed to read the session timeline; returning the session without it")
+
+		return session, nil
+	}
+
+	session.Events.Items = events
 
 	return session, nil
 }

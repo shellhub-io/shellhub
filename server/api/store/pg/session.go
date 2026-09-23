@@ -384,6 +384,33 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 	return events, count, nil
 }
 
+// SessionEventsTimeline implements [store.SessionStore].
+func (pg *Pg) SessionEventsTimeline(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error) {
+	events := make([]models.SessionEvent, 0)
+	if limit <= 0 {
+		return events, nil
+	}
+
+	db := pg.GetConnection(ctx)
+
+	entities := make([]entity.SessionEvent, 0)
+	if err := db.NewSelect().
+		Model(&entities).
+		Where("session_id = ?", string(uid)).
+		Where("type <> ?", string(models.SessionEventTypePtyOutput)).
+		Order("created_at ASC", "id ASC").
+		Limit(limit).
+		Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	for i := range entities {
+		events = append(events, *entity.SessionEventToModel(&entities[i]))
+	}
+
+	return events, nil
+}
+
 // SessionEventsDelete implements [store.SessionStore].
 func (pg *Pg) SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
 	db := pg.GetConnection(ctx)
@@ -474,18 +501,26 @@ func (pg *Pg) SessionDeleteMany(ctx context.Context, uids []string) (int64, erro
 	return res.RowsAffected()
 }
 
+var sessionChannelOpeningEvents = []string{
+	string(models.SessionEventTypePtyRequest),
+	string(models.SessionEventTypeShell),
+	string(models.SessionEventTypeExec),
+	string(models.SessionEventTypeSubsystem),
+}
+
 // SessionSelectQuery applies the standard session SELECT decorations: relations,
-// computed columns (active, event_types, event_seats), and the active_sessions JOIN.
+// computed columns (active, event_types, event_seats, event_first), and the active_sessions JOIN.
 // The caller provides the base query with the desired model (core or cloud entity).
 //
-// event_types and event_seats are computed with correlated subqueries scoped to each
+// event_types, event_seats and event_first are computed with correlated subqueries scoped to each
 // session row instead of aggregating the whole session_events table. The previous
 // derived-table form (string_agg ... GROUP BY session_id with no filter) forced
 // Postgres to scan and group every row in session_events on each call, even for the
 // list path that only returns a page. As session_events grows, that turns into a
 // multi-second full scan whose cost scales with the total event count rather than the
 // page size. The correlated form runs only for the page's sessions and uses
-// session_events_session_id_created_at_idx, keeping the query bounded.
+// session_events_session_id_created_at_idx, keeping the query bounded. Keep any new computed
+// column in that form: merging them back into one derived table reintroduces the full scan.
 func SessionSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
 	return q.
 		Relation("Device").
@@ -502,5 +537,12 @@ func SessionSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
 			FROM session_events
 			WHERE session_id = session.id
 		), '') AS event_seats`).
+		ColumnExpr(`COALESCE((
+			SELECT type::text
+			FROM session_events
+			WHERE session_id = session.id AND type IN (?)
+			ORDER BY created_at ASC, id ASC
+			LIMIT 1
+		), '') AS event_first`, bun.List(sessionChannelOpeningEvents)).
 		Join("LEFT JOIN active_sessions AS active_session ON session.id = active_session.session_id")
 }

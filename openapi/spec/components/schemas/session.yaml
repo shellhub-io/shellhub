@@ -44,6 +44,8 @@ properties:
   web:
     description: Whether the session originated from the web terminal
     type: boolean
+  principal:
+    $ref: sessionPrincipal.yaml
   position:
     description: Session's geolocation position
     type: object
@@ -74,8 +76,22 @@ properties:
           minimum: 0
         example:
           - 0
+      first:
+        description: >-
+          The type of the event the session opened with, taken from the request types that open a
+          channel. Absent when the session recorded none of them.
+        type: string
+        enum:
+          - pty-req
+          - shell
+          - exec
+          - subsystem
+        example: shell
       items:
-        description: Session's list of events
+        description: >-
+          The session's events, oldest first. Carried by GET /sessions/{uid} and never by the
+          list. It excludes the terminal output the recording carries, and is capped,
+          so it is not necessarily every event the session recorded.
         type: array
         items:
           type: object
@@ -90,8 +106,11 @@ properties:
               format: date-time
               example: '2023-10-01T12:00:00Z'
             data:
-              description: Additional data related to the event
-              type: object
+              description: >-
+                The event's payload, whose shape follows the SSH request it came from: an object
+                for a request that carries fields, such as the terminal a pty request asked for or
+                the command an exec ran, and an empty string for one the protocol defines as having
+                no body, such as a shell request. Absent when the event recorded no payload at all.
             seat:
               description: Seat where the event happened
               type: integer

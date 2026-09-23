@@ -39,6 +39,8 @@ type Session struct {
 	EventTypes string `bun:"event_types,scanonly"`
 	// EventSeats is a comma-separated list of unique seats as integers
 	EventSeats string `bun:"event_seats,scanonly"`
+	// EventFirst is the type of the event the session opened with, empty when it opened none
+	EventFirst string `bun:"event_first,scanonly"`
 
 	Device    *Device    `bun:"rel:belongs-to,join:device_id=id"`
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
@@ -77,6 +79,7 @@ func SessionToModel(entity *Session) *models.Session {
 		Username:      entity.Username,
 		UserID:        entity.UserID,
 		APIKeyID:      entity.APIKeyID,
+		Principal:     models.PrincipalOf(entity.UserID, entity.APIKeyID),
 		IPAddress:     entity.IPAddress,
 		StartedAt:     entity.StartedAt,
 		LastSeen:      entity.SeenAt,
@@ -92,6 +95,7 @@ func SessionToModel(entity *Session) *models.Session {
 		Events: models.SessionEvents{
 			Types: parseEventTypes(entity.EventTypes),
 			Seats: parseEventSeats(entity.EventSeats),
+			First: models.SessionEventType(entity.EventFirst),
 		},
 	}
 

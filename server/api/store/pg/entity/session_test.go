@@ -489,3 +489,38 @@ func TestParseEventSeats(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionToModelPrincipal(t *testing.T) {
+	tests := []struct {
+		name     string
+		entity   *Session
+		expected *models.Principal
+	}{
+		{
+			name:     "names the user that authorized the session",
+			entity:   &Session{ID: "uid", UserID: "user-id"},
+			expected: &models.Principal{Kind: models.PrincipalUser, ID: "user-id"},
+		},
+		{
+			name:     "names the API key an automation acted as",
+			entity:   &Session{ID: "uid", APIKeyID: "api-key-id"},
+			expected: &models.Principal{Kind: models.PrincipalAPIKey, ID: "api-key-id"},
+		},
+		{
+			name:     "prefers the API key when a session carries both",
+			entity:   &Session{ID: "uid", UserID: "user-id", APIKeyID: "api-key-id"},
+			expected: &models.Principal{Kind: models.PrincipalAPIKey, ID: "api-key-id"},
+		},
+		{
+			name:     "is absent under the legacy access model, where no principal exists",
+			entity:   &Session{ID: "uid"},
+			expected: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, SessionToModel(tt.entity).Principal)
+		})
+	}
+}
