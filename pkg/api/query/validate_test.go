@@ -444,3 +444,40 @@ func TestIsPrimitive(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateFiltersRejectsAValueTheFieldDoesNotDeclare(t *testing.T) {
+	allowed := NewFieldConstraints(map[string][]string{
+		"name":   {"contains", "eq", "ne"},
+		"status": {"eq", "ne"},
+	}).WithValues(map[string][]string{
+		"status": {"accepted", "pending"},
+	})
+
+	property := func(name, operator string, value any) *Filters {
+		return &Filters{Data: []Filter{{
+			Type:   FilterTypeProperty,
+			Params: &FilterProperty{Name: name, Operator: operator, Value: value},
+		}}}
+	}
+
+	cases := []struct {
+		name    string
+		filters *Filters
+		wantErr error
+	}{
+		{"declared value with eq", property("status", "eq", "accepted"), nil},
+		{"declared value with ne", property("status", "ne", "pending"), nil},
+		{"undeclared value with eq", property("status", "eq", "theprimeagen"), ErrFilterPropertyInvalid},
+		{"undeclared value with ne", property("status", "ne", "theprimeagen"), ErrFilterPropertyInvalid},
+		{"empty value is not declared", property("status", "eq", ""), ErrFilterPropertyInvalid},
+		{"case sensitive", property("status", "eq", "Accepted"), ErrFilterPropertyInvalid},
+		{"field declaring no values accepts anything", property("name", "eq", "theprimeagen"), nil},
+		{"contains is left alone on a field declaring values", property("name", "contains", "theprimeagen"), nil},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.wantErr, ValidateFilters(tc.filters, allowed))
+		})
+	}
+}

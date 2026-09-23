@@ -124,3 +124,74 @@ func TestListEndpointsRejectAnUnapprovedSortField(t *testing.T) {
 		})
 	}
 }
+
+func TestListEndpointsRejectAValueTheColumnCannotHold(t *testing.T) {
+	cases := []struct {
+		description  string
+		path         string
+		field        string
+		value        string
+		uncalledFunc string
+	}{
+		{
+			description:  "refuses a device status no device can hold",
+			path:         "/api/devices",
+			field:        "status",
+			value:        "theprimeagen",
+			uncalledFunc: "ListDevices",
+		},
+		{
+			description:  "refuses an invitation status no invitation can hold",
+			path:         "/api/users/invitations",
+			field:        "status",
+			value:        "theprimeagen",
+			uncalledFunc: "UserMembershipInvitationList",
+		},
+		{
+			description:  "refuses a membership role nobody can hold",
+			path:         "/api/users/invitations",
+			field:        "role",
+			value:        "theprimeagen",
+			uncalledFunc: "UserMembershipInvitationList",
+		},
+		{
+			description:  "refuses an invitation status on a namespace's invitations",
+			path:         "/api/namespaces/00000000-0000-4000-0000-000000000000/invitations",
+			field:        "status",
+			value:        "theprimeagen",
+			uncalledFunc: "NamespaceMembershipInvitationList",
+		},
+		{
+			description:  "refuses a namespace type no namespace can hold",
+			path:         "/api/namespaces",
+			field:        "type",
+			value:        "theprimeagen",
+			uncalledFunc: "ListNamespaces",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			svcMock := servicemock.NewMockService(t)
+
+			values := url.Values{}
+			values.Set("filter", encodeFilter(t, []query.Filter{
+				{
+					Type:   query.FilterTypeProperty,
+					Params: &query.FilterProperty{Name: tc.field, Operator: "eq", Value: tc.value},
+				},
+			}))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path+"?"+values.Encode(), nil)
+			req.Header.Set("X-ID", "000000000000000000000000")
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req.Header.Set("X-Role", "owner")
+
+			rec := httptest.NewRecorder()
+			NewRouter(svcMock).ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
+			svcMock.AssertNotCalled(t, tc.uncalledFunc)
+		})
+	}
+}

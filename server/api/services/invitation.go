@@ -19,9 +19,24 @@ import (
 // MembershipInvitationFilterFields maps each filter field the invitation list endpoints accept to
 // the set of operators valid for it. It names only fields the response already carries: the row
 // also holds the invitation's signature, which the response omits and a filter must not reach.
+// Both fields are backed by enums and declare the values they accept, so an unknown one is
+// refused here rather than reaching the column and answering 500.
 var MembershipInvitationFilterFields = query.NewFieldConstraints(map[string][]string{
 	"status": {"eq", "ne"},
 	"role":   {"eq", "ne"},
+}).WithValues(map[string][]string{
+	"status": {
+		string(models.MembershipInvitationStatusPending),
+		string(models.MembershipInvitationStatusAccepted),
+		string(models.MembershipInvitationStatusRejected),
+		string(models.MembershipInvitationStatusCancelled),
+	},
+	"role": {
+		authorizer.RoleOwner.String(),
+		authorizer.RoleAdministrator.String(),
+		authorizer.RoleOperator.String(),
+		authorizer.RoleObserver.String(),
+	},
 })
 
 // MembershipInvitationSortFields is the set of field names accepted in the sort_by query

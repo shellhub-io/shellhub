@@ -23,7 +23,10 @@ const StatusAccepted = "accepted"
 // DeviceFilterFields maps each filter field the device list endpoint accepts
 // to the set of operators valid for it. Operators that the database rejects
 // on a given column type (e.g. ILIKE on the status enum) are omitted so the
-// handler returns HTTP 400 instead of letting the store produce a 500.
+// handler returns HTTP 400 instead of letting the store produce a 500. The
+// status field declares its values for the same reason: it is backed by an
+// enum, so a value outside the set reaches the column and the store answers
+// 500 rather than 400.
 var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"name":          {"contains", "eq", "ne"},
 	"status":        {"eq", "ne"},
@@ -37,7 +40,15 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"identity.mac":  {"contains", "eq", "ne"},
 },
 	"online",
-)
+).WithValues(map[string][]string{
+	"status": {
+		string(models.DeviceStatusAccepted),
+		string(models.DeviceStatusPending),
+		string(models.DeviceStatusRejected),
+		string(models.DeviceStatusRemoved),
+		string(models.DeviceStatusUnused),
+	},
+})
 
 // DeviceSortFields is the set of field names accepted in the sort_by query
 // parameter when listing devices.
