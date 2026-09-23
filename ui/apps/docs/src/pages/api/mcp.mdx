@@ -40,15 +40,15 @@ See [API keys](/api#creating-a-key) and [User Roles](/manage/team/user-roles).
 ## How authorization is enforced
 
 The MCP tools make in-process API calls, replaying the captured authentication headers. That means
-the same middleware the REST API uses runs for an MCP request: the same permission checks, the
+the same middleware the HTTP API uses runs for an MCP request: the same permission checks, the
 same tenant scoping, and the same refusals for routes that block API keys.
 
-So an assistant cannot reach anything through MCP that the key could not reach through the REST
+So an assistant cannot reach anything through MCP that the key could not reach through the HTTP
 API. There is no separate, looser path — which is exactly the property you want from a tool an
 assistant drives.
 
-The routes that refuse API keys refuse MCP too: namespace membership, install key management, MFA,
-user management.
+The routes that refuse API keys refuse MCP too. See
+[What a key cannot do](/api#what-a-key-cannot-do).
 
 ## What it exposes
 

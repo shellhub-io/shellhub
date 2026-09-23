@@ -84,8 +84,9 @@ There are four distinct reasons and they point at different fixes. See
 
 ## Can an API key do everything a user can?
 
-No. A number of routes explicitly refuse API keys — namespace membership operations, install key
-management, MFA, and user management among them. See [API keys](/api#creating-a-key).
+No. Routes that act for a person refuse an API key whatever its role. Managing keys, creating a
+namespace, and anything to do with MFA are all refused; see
+[What a key cannot do](/api#what-a-key-cannot-do) for the full list.
 
 ## Which database does ShellHub use?
 
