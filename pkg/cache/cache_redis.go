@@ -101,6 +101,10 @@ func (c *redisCache) HasAccountLockout(ctx context.Context, source, id string) (
 	lockout, _ := strconv.ParseInt(lockoutDeadline, 10, 0)
 	attempt, _ := strconv.Atoi(attemptSTR)
 
+	if clock.Now().Unix() >= lockout {
+		return 0, attempt, nil
+	}
+
 	return lockout, attempt, nil
 }
 
