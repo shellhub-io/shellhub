@@ -35,7 +35,7 @@ function makeSession(overrides: Partial<Session> = {}): Session {
     recorded: false,
     term: "xterm",
     position: { latitude: 0, longitude: 0 },
-    events: { types: ["term"], seats: [] },
+    events: { types: ["pty-req", "shell"], seats: [0], first: "pty-req" },
     web: true,
     ...overrides,
   };
@@ -130,7 +130,13 @@ describe("RecentSessionsTable", () => {
     server.use(
       http.get("*/api/sessions", () =>
         jsonWithTotal([
-          makeSession({ events: { types: ["shell"], seats: [] } }),
+          makeSession({
+            events: {
+              types: ["pty-req", "shell"],
+              seats: [0],
+              first: "pty-req",
+            },
+          }),
         ]),
       ),
     );
