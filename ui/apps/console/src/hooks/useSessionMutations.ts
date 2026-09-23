@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { clsoeSessionMutation, deleteSessionRecord } from "../client";
+import { closeSessionMutation, deleteSessionRecord } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 /**
@@ -9,7 +9,7 @@ import { useInvalidateByIds } from "./useInvalidateQueries";
 export function useCloseSession() {
   const invalidate = useInvalidateByIds("getSessions", "getSession", "getStatusDevices");
   return useMutation({
-    ...clsoeSessionMutation(),
+    ...closeSessionMutation(),
     onSuccess: invalidate,
   });
 }

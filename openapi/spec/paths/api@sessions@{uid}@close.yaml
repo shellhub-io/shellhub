@@ -1,5 +1,5 @@
 post:
-  operationId: clsoeSession
+  operationId: closeSession
   summary: Close session
   description: Close a session.
   security:
