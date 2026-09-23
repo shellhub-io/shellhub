@@ -13,7 +13,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import EmptyCell from "@/components/common/EmptyCell";
 import SessionLogin from "@/components/sessions/SessionLogin";
-import SessionPrincipal from "@/components/sessions/SessionPrincipal";
+import AdminSessionPrincipal from "@/components/sessions/AdminSessionPrincipal";
 import { formatDateFull } from "@/utils/date";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { apiErrorMessage } from "@/api/errors";
@@ -90,7 +90,7 @@ export default function AdminSessions() {
       header: "Principal",
       render: (s) =>
         s.principal ? (
-          <SessionPrincipal principal={s.principal} />
+          <AdminSessionPrincipal principal={s.principal} />
         ) : (
           <EmptyCell />
         ),

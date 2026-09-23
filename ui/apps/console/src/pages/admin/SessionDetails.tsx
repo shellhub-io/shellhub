@@ -11,7 +11,7 @@ import InfoItem from "@/components/common/InfoItem";
 import { formatDateFull } from "@/utils/date";
 import { sessionTerminal } from "@/utils/session";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
-import SessionPrincipal from "@/components/sessions/SessionPrincipal";
+import AdminSessionPrincipal from "@/components/sessions/AdminSessionPrincipal";
 import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
@@ -143,7 +143,7 @@ export default function AdminSessionDetails() {
 
             {session.principal && (
               <InfoItem label="Principal">
-                <SessionPrincipal principal={session.principal} />
+                <AdminSessionPrincipal principal={session.principal} />
               </InfoItem>
             )}
           </dl>
