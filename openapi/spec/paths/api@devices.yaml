@@ -20,11 +20,9 @@ get:
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
     - name: status
-      description: Device's status
+      description: Device's status. Omit it to list devices of every status.
       schema:
-        allOf:
-          - $ref: ../components/schemas/deviceStatus.yaml
-        default: accepted
+        $ref: ../components/schemas/deviceStatus.yaml
       required: false
       in: query
     - name: sort_by
