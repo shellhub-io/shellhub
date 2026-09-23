@@ -35,7 +35,6 @@ func TestSessionFromModel(t *testing.T) {
 				LastSeen:      now,
 				Authenticated: true,
 				Recorded:      true,
-				Term:          "xterm-256color",
 				Position: models.SessionPosition{
 					Longitude: 1.23,
 					Latitude:  4.56,
@@ -52,7 +51,6 @@ func TestSessionFromModel(t *testing.T) {
 				assert.Equal(t, now, result.SeenAt)
 				assert.True(t, result.Authenticated)
 				assert.True(t, result.Recorded)
-				assert.Equal(t, "xterm-256color", result.Term)
 				assert.InDelta(t, 1.23, result.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Latitude, 0.001)
 				assert.True(t, result.CreatedAt.IsZero())
@@ -103,7 +101,6 @@ func TestSessionToModel(t *testing.T) {
 				Active:        true,
 				Authenticated: true,
 				Recorded:      true,
-				Term:          "xterm",
 				Longitude:     1.23,
 				Latitude:      4.56,
 				EventTypes:    "pty-output,window-change",
@@ -126,7 +123,6 @@ func TestSessionToModel(t *testing.T) {
 				assert.True(t, result.Active)
 				assert.True(t, result.Authenticated)
 				assert.True(t, result.Recorded)
-				assert.Equal(t, "xterm", result.Term)
 				assert.InDelta(t, 1.23, result.Position.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Position.Latitude, 0.001)
 				assert.Equal(t, []string{"pty-output", "window-change"}, result.Events.Types)

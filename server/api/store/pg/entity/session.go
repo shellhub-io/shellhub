@@ -27,7 +27,6 @@ type Session struct {
 	SeenAt        time.Time `bun:"seen_at"`
 	Authenticated bool      `bun:"authenticated"`
 	Recorded      bool      `bun:"recorded"`
-	Term          string    `bun:"term"`
 	Web           bool      `bun:"web"`
 	Longitude     float64   `bun:"longitude"`
 	Latitude      float64   `bun:"latitude"`
@@ -60,7 +59,6 @@ func SessionFromModel(model *models.Session) *Session {
 		SeenAt:        model.LastSeen,
 		Authenticated: model.Authenticated,
 		Recorded:      model.Recorded,
-		Term:          model.Term,
 		Web:           model.Web,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
@@ -86,7 +84,6 @@ func SessionToModel(entity *Session) *models.Session {
 		Active:        entity.Active,
 		Authenticated: entity.Authenticated,
 		Recorded:      entity.Recorded,
-		Term:          entity.Term,
 		Web:           entity.Web,
 		Position: models.SessionPosition{
 			Longitude: entity.Longitude,

@@ -36,7 +36,6 @@ type Session struct {
 	Active        bool            `json:"active"`
 	Authenticated bool            `json:"authenticated"`
 	Recorded      bool            `json:"recorded"`
-	Term          string          `json:"term"`
 	Web           bool            `json:"web"`
 	Position      SessionPosition `json:"position"`
 	Events        SessionEvents   `json:"events"`
