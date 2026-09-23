@@ -1,6 +1,13 @@
 import type { Session } from "../client";
 
 /**
+ * Whether the session had a terminal, which is what makes its recording playable.
+ */
+export function sessionHasTerminal(session: Session): boolean {
+  return (session.events?.types ?? []).includes("pty-req");
+}
+
+/**
  * The badge for a session, derived from the event types it recorded: an SFTP transfer, a single
  * exec, or null for an ordinary interactive shell, which needs no badge.
  */
