@@ -11,6 +11,7 @@ import (
 
 	"github.com/bramvdbogaerde/go-scp"
 	"github.com/pkg/sftp"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -250,28 +251,70 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
-	owner := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
+	openedWith := func(t *testing.T, signer ssh.Signer) *models.Session {
+		t.Helper()
 
-	signer, data := newSigner(t)
-	compose.EnrollIdentity(t, "integration", data)
+		before := currentSessions(t, ctx, compose)
 
-	before := currentSessions(t, ctx, compose)
+		conn := dialClient(t, ctx, compose.SSHAddress(), &ssh.ClientConfig{ //nolint:exhaustruct // the remaining fields keep their defaults
+			User:            deviceSSHID(device),
+			Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // the test stack's host key is ephemeral
+		})
+		t.Cleanup(func() { _ = conn.Close() })
 
-	conn := dialClient(t, ctx, compose.SSHAddress(), &ssh.ClientConfig{ //nolint:exhaustruct // the remaining fields keep their defaults
-		User:            deviceSSHID(device),
-		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // the test stack's host key is ephemeral
+		return sessionAfter(t, ctx, compose, before, func() {
+			sess, err := conn.NewSession()
+			require.NoError(t, err)
+
+			_, err = sess.CombinedOutput("uptime")
+			require.NoError(t, err)
+		})
+	}
+
+	t.Run("a person", func(t *testing.T) {
+		owner := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
+
+		signer, data := newSigner(t)
+		compose.EnrollIdentity(t, "person", data)
+
+		opened := openedWith(t, signer)
+
+		require.NotNil(t, opened.Principal, "an identity-mode session is opened by someone")
+		assert.Equal(t, models.Principal{Kind: models.PrincipalUser, ID: owner.ID}, *opened.Principal)
 	})
-	t.Cleanup(func() { _ = conn.Close() })
 
-	opened := sessionAfter(t, ctx, compose, before, func() {
-		sess, err := conn.NewSession()
-		require.NoError(t, err)
+	t.Run("an API key", func(t *testing.T) {
+		key := struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		}{}
 
-		_, err = sess.CombinedOutput("uptime")
+		resp, err := compose.R(ctx).
+			SetBody(map[string]any{"name": "automation", "expires_at": -1}).
+			SetResult(&key).
+			Post("/api/namespaces/api-key")
 		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+		signer, data := newSigner(t)
+
+		resp, err = compose.R(ctx).
+			SetBody(map[string]any{"name": "automation", "data": data}).
+			Post("/api/namespaces/api-key/" + key.Name + "/ssh-identities")
+		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+		compose.CreateAccessPolicy(t, &requests.AccessPolicyCreate{ //nolint:exhaustruct // the remaining fields keep their defaults
+			Name:    "automation",
+			Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectAPIKey), Value: key.ID},
+			Logins:  []string{ShellHubAgentUsername},
+			Action:  string(models.PolicyActionAllow),
+		})
+
+		opened := openedWith(t, signer)
+
+		require.NotNil(t, opened.Principal, "an identity-mode session is opened by someone")
+		assert.Equal(t, models.Principal{Kind: models.PrincipalAPIKey, ID: key.ID}, *opened.Principal)
 	})
-
-	require.NotNil(t, opened.Principal, "an identity-mode session is opened by someone")
-	assert.Equal(t, models.Principal{Kind: models.PrincipalUser, ID: owner.ID}, *opened.Principal)
 }
