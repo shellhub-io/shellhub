@@ -432,7 +432,7 @@ func TestGetDeviceList(t *testing.T) {
 			description: "fails when try to get a device list existing",
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatus("online"),
+				DeviceStatus: models.DeviceStatusAccepted,
 				Paginator:    query.Paginator{Page: 1, PerPage: 10},
 				Sorter:       query.Sorter{By: "name", Order: "asc"},
 				Filters:      query.Filters{},
@@ -452,7 +452,7 @@ func TestGetDeviceList(t *testing.T) {
 			description: "fails when try to get a device list existing",
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatus("online"),
+				DeviceStatus: models.DeviceStatusAccepted,
 				Paginator:    query.Paginator{Page: 1, PerPage: 10},
 				Sorter:       query.Sorter{By: "name", Order: "asc"},
 				Filters:      query.Filters{},
@@ -722,6 +722,111 @@ func TestUpdateDevice(t *testing.T) {
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+		})
+	}
+}
+
+func TestGetDeviceListBadStatus(t *testing.T) {
+	statusFilter := func(t *testing.T, value string) string {
+		t.Helper()
+
+		filters := []query.Filter{
+			{
+				Type: query.FilterTypeProperty,
+				Params: &query.FilterProperty{
+					Name:     "status",
+					Operator: "eq",
+					Value:    value,
+				},
+			},
+		}
+		b, err := json.Marshal(filters)
+		require.NoError(t, err)
+
+		return base64.StdEncoding.EncodeToString(b)
+	}
+
+	cases := []struct {
+		description  string
+		status       string
+		filterStatus string
+	}{
+		{
+			description: "returns 400 when the status parameter is not a device status",
+			status:      "theprimeagen",
+		},
+		{
+			description:  "returns 400 when a filter compares status against a value no device can hold",
+			filterStatus: "theprimeagen",
+		},
+		{
+			description: "returns 400 when the status parameter names a device status in the wrong case",
+			status:      "Accepted",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+
+			urlVal := url.Values{}
+			urlVal.Set("page", "1")
+			urlVal.Set("per_page", "10")
+			urlVal.Set("sort_by", "name")
+			urlVal.Set("order_by", "asc")
+
+			if tc.status != "" {
+				urlVal.Set("status", tc.status)
+			}
+
+			if tc.filterStatus != "" {
+				urlVal.Set("filter", statusFilter(t, tc.filterStatus))
+			}
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
+			mock.AssertNotCalled(t, "ListDevices")
+		})
+	}
+}
+
+func TestGetDeviceListAcceptsEveryDeviceStatus(t *testing.T) {
+	cases := map[string]models.DeviceStatus{
+		"accepted":            models.DeviceStatusAccepted,
+		"pending":             models.DeviceStatusPending,
+		"rejected":            models.DeviceStatusRejected,
+		"removed":             models.DeviceStatusRemoved,
+		"unused":              models.DeviceStatusUnused,
+		"omitted means every": models.DeviceStatusEmpty,
+	}
+
+	for description, status := range cases {
+		t.Run(description, func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+			mock.On("ListDevices", gomock.Anything, gomock.Anything, gomock.Anything).
+				Return([]models.Device{}, 0, nil).Once()
+
+			urlVal := url.Values{}
+			urlVal.Set("page", "1")
+			urlVal.Set("per_page", "10")
+			urlVal.Set("status", string(status))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 		})
 	}
 }

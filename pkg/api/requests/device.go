@@ -9,7 +9,7 @@ import (
 // every status, not none.
 type DeviceList struct {
 	TenantID     string              `header:"X-Tenant-ID"`
-	DeviceStatus models.DeviceStatus `query:"status"` //  TODO: validate
+	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`
 	query.Paginator
 	query.Sorter
 	query.Filters

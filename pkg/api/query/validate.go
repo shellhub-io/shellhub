@@ -52,6 +52,7 @@ func (s FieldSet) Allows(name string) bool {
 type FieldConstraints struct {
 	operators    map[string]FieldSet
 	virtualBools FieldSet
+	values       map[string]FieldSet
 }
 
 // NewFieldConstraints returns a FieldConstraints initialized with the given
@@ -95,6 +96,33 @@ func (c FieldConstraints) IsVirtualBoolField(name string) bool {
 	return c.virtualBools.Allows(name)
 }
 
+// WithValues returns a copy of the constraints where each named field accepts only the given
+// values under eq and ne. A field absent from entries keeps accepting any string, so declaring
+// values is opt-in per field. Declare them for a field backed by a database enum: without them
+// an unknown value reaches the column and Postgres answers a type error the store reports as a
+// 500 rather than a 400.
+func (c FieldConstraints) WithValues(entries map[string][]string) FieldConstraints {
+	values := make(map[string]FieldSet, len(entries))
+	for name, allowed := range entries {
+		values[name] = NewFieldSet(allowed...)
+	}
+
+	c.values = values
+
+	return c
+}
+
+// AllowsValue reports whether value is comparable against the given field. It is true for a field
+// that declares no values, so a field carrying free text is unaffected.
+func (c FieldConstraints) AllowsValue(name, value string) bool {
+	allowed, ok := c.values[name]
+	if !ok {
+		return true
+	}
+
+	return allowed.Allows(value)
+}
+
 // ValidateSorter returns [ErrSorterFieldInvalid] if the sort field is set and
 // not in allowed. An empty [Sorter.By] is valid (the store falls back to a
 // stable default).
@@ -111,9 +139,10 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 }
 
 // ValidateFilters returns [ErrFilterPropertyInvalid] if any property filter
-// references a (field, operator) pair not in constraints, carries a
-// non-primitive Value, or exceeds the configured size limits. Operator
-// filters (and/or) are left to the store to parse.
+// references a (field, operator) pair not in constraints, compares a field
+// against a value it does not declare (see [FieldConstraints.WithValues]),
+// carries a non-primitive Value, or exceeds the configured size limits.
+// Operator filters (and/or) are left to the store to parse.
 //
 // Equality on a virtual bool-backed field (see [FieldConstraints.IsVirtualBoolField]) accepts
 // anything bool-convertible, because ParseFilterProperty intercepts those before any column is
@@ -156,7 +185,12 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 					return ErrFilterPropertyInvalid
 				}
 			} else {
-				if _, ok := prop.Value.(string); !ok {
+				value, ok := prop.Value.(string)
+				if !ok {
+					return ErrFilterPropertyInvalid
+				}
+
+				if !constraints.AllowsValue(prop.Name, value) {
 					return ErrFilterPropertyInvalid
 				}
 			}
