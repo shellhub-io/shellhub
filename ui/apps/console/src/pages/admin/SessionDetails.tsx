@@ -9,7 +9,9 @@ import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InfoItem from "@/components/common/InfoItem";
 import { formatDateFull } from "@/utils/date";
-import { sessionType } from "@/utils/session";
+import { sessionTerminal } from "@/utils/session";
+import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
+import SessionPrincipal from "@/components/sessions/SessionPrincipal";
 import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
@@ -59,8 +61,6 @@ export default function AdminSessionDetails() {
       />
     );
   }
-
-  const type = sessionType(session);
 
   return (
     <div>
@@ -123,33 +123,29 @@ export default function AdminSessionDetails() {
               </InfoItem>
             )}
 
-            <InfoItem label="Username">
+            <InfoItem label="Login">
               <code className="text-xs font-mono">{session.username}</code>
             </InfoItem>
 
             <InfoItem label="IP Address" value={session.ip_address} mono />
 
+            <InfoItem label="Origin" value={session.web ? "Web" : "SSH"} />
+
             <InfoItem label="Type">
-              {type ? (
-                <span
-                  className={cn(
-                    "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border",
-                    type.color,
-                  )}
-                >
-                  {type.label}
-                </span>
-              ) : (
-                <span className="text-text-secondary">unknown</span>
-              )}
+              <SessionTypeBadge
+                session={session}
+                shape="rounded"
+                fallback={<span className="text-text-secondary">unknown</span>}
+              />
             </InfoItem>
 
-            <InfoItem
-              label="Terminal"
-              value={
-                session.term === "none" || !session.term ? "" : session.term
-              }
-            />
+            <InfoItem label="Terminal" value={sessionTerminal(session) ?? ""} />
+
+            {session.principal && (
+              <InfoItem label="Principal">
+                <SessionPrincipal principal={session.principal} />
+              </InfoItem>
+            )}
           </dl>
 
           <dl className="px-6 py-2 space-y-3">

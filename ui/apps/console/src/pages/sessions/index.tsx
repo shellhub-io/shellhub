@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import {
-  CommandLineIcon,
-  ExclamationTriangleIcon,
-  GlobeAltIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CommandLineIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSessions } from "@/hooks/useSessions";
 import { useCloseSession } from "@/hooks/useSessionMutations";
@@ -21,7 +16,12 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatRelative, formatDuration } from "@/utils/date";
-import { sessionHasTerminal, sessionType } from "@/utils/session";
+import { sessionHasTerminal } from "@/utils/session";
+import { usePrincipalName } from "@/hooks/usePrincipalName";
+import SessionPrincipal from "@/components/sessions/SessionPrincipal";
+import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
+import SessionLogin from "@/components/sessions/SessionLogin";
+import EmptyCell from "@/components/common/EmptyCell";
 import { isEnterpriseOrCloud } from "@/env";
 import {
   Callout,
@@ -71,6 +71,7 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
  * The sessions list: who connected to what, when, and for how long.
  */
 export default function Sessions() {
+  const principalName = usePrincipalName();
   const { params, setPage } = usePaginatedListState<SessionsParams>({
     defaults: DEFAULTS,
   });
@@ -148,6 +149,17 @@ export default function Sessions() {
       ),
     },
     {
+      key: "type",
+      header: "Type",
+      render: (s) => (
+        <SessionTypeBadge
+          session={s}
+          shape="rounded"
+          fallback={<EmptyCell />}
+        />
+      ),
+    },
+    {
       key: "device",
       header: "Device",
       render: (s) =>
@@ -166,52 +178,22 @@ export default function Sessions() {
         ),
     },
     {
-      key: "origin",
-      header: "Origin",
+      key: "principal",
+      header: "Principal",
       render: (s) =>
-        s.web ? (
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <GlobeAltIcon
-              className="w-3.5 h-3.5 text-text-muted"
-              strokeWidth={2}
-            />
-            <span className="text-text-secondary">Web</span>
-          </span>
+        s.principal ? (
+          <SessionPrincipal
+            principal={s.principal}
+            name={principalName(s.principal)}
+          />
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <CommandLineIcon
-              className="w-3.5 h-3.5 text-text-muted"
-              strokeWidth={2}
-            />
-            <span className="text-text-secondary">SSH</span>
-          </span>
+          <EmptyCell />
         ),
     },
     {
       key: "username",
-      header: "Username",
-      render: (s) => {
-        const suspicious = !s.authenticated;
-        return (
-          <div className="flex items-center gap-1.5">
-            {suspicious && (
-              <ExclamationTriangleIcon
-                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                strokeWidth={2}
-                title="Not authenticated"
-              />
-            )}
-            <code
-              className={cn(
-                "text-xs font-mono",
-                suspicious ? "text-accent-red/60" : "text-text-secondary",
-              )}
-            >
-              {s.username}
-            </code>
-          </div>
-        );
-      },
+      header: "Login",
+      render: (s) => <SessionLogin session={s} />,
     },
     {
       key: "ip",
@@ -221,25 +203,6 @@ export default function Sessions() {
           {s.ip_address}
         </code>
       ),
-    },
-    {
-      key: "type",
-      header: "Type",
-      render: (s) => {
-        const type = sessionType(s);
-        return type ? (
-          <span
-            className={cn(
-              "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border",
-              type.color,
-            )}
-          >
-            {type.label}
-          </span>
-        ) : (
-          <span className="text-2xs text-text-muted">{"\u2014"}</span>
-        );
-      },
     },
     {
       key: "started",

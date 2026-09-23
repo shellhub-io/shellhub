@@ -1,8 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import {
-  CommandLineIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { CommandLineIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Callout, Card } from "@shellhub/design-system/primitives";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -10,7 +7,9 @@ import DeviceChip from "@/components/common/DeviceChip";
 import { useSessions } from "@/hooks/useSessions";
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatRelative } from "@/utils/date";
-import { sessionType } from "@/utils/session";
+import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
+import SessionLogin from "@/components/sessions/SessionLogin";
+import EmptyCell from "@/components/common/EmptyCell";
 import type { Session } from "@/client";
 import { apiErrorMessage } from "@/api/errors";
 
@@ -41,6 +40,17 @@ export default function RecentSessionsTable({ isAdmin = false }) {
       ),
     },
     {
+      key: "type",
+      header: "Type",
+      render: (s) => (
+        <SessionTypeBadge
+          session={s}
+          shape="rounded"
+          fallback={<EmptyCell />}
+        />
+      ),
+    },
+    {
       key: "device",
       header: "Device",
       render: (s) =>
@@ -61,48 +71,8 @@ export default function RecentSessionsTable({ isAdmin = false }) {
     },
     {
       key: "username",
-      header: "Username",
-      render: (s) => {
-        const suspicious = !s.authenticated;
-        return (
-          <div className="flex items-center gap-1.5">
-            {suspicious && (
-              <ExclamationTriangleIcon
-                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                strokeWidth={2}
-                title="Not authenticated"
-              />
-            )}
-            <code
-              className={cn(
-                "text-xs font-mono",
-                suspicious ? "text-accent-red/60" : "text-text-secondary",
-              )}
-            >
-              {s.username}
-            </code>
-          </div>
-        );
-      },
-    },
-    {
-      key: "type",
-      header: "Type",
-      render: (s) => {
-        const type = sessionType(s);
-        return type ? (
-          <span
-            className={cn(
-              "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border",
-              type.color,
-            )}
-          >
-            {type.label}
-          </span>
-        ) : (
-          <span className="text-2xs text-text-muted">—</span>
-        );
-      },
+      header: "Login",
+      render: (s) => <SessionLogin session={s} />,
     },
     {
       key: "started",

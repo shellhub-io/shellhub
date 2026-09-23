@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
   CommandLineIcon,
-  ExclamationTriangleIcon,
   ShieldCheckIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
@@ -12,6 +11,9 @@ import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
+import EmptyCell from "@/components/common/EmptyCell";
+import SessionLogin from "@/components/sessions/SessionLogin";
+import SessionPrincipal from "@/components/sessions/SessionPrincipal";
 import { formatDateFull } from "@/utils/date";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { apiErrorMessage } from "@/api/errors";
@@ -84,30 +86,19 @@ export default function AdminSessions() {
         ),
     },
     {
+      key: "principal",
+      header: "Principal",
+      render: (s) =>
+        s.principal ? (
+          <SessionPrincipal principal={s.principal} />
+        ) : (
+          <EmptyCell />
+        ),
+    },
+    {
       key: "username",
-      header: "Username",
-      render: (s) => {
-        const suspicious = !s.authenticated;
-        return (
-          <div className="flex items-center gap-1.5">
-            {suspicious && (
-              <ExclamationTriangleIcon
-                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                strokeWidth={2}
-                title="Not authenticated"
-              />
-            )}
-            <code
-              className={cn(
-                "text-xs font-mono",
-                suspicious ? "text-accent-red/60" : "text-text-secondary",
-              )}
-            >
-              {s.username}
-            </code>
-          </div>
-        );
-      },
+      header: "Login",
+      render: (s) => <SessionLogin session={s} />,
     },
     {
       key: "auth",

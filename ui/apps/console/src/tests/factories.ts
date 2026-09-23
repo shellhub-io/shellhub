@@ -140,7 +140,7 @@ export function mockSession(overrides: Partial<Session> = {}): Session {
     term: "xterm",
     web: false,
     position: { latitude: 0, longitude: 0 },
-    events: { types: ["shell"], seats: [] },
+    events: { types: ["pty-req", "shell"], seats: [0], first: "pty-req" },
     ...overrides,
   };
 }

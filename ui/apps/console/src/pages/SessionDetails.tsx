@@ -22,6 +22,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSession } from "../hooks/useSession";
+import SessionPrincipal from "@/components/sessions/SessionPrincipal";
+import { usePrincipalName } from "@/hooks/usePrincipalName";
 import {
   useCloseSession,
   useDeleteSessionRecording,
@@ -45,7 +47,8 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import InfoItem from "@/components/common/InfoItem";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
-import SessionTypeBadge from "./sessions/SessionTypeBadge";
+import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
+import { sessionTerminal } from "@/utils/session";
 
 type EventStatus = "success" | "error" | "info" | "active" | "muted";
 
@@ -95,8 +98,7 @@ function buildTimeline(session: Session): TLEvent[] {
       id: "pty",
       icon: <ComputerDesktopIcon className="w-3.5 h-3.5" strokeWidth={2} />,
       title: "Pseudo-terminal opened",
-      detail:
-        session.term && session.term !== "none" ? session.term : undefined,
+      detail: sessionTerminal(session),
       status: "info",
     });
   }
@@ -250,6 +252,8 @@ function DurationStat({
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
   const { session, isLoading, error } = useSession(uid!);
+  const principalName = usePrincipalName();
+
   const closeSession = useCloseSession();
   const deleteRecording = useDeleteSessionRecording();
   const {
@@ -369,7 +373,7 @@ export default function SessionDetails() {
                   not authenticated
                 </Badge>
               )}
-              <SessionTypeBadge types={session.events?.types ?? []} />
+              <SessionTypeBadge session={session} />
               <DurationStat
                 startedAt={session.started_at}
                 lastSeen={session.last_seen}
@@ -467,7 +471,19 @@ export default function SessionDetails() {
                 copyable
                 truncate={8}
               />
+              {session.principal && (
+                <InfoItem label="Principal">
+                  <SessionPrincipal
+                    principal={session.principal}
+                    name={principalName(session.principal)}
+                  />
+                </InfoItem>
+              )}
+              <InfoItem label="Login">
+                <code className="text-xs font-mono">{session.username}</code>
+              </InfoItem>
               <InfoItem label="From" value={session.ip_address} mono copyable />
+              <InfoItem label="Origin" value={session.web ? "Web" : "SSH"} />
               <InfoItem
                 label="Started"
                 value={formatDateFull(session.started_at)}
@@ -558,9 +574,9 @@ export default function SessionDetails() {
         description={
           <>
             Are you sure you want to close the session for{" "}
-            <span className="font-medium text-text-primary">
+            <code className="text-xs font-mono text-text-primary">
               {session.username}
-            </span>{" "}
+            </code>{" "}
             on{" "}
             <span className="font-medium text-text-primary">
               {session.device?.name ??

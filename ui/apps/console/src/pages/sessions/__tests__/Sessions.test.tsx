@@ -6,7 +6,8 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import Sessions from "../index";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockSession } from "@/tests/factories";
+import { mockNamespace, mockSession } from "@/tests/factories";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -57,15 +58,14 @@ beforeEach(() => {
     http.get("*/api/sessions/:uid/records/:seat", () =>
       HttpResponse.json({}, { status: 404 }),
     ),
+    http.get("*/api/namespaces/api-key", () => HttpResponse.json([])),
   );
 });
 
 describe("Sessions", () => {
   describe("initial load", () => {
     it("shows loading state while fetching", () => {
-      server.use(
-        http.get("*/api/sessions", () => new Promise(() => {})),
-      );
+      server.use(http.get("*/api/sessions", () => new Promise(() => {})));
       renderSessions();
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
@@ -106,8 +106,9 @@ describe("Sessions", () => {
     it("disables the play button while the recording is loading", async () => {
       const user = userEvent.setup();
       server.use(
-        http.get("*/api/sessions/:uid/records/:seat", () =>
-          new Promise(() => {}),
+        http.get(
+          "*/api/sessions/:uid/records/:seat",
+          () => new Promise(() => {}),
         ),
       );
       setSessions([mockSession({ uid: "session-1", recorded: true })]);
@@ -146,6 +147,36 @@ describe("Sessions", () => {
       await waitFor(() =>
         expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument(),
       );
+    });
+  });
+
+  describe("principal", () => {
+    beforeEach(() => {
+      seedAuthStore({ tenant: "tenant-456" });
+      server.use(
+        http.get("*/api/namespaces/tenant-456", () =>
+          HttpResponse.json(mockNamespace()),
+        ),
+      );
+    });
+
+    it("names who opened each session", async () => {
+      setSessions([
+        mockSession({ principal: { kind: "user", id: "user-123" } }),
+      ]);
+
+      renderSessions();
+
+      expect(await screen.findByText("admin@test.com")).toBeInTheDocument();
+    });
+
+    it("names nobody for a session under the legacy access model", async () => {
+      setSessions([mockSession({ principal: undefined })]);
+
+      renderSessions();
+
+      await screen.findByText(mockSession().username);
+      expect(screen.queryByText("admin@test.com")).not.toBeInTheDocument();
     });
   });
 });
