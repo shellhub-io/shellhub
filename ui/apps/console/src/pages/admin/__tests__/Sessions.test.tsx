@@ -66,6 +66,44 @@ describe("AdminSessions", () => {
   });
 
   describe("session rows", () => {
+    it("names a person principal by the user's email", async () => {
+      server.use(
+        http.get("*/admin/api/users/user-1", () =>
+          HttpResponse.json({ id: "user-1", email: "alice@example.com" }),
+        ),
+      );
+      setSessions([mockSession({ principal: { kind: "user", id: "user-1" } })]);
+      renderPage();
+      expect(await screen.findByText("alice@example.com")).toBeInTheDocument();
+    });
+
+    it("keeps an api-key principal on its id and reads no user", async () => {
+      const requested: string[] = [];
+      server.use(
+        http.get("*/admin/api/users/:id", ({ params }) => {
+          requested.push(String(params.id));
+          return HttpResponse.json({
+            id: params.id,
+            email: `${String(params.id)}@example.com`,
+          });
+        }),
+      );
+      setSessions([
+        mockSession({
+          uid: "by-key",
+          principal: { kind: "api-key", id: "key-abcdef123456" },
+        }),
+        mockSession({
+          uid: "by-person",
+          principal: { kind: "user", id: "user-1" },
+        }),
+      ]);
+      renderPage();
+      expect(await screen.findByText("user-1@example.com")).toBeInTheDocument();
+      expect(screen.getByText("key-abcdef12…")).toBeInTheDocument();
+      expect(requested).toEqual(["user-1"]);
+    });
+
     it("renders the device name, the IP and a truncated session uid", async () => {
       setSessions([
         mockSession({ uid: "abcdef1234567890", ip_address: "10.0.0.1" }),

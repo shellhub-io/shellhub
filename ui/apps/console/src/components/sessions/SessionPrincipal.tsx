@@ -6,8 +6,8 @@ import type { SessionPrincipal as Principal } from "@/client";
 interface SessionPrincipalProps {
   principal: Principal | undefined;
   /**
-   * The account's name, resolved by the caller from the members and API keys it already loaded.
-   * Without it the chip shows a truncated id, with the whole id on the element's title.
+   * The name to show in place of the id. Without it the chip shows a truncated id, with the whole
+   * id on the element's title.
    */
   name?: string;
 }

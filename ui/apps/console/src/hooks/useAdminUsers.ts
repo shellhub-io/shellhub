@@ -61,7 +61,7 @@ export function useAdminUsers({
 }
 
 /**
- * One user by id, for the admin detail view.
+ * One user by id. An empty id issues no request, which is how a caller skips the lookup.
  */
 export function useAdminUser(id: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
