@@ -1,39 +1,38 @@
 ---
 layout: ../layouts/DocsLayout.astro
-title: REST API
-description: Authenticate, create the key automation holds, and find the specification.
+title: HTTP API
+description: Authenticate, create the key an automation holds, and find the specification.
 ---
 
 import Callout from "../components/Callout.astro";
 
-# REST API
+# HTTP API
 
-ShellHub exposes a REST API. [API Reference](/api/reference) is every route it has; this page is
-how you get in and what a credential can do once you are.
+ShellHub's HTTP API speaks JSON, and it is the same one the console uses.
+[API Reference](/api/reference) lists every route; this page is how you get in and what a
+credential can do once you are.
 
 ## Authenticating
 
 Two credentials work, and they are for different things.
 
-An **API key** goes in a header:
+An **API key** goes in the `X-API-Key` header:
 
 ```bash
 $ curl -H "X-API-Key: <your-api-key>" https://cloud.shellhub.io/api/devices
 ```
 
-It resolves to an identity carrying a namespace and a role. It belongs to the namespace rather
-than to a browser session, and its expiry is one you set at creation rather than a session lifetime
-the server imposes.
+It carries a namespace and a role. It belongs to the namespace rather than to anybody's session,
+and any expiry it has is one you set at creation, not a session lifetime the server imposes.
 
-A **bearer token** is the JWT from signing in:
+A **bearer token** is the JWT a person gets from signing in:
 
 ```bash
 $ curl -H "Authorization: Bearer <token>" https://cloud.shellhub.io/api/devices
 ```
 
-Tokens come in two kinds: a user token, from a person signing in, and a device token, which an
-agent uses. For user tokens the role is re-read from the store on every request rather than
-trusted from the token, so a role change takes effect immediately.
+The role behind it is read again on every request rather than trusted from the token, so a role
+change takes effect immediately.
 
 **Anything unattended should hold an API key.** A script driving a bearer token has to handle
 sign-in and expiry, and if it does that with a person's credentials it breaks the day that person
@@ -47,7 +46,7 @@ From the console, under **Team → API Keys**. A key has:
 |---|---|
 | **Name** | Unique within the namespace. How you identify it later |
 | **Role** | `administrator`, `operator`, or `observer` |
-| **Expiry** | Optional. A key with no expiry never expires |
+| **Expiry** | 30, 60 or 90 days, a year, or never |
 
 Name keys for what they do: `ci-deploy`, `inventory-sync`, not `key1`. The key's own routes
 address it by name. An access policy and an SSH identity refer to it by the id creation returns,
@@ -64,19 +63,21 @@ escalation path.
 </Callout>
 
 Give a key the least role that does the job, and set an expiry where you can. Most integrations
-only read, an observer key is enough, and a key with a deadline stops mattering on its own if
+only read, so an observer key is enough, and a key with a deadline stops mattering on its own if
 somebody forgets it exists. See [User Roles](/manage/team/user-roles).
 
 ## What a key cannot do
 
-Some routes refuse API keys regardless of role:
+Some routes refuse an API key whatever its role, because they act for a person:
 
-- Namespace membership operations
-- Install key management
-- MFA
-- User management
+- Creating, listing, updating or deleting API keys, its own included
+- Managing install keys
+- Generating an invitation link, or accepting an invitation
+- Creating, listing or leaving namespaces
+- Changing a user's own profile or password, and anything to do with MFA or the vault
+- Approving an SSH login or pairing a device
 
-These are human-only flows. The refusal is structural, not a permission you can grant.
+The refusal is structural, not a permission you can grant.
 
 ## A key over SSH
 
@@ -87,23 +88,21 @@ writing the policy that grants it.
 ## Rotating a key
 
 Create the new key, move consumers to it, then delete the old one. Name them so you can tell them
-apart mid-rotation — `ci-deploy-2026` rather than editing in place. Deleting takes effect
+apart mid-rotation, `ci-deploy-2026` rather than editing in place. Deleting takes effect
 immediately, and anything still using the old key starts getting `401`.
 
 ## When a credential is refused
 
-An unresolvable credential produces no identity rather than an error, so a protected route answers
-`401` — the same answer whether the key does not exist, has expired, or was never valid. The API
-does not tell an unauthenticated caller which of those it was.
-
-So a `401` means "this credential is not usable", not "this credential does not exist".
+A protected route answers `401` whether the key does not exist, has expired, or was never valid,
+and does not tell an unauthenticated caller which of those it was. A `401` means "this credential
+is not usable", not "this credential does not exist".
 
 ## Paginating a response
 
-List endpoints take `page` and `per_page`:
+List routes take `page` and `per_page`, and answer the total in the `X-Total-Count` header:
 
 ```bash
-$ curl -H "X-API-KEY: $KEY" \
+$ curl -H "X-API-Key: $KEY" \
     "https://cloud.shellhub.io/api/devices?page=1&per_page=100"
 ```
 
@@ -120,7 +119,7 @@ or to hand to a generator:
 
 **Take the one matching your edition.** Editions expose different routes: a Community server has
 no MFA, firewall rule, or web endpoint routes at all, so a client generated from the wrong file
-produces methods that answer 404. That is not a permission problem — the route is not there. See
+produces methods that answer 404. That is not a permission problem, because the route is not there. See
 [Editions](/about/editions).
 
 ## Where to go next

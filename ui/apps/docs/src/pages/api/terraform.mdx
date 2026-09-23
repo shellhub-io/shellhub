@@ -44,8 +44,9 @@ Configuring a device that ShellHub reaches is usually better done with
 
 ## Managing ShellHub itself
 
-ShellHub's REST API is what you would target to manage namespaces, API keys, tags or access
-policies as code.
+ShellHub's HTTP API is what you would target to manage devices, tags or access policies as code.
+An API key cannot create a namespace or manage API keys, so those stay a person's job in the
+console. See [What a key cannot do](/api#what-a-key-cannot-do).
 
 There is no official ShellHub Terraform provider. The options are the generic HTTP provider for
 simple cases, or `null_resource` with a `local-exec` calling the API:

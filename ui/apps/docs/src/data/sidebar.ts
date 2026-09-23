@@ -47,7 +47,7 @@ export const PAGES_NOT_IN_NAV: string[] = [
   // Served when nothing matches, so it is reached by mistake rather than by navigation.
   "/404",
   // The API reference is the specification rendered full-window, outside this layout. It is
-  // reached from the REST API page rather than listed beside pages that read like pages.
+  // reached from the HTTP API page rather than listed beside pages that read like pages.
   "/api/reference",
   "/connect/container-access",
 ];
@@ -310,7 +310,7 @@ export const sidebar: SidebarSection[] = [
     icon: PuzzlePieceIcon,
     items: [
       {
-        label: "REST API",
+        label: "HTTP API",
         href: "/api",
         featured: true,
       },
