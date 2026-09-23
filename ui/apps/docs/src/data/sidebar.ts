@@ -220,10 +220,6 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/access-control/policy-reference",
           },
           {
-            label: "Automation Access",
-            href: "/manage/access-control/automation-access",
-          },
-          {
             label: "Login Approvals",
             href: "/manage/access-control/login-approvals",
           },
@@ -318,6 +314,7 @@ export const sidebar: SidebarSection[] = [
         href: "/api",
         featured: true,
       },
+      { label: "SSH Access", href: "/api/ssh-access" },
       { label: "Install Key Webhook", href: "/api/install-key-webhook" },
       {
         label: "MCP Server",

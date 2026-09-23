@@ -32,10 +32,9 @@ provisioner "remote-exec" {
 
 The host is always the ShellHub server; the device is identified by `user`.
 
-**The key must already be an [SSH identity](/manage/access-control/ssh-identities).** If it is
-not, the connection parks waiting for a browser approval and Terraform hangs until it times out.
-Add the key ahead of time, on a
-[automation access](/manage/access-control/automation-access).
+**The key must already be enrolled.** If it is not, the connection parks waiting for a browser
+approval and Terraform hangs until it times out. Enroll it ahead of time through the API key's
+[SSH access](/api/ssh-access).
 
 <Callout variant="warning">
 Provisioners are a last resort in Terraform's own guidance, and that applies here.

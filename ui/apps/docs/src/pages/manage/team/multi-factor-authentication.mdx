@@ -68,9 +68,8 @@ Every MFA endpoint refuses API keys. It is a human-only flow by construction —
 has no browser and no authenticator, and allowing one to manipulate MFA state would undermine the
 point.
 
-An automation that needs to reach devices should hold a
-[automation access](/manage/access-control/automation-access), which never has MFA because it never
-signs in.
+An automation that needs to reach devices should connect as an API key, which never has MFA
+because it never signs in. See [SSH Access](/api/ssh-access).
 
 ## Account lockout
 

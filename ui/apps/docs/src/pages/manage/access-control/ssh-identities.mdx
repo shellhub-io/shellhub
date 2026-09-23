@@ -52,9 +52,8 @@ You do not have to wait for a first connection. **Add a Key** takes an OpenSSH p
 already exists, such as a server key, so its first connection works with no approval step. The key
 becomes another of your own identities; name it for where it lives, like `laptop`.
 
-A key an automation connects with belongs to an API key instead, and is added from that key's
-**SSH access** on the **Team** page. See
-[Automation access](/manage/access-control/automation-access).
+A key an automation connects with belongs to an API key instead. You add it from that API key's
+**SSH access** on the **Team** page; see [SSH Access](/api/ssh-access).
 
 Two things are rejected: a string that is not a valid public key, and a key that is already an
 identity in this namespace.
@@ -103,6 +102,6 @@ Worth knowing because they answer different questions:
 
 ## Where to go next
 
-- [Automation access](/manage/access-control/automation-access) — Identities with no human behind them.
+- [SSH Access](/api/ssh-access) — Identities with no human behind them.
 - [Access Policies](/manage/access-control/access-policies) — Deciding what an identity reaches.
 - [Login Approvals](/manage/access-control/login-approvals) — The approve-once flow.
