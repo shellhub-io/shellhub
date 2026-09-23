@@ -1,0 +1,63 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: SSH Access
+description: Let an API key connect to devices over SSH, on a credential of its own.
+---
+
+# SSH Access
+
+An automation reaches devices as an API key. The key's token never opens an SSH session, and an SSH
+identity never calls the API. Over SSH the API key connects as its own principal, with a public key
+enrolled for it. An access policy naming the API key decides where it may reach.
+
+| | API key token | The key's SSH identity |
+|---|---|---|
+| Used for | The REST API and MCP | SSH connections |
+| Looks like | A token in a header | A public key |
+| Governed by | Roles and permissions | [Access policies](/manage/access-control/access-policies) |
+
+## Enrolling the key's SSH key
+
+Enrolling needs permission to manage SSH identities, which an administrator and an owner hold.
+Permission to add your own key is not enough. Without permission to manage them, the **SSH
+access** column on **Team → API Keys** shows only a dash.
+
+The column shows how many SSH keys each API key holds, or **Not set up** when it holds none. Open
+the key's cell and choose **Add SSH key**, or **Add** once it holds one. Paste the public key the
+automation will connect with.
+
+A key's credentials live with the key. The **SSH Identities** page is about people and never lists
+them.
+
+## Naming the key in a policy
+
+A key holds no membership and no role over SSH, so an `all-members` allow never covers it, and
+neither does a role subject. An `all-members` deny does not cover it either, so a namespace-wide
+"no root anywhere" has to name the key too.
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Pipeline deploys | allow | API key `ci-deploy` | tag `production` | `deploy` |
+
+[Policy Reference](/manage/access-control/policy-reference) has the full subject rules.
+
+## Limiting the key's lifetime
+
+Give the SSH key an expiry, so an automation nobody touched in a year does not still hold live
+credentials. For a one-shot job, a provisioning run or a migration, make it single use, so
+it authorizes one session and is then consumed.
+
+Deleting the API key removes the SSH identities it owns and the policies naming it. An expired API
+key opens nothing, even while its SSH key is still enrolled.
+
+## No re-authentication
+
+A policy's `require_reauth` never applies to an API key. Re-auth is an interactive browser step
+and there is nobody to complete it, so demanding one would hang the connection. Freshness comes
+from the key's expiry and single use instead. If a path needs re-auth, it needs a person on it.
+
+## Where to go next
+
+- [REST API](/api#creating-a-key) — Creating the key itself, and what it may do over HTTP.
+- [Access Policies](/manage/access-control/access-policies) — Granting the key something.
+- [CI/CD Pipelines](/api/ci-cd) — A pipeline set up this way, end to end.

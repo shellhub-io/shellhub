@@ -89,10 +89,9 @@ Ansible presents an SSH key like any client, and that key must be an
 waiting for somebody to approve it in the console — which for a playbook run means it hangs.
 Nobody is watching for that prompt at 3am.
 
-For scheduled runs, put the key on a
-[automation access](/manage/access-control/automation-access) rather than a person's identity. The
-run is then attributed to `ansible-runner` in the session list, and it does not break when
-somebody leaves.
+For scheduled runs, connect as an API key with [its own SSH access](/api/ssh-access) rather than as
+a person. The run is then attributed to `ansible-runner` in the session list, and it does not
+break when somebody leaves.
 
 ## Authorization
 
@@ -124,5 +123,5 @@ a persisted connection is authorized once, when it opens.
 
 ## Where to go next
 
-- [Automation Access](/manage/access-control/automation-access) — The right principal for a runner.
+- [SSH Access](/api/ssh-access) — The right principal for a runner.
 - [SSH Client Configuration](/connect/ssh-clients) — Aliases and multiplexing.

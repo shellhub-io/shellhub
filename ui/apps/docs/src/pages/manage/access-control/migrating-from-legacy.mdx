@@ -37,9 +37,9 @@ holds each one. The keys nobody can account for are the reason this migration is
 do not carry them across.
 
 **2. Turn each key into an identity.** Add the ones you are keeping on the SSH Identities page,
-each bound to the right member. For automation, create a
-[automation access](/manage/access-control/automation-access) rather than binding the key to whoever
-set it up. Doing this before the switch means nobody sits through a first-use approval.
+each bound to the right member. An automation's key goes on the API key instead, from its **SSH
+access** on the **Team** page; see [SSH Access](/api/ssh-access). Doing this before the switch
+means nobody sits through a first-use approval.
 
 **3. Translate your firewall rules.** A deny rule usually becomes a deny policy. An allow rule
 that grants on source IP has **no direct equivalent** — source IP in a policy only narrows, so the

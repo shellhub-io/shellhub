@@ -15,7 +15,7 @@ How the decision is made depends on which model your namespace uses.
 
 | | Identity | Legacy |
 |---|---|---|
-| What proves who you are | An [SSH identity](/manage/access-control/ssh-identities) bound to a person or an automation account | A public key registered in the namespace |
+| What proves who you are | An [SSH identity](/manage/access-control/ssh-identities) bound to a person or an [API key](/api#creating-a-key) | A public key registered in the namespace |
 | What decides what you reach | [Access policies](/manage/access-control/access-policies) | The key's device ACL, plus firewall rules |
 | An unlisted device is | Denied | Allowed, unless a rule blocks it |
 | The audit trail names | The principal | The key |
@@ -31,8 +31,9 @@ The rest of this page describes identity mode. For the older model see
 
 ## Identities prove who
 
-An SSH identity binds a public key to a **principal** — a person on your team, or a service
-account. The key is the credential; the identity is who that credential belongs to.
+An SSH identity binds a public key to a **principal**: a person on your team, or an
+[API key an automation connects as](/api/ssh-access). The key is the credential; the identity is
+who that credential belongs to.
 
 This inversion is what makes everything downstream work. In the legacy model a key *is* the
 access: whoever holds it gets in, and the record can only name the key. With identities, a
@@ -111,4 +112,5 @@ through the four possibilities.
 
 - [SSH Identities](/manage/access-control/ssh-identities) — Binding keys to people.
 - [Access Policies](/manage/access-control/access-policies) — Writing the rules.
+- [SSH Access](/api/ssh-access) — Giving a pipeline its own way in.
 - [Login Approvals](/manage/access-control/login-approvals) — When a login pauses for confirmation.

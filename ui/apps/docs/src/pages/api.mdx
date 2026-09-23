@@ -49,8 +49,9 @@ From the console, under **Team → API Keys**. A key has:
 | **Role** | `administrator`, `operator`, or `observer` |
 | **Expiry** | Optional. A key with no expiry never expires |
 
-The name is the only external identifier — the internal id is a hash and is never returned. Name
-keys for what they do: `ci-deploy`, `inventory-sync`, not `key1`.
+Name keys for what they do: `ci-deploy`, `inventory-sync`, not `key1`. The key's own routes
+address it by name. An access policy and an SSH identity refer to it by the id creation returns,
+so renaming a key breaks neither.
 
 A key is scoped to the one namespace it was created in. It reaches nothing in another namespace,
 and it is not accepted on the instance administration surface under `/admin/api`, which takes a
@@ -77,20 +78,11 @@ Some routes refuse API keys regardless of role:
 
 These are human-only flows. The refusal is structural, not a permission you can grant.
 
-## A key is not an SSH identity
+## A key over SSH
 
-The distinction catches people.
-
-| | API key | SSH identity |
-|---|---|---|
-| Used for | The REST API and MCP | SSH connections |
-| Looks like | A token in a header | A public key |
-| Governed by | Roles and permissions | [Access policies](/manage/access-control/access-policies) |
-
-**An API key cannot open an SSH session, and an SSH identity cannot call the API.** Automation
-doing both needs both: a key for the REST calls, and a
-[automation access](/manage/access-control/automation-access) holding an SSH identity for the
-connections.
+An API key's token never opens an SSH session, and an SSH identity never calls the API. See
+[SSH Access](/api/ssh-access) for how the key connects over SSH, enrolling its public key and
+writing the policy that grants it.
 
 ## Rotating a key
 
@@ -135,4 +127,4 @@ produces methods that answer 404. That is not a permission problem — the route
 
 - [API Reference](/api/reference) — Every route, per edition.
 - [MCP Server](/api/mcp) — The same API, for AI agents.
-- [Automation Access](/manage/access-control/automation-access) — The SSH-side credential.
+- [SSH Access](/api/ssh-access) — The key's way in to devices.

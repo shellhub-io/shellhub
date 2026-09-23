@@ -75,7 +75,7 @@ Rejecting refuses the connection and binds nothing.
 You can skip this step by adding the key ahead of time on the SSH Identities page, the usual move
 for a server key, where nobody is watching for a prompt. See
 [SSH Identities](/manage/access-control/ssh-identities). A CI runner connects as an API key
-instead; see [Automation access](/manage/access-control/automation-access).
+instead; see [SSH Access](/api/ssh-access).
 
 ## Re-authentication required by a policy
 
@@ -115,7 +115,7 @@ silently shadow the narrow policy you wrote specifically to protect production.
 <Callout variant="warning">
 An automation never re-authenticates. There is no human to complete the step, so
 demanding one would hang the connection. See
-[Automation access](/manage/access-control/automation-access).
+[SSH Access](/api/ssh-access).
 </Callout>
 
 ## The two side by side
