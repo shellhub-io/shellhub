@@ -49,20 +49,7 @@ post:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              UID:
-                description: Device UID
-                type: string
-              Token:
-                description: Device token
-                type: string
-              Name:
-                description: Device name
-                type: string
-              Namespace:
-                description: Device owner namespace
-                type: string
+            $ref: ../components/schemas/deviceAuthResponse.yaml
     '400':
       $ref: ../components/responses/400.yaml
     '401':

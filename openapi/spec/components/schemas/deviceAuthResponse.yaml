@@ -1,0 +1,15 @@
+description: What an agent receives on a successful authentication.
+type: object
+properties:
+  uid:
+    $ref: deviceUID.yaml
+  token:
+    $ref: deviceToken.yaml
+  name:
+    $ref: deviceName.yaml
+  namespace:
+    $ref: deviceNamespaceName.yaml
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  status:
+    $ref: deviceStatus.yaml
