@@ -87,6 +87,13 @@ jobs:
         working-directory: shellhub/ui
         run: npm install
 
+      - name: Generate OpenAPI client
+        if: steps.filter.outputs.e2e == 'true'
+        working-directory: shellhub/ui
+        run: |
+          npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
+
       - name: Restore Playwright browser
         if: steps.filter.outputs.e2e == 'true'
         id: playwright-browser

@@ -1,62 +1,41 @@
-import type { APIRequestContext } from "@playwright/test";
-import type {
-  LoginResponse,
-  GenerateInvitationLinkResponse,
-  NamespaceMemberRole,
-} from "@/client";
+import { generateInvitationLink, login } from "@/client";
+import { createClient } from "@/client/client";
 import { requireEnv } from "./env";
 
-const baseURL = requireEnv("E2E_BASE_URL");
+type Credential = { token: string };
 
-interface ApiOptions {
-  token?: string;
-  data?: unknown;
+const client = createClient({ baseUrl: requireEnv("E2E_BASE_URL") });
+
+client.interceptors.error.use((error, response, request) =>
+  response && request && !response.ok
+    ? new Error(
+        `${request.method} ${request.url}: ${response.status} ${typeof error === "string" ? error : JSON.stringify(error)}`,
+      )
+    : error,
+);
+
+function authHeaders(auth?: Credential): Record<string, string> {
+  return auth ? { Authorization: `Bearer ${auth.token}` } : {};
 }
 
-async function api<T>(
-  request: APIRequestContext,
-  method: "get" | "post" | "patch" | "put" | "delete",
-  path: string,
-  opts: ApiOptions = {},
-): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (opts.token) headers["Authorization"] = `Bearer ${opts.token}`;
+export function buildRequestContext(auth?: Credential) {
+  return { client, headers: authHeaders(auth), throwOnError: true as const };
+}
 
-  const res = await request[method](`${baseURL}${path}`, {
-    headers,
-    data: opts.data,
+export async function loginAs(username: string, password: string) {
+  const { data } = await login({
+    ...buildRequestContext(),
+    body: { username, password },
   });
-
-  if (!res.ok()) {
-    throw new Error(
-      `${method.toUpperCase()} ${path}: ${res.status()} ${await res.text()}`,
-    );
-  }
-
-  return res.json() as Promise<T>;
+  return data;
 }
 
-export function login(
-  request: APIRequestContext,
-  username: string,
-  password: string,
-) {
-  return api<LoginResponse>(request, "post", "/api/login", {
-    data: { username, password },
+export async function invite(token: string, tenant: string, email: string) {
+  const { data } = await generateInvitationLink({
+    ...buildRequestContext({ token }),
+    path: { tenant },
+    body: { email, role: "observer" },
   });
-}
-
-export function createInvitationLink(
-  request: APIRequestContext,
-  token: string,
-  tenant: string,
-  email: string,
-  role: Exclude<NamespaceMemberRole, "owner"> = "observer",
-) {
-  return api<GenerateInvitationLinkResponse>(
-    request,
-    "post",
-    `/api/namespaces/${tenant}/invitations/links`,
-    { token, data: { email, role } },
-  );
+  if (!data.link) throw new Error(`expected an invitation link for ${email}`);
+  return { email, link: data.link };
 }

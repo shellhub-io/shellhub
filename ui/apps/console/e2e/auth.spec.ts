@@ -1,4 +1,4 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { adminUser, isEnterprise } from "./env";
 import {
@@ -8,7 +8,7 @@ import {
   createUser,
   createNamespace,
 } from "./helpers";
-import { login, createInvitationLink } from "./api";
+import { invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
   test("signs in with valid credentials", async ({ page }) => {
@@ -78,14 +78,14 @@ test.describe("accept invitation", () => {
   let adminToken: string;
   let adminTenant: string;
 
-  test.beforeAll(async ({ request }) => {
-    const auth = await login(request, adminUser.username, adminUser.password);
+  test.beforeAll(async () => {
+    const auth = await loginAs(adminUser.username, adminUser.password);
     if (!auth.tenant) throw new Error(`${adminUser.username} has no namespace`);
     adminToken = auth.token;
     adminTenant = auth.tenant;
   });
 
-  async function inviteUser(request: APIRequestContext) {
+  async function inviteUser() {
     const id = randomUUID().slice(0, 8);
     const user = {
       username: `e2e-invitee-${id}`,
@@ -95,29 +95,21 @@ test.describe("accept invitation", () => {
     createUser(user.username, user.password, user.email);
     createNamespace(user.username, `ns-invitee-${id}`, randomUUID());
 
-    const { link } = await createInvitationLink(
-      request,
-      adminToken,
-      adminTenant,
-      user.email,
-    );
+    const { link } = await invite(adminToken, adminTenant, user.email);
 
-    if (!link) throw new Error("expected invitation link for existing user");
-
-    return { user, sig: new URL(link).searchParams.get("invite")! };
+    return { user, link };
   }
 
   test("existing user, logged in — accepts and switches namespace", async ({
     page,
-    request,
   }) => {
     test.skip(isEnterprise, directMembershipReason);
-    const { user, sig } = await inviteUser(request);
+    const { user, link } = await inviteUser();
 
     await signIn(page, user.username, user.password);
     await dismissWizard(page);
 
-    await page.goto(`/accept-invite?invite=${sig}`);
+    await page.goto(link);
 
     await page.getByRole("button", { name: "Accept" }).click();
 
@@ -132,14 +124,11 @@ test.describe("accept invitation", () => {
     );
   });
 
-  test("not logged in — redirected to login, then back", async ({
-    page,
-    request,
-  }) => {
+  test("not logged in — redirected to login, then back", async ({ page }) => {
     test.skip(isEnterprise, directMembershipReason);
-    const { user, sig } = await inviteUser(request);
+    const { user, link } = await inviteUser();
 
-    await page.goto(`/accept-invite?invite=${sig}`);
+    await page.goto(link);
     await expect(page).toHaveURL(/\/login.*redirect/, { timeout: 10000 });
 
     await fillLoginForm(page, user.username, user.password);
@@ -148,21 +137,14 @@ test.describe("accept invitation", () => {
     await expect(page.getByRole("button", { name: "Accept" })).toBeVisible();
   });
 
-  test("new user — sign-up form, create account + join", async ({
-    page,
-    request,
-  }) => {
+  test("new user — sign-up form, create account + join", async ({ page }) => {
     const id = randomUUID().slice(0, 8);
-    const { link } = await createInvitationLink(
-      request,
+    const { link } = await invite(
       adminToken,
       adminTenant,
       `e2e-signup-${id}@e2e.test`,
     );
-    if (!link) throw new Error("expected invitation link for unknown user");
-    const sig = new URL(link).searchParams.get("invite")!;
-
-    await page.goto(`/accept-invite?invite=${sig}`);
+    await page.goto(link);
 
     await expect(page.getByRole("heading", { name: /invited/i })).toBeVisible({
       timeout: 10000,
