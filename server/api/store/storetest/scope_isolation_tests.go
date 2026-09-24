@@ -125,9 +125,9 @@ func (s *Suite) TestScopeIsolationTagConflicts(t *testing.T) {
 	assert.Empty(t, conflicts)
 }
 
-// TestScopeIsolationInstallKeyResolve locks that InstallKeyResolve answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyResolve locks that ProvisioningKeyResolve answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyResolve(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -142,11 +142,11 @@ func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 		{owner, ownerDigest, "owner-key"},
 		{other, otherDigest, "other-key"},
 	} {
-		_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+		_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 			ID:        key.digest,
 			Name:      key.name,
 			TenantID:  key.tenant,
-			Mode:      models.InstallKeyModeManual,
+			Mode:      models.ProvisioningKeyModeManual,
 			Reusable:  true,
 			Tags:      []string{},
 			CreatedBy: "00000000-0000-4000-0000-000000000009",
@@ -154,22 +154,22 @@ func (s *Suite) TestScopeIsolationInstallKeyResolve(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := st.InstallKeyResolve(ctx, scope.MustBounded(owner), store.InstallKeyIDResolver, ownerDigest)
+	got, err := st.ProvisioningKeyResolve(ctx, scope.MustBounded(owner), store.ProvisioningKeyIDResolver, ownerDigest)
 	require.NoError(t, err)
 	assert.Equal(t, owner, got.TenantID)
 
-	got, err = st.InstallKeyResolve(ctx, scope.MustBounded(other), store.InstallKeyIDResolver, otherDigest)
+	got, err = st.ProvisioningKeyResolve(ctx, scope.MustBounded(other), store.ProvisioningKeyIDResolver, otherDigest)
 	require.NoError(t, err)
 	assert.Equal(t, other, got.TenantID)
 
-	got, err = st.InstallKeyResolve(ctx, scope.MustBounded(other), store.InstallKeyIDResolver, ownerDigest)
+	got, err = st.ProvisioningKeyResolve(ctx, scope.MustBounded(other), store.ProvisioningKeyIDResolver, ownerDigest)
 	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
-// TestScopeIsolationInstallKeyList locks that InstallKeyList answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyList locks that ProvisioningKeyList answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyList(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -177,33 +177,33 @@ func (s *Suite) TestScopeIsolationInstallKeyList(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 		ID:        "4444444444444444444444444444444444444444444444444444444444444444",
 		Name:      "only-key",
 		TenantID:  owner,
-		Mode:      models.InstallKeyModeManual,
+		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
 		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
 
-	keys, _, err := st.InstallKeyList(ctx, scope.MustBounded(owner))
+	keys, _, err := st.ProvisioningKeyList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Contains(t, installKeyNames(keys), "only-key")
+	assert.Contains(t, provisioningKeyNames(keys), "only-key")
 	for _, k := range keys {
 		assert.Equal(t, owner, k.TenantID)
 	}
 
-	keys, _, err = st.InstallKeyList(ctx, scope.MustBounded(other))
+	keys, _, err = st.ProvisioningKeyList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.NotContains(t, installKeyNames(keys), "only-key")
+	assert.NotContains(t, provisioningKeyNames(keys), "only-key")
 	for _, k := range keys {
 		assert.Equal(t, other, k.TenantID)
 	}
 }
 
-func installKeyNames(keys []models.InstallKey) []string {
+func provisioningKeyNames(keys []models.ProvisioningKey) []string {
 	names := make([]string, len(keys))
 	for i, k := range keys {
 		names[i] = k.Name
@@ -212,9 +212,9 @@ func installKeyNames(keys []models.InstallKey) []string {
 	return names
 }
 
-// TestScopeIsolationInstallKeyConflicts locks that InstallKeyConflicts answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyConflicts locks that ProvisioningKeyConflicts answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyConflicts(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -222,29 +222,29 @@ func (s *Suite) TestScopeIsolationInstallKeyConflicts(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 		ID:        "5555555555555555555555555555555555555555555555555555555555555555",
 		Name:      "taken",
 		TenantID:  owner,
-		Mode:      models.InstallKeyModeManual,
+		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
 		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
 
-	_, has, err := st.InstallKeyConflicts(ctx, scope.MustBounded(owner), &models.InstallKeyConflicts{Name: "taken"})
+	_, has, err := st.ProvisioningKeyConflicts(ctx, scope.MustBounded(owner), &models.ProvisioningKeyConflicts{Name: "taken"})
 	require.NoError(t, err)
 	assert.True(t, has)
 
-	_, has, err = st.InstallKeyConflicts(ctx, scope.MustBounded(other), &models.InstallKeyConflicts{Name: "taken"})
+	_, has, err = st.ProvisioningKeyConflicts(ctx, scope.MustBounded(other), &models.ProvisioningKeyConflicts{Name: "taken"})
 	require.NoError(t, err)
 	assert.False(t, has)
 }
 
-// TestScopeIsolationInstallKeyResolveSystem locks that InstallKeyResolveSystem answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyResolveSystem locks that ProvisioningKeyResolveSystem answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyResolveSystem(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyResolveSystem(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -252,19 +252,19 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystem(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	ownerKey, err := st.InstallKeyResolveSystem(ctx, scope.MustBounded(owner))
+	ownerKey, err := st.ProvisioningKeyResolveSystem(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
 	assert.Equal(t, owner, ownerKey.TenantID)
 
-	otherKey, err := st.InstallKeyResolveSystem(ctx, scope.MustBounded(other))
+	otherKey, err := st.ProvisioningKeyResolveSystem(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
 	assert.Equal(t, other, otherKey.TenantID)
 	assert.NotEqual(t, ownerKey.TenantID, otherKey.TenantID)
 }
 
-// TestScopeIsolationInstallKeyEventList locks that InstallKeyEventList answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyEventList locks that ProvisioningKeyEventList answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyEventList(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyEventList(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -273,11 +273,11 @@ func (s *Suite) TestScopeIsolationInstallKeyEventList(t *testing.T) {
 	other := s.CreateNamespace(t)
 
 	const digest = "6666666666666666666666666666666666666666666666666666666666666666"
-	_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 		ID:        digest,
 		Name:      "with-history",
 		TenantID:  owner,
-		Mode:      models.InstallKeyModeManual,
+		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
 		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
@@ -285,19 +285,19 @@ func (s *Suite) TestScopeIsolationInstallKeyEventList(t *testing.T) {
 	require.NoError(t, err)
 
 	deviceUID := s.CreateDevice(t, WithTenantID(owner), WithDeviceName("enrolled"))
-	require.NoError(t, st.InstallKeyEventCreate(ctx, &models.InstallKeyEvent{
-		InstallKeyID: digest,
-		TenantID:     owner,
-		DeviceUID:    string(deviceUID),
-		Hostname:     "enrolled",
+	require.NoError(t, st.ProvisioningKeyEventCreate(ctx, &models.ProvisioningKeyEvent{
+		ProvisioningKeyID: digest,
+		TenantID:          owner,
+		DeviceUID:         string(deviceUID),
+		Hostname:          "enrolled",
 	}))
 
-	events, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(owner), digest)
+	events, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.Len(t, events, 1)
 
-	events, count, err = st.InstallKeyEventList(ctx, scope.MustBounded(other), digest)
+	events, count, err = st.ProvisioningKeyEventList(ctx, scope.MustBounded(other), digest)
 	require.NoError(t, err)
 	assert.Equal(t, 0, count)
 	assert.Empty(t, events)
@@ -521,9 +521,9 @@ func (s *Suite) TestScopeIsolationAPIKeyConflicts(t *testing.T) {
 	assert.False(t, has)
 }
 
-// TestScopeIsolationInstallKeyResolveSystemPairing locks that InstallKeyResolveSystemPairing answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyResolveSystemPairing locks that ProvisioningKeyResolveSystemPairing answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyResolveSystemPairing(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyResolveSystemPairing(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -531,21 +531,21 @@ func (s *Suite) TestScopeIsolationInstallKeyResolveSystemPairing(t *testing.T) {
 	owner := s.CreateNamespace(t)
 	other := s.CreateNamespace(t)
 
-	ownerKey, err := st.InstallKeyResolveSystemPairing(ctx, scope.MustBounded(owner))
+	ownerKey, err := st.ProvisioningKeyResolveSystemPairing(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
 	assert.Equal(t, owner, ownerKey.TenantID)
 
-	otherKey, err := st.InstallKeyResolveSystemPairing(ctx, scope.MustBounded(other))
+	otherKey, err := st.ProvisioningKeyResolveSystemPairing(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
 	assert.Equal(t, other, otherKey.TenantID)
 
-	_, err = st.InstallKeyResolveSystemPairing(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
+	_, err = st.ProvisioningKeyResolveSystemPairing(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 	assert.ErrorIs(t, err, store.ErrInvalidScope)
 }
 
-// TestScopeIsolationInstallKeyEventStampDecision locks that InstallKeyEventStampDecision answers within the owning namespace and returns
+// TestScopeIsolationProvisioningKeyEventStampDecision locks that ProvisioningKeyEventStampDecision answers within the owning namespace and returns
 // nothing when bounded to another.
-func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
+func (s *Suite) TestScopeIsolationProvisioningKeyEventStampDecision(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 	require.NoError(t, s.provider.CleanDatabase(t))
@@ -554,11 +554,11 @@ func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 	other := s.CreateNamespace(t)
 
 	const digest = "7777777777777777777777777777777777777777777777777777777777777777"
-	_, err := st.InstallKeyCreate(ctx, &models.InstallKey{
+	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 		ID:        digest,
 		Name:      "stamped",
 		TenantID:  owner,
-		Mode:      models.InstallKeyModeManual,
+		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
 		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
@@ -566,29 +566,29 @@ func (s *Suite) TestScopeIsolationInstallKeyEventStampDecision(t *testing.T) {
 	require.NoError(t, err)
 
 	deviceUID := s.CreateDevice(t, WithTenantID(owner), WithDeviceName("enrolled"))
-	require.NoError(t, st.InstallKeyEventCreate(ctx, &models.InstallKeyEvent{
-		InstallKeyID: digest,
-		TenantID:     owner,
-		DeviceUID:    string(deviceUID),
-		Hostname:     "enrolled",
+	require.NoError(t, st.ProvisioningKeyEventCreate(ctx, &models.ProvisioningKeyEvent{
+		ProvisioningKeyID: digest,
+		TenantID:          owner,
+		DeviceUID:         string(deviceUID),
+		Hostname:          "enrolled",
 	}))
 
-	require.NoError(t, st.InstallKeyEventStampDecision(ctx, scope.MustBounded(other), string(deviceUID), models.DeviceStatusRejected, clock.Now()))
+	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(other), string(deviceUID), models.DeviceStatusRejected, clock.Now()))
 
-	events, _, err := st.InstallKeyEventList(ctx, scope.MustBounded(owner), digest)
+	events, _, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.Empty(t, events[0].DecidedStatus)
 
-	require.NoError(t, st.InstallKeyEventStampDecision(ctx, scope.MustBounded(owner), string(deviceUID), models.DeviceStatusAccepted, clock.Now()))
+	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(owner), string(deviceUID), models.DeviceStatusAccepted, clock.Now()))
 
-	events, _, err = st.InstallKeyEventList(ctx, scope.MustBounded(owner), digest)
+	events, _, err = st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.Equal(t, models.DeviceStatusAccepted, events[0].DecidedStatus)
 
 	assert.ErrorIs(t,
-		st.InstallKeyEventStampDecision(ctx, scope.NewUnbounded(reasonTestQueryMechanics), string(deviceUID), models.DeviceStatusRejected, clock.Now()),
+		st.ProvisioningKeyEventStampDecision(ctx, scope.NewUnbounded(reasonTestQueryMechanics), string(deviceUID), models.DeviceStatusRejected, clock.Now()),
 		store.ErrInvalidScope)
 }
 

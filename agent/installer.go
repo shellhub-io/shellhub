@@ -40,7 +40,7 @@ type installerConfig struct {
 	ServerAddress     string
 	TenantID          string
 	PrivateKey        string
-	InstallKey        string
+	ProvisioningKey   string
 	PreferredHostname string
 	PreferredIdentity string
 	KeepaliveInterval uint
@@ -60,10 +60,10 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 			preferredHostname, _ := flags.GetString("preferred-hostname")
 			preferredIdentity, _ := flags.GetString("preferred-identity")
 
-			installKey, _ := flags.GetString("install-key")
-			if installKey != "" {
-				if _, err := uuid.Parse(installKey); err != nil {
-					return fmt.Errorf("invalid install key: %q is not a valid UUID", installKey)
+			provisioningKey, _ := flags.GetString("provisioning-key")
+			if provisioningKey != "" {
+				if _, err := uuid.Parse(provisioningKey); err != nil {
+					return fmt.Errorf("invalid provisioning key: %q is not a valid UUID", provisioningKey)
 				}
 			}
 
@@ -76,7 +76,7 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 				ServerAddress:     serverAddress,
 				TenantID:          tenantID,
 				PrivateKey:        privateKey,
-				InstallKey:        installKey,
+				ProvisioningKey:   provisioningKey,
 				PreferredHostname: preferredHostname,
 				PreferredIdentity: preferredIdentity,
 				KeepaliveInterval: keepaliveInterval,
@@ -95,12 +95,12 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	installCmd.Flags().String("server-address", "", "ShellHub server address")
 	installCmd.Flags().String("tenant-id", "", "Namespace tenant ID")
 	installCmd.Flags().String("private-key", "/etc/shellhub.key", "Path to the agent private key file")
-	installCmd.Flags().String("install-key", "", "Install key used to enroll the device")
+	installCmd.Flags().String("provisioning-key", "", "Provisioning key used to enroll the device")
 	installCmd.Flags().String("preferred-hostname", "", "Preferred device hostname")
 	installCmd.Flags().String("preferred-identity", "", "Preferred device identity")
 	installCmd.Flags().Uint("keepalive-interval", 30, "Keepalive interval in seconds")
 	installCmd.MarkFlagRequired("server-address") //nolint:errcheck
-	installCmd.MarkFlagsOneRequired("tenant-id", "install-key")
+	installCmd.MarkFlagsOneRequired("tenant-id", "provisioning-key")
 
 	rootCmd.AddCommand(installCmd)
 
@@ -170,8 +170,8 @@ func writeAgentEnvFile(cfg installerConfig) error {
 		fmt.Fprintf(&buf, "SHELLHUB_TENANT_ID=%s\n", cfg.TenantID)
 	}
 
-	if cfg.InstallKey != "" {
-		fmt.Fprintf(&buf, "SHELLHUB_INSTALL_KEY=%s\n", cfg.InstallKey)
+	if cfg.ProvisioningKey != "" {
+		fmt.Fprintf(&buf, "SHELLHUB_PROVISIONING_KEY=%s\n", cfg.ProvisioningKey)
 	}
 
 	if cfg.PreferredHostname != "" {

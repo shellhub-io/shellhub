@@ -17,12 +17,12 @@ import {
 import CopyButton from "../components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
-import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer";
-import { isSystemKey } from "@/pages/install-keys/helpers";
-import { modeInfo } from "@/pages/install-keys/constants";
+import CreateProvisioningKeyDrawer from "@/pages/provisioning-keys/CreateProvisioningKeyDrawer";
+import { isSystemKey } from "@/pages/provisioning-keys/helpers";
+import { modeInfo } from "@/pages/provisioning-keys/constants";
 import { METHODS, type Method } from "@/pages/install/methods";
-import { useInstallKeys } from "@/hooks/useInstallKeys";
-import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
+import { useProvisioningKeys } from "@/hooks/useProvisioningKeys";
+import { useRevealProvisioningKey } from "@/hooks/useRevealProvisioningKey";
 import InputField from "@/components/common/fields/InputField";
 import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
@@ -48,7 +48,7 @@ const CODELESS_METHODS: Method[] = [
 
 /* Two audiences, because the mechanism follows from who is being added: one
  * machine installs clean and confirms in the browser; a fleet bakes a reusable
- * install key into many machines. */
+ * provisioning key into many machines. */
 type Audience = "machine" | "fleet";
 
 const AUDIENCES: {
@@ -67,11 +67,11 @@ const AUDIENCES: {
     id: "fleet",
     icon: ServerStackIcon,
     title: "Fleet",
-    sub: "Provision many, unattended, with a reusable install key.",
+    sub: "Provision many, unattended, with a reusable provisioning key.",
   },
 ];
 
-/* Explains where each install-key mode lands a device, shown next to the key
+/* Explains where each provisioning-key mode lands a device, shown next to the key
  * picker so the operator knows the outcome before baking the command. */
 const MODE_OUTCOME: Record<string, string> = {
   automatic: "accepted the moment it connects",
@@ -81,7 +81,7 @@ const MODE_OUTCOME: Record<string, string> = {
 };
 
 /**
- * How to add a device: the install command, the install key, and the alternatives. The command
+ * How to add a device: the install command, the provisioning key, and the alternatives. The command
  * shown carries the namespace's own tenant, so it is copyable as-is.
  */
 export default function AddDevice() {
@@ -112,13 +112,13 @@ export default function AddDevice() {
 
   const origin = window.location.origin;
 
-  const { installKeys } = useInstallKeys({ perPage: 50 });
-  const usableKeys = installKeys.filter(
+  const { provisioningKeys } = useProvisioningKeys({ perPage: 50 });
+  const usableKeys = provisioningKeys.filter(
     (k) => !isSystemKey(k) && !k.revoked && !k.disabled,
   );
   const selectedKey =
     usableKeys.find((k) => k.name === selectedKeyName) ?? usableKeys[0];
-  const { key: revealedKey } = useRevealInstallKey(
+  const { key: revealedKey } = useRevealProvisioningKey(
     aud === "fleet" ? (selectedKey?.name ?? null) : null,
     aud === "fleet",
   );
@@ -129,7 +129,7 @@ export default function AddDevice() {
     const parts = ["curl -sSf", `${origin}/install.sh`, "|"];
     if (method !== "auto") parts.push(`INSTALL_METHOD=${method}`);
     if (aud === "fleet") {
-      parts.push(`INSTALL_KEY=${revealedKey || "…"}`);
+      parts.push(`PROVISIONING_KEY=${revealedKey || "…"}`);
     } else if (!codeless) {
       parts.push(`TENANT_ID=${tenant}`);
     }
@@ -271,7 +271,7 @@ export default function AddDevice() {
         </div>
       </div>
 
-      {/* Fleet — pick (or create) the reusable install key baked into the
+      {/* Fleet — pick (or create) the reusable provisioning key baked into the
           command. Its mode decides where each device lands. */}
       {aud === "fleet" && (
         <div className="mb-6">
@@ -280,7 +280,7 @@ export default function AddDevice() {
               2
             </span>
             <span id="add-device-key-label" className={LABEL_BASE}>
-              Install key
+              Provisioning key
             </span>
           </div>
 
@@ -292,18 +292,18 @@ export default function AddDevice() {
                 </div>
                 <div>
                   <p className="text-sm text-text-primary font-medium mb-1">
-                    No install key yet
+                    No provisioning key yet
                   </p>
                   <p className="text-2xs text-text-muted leading-relaxed mb-3">
-                    A fleet enrolls with a reusable install key. Create one,
-                    then bake it into your image or provisioning.
+                    A fleet enrolls with a reusable provisioning key. Create
+                    one, then bake it into your image or provisioning.
                   </p>
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() => setCreateKeyOpen(true)}
                   >
-                    Create an install key
+                    Create a provisioning key
                   </Button>
                 </div>
               </div>
@@ -341,10 +341,10 @@ export default function AddDevice() {
                   className="flex items-center gap-1.5 text-2xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   <PlusIcon className="w-3 h-3" strokeWidth={2.5} />
-                  New install key
+                  New provisioning key
                 </button>
                 <Link
-                  to="/install-keys"
+                  to="/provisioning-keys"
                   className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   Manage keys
@@ -372,7 +372,7 @@ export default function AddDevice() {
 
         {fleetBlocked ? (
           <div className="text-xs text-text-muted bg-card border border-border rounded-lg px-4 py-3.5">
-            Create an install key above to get your command.
+            Create a provisioning key above to get your command.
           </div>
         ) : selectedMethod.manual ? (
           <Card className="p-5">
@@ -491,7 +491,7 @@ export default function AddDevice() {
         </div>
       )}
 
-      {/* Outcome, per audience: browser accept (container), install-key mode
+      {/* Outcome, per audience: browser accept (container), provisioning-key mode
           (fleet), or the pending list (a machine on a non-container method). */}
       {fleetBlocked ? null : codeless ? (
         <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
@@ -525,10 +525,10 @@ export default function AddDevice() {
           <div className="text-xs text-text-secondary leading-relaxed">
             After installing, your device waits for a decision on the{" "}
             <Link
-              to="/install-keys"
+              to="/provisioning-keys"
               className="text-primary font-medium hover:text-primary/80 transition-colors"
             >
-              install key
+              provisioning key
             </Link>{" "}
             that registered it, and must be accepted before you can connect to
             it.
@@ -562,7 +562,7 @@ export default function AddDevice() {
 
       {/* Create a key without leaving the page; on success it becomes the
           selected key and the command below fills in. */}
-      <CreateInstallKeyDrawer
+      <CreateProvisioningKeyDrawer
         open={createKeyOpen}
         onClose={() => setCreateKeyOpen(false)}
         onCreated={(name) => setSelectedKeyName(name)}

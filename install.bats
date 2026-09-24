@@ -120,20 +120,20 @@ enter_wsl() {
 
 @test "enrollment_summary reports a pairing code ahead of every other credential" {
     with_tenant
-    export CODE=ABC123 INSTALL_KEY=key-1
+    export CODE=ABC123 PROVISIONING_KEY=key-1
 
     call_install enrollment_summary
 
     [ "$output" = "pairing code (pre-authorized)" ]
 }
 
-@test "enrollment_summary reports an install key ahead of a tenant" {
+@test "enrollment_summary reports a provisioning key ahead of a tenant" {
     with_tenant
-    export INSTALL_KEY=key-1
+    export PROVISIONING_KEY=key-1
 
     call_install enrollment_summary
 
-    [ "$output" = "install key" ]
+    [ "$output" = "provisioning key" ]
 }
 
 @test "enrollment_summary reports a tenant as landing pending" {
@@ -200,15 +200,15 @@ enter_wsl() {
     assert_output_contains "pre-authorized"
 }
 
-@test "enroll_agent_interactively skips the login flow for an install key" {
-    export INSTALL_KEY=key-1
+@test "enroll_agent_interactively skips the login flow for a provisioning key" {
+    export PROVISIONING_KEY=key-1
     stub_bin shellhub-agent
 
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
 
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
-    assert_output_contains "install key's namespace"
+    assert_output_contains "provisioning key's namespace"
 }
 
 @test "enroll_agent_interactively skips the login flow for a tenant" {
@@ -362,14 +362,14 @@ enter_wsl() {
 
 @test "docker_install maps credentials and preferences onto the agent environment" {
     with_tenant
-    export CODE=ABC123 INSTALL_KEY=key-1 KEEPALIVE_INTERVAL=45
+    export CODE=ABC123 PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
     export PREFERRED_HOSTNAME=box PREFERRED_IDENTITY=eth0
 
     container_install
 
     [ "$status" -eq 0 ]
     assert_called "-e SHELLHUB_PAIRING_CODE=ABC123"
-    assert_called "-e SHELLHUB_INSTALL_KEY=key-1"
+    assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
     assert_called "-e SHELLHUB_KEEPALIVE_INTERVAL=45"
     assert_called "-e SHELLHUB_PREFERRED_HOSTNAME=box"
     assert_called "-e SHELLHUB_PREFERRED_IDENTITY=eth0"
@@ -380,14 +380,14 @@ enter_wsl() {
 @test "podman_install maps credentials and preferences onto the agent environment" {
     use_podman
     with_tenant
-    export CODE=ABC123 INSTALL_KEY=key-1 KEEPALIVE_INTERVAL=45
+    export CODE=ABC123 PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
     export PREFERRED_HOSTNAME=box PREFERRED_IDENTITY=eth0
 
     container_install
 
     [ "$status" -eq 0 ]
     assert_called "-e SHELLHUB_PAIRING_CODE=ABC123"
-    assert_called "-e SHELLHUB_INSTALL_KEY=key-1"
+    assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
     assert_called "-e SHELLHUB_KEEPALIVE_INTERVAL=45"
     assert_called "-e SHELLHUB_PREFERRED_HOSTNAME=box"
     assert_called "-e SHELLHUB_PREFERRED_IDENTITY=eth0"
@@ -401,7 +401,7 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     refute_called "SHELLHUB_TENANT_ID"
     refute_called "SHELLHUB_PAIRING_CODE"
-    refute_called "SHELLHUB_INSTALL_KEY"
+    refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
     refute_called "SHELLHUB_PREFERRED_"
     assert_called "-e SHELLHUB_PRIVATE_KEY=$PRIVATE_KEY"
@@ -415,7 +415,7 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     refute_called "SHELLHUB_TENANT_ID"
     refute_called "SHELLHUB_PAIRING_CODE"
-    refute_called "SHELLHUB_INSTALL_KEY"
+    refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
     refute_called "SHELLHUB_PREFERRED_"
     assert_called "-e SHELLHUB_PRIVATE_KEY=$PRIVATE_KEY"
@@ -568,15 +568,15 @@ enter_wsl() {
     refute_called "snap install"
 }
 
-@test "snap_install refuses an install key it cannot honour" {
+@test "snap_install refuses a provisioning key it cannot honour" {
     with_tenant
-    export INSTALL_KEY=key-1
+    export PROVISIONING_KEY=key-1
     stub_bin snap
 
     call_install snap_install
 
     [ "$status" -eq 1 ]
-    assert_output_contains "INSTALL_KEY is not supported by the snap install method"
+    assert_output_contains "PROVISIONING_KEY is not supported by the snap install method"
     refute_called "snap install"
 }
 
@@ -608,13 +608,13 @@ enter_wsl() {
 
 @test "standalone_install passes the credentials on to the agent service" {
     with_tenant
-    export INSTALL_KEY=key-1 KEEPALIVE_INTERVAL=45
+    export PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
     fake_agent_binary
 
     call_install standalone_install
 
     [ "$status" -eq 0 ]
-    assert_called "agent install --server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID --install-key=key-1 --keepalive-interval=45"
+    assert_called "agent install --server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID --provisioning-key=key-1 --keepalive-interval=45"
     [ -x "$INSTALL_DIR/shellhub-agent" ]
 }
 

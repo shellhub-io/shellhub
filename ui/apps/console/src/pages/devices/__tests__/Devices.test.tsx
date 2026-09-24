@@ -121,11 +121,11 @@ beforeEach(() => {
 });
 
 describe("Devices list", () => {
-  it("shows the accepted label and the install keys link, not the pending/rejected tabs", async () => {
+  it("shows the accepted label and the provisioning keys link, not the pending/rejected tabs", async () => {
     renderPage();
     expect(await screen.findByText("Accepted")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Install Keys/ }),
+      screen.getByRole("link", { name: /Provisioning Keys/ }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Pending")).not.toBeInTheDocument();
     expect(screen.queryByText("Rejected")).not.toBeInTheDocument();

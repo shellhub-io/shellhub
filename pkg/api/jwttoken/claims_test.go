@@ -46,7 +46,7 @@ func TestEncodedClaimsCarryTheIssuer(t *testing.T) {
 	})
 
 	t.Run("enrollment decision claims", func(t *testing.T) {
-		claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", InstallKeyID: "key"}
+		claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", ProvisioningKeyID: "key"}
 		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, issuer, key)
 		require.NoError(t, err)
 

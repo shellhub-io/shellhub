@@ -16,7 +16,7 @@ func TestEnrollmentDecisionClaims(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", InstallKeyID: "digest"}
+	claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", ProvisioningKeyID: "digest"}
 
 	t.Run("round-trips a valid token", func(t *testing.T) {
 		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, "http://localhost", key)

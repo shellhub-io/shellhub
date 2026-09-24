@@ -3,7 +3,7 @@
 # Overridden variables from Go template: {{.Overrides}}
 
 # Connector mode and snap have no way to enroll without a tenant: neither reaches the pairing flow,
-# and snap does not accept an install key.
+# and snap does not accept a provisioning key.
 require_tenant() {
   [ -z "$TENANT_ID" ] && {
     echo "ERROR: TENANT_ID is required for this installation method."
@@ -71,8 +71,8 @@ EOF
 enrollment_summary() {
   if [ -n "$CODE" ]; then
     echo "pairing code (pre-authorized)"
-  elif [ -n "$INSTALL_KEY" ]; then
-    echo "install key"
+  elif [ -n "$PROVISIONING_KEY" ]; then
+    echo "provisioning key"
   elif [ -n "$TENANT_ID" ]; then
     echo "tenant $TENANT_ID (device lands pending)"
   else
@@ -102,9 +102,9 @@ enroll_agent_interactively() {
     return 0
   fi
 
-  if [ -n "$INSTALL_KEY" ]; then
+  if [ -n "$PROVISIONING_KEY" ]; then
     echo ""
-    echo "The device will enroll into the install key's namespace."
+    echo "The device will enroll into the provisioning key's namespace."
     echo "Whether it is accepted straight away or left pending is the key's own setting."
 
     return 0
@@ -163,7 +163,7 @@ podman_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
-  [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
+  [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
   # An empty assignment is not the same as an absent one: the agent reads the variable as set and
   # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
@@ -251,7 +251,7 @@ docker_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
-  [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
+  [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
   # An empty assignment is not the same as an absent one: the agent reads the variable as set and
   # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
@@ -338,12 +338,12 @@ docker_install() {
 snap_install() {
   require_tenant
 
-  # The snap package exposes no install-key setting, so a key given here would be
+  # The snap package exposes no provisioning-key setting, so a key given here would be
   # dropped and the device would enroll without one, landing in manual approval.
   # Refuse instead of reporting an enrollment that will not happen.
-  if [ -n "$INSTALL_KEY" ]; then
-    echo "❌ ERROR: INSTALL_KEY is not supported by the snap install method."
-    echo "Use the docker, podman or standalone method to enroll with an install key."
+  if [ -n "$PROVISIONING_KEY" ]; then
+    echo "❌ ERROR: PROVISIONING_KEY is not supported by the snap install method."
+    echo "Use the docker, podman or standalone method to enroll with a provisioning key."
     exit 1
   fi
 
@@ -418,7 +418,7 @@ standalone_install() {
 
   INSTALL_ARGS="--server-address=$SERVER_ADDRESS"
   [ -n "${TENANT_ID}" ] && INSTALL_ARGS="$INSTALL_ARGS --tenant-id=$TENANT_ID"
-  [ -n "${INSTALL_KEY}" ] && INSTALL_ARGS="$INSTALL_ARGS --install-key=$INSTALL_KEY"
+  [ -n "${PROVISIONING_KEY}" ] && INSTALL_ARGS="$INSTALL_ARGS --provisioning-key=$PROVISIONING_KEY"
   [ -n "${PREFERRED_HOSTNAME}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-hostname=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
   [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"
@@ -557,7 +557,7 @@ main() {
     exit 1
   fi
 
-  # TENANT_ID is optional wherever something else names the namespace: an install key does so on its
+  # TENANT_ID is optional wherever something else names the namespace: a provisioning key does so on its
   # own, a pairing code claims one, and with neither the container methods boot into pairing and
   # enroll via 'shellhub-agent login'. Snap always requires it (checked in its function).
 

@@ -32,7 +32,7 @@ import (
 
 func TestAuthDevice(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
-	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
+	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 	clockMock := clockmock.NewMockClock(t)
 	uuidMock := uuidmock.NewMockUUID(t)
@@ -2315,7 +2315,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 func TestCreateUserToken(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
-	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
+	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
 	type Expected struct {
@@ -2640,7 +2640,7 @@ func TestAuthAPIKey(t *testing.T) {
 	}
 
 	storeMock := mocks.NewMockStore(t)
-	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
+	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
 	tests := []struct {
@@ -3113,7 +3113,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil, store.ErrNoDocuments).
 			Once()
 		storeMock.
-			On("InstallKeyResolveSystem", ctx, scope.MustBounded(tenantID)).
+			On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenantID)).
 			Return(nil, store.ErrNoDocuments).
 			Once()
 		storeMock.

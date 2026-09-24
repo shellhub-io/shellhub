@@ -54,7 +54,7 @@ func (h *Handler) GetSystemInfo(c *gateway.Context) error {
 }
 
 // GetSystemDownloadInstallScript serves the agent install script, with this instance's
-// address and the caller's install key already filled in.
+// address and the caller's provisioning key already filled in.
 func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 	req := new(requests.SystemInstallScript)
 	if err := c.Bind(req); err != nil {

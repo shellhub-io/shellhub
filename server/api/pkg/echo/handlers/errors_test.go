@@ -206,9 +206,9 @@ func TestNewErrors(t *testing.T) {
 		},
 		{
 			description:  "a service error carrying field detail yields 400 with the fields",
-			err:          services.NewErrInstallKeyInvalidField(map[string]string{"usage_limit": "must be greater than zero"}),
+			err:          services.NewErrProvisioningKeyInvalidField(map[string]string{"usage_limit": "must be greater than zero"}),
 			wantStatus:   http.StatusBadRequest,
-			wantBody:     responses.Error{Message: "install key field is invalid", Fields: map[string]string{"usage_limit": "must be greater than zero"}},
+			wantBody:     responses.Error{Message: "provisioning key field is invalid", Fields: map[string]string{"usage_limit": "must be greater than zero"}},
 			wantReported: false,
 		},
 		{

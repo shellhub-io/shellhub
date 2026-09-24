@@ -56,12 +56,12 @@ func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption
 	}
 }
 
-// NewAgentContainerWithInstallKey drops the tenant id, so the device proves the key alone
+// NewAgentContainerWithProvisioningKey drops the tenant id, so the device proves the key alone
 // resolved the namespace.
-func NewAgentContainerWithInstallKey(key string) NewAgentContainerOption {
+func NewAgentContainerWithProvisioningKey(key string) NewAgentContainerOption {
 	return func(envs map[string]string) {
 		delete(envs, "SHELLHUB_TENANT_ID")
-		envs["SHELLHUB_INSTALL_KEY"] = key
+		envs["SHELLHUB_PROVISIONING_KEY"] = key
 	}
 }
 

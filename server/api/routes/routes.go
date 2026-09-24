@@ -148,11 +148,11 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.POST(CreateAPIKeySSHIdentityURL, gateway.Handler(handler.CreateAPIKeySSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
 	publicAPI.GET(ListAPIKeySSHIdentitiesURL, gateway.Handler(handler.ListAPIKeySSHIdentities), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
 
-	publicAPI.POST(CreateInstallKeyURL, gateway.Handler(handler.CreateInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyCreate))
-	publicAPI.GET(ListInstallKeysURL, gateway.Handler(handler.ListInstallKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyList))
-	publicAPI.PATCH(UpdateInstallKeyURL, gateway.Handler(handler.UpdateInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyUpdate))
-	publicAPI.GET(RevealInstallKeyURL, gateway.Handler(handler.RevealInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyReveal))
-	publicAPI.GET(HistoryInstallKeyURL, gateway.Handler(handler.HistoryInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyList))
+	publicAPI.POST(CreateProvisioningKeyURL, gateway.Handler(handler.CreateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
+	publicAPI.GET(ListProvisioningKeysURL, gateway.Handler(handler.ListProvisioningKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
+	publicAPI.PATCH(UpdateProvisioningKeyURL, gateway.Handler(handler.UpdateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyUpdate))
+	publicAPI.GET(RevealProvisioningKeyURL, gateway.Handler(handler.RevealProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyReveal))
+	publicAPI.GET(HistoryProvisioningKeyURL, gateway.Handler(handler.HistoryProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
 
 	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.

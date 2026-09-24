@@ -27,7 +27,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const enrollmentWebhookAllowedCIDRsEnv = "SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS"
+const enrollmentWebhookAllowedCIDRsEnv = "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"
 
 func enrollmentWebhookClient() *http.Client {
 	opts := []ssrf.Option{ssrf.WithAnyPort()}
@@ -79,7 +79,7 @@ const (
 	enrollPending enrollmentDecision = "pending"
 )
 
-func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, paired bool) enrollmentDecision {
+func (s *service) evaluateEnrollment(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, paired bool) enrollmentDecision {
 	if key == nil {
 		return enrollPending
 	}
@@ -89,23 +89,23 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 	}
 
 	switch key.Mode {
-	case models.InstallKeyModeAutomatic:
+	case models.ProvisioningKeyModeAutomatic:
 		return enrollAccept
-	case models.InstallKeyModeManual:
+	case models.ProvisioningKeyModeManual:
 		return enrollPending
-	case models.InstallKeyModeAllowlist:
+	case models.ProvisioningKeyModeAllowlist:
 		identity := strings.ToLower(strings.TrimSpace(claimedIdentity(req)))
 		if identity != "" && slices.Contains(key.AllowedIdentities, identity) {
 			return enrollAccept
 		}
 
 		return enrollReject
-	case models.InstallKeyModeWebhook:
+	case models.ProvisioningKeyModeWebhook:
 		callbackURL := s.enrollmentCallbackURL(key, req, uid)
 
 		decision, err := s.callEnrollmentWebhook(ctx, key, req, uid, hostname, callbackURL)
 		if err != nil {
-			log.WithError(err).WithField("install_key", key.Name).Warn("enrollment webhook failed; device remains pending")
+			log.WithError(err).WithField("provisioning_key", key.Name).Warn("enrollment webhook failed; device remains pending")
 
 			return enrollPending
 		}
@@ -116,7 +116,7 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 	}
 }
 
-func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, reRegistration, record bool) models.DeviceStatus {
+func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration, record bool) models.DeviceStatus {
 	if record {
 		s.recordEnrollment(ctx, key, req, uid, hostname, reRegistration)
 	}
@@ -130,8 +130,8 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 		}
 		if err := s.UpdateDeviceStatus(ctx, acceptReq); err != nil {
 			switch {
-			case errors.Is(err, ErrInstallKeyExhausted):
-				log.WithError(err).WithField("device_uid", uid).Warn("install key exhausted; device remains pending")
+			case errors.Is(err, ErrProvisioningKeyExhausted):
+				log.WithError(err).WithField("device_uid", uid).Warn("provisioning key exhausted; device remains pending")
 			case errors.Is(err, ErrDeviceLicenseLimit):
 				log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
 			default:
@@ -160,16 +160,16 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 	}
 }
 
-func (s *service) recordEnrollment(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+func (s *service) recordEnrollment(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
 	if key == nil {
 		return
 	}
 
-	s.appendInstallKeyEvent(ctx, key, req, uid, hostname, reRegistration)
+	s.appendProvisioningKeyEvent(ctx, key, req, uid, hostname, reRegistration)
 }
 
 func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device, req requests.DeviceAuth, uid, hostname string) {
-	if device.InstallKeyID == "" {
+	if device.ProvisioningKeyID == "" {
 		return
 	}
 
@@ -177,7 +177,7 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 		return
 	}
 
-	key, err := s.store.InstallKeyResolve(ctx, scope.MustBounded(device.TenantID), store.InstallKeyIDResolver, device.InstallKeyID)
+	key, err := s.store.ProvisioningKeyResolve(ctx, scope.MustBounded(device.TenantID), store.ProvisioningKeyIDResolver, device.ProvisioningKeyID)
 	if err != nil || key == nil || !key.IsValid() || !key.ReconcilableOnAuth() {
 		return
 	}
@@ -193,16 +193,16 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 }
 
 type enrollmentWebhookRequest struct {
-	TenantID       string               `json:"tenant_id"`
-	InstallKeyID   string               `json:"install_key_id"`
-	InstallKeyName string               `json:"install_key_name"`
-	DeviceUID      string               `json:"device_uid"`
-	Identity       string               `json:"identity"`
-	Hostname       string               `json:"hostname"`
-	Info           *requests.DeviceInfo `json:"info,omitempty"`
-	SourceIP       string               `json:"source_ip"`
-	Timestamp      time.Time            `json:"timestamp"`
-	CallbackURL    string               `json:"callback_url,omitempty"`
+	TenantID            string               `json:"tenant_id"`
+	ProvisioningKeyID   string               `json:"provisioning_key_id"`
+	ProvisioningKeyName string               `json:"provisioning_key_name"`
+	DeviceUID           string               `json:"device_uid"`
+	Identity            string               `json:"identity"`
+	Hostname            string               `json:"hostname"`
+	Info                *requests.DeviceInfo `json:"info,omitempty"`
+	SourceIP            string               `json:"source_ip"`
+	Timestamp           time.Time            `json:"timestamp"`
+	CallbackURL         string               `json:"callback_url,omitempty"`
 }
 
 const enrollDeferDecision = "defer"
@@ -219,7 +219,7 @@ func signEnrollmentWebhook(secret string, body []byte) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (s *service) enrollmentCallbackURL(key *models.InstallKey, req requests.DeviceAuth, uid string) string {
+func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req requests.DeviceAuth, uid string) string {
 	if req.ForwardedHost == "" {
 		return ""
 	}
@@ -231,9 +231,9 @@ func (s *service) enrollmentCallbackURL(key *models.InstallKey, req requests.Dev
 
 	ttl := time.Duration(key.WebhookCallbackTTLOrDefault()) * time.Second
 	token, err := jwttoken.EncodeEnrollmentDecisionClaims(jwttoken.EnrollmentDecisionClaims{
-		DeviceUID:    uid,
-		TenantID:     key.TenantID,
-		InstallKeyID: key.ID,
+		DeviceUID:         uid,
+		TenantID:          key.TenantID,
+		ProvisioningKeyID: key.ID,
 	}, ttl, s.issuer, s.privKey)
 	if err != nil {
 		log.WithError(err).Warn("failed to mint enrollment callback token")
@@ -252,18 +252,18 @@ func claimedIdentity(req requests.DeviceAuth) string {
 	return req.Identity.MAC
 }
 
-func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname, callbackURL string) (enrollmentDecision, error) {
+func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname, callbackURL string) (enrollmentDecision, error) {
 	payload := enrollmentWebhookRequest{
-		TenantID:       key.TenantID,
-		InstallKeyID:   key.ID,
-		InstallKeyName: key.Name,
-		DeviceUID:      uid,
-		Identity:       claimedIdentity(req),
-		Hostname:       hostname,
-		Info:           req.Info,
-		SourceIP:       req.RealIP,
-		Timestamp:      clock.Now(),
-		CallbackURL:    callbackURL,
+		TenantID:            key.TenantID,
+		ProvisioningKeyID:   key.ID,
+		ProvisioningKeyName: key.Name,
+		DeviceUID:           uid,
+		Identity:            claimedIdentity(req),
+		Hostname:            hostname,
+		Info:                req.Info,
+		SourceIP:            req.RealIP,
+		Timestamp:           clock.Now(),
+		CallbackURL:         callbackURL,
 	}
 
 	body, err := json.Marshal(payload)

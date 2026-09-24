@@ -127,17 +127,17 @@ func (dc *DockerCompose) AwaitServerLog(t *testing.T, substr string) {
 	AwaitLogContains(t, dc.Service(ServiceServer), substr)
 }
 
-// CreateInstallKey creates an install key for the namespace the client is authenticated against
+// CreateProvisioningKey creates a provisioning key for the namespace the client is authenticated against
 // and returns it, including the key itself, which no later request can read back.
-func (dc *DockerCompose) CreateInstallKey(t *testing.T, req *requests.CreateInstallKey) *responses.CreateInstallKey {
+func (dc *DockerCompose) CreateProvisioningKey(t *testing.T, req *requests.CreateProvisioningKey) *responses.CreateProvisioningKey {
 	t.Helper()
 
-	key := new(responses.CreateInstallKey)
+	key := new(responses.CreateProvisioningKey)
 
 	resp, err := dc.R(t.Context()).
 		SetBody(req).
 		SetResult(key).
-		Post("/api/namespaces/install-key")
+		Post("/api/namespaces/provisioning-key")
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode())
 	require.NotEmpty(t, key.Key)
@@ -145,18 +145,18 @@ func (dc *DockerCompose) CreateInstallKey(t *testing.T, req *requests.CreateInst
 	return key
 }
 
-// AwaitInstallKeyUses waits until the install key named name reports uses enrollments charged to
+// AwaitProvisioningKeyUses waits until the provisioning key named name reports uses enrollments charged to
 // it and carries a last-used stamp. A use is charged when a device the key enrolled reaches
-// accepted, so uses must be at least one; RequireInstallKeyUnused covers a key still at zero.
-func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int) {
+// accepted, so uses must be at least one; RequireProvisioningKeyUnused covers a key still at zero.
+func (dc *DockerCompose) AwaitProvisioningKeyUses(t *testing.T, name string, uses int) {
 	t.Helper()
 
-	require.Positive(t, uses, "a key charged no use is asserted by RequireInstallKeyUnused")
+	require.Positive(t, uses, "a key charged no use is asserted by RequireProvisioningKeyUnused")
 
-	keys := []models.InstallKey{}
+	keys := []models.ProvisioningKey{}
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/install-key")
+		resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/provisioning-key")
 		assert.NoError(tt, err)
 		assert.Equal(tt, 200, resp.StatusCode())
 
@@ -177,15 +177,15 @@ func (dc *DockerCompose) AwaitInstallKeyUses(t *testing.T, name string, uses int
 	}, 30*time.Second, 1*time.Second)
 }
 
-// RequireInstallKeyUnused asserts, once and without waiting, that the install key named name has
+// RequireProvisioningKeyUnused asserts, once and without waiting, that the provisioning key named name has
 // been charged no use and carries no last-used stamp. A key is born satisfying both, so call it
 // only once the enrollment that must not have charged it has been awaited.
-func (dc *DockerCompose) RequireInstallKeyUnused(t *testing.T, name string) {
+func (dc *DockerCompose) RequireProvisioningKeyUnused(t *testing.T, name string) {
 	t.Helper()
 
-	keys := []models.InstallKey{}
+	keys := []models.ProvisioningKey{}
 
-	resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/install-key")
+	resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/provisioning-key")
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode())
 

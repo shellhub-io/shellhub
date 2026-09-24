@@ -270,10 +270,10 @@ export default function Devices() {
               Accepted
             </span>
             <Link
-              to="/install-keys"
+              to="/provisioning-keys"
               className="h-full inline-flex items-center gap-1 px-3.5 text-xs font-medium rounded border border-transparent text-text-muted transition-all duration-150 hover:text-primary hover:bg-primary/10"
             >
-              Install Keys
+              Provisioning Keys
               <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
             </Link>
           </div>

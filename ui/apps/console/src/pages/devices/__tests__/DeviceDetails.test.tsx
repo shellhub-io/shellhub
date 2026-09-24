@@ -8,7 +8,7 @@ import type { Device } from "@/client";
 import { createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
-  mockInstallKey,
+  mockProvisioningKey,
   mockNamespace,
 } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
@@ -128,7 +128,7 @@ beforeEach(() => {
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/tags", () => HttpResponse.json([])),
-    http.get("*/api/namespaces/install-key", () => jsonWithTotal([], 0)),
+    http.get("*/api/namespaces/provisioning-key", () => jsonWithTotal([], 0)),
     http.put(
       "*/api/devices/:uid",
       () => new HttpResponse(null, { status: 204 }),
@@ -184,11 +184,11 @@ describe("DeviceDetails", () => {
     });
 
     it("names the source a keyless device registered through, linked to its activity", async () => {
-      setDevice(makeDevice({ install_key_id: "legacy-digest" }));
+      setDevice(makeDevice({ provisioning_key_id: "legacy-digest" }));
       server.use(
-        http.get("*/api/namespaces/install-key", () =>
+        http.get("*/api/namespaces/provisioning-key", () =>
           jsonWithTotal([
-            mockInstallKey({
+            mockProvisioningKey({
               id: "legacy-digest",
               name: "legacy",
               type: "legacy",
@@ -201,7 +201,7 @@ describe("DeviceDetails", () => {
 
       expect(
         await screen.findByRole("link", { name: "Tenant-only registration" }),
-      ).toHaveAttribute("href", "/install-keys/legacy-digest/activity");
+      ).toHaveAttribute("href", "/provisioning-keys/legacy-digest/activity");
     });
   });
 

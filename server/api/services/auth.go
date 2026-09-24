@@ -103,21 +103,21 @@ func deviceHostname(hostname, mac string) string {
 	return ""
 }
 
-func (s *service) applyInstallKeyTags(ctx context.Context, sc scope.Scope, deviceUID string, tags []string) {
+func (s *service) applyProvisioningKeyTags(ctx context.Context, sc scope.Scope, deviceUID string, tags []string) {
 	tenantID := sc.TenantID()
 
 	for _, name := range tags {
 		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, name)
 		if err != nil {
 			if !errors.Is(err, store.ErrNoDocuments) {
-				log.WithError(err).WithField("tag", name).Warn("failed to resolve install key tag")
+				log.WithError(err).WithField("tag", name).Warn("failed to resolve provisioning key tag")
 
 				continue
 			}
 
 			id, cerr := s.store.TagCreate(ctx, &models.Tag{Name: name, TenantID: tenantID})
 			if cerr != nil {
-				log.WithError(cerr).WithField("tag", name).Warn("failed to create install key tag")
+				log.WithError(cerr).WithField("tag", name).Warn("failed to create provisioning key tag")
 
 				continue
 			}
@@ -126,21 +126,21 @@ func (s *service) applyInstallKeyTags(ctx context.Context, sc scope.Scope, devic
 		}
 
 		if err := s.store.TagPushToTarget(ctx, tag.ID, store.TagTargetDevice, deviceUID); err != nil {
-			log.WithError(err).WithField("tag", name).Warn("failed to apply install key tag to device")
+			log.WithError(err).WithField("tag", name).Warn("failed to apply provisioning key tag to device")
 		}
 	}
 }
 
-func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
-	event := &models.InstallKeyEvent{
-		InstallKeyID:   key.ID,
-		TenantID:       req.TenantID,
-		DeviceUID:      uid,
-		Hostname:       hostname,
-		SourceIP:       req.RealIP,
-		PublicKey:      req.PublicKey,
-		Ephemeral:      key.Ephemeral,
-		ReRegistration: reRegistration,
+func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+	event := &models.ProvisioningKeyEvent{
+		ProvisioningKeyID: key.ID,
+		TenantID:          req.TenantID,
+		DeviceUID:         uid,
+		Hostname:          hostname,
+		SourceIP:          req.RealIP,
+		PublicKey:         req.PublicKey,
+		Ephemeral:         key.Ephemeral,
+		ReRegistration:    reRegistration,
 	}
 
 	event.Identity = claimedIdentity(req)
@@ -155,32 +155,32 @@ func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.Install
 		}
 	}
 
-	if err := s.store.InstallKeyEventCreate(ctx, event); err != nil {
-		log.WithError(err).WithField("install_key", key.Name).Warn("failed to append install key enrollment event")
+	if err := s.store.ProvisioningKeyEventCreate(ctx, event); err != nil {
+		log.WithError(err).WithField("provisioning_key", key.Name).Warn("failed to append provisioning key enrollment event")
 	}
 }
 
-func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.InstallKey, string, error) {
-	if req.InstallKey != "" {
-		sk, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey))
+func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, string, error) {
+	if req.ProvisioningKey != "" {
+		sk, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyIDResolver, hashProvisioningKey(req.ProvisioningKey))
 		if err != nil || sk.IsSystem() || !sk.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, err)
+			return nil, "", NewErrAuthInvalid(map[string]any{"provisioning_key": "invalid"}, err)
 		}
 
 		return sk, sk.ID, nil
 	}
 
 	if paired {
-		if pairing, err := s.store.InstallKeyResolveSystemPairing(ctx, sc); err == nil {
+		if pairing, err := s.store.ProvisioningKeyResolveSystemPairing(ctx, sc); err == nil {
 			return pairing, pairing.ID, nil
 		}
 
 		return nil, "", nil
 	}
 
-	if legacy, err := s.store.InstallKeyResolveSystem(ctx, sc); err == nil {
+	if legacy, err := s.store.ProvisioningKeyResolveSystem(ctx, sc); err == nil {
 		if !legacy.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "required"}, nil)
+			return nil, "", NewErrAuthInvalid(map[string]any{"provisioning_key": "required"}, nil)
 		}
 
 		return legacy, legacy.ID, nil
@@ -189,28 +189,28 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 	return nil, "", nil
 }
 
-func (s *service) installKeyTenant(ctx context.Context, installKey string) (string, error) {
-	sk, err := s.store.InstallKeyResolve(ctx, scope.NewUnbounded(reasonInstallKeyTenant), store.InstallKeyIDResolver, hashInstallKey(installKey))
+func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey string) (string, error) {
+	sk, err := s.store.ProvisioningKeyResolve(ctx, scope.NewUnbounded(reasonProvisioningKeyTenant), store.ProvisioningKeyIDResolver, hashProvisioningKey(provisioningKey))
 	if err != nil || sk.IsSystem() {
 		if errors.Is(err, store.ErrAmbiguous) {
-			log.WithError(err).Error("an install key digest resolved to more than one namespace; refusing to enroll with it")
+			log.WithError(err).Error("a provisioning key digest resolved to more than one namespace; refusing to enroll with it")
 		}
 
-		return "", NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, err)
+		return "", NewErrAuthInvalid(map[string]any{"provisioning_key": "invalid"}, err)
 	}
 
 	return sk.TenantID, nil
 }
 
 // AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
-// attributes to the namespace's legacy key (see enrollmentInstallKey).
+// attributes to the namespace's legacy key (see enrollmentProvisioningKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
 	return s.authDevice(ctx, req, false)
 }
 
 func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.DeviceAuthResponse, error) {
-	if req.TenantID == "" && req.InstallKey != "" {
-		tenantID, err := s.installKeyTenant(ctx, req.InstallKey)
+	if req.TenantID == "" && req.ProvisioningKey != "" {
+		tenantID, err := s.provisioningKeyTenant(ctx, req.ProvisioningKey)
 		if err != nil {
 			return nil, err
 		}
@@ -234,8 +234,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		return nil, NewErrAuthDeviceNoIdentityAndHostname()
 	}
 
-	var installKey *models.InstallKey
-	var installKeyID string
+	var provisioningKey *models.ProvisioningKey
+	var provisioningKeyID string
 
 	auth := models.DeviceAuth{
 		Hostname:  strings.ToLower(hostname),
@@ -271,7 +271,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, err
 		}
 
-		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, sc, req, paired)
+		provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, paired)
 		if err != nil {
 			return nil, err
 		}
@@ -289,25 +289,25 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 
 		device = &models.Device{
-			CreatedAt:       clock.Now(),
-			UID:             uid,
-			TenantID:        req.TenantID,
-			LastSeen:        clock.Now(),
-			DisconnectedAt:  nil,
-			Status:          models.DeviceStatusPending,
-			StatusUpdatedAt: clock.Now(),
-			Name:            strings.ToLower(hostname),
-			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
-			PublicKey:       req.PublicKey,
-			RemoteAddr:      remoteAddr,
-			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
-			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
-			Ephemeral:       installKey != nil && installKey.Ephemeral,
-			InstallKeyID:    installKeyID,
+			CreatedAt:         clock.Now(),
+			UID:               uid,
+			TenantID:          req.TenantID,
+			LastSeen:          clock.Now(),
+			DisconnectedAt:    nil,
+			Status:            models.DeviceStatusPending,
+			StatusUpdatedAt:   clock.Now(),
+			Name:              strings.ToLower(hostname),
+			Identity:          &models.DeviceIdentity{MAC: req.Identity.MAC},
+			PublicKey:         req.PublicKey,
+			RemoteAddr:        remoteAddr,
+			Taggable:          models.Taggable{TagIDs: []string{}, Tags: nil},
+			Position:          &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
+			Ephemeral:         provisioningKey != nil && provisioningKey.Ephemeral,
+			ProvisioningKeyID: provisioningKeyID,
 		}
 
 		if device.Ephemeral {
-			device.EphemeralTimeout = installKey.EphemeralTimeout
+			device.EphemeralTimeout = provisioningKey.EphemeralTimeout
 		}
 
 		if req.Info != nil {
@@ -328,11 +328,11 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, err
 		}
 
-		if installKey != nil && len(installKey.Tags) > 0 {
-			s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
+		if provisioningKey != nil && len(provisioningKey.Tags) > 0 {
+			s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
 		}
 
-		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired), installKey, req, uid, hostname, false, true)
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, paired), provisioningKey, req, uid, hostname, false, true)
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
@@ -342,7 +342,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 
 		if device.RemovedAt != nil {
-			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, sc, req, paired)
+			provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, paired)
 			if err != nil {
 				return nil, err
 			}
@@ -350,12 +350,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			device.RemovedAt = nil
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = clock.Now()
-			device.Ephemeral = installKey != nil && installKey.Ephemeral
+			device.Ephemeral = provisioningKey != nil && provisioningKey.Ephemeral
 			device.EphemeralTimeout = 0
 			if device.Ephemeral {
-				device.EphemeralTimeout = installKey.EphemeralTimeout
+				device.EphemeralTimeout = provisioningKey.EphemeralTimeout
 			}
-			device.InstallKeyID = installKeyID
+			device.ProvisioningKeyID = provisioningKeyID
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
 				return nil, err
 			}
@@ -363,11 +363,11 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				return nil, err
 			}
 
-			if installKey != nil && len(installKey.Tags) > 0 {
-				s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
+			if provisioningKey != nil && len(provisioningKey.Tags) > 0 {
+				s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
 			}
 
-			decision := s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired)
+			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, paired)
 
 			if decision == enrollAccept || decision == enrollReject {
 				if err := s.store.DeviceUpdate(ctx, device); err != nil {
@@ -375,7 +375,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				}
 			}
 
-			status := s.applyEnrollmentDecision(ctx, decision, installKey, req, uid, hostname, true, true)
+			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, uid, hostname, true, true)
 			if status != models.DeviceStatusPending {
 				device.Status = status
 				device.StatusUpdatedAt = clock.Now()

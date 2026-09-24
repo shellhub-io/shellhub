@@ -305,7 +305,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 			return err
 		}
 
-		if err := s.store.InstallKeyEventStampDecision(ctx, sc, req.UID, status, clock.Now()); err != nil {
+		if err := s.store.ProvisioningKeyEventStampDecision(ctx, sc, req.UID, status, clock.Now()); err != nil {
 			log.WithError(err).WithFields(log.Fields{"device_uid": req.UID, "status": req.Status}).
 				Warn("failed to stamp the enrollment decision on the history event")
 		}
@@ -314,15 +314,15 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 	return nil
 }
 
-func (s *service) chargeInstallKeyUse(ctx context.Context, tenantID, installKeyID string) error {
-	if installKeyID == "" {
+func (s *service) chargeProvisioningKeyUse(ctx context.Context, tenantID, provisioningKeyID string) error {
+	if provisioningKeyID == "" {
 		return nil
 	}
 
-	key := &models.InstallKey{ID: installKeyID, TenantID: tenantID}
-	if err := s.store.InstallKeyIncrementUsage(ctx, key); err != nil {
+	key := &models.ProvisioningKey{ID: provisioningKeyID, TenantID: tenantID}
+	if err := s.store.ProvisioningKeyIncrementUsage(ctx, key); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
-			return ErrInstallKeyExhausted
+			return ErrProvisioningKeyExhausted
 		}
 
 		return err
@@ -416,7 +416,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 				}
 			}
 
-			if err := s.chargeInstallKeyUse(ctx, namespace.TenantID, device.InstallKeyID); err != nil {
+			if err := s.chargeProvisioningKeyUse(ctx, namespace.TenantID, device.ProvisioningKeyID); err != nil {
 				return err
 			}
 		}
