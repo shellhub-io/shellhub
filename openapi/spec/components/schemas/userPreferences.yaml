@@ -1,0 +1,7 @@
+description: User preferences.
+type: object
+properties:
+  auth_methods:
+    $ref: userAuthMethods.yaml
+required:
+  - auth_methods

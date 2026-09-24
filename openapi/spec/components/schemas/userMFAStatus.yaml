@@ -1,0 +1,8 @@
+description: Multi-factor authentication settings.
+type: object
+properties:
+  enabled:
+    description: Whether MFA is enabled for the user.
+    type: boolean
+required:
+  - enabled
