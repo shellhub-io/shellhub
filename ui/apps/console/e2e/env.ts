@@ -14,9 +14,7 @@ export const adminUser = {
 };
 
 export const edition = (process.env.E2E_EDITION ?? "community") as
-  | "community"
-  | "enterprise"
-  | "cloud";
+  "community" | "enterprise" | "cloud";
 
 export const isCommunity = edition === "community";
 export const isEnterprise = edition === "enterprise";

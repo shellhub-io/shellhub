@@ -5,9 +5,9 @@ import {
   signIn,
   fillLoginForm,
   dismissWizard,
-  createUser,
-  createNamespace,
+  directMembershipReason,
 } from "./helpers";
+import { password, buildShortId, createUser, createNamespace } from "./seed";
 import { invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
@@ -45,10 +45,8 @@ test.describe("account lockout", () => {
   test("locks out after 3 failed attempts, then recovers", async ({ page }) => {
     test.setTimeout(120_000);
 
-    const id = randomUUID().slice(0, 8);
-    const user = { username: `e2e-lockout-${id}`, password: "e2e-password" };
-    createUser(user.username, user.password, `lockout-${id}@e2e.test`);
-    createNamespace(user.username, `ns-lockout-${id}`, randomUUID());
+    const user = createUser("lockout");
+    createNamespace(user.username, `ns-lockout-${buildShortId()}`, randomUUID());
 
     await page.goto("/login");
     for (let i = 0; i < 3; i++) {
@@ -66,15 +64,13 @@ test.describe("account lockout", () => {
       timeout: 75000,
     });
 
-    await fillLoginForm(page, user.username, user.password);
+    await fillLoginForm(page, user.username, password);
 
     await expect(page).toHaveURL(/\/dashboard$/);
   });
 });
 
 test.describe("accept invitation", () => {
-  const directMembershipReason =
-    "enterprise adds existing users directly, without an invitation link";
   let adminToken: string;
   let adminTenant: string;
 
@@ -86,14 +82,8 @@ test.describe("accept invitation", () => {
   });
 
   async function inviteUser() {
-    const id = randomUUID().slice(0, 8);
-    const user = {
-      username: `e2e-invitee-${id}`,
-      email: `invitee-${id}@e2e.test`,
-      password: "e2e-password",
-    };
-    createUser(user.username, user.password, user.email);
-    createNamespace(user.username, `ns-invitee-${id}`, randomUUID());
+    const user = createUser("invitee");
+    createNamespace(user.username, `ns-invitee-${buildShortId()}`, randomUUID());
 
     const { link } = await invite(adminToken, adminTenant, user.email);
 
@@ -106,7 +96,7 @@ test.describe("accept invitation", () => {
     test.skip(isEnterprise, directMembershipReason);
     const { user, link } = await inviteUser();
 
-    await signIn(page, user.username, user.password);
+    await signIn(page, user.username, password);
     await dismissWizard(page);
 
     await page.goto(link);
@@ -131,14 +121,14 @@ test.describe("accept invitation", () => {
     await page.goto(link);
     await expect(page).toHaveURL(/\/login.*redirect/, { timeout: 10000 });
 
-    await fillLoginForm(page, user.username, user.password);
+    await fillLoginForm(page, user.username, password);
 
     await expect(page).toHaveURL(/\/accept-invite/, { timeout: 10000 });
     await expect(page.getByRole("button", { name: "Accept" })).toBeVisible();
   });
 
   test("new user — sign-up form, create account + join", async ({ page }) => {
-    const id = randomUUID().slice(0, 8);
+    const id = buildShortId();
     const { link } = await invite(
       adminToken,
       adminTenant,
@@ -152,8 +142,8 @@ test.describe("accept invitation", () => {
 
     await page.getByLabel("Name", { exact: true }).fill("E2E Signup");
     await page.getByLabel("Username", { exact: true }).fill(`e2e-signup-${id}`);
-    await page.getByLabel("Password", { exact: true }).fill("e2e-password");
-    await page.getByLabel("Confirm password").fill("e2e-password");
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByLabel("Confirm password").fill(password);
 
     await page.getByRole("button", { name: "Join Namespace" }).click();
 
