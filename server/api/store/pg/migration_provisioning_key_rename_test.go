@@ -2,6 +2,7 @@ package pg_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
@@ -48,14 +49,19 @@ func TestProvisioningKeyRenameMigration(t *testing.T) {
 	`, eventID, keyID, tenant, deviceID)
 
 	notNullBefore := notNullConstraintsContaining(t, ctx, db, "install_key")
-	require.NotZero(t, notNullBefore)
+	require.NotEmpty(t, notNullBefore)
+
+	notNullRenamed := make([]string, 0, len(notNullBefore))
+	for _, name := range notNullBefore {
+		notNullRenamed = append(notNullRenamed, strings.ReplaceAll(name, "install_key", "provisioning_key"))
+	}
 
 	require.NoError(t, provider.ApplyNext(ctx), "040 must apply cleanly over release-shaped data")
 
 	assert.Empty(t, catalogNamesContaining(t, ctx, db, "install_key"), "no install_key name may survive the rename")
-	assert.Zero(t, notNullConstraintsContaining(t, ctx, db, "install_key"), "no NOT NULL constraint may keep an install_key name")
-	assert.Equal(t, notNullBefore, notNullConstraintsContaining(t, ctx, db, "provisioning_key"))
-	assert.ElementsMatch(t, []string{
+	assert.Empty(t, notNullConstraintsContaining(t, ctx, db, "install_key"), "no NOT NULL constraint may keep an install_key name")
+	assert.ElementsMatch(t, notNullRenamed, notNullConstraintsContaining(t, ctx, db, "provisioning_key"))
+	renamed := []string{
 		"table:provisioning_keys",
 		"table:provisioning_key_events",
 		"column:devices.provisioning_key_id",
@@ -76,7 +82,8 @@ func TestProvisioningKeyRenameMigration(t *testing.T) {
 		"index:provisioning_key_events_pkey",
 		"index:provisioning_key_events_key_time_idx",
 		"index:provisioning_key_events_device_time_idx",
-	}, catalogNamesContaining(t, ctx, db, "provisioning_key"))
+	}
+	assert.ElementsMatch(t, renamed, catalogNamesContaining(t, ctx, db, "provisioning_key"))
 
 	var linked string
 	require.NoError(t, db.NewRaw(`
@@ -90,8 +97,13 @@ func TestProvisioningKeyRenameMigration(t *testing.T) {
 	require.NoError(t, provider.Rollback(ctx), "040 must roll back")
 
 	assert.Empty(t, catalogNamesContaining(t, ctx, db, "provisioning_key"), "the rollback must restore every old name")
-	assert.Equal(t, notNullBefore, notNullConstraintsContaining(t, ctx, db, "install_key"))
-	assert.Contains(t, catalogNamesContaining(t, ctx, db, "install_key"), "index:install_keys_key_digest_unique")
+	assert.ElementsMatch(t, notNullBefore, notNullConstraintsContaining(t, ctx, db, "install_key"))
+
+	original := make([]string, 0, len(renamed))
+	for _, name := range renamed {
+		original = append(original, strings.ReplaceAll(name, "provisioning_key", "install_key"))
+	}
+	assert.ElementsMatch(t, original, catalogNamesContaining(t, ctx, db, "install_key"))
 }
 
 func catalogNamesContaining(t *testing.T, ctx context.Context, db *bun.DB, fragment string) []string {
@@ -115,14 +127,14 @@ func catalogNamesContaining(t *testing.T, ctx context.Context, db *bun.DB, fragm
 	return names
 }
 
-func notNullConstraintsContaining(t *testing.T, ctx context.Context, db *bun.DB, fragment string) int {
+func notNullConstraintsContaining(t *testing.T, ctx context.Context, db *bun.DB, fragment string) []string {
 	t.Helper()
 
-	var count int
+	var names []string
 	require.NoError(t, db.NewRaw(`
-		SELECT count(*) FROM pg_constraint
+		SELECT conname FROM pg_constraint
 		WHERE connamespace = 'public'::regnamespace AND contype = 'n' AND conname LIKE '%' || ? || '%'
-	`, fragment).Scan(ctx, &count))
+	`, fragment).Scan(ctx, &names))
 
-	return count
+	return names
 }
