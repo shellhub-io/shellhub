@@ -25,10 +25,9 @@ type ProvisioningKeyStore interface {
 	ProvisioningKeyCreate(ctx context.Context, provisioningKey *models.ProvisioningKey) (insertedID string, err error)
 
 	// ProvisioningKeyResolve fetches a provisioning key using a specific resolver within the given namespace
-	// scope. The digest is only unique per namespace, so resolving one unbounded can return a key
-	// from another namespace.
-	//
-	// It returns the resolved provisioning key if found and an error, if any.
+	// scope. The digest is unique across namespaces, so resolving by ID unbounded finds the namespace
+	// that owns the key. A name is unique only within a namespace, and an unbounded resolve by name
+	// that matches keys in several namespaces returns [ErrAmbiguous].
 	ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolver ProvisioningKeyResolver, value string, opts ...QueryOption) (*models.ProvisioningKey, error)
 
 	// ProvisioningKeyResolveSystem fetches the namespace's system-managed legacy key. It returns the key if
