@@ -38,6 +38,14 @@ properties:
     $ref: userEmail.yaml
   username:
     $ref: userUsername.yaml
+  recovery_email:
+    description: User's recovery email address.
+    type: string
+    format: email
+  mfa:
+    $ref: userMFAStatus.yaml
+  preferences:
+    $ref: userPreferences.yaml
   password:
     description: User's hashed password.
     type: string

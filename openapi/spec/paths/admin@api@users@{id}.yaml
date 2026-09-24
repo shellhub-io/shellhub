@@ -98,6 +98,9 @@ get:
               admin:
                 description: Whether the user has admin privileges
                 type: boolean
+              awaiting_approval:
+                description: Whether the user is waiting for a system admin to approve the account.
+                type: boolean
               max_namespaces:
                 description: Maximum number of namespaces the user can own
                 type: integer
@@ -121,26 +124,13 @@ get:
                 type: string
                 format: email
               mfa:
-                description: Multi-factor authentication settings
-                type: object
-                properties:
-                  enabled:
-                    description: Whether MFA is enabled for the user
-                    type: boolean
-                required:
-                  - enabled
+                $ref: ../components/schemas/userMFAStatus.yaml
               namespacesOwned:
                 description: Number of namespaces owned by the user
                 type: integer
                 minimum: 0
               preferences:
-                description: User preferences
-                type: object
-                properties:
-                  auth_methods:
-                    $ref: ../components/schemas/userAuthMethods.yaml
-                required:
-                  - auth_methods
+                $ref: ../components/schemas/userPreferences.yaml
             required:
               - id
               - status
