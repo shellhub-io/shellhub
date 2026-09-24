@@ -39,7 +39,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 export default function ProvisioningKeyHistoryPage() {
   const { id = "" } = useParams();
   const location = useLocation();
-  const state = location.state as { name?: string; key?: ProvisioningKey } | null;
+  const state = location.state as {
+    name?: string;
+    key?: ProvisioningKey;
+  } | null;
 
   const { provisioningKeys, isLoading } = useProvisioningKeys({ perPage: 100 });
   const key = provisioningKeys.find((k) => k.id === id) ?? state?.key ?? null;
@@ -58,7 +61,7 @@ export default function ProvisioningKeyHistoryPage() {
       <ResourceNotFound
         icon={TicketIcon}
         resource="Provisioning key"
-        backTo="/provisioning-keys"
+        backTo="/settings/provisioning-keys"
       />
     );
   }
@@ -67,7 +70,8 @@ export default function ProvisioningKeyHistoryPage() {
     <div>
       <Breadcrumb
         items={[
-          { label: "Provisioning Keys", to: "/provisioning-keys" },
+          { label: "Settings", to: "/settings" },
+          { label: "Provisioning Keys", to: "/settings/provisioning-keys" },
           { label: name || "Provisioning Key" },
         ]}
         className="mb-4"

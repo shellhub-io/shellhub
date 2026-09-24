@@ -65,9 +65,7 @@ beforeEach(() => {
   mockedGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
   server.use(
-    http.get("*/api/namespaces/:tenant", () =>
-      HttpResponse.json(defaultNs()),
-    ),
+    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(defaultNs())),
     http.get("*/api/access-policies", () => jsonWithTotal([])),
     http.put(
       "*/api/namespaces/:tenant",
@@ -77,9 +75,8 @@ beforeEach(() => {
       "*/api/namespaces/:tenant",
       () => new HttpResponse(null, { status: 204 }),
     ),
-    http.delete(
-      "*/api/namespaces/:tenant/members",
-      () => HttpResponse.json({}),
+    http.delete("*/api/namespaces/:tenant/members", () =>
+      HttpResponse.json({}),
     ),
     http.put(
       "*/api/namespaces/ssh-access-mode/:tenant",
@@ -97,6 +94,13 @@ describe("Settings", () => {
       renderSettings();
       expect(await screen.findByText("my-namespace")).toBeInTheDocument();
       expect(screen.getByText("tenant-456")).toBeInTheDocument();
+    });
+
+    it("links to the provisioning keys page", async () => {
+      renderSettings();
+      expect(
+        await screen.findByRole("link", { name: "Manage provisioning keys" }),
+      ).toHaveAttribute("href", "/settings/provisioning-keys");
     });
   });
 

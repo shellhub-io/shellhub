@@ -14,6 +14,8 @@ import {
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
   ExclamationTriangleIcon,
+  TicketIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { isSdkError } from "../api/errors";
 import { useNamespace } from "../hooks/useNamespaces";
@@ -569,6 +571,23 @@ export default function Settings() {
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />
+        </SettingsCard>
+
+        <SettingsCard title="Devices">
+          <SettingsRow
+            icon={<TicketIcon className="w-4 h-4" />}
+            title="Provisioning Keys"
+            description="Reusable credentials that register devices with this namespace"
+          >
+            <IconButton
+              as={Link}
+              to="/settings/provisioning-keys"
+              title="Manage provisioning keys"
+              aria-label="Manage provisioning keys"
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </IconButton>
+          </SettingsRow>
         </SettingsCard>
 
         {/* ── Billing (Cloud only) ── */}

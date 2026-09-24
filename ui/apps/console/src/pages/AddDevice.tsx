@@ -344,7 +344,7 @@ export default function AddDevice() {
                   New provisioning key
                 </button>
                 <Link
-                  to="/provisioning-keys"
+                  to="/settings/provisioning-keys"
                   className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   Manage keys
@@ -525,7 +525,7 @@ export default function AddDevice() {
           <div className="text-xs text-text-secondary leading-relaxed">
             After installing, your device waits for a decision on the{" "}
             <Link
-              to="/provisioning-keys"
+              to="/settings/provisioning-keys"
               className="text-primary font-medium hover:text-primary/80 transition-colors"
             >
               provisioning key

@@ -299,11 +299,11 @@ export default function App() {
                   )}
                   <Route path="/team" element={<Team />} />
                   <Route
-                    path="/provisioning-keys"
+                    path="/settings/provisioning-keys"
                     element={<ProvisioningKeys />}
                   />
                   <Route
-                    path="/provisioning-keys/:id/activity"
+                    path="/settings/provisioning-keys/:id/activity"
                     element={<ProvisioningKeyHistory />}
                   />
                   <Route path="/settings" element={<Settings />} />
