@@ -23,7 +23,11 @@ import {
 } from "./helpers";
 import ExpiryLabel from "./ExpiryLabel";
 
-function EnrollmentCell({ provisioningKey }: { provisioningKey: ProvisioningKey }) {
+function EnrollmentCell({
+  provisioningKey,
+}: {
+  provisioningKey: ProvisioningKey;
+}) {
   const { revoked, disabled, inert } = getKeyBlockers(provisioningKey);
 
   const info = isPairingKey(provisioningKey)
@@ -234,12 +238,15 @@ export default function ProvisioningKeysTable({
         return key.revoked ? `${base} opacity-55` : base;
       }}
       onRowClick={(key) => {
-        void navigate(`/provisioning-keys/${encodeURIComponent(key.id)}/activity`, {
-          state: {
-            name: provisioningKeyDisplayName(key),
-            key,
+        void navigate(
+          `/settings/provisioning-keys/${encodeURIComponent(key.id)}/activity`,
+          {
+            state: {
+              name: provisioningKeyDisplayName(key),
+              key,
+            },
           },
-        });
+        );
       }}
       page={page}
       totalPages={totalPages}

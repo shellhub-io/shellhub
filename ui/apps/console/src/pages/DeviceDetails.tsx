@@ -306,7 +306,7 @@ export default function DeviceDetails() {
           registeredVia={
             enrollment && device.provisioning_key_id ? (
               <Link
-                to={`/provisioning-keys/${encodeURIComponent(device.provisioning_key_id)}/activity`}
+                to={`/settings/provisioning-keys/${encodeURIComponent(device.provisioning_key_id)}/activity`}
                 className="text-sm font-medium text-text-primary hover:text-primary hover:underline"
               >
                 {enrollmentSourceName(enrollment)}

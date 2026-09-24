@@ -14,7 +14,6 @@ import {
   CubeIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
-  TicketIcon,
   ShieldCheckIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
@@ -131,11 +130,6 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
           to: "/team",
           label: "Team",
           icon: <UsersIcon className={navIcon} />,
-        },
-        {
-          to: "/provisioning-keys",
-          label: "Provisioning Keys",
-          icon: <TicketIcon className={navIcon} />,
         },
         {
           to: "/settings",

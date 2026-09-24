@@ -26,7 +26,6 @@ import {
 import {
   PlusIcon,
   TagIcon,
-  ArrowRightIcon,
   XMarkIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
@@ -264,20 +263,9 @@ export default function Devices() {
 
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
-            <span className="h-full inline-flex items-center px-3.5 text-xs font-medium rounded bg-primary/15 text-primary border border-primary/25">
-              Accepted
-            </span>
-            <Link
-              to="/provisioning-keys"
-              className="h-full inline-flex items-center gap-1 px-3.5 text-xs font-medium rounded border border-transparent text-text-muted transition-all duration-150 hover:text-primary hover:bg-primary/10"
-            >
-              Provisioning Keys
-              <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
-            </Link>
-          </div>
-        </div>
+        <span className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
+          Accepted
+        </span>
 
         <div className="flex items-center gap-2">
           <TagFilterDropdown

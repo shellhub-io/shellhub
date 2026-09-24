@@ -9,7 +9,9 @@ import ProvisioningKeys from "../index";
 
 function renderPage() {
   return render(<ProvisioningKeys />, {
-    wrapper: createTestWrapper({ initialEntries: ["/provisioning-keys"] }),
+    wrapper: createTestWrapper({
+      initialEntries: ["/settings/provisioning-keys"],
+    }),
   });
 }
 

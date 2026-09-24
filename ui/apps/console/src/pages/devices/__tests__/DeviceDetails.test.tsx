@@ -201,7 +201,10 @@ describe("DeviceDetails", () => {
 
       expect(
         await screen.findByRole("link", { name: "Tenant-only registration" }),
-      ).toHaveAttribute("href", "/provisioning-keys/legacy-digest/activity");
+      ).toHaveAttribute(
+        "href",
+        "/settings/provisioning-keys/legacy-digest/activity",
+      );
     });
   });
 

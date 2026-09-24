@@ -83,7 +83,7 @@ export default function Dashboard() {
             title="Pending Devices"
             value={stats?.pending_devices ?? "--"}
             linkLabel="Review pending"
-            linkTo="/provisioning-keys"
+            linkTo="/settings/provisioning-keys"
             accent="text-accent-yellow"
           />
         </div>
