@@ -56,7 +56,7 @@ services:
     image: registry.infra.ossystems.io/cache/valkey/valkey:9.1-alpine
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-05-24T17-08-30Z
+    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     restart: unless-stopped
     command: server /data
     environment:
