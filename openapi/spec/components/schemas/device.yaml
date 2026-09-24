@@ -40,6 +40,12 @@ properties:
     type: string
     format: date-time
     example: 2020-01-01T00:00:00Z
+  removed_at:
+    description: When the device was removed, or null when it has not been.
+    type: string
+    format: date-time
+    nullable: true
+    example: 2020-01-01T00:00:00Z
   remote_addr:
     description: Device's remote address
     type: string
