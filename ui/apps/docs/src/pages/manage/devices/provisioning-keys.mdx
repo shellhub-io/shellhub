@@ -45,9 +45,11 @@ Or as an agent variable, `SHELLHUB_PROVISIONING_KEY`, which is how it goes into 
 [Yocto](/get-started/install/yocto) or [Buildroot](/get-started/install/buildroot) image.
 
 The key only matters while the server does not know the device. On first start the agent
-generates its own private key, and that key is the device's identity from then on. The agent keeps
-presenting the provisioning key, so a removed or ephemeral device can enroll again, but for a
-device the server already knows the key decides nothing.
+generates its own private key, and the server recognizes the device by that key together with its
+hostname and MAC address. The agent keeps presenting the provisioning key, so a removed or
+ephemeral device can enroll again, but for a device the server already knows the key decides
+nothing. A device whose hostname or MAC address changes is a new device to the server, and
+enrolling it counts against the key's usage limit.
 
 ## Modes
 
