@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { samlSchema, type SamlFormValues } from "../samlSchema";
+import { buildSamlDefaults, samlSchema, type SamlFormValues } from "../samlSchema";
 
 const validCert = "-----BEGIN CERTIFICATE-----\nMIIBIjANBgkq\n-----END CERTIFICATE-----";
 const validUrl = "https://idp.example.com/sso";
@@ -108,5 +108,16 @@ describe("samlSchema", () => {
       expect(result.emailMapping).toBeUndefined();
       expect(result.nameMapping).toBeUndefined();
     });
+  });
+});
+
+describe("buildSamlDefaults", () => {
+  it("fills signRequests from the stored service provider settings", () => {
+    const defaults = buildSamlDefaults({
+      enabled: true,
+      sp: { sign_auth_requests: true, certificate: validCert },
+    });
+
+    expect(defaults.signRequests).toBe(true);
   });
 });

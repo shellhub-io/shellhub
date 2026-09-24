@@ -126,7 +126,7 @@ export function buildSamlDefaults(
     certificate: existingConfig.idp?.certificates?.[0] ?? "",
     emailMapping: existingConfig.idp?.mappings?.email ?? "",
     nameMapping: existingConfig.idp?.mappings?.name ?? "",
-    signRequests: existingConfig.sp?.sign_requests ?? false,
+    signRequests: existingConfig.sp?.sign_auth_requests ?? false,
   };
 }
 
