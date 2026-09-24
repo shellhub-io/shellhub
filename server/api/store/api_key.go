@@ -47,6 +47,7 @@ type APIKeyStore interface {
 
 	// APIKeyDeleteAllByCreator deletes every API key created by creatorID within the given tenant.
 	// It is used to revoke a member's keys when they leave or are removed from the namespace.
-	// Deleting no keys is not an error. It returns an error if any.
-	APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) (err error)
+	// It returns the digests of the deleted keys, so the caller can evict them from the cache, and
+	// none when the creator had no keys, which is not an error.
+	APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) (digests []string, err error)
 }

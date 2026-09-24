@@ -354,11 +354,21 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 		return err
 	}
 
-	if err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID); err != nil {
+	digests, err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID)
+	if err != nil {
 		log.WithError(err).
 			WithField("tenant_id", ns.TenantID).
 			WithField("user_id", member.ID).
 			Error("failed to revoke the removed member's API keys")
+	}
+
+	for _, digest := range digests {
+		if err := s.cache.Delete(ctx, apiKeyCacheKey(digest)); err != nil {
+			log.WithError(err).
+				WithField("tenant_id", ns.TenantID).
+				WithField("user_id", member.ID).
+				Error("failed to uncache the removed member's API key")
+		}
 	}
 
 	return nil
