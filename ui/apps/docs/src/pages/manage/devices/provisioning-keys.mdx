@@ -16,11 +16,12 @@ applied.
 This is what turns enrollment from an afternoon of clicking into something that happens on its
 own.
 
-<Shot id="provisioning-keys" route="/provisioning-keys" of={{ role: "main" }} alt="The Provisioning Keys page listing keys with their mode, usage, and expiration" />
+<Shot id="provisioning-keys" route="/settings/provisioning-keys" of={{ role: "main" }} alt="The Provisioning Keys page listing keys with their mode, usage, and expiration" />
 
 ## Creating one
 
-On the **Provisioning Keys** page, click **Create Provisioning Key**. A key has:
+In **Settings**, open **Provisioning Keys** from the **Devices** section and click
+**Create Provisioning Key**. A key has:
 
 | Field | Meaning |
 |---|---|
@@ -139,7 +140,7 @@ A key in manual mode, and a key whose webhook deferred, leaves devices waiting. 
 on the key's activity page rather than in the device list. The keys list marks every key that has
 devices waiting, and the dashboard's pending count links to it.
 
-<Shot id="provisioning-key-activity" route="/provisioning-keys/:provisioningkey/activity" of={{ role: "main" }} alt="A provisioning key's activity, listing each registration with what the agent reported and the accept or reject" />
+<Shot id="provisioning-key-activity" route="/settings/provisioning-keys/:provisioningkey/activity" of={{ role: "main" }} alt="A provisioning key's activity, listing each registration with what the agent reported and the accept or reject" />
 
 Each row is one enrollment attempt: which device, the identity it reported, the source address, the
 architecture, the agent version, whether the device was new or enrolling again, and how it was
