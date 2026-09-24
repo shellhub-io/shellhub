@@ -138,11 +138,7 @@ get:
                 type: object
                 properties:
                   auth_methods:
-                    description: Preferred authentication methods
-                    type: array
-                    items:
-                      type: string
-                      enum: [local, saml]
+                    $ref: ../components/schemas/userAuthMethods.yaml
                 required:
                   - auth_methods
             required:
