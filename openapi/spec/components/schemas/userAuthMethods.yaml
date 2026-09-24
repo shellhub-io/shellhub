@@ -1,0 +1,5 @@
+description: The ways the user may authenticate.
+type: array
+items:
+  type: string
+  enum: [local, saml]

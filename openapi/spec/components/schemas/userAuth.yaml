@@ -38,6 +38,8 @@ properties:
     example: false
   max_namespaces:
     $ref: maxNamespaces.yaml
+  auth_methods:
+    $ref: userAuthMethods.yaml
 required:
   - token
   - id
@@ -51,3 +53,4 @@ required:
   - mfa
   - max_namespaces
   - admin
+  - auth_methods

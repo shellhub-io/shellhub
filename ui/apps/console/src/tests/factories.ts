@@ -38,6 +38,7 @@ export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
     mfa: false,
     admin: false,
     max_namespaces: -1,
+    auth_methods: ["local"],
     ...overrides,
   };
 }
