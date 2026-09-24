@@ -101,11 +101,11 @@ type Config struct {
 	// code's namespace automatically, so it never lands in the pending list.
 	PairingCode string `env:"PAIRING_CODE"`
 
-	// InstallKey is a reusable install key handed to the agent at install time (minted from the
-	// console's Install Keys page). The key is namespace-scoped, so it enrolls the device on its own:
+	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
+	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
 	// with no TenantID configured the server resolves the namespace from the key, applying the key's
 	// mode, tags and ephemeral flag. It may also ride alongside TenantID, which enrolls the same way.
-	InstallKey string `env:"INSTALL_KEY"`
+	ProvisioningKey string `env:"PROVISIONING_KEY"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
@@ -157,11 +157,11 @@ type Config struct {
 }
 
 // HasNamespaceCredential reports whether the configuration carries something naming the namespace
-// the device enrolls into: a tenant ID, or an install key, which is namespace-scoped and so resolves
+// the device enrolls into: a tenant ID, or a provisioning key, which is namespace-scoped and so resolves
 // one on its own. A configuration with neither has to pair, the only path that waits on a user.
 // PairingCode does not count, as the pairing flow claims it and returns the tenant it resolved.
 func (c *Config) HasNamespaceCredential() bool {
-	return c.TenantID != "" || c.InstallKey != ""
+	return c.TenantID != "" || c.ProvisioningKey != ""
 }
 
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
@@ -244,7 +244,7 @@ var (
 
 	ErrNewAgentWithConfigUnsupportedTransportVersion = errors.New("transport version is unsupported")
 
-	ErrAuthorizeNoNamespaceCredential = errors.New("no tenant or install key to enroll with")
+	ErrAuthorizeNoNamespaceCredential = errors.New("no tenant or provisioning key to enroll with")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
@@ -331,8 +331,8 @@ func (a *Agent) Setup() error {
 // Authorize registers the device on the ShellHub server within its namespace.
 // [Agent.Setup] must have been run first, and the device must carry something
 // naming a namespace: a tenant (from configuration, or injected with
-// [Agent.SetTenantID] after a pairing) or an install key, which is
-// namespace-scoped and so enrolls on its own. The tenant an install key
+// [Agent.SetTenantID] after a pairing) or a provisioning key, which is
+// namespace-scoped and so enrolls on its own. The tenant a provisioning key
 // resolved to is adopted from the server's response.
 func (a *Agent) Authorize() error {
 	if !a.config.HasNamespaceCredential() {
@@ -469,11 +469,11 @@ var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostn
 
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 	auth := &models.DeviceAuth{
-		Hostname:   a.config.PreferredHostname,
-		Identity:   a.Identity,
-		TenantID:   a.config.TenantID,
-		PublicKey:  string(keygen.EncodePublicKeyToPem(a.pubKey)),
-		InstallKey: a.config.InstallKey,
+		Hostname:        a.config.PreferredHostname,
+		Identity:        a.Identity,
+		TenantID:        a.config.TenantID,
+		PublicKey:       string(keygen.EncodePublicKeyToPem(a.pubKey)),
+		ProvisioningKey: a.config.ProvisioningKey,
 	}
 
 	if auth.Hostname == "" && (auth.Identity == nil || auth.Identity.MAC == "") {

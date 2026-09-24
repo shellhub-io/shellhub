@@ -56,10 +56,10 @@ const (
 	APIKeyUpdate
 	APIKeyDelete
 
-	InstallKeyCreate
-	InstallKeyUpdate
-	InstallKeyReveal
-	InstallKeyList
+	ProvisioningKeyCreate
+	ProvisioningKeyUpdate
+	ProvisioningKeyReveal
+	ProvisioningKeyList
 
 	ConnectorDelete
 	ConnectorUpdate
@@ -141,10 +141,10 @@ var adminPermissions = []Permission{
 	APIKeyUpdate,
 	APIKeyDelete,
 
-	InstallKeyCreate,
-	InstallKeyUpdate,
-	InstallKeyReveal,
-	InstallKeyList,
+	ProvisioningKeyCreate,
+	ProvisioningKeyUpdate,
+	ProvisioningKeyReveal,
+	ProvisioningKeyList,
 
 	ConnectorDelete,
 	ConnectorUpdate,
@@ -207,10 +207,10 @@ var ownerPermissions = []Permission{
 	APIKeyUpdate,
 	APIKeyDelete,
 
-	InstallKeyCreate,
-	InstallKeyUpdate,
-	InstallKeyReveal,
-	InstallKeyList,
+	ProvisioningKeyCreate,
+	ProvisioningKeyUpdate,
+	ProvisioningKeyReveal,
+	ProvisioningKeyList,
 
 	ConnectorDelete,
 	ConnectorUpdate,

@@ -1,0 +1,86 @@
+post:
+  operationId: provisioningKeyCreate
+  summary: Creates a provisioning key.
+  description: |
+    The `created_by` and `tenant_id` values are obtained from the JWT token. The
+    plaintext key is returned only once, in the response.
+  tags:
+    - provisioning-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/provisioningKeyCreate.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/provisioningKeyWithKey.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: provisioningKeyList
+  summary: List provisioning keys
+  tags:
+    - provisioning-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: The list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+      required: false
+      in: query
+    - name: sort_by
+      description: |
+        The property to sort by. Accepts `name`, `mode`, `type`, `used_times`, `last_used_at`,
+        `created_at`, `updated_at` and `expires_at`; any other value is rejected with 400.
+      schema:
+        type: string
+        example: name
+        default: created_at
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/provisioningKey.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

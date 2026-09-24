@@ -7,7 +7,7 @@ import type {
   FirewallRulesResponse,
   GetLicenseResponse,
   GetStatusDevicesResponse,
-  InstallKey,
+  ProvisioningKey,
   MembershipInvitation,
   Namespace,
   PublicKeyResponse,
@@ -407,12 +407,12 @@ export function mockSshIdentity(
 }
 
 /**
- * Builds an install key with an allowance left for a test. Every field has a value, so a case names only what it is about
+ * Builds a provisioning key with an allowance left for a test. Every field has a value, so a case names only what it is about
  * and the rest stays out of the way.
  */
-export function mockInstallKey(
-  overrides: Partial<InstallKey> = {},
-): InstallKey {
+export function mockProvisioningKey(
+  overrides: Partial<ProvisioningKey> = {},
+): ProvisioningKey {
   return {
     id: "key-digest-1",
     tenant_id: "tenant-456",

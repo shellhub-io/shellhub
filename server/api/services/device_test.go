@@ -2054,7 +2054,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			tc.requiredMocks()
 
 			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
-				storeMock.On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
+				storeMock.On("ProvisioningKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
 			}
 
 			err := service.UpdateDeviceStatus(ctx, tc.req)
@@ -2374,7 +2374,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 			tc.requiredMocks()
 
 			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
-				storeMock.On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
+				storeMock.On("ProvisioningKeyEventStampDecision", ctx, scope.MustBounded(tc.req.TenantID), tc.req.UID, st, mock.Anything).Return(nil).Once()
 			}
 
 			err := service.UpdateDeviceStatus(ctx, tc.req)
@@ -2444,7 +2444,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 		Return(nil).
 		Once()
 	storeMock.
-		On("InstallKeyEventStampDecision", ctx, scope.MustBounded(tenantID), "keyless", models.DeviceStatusAccepted, mock.Anything).
+		On("ProvisioningKeyEventStampDecision", ctx, scope.MustBounded(tenantID), "keyless", models.DeviceStatusAccepted, mock.Anything).
 		Return(nil).
 		Once()
 	storeMock.
@@ -2459,7 +2459,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	}))
 
 	storeMock.AssertExpectations(t)
-	storeMock.AssertNotCalled(t, "InstallKeyIncrementUsage", mock.Anything, mock.Anything)
+	storeMock.AssertNotCalled(t, "ProvisioningKeyIncrementUsage", mock.Anything, mock.Anything)
 }
 
 func TestDeviceUpdate(t *testing.T) {

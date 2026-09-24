@@ -152,11 +152,11 @@ var (
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstanceAPIKeyNotFound          = errors.New("InstanceAPIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrInstanceAPIKeyDuplicated        = errors.New("InstanceAPIKey duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrInstallKeyNotFound              = errors.New("InstallKey not found", ErrLayer, ErrCodeNotFound)
-	ErrInstallKeyDuplicated            = errors.New("InstallKey duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrInstallKeyForbidden             = errors.New("the legacy install key cannot be modified", ErrLayer, ErrCodeForbidden)
-	ErrInstallKeyInvalidField          = errors.New("install key field is invalid", ErrLayer, ErrCodeInvalid)
-	ErrInstallKeyExhausted             = errors.New("install key usage limit reached", ErrLayer, ErrCodeLimit)
+	ErrProvisioningKeyNotFound         = errors.New("ProvisioningKey not found", ErrLayer, ErrCodeNotFound)
+	ErrProvisioningKeyDuplicated       = errors.New("ProvisioningKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrProvisioningKeyForbidden        = errors.New("the legacy provisioning key cannot be modified", ErrLayer, ErrCodeForbidden)
+	ErrProvisioningKeyInvalidField     = errors.New("provisioning key field is invalid", ErrLayer, ErrCodeInvalid)
+	ErrProvisioningKeyExhausted        = errors.New("provisioning key usage limit reached", ErrLayer, ErrCodeLimit)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
@@ -263,20 +263,20 @@ func NewErrInstanceAPIKeyDuplicated(conflicts []string) error {
 	return NewErrDuplicated(ErrInstanceAPIKeyDuplicated, conflicts, nil)
 }
 
-// NewErrInstallKeyNotFound returns an error when the InstallKey is not found.
-func NewErrInstallKeyNotFound(name string, next error) error {
-	return NewErrNotFound(ErrInstallKeyNotFound, name, next)
+// NewErrProvisioningKeyNotFound returns an error when the ProvisioningKey is not found.
+func NewErrProvisioningKeyNotFound(name string, next error) error {
+	return NewErrNotFound(ErrProvisioningKeyNotFound, name, next)
 }
 
-// NewErrInstallKeyDuplicated returns an error when the InstallKey name is duplicated.
-func NewErrInstallKeyDuplicated(conflicts []string) error {
-	return NewErrDuplicated(ErrInstallKeyDuplicated, conflicts, nil)
+// NewErrProvisioningKeyDuplicated returns an error when the ProvisioningKey name is duplicated.
+func NewErrProvisioningKeyDuplicated(conflicts []string) error {
+	return NewErrDuplicated(ErrProvisioningKeyDuplicated, conflicts, nil)
 }
 
-// NewErrInstallKeyForbidden returns an error when a install key cannot be modified: a system-managed
+// NewErrProvisioningKeyForbidden returns an error when a provisioning key cannot be modified: a system-managed
 // key, or a revoked (terminal) key that is edited.
-func NewErrInstallKeyForbidden() error {
-	return NewErrForbidden(ErrInstallKeyForbidden, nil)
+func NewErrProvisioningKeyForbidden() error {
+	return NewErrForbidden(ErrProvisioningKeyForbidden, nil)
 }
 
 // ErrDataInvalidFields carries the offending field(s) and why they are invalid, so the route can
@@ -298,10 +298,10 @@ func NewErrAccessPolicyInvalidField(fields map[string]string) error {
 	return NewErrInvalidFields(ErrAccessPolicyInvalidField, fields)
 }
 
-// NewErrInstallKeyInvalidField returns a bad-request error tagging install key field(s) with a
+// NewErrProvisioningKeyInvalidField returns a bad-request error tagging provisioning key field(s) with a
 // human-readable reason, retrievable by the route from the error's Data.
-func NewErrInstallKeyInvalidField(fields map[string]string) error {
-	return NewErrInvalidFields(ErrInstallKeyInvalidField, fields)
+func NewErrProvisioningKeyInvalidField(fields map[string]string) error {
+	return NewErrInvalidFields(ErrProvisioningKeyInvalidField, fields)
 }
 
 // NewErrTagInvalid returns an error when the tag is invalid.

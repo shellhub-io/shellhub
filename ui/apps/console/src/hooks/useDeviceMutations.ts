@@ -15,7 +15,7 @@ import { useInvalidateByIds } from "./useInvalidateQueries";
 
 /**
  * Accepts a pending device. The counts change with it, so the stats query is refreshed as well
- * as the lists — including the install keys list, which carries each key's pending count.
+ * as the lists — including the provisioning keys list, which carries each key's pending count.
  */
 export function useAcceptDevice() {
   const invalidate = useInvalidateByIds(
@@ -23,7 +23,7 @@ export function useAcceptDevice() {
     "getDevice",
     "getStatusDevices",
     "getStats",
-    "installKeyList",
+    "provisioningKeyList",
   );
   return useMutation({
     ...acceptDeviceMutation(),
@@ -40,7 +40,7 @@ export function useRejectDevice() {
     "getDevices",
     "getDevice",
     "getStatusDevices",
-    "installKeyList",
+    "provisioningKeyList",
   );
   return useMutation({
     ...updateDeviceStatusMutation(),
@@ -57,7 +57,7 @@ export function useRemoveDevice() {
     "getDevice",
     "getStatusDevices",
     "getStats",
-    "installKeyList",
+    "provisioningKeyList",
   );
   return useMutation({
     ...deleteDeviceMutation(),

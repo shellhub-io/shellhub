@@ -16,13 +16,20 @@ import { METHODS, PAIRING_METHODS, type Method } from "./methods";
 const DOCS_INSTALL_URL = "https://docs.shellhub.io/get-started/install";
 
 /** The methods a visitor can run without an account, in the order the installer tries them. */
-const OFFERED: Method[] = ["auto", "docker", "podman", "snap", "standalone", "wsl"];
+const OFFERED: Method[] = [
+  "auto",
+  "docker",
+  "podman",
+  "snap",
+  "standalone",
+  "wsl",
+];
 
 /**
  * The public install page: the command to put an agent on a machine, with no account needed to
  * read it.
  *
- * It is deliberately the one-device path. A fleet needs an install key, which needs a namespace
+ * It is deliberately the one-device path. A fleet needs a provisioning key, which needs a namespace
  * to create it in, so that half of Add Device only makes sense signed in.
  */
 export default function Install() {
@@ -125,7 +132,7 @@ export default function Install() {
               ) : (
                 <>
                   The device enrols into the namespace you named and waits to be
-                  accepted, in the activity of the install key it used.
+                  accepted, in the activity of the provisioning key it used.
                 </>
               )}
             </p>
@@ -134,7 +141,7 @@ export default function Install() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 bg-surface/40 border-t border-border">
           <p className="text-2xs text-text-muted">
-            Adding more than one? An install key enrols a fleet unattended.
+            Adding more than one? A provisioning key enrols a fleet unattended.
           </p>
           <Button
             as="a"
@@ -144,7 +151,10 @@ export default function Install() {
             target="_blank"
             rel="noopener noreferrer"
             iconRight={
-              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              <ArrowTopRightOnSquareIcon
+                className="w-3.5 h-3.5"
+                strokeWidth={2}
+              />
             }
           >
             Installation guide

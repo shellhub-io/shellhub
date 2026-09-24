@@ -57,12 +57,12 @@ tags:
     description: Requests executed by the ShellHub user.
   - name: system
     description: Routes related to running instance.
-  - name: install-keys
+  - name: provisioning-keys
     description: |
-      A install key is a reusable, revocable, namespace-scoped credential that
+      A provisioning key is a reusable, revocable, namespace-scoped credential that
       auto-accepts a device at install time. It can carry an expiration, a usage
       limit, auto-applied tags, and an ephemeral flag. It is passed to the
-      installer as `INSTALL_KEY` and is the automation counterpart to the
+      installer as `PROVISIONING_KEY` and is the automation counterpart to the
       interactive browser-based device enrollment.
   - name: api-keys
     description: |
@@ -167,14 +167,14 @@ paths:
     $ref: paths/api@namespaces@api-key@{key}.yaml
   /api/namespaces/api-key/{name}/ssh-identities:
     $ref: paths/api@namespaces@api-key@{name}@ssh-identities.yaml
-  /api/namespaces/install-key:
-    $ref: paths/api@namespaces@install-key.yaml
-  /api/namespaces/install-key/{key}:
-    $ref: paths/api@namespaces@install-key@{key}.yaml
-  /api/namespaces/install-key/{key}/reveal:
-    $ref: paths/api@namespaces@install-key@{key}@reveal.yaml
-  /api/namespaces/install-key/{id}/history:
-    $ref: paths/api@namespaces@install-key@{id}@history.yaml
+  /api/namespaces/provisioning-key:
+    $ref: paths/api@namespaces@provisioning-key.yaml
+  /api/namespaces/provisioning-key/{key}:
+    $ref: paths/api@namespaces@provisioning-key@{key}.yaml
+  /api/namespaces/provisioning-key/{key}/reveal:
+    $ref: paths/api@namespaces@provisioning-key@{key}@reveal.yaml
+  /api/namespaces/provisioning-key/{id}/history:
+    $ref: paths/api@namespaces@provisioning-key@{id}@history.yaml
   /api/devices/enroll/callback/{token}:
     $ref: paths/api@devices@enroll@callback@{token}.yaml
   /api/web-terminal/reauth:

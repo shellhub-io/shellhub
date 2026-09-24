@@ -37,9 +37,9 @@ type (
 // EnrollmentDecisionClaims scopes a deferred-decision callback token to exactly one enrolling device,
 // so a webhook integrator can accept/reject it later without any standing credential.
 type EnrollmentDecisionClaims struct {
-	DeviceUID    string `json:"device_uid"`
-	TenantID     string `json:"tenant_id"`
-	InstallKeyID string `json:"install_key_id"`
+	DeviceUID         string `json:"device_uid"`
+	TenantID          string `json:"tenant_id"`
+	ProvisioningKeyID string `json:"provisioning_key_id"`
 }
 
 const (

@@ -489,7 +489,7 @@ func TestGetNamespace(t *testing.T) {
 
 func TestCreateNamespace(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
-	storeMock.On("InstallKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
+	storeMock.On("ProvisioningKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
 	clockMock := clockmock.NewMockClock(t)
 
 	prevClockBackend := clock.DefaultBackend

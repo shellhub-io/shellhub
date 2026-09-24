@@ -90,24 +90,24 @@ func TestAPIKeyDigestIsGloballyUnique(t *testing.T) {
 		"a digest already held by another namespace must be refused, not stored alongside it")
 }
 
-// TestInstallKeyDigestIsGloballyUnique locks the same invariant for install keys, which
-// installKeyTenant resolves by digest alone.
-func TestInstallKeyDigestIsGloballyUnique(t *testing.T) {
+// TestProvisioningKeyDigestIsGloballyUnique locks the same invariant for provisioning keys, which
+// provisioningKeyTenant resolves by digest alone.
+func TestProvisioningKeyDigestIsGloballyUnique(t *testing.T) {
 	ctx := context.Background()
 	f := setupKeyDigest(t)
 
-	mk := func(tenant, name string) *models.InstallKey {
-		return &models.InstallKey{
+	mk := func(tenant, name string) *models.ProvisioningKey {
+		return &models.ProvisioningKey{
 			ID: collidingDigest, Name: name, TenantID: tenant,
-			Mode: models.InstallKeyModeAutomatic, Type: models.InstallKeyTypeUser,
+			Mode: models.ProvisioningKeyModeAutomatic, Type: models.ProvisioningKeyTypeUser,
 			Reusable: true, Tags: []string{}, CreatedBy: f.users[tenant],
 		}
 	}
 
-	_, err := f.st.InstallKeyCreate(ctx, mk(f.victim, "prodkey"))
+	_, err := f.st.ProvisioningKeyCreate(ctx, mk(f.victim, "prodkey"))
 	require.NoError(t, err)
 
-	_, err = f.st.InstallKeyCreate(ctx, mk(f.attacker, "mallorykey"))
+	_, err = f.st.ProvisioningKeyCreate(ctx, mk(f.attacker, "mallorykey"))
 	require.ErrorIs(t, err, store.ErrDuplicate)
 }
 

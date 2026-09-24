@@ -40,7 +40,7 @@ jobs:
             race_args: "-race"
           # Integration tests with PostgreSQL. Each of the ~31 SSH cases stands up
           # its own agent container and runs twice (transport v1 and v2), and the
-          # install-key and access-policy cases stand up a stack apiece, so the
+          # provisioning-key and access-policy cases stand up a stack apiece, so the
           # suite needs well over the 25m the unit-test projects get. The detector
           # is left off here: it would instrument the harness, not the services
           # under test, on an already long job.

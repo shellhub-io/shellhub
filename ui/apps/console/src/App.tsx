@@ -42,9 +42,9 @@ const AddDevice = lazy(() => import("./pages/AddDevice"));
 const Install = lazy(() => import("./pages/install"));
 const SSHApproval = lazy(() => import("./pages/SSHApproval"));
 const Team = lazy(() => import("./pages/team"));
-const InstallKeys = lazy(() => import("./pages/install-keys"));
-const InstallKeyHistory = lazy(
-  () => import("./pages/install-keys/InstallKeyHistoryPage"),
+const ProvisioningKeys = lazy(() => import("./pages/provisioning-keys"));
+const ProvisioningKeyHistory = lazy(
+  () => import("./pages/provisioning-keys/ProvisioningKeyHistoryPage"),
 );
 const FirewallRules = lazy(() => import("./pages/firewall-rules"));
 const WebEndpoints = lazy(() => import("./pages/WebEndpoints"));
@@ -298,10 +298,13 @@ export default function App() {
                     />
                   )}
                   <Route path="/team" element={<Team />} />
-                  <Route path="/install-keys" element={<InstallKeys />} />
                   <Route
-                    path="/install-keys/:id/activity"
-                    element={<InstallKeyHistory />}
+                    path="/provisioning-keys"
+                    element={<ProvisioningKeys />}
+                  />
+                  <Route
+                    path="/provisioning-keys/:id/activity"
+                    element={<ProvisioningKeyHistory />}
                   />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/settings/banner" element={<BannerEdit />} />

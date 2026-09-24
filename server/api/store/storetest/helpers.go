@@ -194,10 +194,10 @@ func WithDeviceStatus(status models.DeviceStatus) DeviceOption {
 	}
 }
 
-// WithDeviceInstallKey attributes the device to the install key with the given digest
-func WithDeviceInstallKey(digest string) DeviceOption {
+// WithDeviceProvisioningKey attributes the device to the provisioning key with the given digest
+func WithDeviceProvisioningKey(digest string) DeviceOption {
 	return func(d *models.Device) {
-		d.InstallKeyID = digest
+		d.ProvisioningKeyID = digest
 	}
 }
 

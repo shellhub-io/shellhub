@@ -30,7 +30,7 @@ export function useAcceptDevicePairing() {
     "getDevice",
     "getStatusDevices",
     "getStats",
-    "installKeyList",
+    "provisioningKeyList",
   );
   return useMutation({
     ...acceptDevicePairingMutation(),

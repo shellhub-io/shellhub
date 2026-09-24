@@ -43,7 +43,7 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 	}
 }
 
-// EphemeralCleanup removes devices enrolled with an ephemeral install key that have stayed offline
+// EphemeralCleanup removes devices enrolled with an ephemeral provisioning key that have stayed offline
 // past their own per-device timeout. It runs on its own, more frequent schedule than the daily
 // removed-device cleanup.
 func (s *service) EphemeralCleanup() worker.CronHandler {
@@ -181,7 +181,7 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 // row per resolved deferred webhook, so this keeps its growth bounded.
 func (s *service) EnrollmentCallbackCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		cutoff := clock.Now().Add(-time.Duration(models.InstallKeyWebhookMaxCallbackTTL) * time.Second)
+		cutoff := clock.Now().Add(-time.Duration(models.ProvisioningKeyWebhookMaxCallbackTTL) * time.Second)
 
 		deleted, err := s.store.EnrollmentCallbackCleanup(ctx, cutoff)
 		if err != nil {

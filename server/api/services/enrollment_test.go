@@ -29,19 +29,19 @@ func TestEvaluateEnrollment(t *testing.T) {
 	cases := []struct {
 		description string
 		identity    string
-		key         *models.InstallKey
+		key         *models.ProvisioningKey
 		paired      bool
 		expected    enrollmentDecision
 	}{
 		{"a keyless enrollment (nil key) lands pending", "", nil, false, enrollPending},
-		{"automatic accepts", "", &models.InstallKey{Mode: models.InstallKeyModeAutomatic}, false, enrollAccept},
-		{"manual stays pending", "", &models.InstallKey{Mode: models.InstallKeyModeManual}, false, enrollPending},
-		{"allowlist accepts a listed identity (case-insensitive)", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
-		{"allowlist accepts an identity that is not a MAC address", "SN-99f2", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"sn-99f2"}}, false, enrollAccept},
-		{"allowlist rejects an unlisted identity", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, false, enrollReject},
-		{"an unknown mode stays pending", "", &models.InstallKey{Mode: "bogus"}, false, enrollPending},
-		{"paired accepts despite a manual key", "", &models.InstallKey{Mode: models.InstallKeyModeManual}, true, enrollAccept},
-		{"paired accepts despite an allowlist miss", "", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
+		{"automatic accepts", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAutomatic}, false, enrollAccept},
+		{"manual stays pending", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeManual}, false, enrollPending},
+		{"allowlist accepts a listed identity (case-insensitive)", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
+		{"allowlist accepts an identity that is not a MAC address", "SN-99f2", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"sn-99f2"}}, false, enrollAccept},
+		{"allowlist rejects an unlisted identity", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, false, enrollReject},
+		{"an unknown mode stays pending", "", &models.ProvisioningKey{Mode: "bogus"}, false, enrollPending},
+		{"paired accepts despite a manual key", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeManual}, true, enrollAccept},
+		{"paired accepts despite an allowlist miss", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
 	}
 
 	for _, tc := range cases {
@@ -78,8 +78,8 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 	}
 
 	const secret = "s3cr3t"
-	keyFor := func(url string) *models.InstallKey {
-		return &models.InstallKey{Name: "ci", TenantID: req.TenantID, Mode: models.InstallKeyModeWebhook, WebhookURL: url, WebhookSecret: secret}
+	keyFor := func(url string) *models.ProvisioningKey {
+		return &models.ProvisioningKey{Name: "ci", TenantID: req.TenantID, Mode: models.ProvisioningKeyModeWebhook, WebhookURL: url, WebhookSecret: secret}
 	}
 
 	t.Run("honors the integrator decision and signs the request", func(t *testing.T) {

@@ -21,11 +21,11 @@ import {
   useRemoveDeviceTag,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useInstallKeys } from "../hooks/useInstallKeys";
+import { useProvisioningKeys } from "../hooks/useProvisioningKeys";
 import {
   enrollmentSourceName,
   resolveEnrollmentSource,
-} from "@/pages/install-keys/helpers";
+} from "@/pages/provisioning-keys/helpers";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import ActionDialog from "@/components/common/ActionDialog";
@@ -57,7 +57,7 @@ export default function DeviceDetails() {
   const { device, isLoading, error } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const { installKeys } = useInstallKeys({ perPage: 100 });
+  const { provisioningKeys } = useProvisioningKeys({ perPage: 100 });
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
@@ -113,8 +113,8 @@ export default function DeviceDetails() {
   const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
 
   const enrollment = resolveEnrollmentSource(
-    device.install_key_id,
-    installKeys,
+    device.provisioning_key_id,
+    provisioningKeys,
   );
 
   const tags: string[] = Array.isArray(device.tags)
@@ -304,9 +304,9 @@ export default function DeviceDetails() {
           mac={device.identity?.mac ?? ""}
           remoteAddr={device.remote_addr ?? ""}
           registeredVia={
-            enrollment && device.install_key_id ? (
+            enrollment && device.provisioning_key_id ? (
               <Link
-                to={`/install-keys/${encodeURIComponent(device.install_key_id)}/activity`}
+                to={`/provisioning-keys/${encodeURIComponent(device.provisioning_key_id)}/activity`}
                 className="text-sm font-medium text-text-primary hover:text-primary hover:underline"
               >
                 {enrollmentSourceName(enrollment)}

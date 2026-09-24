@@ -17,7 +17,7 @@ type Store interface {
 	StatsStore
 	APIKeyStore
 	InstanceAPIKeyStore
-	InstallKeyStore
+	ProvisioningKeyStore
 	TransactionStore
 	SystemStore
 	MembershipInvitationStore

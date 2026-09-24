@@ -64,15 +64,15 @@ type Device struct {
 
 	CustomFields map[string]string `json:"custom_fields,omitempty"`
 
-	// Ephemeral reports whether the device was enrolled with an ephemeral install key and should be
+	// Ephemeral reports whether the device was enrolled with an ephemeral provisioning key and should be
 	// removed automatically once it stays offline past EphemeralTimeout.
 	Ephemeral bool `json:"ephemeral"`
 	// EphemeralTimeout is how many minutes the device may stay offline before removal, copied from
-	// the install key at enrollment. Only meaningful when Ephemeral is true.
+	// the provisioning key at enrollment. Only meaningful when Ephemeral is true.
 	EphemeralTimeout int `json:"ephemeral_timeout,omitempty"`
-	// InstallKeyID is the digest of the install key the device enrolled with (a real key or the
+	// ProvisioningKeyID is the digest of the provisioning key the device enrolled with (a real key or the
 	// namespace's legacy key). It attributes the device to its enrollment source.
-	InstallKeyID string `json:"install_key_id,omitempty"`
+	ProvisioningKeyID string `json:"provisioning_key_id,omitempty"`
 	// LastEnrollmentAttemptAt is when the enrollment policy was last (re-)evaluated for the device. It
 	// throttles reconciliation of a still-pending enrollment on the agent's periodic AuthDevice. Nil
 	// until the first re-evaluation.
@@ -97,9 +97,9 @@ type DeviceAuth struct {
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`
-	// InstallKey is an optional install key presented at install time to auto-accept the device. It is
+	// ProvisioningKey is an optional provisioning key presented at install time to auto-accept the device. It is
 	// excluded from the UID hash so it never changes a device's identity.
-	InstallKey string `json:"install_key,omitempty" hash:"-"`
+	ProvisioningKey string `json:"provisioning_key,omitempty" hash:"-"`
 }
 
 // DeviceAuthResponse is what an agent receives on a successful authentication: the token it
@@ -109,8 +109,8 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
-	// TenantID is the namespace the device was enrolled into. An agent that authenticated with an
-	// install key alone learns its namespace here, having had no tenant to send. Additive and
+	// TenantID is the namespace the device was enrolled into. An agent that authenticated with a
+	// provisioning key alone learns its namespace here, having had no tenant to send. Additive and
 	// optional: older agents that don't read it are unaffected.
 	TenantID string `json:"tenant_id,omitempty"`
 	// Status is the device's enrollment status after this auth (accepted/pending/rejected). It lets a

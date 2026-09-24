@@ -485,13 +485,13 @@ func TestConfigHasNamespaceCredential(t *testing.T) {
 		expected    bool
 	}{
 		{
-			description: "has none when neither a tenant nor an install key is set",
+			description: "has none when neither a tenant nor a provisioning key is set",
 			config:      &Config{},
 			expected:    false,
 		},
 		{
-			description: "has one when the install key is the only credential",
-			config:      &Config{InstallKey: "00000000-0000-4000-0000-000000000000"},
+			description: "has one when the provisioning key is the only credential",
+			config:      &Config{ProvisioningKey: "00000000-0000-4000-0000-000000000000"},
 			expected:    true,
 		},
 		{
@@ -502,8 +502,8 @@ func TestConfigHasNamespaceCredential(t *testing.T) {
 		{
 			description: "has one when both are set, the key governing acceptance rather than enrollment",
 			config: &Config{
-				TenantID:   "00000000-0000-4000-0000-000000000000",
-				InstallKey: "11111111-1111-4111-1111-111111111111",
+				TenantID:        "00000000-0000-4000-0000-000000000000",
+				ProvisioningKey: "11111111-1111-4111-1111-111111111111",
 			},
 			expected: true,
 		},

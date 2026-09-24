@@ -28,8 +28,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func plaintextFor(b byte) string { return fmt.Sprintf("install-key-%02x", b) }
-func digest(b byte) string       { return hashInstallKey(plaintextFor(b)) }
+func plaintextFor(b byte) string { return fmt.Sprintf("provisioning-key-%02x", b) }
+func digest(b byte) string       { return hashProvisioningKey(plaintextFor(b)) }
 
 type enrollmentE2E struct {
 	svc      *APIService
@@ -54,7 +54,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	clock.DefaultBackend = localClock
 
 	localEnv := envmock.NewMockBackend(t)
-	localEnv.On("Get", "SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
+	localEnv.On("Get", "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
 	localEnv.On("Get", mock.Anything).Return("").Maybe() // community edition: not cloud, not enterprise
 	prevEnv := envs.DefaultBackend
 	envs.DefaultBackend = localEnv
@@ -91,9 +91,9 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	return &enrollmentE2E{svc: svc, st: st, tenantID: tenantID}
 }
 
-func (e *enrollmentE2E) installKey(t *testing.T, digest, name string, mode models.InstallKeyMode, keyType models.InstallKeyType, opts func(*models.InstallKey)) {
+func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode models.ProvisioningKeyMode, keyType models.ProvisioningKeyType, opts func(*models.ProvisioningKey)) {
 	t.Helper()
-	key := &models.InstallKey{
+	key := &models.ProvisioningKey{
 		ID:        digest,
 		Name:      name,
 		TenantID:  e.tenantID,
@@ -106,11 +106,11 @@ func (e *enrollmentE2E) installKey(t *testing.T, digest, name string, mode model
 	if opts != nil {
 		opts(key)
 	}
-	_, err := e.st.InstallKeyCreate(context.Background(), key)
+	_, err := e.st.ProvisioningKeyCreate(context.Background(), key)
 	require.NoError(t, err)
 }
 
-func (e *enrollmentE2E) enroll(t *testing.T, mac, installKey string) string {
+func (e *enrollmentE2E) enroll(t *testing.T, mac, provisioningKey string) string {
 	t.Helper()
 	req := requests.DeviceAuth{
 		TenantID:       e.tenantID,
@@ -122,8 +122,8 @@ func (e *enrollmentE2E) enroll(t *testing.T, mac, installKey string) string {
 		ForwardedHost:  "shellhub.test",
 		ForwardedProto: "https",
 	}
-	if installKey != "" {
-		req.InstallKey = installKey
+	if provisioningKey != "" {
+		req.ProvisioningKey = provisioningKey
 	}
 
 	res, err := e.svc.AuthDevice(context.Background(), req)
@@ -142,20 +142,20 @@ func (e *enrollmentE2E) status(t *testing.T, uid string) models.DeviceStatus {
 
 func (e *enrollmentE2E) usedTimes(t *testing.T, keyDigest string) int {
 	t.Helper()
-	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, keyDigest)
+	key, err := e.st.ProvisioningKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.ProvisioningKeyIDResolver, keyDigest)
 	require.NoError(t, err)
 
 	return key.UsedTimes
 }
 
-func clearSecret(k *models.InstallKey) { k.KeyEncrypted, k.KeyHint = "", "" }
+func clearSecret(k *models.ProvisioningKey) { k.KeyEncrypted, k.KeyHint = "", "" }
 
-func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.InstallKeyEvent {
+func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.ProvisioningKeyEvent {
 	t.Helper()
-	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyNameResolver, keyName)
+	key, err := e.st.ProvisioningKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.ProvisioningKeyNameResolver, keyName)
 	require.NoError(t, err)
 
-	events, _, err := e.svc.ListInstallKeyEvents(context.Background(), &requests.ListInstallKeyEvents{
+	events, _, err := e.svc.ListProvisioningKeyEvents(context.Background(), &requests.ListProvisioningKeyEvents{
 		TenantID:  e.tenantID,
 		ID:        key.ID,
 		Paginator: query.Paginator{Page: 1, PerPage: 100},
@@ -186,7 +186,7 @@ func (e *enrollmentE2E) deviceCounts(t *testing.T) models.Namespace {
 }
 
 // TestEnrollmentE2E_LegacyKeyless is the compatibility gate: a device that presents only the tenant ID
-// (no install key) — like a 40k field fleet — resolves the legacy manual key, lands pending, is
+// (no provisioning key) — like a 40k field fleet — resolves the legacy manual key, lands pending, is
 // listable via ?status=pending, and is accepted through the canonical status endpoint.
 func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 	e := setupEnrollmentE2E(t)
@@ -216,7 +216,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	t.Run("automatic accepts on enrollment", func(t *testing.T) {
-		e.installKey(t, digest(0x01), "auto", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x01), "auto", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:10", plaintextFor(0x01))
@@ -229,7 +229,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("manual key lands pending", func(t *testing.T) {
-		e.installKey(t, digest(0x02), "manual", models.InstallKeyModeManual, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x02), "manual", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:20", plaintextFor(0x02))
@@ -237,7 +237,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("allowlist accepts a listed identity and rejects others", func(t *testing.T) {
-		e.installKey(t, digest(0x03), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x03), "allow", models.ProvisioningKeyModeAllowlist, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.AllowedIdentities = []string{"aa:bb:cc:dd:ee:31"}
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
@@ -256,15 +256,15 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("the auth response carries the device status", func(t *testing.T) {
-		e.installKey(t, digest(0x04), "auto-status", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
+		e.provisioningKey(t, digest(0x04), "auto-status", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 		res, err := e.svc.AuthDevice(context.Background(), requests.DeviceAuth{
-			TenantID:   e.tenantID,
-			Hostname:   "host-status",
-			Identity:   &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:44"},
-			Info:       &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
-			PublicKey:  "pk-status",
-			RealIP:     "203.0.113.7",
-			InstallKey: plaintextFor(0x04),
+			TenantID:        e.tenantID,
+			Hostname:        "host-status",
+			Identity:        &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:44"},
+			Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
+			PublicKey:       "pk-status",
+			RealIP:          "203.0.113.7",
+			ProvisioningKey: plaintextFor(0x04),
 		})
 		require.NoError(t, err)
 		require.Equal(t, models.DeviceStatusAccepted, res.Status)
@@ -277,7 +277,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	t.Run("re-registration re-runs the policy and consumes another use", func(t *testing.T) {
-		e.installKey(t, digest(0x40), "auto", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
+		e.provisioningKey(t, digest(0x40), "auto", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:40", plaintextFor(0x40))
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
@@ -297,7 +297,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	})
 
 	t.Run("a plain reconnect does not re-run the policy", func(t *testing.T) {
-		e.installKey(t, digest(0x41), "auto2", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
+		e.provisioningKey(t, digest(0x41), "auto2", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:41", plaintextFor(0x41))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x41)))
@@ -308,7 +308,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	})
 
 	t.Run("an auto-rejected device can be manually re-accepted", func(t *testing.T) {
-		e.installKey(t, digest(0x42), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x42), "allow", models.ProvisioningKeyModeAllowlist, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.AllowedIdentities = []string{"aa:bb:cc:dd:ee:99"}
 			clearSecret(k)
 		})
@@ -339,7 +339,7 @@ func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x50), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+	e.provisioningKey(t, digest(0x50), "webhook", models.ProvisioningKeyModeWebhook, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -380,7 +380,7 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+	e.provisioningKey(t, digest(0x60), "webhook", models.ProvisioningKeyModeWebhook, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -418,7 +418,7 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		e.installKey(t, digest(keyByte), name, models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(keyByte), name, models.ProvisioningKeyModeWebhook, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.WebhookURL = srv.URL
 			k.WebhookSecret = "s3cr3t"
 			k.UsageLimit = 1
@@ -443,10 +443,10 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 	t.Run("a key revoked after the token is minted can't accept via callback", func(t *testing.T) {
 		uid, token := enrollDeferred(0x63, "webhook-revoked", "aa:bb:cc:dd:ee:63")
 
-		key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, digest(0x63))
+		key, err := e.st.ProvisioningKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.ProvisioningKeyIDResolver, digest(0x63))
 		require.NoError(t, err)
 		key.Revoked = true
-		require.NoError(t, e.st.InstallKeyUpdate(context.Background(), key))
+		require.NoError(t, e.st.ProvisioningKeyUpdate(context.Background(), key))
 
 		err = e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: "accept"})
 		require.Error(t, err, "a callback must not accept with a key revoked after the token was minted")
@@ -476,7 +476,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+	e.provisioningKey(t, digest(0x60), "webhook", models.ProvisioningKeyModeWebhook, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -529,7 +529,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x61), "webhook-revoked", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+	e.provisioningKey(t, digest(0x61), "webhook-revoked", models.ProvisioningKeyModeWebhook, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -538,10 +538,10 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:61", plaintextFor(0x61))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
 
-	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, digest(0x61))
+	key, err := e.st.ProvisioningKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.ProvisioningKeyIDResolver, digest(0x61))
 	require.NoError(t, err)
 	key.Revoked = true
-	require.NoError(t, e.st.InstallKeyUpdate(context.Background(), key))
+	require.NoError(t, e.st.ProvisioningKeyUpdate(context.Background(), key))
 
 	decision = "accept"
 	cur = base.Add(models.EnrollmentReconcileInterval + time.Minute)
@@ -557,7 +557,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 // check — decides who gets the slot, and it can never land past the limit.
 func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x80), "single-use", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+	e.provisioningKey(t, digest(0x80), "single-use", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.UsageLimit = 1
 		clearSecret(k)
 	})
@@ -573,15 +573,15 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			req := requests.DeviceAuth{
-				TenantID:       e.tenantID,
-				Hostname:       fmt.Sprintf("racer-%02d", i),
-				Identity:       &requests.DeviceIdentity{MAC: fmt.Sprintf("aa:bb:cc:dd:80:%02x", i)},
-				Info:           &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
-				PublicKey:      fmt.Sprintf("pk-80-%02d", i),
-				RealIP:         "203.0.113.7",
-				ForwardedHost:  "shellhub.test",
-				ForwardedProto: "https",
-				InstallKey:     plaintextFor(0x80),
+				TenantID:        e.tenantID,
+				Hostname:        fmt.Sprintf("racer-%02d", i),
+				Identity:        &requests.DeviceIdentity{MAC: fmt.Sprintf("aa:bb:cc:dd:80:%02x", i)},
+				Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
+				PublicKey:       fmt.Sprintf("pk-80-%02d", i),
+				RealIP:          "203.0.113.7",
+				ForwardedHost:   "shellhub.test",
+				ForwardedProto:  "https",
+				ProvisioningKey: plaintextFor(0x80),
 			}
 
 			<-start // release all racers together to maximize the overlap on the last slot
@@ -615,7 +615,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 // time (device status_updated_at) distinct from the immutable enrollment time.
 func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x70), "man", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
+	e.provisioningKey(t, digest(0x70), "man", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	base := now
 	cur := base
@@ -659,7 +659,7 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 // current (owns the live status/decision) so the older one doesn't borrow it.
 func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x80), "man2", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
+	e.provisioningKey(t, digest(0x80), "man2", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	base := now
 	cur := base
@@ -717,7 +717,7 @@ func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
 	}
 
 	t.Run("manual review spends a use per accept and stops at the limit", func(t *testing.T) {
-		e.installKey(t, digest(0x90), "manual-capped", models.InstallKeyModeManual, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x90), "manual-capped", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.UsageLimit = 1
 			clearSecret(k)
 		})
@@ -731,13 +731,13 @@ func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
 		require.NoError(t, accept(first))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x90)))
 
-		require.ErrorIs(t, accept(second), ErrInstallKeyExhausted)
+		require.ErrorIs(t, accept(second), ErrProvisioningKeyExhausted)
 		require.Equal(t, models.DeviceStatusPending, e.status(t, second), "a refused accept leaves the device in the queue")
 		require.Equal(t, 1, e.usedTimes(t, digest(0x90)), "a refused accept spends nothing")
 	})
 
 	t.Run("accepting a rejected device spends a use", func(t *testing.T) {
-		e.installKey(t, digest(0x91), "allow-capped", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
+		e.provisioningKey(t, digest(0x91), "allow-capped", models.ProvisioningKeyModeAllowlist, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.AllowedIdentities = []string{"aa:bb:cc:dd:91:ff"}
 			clearSecret(k)
 		})

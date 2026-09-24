@@ -133,8 +133,8 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
           icon: <UsersIcon className={navIcon} />,
         },
         {
-          to: "/install-keys",
-          label: "Install Keys",
+          to: "/provisioning-keys",
+          label: "Provisioning Keys",
           icon: <TicketIcon className={navIcon} />,
         },
         {

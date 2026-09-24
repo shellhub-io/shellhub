@@ -69,26 +69,26 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		}
 
 		legacyDigest := sha256.Sum256([]byte("system:" + namespace.TenantID))
-		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
+		if _, err := pg.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 			ID:        hex.EncodeToString(legacyDigest[:]),
-			Name:      string(models.InstallKeyTypeLegacy),
+			Name:      string(models.ProvisioningKeyTypeLegacy),
 			TenantID:  namespace.TenantID,
-			Mode:      models.InstallKeyModeManual,
+			Mode:      models.ProvisioningKeyModeManual,
 			Reusable:  true,
-			Type:      models.InstallKeyTypeLegacy,
+			Type:      models.ProvisioningKeyTypeLegacy,
 			CreatedBy: namespace.Owner,
 		}); err != nil {
 			return err
 		}
 
 		pairingDigest := sha256.Sum256([]byte("system:pairing:" + namespace.TenantID))
-		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
+		if _, err := pg.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 			ID:        hex.EncodeToString(pairingDigest[:]),
-			Name:      string(models.InstallKeyTypePairing),
+			Name:      string(models.ProvisioningKeyTypePairing),
 			TenantID:  namespace.TenantID,
-			Mode:      models.InstallKeyModeAutomatic,
+			Mode:      models.ProvisioningKeyModeAutomatic,
 			Reusable:  true,
-			Type:      models.InstallKeyTypePairing,
+			Type:      models.ProvisioningKeyTypePairing,
 			CreatedBy: namespace.Owner,
 		}); err != nil {
 			return err

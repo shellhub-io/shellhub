@@ -88,11 +88,11 @@ const permissions = {
   "apiKey:edit": RoleLevel.ADMINISTRATOR,
   "apiKey:delete": RoleLevel.ADMINISTRATOR,
 
-  "installKey:create": RoleLevel.ADMINISTRATOR,
-  "installKey:reveal": RoleLevel.ADMINISTRATOR,
-  "installKey:edit": RoleLevel.ADMINISTRATOR,
-  "installKey:disable": RoleLevel.ADMINISTRATOR,
-  "installKey:revoke": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:create": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:reveal": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:edit": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:disable": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:revoke": RoleLevel.ADMINISTRATOR,
 
   "namespace:editBanner": RoleLevel.ADMINISTRATOR,
 } as const;

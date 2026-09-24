@@ -72,22 +72,22 @@ func TestListEndpointsRejectAnUnapprovedSortField(t *testing.T) {
 		uncalledFunc string
 	}{
 		{
-			description:  "refuses to order install keys by the webhook signing secret",
-			path:         "/api/namespaces/install-key",
+			description:  "refuses to order provisioning keys by the webhook signing secret",
+			path:         "/api/namespaces/provisioning-key",
 			sortBy:       "webhook_secret",
-			uncalledFunc: "ListInstallKeys",
+			uncalledFunc: "ListProvisioningKeys",
 		},
 		{
-			description:  "refuses to order install keys by the key ciphertext",
-			path:         "/api/namespaces/install-key",
+			description:  "refuses to order provisioning keys by the key ciphertext",
+			path:         "/api/namespaces/provisioning-key",
 			sortBy:       "key_encrypted",
-			uncalledFunc: "ListInstallKeys",
+			uncalledFunc: "ListProvisioningKeys",
 		},
 		{
-			description:  "refuses to order install key history by an unexposed column",
-			path:         "/api/namespaces/install-key/abc/history",
+			description:  "refuses to order provisioning key history by an unexposed column",
+			path:         "/api/namespaces/provisioning-key/abc/history",
 			sortBy:       "public_key",
-			uncalledFunc: "ListInstallKeyEvents",
+			uncalledFunc: "ListProvisioningKeyEvents",
 		},
 		{
 			description:  "refuses to order API keys by the key digest",

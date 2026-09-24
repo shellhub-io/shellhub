@@ -54,7 +54,7 @@ type Service interface {
 	SystemService
 	APIKeyService
 	InstanceAPIKeyService
-	InstallKeyService
+	ProvisioningKeyService
 	FirewallService
 	LicenseService
 	BillingService
