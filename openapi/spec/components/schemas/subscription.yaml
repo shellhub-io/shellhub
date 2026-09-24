@@ -32,6 +32,16 @@ properties:
     nullable: true
     items:
       $ref: invoice.yaml
+  customer_id:
+    description: The payment gateway's customer ID for the subscription.
+    type: string
+    example: cus_9s6XKzkNRiz8i3
+  metadata:
+    description: Key-value pairs the gateway stores on the subscription. Includes `tenant_id`.
+    type: object
+    nullable: true
+    additionalProperties:
+      type: string
 required:
   - id
   - active
