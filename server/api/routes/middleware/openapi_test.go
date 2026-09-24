@@ -48,10 +48,43 @@ func specFile(t *testing.T, content string) *url.URL {
 	return &url.URL{Scheme: "file", Path: path}
 }
 
+func specWithSchema(schema string) string {
+	return `{
+  "openapi": "3.0.3",
+  "info": {"title": "things", "version": "1"},
+  "paths": {
+    "/api/thing": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "a thing",
+            "content": {"application/json": {"schema": ` + schema + `}}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "base": {"type": "object", "properties": {
+        "id": {"type": "string"},
+        "owner": {"type": "object", "properties": {"name": {"type": "string"}}}
+      }}
+    }
+  }
+}`
+}
+
 func serveThings(t *testing.T, strict bool, path string, handler echo.HandlerFunc) *httptest.ResponseRecorder {
 	t.Helper()
 
-	cfg := &OpenAPIValidatorConfig{SchemaPath: specFile(t, thingsSpec), Strict: strict}
+	return serveSpec(t, thingsSpec, strict, path, handler)
+}
+
+func serveSpec(t *testing.T, spec string, strict bool, path string, handler echo.HandlerFunc) *httptest.ResponseRecorder {
+	t.Helper()
+
+	cfg := &OpenAPIValidatorConfig{SchemaPath: specFile(t, spec), Strict: strict}
 
 	validate := OpenAPIValidator(cfg)
 	if strict {
@@ -71,6 +104,17 @@ func serveThings(t *testing.T, strict bool, path string, handler echo.HandlerFun
 	return rec
 }
 
+func requireRejected(t *testing.T, rec *httptest.ResponseRecorder, reason string) {
+	t.Helper()
+
+	require.Equal(t, http.StatusInternalServerError, rec.Code)
+
+	message := OpenAPIValidationMessage{}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &message))
+	require.NotEmpty(t, message.Errors)
+	require.Contains(t, message.Errors[0], reason)
+}
+
 func TestStrictValidatorAnswersAsTheHandlerDidWhenTheResponseMatches(t *testing.T) {
 	rec := serveThings(t, true, "/api/things", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"id": "thing-1"})
@@ -82,15 +126,105 @@ func TestStrictValidatorAnswersAsTheHandlerDidWhenTheResponseMatches(t *testing.
 
 func TestStrictValidatorReplacesAResponseTheSchemaRejects(t *testing.T) {
 	rec := serveThings(t, true, "/api/things", func(c *echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]int{"count": 1})
+		return c.JSON(http.StatusOK, map[string]int{})
 	})
 
-	require.Equal(t, http.StatusInternalServerError, rec.Code)
+	requireRejected(t, rec, `property "id" is missing`)
+}
 
-	message := OpenAPIValidationMessage{}
-	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &message))
-	require.NotEmpty(t, message.Errors)
-	require.Contains(t, message.Errors[0], "id")
+func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredProperty(t *testing.T) {
+	rec := serveThings(t, true, "/api/things", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": "thing-1", "extra": 1})
+	})
+
+	requireRejected(t, rec, `property "extra" is unsupported`)
+}
+
+func TestStrictValidatorAcceptsTheSiblingPropertiesOfAComposedSchema(t *testing.T) {
+	spec := specWithSchema(`{"allOf": [
+    {"$ref": "#/components/schemas/base"},
+    {"type": "object", "properties": {"key": {"type": "string"}}}
+  ]}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"id": "thing-1", "key": "secret"})
+	})
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.JSONEq(t, `{"id":"thing-1","key":"secret"}`, rec.Body.String())
+}
+
+func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredPropertyInsideAComposedMember(t *testing.T) {
+	spec := specWithSchema(`{"allOf": [
+    {"$ref": "#/components/schemas/base"},
+    {"type": "object", "properties": {"key": {"type": "string"}}}
+  ]}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": "thing-1", "key": "secret", "owner": map[string]any{"name": "ada", "extra": 1}})
+	})
+
+	requireRejected(t, rec, `property "extra" is unsupported`)
+}
+
+func TestStrictValidatorReplacesAnUndeclaredPropertyInASchemaAnotherSiteComposes(t *testing.T) {
+	spec := specWithSchema(`{"type": "object", "properties": {
+    "alone": {"$ref": "#/components/schemas/base"},
+    "either": {"oneOf": [{"$ref": "#/components/schemas/base"}, {"type": "string"}]}
+  }}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"alone": map[string]any{"id": "thing-1", "extra": 1}})
+	})
+
+	requireRejected(t, rec, `property "extra" is unsupported`)
+}
+
+func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredPropertyInANullableWrapper(t *testing.T) {
+	spec := specWithSchema(`{"type": "object", "properties": {
+    "base": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/base"}]}
+  }}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"base": map[string]string{"id": "thing-1", "extra": "x"}})
+	})
+
+	requireRejected(t, rec, `property "extra" is unsupported`)
+}
+
+func TestStrictValidatorAcceptsAnyKeyInATypedMap(t *testing.T) {
+	spec := specWithSchema(`{"type": "object", "properties": {
+    "id": {"type": "string"},
+    "labels": {
+      "type": "object",
+      "properties": {"env": {"type": "string"}},
+      "additionalProperties": {"type": "string"}
+    }
+  }}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": "thing-1", "labels": map[string]string{"env": "prod", "team": "core"}})
+	})
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.JSONEq(t, `{"id":"thing-1","labels":{"env":"prod","team":"core"}}`, rec.Body.String())
+}
+
+func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredPropertyBesideATypedMap(t *testing.T) {
+	spec := specWithSchema(`{"type": "object", "properties": {
+    "id": {"type": "string"},
+    "labels": {
+      "type": "object",
+      "properties": {"env": {"type": "string"}},
+      "additionalProperties": {"type": "string"}
+    }
+  }}`)
+
+	rec := serveSpec(t, spec, true, "/api/thing", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": "thing-1", "labels": map[string]string{"team": "core"}, "extra": 1})
+	})
+
+	requireRejected(t, rec, `property "extra" is unsupported`)
 }
 
 func TestStrictValidatorReplacesAResponseNoRouteDeclares(t *testing.T) {

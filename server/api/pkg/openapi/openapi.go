@@ -92,6 +92,10 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
 	}
 
+	if err := rejectUndeclaredProperties(doc); err != nil {
+		return nil, fmt.Errorf("failed to make the OpenAPI schema strict: %w", err)
+	}
+
 	if err := doc.Validate(ctx); err != nil {
 		return nil, fmt.Errorf("invalid OpenAPI schema: %w", err)
 	}
@@ -112,6 +116,44 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	config.Logger.Info("OpenAPI response validator initialized successfully")
 
 	return validator, nil
+}
+
+func rejectUndeclaredProperties(doc *openapi3.T) error {
+	composed := make(map[*openapi3.Schema]struct{})
+
+	if err := doc.WalkSchemas(func(_ string, ref *openapi3.SchemaRef) error {
+		for _, members := range []openapi3.SchemaRefs{ref.Value.AllOf, ref.Value.OneOf, ref.Value.AnyOf} {
+			if len(members) < 2 {
+				continue
+			}
+
+			for _, member := range members {
+				detached := *member.Value
+				member.Value = &detached
+				composed[member.Value] = struct{}{}
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return doc.WalkSchemas(func(_ string, ref *openapi3.SchemaRef) error {
+		if _, ok := composed[ref.Value]; ok || !closable(ref.Value) {
+			return nil
+		}
+
+		ref.Value.WithoutAdditionalProperties()
+
+		return nil
+	})
+}
+
+func closable(schema *openapi3.Schema) bool {
+	return len(schema.Properties) > 0 &&
+		len(schema.AllOf) == 0 && len(schema.OneOf) == 0 && len(schema.AnyOf) == 0 &&
+		schema.AdditionalProperties.Has == nil && schema.AdditionalProperties.Schema == nil
 }
 
 // ValidateResponse validates an HTTP response against the OpenAPI schema
