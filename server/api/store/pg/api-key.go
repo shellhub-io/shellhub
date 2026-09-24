@@ -150,18 +150,20 @@ func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
 }
 
 // APIKeyDeleteAllByCreator implements [store.APIKeyStore].
-func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) error {
+func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) ([]string, error) {
 	db := pg.GetConnection(ctx)
 
-	if _, err := db.NewDelete().
+	var digests []string
+	if err := db.NewDelete().
 		Model((*entity.APIKey)(nil)).
 		Where("namespace_id = ?", tenantID).
 		Where("user_id = ?", creatorID).
-		Exec(ctx); err != nil {
-		return fromSQLError(err)
+		Returning("key_digest").
+		Scan(ctx, &digests); err != nil {
+		return nil, fromSQLError(err)
 	}
 
-	return nil
+	return digests, nil
 }
 
 // APIKeyResolverToString returns the column resolver selects, reporting

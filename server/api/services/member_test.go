@@ -704,7 +704,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil).
+					Return(nil, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -771,7 +771,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil).
+					Return(nil, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -1009,7 +1009,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil).
+					Return(nil, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -1113,7 +1113,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil).
+					Return(nil, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -1309,6 +1309,14 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return([]string{"digest-1", "digest-2"}, nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "api-key/unique-digest={digest-1}").
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "api-key/unique-digest={digest-2}").
 					Return(nil).
 					Once()
 			},
@@ -1399,6 +1407,14 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return([]string{"digest-1", "digest-2"}, nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "api-key/unique-digest={digest-1}").
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "api-key/unique-digest={digest-2}").
 					Return(nil).
 					Once()
 				storeMock.

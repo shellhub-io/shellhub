@@ -245,20 +245,31 @@ func (_c *MockStore_APIKeyDelete_Call) RunAndReturn(run func(ctx context.Context
 }
 
 // APIKeyDeleteAllByCreator provides a mock function for the type MockStore
-func (_mock *MockStore) APIKeyDeleteAllByCreator(ctx context.Context, tenantID string, creatorID string) error {
+func (_mock *MockStore) APIKeyDeleteAllByCreator(ctx context.Context, tenantID string, creatorID string) ([]string, error) {
 	ret := _mock.Called(ctx, tenantID, creatorID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyDeleteAllByCreator")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+	var r0 []string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) ([]string, error)); ok {
+		return returnFunc(ctx, tenantID, creatorID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) []string); ok {
 		r0 = returnFunc(ctx, tenantID, creatorID)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, creatorID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockStore_APIKeyDeleteAllByCreator_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'APIKeyDeleteAllByCreator'
@@ -297,12 +308,12 @@ func (_c *MockStore_APIKeyDeleteAllByCreator_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *MockStore_APIKeyDeleteAllByCreator_Call) Return(err error) *MockStore_APIKeyDeleteAllByCreator_Call {
-	_c.Call.Return(err)
+func (_c *MockStore_APIKeyDeleteAllByCreator_Call) Return(digests []string, err error) *MockStore_APIKeyDeleteAllByCreator_Call {
+	_c.Call.Return(digests, err)
 	return _c
 }
 
-func (_c *MockStore_APIKeyDeleteAllByCreator_Call) RunAndReturn(run func(ctx context.Context, tenantID string, creatorID string) error) *MockStore_APIKeyDeleteAllByCreator_Call {
+func (_c *MockStore_APIKeyDeleteAllByCreator_Call) RunAndReturn(run func(ctx context.Context, tenantID string, creatorID string) ([]string, error)) *MockStore_APIKeyDeleteAllByCreator_Call {
 	_c.Call.Return(run)
 	return _c
 }

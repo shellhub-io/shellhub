@@ -336,8 +336,9 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		err := st.APIKeyDeleteAllByCreator(ctx, tenantID, s.CreateUser(t))
+		digests, err := st.APIKeyDeleteAllByCreator(ctx, tenantID, s.CreateUser(t))
 		require.NoError(t, err)
+		assert.Empty(t, digests)
 	})
 
 	t.Run("deletes only the creator's keys within the tenant", func(t *testing.T) {
@@ -348,13 +349,14 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 		creator := s.CreateUser(t)
 		other := s.CreateUser(t)
 
-		s.CreateAPIKey(t, WithAPIKeyName("creator-1"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
-		s.CreateAPIKey(t, WithAPIKeyName("creator-2"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
+		firstDigest := s.CreateAPIKey(t, WithAPIKeyName("creator-1"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
+		secondDigest := s.CreateAPIKey(t, WithAPIKeyName("creator-2"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
 		s.CreateAPIKey(t, WithAPIKeyName("other-user"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(other))
 		s.CreateAPIKey(t, WithAPIKeyName("other-tenant"), WithAPIKeyTenant(otherTenantID), WithAPIKeyCreatedBy(creator))
 
-		err := st.APIKeyDeleteAllByCreator(ctx, tenantID, creator)
+		digests, err := st.APIKeyDeleteAllByCreator(ctx, tenantID, creator)
 		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{firstDigest, secondDigest}, digests)
 
 		remaining, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
