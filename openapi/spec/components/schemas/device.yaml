@@ -92,6 +92,13 @@ properties:
       namespace's legacy key). Attributes the device to its registration source.
     type: string
     example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  last_enrollment_attempt_at:
+    description: |
+      When the device's enrollment policy was last re-evaluated. Absent until the first
+      re-evaluation.
+    type: string
+    format: date-time
+    example: 2020-01-01T00:00:00Z
 required:
   - uid
   - name
