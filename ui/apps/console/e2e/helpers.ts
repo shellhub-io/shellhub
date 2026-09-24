@@ -1,7 +1,7 @@
-import { execFileSync } from "node:child_process";
 import type { Page } from "@playwright/test";
 
-const stackName = `shellhub-e2e-${process.env.E2E_STACK_NAME || "default"}`;
+export const directMembershipReason =
+  "enterprise adds existing users directly, without an invitation link";
 
 export async function fillLoginForm(
   page: Page,
@@ -29,30 +29,4 @@ export async function dismissWizard(page: Page) {
     await close.click();
     await close.waitFor({ state: "hidden" });
   }
-}
-
-function serverAdmin(...args: string[]): string {
-  return execFileSync(
-    "docker",
-    [
-      "compose",
-      "-p",
-      stackName,
-      "exec",
-      "-T",
-      "server",
-      "/server",
-      "admin",
-      ...args,
-    ],
-    { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"], timeout: 30_000 },
-  ).trim();
-}
-
-export function createUser(username: string, password: string, email: string) {
-  serverAdmin("user", "create", username, password, email);
-}
-
-export function createNamespace(owner: string, name: string, tenant: string) {
-  serverAdmin("namespace", "create", name, owner, tenant);
 }
