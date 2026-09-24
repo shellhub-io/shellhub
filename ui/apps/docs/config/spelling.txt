@@ -20,7 +20,7 @@ GOARM
 GOOS
 homelab
 homelabs
-installkey
+provisioningkey
 journalctl
 keepalives
 LDFLAGS

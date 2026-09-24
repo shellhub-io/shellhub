@@ -12,7 +12,7 @@ agent already on it. Use it rather than writing a package yourself.
 ## Prerequisites
 
 - A Buildroot tree
-- An [install key](/manage/devices/install-keys), so units register themselves with nobody
+- A [provisioning key](/manage/devices/provisioning-keys), so units register themselves with nobody
   present
 
 ## Adding the external tree
@@ -52,18 +52,18 @@ Configuration is a root filesystem overlay. Write the file the service reads:
 $ cat > rootfs_overlay/etc/default/shellhub-agent <<-EOF
 SERVER_ADDRESS="https://cloud.shellhub.io"
 PRIVATE_KEY="/etc/shellhub-agent.key"
-INSTALL_KEY="<your-install-key>"
+PROVISIONING_KEY="<your-provisioning-key>"
 EOF
 ```
 
-`TENANT_ID` is the deprecated alternative to `INSTALL_KEY`, and the two do not go
-together. Set the install key.
+`TENANT_ID` is the deprecated alternative to `PROVISIONING_KEY`, and the two do not go
+together. Set the provisioning key.
 
 **Why the tenant is the wrong one.** A device registering with the tenant alone goes
 through the namespace's legacy registration path, which holds it for manual review —
-so a production run arrives as a queue of pending devices rather than a working fleet. An
-install key also carries tags, so a policy can cover the batch before anybody opens the
-console. See [Using install keys](/manage/devices/install-keys).
+so a production run arrives as a queue of pending devices rather than a working fleet. A
+provisioning key also carries tags, so a policy can cover the batch before anybody opens the
+console. See [Using provisioning keys](/manage/devices/provisioning-keys).
 
 ## The key must be writable and must not be in the overlay
 
@@ -89,7 +89,7 @@ above.
 
 Write the image to two devices and start both.
 
-Expected result: Two devices appear, each carrying the install key's tags, and each with
+Expected result: Two devices appear, each carrying the provisioning key's tags, and each with
 its own identity.
 
 ## Troubleshooting
@@ -98,10 +98,10 @@ its own identity.
 |---|---|
 | A new device appears at every boot | `PRIVATE_KEY` is not writable, or does not survive a reboot |
 | One device that keeps changing machine | A key was baked into the overlay. Remove it |
-| Devices arrive pending instead of accepted | The overlay sets `TENANT_ID` rather than `INSTALL_KEY`, or the key's mode is manual |
+| Devices arrive pending instead of accepted | The overlay sets `TENANT_ID` rather than `PROVISIONING_KEY`, or the key's mode is manual |
 
 ## Where to go next
 
-- [Using install keys](/manage/devices/install-keys)
+- [Using provisioning keys](/manage/devices/provisioning-keys)
 - [Yocto Project](/get-started/install/yocto)
 - [Agent configuration](/get-started/agent-configuration)

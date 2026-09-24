@@ -191,7 +191,7 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/devices",
             featured: true,
           },
-          { label: "Install Keys", href: "/manage/devices/install-keys" },
+          { label: "Provisioning Keys", href: "/manage/devices/provisioning-keys" },
           { label: "Tags", href: "/manage/devices/tags" },
           {
             label: "Device Not Appearing",
@@ -315,7 +315,7 @@ export const sidebar: SidebarSection[] = [
         featured: true,
       },
       { label: "SSH Access", href: "/api/ssh-access" },
-      { label: "Install Key Webhook", href: "/api/install-key-webhook" },
+      { label: "Provisioning Key Webhook", href: "/api/provisioning-key-webhook" },
       {
         label: "MCP Server",
         href: "/api/mcp",

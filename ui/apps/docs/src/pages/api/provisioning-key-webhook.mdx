@@ -1,14 +1,14 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: Install Key Webhook
+title: Provisioning Key Webhook
 description: The request ShellHub sends when a device enrolls, and the answer it expects.
 ---
 
 import Callout from "../../components/Callout.astro";
 
-# Install Key Webhook
+# Provisioning Key Webhook
 
-An [install key](/manage/devices/install-keys) in webhook mode asks your service whether to admit
+A [provisioning key](/manage/devices/provisioning-keys) in webhook mode asks your service whether to admit
 each device that enrolls with it. This page is the contract: what ShellHub sends, what it accepts
 back, and how to answer later instead of immediately.
 
@@ -24,8 +24,8 @@ ShellHub sends a `POST` with a JSON body and two headers.
 ```json
 {
   "tenant_id": "00000000-0000-4000-0000-000000000000",
-  "install_key_id": "b1946ac92492d2347c6235b4d2611184",
-  "install_key_name": "factory-line-2",
+  "provisioning_key_id": "b1946ac92492d2347c6235b4d2611184",
+  "provisioning_key_name": "factory-line-2",
   "device_uid": "3c9e2f1a7b4d8e6f0a1c5d9b2e7f4a83",
   "identity": "00:1b:44:11:3a:b7",
   "hostname": "gateway-01",
@@ -37,7 +37,7 @@ ShellHub sends a `POST` with a JSON body and two headers.
 ```
 
 <Callout variant="warning">
-Key your policy on `install_key_id`, never on `install_key_name`. The id is the key's
+Key your policy on `provisioning_key_id`, never on `provisioning_key_name`. The id is the key's
 digest: stable, not a secret, and it survives a rename. The name rides along for your own logs
 and changes whenever somebody edits it.
 </Callout>
@@ -102,5 +102,5 @@ resolution, so a hostname that resolves into a private network is refused too.
 
 ## Where to go next
 
-- [Install Keys](/manage/devices/install-keys) — The modes, and everything a key carries.
+- [Provisioning Keys](/manage/devices/provisioning-keys) — The modes, and everything a key carries.
 - [API Authentication](/api) — The credentials the rest of the API takes.

@@ -11,14 +11,14 @@ hands on again.
 
 ## Prerequisites
 
-- An [install key](/manage/devices/install-keys). A pairing code accepts one device and cannot
+- A [provisioning key](/manage/devices/provisioning-keys). A pairing code accepts one device and cannot
   be used in an image
 - A reference card you will re-image
 
 ## Installing the agent
 
 ```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_KEY=<your-install-key> INSTALL_METHOD=standalone sh
+$ curl -sSf https://cloud.shellhub.io/install.sh | PROVISIONING_KEY=<your-provisioning-key> INSTALL_METHOD=standalone sh
 ```
 
 ## Removing the device key before imaging
@@ -36,9 +36,9 @@ identity to every card written from it.
 Write two cards and start both.
 
 Expected result: Two devices appear in the console, each carrying the tags configured
-on the install key.
+on the provisioning key.
 
 ## Where to go next
 
-- [Using install keys](/manage/devices/install-keys)
+- [Using provisioning keys](/manage/devices/provisioning-keys)
 - [Yocto project](/get-started/install/yocto)

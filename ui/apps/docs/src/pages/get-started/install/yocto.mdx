@@ -15,7 +15,7 @@ you writing a recipe. Use it rather than packaging the agent yourself.
 
 - A Yocto build environment on a supported release. The layer declares compatibility with
   `styhead`, `whinlatter` and `wrynose`
-- An [install key](/manage/devices/install-keys), so units register themselves with nobody
+- A [provisioning key](/manage/devices/provisioning-keys), so units register themselves with nobody
   present
 
 ## Adding the layer
@@ -47,14 +47,14 @@ Set these in `local.conf` or your distro configuration:
 
 ```bitbake
 SHELLHUB_SERVER_ADDRESS = "https://cloud.shellhub.io"
-SHELLHUB_INSTALL_KEY = "<your-install-key>"
+SHELLHUB_PROVISIONING_KEY = "<your-provisioning-key>"
 ```
 
 | Variable | Default |
 |---|---|
 | `SHELLHUB_SERVER_ADDRESS` | `https://cloud.shellhub.io` |
 | `SHELLHUB_PRIVATE_KEY` | `/etc/shellhub-agent.key` |
-| `SHELLHUB_INSTALL_KEY` | *(none)* |
+| `SHELLHUB_PROVISIONING_KEY` | *(none)* |
 | `SHELLHUB_TENANT_ID` | *(none, deprecated)* |
 
 These are written into `/etc/default/shellhub-agent`, which the service reads at start.
@@ -68,7 +68,7 @@ choose is the thing worth failing over.
 </Callout>
 
 `SHELLHUB_TENANT_ID` is deprecated. It remains for integrations that already ship with
-it; use the install key for anything new.
+it; use the provisioning key for anything new.
 
 <Callout variant="info">
 The layer puts the device key at `/etc/shellhub-agent.key`. The installation
@@ -78,9 +78,9 @@ are comparing an image build against a machine you installed by hand.
 
 **Why the tenant is the wrong one.** A device registering with the tenant alone goes
 through the namespace's legacy registration path, which holds it for manual review —
-so a production run arrives as a queue of pending devices rather than a working fleet. An
-install key also carries tags, so a policy can cover the batch before anybody opens the
-console. See [Using install keys](/manage/devices/install-keys).
+so a production run arrives as a queue of pending devices rather than a working fleet. A
+provisioning key also carries tags, so a policy can cover the batch before anybody opens the
+console. See [Using provisioning keys](/manage/devices/provisioning-keys).
 
 ## The key must be writable and must not be in the image
 
@@ -107,17 +107,17 @@ several namespaces. Inherit it and set `SHELLHUB_ROOTFS_TENANT_ID`, and the tena
 generated configuration is rewritten as the rootfs is assembled, without a rebuild of the
 agent.
 
-It rewrites the tenant only. A build that registers by install key does not need it.
+It rewrites the tenant only. A build that registers by provisioning key does not need it.
 
 ## Verifying
 
 Write the image to two devices and start both.
 
-Expected result: Two devices appear, each carrying the install key's tags, and each with
+Expected result: Two devices appear, each carrying the provisioning key's tags, and each with
 its own identity.
 
 ## Where to go next
 
-- [Using install keys](/manage/devices/install-keys)
+- [Using provisioning keys](/manage/devices/provisioning-keys)
 - [Buildroot](/get-started/install/buildroot)
 - [Agent configuration](/get-started/agent-configuration)
