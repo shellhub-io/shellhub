@@ -1,26 +1,26 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
-title: Install Keys
+title: Provisioning Keys
 description: Enroll devices at scale, with the right tags, without accepting each one by hand.
 ---
 
 import Callout from "../../../components/Callout.astro";
 import Shot from '../../../components/Shot.astro';
 
-# Install Keys
+# Provisioning Keys
 
-An install key is a reusable credential you put in an image or a provisioning script. Devices
+A provisioning key is a reusable credential you put in an image or a provisioning script. Devices
 carrying it enroll, get accepted according to the key's mode, and arrive with tags already
 applied.
 
 This is what turns enrollment from an afternoon of clicking into something that happens on its
 own.
 
-<Shot id="install-keys" route="/install-keys" of={{ role: "main" }} alt="The Install Keys page listing keys with their mode, usage, and expiration" />
+<Shot id="provisioning-keys" route="/provisioning-keys" of={{ role: "main" }} alt="The Provisioning Keys page listing keys with their mode, usage, and expiration" />
 
 ## Creating one
 
-On the **Install Keys** page, click **Create Install Key**. A key has:
+On the **Provisioning Keys** page, click **Create Provisioning Key**. A key has:
 
 | Field | Meaning |
 |---|---|
@@ -32,17 +32,22 @@ On the **Install Keys** page, click **Create Install Key**. A key has:
 | **Tags** | Applied to every device enrolling with the key |
 
 The key is not copy-once. It is stored encrypted and can be read again from the key's activity
-page, by clicking the masked value. Reading it needs the `installKey:reveal` permission, so a role
+page, by clicking the masked value. Reading it needs the `provisioningKey:reveal` permission, so a role
 that can use the console is not automatically a role that can retrieve a credential.
 
 ## Using one
 
 ```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_KEY=<your-install-key> sh
+$ curl -sSf https://cloud.shellhub.io/install.sh | PROVISIONING_KEY=<your-provisioning-key> sh
 ```
 
-Or as an agent variable, `SHELLHUB_INSTALL_KEY`, which is how it goes into a
+Or as an agent variable, `SHELLHUB_PROVISIONING_KEY`, which is how it goes into a
 [Yocto](/get-started/install/yocto) or [Buildroot](/get-started/install/buildroot) image.
+
+The key only matters while the server does not know the device. On first start the agent
+generates its own private key, and that key is the device's identity from then on. The agent keeps
+presenting the provisioning key, so a removed or ephemeral device can enroll again, but for a
+device the server already knows the key decides nothing.
 
 ## Modes
 
@@ -57,8 +62,8 @@ The mode decides what happens when a device presents the key.
 
 ### Automatic
 
-The one people mean when they say install key. A device presents it and joins the namespace, with
-the key's tags applied.
+The mode for images that should join with nobody watching. A device presents the key and joins
+the namespace, with the key's tags applied.
 
 The trade is real: anything holding the key can enroll and be accepted. Scope keys narrowly — one
 per product line, per site, per batch — so revoking one does not strand everything.
@@ -78,7 +83,7 @@ whatever knows which serial numbers are genuinely yours.
 
 Bounds worth knowing: the call times out after 5 seconds by default, 15 at most. A deferred
 decision has a callback window, 1 hour by default and 24 hours at most. The request is signed with
-HMAC-SHA256. See [Install Key Webhook](/api/install-key-webhook) for the contract.
+HMAC-SHA256. See [Provisioning Key Webhook](/api/provisioning-key-webhook) for the contract.
 
 What matters without the contract is how it fails. A webhook that does not answer in time **fails
 closed to pending**, not to accepted — the device waits for a human rather than walking in. And a
@@ -111,7 +116,7 @@ that do not exist yet. See [Tags](/manage/devices/tags) and
 
 ## Bounding a key
 
-An install key outlives the session you created it in. Three settings bound it without you having
+A provisioning key outlives the session you created it in. Three settings bound it without you having
 to remember to.
 
 **Expiration** is a date. Four presets are offered — 30, 60 and 90 days, and a year — and any
@@ -132,7 +137,7 @@ A key in manual mode, and a key whose webhook deferred, leaves devices waiting. 
 on the key's activity page rather than in the device list. The keys list marks every key that has
 devices waiting, and the dashboard's pending count links to it.
 
-<Shot id="install-key-activity" route="/install-keys/:installkey/activity" of={{ role: "main" }} alt="An install key's activity, listing each registration with what the agent reported and the accept or reject" />
+<Shot id="provisioning-key-activity" route="/provisioning-keys/:provisioningkey/activity" of={{ role: "main" }} alt="A provisioning key's activity, listing each registration with what the agent reported and the accept or reject" />
 
 Each row is one enrollment attempt: which device, the identity it reported, the source address, the
 architecture, the agent version, whether the device was new or enrolling again, and how it was
@@ -150,7 +155,7 @@ This is the audit trail for enrollment. When a device turns up that you did not 
 where you find out which key let it in.
 
 <Callout variant="info">
-Install key management refuses API keys. It is a human-only operation.
+Provisioning key management refuses API keys. It is a human-only operation.
 </Callout>
 
 ## Pausing and revoking
@@ -183,20 +188,22 @@ holding your namespace identifier enrolls itself.
 
 <Callout variant="warning">
 Do not put a pairing code in an image. A pairing code accepts one device, and every
-machine written from that image will try to use the same one. An install key is the credential
+machine written from that image will try to use the same one. A provisioning key is the credential
 meant for that job.
 </Callout>
 
 ## Treating a key as a secret
 
-A key in an image is a credential you shipped. Anyone with the image has it.
+A key in an image is a credential you shipped. Anyone with the image has it, and on `automatic`
+a leaked key puts the leaker's machine in your namespace already accepted.
 
 - Scope narrowly — per product line or batch, not one key for everything.
+- Cap each batch's key with a usage limit and an expiration.
 - Rotate when a batch is done.
 - Prefer `webhook` or `allowlist` over `automatic` when the images go somewhere you do not control.
 - Check the activity page when the device list grows in a way you did not expect.
 
 ## Where to go next
 
-- [Install Key Webhook](/api/install-key-webhook) — The contract, if your endpoint decides.
+- [Provisioning Key Webhook](/api/provisioning-key-webhook) — The contract, if your endpoint decides.
 - [Tags](/manage/devices/tags) — What the key applies, and why it matters.

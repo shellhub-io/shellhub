@@ -74,21 +74,21 @@ See [API Authentication](/api) and the
 ## Enrolling devices Terraform creates
 
 If Terraform is creating machines that should appear in ShellHub, put the agent in at creation
-with an [install key](/manage/devices/install-keys), through cloud-init or user data:
+with a [provisioning key](/manage/devices/provisioning-keys), through cloud-init or user data:
 
 ```hcl
 user_data = <<-EOT
   #!/bin/sh
   curl -sSf https://cloud.shellhub.io/install.sh | \
-    INSTALL_KEY=${var.shellhub_install_key} \
+    PROVISIONING_KEY=${var.shellhub_provisioning_key} \
     sh
 EOT
 ```
 
-An install key in `automatic` mode means instances arrive accepted and tagged, with nobody
+A provisioning key in `automatic` mode means instances arrive accepted and tagged, with nobody
 watching a console. That is the pattern worth adopting — it is the one that scales.
 
 ## Where to go next
 
-- [Install Keys](/manage/devices/install-keys) — Automatic enrollment.
+- [Provisioning Keys](/manage/devices/provisioning-keys) — Automatic enrollment.
 - [Ansible](/api/ansible) — Usually the better tool for configuring a device.

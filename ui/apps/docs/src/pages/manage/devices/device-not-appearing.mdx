@@ -13,13 +13,13 @@ goes from most to least common.
 
 ## Is it waiting to be accepted?
 
-Check **Install Keys** before anything else. A device enrolled with only a tenant ID waits for a
+Check **Provisioning Keys** before anything else. A device enrolled with only a tenant ID waits for a
 decision on the key that registered it, and each key's row says how many are waiting. It is not
 broken; it is queued.
 
-Accept it and it comes online. To stop needing to, use an
-[install key](/manage/devices/install-keys). See
-[Install Keys](/manage/devices/install-keys#reviewing-a-pending-enrollment).
+Accept it and it comes online. To stop needing to, use a
+[provisioning key](/manage/devices/provisioning-keys). See
+[Provisioning Keys](/manage/devices/provisioning-keys#reviewing-a-pending-enrollment).
 
 ## Is the agent running?
 
@@ -116,18 +116,18 @@ $ sudo systemctl enable --now podman-restart.service
 
 An install made with `SKIP_BOOT_RESTART_CHECK=1` is yours to bring back.
 
-## An install key was involved
+## A provisioning key was involved
 
-If the device enrolled with an install key, the key's mode decides where it lands: `automatic`
+If the device enrolled with a provisioning key, the key's mode decides where it lands: `automatic`
 accepts it, `manual` puts it in Pending, `webhook` asks your endpoint, `allowlist` accepts it only
 if the identity it reports is listed.
 
 A device rejected by an allowlist or a webhook did enroll — it was refused. Check the key's
-history. See [Install Keys](/manage/devices/install-keys).
+history. See [Provisioning Keys](/manage/devices/provisioning-keys).
 
 <Callout variant="warning">
 A webhook that points at an internal address is **not called** unless its range is in
-`SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS`, which defaults to blocking private, loopback and
+`SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS`, which defaults to blocking private, loopback and
 metadata addresses.
 </Callout>
 
