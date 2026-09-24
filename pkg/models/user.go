@@ -83,7 +83,7 @@ type User struct {
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
 	MFA         UserMFA         `json:"mfa"`
 	Preferences UserPreferences `json:"preferences"`
-	Password    UserPassword
+	Password    UserPassword    `json:"-"`
 	// Admin indicates whether the user has administrative privileges.
 	Admin bool `json:"admin"`
 	// AwaitingApproval marks a provisioned account that a namespace admin created but a system
