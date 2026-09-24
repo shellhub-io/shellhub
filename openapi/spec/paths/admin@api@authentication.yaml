@@ -82,9 +82,14 @@ get:
                   sp:
                     type: object
                     properties:
-                      sign_requests:
+                      sign_auth_requests:
                         type: boolean
                         description: Indicates whether ShellHub signs authentication requests.
+                      certificate:
+                        type: string
+                        description: |
+                          The X509 certificate the IdP uses to verify requests ShellHub signs.
+                          Empty when signing is off.
     '401':
       $ref: ../components/responses/401.yaml
     '404':
