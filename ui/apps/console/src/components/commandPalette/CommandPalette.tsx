@@ -61,7 +61,7 @@ export default function CommandPalette() {
 
       <div
         ref={listRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        className="flex-auto min-h-0 overflow-y-auto overscroll-contain"
       >
         {!hasResults ? (
           <div className="px-4 py-10 text-center" role="status">
