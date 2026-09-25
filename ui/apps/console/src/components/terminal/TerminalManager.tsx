@@ -5,7 +5,7 @@ import { useTerminalStore } from "@/stores/terminalStore";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useAuthStore } from "@/stores/authStore";
-import ConnectDrawer from "../ConnectDrawer";
+import ConnectModal from "../ConnectModal";
 import { buildSshid } from "@/utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import RecordingSnackbar from "./RecordingSnackbar";
@@ -73,7 +73,7 @@ export default function TerminalManager() {
   return (
     <>
       {connectTarget && (
-        <ConnectDrawer
+        <ConnectModal
           open
           onClose={() => setConnectTarget(null)}
           deviceUid={connectTarget.uid}

@@ -10,7 +10,7 @@ import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../IdentityDrawer", () => ({ default: () => null }));
+vi.mock("../IdentityModal", () => ({ default: () => null }));
 
 const mockBrowserKeyFingerprint = vi.fn<() => string | null>();
 

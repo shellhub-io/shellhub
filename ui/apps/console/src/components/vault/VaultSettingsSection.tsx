@@ -15,13 +15,13 @@ import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
 import { ALLOWED_TIMEOUT_MINUTES } from "@/types/vault";
 import type { AllowedTimeoutMinutes } from "@/types/vault";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import Drawer from "@/components/common/Drawer";
+import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
-function ChangePasswordDrawer({
+function ChangePasswordModal({
   open,
   onClose,
 }: {
@@ -68,7 +68,8 @@ function ChangePasswordDrawer({
   };
 
   return (
-    <Drawer
+    <Modal
+      size="sm"
       open={open}
       onClose={onClose}
       title="Change Master Password"
@@ -129,7 +130,7 @@ function ChangePasswordDrawer({
           </p>
         )}
       </form>
-    </Drawer>
+    </Modal>
   );
 }
 
@@ -317,7 +318,7 @@ export default function VaultSettingsSection() {
         </SettingsCard>
       </div>
 
-      <ChangePasswordDrawer
+      <ChangePasswordModal
         open={changeOpen}
         onClose={() => setChangeOpen(false)}
       />

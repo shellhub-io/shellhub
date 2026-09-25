@@ -29,12 +29,10 @@ import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { RoleBadge } from "./constants";
 import UserBadge from "@/components/common/UserBadge";
-import EditMemberDrawer from "./EditMemberDrawer";
+import EditMemberModal from "./EditMemberModal";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
-// Cloud/enterprise add-member drawer — lazy so its transitive deps (CopyButton,
-// isSdkError, etc.) don't ship to the community bundle.
-const AddMemberDrawer = lazy(() => import("./AddMemberDrawer"));
+const AddMemberModal = lazy(() => import("./AddMemberModal"));
 
 // A single table row is either a real member or a pending invitation (the
 // invitee hasn't completed their account yet). Merging the two sources here —
@@ -382,14 +380,14 @@ function MembersTab({ tenantId }: { tenantId: string }) {
       />
 
       <Suspense fallback={null}>
-        <AddMemberDrawer
+        <AddMemberModal
           open={addOpen}
           onClose={() => setAddOpen(false)}
           tenantId={tenantId}
         />
       </Suspense>
 
-      <EditMemberDrawer
+      <EditMemberModal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
         tenantId={tenantId}

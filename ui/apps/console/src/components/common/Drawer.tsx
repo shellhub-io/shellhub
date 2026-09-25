@@ -23,8 +23,9 @@ const WIDTH_MAP = {
 };
 
 /**
- * The side panel used for detail and edit flows. Like BaseDialog it traps focus and closes on
- * Escape, but it does not cover the page, so the list behind stays readable.
+ * A side panel for a task done while watching the page behind it, such as tuning the terminal's
+ * look against the terminal itself. Like BaseDialog it traps focus and closes on Escape, but it
+ * does not cover the page. A flow that stops the work to finish something is a Modal.
  */
 export default function Drawer({
   open,

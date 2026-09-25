@@ -146,8 +146,8 @@ describe("Settings", () => {
     });
   });
 
-  describe("EditNameDrawer", () => {
-    async function openRenameDrawer() {
+  describe("EditNameModal", () => {
+    async function openRenameModal() {
       const user = userEvent.setup();
       renderSettings();
       await user.click(
@@ -157,12 +157,12 @@ describe("Settings", () => {
     }
 
     it("Save is disabled when the name is unchanged (not dirty)", async () => {
-      await openRenameDrawer();
+      await openRenameModal();
       expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
     });
 
     it("Save is disabled when the new name is invalid", async () => {
-      const user = await openRenameDrawer();
+      const user = await openRenameModal();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "ab");
@@ -170,15 +170,15 @@ describe("Settings", () => {
     });
 
     it("Save is enabled when the name is dirty and valid", async () => {
-      const user = await openRenameDrawer();
+      const user = await openRenameModal();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "new-valid-name");
       expect(screen.getByRole("button", { name: /save/i })).not.toBeDisabled();
     });
 
-    it("closes the drawer after successful rename", async () => {
-      const user = await openRenameDrawer();
+    it("closes the modal after successful rename", async () => {
+      const user = await openRenameModal();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "new-valid-name");
@@ -192,7 +192,7 @@ describe("Settings", () => {
           HttpResponse.json({}, { status: 500 }),
         ),
       );
-      const user = await openRenameDrawer();
+      const user = await openRenameModal();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "new-valid-name");
@@ -200,12 +200,13 @@ describe("Settings", () => {
       expect(await screen.findByRole("alert")).toBeInTheDocument();
     });
 
-    it("resets to currentName when the drawer is reopened", async () => {
-      const user = await openRenameDrawer();
+    it("resets to currentName when the modal is reopened", async () => {
+      const user = await openRenameModal();
       const input = screen.getByLabelText(/namespace name/i);
       await user.clear(input);
       await user.type(input, "changed-name");
       await user.click(screen.getByRole("button", { name: /cancel/i }));
+      await user.click(screen.getByRole("button", { name: "Discard" }));
       await user.click(
         screen.getByRole("button", { name: /rename namespace/i }),
       );

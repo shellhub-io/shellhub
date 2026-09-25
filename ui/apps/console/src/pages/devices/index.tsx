@@ -8,8 +8,8 @@ import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
-import ConnectDrawer from "@/components/ConnectDrawer";
-import ManageTagsDrawer from "@/components/ManageTagsDrawer";
+import ConnectModal from "@/components/ConnectModal";
+import ManageTagsModal from "@/components/ManageTagsModal";
 import CopyButton from "@/components/common/CopyButton";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import OnlineDot from "@/components/common/OnlineDot";
@@ -352,7 +352,7 @@ export default function Devices() {
         }
       />
 
-      <ConnectDrawer
+      <ConnectModal
         open={!!connectTarget}
         onClose={() => setConnectTarget(null)}
         deviceUid={connectTarget?.uid ?? ""}
@@ -360,7 +360,7 @@ export default function Devices() {
         sshid={connectTarget?.sshid ?? ""}
       />
 
-      <ManageTagsDrawer
+      <ManageTagsModal
         open={manageTagsOpen}
         onClose={() => {
           setManageTagsOpen(false);

@@ -49,11 +49,11 @@ vi.mock("@/components/common/TagFilterDropdown", () => ({
   default: () => <div />,
 }));
 
-vi.mock("@/components/ManageTagsDrawer", () => ({
+vi.mock("@/components/ManageTagsModal", () => ({
   default: () => <div />,
 }));
 
-vi.mock("@/components/ConnectDrawer", () => ({
+vi.mock("@/components/ConnectModal", () => ({
   default: () => <div />,
 }));
 
@@ -65,7 +65,7 @@ vi.mock("@/components/common/TagsPopover", () => ({
 
 vi.mock("@/components/common/ActionDialog", () => ({ default: () => null }));
 
-vi.mock("../AddDockerConnectorDrawer", () => ({
+vi.mock("../AddDockerConnectorModal", () => ({
   default: () => <div />,
 }));
 

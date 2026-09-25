@@ -30,7 +30,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
-import FormDrawer from "@/components/common/FormDrawer";
+import FormModal from "@/components/common/FormModal";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BillingSection from "../components/billing/BillingSection";
 import InputField from "@/components/common/fields/InputField";
@@ -52,7 +52,7 @@ import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 
-function EditNameDrawer({
+function EditNameModal({
   open,
   onClose,
   currentName,
@@ -88,7 +88,8 @@ function EditNameDrawer({
   };
 
   return (
-    <FormDrawer
+    <FormModal
+      size="sm"
       form={form}
       onSubmit={onValid}
       open={open}
@@ -114,7 +115,7 @@ function EditNameDrawer({
           clearErrors("root");
         }}
       />
-    </FormDrawer>
+    </FormModal>
   );
 }
 
@@ -629,8 +630,7 @@ export default function Settings() {
         </SettingsCard>
       </div>
 
-      {/* Drawers & Dialogs */}
-      <EditNameDrawer
+      <EditNameModal
         open={editNameOpen}
         onClose={() => setEditNameOpen(false)}
         currentName={ns.name}

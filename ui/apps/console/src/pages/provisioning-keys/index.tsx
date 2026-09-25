@@ -7,8 +7,8 @@ import { type ProvisioningKey } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import ProvisioningKeysTable from "./ProvisioningKeysTable";
-import CreateProvisioningKeyDrawer from "./CreateProvisioningKeyDrawer";
-import EditProvisioningKeyDrawer from "./EditProvisioningKeyDrawer";
+import CreateProvisioningKeyModal from "./CreateProvisioningKeyModal";
+import EditProvisioningKeyModal from "./EditProvisioningKeyModal";
 import RevokeProvisioningKeyDialog from "./RevokeProvisioningKeyDialog";
 import { isSystemKey } from "./helpers";
 import { useToggleProvisioningKey } from "./useToggleProvisioningKey";
@@ -85,11 +85,11 @@ export default function ProvisioningKeys() {
         </div>
       )}
 
-      <CreateProvisioningKeyDrawer
+      <CreateProvisioningKeyModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
       />
-      <EditProvisioningKeyDrawer
+      <EditProvisioningKeyModal
         provisioningKey={editTarget}
         onClose={() => setEditTarget(null)}
       />

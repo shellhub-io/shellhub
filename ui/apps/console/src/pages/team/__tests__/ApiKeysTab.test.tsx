@@ -9,11 +9,11 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { LocationProbe } from "@/tests/LocationProbe";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../GenerateKeyDrawer", () => ({
+vi.mock("../GenerateKeyModal", () => ({
   default: () => null,
 }));
 
-vi.mock("../EditKeyDrawer", () => ({
+vi.mock("../EditKeyModal", () => ({
   default: () => null,
 }));
 

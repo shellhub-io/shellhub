@@ -12,7 +12,7 @@ import type { GetAuthenticationSettingsResponse } from "@/client";
 import { isSdkError } from "@/api/errors";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
-import SamlConfigDrawer from "./SamlConfigDrawer";
+import SamlConfigModal from "./SamlConfigModal";
 import PageLoader from "@/components/common/PageLoader";
 import {
   Button,
@@ -33,7 +33,7 @@ export default function AdminAuthentication() {
   const [togglingLocal, setTogglingLocal] = useState(false);
   const [togglingSaml, setTogglingSaml] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(() => {
@@ -81,7 +81,7 @@ export default function AdminAuthentication() {
 
   const handleSamlToggle = async () => {
     if (!settings?.saml?.enabled) {
-      setDrawerOpen(true);
+      setModalOpen(true);
       return;
     }
     setTogglingSaml(true);
@@ -277,7 +277,7 @@ export default function AdminAuthentication() {
                   </Button>
                 )}
 
-                <Button size="sm" onClick={() => setDrawerOpen(true)}>
+                <Button size="sm" onClick={() => setModalOpen(true)}>
                   Edit Configuration
                 </Button>
               </div>
@@ -286,9 +286,9 @@ export default function AdminAuthentication() {
         </Card>
       </div>
 
-      <SamlConfigDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+      <SamlConfigModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
         onSaved={() => void handleSamlSaved()}
         existingConfig={saml}
       />

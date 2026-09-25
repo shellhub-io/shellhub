@@ -21,7 +21,7 @@ import { useTerminalStore } from "../stores/terminalStore";
 import { useActionDialog } from "../hooks/useActionDialog";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
-import ConnectDrawer from "../components/ConnectDrawer";
+import ConnectModal from "../components/ConnectModal";
 import CopyButton from "../components/common/CopyButton";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
@@ -329,8 +329,7 @@ export default function ContainerDetails() {
         />
       </Card>
 
-      {/* Connect Drawer */}
-      <ConnectDrawer
+      <ConnectModal
         open={connectOpen}
         onClose={() => setConnectOpen(false)}
         deviceUid={container.uid}

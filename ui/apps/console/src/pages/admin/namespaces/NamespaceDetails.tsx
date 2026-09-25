@@ -11,7 +11,7 @@ import { cn } from "@shellhub/design-system/cn";
 import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import EditNamespaceDrawer from "./EditNamespaceDrawer";
+import EditNamespaceModal from "./EditNamespaceModal";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
@@ -245,7 +245,7 @@ export default function NamespaceDetails() {
         />
       </Card>
 
-      <EditNamespaceDrawer
+      <EditNamespaceModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         namespace={namespace}

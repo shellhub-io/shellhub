@@ -74,8 +74,8 @@ describe("Profile", () => {
     });
   });
 
-  describe("ChangePasswordDrawer", () => {
-    async function openChangePasswordDrawer() {
+  describe("ChangePasswordModal", () => {
+    async function openChangePasswordModal() {
       const user = userEvent.setup();
       renderProfile();
       await user.click(
@@ -84,18 +84,18 @@ describe("Profile", () => {
       return user;
     }
 
-    function getDrawerSubmitButton() {
+    function getModalSubmitButton() {
       const all = screen.getAllByRole("button", { name: /^change password$/i });
       return all[all.length - 1];
     }
 
     it("disables the submit button when fields are empty", async () => {
-      await openChangePasswordDrawer();
-      expect(getDrawerSubmitButton()).toBeDisabled();
+      await openChangePasswordModal();
+      expect(getModalSubmitButton()).toBeDisabled();
     });
 
     it("enables the submit button only when all three fields contain valid values", async () => {
-      const user = await openChangePasswordDrawer();
+      const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");
       await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
@@ -104,7 +104,7 @@ describe("Profile", () => {
         "newpass123",
       );
 
-      expect(getDrawerSubmitButton()).toBeEnabled();
+      expect(getModalSubmitButton()).toBeEnabled();
     });
 
     it("shows 'Current password is incorrect.' on 403", async () => {
@@ -113,7 +113,7 @@ describe("Profile", () => {
           HttpResponse.json({}, { status: 403 }),
         ),
       );
-      const user = await openChangePasswordDrawer();
+      const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "wrong");
       await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
@@ -121,7 +121,7 @@ describe("Profile", () => {
         screen.getByLabelText(/confirm new password/i),
         "newpass123",
       );
-      await user.click(getDrawerSubmitButton());
+      await user.click(getModalSubmitButton());
 
       expect(
         await screen.findByText(/current password is incorrect/i),
@@ -129,7 +129,7 @@ describe("Profile", () => {
     });
 
     it("shows success message after a successful password change", async () => {
-      const user = await openChangePasswordDrawer();
+      const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");
       await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
@@ -137,19 +137,20 @@ describe("Profile", () => {
         screen.getByLabelText(/confirm new password/i),
         "newpass123",
       );
-      await user.click(getDrawerSubmitButton());
+      await user.click(getModalSubmitButton());
 
       expect(
         await screen.findByText(/password changed successfully/i),
       ).toBeInTheDocument();
     });
 
-    it("resets the form when the drawer is reopened", async () => {
-      const user = await openChangePasswordDrawer();
+    it("resets the form when the modal is reopened", async () => {
+      const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "somevalue");
 
       await user.click(screen.getByRole("button", { name: /cancel/i }));
+      await user.click(screen.getByRole("button", { name: "Discard" }));
       await user.click(
         screen.getByRole("button", { name: /^change password$/i }),
       );

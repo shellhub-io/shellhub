@@ -14,7 +14,7 @@ import { useAdminUser } from "@/hooks/useAdminUsers";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import UserStatusChip from "./UserStatusChip";
-import EditUserDrawer from "./EditUserDrawer";
+import EditUserModal from "./EditUserModal";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
@@ -207,8 +207,7 @@ export default function UserDetails() {
         </Card>
       </div>
 
-      {/* Edit Drawer */}
-      <EditUserDrawer
+      <EditUserModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         user={user}

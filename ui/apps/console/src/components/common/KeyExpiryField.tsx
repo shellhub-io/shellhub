@@ -4,7 +4,7 @@ import { EXPIRY_OPTIONS } from "@/pages/team/helpers";
 
 /**
  * How long an enrolled key keeps working. Offered wherever a key is enrolled, so the choice
- * reads the same in the add-a-key drawer and in the approval screen a held login sends you to.
+ * reads the same in the add-a-key modal and in the approval screen a held login sends you to.
  *
  * expiresIn is an EXPIRY_OPTIONS value as a string ("-1" = never), which is the
  * default: a key nobody gave a deadline to should outlive the session that

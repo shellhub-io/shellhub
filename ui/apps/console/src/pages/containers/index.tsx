@@ -8,8 +8,8 @@ import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
-import ConnectDrawer from "@/components/ConnectDrawer";
-import ManageTagsDrawer from "@/components/ManageTagsDrawer";
+import ConnectModal from "@/components/ConnectModal";
+import ManageTagsModal from "@/components/ManageTagsModal";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
@@ -25,7 +25,7 @@ import { useActionDialog } from "@/hooks/useActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
 import ActionDialog from "@/components/common/ActionDialog";
 
-import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
+import AddDockerConnectorModal from "./AddDockerConnectorModal";
 import {
   PlusIcon,
   TagIcon,
@@ -507,7 +507,7 @@ export default function Containers() {
         />
       )}
 
-      <ConnectDrawer
+      <ConnectModal
         open={!!connectTarget}
         onClose={() => setConnectTarget(null)}
         deviceUid={connectTarget?.uid ?? ""}
@@ -515,7 +515,7 @@ export default function Containers() {
         sshid={connectTarget?.sshid ?? ""}
       />
 
-      <ManageTagsDrawer
+      <ManageTagsModal
         open={manageTagsOpen}
         onClose={() => {
           setManageTagsOpen(false);
@@ -531,7 +531,7 @@ export default function Containers() {
         }}
       />
 
-      <AddDockerConnectorDrawer
+      <AddDockerConnectorModal
         open={addConnectorOpen}
         onClose={() => setAddConnectorOpen(false)}
       />

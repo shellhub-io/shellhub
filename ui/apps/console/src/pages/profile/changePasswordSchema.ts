@@ -3,7 +3,7 @@ import { validatePassword } from "@/utils/validation";
 
 /**
  * Only surfaces format errors for fields the user has actually filled — the
- * "all fields required" gate is enforced at the submit button (see the drawer's
+ * "all fields required" gate is enforced at the submit button (see the modal's
  * `submitDisabled`), so a partially-filled form blocks submit without spraying
  * required-field errors across untouched inputs.
  */

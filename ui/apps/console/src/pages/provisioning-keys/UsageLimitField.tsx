@@ -54,7 +54,7 @@ export default function UsageLimitField({
   return (
     <div>
       <span className={LABEL}>Usage limit</span>
-      <div className="flex @sm/drawer:flex-row flex-col bg-card border border-border rounded-lg overflow-hidden">
+      <div className="flex @sm/modal:flex-row flex-col bg-card border border-border rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => onChange(1)}
@@ -64,7 +64,7 @@ export default function UsageLimitField({
         </button>
 
         <div
-          className={`flex items-center @sm/drawer:flex-1 min-w-0 h-11 @sm/drawer:border-x border-y @sm/drawer:border-y-0 border-border transition-colors ${
+          className={`flex items-center @sm/modal:flex-1 min-w-0 h-11 @sm/modal:border-x border-y @sm/modal:border-y-0 border-border transition-colors ${
             mode === "limited" ? "bg-primary/[0.07]" : ""
           }`}
         >
