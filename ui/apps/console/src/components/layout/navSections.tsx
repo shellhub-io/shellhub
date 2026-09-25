@@ -34,9 +34,22 @@ export interface NavItem {
  * since a heading over a single link names nothing the link does not. The sidebar keys each group
  * by its first link, so no link may open two groups.
  */
-export interface NavSection {
+export interface NavSection<T extends { to: string } = NavItem> {
   title?: string;
-  items: NavItem[];
+  items: T[];
+}
+
+/**
+ * The title of the section that links to route, or undefined when that section has no title or no
+ * section links there.
+ */
+export function navSectionTitle(
+  sections: NavSection<{ to: string }>[],
+  route: string,
+): string | undefined {
+  return sections.find((section) =>
+    section.items.some((item) => item.to === route),
+  )?.title;
 }
 
 function buildSections(isIdentityMode: boolean): NavSection[] {
@@ -124,7 +137,7 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
       items: resources,
     },
     {
-      title: isIdentityMode ? "SSH" : "Security",
+      title: "SSH",
       items: security,
     },
     {
@@ -153,4 +166,11 @@ export function useNavSections(): NavSection[] {
   const { tenant } = useAuthStore();
   const { namespace } = useNamespace(tenant ?? "");
   return buildSections(namespace?.settings?.ssh_access_mode === "identity");
+}
+
+/**
+ * navSectionTitle over the current namespace's sidebar, whose sections follow the SSH access mode.
+ */
+export function useNavSectionTitle(route: string): string | undefined {
+  return navSectionTitle(useNavSections(), route);
 }

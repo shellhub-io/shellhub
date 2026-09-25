@@ -9,6 +9,7 @@ import { cn } from "@shellhub/design-system/cn";
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import EmptyCell from "@/components/common/EmptyCell";
@@ -152,7 +153,7 @@ export default function AdminSessions() {
     <div>
       <PageHeader
         icon={<CommandLineIcon className="w-6 h-6" />}
-        overline="Admin"
+        overline={adminNavSectionTitle("/admin/sessions")}
         title="Sessions"
         description="Track live and historical sessions happening across every namespace."
       />

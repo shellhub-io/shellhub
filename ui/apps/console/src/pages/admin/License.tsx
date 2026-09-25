@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import CopyButton from "@/components/common/CopyButton";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useUploadLicense } from "@/hooks/useUploadLicense";
@@ -447,7 +448,7 @@ export default function AdminLicense() {
     <div>
       <PageHeader
         icon={<KeyIcon className="w-6 h-6" />}
-        overline="Admin Settings"
+        overline={adminNavSectionTitle("/admin/license")}
         title="License Details"
         description="Review the current license scope and upload a new file when your subscription changes."
       />

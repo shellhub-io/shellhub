@@ -38,6 +38,7 @@ import {
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -60,6 +61,7 @@ type SortField = "name" | "last_seen";
  * filter state held in the URL so a view can be shared.
  */
 export default function Devices() {
+  const sectionTitle = useNavSectionTitle("/devices");
   const { params, setPage, setSearch, setArrayFilter, mapArrayFilter } =
     usePaginatedListState<DevicesParams>({
       defaults: DEFAULTS,
@@ -246,7 +248,7 @@ export default function Devices() {
     <div>
       <PageHeader
         icon={<CpuChipIcon className="w-6 h-6" />}
-        overline="Device Management"
+        overline={sectionTitle}
         title="Devices"
         description="Manage and monitor all devices connected to your namespace"
       >

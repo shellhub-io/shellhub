@@ -22,6 +22,7 @@ import SearchField from "@/components/common/fields/SearchField";
 import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 import RuleModal from "./RuleModal";
 import { pageCount } from "@/utils/pagination";
 
@@ -39,6 +40,7 @@ const DEFAULTS: FirewallRulesParams = {
  * The firewall rules list, in priority order — which is also the order they are evaluated in.
  */
 export default function FirewallRules() {
+  const sectionTitle = useNavSectionTitle("/firewall-rules");
   const { params, setPage, setSearch } =
     usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
 
@@ -252,7 +254,7 @@ export default function FirewallRules() {
     <div>
       <PageHeader
         icon={<ExclamationTriangleIcon className="w-6 h-6" />}
-        overline="Security"
+        overline={sectionTitle}
         title="Firewall Rules"
         description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
       >

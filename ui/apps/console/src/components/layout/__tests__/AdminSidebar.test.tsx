@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { http, HttpResponse } from "msw";
@@ -44,10 +44,6 @@ function renderSidebar() {
   );
 }
 
-async function openSettingsGroup() {
-  fireEvent.click(await screen.findByRole("button", { name: /settings/i }));
-}
-
 describe("AdminSidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -75,10 +71,10 @@ describe("AdminSidebar", () => {
       expect(screen.getByText("Namespaces")).toBeInTheDocument();
     });
 
-    it("shows Authentication but NOT License in the Settings group", async () => {
+    it("shows Authentication but NOT License under Instance", async () => {
       renderSidebar();
-      await openSettingsGroup();
-      expect(screen.getByText("Authentication")).toBeInTheDocument();
+      const instance = await screen.findByRole("group", { name: "Instance" });
+      expect(within(instance).getByText("Authentication")).toBeInTheDocument();
       expect(screen.queryByText("License")).not.toBeInTheDocument();
     });
   });
@@ -94,11 +90,16 @@ describe("AdminSidebar", () => {
       expect(screen.getByText("Namespaces")).toBeInTheDocument();
     });
 
-    it("shows both Authentication and License in the Settings group", async () => {
+    it.each([
+      ["Accounts", ["Users", "Namespaces"]],
+      ["Resources", ["Devices", "Sessions", "Firewall Rules"]],
+      ["Instance", ["Authentication", "Instance API Keys", "License"]],
+    ])("lists %s pages under their heading", async (title, labels) => {
       renderSidebar();
-      await openSettingsGroup();
-      expect(screen.getByText("Authentication")).toBeInTheDocument();
-      expect(screen.getByText("License")).toBeInTheDocument();
+      const group = await screen.findByRole("group", { name: title });
+      for (const label of labels) {
+        expect(within(group).getByText(label)).toBeInTheDocument();
+      }
     });
   });
 
@@ -113,10 +114,24 @@ describe("AdminSidebar", () => {
 
     it("shows the restricted nav with only the License entry", async () => {
       renderSidebar();
-      await openSettingsGroup();
-      expect(screen.getByText("License")).toBeInTheDocument();
+      expect(await screen.findByText("License")).toBeInTheDocument();
+      expect(screen.queryByText("Instance")).not.toBeInTheDocument();
       expect(screen.queryByText("Authentication")).not.toBeInTheDocument();
       expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("non-admin", () => {
+    beforeEach(() => {
+      useAuthStore.setState({ isAdmin: false });
+    });
+
+    it("shows the License entry disabled", async () => {
+      renderSidebar();
+      expect(await screen.findByText("License")).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
     });
   });
 });

@@ -34,7 +34,6 @@ export default function Dashboard() {
     <div>
       <PageHeader
         icon={<Squares2X2Icon className="w-6 h-6" />}
-        overline="Home"
         title={currentNamespace?.name ?? "Dashboard"}
         description="Manage your ShellHub namespace"
       >

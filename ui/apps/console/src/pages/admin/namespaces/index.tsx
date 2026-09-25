@@ -10,6 +10,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import type { Namespace } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import EditNamespaceModal from "./EditNamespaceModal";
@@ -137,7 +138,7 @@ export default function AdminNamespaces() {
     <div>
       <PageHeader
         icon={<ServerStackIcon className="w-6 h-6" />}
-        overline="Namespace Management"
+        overline={adminNavSectionTitle("/admin/namespaces")}
         title="Namespaces"
         description="Manage all namespaces in the instance"
       />

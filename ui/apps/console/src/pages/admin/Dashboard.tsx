@@ -106,7 +106,6 @@ export default function AdminDashboard() {
     <div>
       <PageHeader
         icon={<ChartBarIcon className="w-6 h-6" />}
-        overline="Admin Dashboard"
         title="System Overview"
         description="Monitor key metrics about users, devices, and sessions across the instance."
       />

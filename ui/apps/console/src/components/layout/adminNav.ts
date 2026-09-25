@@ -6,7 +6,6 @@ import {
   ShieldCheckIcon,
   ServerStackIcon,
   MegaphoneIcon,
-  Cog6ToothIcon,
   KeyIcon,
   LockClosedIcon,
   DocumentCheckIcon,
@@ -14,6 +13,7 @@ import {
 import { getConfig, isCloud } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
+import { navSectionTitle, type NavSection } from "./navSections";
 
 type Icon = typeof HomeIcon;
 
@@ -28,26 +28,9 @@ export interface AdminNavLink {
 }
 
 /**
- * Admin pages under a heading of their own, which has no route: the sidebar folds it open, and
- * adminNavLinks lays its pages out flat for the palette.
+ * A group of admin pages, following the console sidebar's rules for headings and keys.
  */
-export interface AdminNavGroup {
-  label: string;
-  icon: Icon;
-  children: AdminNavLink[];
-}
-
-/**
- * A top-level entry of the admin navigation, told apart by isAdminNavGroup.
- */
-export type AdminNavEntry = AdminNavLink | AdminNavGroup;
-
-/**
- * Whether an entry is a group, the only kind with children and the only kind without a route.
- */
-export function isAdminNavGroup(entry: AdminNavEntry): entry is AdminNavGroup {
-  return "children" in entry;
-}
+export type AdminNavSection = NavSection<AdminNavLink>;
 
 const licenseLink: AdminNavLink = {
   to: "/admin/license",
@@ -55,48 +38,56 @@ const licenseLink: AdminNavLink = {
   icon: DocumentCheckIcon,
 };
 
-const licenseOnlyEntries: AdminNavEntry[] = [
-  { label: "Settings", icon: Cog6ToothIcon, children: [licenseLink] },
-];
+const licenseOnlySections: AdminNavSection[] = [{ items: [licenseLink] }];
 
-function buildFullEntries(): AdminNavEntry[] {
-  const entries: AdminNavEntry[] = [
-    { to: "/admin/dashboard", label: "Dashboard", icon: HomeIcon },
-    { to: "/admin/users", label: "Users", icon: UsersIcon },
-    { to: "/admin/devices", label: "Devices", icon: CpuChipIcon },
-    { to: "/admin/sessions", label: "Sessions", icon: CommandLineIcon },
-    {
-      to: "/admin/firewall-rules",
-      label: "Firewall Rules",
-      icon: ShieldCheckIcon,
-    },
-    { to: "/admin/namespaces", label: "Namespaces", icon: ServerStackIcon },
-  ];
+function buildFullSections(): AdminNavSection[] {
+  const instance: AdminNavLink[] = [];
   if (getConfig().announcements) {
-    entries.push({
+    instance.push({
       to: "/admin/announcements",
       label: "Announcements",
       icon: MegaphoneIcon,
     });
   }
-  entries.push({
-    label: "Settings",
-    icon: Cog6ToothIcon,
-    children: [
-      {
-        to: "/admin/settings/authentication",
-        label: "Authentication",
-        icon: KeyIcon,
-      },
-      {
-        to: "/admin/instance-api-keys",
-        label: "Instance API Keys",
-        icon: LockClosedIcon,
-      },
-      ...(isCloud() ? [] : [licenseLink]),
-    ],
-  });
-  return entries;
+  instance.push(
+    {
+      to: "/admin/settings/authentication",
+      label: "Authentication",
+      icon: KeyIcon,
+    },
+    {
+      to: "/admin/instance-api-keys",
+      label: "Instance API Keys",
+      icon: LockClosedIcon,
+    },
+  );
+  if (!isCloud()) instance.push(licenseLink);
+
+  return [
+    {
+      items: [{ to: "/admin/dashboard", label: "Dashboard", icon: HomeIcon }],
+    },
+    {
+      title: "Accounts",
+      items: [
+        { to: "/admin/users", label: "Users", icon: UsersIcon },
+        { to: "/admin/namespaces", label: "Namespaces", icon: ServerStackIcon },
+      ],
+    },
+    {
+      title: "Resources",
+      items: [
+        { to: "/admin/devices", label: "Devices", icon: CpuChipIcon },
+        { to: "/admin/sessions", label: "Sessions", icon: CommandLineIcon },
+        {
+          to: "/admin/firewall-rules",
+          label: "Firewall Rules",
+          icon: ShieldCheckIcon,
+        },
+      ],
+    },
+    { title: "Instance", items: instance },
+  ];
 }
 
 /**
@@ -110,17 +101,22 @@ export function useAdminNav({ active = true }: { active?: boolean } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const restricted = !isAdmin || isLoading || isExpired;
   return {
-    entries: restricted ? licenseOnlyEntries : buildFullEntries(),
+    sections: restricted ? licenseOnlySections : buildFullSections(),
     disabled: !isAdmin,
   };
 }
 
 /**
- * Every page the entries lead to, each group replaced by its pages, in sidebar order. Headings
- * drop out, since they lead nowhere.
+ * Every page the sections lead to, in sidebar order, for the command palette.
  */
-export function adminNavLinks(entries: AdminNavEntry[]): AdminNavLink[] {
-  return entries.flatMap((entry) =>
-    isAdminNavGroup(entry) ? entry.children : [entry],
-  );
+export function adminNavLinks(sections: AdminNavSection[]): AdminNavLink[] {
+  return sections.flatMap((section) => section.items);
+}
+
+/**
+ * The title of the admin section that links to route, read from the full navigation so the
+ * License page keeps its section while the sidebar is narrowed to it.
+ */
+export function adminNavSectionTitle(route: string): string | undefined {
+  return navSectionTitle(buildFullSections(), route);
 }

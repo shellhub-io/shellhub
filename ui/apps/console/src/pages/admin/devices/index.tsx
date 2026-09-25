@@ -10,6 +10,7 @@ import {
 } from "@/hooks/useAdminDevices";
 import type { DeviceStatus } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import DistroIcon from "@/components/common/DistroIcon";
@@ -201,7 +202,7 @@ export default function AdminDevices() {
     <div>
       <PageHeader
         icon={<CpuChipIcon className="w-6 h-6" />}
-        overline="Device Administration"
+        overline={adminNavSectionTitle("/admin/devices")}
         title="Devices"
         description="View all devices registered across the instance"
       />

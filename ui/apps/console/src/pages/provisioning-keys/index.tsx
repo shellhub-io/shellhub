@@ -46,7 +46,7 @@ export default function ProvisioningKeys() {
     <div>
       <PageHeader
         icon={<TicketIcon className="w-6 h-6" />}
-        overline="Provisioning"
+        overline="Settings"
         title="Provisioning Keys"
         description="Provisioning keys are reusable credentials that register devices with your namespace. Each key's mode decides how a device is admitted."
       >

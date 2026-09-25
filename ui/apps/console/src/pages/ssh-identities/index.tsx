@@ -39,6 +39,7 @@ import {
   sshIdentitySource,
   type IdentityStatusTone,
 } from "@/utils/sshIdentity";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 import IdentityModal from "./IdentityModal";
 
 // Upload for a key somebody put here, a terminal for one an SSH client offered
@@ -69,6 +70,7 @@ const EXPIRY_TONE: Record<IdentityStatusTone, string> = {
  * somebody else's.
  */
 export default function SSHIdentities() {
+  const sectionTitle = useNavSectionTitle("/ssh-identities");
   const userId = useAuthStore((s) => s.userId);
 
   const { identities, isLoading } = useSSHIdentities();
@@ -359,7 +361,7 @@ export default function SSHIdentities() {
     <div>
       <PageHeader
         icon={<FingerPrintIcon className="w-6 h-6" />}
-        overline="Security"
+        overline={sectionTitle}
         title="SSH Identities"
         description="Manage the SSH keys that are your identity under the identity access mode."
       >

@@ -11,6 +11,7 @@ import {
 import type { GetAuthenticationSettingsResponse } from "@/client";
 import { isSdkError } from "@/api/errors";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import CopyButton from "@/components/common/CopyButton";
 import SamlConfigModal from "./SamlConfigModal";
 import PageLoader from "@/components/common/PageLoader";
@@ -116,7 +117,7 @@ export default function AdminAuthentication() {
       <div>
         <PageHeader
           icon={<KeyIcon className="w-6 h-6" />}
-          overline="Admin Settings"
+          overline={adminNavSectionTitle("/admin/settings/authentication")}
           title="Authentication"
           description="Control how users authenticate to ShellHub, including local credentials and SAML SSO."
         />
@@ -135,7 +136,7 @@ export default function AdminAuthentication() {
     <div>
       <PageHeader
         icon={<KeyIcon className="w-6 h-6" />}
-        overline="Admin Settings"
+        overline={adminNavSectionTitle("/admin/settings/authentication")}
         title="Authentication"
         description="Control how users authenticate to ShellHub, including local credentials and SAML SSO."
       />

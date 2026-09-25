@@ -3,11 +3,13 @@ import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
 import PageHeader from "@/components/common/PageHeader";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 import MembersTab from "./MembersTab";
 import ApiKeysTab from "./ApiKeysTab";
 
 /** The team page: members and API keys. */
 export default function Team() {
+  const sectionTitle = useNavSectionTitle("/team");
   const [tab, setTab] = useState("members");
   const tenant = useAuthStore((s) => s.tenant);
 
@@ -20,7 +22,7 @@ export default function Team() {
     <div>
       <PageHeader
         icon={<UserGroupIcon className="w-6 h-6" />}
-        overline="Management"
+        overline={sectionTitle}
         title="Team"
         description="Manage namespace members, invitations, and API keys"
       />

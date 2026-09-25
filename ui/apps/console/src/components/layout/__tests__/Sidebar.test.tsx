@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -65,6 +65,17 @@ describe("Sidebar", () => {
     expect(
       screen.queryByRole("link", { name: /ssh identities/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("groups the legacy key pages under SSH", async () => {
+    setAccessMode("legacy");
+    renderSidebar();
+
+    const ssh = await screen.findByRole("group", { name: "SSH" });
+    expect(
+      within(ssh).getByRole("link", { name: /public keys/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Security")).not.toBeInTheDocument();
   });
 
   it("keeps hiding the legacy pages in identity mode", async () => {

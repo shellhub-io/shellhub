@@ -241,7 +241,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
     onLogout,
     isIdentityMode: namespace?.settings?.ssh_access_mode === "identity",
     pages: adminContext
-      ? buildAdminItems({ links: adminNavLinks(adminNav.entries), go })
+      ? buildAdminItems({ links: adminNavLinks(adminNav.sections), go })
       : undefined,
   });
 

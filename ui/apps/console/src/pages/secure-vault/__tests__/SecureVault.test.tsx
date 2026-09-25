@@ -301,11 +301,15 @@ beforeEach(() => {
   );
 });
 
+function renderSecureVault() {
+  return render(<SecureVault />, { wrapper: createTestWrapper() });
+}
+
 describe("SecureVault", () => {
   describe("uninitialized state", () => {
     it("calls refreshStatus on mount", () => {
       setupStore("uninitialized");
-      render(<SecureVault />);
+      renderSecureVault();
       expect(mockRefreshStatus).toHaveBeenCalledTimes(1);
     });
   });
@@ -313,7 +317,7 @@ describe("SecureVault", () => {
   describe("locked state", () => {
     it("does not render the keys table", () => {
       setupStore("locked");
-      render(<SecureVault />);
+      renderSecureVault();
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
     });
   });
@@ -335,7 +339,7 @@ describe("SecureVault", () => {
 
     it("shows lock icon for keys with passphrase", () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
       expect(screen.getByTitle("Encrypted")).toBeInTheDocument();
     });
 
@@ -348,13 +352,13 @@ describe("SecureVault", () => {
           hasPassphrase: false,
         }),
       ]);
-      render(<SecureVault />);
+      renderSecureVault();
       expect(screen.queryByTitle("Encrypted")).not.toBeInTheDocument();
     });
 
     it("opens the Delete dialog with the correct entry when Delete is clicked", async () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
 
       const deleteButtons = screen.getAllByTitle(/delete/i);
       await userEvent.click(deleteButtons[0]);
@@ -381,7 +385,7 @@ describe("SecureVault", () => {
 
     it("filters rows by name", async () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
 
       await userEvent.type(
         screen.getByPlaceholderText(/search by name or fingerprint/i),
@@ -394,7 +398,7 @@ describe("SecureVault", () => {
 
     it("filters rows by fingerprint", async () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
 
       await userEvent.type(
         screen.getByPlaceholderText(/search by name or fingerprint/i),
@@ -407,7 +411,7 @@ describe("SecureVault", () => {
 
     it("shows no-match message when search yields no results", async () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
 
       await userEvent.type(
         screen.getByPlaceholderText(/search by name or fingerprint/i),
@@ -419,7 +423,7 @@ describe("SecureVault", () => {
 
     it("search is case-insensitive", async () => {
       setupStore("unlocked", keys);
-      render(<SecureVault />);
+      renderSecureVault();
 
       await userEvent.type(
         screen.getByPlaceholderText(/search by name or fingerprint/i),
@@ -433,7 +437,7 @@ describe("SecureVault", () => {
   describe("auto-lock nonce — auto-open unlock dialog", () => {
     it("opens VaultUnlockDialog when autoLockNonce bumps while mounted (unlocked → locked)", () => {
       setupStore("unlocked", [], 0);
-      const { rerender } = render(<SecureVault />);
+      const { rerender } = renderSecureVault();
 
       act(() => {
         getState().status = "locked";
@@ -448,7 +452,7 @@ describe("SecureVault", () => {
 
     it("does NOT auto-open unlock dialog on manual lock (nonce unchanged)", () => {
       setupStore("unlocked", [], 0);
-      const { rerender } = render(<SecureVault />);
+      const { rerender } = renderSecureVault();
 
       act(() => {
         getState().status = "locked";
@@ -465,7 +469,7 @@ describe("SecureVault", () => {
 
     it("does NOT auto-open unlock dialog for a stale nonce after remount", () => {
       setupStore("locked", [], 1);
-      render(<SecureVault />);
+      renderSecureVault();
 
       expect(
         screen.getByRole("heading", { name: /your vault is locked/i }),
@@ -477,7 +481,7 @@ describe("SecureVault", () => {
 
     it("hook count is stable across unlocked→locked transition (no hook-order crash)", () => {
       setupStore("unlocked", [], 0);
-      const { rerender } = render(<SecureVault />);
+      const { rerender } = renderSecureVault();
 
       act(() => {
         getState().status = "locked";

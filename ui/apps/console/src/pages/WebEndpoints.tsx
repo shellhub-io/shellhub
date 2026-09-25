@@ -46,6 +46,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 const GO_ZERO_TIME = "0001-01-01T00:00:00Z";
 
@@ -833,6 +834,7 @@ const DEFAULTS: WebEndpointsParams = {
 };
 
 function WebEndpointsContent() {
+  const sectionTitle = useNavSectionTitle("/web-endpoints");
   const { params, setPage, setSearch } =
     usePaginatedListState<WebEndpointsParams>({ defaults: DEFAULTS });
   const debouncedSearch = useDebouncedValue(
@@ -940,7 +942,7 @@ function WebEndpointsContent() {
         <>
           <PageHeader
             icon={<GlobeAltIcon className="w-6 h-6" />}
-            overline="Networking"
+            overline={sectionTitle}
             title="Web Endpoints"
             description="Unique URLs that tunnel HTTP traffic to services on your devices."
           >

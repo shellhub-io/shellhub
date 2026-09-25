@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
@@ -114,7 +115,7 @@ export default function AdminAnnouncements() {
     <div>
       <PageHeader
         icon={<MegaphoneIcon className="w-6 h-6" />}
-        overline="Instance Administration"
+        overline={adminNavSectionTitle("/admin/announcements")}
         title="Announcements"
         description="Manage system-wide announcements for all users"
       >

@@ -7,6 +7,7 @@ import { useDeleteInstanceApiKey } from "@/hooks/useInstanceApiKeyMutations";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type InstanceApiKey } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { formatDateShort } from "@/utils/date";
@@ -119,7 +120,7 @@ function InstanceApiKeys() {
     <div className="animate-fade-in">
       <PageHeader
         icon={<KeyIcon className="w-6 h-6" />}
-        overline="Settings"
+        overline={adminNavSectionTitle("/admin/instance-api-keys")}
         title="Instance API Keys"
         description="Credentials that authenticate automation as an instance administrator"
       >
