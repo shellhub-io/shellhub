@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
 import { useSyncWorkspaceTab } from "@/hooks/useSyncWorkspaceTab";
@@ -22,6 +23,7 @@ import {
   useTerminalStore,
 } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
+import { useScrollEdges } from "@/hooks/useScrollEdges";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
 import LogoMark from "./LogoMark";
@@ -42,6 +44,11 @@ export default function AppLayout() {
   const terminalFullscreen = useTerminalFullscreen();
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
     useSidebarLayout();
+  const {
+    ref: scrollRef,
+    moreAbove,
+    moreBelow,
+  } = useScrollEdges<HTMLElement>();
 
   const isAdminRoute = isAdminPath(pathname);
   const showSidebar = isAdminRoute || namespaces.length > 0;
@@ -137,12 +144,32 @@ export default function AppLayout() {
               <div className="grid-bg scanline absolute inset-0 z-bg" />
               <main
                 id="main-content"
+                ref={scrollRef}
                 tabIndex={-1}
                 key={pathname}
                 className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto outline-none"
               >
                 <Outlet />
               </main>
+              <div
+                aria-hidden="true"
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-surface to-transparent transition-opacity duration-200",
+                  moreAbove ? "opacity-100" : "opacity-0",
+                )}
+              />
+              <div
+                aria-hidden="true"
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 bottom-0 h-10 flex items-end justify-center pb-1 bg-gradient-to-t from-surface to-transparent transition-opacity duration-200",
+                  moreBelow ? "opacity-100" : "opacity-0",
+                )}
+              >
+                <ChevronDownIcon
+                  className="w-4 h-4 text-text-muted/70"
+                  strokeWidth={2}
+                />
+              </div>
               <TerminalManager />
             </div>
           </div>
