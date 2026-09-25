@@ -26,14 +26,15 @@ export const ADMIN_TAB_ID = "admin";
 export const namespaceTabId = (tenant: string) => `ns:${tenant}`;
 
 /**
- * The admin console's tab, on path or on its dashboard.
+ * The admin console's tab, landing on path when activated. ensure keeps an open tab's own path,
+ * so path only decides where a tab not yet open lands.
  */
 export function adminTab(path = "/admin/dashboard"): WorkspaceTab {
   return { id: ADMIN_TAB_ID, kind: "admin", name: "Admin Console", path };
 }
 
 /**
- * A namespace's tab, on path or on its dashboard.
+ * A namespace's tab, landing on path when activated, as adminTab does for the admin console.
  */
 export function namespaceTab(
   tenant: string,

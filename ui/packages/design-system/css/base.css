@@ -38,8 +38,7 @@
     color-scheme: dark;
   }
 
-  /* Light theme — applied by toggling `class="light"` on <html>. `.theme-follow` re-applies it
-     inside the chrome that `.theme-dark` pins dark, for the content framed within it. */
+  /* Light theme — applied by toggling `class="light"` on <html>. */
   html.light,
   html.light .theme-follow {
     --dialog-backdrop-bg: rgba(17, 19, 24, 0.45);

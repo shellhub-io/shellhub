@@ -31,10 +31,11 @@ describe("WindowControls", () => {
     ["Maximize window", "toggleMaximize"],
     ["Close window", "close"],
   ] as const)("%s drives the desktop window", async (name, method) => {
+    const user = userEvent.setup();
     const win = runInsideDesktopApp();
     render(<WindowControls />);
 
-    await userEvent.click(screen.getByRole("button", { name }));
+    await user.click(screen.getByRole("button", { name }));
 
     expect(win[method]).toHaveBeenCalledOnce();
   });
