@@ -30,7 +30,6 @@ function NavGroupItem({
 }) {
   const isChildActive =
     !disabled && group.children.some((c) => currentPath.startsWith(c.to));
-  const align = expanded ? "" : "justify-center";
   const isGroupActive = isChildActive || (expanded && isOpen);
 
   return (
@@ -50,24 +49,26 @@ function NavGroupItem({
             : isChildActive
               ? "text-primary"
               : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle",
-          align,
         )}
       >
         <group.icon className={navIcon} />
-        {expanded ? (
-          <>
-            <span className="flex-1 text-left truncate">{group.label}</span>
-            {!disabled && (
-              <ChevronDownIcon
-                className={cn(
-                  "w-3.5 h-3.5 transition-transform duration-200",
-                  isGroupActive && "rotate-180",
-                )}
-                strokeWidth={2}
-              />
-            )}
-          </>
-        ) : null}
+        <span
+          className={cn(
+            "flex-1 min-w-0 flex items-center gap-3 transition-opacity duration-200",
+            expanded ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <span className="flex-1 text-left truncate">{group.label}</span>
+          {!disabled && (
+            <ChevronDownIcon
+              className={cn(
+                "w-3.5 h-3.5 shrink-0 transition-transform duration-200",
+                isGroupActive && "rotate-180",
+              )}
+              strokeWidth={2}
+            />
+          )}
+        </span>
       </button>
       {!disabled && expanded && isGroupActive ? (
         <div className="ml-5 mt-0.5 space-y-0.5 border-l border-border pl-3">

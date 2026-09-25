@@ -9,7 +9,7 @@ import LogoMark from "./LogoMark";
  * colour and cannot drift apart in spacing or type.
  */
 export const navBase =
-  "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium";
+  "flex items-center gap-3 h-[38px] px-3 rounded-md text-[13px] font-medium whitespace-nowrap [&>svg]:shrink-0 focus-visible:relative focus-visible:z-raised";
 const navActive = "bg-primary/10 text-primary border border-primary/20";
 const navIdle =
   "text-text-secondary hover:text-text-primary hover:bg-hover-subtle border border-transparent";
@@ -38,8 +38,9 @@ interface NavItemLinkProps {
 }
 
 /**
- * One navigation link. Collapsed, the label is hidden but stays in the accessibility tree, so a
- * collapsed sidebar is still navigable by screen reader.
+ * One navigation link. Collapsed, the label fades out but stays in the accessibility tree, so a
+ * collapsed sidebar is still navigable by screen reader. The icon keeps one position in both
+ * states, which the rail's width centres, so folding moves nothing but the label.
  */
 export function NavItemLink({
   item,
@@ -48,14 +49,20 @@ export function NavItemLink({
   onClick,
   badge,
 }: NavItemLinkProps) {
-  const align = expanded ? "" : "justify-center";
-  const label = expanded ? (
-    <span className="flex-1 truncate">{item.label}</span>
-  ) : null;
+  const label = (
+    <span
+      className={cn(
+        "flex-1 min-w-0 truncate transition-opacity duration-200",
+        expanded ? "opacity-100" : "opacity-0",
+      )}
+    >
+      {item.label}
+    </span>
+  );
 
   if (disabled) {
     return (
-      <span aria-disabled="true" className={cn(navBase, navDisabled, align)}>
+      <span aria-disabled="true" className={cn(navBase, navDisabled)}>
         {item.icon}
         {label}
       </span>
@@ -72,7 +79,6 @@ export function NavItemLink({
           navBase,
           "transition-all duration-150",
           isActive ? navActive : navIdle,
-          align,
         )
       }
     >
@@ -176,7 +182,7 @@ export default function SidebarShell({
 
       <nav
         aria-label={ariaLabel}
-        className="flex-1 px-2 pt-4 pb-2 overflow-y-auto"
+        className="flex-1 -mt-1 px-2 pt-1 pb-2 overflow-y-auto"
       >
         {children}
       </nav>
