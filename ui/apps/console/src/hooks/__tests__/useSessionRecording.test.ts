@@ -1,166 +1,104 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { mockSession } from "@/tests/factories";
+import { useTerminalStore } from "@/stores/terminalStore";
 import { useSessionRecording } from "../useSessionRecording";
 
-async function fetchLogs(
-  result: { current: ReturnType<typeof useSessionRecording> },
-  uid = "session-1",
-) {
-  let ok!: boolean;
-  await act(async () => {
-    ok = await result.current.fetchLogs(uid);
-  });
-  return ok;
+const session = mockSession({ uid: "session-1" });
+
+function serveRecording(body: string) {
+  let requests = 0;
+  server.use(
+    http.get("*/api/sessions/:uid/records/:seat", ({ params }) => {
+      requests++;
+      return params.seat === "0"
+        ? HttpResponse.text(body)
+        : HttpResponse.json({}, { status: 404 });
+    }),
+  );
+  return () => requests;
 }
 
+async function play(
+  result: { current: ReturnType<typeof useSessionRecording> },
+  readLocal?: () => Promise<string>,
+) {
+  let played!: boolean;
+  await act(async () => {
+    played = await result.current.play(session, readLocal);
+  });
+  return played;
+}
+
+const openRecordings = () =>
+  useTerminalStore.getState().recordings.map((r) => [r.id, r.logs, r.shown]);
+
 beforeEach(() => {
-  vi.clearAllMocks();
+  useTerminalStore.setState({ sessions: [], recordings: [] });
 });
 
 describe("useSessionRecording", () => {
-  it("starts with null logs and no loading or error state", () => {
+  it("opens the recording of seat 0 in its own tab", async () => {
+    serveRecording("asciicast");
     const { result } = renderHook(() => useSessionRecording());
 
-    expect(result.current.logs).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(await play(result)).toBe(true);
+
+    expect(openRecordings()).toEqual([["session-1", "asciicast", true]]);
   });
 
-  it("reads the recording of seat 0 as text", async () => {
-    let capturedUrl = "";
-    server.use(
-      http.get("*/api/sessions/:uid/records/:seat", ({ request }) => {
-        capturedUrl = new URL(request.url).pathname;
-        return new HttpResponse("asciicast-content", {
-          headers: { "Content-Type": "text/plain" },
-        });
-      }),
-    );
-
+  it("brings an open recording forward without fetching it again", async () => {
+    const requests = serveRecording("asciicast");
     const { result } = renderHook(() => useSessionRecording());
-    await fetchLogs(result);
+    await play(result);
+    useTerminalStore.getState().minimizeAll();
 
-    expect(capturedUrl).toBe("/api/sessions/session-1/records/0");
+    await play(result);
+
+    expect(requests()).toBe(1);
+    expect(openRecordings()).toEqual([["session-1", "asciicast", true]]);
   });
 
-  it("sets isLoading true while fetching and false after", async () => {
-    let resolveHandler!: (r: Response) => void;
-    const handlerReady = new Promise<void>((ready) => {
-      server.use(
-        http.get(
-          "*/api/sessions/:uid/records/:seat",
-          () =>
-            new Promise<Response>((resolve) => {
-              resolveHandler = resolve;
-              ready();
-            }),
-        ),
-      );
-    });
-
+  it("plays the copy the browser holds instead of fetching one", async () => {
+    const requests = serveRecording("from-server");
     const { result } = renderHook(() => useSessionRecording());
 
-    act(() => {
-      void result.current.fetchLogs("session-1");
-    });
-    await handlerReady;
-    expect(result.current.isLoading).toBe(true);
+    await play(result, () => Promise.resolve("from-browser"));
 
-    await act(async () => {
-      resolveHandler(
-        new HttpResponse("log-data", {
-          headers: { "Content-Type": "text/plain" },
-        }),
-      );
-    });
-    expect(result.current.isLoading).toBe(false);
+    expect(requests()).toBe(0);
+    expect(openRecordings()).toEqual([["session-1", "from-browser", true]]);
   });
 
-  it("returns true and stores logs on success", async () => {
-    server.use(
-      http.get(
-        "*/api/sessions/:uid/records/:seat",
-        () =>
-          new HttpResponse("asciicast-content", {
-            headers: { "Content-Type": "text/plain" },
-          }),
-      ),
-    );
-
+  it("says so, and opens nothing, when the recording cannot be read", async () => {
     const { result } = renderHook(() => useSessionRecording());
-    const ok = await fetchLogs(result);
 
-    expect(ok).toBe(true);
-    expect(result.current.logs).toBe("asciicast-content");
-    expect(result.current.error).toBeNull();
-  });
+    const played = await play(result, () => Promise.reject(new Error("gone")));
 
-  it("returns false and sets error on fetch failure", async () => {
-    server.use(
-      http.get("*/api/sessions/:uid/records/:seat", () =>
-        HttpResponse.json({}, { status: 500 }),
-      ),
-    );
-
-    const { result } = renderHook(() => useSessionRecording());
-    const ok = await fetchLogs(result);
-
-    expect(ok).toBe(false);
-    expect(result.current.logs).toBeNull();
+    expect(played).toBe(false);
     expect(result.current.error).toBe("Failed to load recording");
-    expect(result.current.isLoading).toBe(false);
+    expect(openRecordings()).toEqual([]);
   });
 
-  it("clears logsError at the start of a new fetchLogs call", async () => {
-    server.use(
-      http.get("*/api/sessions/:uid/records/:seat", () =>
-        HttpResponse.json({}, { status: 500 }),
-      ),
-    );
-
+  it("clears the error once a recording plays", async () => {
     const { result } = renderHook(() => useSessionRecording());
+    await play(result, () => Promise.reject(new Error("gone")));
+    serveRecording("asciicast");
 
-    await fetchLogs(result);
-    expect(result.current.error).toBe("Failed to load recording");
+    await play(result);
 
-    server.use(
-      http.get(
-        "*/api/sessions/:uid/records/:seat",
-        () =>
-          new HttpResponse("log-data", {
-            headers: { "Content-Type": "text/plain" },
-          }),
-      ),
-    );
-
-    await fetchLogs(result);
     expect(result.current.error).toBeNull();
-    expect(result.current.logs).toBe("log-data");
   });
 
-  it("clearLogs resets logs and error without affecting other state", async () => {
-    server.use(
-      http.get(
-        "*/api/sessions/:uid/records/:seat",
-        () =>
-          new HttpResponse("asciicast-content", {
-            headers: { "Content-Type": "text/plain" },
-          }),
-      ),
-    );
-
+  it("clears an earlier error when it brings an open recording forward", async () => {
+    serveRecording("asciicast");
     const { result } = renderHook(() => useSessionRecording());
-    await fetchLogs(result);
-    expect(result.current.logs).toBe("asciicast-content");
+    await play(result);
+    await play(result, () => Promise.reject(new Error("gone")));
 
-    act(() => {
-      result.current.clearLogs();
-    });
+    await play(result);
 
-    expect(result.current.logs).toBeNull();
     expect(result.current.error).toBeNull();
-    expect(result.current.isLoading).toBe(false);
   });
 });

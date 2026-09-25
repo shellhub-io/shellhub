@@ -8,6 +8,7 @@ import Sessions from "../index";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace, mockSession } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { useTerminalStore } from "@/stores/terminalStore";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -15,17 +16,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-vi.mock("../SessionPlayerDialog", () => ({
-  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
-    open ? (
-      <div data-testid="player-dialog">
-        <button type="button" onClick={onClose}>
-          Close Player
-        </button>
-      </div>
-    ) : null,
-}));
 
 function setSessions(
   sessions: ReturnType<typeof mockSession>[],
@@ -49,6 +39,7 @@ function renderSessions(initialEntries: string[] = ["/"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  useTerminalStore.setState({ sessions: [], recordings: [] });
   setSessions([]);
   server.use(
     http.post(
@@ -122,31 +113,40 @@ describe("Sessions", () => {
       await waitFor(() => expect(btn).toBeDisabled());
     });
 
-    it("does not show the player dialog when there are no logs", async () => {
-      setSessions([mockSession({ uid: "session-1", recorded: true })]);
-      renderSessions();
-      await screen.findByTitle("Play recording");
-      expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument();
-    });
-
-    it("opens the player after recording loads and closes it on dismiss", async () => {
+    it("opens the recording in its own tab once it loads", async () => {
       const user = userEvent.setup();
       server.use(
         http.get("*/api/sessions/:uid/records/:seat", () =>
-          HttpResponse.json("asciicast-data"),
+          HttpResponse.text("asciicast-data"),
         ),
       );
       setSessions([mockSession({ uid: "session-1", recorded: true })]);
       renderSessions();
 
       await user.click(await screen.findByTitle("Play recording"));
-      expect(await screen.findByTestId("player-dialog")).toBeInTheDocument();
-
-      await user.click(screen.getByRole("button", { name: "Close Player" }));
 
       await waitFor(() =>
-        expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument(),
+        expect(useTerminalStore.getState().recordings).toEqual([
+          expect.objectContaining({
+            id: "session-1",
+            logs: "asciicast-data",
+            shown: true,
+          }),
+        ]),
       );
+    });
+
+    it("opens no tab when the recording fails to load", async () => {
+      const user = userEvent.setup();
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
+      renderSessions();
+
+      await user.click(await screen.findByTitle("Play recording"));
+
+      expect(
+        await screen.findByText("Failed to load recording"),
+      ).toBeInTheDocument();
+      expect(useTerminalStore.getState().recordings).toEqual([]);
     });
   });
 

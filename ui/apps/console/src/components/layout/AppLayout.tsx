@@ -44,8 +44,10 @@ export default function AppLayout() {
     void loadTerminalThemes();
   }, [loadTerminalThemes]);
   const { namespaces } = useNamespaces();
-  const hasVisibleTerminal = useTerminalStore((s) =>
-    s.sessions.some((t) => t.state !== "minimized"),
+  const windowInView = useTerminalStore(
+    (s) =>
+      s.sessions.some((t) => t.state !== "minimized") ||
+      s.recordings.some((r) => r.shown),
   );
   const terminalFullscreen = useTerminalFullscreen();
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
@@ -66,7 +68,7 @@ export default function AppLayout() {
       <div
         className={cn(
           "flex flex-col h-screen bg-background",
-          hasVisibleTerminal && "overflow-hidden",
+          windowInView && "overflow-hidden",
         )}
       >
         <SkipToContentLink />

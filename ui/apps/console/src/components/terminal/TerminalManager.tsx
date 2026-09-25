@@ -9,13 +9,15 @@ import ConnectDrawer from "../ConnectDrawer";
 import { buildSshid } from "@/utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import RecordingSnackbar from "./RecordingSnackbar";
+import SessionPlayer from "../sessions/SessionPlayer";
 
 /**
- * Holds every open terminal window, stacked over the page inside the content frame. It lives in
- * the layout rather than on a page, so a session survives navigation.
+ * Holds every open terminal and session recording, stacked over the page inside the content frame.
+ * It lives in the layout rather than on a page, so a session or a recording survives navigation.
  */
 export default function TerminalManager() {
   const sessions = useTerminalStore((s) => s.sessions);
+  const recordings = useTerminalStore((s) => s.recordings);
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
   const reconnectTarget = useTerminalStore((s) => s.reconnectTarget);
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -40,12 +42,10 @@ export default function TerminalManager() {
         return;
       }
       enteringRef.current = home;
-      void workspace
-        .openNamespace(home, homeNamespace.name)
-        .then((entered) => {
-          enteringRef.current = null;
-          if (!entered) useTerminalStore.getState().clearReconnect();
-        });
+      void workspace.openNamespace(home, homeNamespace.name).then((entered) => {
+        enteringRef.current = null;
+        if (!entered) useTerminalStore.getState().clearReconnect();
+      });
       return;
     }
     useTerminalStore.getState().clearReconnect();
@@ -100,6 +100,18 @@ export default function TerminalManager() {
           </div>
         );
       })}
+
+      {recordings.map((r) => (
+        <div
+          key={r.id}
+          role="region"
+          aria-label={`Recording of ${r.title}`}
+          hidden={!r.shown}
+          className="absolute inset-0 z-terminal"
+        >
+          <SessionPlayer logs={r.logs} visible={r.shown} />
+        </div>
+      ))}
 
       <RecordingSnackbar />
     </>

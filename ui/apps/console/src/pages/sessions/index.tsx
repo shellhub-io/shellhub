@@ -12,7 +12,6 @@ import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import SessionPlayerDialog from "./SessionPlayerDialog";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatRelative, formatDuration } from "@/utils/date";
@@ -83,14 +82,11 @@ export default function Sessions() {
   const navigate = useNavigate();
   const premium = isEnterpriseOrCloud();
   const [playTarget, setPlayTarget] = useState<string | null>(null);
-  const [localLogs, setLocalLogs] = useState<string | null>(null);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const {
-    logs: sessionLogs,
     isLoading: logsLoading,
     error: logsError,
-    fetchLogs,
-    clearLogs,
+    play,
   } = useSessionRecording();
 
   const recordings = useRecordingsStore((s) => s.recordings);
@@ -115,18 +111,10 @@ export default function Sessions() {
   const handlePlayClick = async (e: React.MouseEvent, s: Session) => {
     e.stopPropagation();
     const local = localBySessionUid.get(s.uid);
-    if (local) {
+    if (local || s.recorded) {
       setPlayTarget(s.uid);
-      try {
-        setLocalLogs(await readRecording(local));
-      } catch {
-        setPlayTarget(null);
-      }
-      return;
-    }
-    if (s.recorded) {
-      setPlayTarget(s.uid);
-      await fetchLogs(s.uid);
+      await play(s, local ? () => readRecording(local) : undefined);
+      setPlayTarget(null);
       return;
     }
     setUpsellOpen(true);
@@ -326,18 +314,6 @@ export default function Sessions() {
           </div>
         }
       />
-
-      {playTarget && (localLogs || (!logsLoading && sessionLogs)) && (
-        <SessionPlayerDialog
-          open
-          onClose={() => {
-            setPlayTarget(null);
-            setLocalLogs(null);
-            clearLogs();
-          }}
-          logs={localLogs ?? sessionLogs ?? ""}
-        />
-      )}
 
       <RecordingPaywallDialog
         open={upsellOpen}

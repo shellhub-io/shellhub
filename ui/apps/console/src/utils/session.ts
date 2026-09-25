@@ -6,6 +6,14 @@ type SessionEvents = NonNullable<Session["events"]>;
 type SessionEvent = NonNullable<SessionEvents["items"]>[number];
 
 /**
+ * What a session is called on its tab and wherever it needs a short name: its device's name, or
+ * the start of the device uid when the device is gone.
+ */
+export function sessionTitle(session: Session): string {
+  return session.device?.name ?? (session.device_uid ?? "").substring(0, 8);
+}
+
+/**
  * Whether the session had a terminal, which is what makes its recording playable.
  */
 export function sessionHasTerminal(session: Session): boolean {

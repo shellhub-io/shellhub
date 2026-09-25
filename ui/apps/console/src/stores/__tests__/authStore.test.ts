@@ -5,6 +5,7 @@ import { useAuthStore } from "../authStore";
 import { mockUserAuth } from "@/tests/factories";
 import { VALID_JWT } from "@/tests/seedAuthStore";
 import { namespaceTab, useWorkspaceTabsStore } from "../workspaceTabsStore";
+import { useTerminalStore } from "../terminalStore";
 
 beforeEach(() => {
   useAuthStore.setState({
@@ -169,6 +170,18 @@ describe("authStore", () => {
       useAuthStore.getState().logout();
 
       expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
+    });
+
+    it("closes the open recordings, whose output belongs to the user leaving", () => {
+      useTerminalStore.getState().openRecording({
+        id: "session-1",
+        title: "dev",
+        logs: "cast",
+      });
+
+      useAuthStore.getState().logout();
+
+      expect(useTerminalStore.getState().recordings).toEqual([]);
     });
 
     describe("Chatwoot cleanup", () => {
