@@ -193,6 +193,23 @@ describe("Dropdown", () => {
       expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     });
 
+    it("consumes the Escape it closes on, so an enclosing dialog stays open", async () => {
+      const user = userEvent.setup();
+      const escapes: KeyboardEvent[] = [];
+      const record = (e: KeyboardEvent) => {
+        if (e.key === "Escape") escapes.push(e);
+      };
+      window.addEventListener("keydown", record, true);
+      render(<MenuDropdown />);
+
+      await user.click(screen.getByRole("button", { name: "Actions" }));
+      await user.keyboard("{Escape}");
+      await user.keyboard("{Escape}");
+      window.removeEventListener("keydown", record, true);
+
+      expect(escapes.map((e) => e.defaultPrevented)).toEqual([true, false]);
+    });
+
     it("fires onSelect and closes when an item is clicked", async () => {
       const user = userEvent.setup();
       const onEdit = vi.fn();
