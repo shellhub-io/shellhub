@@ -167,6 +167,7 @@ export default function SidebarShell({
       )}
     >
       <div
+        data-tauri-drag-region
         className={cn(
           "flex items-center h-12 px-3",
           expanded ? "justify-start pl-5" : "justify-center",
