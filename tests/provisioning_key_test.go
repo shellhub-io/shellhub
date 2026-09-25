@@ -73,7 +73,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 		agent := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(unissuedProvisioningKey))
 
-		environment.AwaitLogContains(t, agent, `error="failed to authorize device: bad request"`)
+		environment.AwaitLogContains(t, agent, `error="failed to authorize device with the provisioning key: bad request"`)
 
 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
 			state, err := agent.State(ctx)
