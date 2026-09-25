@@ -36,7 +36,9 @@ function writePinned(pinned: boolean) {
 
 /**
  * Drives the sidebar across window sizes. Wide windows keep it open, narrower ones fold it to a
- * rail that opens over the content on hover, and below desktop width it becomes a drawer. Pinning
+ * rail that opens over the content on hover or when the keyboard reaches it (a click leaves focus
+ * behind, which must not hold it open once the pointer leaves), and below desktop width it
+ * becomes a drawer. Pinning
  * or unpinning it is remembered and outranks the width, since it is the user's own choice.
  */
 export function useSidebarLayout() {
@@ -65,6 +67,12 @@ export function useSidebarLayout() {
   const toggleDrawer = () => setDrawerOpen((prev) => !prev);
 
   useEffect(() => () => clearTimeout(hoverTimer.current), []);
+
+  const handleKeyboardFocus = (e: React.FocusEvent) => {
+    if (e.target instanceof Element && e.target.matches(":focus-visible")) {
+      handleExpand();
+    }
+  };
 
   const handleExpand = () => {
     clearTimeout(hoverTimer.current);
@@ -96,7 +104,7 @@ export function useSidebarLayout() {
     handlers: {
       onMouseEnter: handleExpand,
       onMouseLeave: handleCollapse,
-      onFocus: handleExpand,
+      onFocus: handleKeyboardFocus,
       onBlur: handleCollapse,
       onToggle: handleToggle,
       openDrawer,
