@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /**
- * The console's colour scheme. The app chrome stays dark in either.
+ * The console's colour scheme, applied to the whole page, chrome included.
  */
 export type AppTheme = "dark" | "light";
 
