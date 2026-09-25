@@ -13,6 +13,7 @@ import {
   leaveNamespace as leaveNamespaceSdk,
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
+import { useVaultStore } from "../stores/vaultStore";
 import { consumePendingDeviceCode } from "@/utils/navigation";
 import { queryOperationId, useInvalidateByIds } from "./useInvalidateQueries";
 
@@ -53,11 +54,14 @@ async function enterNamespace(
     path: { tenant: tenantId },
     throwOnError: true,
   });
+  const leaving = useAuthStore.getState().tenant !== tenantId;
+  if (leaving) useVaultStore.getState().lock();
   useAuthStore.getState().setSession({
     token: data.token,
     tenant: tenantId,
     role: data.role,
   });
+  if (leaving) void useVaultStore.getState().refreshStatus();
   queryClient.removeQueries({
     predicate: (query) =>
       !KEPT_ACROSS_NAMESPACES.has(queryOperationId(query.queryKey) ?? ""),
@@ -72,6 +76,10 @@ async function enterNamespace(
 /**
  * Makes a namespace the active one in place, without leaving the page: it re-issues the token and
  * drops what was cached for the namespace being left, since those keys do not carry the tenant.
+ * The vault is locked first: each namespace has its own, and the unlocked key of the one being
+ * left must not encrypt the next one's keys. Its state is then read again for the namespace
+ * entered, which may have no vault at all. Re-entering the namespace already active leaves its
+ * vault as it is.
  * The namespace list is refreshed rather than dropped, because dropping it would send
  * NamespaceGuard back to its loading screen and unmount the layout, open terminals included.
  * That refresh runs in the background, so the switch lands as soon as the token does. Rejects,

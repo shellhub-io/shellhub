@@ -39,7 +39,10 @@ import {
   clearSessionKey,
 } from "@/utils/vault-crypto";
 
-import { getVaultBackend } from "@/utils/vault-backend-factory";
+import {
+  getVaultBackend,
+  getVaultStorageMode,
+} from "@/utils/vault-backend-factory";
 import * as activityTracker from "@/utils/vault-activity-tracker";
 
 import { useVaultStore, DuplicateKeyError } from "../vaultStore";
@@ -120,6 +123,36 @@ beforeEach(() => {
 
 describe("vaultStore", () => {
   describe("refreshStatus", () => {
+    it("lets a later refresh win over one still loading", async () => {
+      let finishFirst: (meta: VaultMeta | null) => void = () => {};
+      const slow = makeFakeBackend();
+      slow.loadMeta.mockReturnValue(
+        new Promise<VaultMeta | null>((resolve) => (finishFirst = resolve)),
+      );
+      const fast = makeFakeBackend();
+      fast.loadMeta.mockResolvedValue(makeMeta());
+      mockGetBackend.mockReturnValueOnce(slow).mockReturnValueOnce(fast);
+      mockGetSession.mockReturnValue(null);
+
+      const first = useVaultStore.getState().refreshStatus();
+      await useVaultStore.getState().refreshStatus();
+      finishFirst(null);
+      await first;
+
+      expect(useVaultStore.getState().status).toBe("locked");
+    });
+
+    it("reports storage it cannot read as an error rather than rejecting", async () => {
+      vi.mocked(getVaultStorageMode).mockImplementationOnce(() => {
+        throw new Error("storage refused");
+      });
+
+      await expect(
+        useVaultStore.getState().refreshStatus(),
+      ).resolves.toBeUndefined();
+      expect(useVaultStore.getState().error).toBe("storage refused");
+    });
+
     it("sets status to uninitialized when backend has no meta", async () => {
       const backend = makeFakeBackend();
       mockGetBackend.mockReturnValue(backend);
@@ -982,8 +1015,7 @@ describe("vaultStore", () => {
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
-      await promise.catch(() => {
-      });
+      await promise.catch(() => {});
 
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
@@ -1077,8 +1109,7 @@ describe("vaultStore", () => {
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
-      await promise.catch(() => {
-      });
+      await promise.catch(() => {});
 
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
@@ -1139,8 +1170,7 @@ describe("vaultStore", () => {
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
-      await promise.catch(() => {
-      });
+      await promise.catch(() => {});
 
       expect(useVaultStore.getState().keys).toEqual([]);
       expect(useVaultStore.getState().status).toBe("locked");
