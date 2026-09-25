@@ -94,6 +94,7 @@ export default function AnnouncementModal({
           size="sm"
           onClick={onClose}
           aria-label="Close announcement"
+          data-dismiss
           className="-mt-0.5 -mr-1"
         >
           <XMarkIcon className="w-4 h-4" />

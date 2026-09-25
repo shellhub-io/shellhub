@@ -28,6 +28,20 @@ function Trap({
   );
 }
 
+function DismissFirstTrap({ onlyDismiss = false }: { onlyDismiss?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true);
+
+  return (
+    <div ref={ref}>
+      <button type="button" data-dismiss>
+        Close
+      </button>
+      {!onlyDismiss && <button type="button">Name</button>}
+    </div>
+  );
+}
+
 function ToggleTrap() {
   const [active, setActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -74,6 +88,20 @@ describe("useFocusTrap", () => {
       render(<Trap active={true} />);
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "First" }),
+      );
+    });
+
+    it("passes over a dismiss button to the next element", () => {
+      render(<DismissFirstTrap />);
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Name" }),
+      );
+    });
+
+    it("falls back to a dismiss button when nothing else can take focus", () => {
+      render(<DismissFirstTrap onlyDismiss />);
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Close" }),
       );
     });
 

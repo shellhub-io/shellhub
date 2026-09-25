@@ -1,14 +1,15 @@
 import { RefObject, useEffect } from "react";
 
-// Every clause excludes tabindex="-1": an element explicitly removed from the
-// tab order must never receive focus from the trap (e.g. listbox options that
-// are driven by aria-activedescendant rather than roving DOM focus).
 const FOCUSABLE =
   ':is(a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]):not([tabindex="-1"])';
 
 /**
  * Traps keyboard focus within `containerRef` while `active` is true.
  * Restores focus to the previously focused element when deactivated.
+ *
+ * On activation focus goes to the first focusable child that is not marked
+ * `data-dismiss`, so a close button in a title bar does not take focus ahead of
+ * the first field; it is the fallback when nothing else can take focus.
  *
  * With `autoFocus` false the container itself takes focus instead of its first
  * focusable child, so no control shows a focus ring on open (the browser would
@@ -31,7 +32,10 @@ export function useFocusTrap(
         container.focus();
         return;
       }
-      const first = container.querySelectorAll<HTMLElement>(FOCUSABLE)[0];
+      const first =
+        container.querySelector<HTMLElement>(
+          `${FOCUSABLE}:not([data-dismiss])`,
+        ) ?? container.querySelector<HTMLElement>(FOCUSABLE);
       first?.focus();
     });
 

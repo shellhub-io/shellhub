@@ -121,6 +121,7 @@ export default function BillingDialog({
             onClick={handleClose}
             disabled={createSubscription.isPending}
             aria-label="Close wizard"
+            data-dismiss
           >
             <XMarkIcon className="w-4 h-4" />
           </IconButton>

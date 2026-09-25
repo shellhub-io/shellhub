@@ -55,7 +55,7 @@ export default function CreateNamespaceDialog({
           </h2>
         </div>
 
-        <IconButton onClick={onClose} aria-label="Close dialog">
+        <IconButton onClick={onClose} aria-label="Close dialog" data-dismiss>
           <XMarkIcon className="w-4 h-4" />
         </IconButton>
       </header>
