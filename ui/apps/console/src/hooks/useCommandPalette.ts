@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDevices } from "@/hooks/useDevices";
 import type { NormalizedDevice } from "@/hooks/useDevices";
-import { useTerminalStore } from "@/stores/terminalStore";
+import { useOrderedWindows, useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useCreateNamespaceStore } from "@/stores/createNamespaceStore";
@@ -79,7 +79,11 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const adminContext = isAdminPath(useLocation().pathname);
 
   const { devices } = useDevices({ page: 1, perPage: 50, status: "accepted" });
-  const terminalSessions = useTerminalStore((s) => s.sessions);
+  const openSessions = useTerminalStore((s) => s.sessions);
+  const windowIds = useOrderedWindows();
+  const terminalSessions = windowIds.flatMap(
+    (id) => openSessions.find((s) => s.id === id) ?? [],
+  );
   const logout = useAuthStore((s) => s.logout);
   const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("device:connect");

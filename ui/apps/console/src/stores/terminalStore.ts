@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { generateRandomUUID } from "@/utils/random-uuid";
 import { moveById } from "@/utils/moveById";
 import { useRecentDevicesStore } from "./recentDevicesStore";
@@ -60,6 +61,7 @@ export interface RecordingView {
 interface TerminalState {
   sessions: TerminalSession[];
   recordings: RecordingView[];
+  windowOrder: string[];
   reconnectTarget: ReconnectTarget | null;
   restoreAfterNavigation: string | null;
   setRestoreAfterNavigation: (id: string | null) => void;
@@ -72,7 +74,6 @@ interface TerminalState {
   restore: (id: string) => void;
   toggleFullscreen: (id: string) => void;
   close: (id: string) => void;
-  move: (id: string, to: number) => void;
   closeAndReconnect: (id: string) => void;
   requestConnect: (deviceUid: string, deviceName: string) => void;
   clearReconnect: () => void;
@@ -81,8 +82,30 @@ interface TerminalState {
   openRecording: (params: Omit<RecordingView, "shown">) => void;
   showRecording: (id: string) => void;
   closeRecording: (id: string) => void;
-  moveRecording: (id: string, to: number) => void;
+  moveWindow: (id: string, to: number) => void;
 }
+
+/**
+ * The open terminals and recordings in the order their tabs stand, by id. The two kinds share one
+ * order, so a recording can be dragged between terminals and the reverse. Anything open but
+ * missing from the stored order goes at the end, so the tabs stay whole even when sessions or
+ * recordings are set without it, as tests do.
+ */
+export function orderedWindows(
+  state: Pick<TerminalState, "sessions" | "recordings" | "windowOrder">,
+): string[] {
+  const open = [
+    ...state.sessions.map((s) => s.id),
+    ...state.recordings.map((r) => r.id),
+  ];
+  const isOpen = new Set(open);
+  const ordered = state.windowOrder.filter((id) => isOpen.has(id));
+  const isOrdered = new Set(ordered);
+  return [...ordered, ...open.filter((id) => !isOrdered.has(id))];
+}
+
+const withoutWindow = (order: string[], id: string) =>
+  order.filter((w) => w !== id);
 
 function bringForward(
   state: Pick<TerminalState, "sessions" | "recordings">,
@@ -119,6 +142,7 @@ function withSessionState(
 export const useTerminalStore = create<TerminalState>((set, get) => ({
   sessions: [],
   recordings: [],
+  windowOrder: [],
   reconnectTarget: null,
   restoreAfterNavigation: null,
 
@@ -148,6 +172,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       return {
         reconnectTarget: null,
         recordings: shown.recordings,
+        windowOrder: [...orderedWindows(state), id],
         sessions: [
           ...shown.sessions,
           { ...params, id, state: "docked", connectionStatus: "connecting" },
@@ -193,14 +218,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   close: (id) => {
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
+      windowOrder: withoutWindow(state.windowOrder, id),
     }));
-  },
-
-  move: (id, to) => {
-    set((state) => {
-      const sessions = moveById(state.sessions, id, to);
-      return sessions === state.sessions ? state : { sessions };
-    });
   },
 
   closeAndReconnect: (id) => {
@@ -209,6 +228,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       if (!session) return state;
       return {
         sessions: state.sessions.filter((s) => s.id !== id),
+        windowOrder: withoutWindow(state.windowOrder, id),
         reconnectTarget: {
           deviceUid: session.deviceUid,
           deviceName: session.deviceName,
@@ -251,10 +271,15 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
             r.id === params.id ? { ...params, shown: r.shown } : r,
           )
         : [...state.recordings, { ...params, shown: false }];
-      return bringForward(
-        { sessions: state.sessions, recordings: opened },
-        { recording: params.id },
-      );
+      return {
+        ...bringForward(
+          { sessions: state.sessions, recordings: opened },
+          { recording: params.id },
+        ),
+        windowOrder: state.recordings.some((r) => r.id === params.id)
+          ? state.windowOrder
+          : [...orderedWindows(state), params.id],
+      };
     });
   },
 
@@ -265,13 +290,15 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   closeRecording: (id) => {
     set((state) => ({
       recordings: state.recordings.filter((r) => r.id !== id),
+      windowOrder: withoutWindow(state.windowOrder, id),
     }));
   },
 
-  moveRecording: (id, to) => {
+  moveWindow: (id, to) => {
     set((state) => {
-      const recordings = moveById(state.recordings, id, to);
-      return recordings === state.recordings ? state : { recordings };
+      const order = orderedWindows(state).map((w) => ({ id: w }));
+      const moved = moveById(order, id, to);
+      return moved === order ? state : { windowOrder: moved.map((w) => w.id) };
     });
   },
 }));
@@ -284,4 +311,12 @@ export function useTerminalFullscreen() {
   return useTerminalStore((s) =>
     s.sessions.some((session) => session.state === "fullscreen"),
   );
+}
+
+/**
+ * The open terminals and recordings in tab order, by id, as orderedWindows reads it from the
+ * store. The array keeps its identity until the order itself changes.
+ */
+export function useOrderedWindows() {
+  return useTerminalStore(useShallow(orderedWindows));
 }

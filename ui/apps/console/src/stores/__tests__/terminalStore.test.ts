@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useTerminalStore } from "../terminalStore";
+import { orderedWindows, useTerminalStore } from "../terminalStore";
 
 function openTerminal() {
   useTerminalStore.getState().open({
@@ -23,6 +23,7 @@ beforeEach(() => {
   useTerminalStore.setState({
     sessions: [],
     recordings: [],
+    windowOrder: [],
     restoreAfterNavigation: null,
   });
 });
@@ -63,5 +64,63 @@ describe("terminalStore recordings", () => {
     useTerminalStore.getState().minimizeAll();
 
     expect(shownRecordings()).toEqual([]);
+  });
+});
+
+describe("terminalStore window order", () => {
+  const order = () => orderedWindows(useTerminalStore.getState());
+
+  it("lines terminals and recordings up in the order they opened", () => {
+    const terminal = openTerminal();
+    useTerminalStore.getState().openRecording(recording);
+
+    expect(order()).toEqual([terminal, "session-1"]);
+  });
+
+  it("moves a recording in front of a terminal", () => {
+    const terminal = openTerminal();
+    useTerminalStore.getState().openRecording(recording);
+
+    useTerminalStore.getState().moveWindow("session-1", 0);
+
+    expect(order()).toEqual(["session-1", terminal]);
+  });
+
+  it("drops a closed window from the order, so reopening it goes to the end", () => {
+    const { openRecording, closeRecording } = useTerminalStore.getState();
+    openRecording(recording);
+    const terminal = openTerminal();
+
+    closeRecording("session-1");
+    openRecording(recording);
+
+    expect(order()).toEqual([terminal, "session-1"]);
+  });
+
+  it("drops a closed terminal from the stored order", () => {
+    const first = openTerminal();
+    const second = openTerminal();
+
+    useTerminalStore.getState().close(first);
+
+    expect(useTerminalStore.getState().windowOrder).toEqual([second]);
+  });
+
+  it("drops a terminal closed to reconnect from the stored order", () => {
+    const first = openTerminal();
+    const second = openTerminal();
+
+    useTerminalStore.getState().closeAndReconnect(first);
+
+    expect(useTerminalStore.getState().windowOrder).toEqual([second]);
+  });
+
+  it("puts a new window after every open one, even those missing from the stored order", () => {
+    const earlier = openTerminal();
+    useTerminalStore.setState({ windowOrder: [] });
+
+    const later = openTerminal();
+
+    expect(order()).toEqual([earlier, later]);
   });
 });

@@ -13,6 +13,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import {
+  useOrderedWindows,
   useTerminalStore,
   type ConnectionStatus,
 } from "@/stores/terminalStore";
@@ -232,14 +233,14 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
 
 /**
  * The tab strip above the framed content. The open contexts come first, namespaces and the admin
- * console, then every terminal session, then every open recording. The terminal in view carries
- * its namespace atop the tab once more than one namespace is open, and selecting a terminal from
- * another namespace enters that namespace first. Selecting a context puts away whichever terminal
- * or recording is in view, the same state navigating away leaves them in. Tabs are reordered by
- * dragging, or with Ctrl+Shift+Left/Right, each within its own group: contexts, then terminals,
- * then recordings. The strip is the framed panel's peer: its root carries data-first-tab-active,
- * which the panel right after it reads to square its top-left corner, so the two must stay
- * siblings.
+ * console, then the open terminals and recordings together, in the order the terminal store keeps
+ * for them. The terminal in view carries its namespace atop the tab once more than one namespace
+ * is open, and selecting a terminal from another namespace enters that namespace first. Selecting
+ * a context puts away whichever terminal or recording is in view, the same state navigating away
+ * leaves them in. Tabs are reordered by dragging, or with Ctrl+Shift+Left/Right, each within its
+ * own group: contexts first, then terminals and recordings mixed as the user arranges them. The
+ * strip is the framed panel's peer: its root carries data-first-tab-active, which the panel right
+ * after it reads to square its top-left corner, so the two must stay siblings.
  */
 export default function TabStrip({
   leading,
@@ -259,17 +260,17 @@ export default function TabStrip({
   const recordings = useTerminalStore((s) => s.recordings);
   const showRecording = useTerminalStore((s) => s.showRecording);
   const closeRecording = useTerminalStore((s) => s.closeRecording);
-  const moveRecording = useTerminalStore((s) => s.moveRecording);
+  const moveWindow = useTerminalStore((s) => s.moveWindow);
   const shownRecording = recordings.find((r) => r.shown);
   const playerOpen = shownRecording !== undefined;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const moveContext = useWorkspaceTabsStore((s) => s.move);
-  const moveSession = useTerminalStore((s) => s.move);
   const reorder = useTabReorder();
   const contextIds = workspace.tabs.map((t) => t.id);
   const contextOrder = reorder.orderOf(contextIds);
-  const sessionIds = sessions.map((s) => s.id);
-  const recordingIds = recordings.map((r) => r.id);
+  const sessionById = new Map(sessions.map((s) => [s.id, s]));
+  const recordingById = new Map(recordings.map((r) => [r.id, r]));
+  const windowIds = useOrderedWindows();
 
   const active = sessions.find((s) => s.state !== "minimized");
   const contextCovered = active !== undefined || playerOpen;
@@ -332,46 +333,47 @@ export default function TabStrip({
         />
       )}
 
-      {sessions.map((s) => {
-        const owner = namespaceName(s.tenant);
+      {windowIds.map((id) => {
+        const session = sessionById.get(id);
+        if (session) {
+          const owner = namespaceName(session.tenant);
+          return (
+            <Tab
+              key={id}
+              id={id}
+              active={id === active?.id}
+              surfaceClassName=""
+              surfaceColors={terminalColors}
+              label={session.deviceName}
+              tooltip={owner ? `${session.deviceName} · ${owner}` : undefined}
+              sublabel={openNamespaceTabs > 1 ? owner : undefined}
+              icon={<TerminalIcon status={session.connectionStatus} />}
+              onSelect={() => void workspace.showTerminal(session)}
+              onClose={() => closeSession(id)}
+              reorder={reorder.tab(windowIds, moveWindow, id)}
+            />
+          );
+        }
+        const recording = recordingById.get(id)!;
+        const owner = namespaceName(recording.tenant);
         return (
           <Tab
-            key={s.id}
-            id={s.id}
-            active={s.id === active?.id}
+            key={id}
+            id={id}
+            active={recording.shown}
             surfaceClassName=""
             surfaceColors={terminalColors}
-            label={s.deviceName}
-            tooltip={owner ? `${s.deviceName} · ${owner}` : undefined}
-            sublabel={openNamespaceTabs > 1 ? owner : undefined}
-            icon={<TerminalIcon status={s.connectionStatus} />}
-            onSelect={() => void workspace.showTerminal(s)}
-            onClose={() => closeSession(s.id)}
-            reorder={reorder.tab(sessionIds, moveSession, s.id)}
-          />
-        );
-      })}
-
-      {recordings.map((r) => {
-        const owner = namespaceName(r.tenant);
-        return (
-          <Tab
-            key={r.id}
-            id={r.id}
-            active={r.shown}
-            surfaceClassName=""
-            surfaceColors={terminalColors}
-            label={r.title}
+            label={recording.title}
             tooltip={
               owner
-                ? `Recording of ${r.title} · ${owner}`
-                : `Recording of ${r.title}`
+                ? `Recording of ${recording.title} · ${owner}`
+                : `Recording of ${recording.title}`
             }
             sublabel={openNamespaceTabs > 1 ? owner : undefined}
             icon={<PlayCircleIcon className="w-4 h-4 shrink-0 opacity-70" />}
-            onSelect={() => showRecording(r.id)}
-            onClose={() => closeRecording(r.id)}
-            reorder={reorder.tab(recordingIds, moveRecording, r.id)}
+            onSelect={() => showRecording(id)}
+            onClose={() => closeRecording(id)}
+            reorder={reorder.tab(windowIds, moveWindow, id)}
           />
         );
       })}
