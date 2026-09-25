@@ -3,3 +3,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.cast-palette .ap-player {
+  --term-color-foreground: var(--cast-foreground);
+  --term-color-background: var(--cast-background);
+  --term-color-0: var(--cast-0);
+  --term-color-1: var(--cast-1);
+  --term-color-2: var(--cast-2);
+  --term-color-3: var(--cast-3);
+  --term-color-4: var(--cast-4);
+  --term-color-5: var(--cast-5);
+  --term-color-6: var(--cast-6);
+  --term-color-7: var(--cast-7);
+  --term-color-8: var(--cast-8);
+  --term-color-9: var(--cast-9);
+  --term-color-10: var(--cast-10);
+  --term-color-11: var(--cast-11);
+  --term-color-12: var(--cast-12);
+  --term-color-13: var(--cast-13);
+  --term-color-14: var(--cast-14);
+  --term-color-15: var(--cast-15);
+}
