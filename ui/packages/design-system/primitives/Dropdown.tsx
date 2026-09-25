@@ -92,6 +92,7 @@ function DropdownRoot({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
   const setOpen = (v: boolean, event?: Event, reason?: OpenChangeReason) => {
+    if (reason === "escape-key") event?.preventDefault();
     if (!isControlled) setUncontrolledOpen(v);
     onOpenChange?.(v, event, reason);
   };
