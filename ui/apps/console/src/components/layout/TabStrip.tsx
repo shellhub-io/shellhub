@@ -388,22 +388,24 @@ export default function TabStrip({
 
       <div className="ml-auto mb-1 flex items-center gap-0.5 shrink-0">
         {active && (
+          <IconButton
+            aria-label={
+              active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
+            }
+            title={
+              active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
+            }
+            onClick={() => toggleFullscreen(active.id)}
+          >
+            {active.state === "fullscreen" ? (
+              <ArrowsPointingInIcon className="w-4 h-4" />
+            ) : (
+              <ArrowsPointingOutIcon className="w-4 h-4" />
+            )}
+          </IconButton>
+        )}
+        {(active || playerOpen) && (
           <>
-            <IconButton
-              aria-label={
-                active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
-              }
-              title={
-                active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
-              }
-              onClick={() => toggleFullscreen(active.id)}
-            >
-              {active.state === "fullscreen" ? (
-                <ArrowsPointingInIcon className="w-4 h-4" />
-              ) : (
-                <ArrowsPointingOutIcon className="w-4 h-4" />
-              )}
-            </IconButton>
             <IconButton
               aria-label="Terminal settings"
               title="Terminal settings"

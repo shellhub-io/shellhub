@@ -28,6 +28,34 @@ export interface TerminalThemeColors {
   brightWhite?: string;
 }
 
+const XTERM_ANSI = [
+  ["black", "#2e3436"],
+  ["red", "#cc0000"],
+  ["green", "#4e9a06"],
+  ["yellow", "#c4a000"],
+  ["blue", "#3465a4"],
+  ["magenta", "#75507b"],
+  ["cyan", "#06989a"],
+  ["white", "#d3d7cf"],
+  ["brightBlack", "#555753"],
+  ["brightRed", "#ef2929"],
+  ["brightGreen", "#8ae234"],
+  ["brightYellow", "#fce94f"],
+  ["brightBlue", "#729fcf"],
+  ["brightMagenta", "#ad7fa8"],
+  ["brightCyan", "#34e2e2"],
+  ["brightWhite", "#eeeeec"],
+] as const satisfies readonly (readonly [keyof TerminalThemeColors, string])[];
+
+/**
+ * The sixteen ANSI colours a theme paints with, in order from black to bright white, each one the
+ * theme's own or, where the theme leaves it out, xterm's default. It is the palette the terminal
+ * ends up with, for anything that draws terminal output without xterm, such as the session player.
+ */
+export function ansiPalette(colors: TerminalThemeColors): string[] {
+  return XTERM_ANSI.map(([key, fallback]) => colors[key] ?? fallback);
+}
+
 /**
  * A named terminal colour scheme. preview holds the two colours the picker swatch needs, so the
  * list can be drawn without applying a theme.
