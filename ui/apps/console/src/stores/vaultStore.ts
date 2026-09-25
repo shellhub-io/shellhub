@@ -173,6 +173,7 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
  */
 export const useVaultStore = create<VaultState>((set, get) => {
   let lockGeneration = 0;
+  let refreshGeneration = 0;
   let storageGeneration = 0;
 
   async function loadSettingsIntoState(): Promise<void> {
@@ -222,18 +223,24 @@ export const useVaultStore = create<VaultState>((set, get) => {
     storageMode: "local",
 
     refreshStatus: async () => {
-      set({ storageMode: getVaultStorageMode(getScope()) });
+      const generation = ++refreshGeneration;
+      const lockedAt = lockGeneration;
+      const superseded = () =>
+        generation !== refreshGeneration || lockedAt !== lockGeneration;
 
       let meta;
       try {
+        set({ storageMode: getVaultStorageMode(getScope()) });
         const backend = getBackend();
         meta = await backend.loadMeta();
       } catch (err) {
+        if (superseded()) return;
         const msg =
           err instanceof Error ? err.message : "Failed to load the vault";
         set({ error: msg });
         return;
       }
+      if (superseded()) return;
 
       if (!meta) {
         activityTracker.stop();
@@ -242,6 +249,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
       }
 
       await loadSettingsIntoState();
+      if (superseded()) return;
 
       if (!getSessionKey()) {
         activityTracker.stop();

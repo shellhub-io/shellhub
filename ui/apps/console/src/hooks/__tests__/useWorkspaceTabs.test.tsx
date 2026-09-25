@@ -7,6 +7,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
+import { useVaultStore } from "@/stores/vaultStore";
 import {
   namespaceTab,
   useWorkspaceTabsStore,
@@ -36,6 +37,7 @@ beforeEach(() => {
   seedAuthStore({ tenant: "tenant-home" });
   useWorkspaceTabsStore.setState({ tabs: [home, other], failures: {} });
   useTerminalStore.setState({ sessions: [], restoreAfterNavigation: null });
+  useVaultStore.setState({ status: "unlocked" });
 });
 
 describe("useWorkspaceTabs", () => {
@@ -57,6 +59,7 @@ describe("useWorkspaceTabs", () => {
     expect(useWorkspaceTabsStore.getState().failures[other.id]).toBeTruthy();
     expect(useAuthStore.getState().tenant).toBe("tenant-home");
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useVaultStore.getState().status).toBe("unlocked");
   });
 
   it("enters a namespace in place, dropping its cache but keeping the terminals", async () => {
@@ -82,6 +85,23 @@ describe("useWorkspaceTabs", () => {
       "other",
     ]);
     expect(useTerminalStore.getState().sessions).toHaveLength(1);
+  });
+
+  it("drops the vault of the namespace being left and reads the next one's", async () => {
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({ token: "other-token", role: "owner" }),
+      ),
+    );
+    const { result } = renderTabs();
+
+    await act(async () => {
+      await result.current.activate(other);
+    });
+
+    await vi.waitFor(() =>
+      expect(useVaultStore.getState().status).toBe("uninitialized"),
+    );
   });
 
   it("clears a recorded failure once the namespace opens", async () => {
