@@ -65,6 +65,22 @@ func NewAgentContainerWithProvisioningKey(key string) NewAgentContainerOption {
 	}
 }
 
+func envOr(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+
+	return fallback
+}
+
+func agentBuildLog() io.Writer {
+	if os.Getenv("SHELLHUB_E2E_AGENT_CONTEXT") != "" || os.Getenv("SHELLHUB_E2E_AGENT_DOCKERFILE") != "" {
+		return os.Stderr
+	}
+
+	return io.Discard
+}
+
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
 		"SHELLHUB_SERVER_ADDRESS":     "http://localhost:" + port,
@@ -85,12 +101,12 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 			Env:         envs,
 			NetworkMode: "host",
 			FromDockerfile: testcontainers.FromDockerfile{
-				Repo:          "agent",
-				Tag:           "test",
-				Context:       "..",
-				Dockerfile:    "agent/Dockerfile.test",
-				PrintBuildLog: false,
-				KeepImage:     true,
+				Repo:           envOr("SHELLHUB_E2E_AGENT_IMAGE", "agent"),
+				Tag:            "test",
+				Context:        envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
+				Dockerfile:     envOr("SHELLHUB_E2E_AGENT_DOCKERFILE", "agent/Dockerfile.test"),
+				BuildLogWriter: agentBuildLog(),
+				KeepImage:      true,
 				BuildArgs: map[string]*string{
 					"USERNAME": &ShellHubAgentUsername,
 					"PASSWORD": &ShellHubAgentPassword,
