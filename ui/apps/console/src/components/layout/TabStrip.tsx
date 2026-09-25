@@ -235,6 +235,7 @@ export default function TabStrip({
     <div
       role="tablist"
       aria-label="Open views"
+      data-tauri-drag-region
       onKeyDown={moveFocus}
       className="h-12 shrink-0 flex items-end gap-0.5 min-w-0"
     >
