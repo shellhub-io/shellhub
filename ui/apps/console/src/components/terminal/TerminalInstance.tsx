@@ -409,13 +409,14 @@ export default function TerminalInstance({
         </div>
       )}
       <div
-        ref={containerRef}
         style={{ backgroundColor: theme.colors.background }}
         className={cn(
-          "flex-1 min-h-0 px-3 py-2",
+          "flex-1 min-h-0 flex px-3 py-2",
           error !== null && "opacity-30 pointer-events-none",
         )}
-      />
+      >
+        <div ref={containerRef} className="flex-1 min-w-0 min-h-0" />
+      </div>
       {approvalCode && (
         <SSHApproval
           flow="confirm"
