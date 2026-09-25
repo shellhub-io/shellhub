@@ -30,11 +30,12 @@ export interface NavItem {
 }
 
 /**
- * A heading and the links under it. The sidebar keys each group by its title, so titles must be
- * unique.
+ * A group of sidebar links, under a heading when it has a title. A group of one link goes without,
+ * since a heading over a single link names nothing the link does not. The sidebar keys each group
+ * by its first link, so no link may open two groups.
  */
 export interface NavSection {
-  title: string;
+  title?: string;
   items: NavItem[];
 }
 
@@ -110,7 +111,6 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
 
   return [
     {
-      title: "Overview",
       items: [
         {
           to: "/dashboard",
