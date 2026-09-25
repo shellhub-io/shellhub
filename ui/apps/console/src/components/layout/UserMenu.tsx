@@ -1,31 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ChevronDownIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  ArrowRightStartOnRectangleIcon,
-  MoonIcon,
-  SunIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespaces } from "@/hooks/useNamespaces";
-import { useThemeStore } from "@/stores/themeStore";
 import { getInitials } from "@/utils/string";
+import AccountMenuItems from "./AccountMenuItems";
 
 /**
  * The account menu: who is signed in, the way to settings, and sign-out.
  */
 export default function UserMenu() {
-  const { user, name, email, logout } = useAuthStore();
-  const navigate = useNavigate();
-  const { namespaces } = useNamespaces();
-  const theme = useThemeStore((s) => s.theme);
-  const toggleTheme = useThemeStore((s) => s.toggleTheme);
-  const isDark = theme === "dark";
-
+  const { user, name, email } = useAuthStore();
   const [open, setOpen] = useState(false);
 
   const display = user || name || email || "Account";
@@ -71,64 +56,7 @@ export default function UserMenu() {
           </div>
         </div>
 
-        <div className="p-1.5">
-          <button
-            type="button"
-            onClick={() => { setOpen(false); void navigate("/profile"); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
-          >
-            <UserIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
-            <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-              Profile
-            </span>
-          </button>
-          {namespaces.length > 0 && (
-            <button
-              type="button"
-              onClick={() => { setOpen(false); void navigate("/settings"); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
-            >
-              <Cog6ToothIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
-              <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                Settings
-              </span>
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={
-              isDark ? "Switch to light theme" : "Switch to dark theme"
-            }
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
-          >
-            {isDark ? (
-              <SunIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
-            ) : (
-              <MoonIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
-            )}
-            <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-              {isDark ? "Light theme" : "Dark theme"}
-            </span>
-          </button>
-        </div>
-
-        <div className="p-1.5 border-t border-border">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              logout();
-              void navigate("/login");
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-accent-red/5 transition-colors group"
-          >
-            <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-text-muted group-hover:text-accent-red transition-colors" />
-            <span className="text-sm text-text-muted group-hover:text-accent-red transition-colors">
-              Logout
-            </span>
-          </button>
-        </div>
+        <AccountMenuItems onDone={() => setOpen(false)} />
       </Dropdown.Panel>
     </Dropdown>
   );

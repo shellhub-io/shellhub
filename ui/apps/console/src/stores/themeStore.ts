@@ -1,16 +1,33 @@
 import { create } from "zustand";
 
 /**
- * The console's colour scheme. Dark is the default, and the app chrome stays dark in either.
+ * The console's colour scheme. The app chrome stays dark in either.
  */
 export type AppTheme = "dark" | "light";
 
+/**
+ * What the user asked for: a fixed scheme, or whatever the operating system is set to.
+ */
+export type ThemePreference = AppTheme | "system";
+
 const STORAGE_KEY = "appTheme";
 
-function resolveInitialTheme(): AppTheme {
+const systemLight =
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-color-scheme: light)")
+    : undefined;
+
+function systemTheme(): AppTheme {
+  return systemLight?.matches ? "light" : "dark";
+}
+
+function resolve(preference: ThemePreference): AppTheme {
+  return preference === "system" ? systemTheme() : preference;
+}
+
+function readPreference(): ThemePreference {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === "light" || saved === "dark") return saved;
-  return "dark";
+  return saved === "light" || saved === "dark" ? saved : "system";
 }
 
 function applyTheme(theme: AppTheme) {
@@ -18,27 +35,36 @@ function applyTheme(theme: AppTheme) {
 }
 
 interface ThemeState {
+  preference: ThemePreference;
   theme: AppTheme;
-  setTheme: (theme: AppTheme) => void;
-  toggleTheme: () => void;
+  setPreference: (preference: ThemePreference) => void;
 }
 
 /**
- * The active theme. Setting it writes the class onto <html> as well as persisting the choice,
- * because the design-system tokens resolve from that class rather than from React state.
+ * The active theme and the preference it comes from. Following the system is the default, and
+ * the theme then changes with it while the console is open. Setting a preference writes the class
+ * onto <html> as well as persisting the choice, because the design-system tokens resolve from
+ * that class rather than from React state.
  */
-export const useThemeStore = create<ThemeState>((set, get) => ({
-  theme: resolveInitialTheme(),
+export const useThemeStore = create<ThemeState>((set) => ({
+  preference: readPreference(),
+  theme: resolve(readPreference()),
 
-  setTheme: (theme) => {
-    localStorage.setItem(STORAGE_KEY, theme);
+  setPreference: (preference) => {
+    if (preference === "system") localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, preference);
+    const theme = resolve(preference);
     applyTheme(theme);
-    set({ theme });
-  },
-
-  toggleTheme: () => {
-    get().setTheme(get().theme === "dark" ? "light" : "dark");
+    set({ preference, theme });
   },
 }));
 
-applyTheme(resolveInitialTheme());
+systemLight?.addEventListener("change", () => {
+  const { preference } = useThemeStore.getState();
+  if (preference !== "system") return;
+  const theme = systemTheme();
+  applyTheme(theme);
+  useThemeStore.setState({ theme });
+});
+
+applyTheme(useThemeStore.getState().theme);
