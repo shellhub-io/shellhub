@@ -75,9 +75,8 @@ export default function WelcomeWizard({ open, onDismiss }: WelcomeWizardProps) {
       open={open}
       onClose={onDismiss}
       focusOnOpen={false}
-      size="xl"
+      size="md"
       aria-label="Welcome to ShellHub"
-      className="sm:max-h-[85vh]"
     >
       <header className="flex items-center justify-between px-6 pt-5 pb-0 shrink-0">
         {/* Progress dots */}

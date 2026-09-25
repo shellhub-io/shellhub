@@ -30,7 +30,7 @@ export default function RecordingPaywallDialog({
     <BaseDialog
       open={open}
       onClose={onClose}
-      size="md"
+      size="sm"
       aria-labelledby="recording-paywall-title"
     >
       <button

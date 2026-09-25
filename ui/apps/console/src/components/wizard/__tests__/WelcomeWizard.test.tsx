@@ -115,7 +115,7 @@ describe("WelcomeWizard", () => {
 
     it("Escape dismisses for good", () => {
       const { onDismiss } = renderWizard();
-      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
+      fireEvent(screen.getByRole("dialog"), new Event("cancel", { cancelable: true }));
       expect(onDismiss).toHaveBeenCalledOnce();
     });
 
