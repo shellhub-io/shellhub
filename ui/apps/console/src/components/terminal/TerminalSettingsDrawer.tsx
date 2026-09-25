@@ -1,15 +1,21 @@
-import { CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  MinusIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import {
   useTerminalThemeStore,
   TERMINAL_FONTS,
   MIN_FONT_SIZE,
   MAX_FONT_SIZE,
+  type TerminalFont,
   type TerminalTheme,
 } from "@/stores/terminalThemeStore";
 import Drawer from "../common/Drawer";
-import { getConfig } from "@/env";
 
 interface Props {
   open: boolean;
@@ -26,14 +32,13 @@ function isLightTheme(bg: string): boolean {
 }
 
 /**
- * The terminal's appearance settings. They apply to every open terminal at once — this is a
- * preference, not per-session state.
+ * The terminal's appearance settings. They apply to every open terminal at once, as a preference
+ * rather than per-session state.
  */
 export default function TerminalSettingsDrawer({ open, onClose }: Props) {
   const {
     themes,
     themeName,
-    theme,
     fontFamily,
     fontSize,
     setTheme,
@@ -48,19 +53,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
       title="Terminal Settings"
       width="sm"
       bodyClassName="flex-1 overflow-y-auto"
-      footer={
-        <>
-          <span className="text-2xs font-mono text-text-muted mr-auto">
-            {themeName}
-          </span>
-          <span className="text-2xs font-mono text-text-muted/60">
-            {fontFamily} {fontSize}
-            px
-          </span>
-        </>
-      }
     >
-      {/* Theme Picker */}
       <div className="border-b border-border p-4">
         <div className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
           Theme
@@ -77,45 +70,13 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         </div>
       </div>
 
-      {/* Font Family */}
-      <div className="border-b border-border p-4">
-        <div className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
+      <div className="border-b border-border p-4 flex items-center justify-between gap-3">
+        <div className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
           Font Family
         </div>
-        <div className="space-y-0.5">
-          {TERMINAL_FONTS.map((font) => (
-            <button
-              type="button"
-              key={font}
-              onClick={() => setFontFamily(font)}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150",
-                font === fontFamily
-                  ? "bg-primary/10 border border-primary/20"
-                  : "hover:bg-hover-subtle border border-transparent",
-              )}
-            >
-              <span
-                className={cn(
-                  "text-[13px]",
-                  font === fontFamily ? "text-primary" : "text-text-secondary",
-                )}
-                style={{ fontFamily: `"${font}", monospace` }}
-              >
-                {font}
-              </span>
-              {font === fontFamily && (
-                <CheckIcon
-                  className="ml-auto w-3.5 h-3.5 text-primary shrink-0"
-                  strokeWidth={2}
-                />
-              )}
-            </button>
-          ))}
-        </div>
+        <FontPicker value={fontFamily} onChange={setFontFamily} />
       </div>
 
-      {/* Font Size */}
       <div className="border-b border-border p-4">
         <div className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
           Font Size
@@ -152,50 +113,63 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
           </span>
         </div>
       </div>
-
-      {/* Preview */}
-      <div className="p-4">
-        <div className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
-          Preview
-        </div>
-        <div
-          className="rounded-lg border border-border p-3 overflow-hidden"
-          style={{
-            backgroundColor: theme.colors.background,
-            fontFamily: `"${fontFamily}", monospace`,
-            fontSize: `${fontSize}px`,
-            lineHeight: 1.5,
-          }}
-        >
-          <div style={{ color: theme.colors.green }}>$ ssh root@device</div>
-          <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.cyan }}>ShellHub</span>{" "}
-            <span style={{ color: theme.colors.yellow }}>
-              {getConfig().version || "v0.0.0"}
-            </span>{" "}
-            <span style={{ color: theme.colors.green }}>connected</span>
-          </div>
-          <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.brightBlack }}>~</span>{" "}
-            <span style={{ color: theme.colors.red }}>3</span> devices online
-          </div>
-          <div className="mt-1">
-            <span style={{ color: theme.colors.green }}>$</span>
-            <span
-              style={{
-                color: theme.colors.cursor,
-                backgroundColor: theme.colors.cursor,
-                marginLeft: "4px",
-                display: "inline-block",
-                width: "8px",
-              }}
-            >
-              &nbsp;
-            </span>
-          </div>
-        </div>
-      </div>
     </Drawer>
+  );
+}
+
+function FontPicker({
+  value,
+  onChange,
+}: {
+  value: TerminalFont;
+  onChange: (font: TerminalFont) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dropdown placement="bottom-end" open={open} onOpenChange={setOpen}>
+      <Dropdown.Trigger>
+        <button
+          type="button"
+          aria-label={`Font family: ${value}`}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-text-primary bg-card border border-border rounded-md hover:border-border-light transition-colors"
+          style={{ fontFamily: `"${value}", monospace` }}
+        >
+          {value}
+          <ChevronDownIcon
+            className={cn(
+              "w-3.5 h-3.5 text-text-muted transition-transform",
+              open && "rotate-180",
+            )}
+            strokeWidth={2.5}
+          />
+        </button>
+      </Dropdown.Trigger>
+
+      <Dropdown.Panel aria-label="Font families" className="w-48">
+        {TERMINAL_FONTS.map((font) => (
+          <Dropdown.Item
+            key={font}
+            label={font}
+            role="menuitemradio"
+            aria-checked={font === value}
+            onSelect={() => onChange(font)}
+            className={cn(
+              "px-3 py-2 text-sm",
+              font === value && "text-primary bg-primary/10",
+            )}
+          >
+            <span style={{ fontFamily: `"${font}", monospace` }}>{font}</span>
+            {font === value && (
+              <CheckIcon
+                className="ml-auto w-3.5 h-3.5 shrink-0"
+                strokeWidth={2}
+              />
+            )}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Panel>
+    </Dropdown>
   );
 }
 
