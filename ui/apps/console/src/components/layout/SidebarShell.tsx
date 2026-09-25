@@ -23,6 +23,12 @@ export const navDisabled = "text-text-muted/50 cursor-not-allowed";
  */
 export const navIcon = "w-[18px] h-[18px]";
 
+/**
+ * The width of the sidebar folded to a rail. The layout reserves this much beside the content
+ * while the rail floats over it, so the two must not drift apart.
+ */
+export const railWidth = "w-[60px]";
+
 interface NavItemLinkProps {
   item: { to: string; label: string; icon: ReactNode };
   expanded: boolean;
@@ -156,7 +162,7 @@ export default function SidebarShell({
     <aside
       className={cn(
         "theme-dark flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
-        hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]",
+        hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : railWidth,
       )}
     >
       <div

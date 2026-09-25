@@ -28,7 +28,8 @@ export interface AdminNavLink {
 }
 
 /**
- * A collapsible set of admin pages under one heading.
+ * Admin pages under a heading of their own, which has no route: the sidebar folds it open, and
+ * adminNavLinks lays its pages out flat for the palette.
  */
 export interface AdminNavGroup {
   label: string;
@@ -37,12 +38,12 @@ export interface AdminNavGroup {
 }
 
 /**
- * A top-level entry of the admin navigation: a page, or a group of them.
+ * A top-level entry of the admin navigation, told apart by isAdminNavGroup.
  */
 export type AdminNavEntry = AdminNavLink | AdminNavGroup;
 
 /**
- * Tells a group from a single page.
+ * Whether an entry is a group, the only kind with children and the only kind without a route.
  */
 export function isAdminNavGroup(entry: AdminNavEntry): entry is AdminNavGroup {
   return "children" in entry;
@@ -115,7 +116,8 @@ export function useAdminNav({ active = true }: { active?: boolean } = {}) {
 }
 
 /**
- * Every page of the navigation, groups opened up, in order.
+ * Every page the entries lead to, each group replaced by its pages, in sidebar order. Headings
+ * drop out, since they lead nowhere.
  */
 export function adminNavLinks(entries: AdminNavEntry[]): AdminNavLink[] {
   return entries.flatMap((entry) =>

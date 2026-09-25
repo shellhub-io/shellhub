@@ -12,7 +12,7 @@ import DeviceLimitBanner from "@/components/common/DeviceLimitBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
-import { SidebarMobileDrawer } from "./SidebarShell";
+import { SidebarMobileDrawer, railWidth } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
 import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
@@ -73,7 +73,7 @@ export default function AppLayout() {
             <div
               className={cn(
                 "relative shrink-0",
-                !pinned && !terminalFullscreen && "w-[60px]",
+                !pinned && !terminalFullscreen && railWidth,
               )}
             >
               <div
