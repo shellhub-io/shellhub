@@ -21,7 +21,8 @@ import { isAdminPath } from "@/utils/adminRoute";
  * show, and activate resolves false. restoreSession brings that terminal forward once the tab's
  * page is reached, rather than minimizing them all. showTerminal brings a terminal forward inside
  * its own namespace, entering it first when another one is active, and reopening its tab if it
- * was closed.
+ * was closed. Closing the active tab moves to its neighbour first, and keeps the tab when the
+ * neighbour cannot be entered.
  */
 export function useWorkspaceTabs() {
   const tabs = useWorkspaceTabsStore((s) => s.tabs);
@@ -100,9 +101,14 @@ export function useWorkspaceTabs() {
     const index = tabs.findIndex((t) => t.id === tab.id);
     const remaining = tabs.filter((t) => t.id !== tab.id);
     if (remaining.length === 0) return;
-    useWorkspaceTabsStore.getState().remove(tab.id);
-    if (tab.id !== activeId) return;
-    void activate(remaining[Math.max(0, index - 1)]);
+    const remove = () => useWorkspaceTabsStore.getState().remove(tab.id);
+    if (tab.id !== activeId) {
+      remove();
+      return;
+    }
+    void activate(remaining[Math.max(0, index - 1)]).then((moved) => {
+      if (moved) remove();
+    });
   };
 
   return {
