@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
-import { server } from "@/tests/msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -12,6 +12,8 @@ import {
   namespaceTab,
   useWorkspaceTabsStore,
 } from "@/stores/workspaceTabsStore";
+import { mockNamespace } from "@/tests/factories";
+import { useNamespaces } from "../useNamespaces";
 import { useWorkspaceTabs } from "../useWorkspaceTabs";
 
 const home = namespaceTab("tenant-home", "home", "/devices");
@@ -38,6 +40,14 @@ beforeEach(() => {
   useWorkspaceTabsStore.setState({ tabs: [home, other], failures: {} });
   useTerminalStore.setState({ sessions: [], restoreAfterNavigation: null });
   useVaultStore.setState({ status: "unlocked" });
+  server.use(
+    http.get("*/api/namespaces", () =>
+      jsonWithTotal([
+        mockNamespace({ tenant_id: "tenant-home", name: "home" }),
+        mockNamespace({ tenant_id: "tenant-other", name: "other" }),
+      ]),
+    ),
+  );
 });
 
 describe("useWorkspaceTabs", () => {
@@ -65,7 +75,7 @@ describe("useWorkspaceTabs", () => {
   it("enters a namespace in place, dropping its cache but keeping the terminals", async () => {
     server.use(
       http.get("*/api/auth/token/:tenant", () =>
-        HttpResponse.json({ token: "other-token", role: "owner" }),
+        HttpResponse.json({ token: VALID_JWT, role: "owner" }),
       ),
     );
     const queryClient = new QueryClient();
@@ -90,7 +100,7 @@ describe("useWorkspaceTabs", () => {
   it("drops the vault of the namespace being left and reads the next one's", async () => {
     server.use(
       http.get("*/api/auth/token/:tenant", () =>
-        HttpResponse.json({ token: "other-token", role: "owner" }),
+        HttpResponse.json({ token: VALID_JWT, role: "owner" }),
       ),
     );
     const { result } = renderTabs();
@@ -113,5 +123,36 @@ describe("useWorkspaceTabs", () => {
     });
 
     expect(useWorkspaceTabsStore.getState().failures).toEqual({});
+  });
+
+  it("shows a terminal from another namespace by entering that namespace", async () => {
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({ token: VALID_JWT, role: "owner" }),
+      ),
+    );
+    useTerminalStore.getState().open({
+      deviceUid: "dev-2",
+      deviceName: "dev-2",
+      username: "root",
+      password: "",
+      tenant: "tenant-other",
+    });
+    useTerminalStore.getState().minimizeAll();
+    const [session] = useTerminalStore.getState().sessions;
+    const { result } = renderHook(
+      () => ({ tabs: useWorkspaceTabs(), list: useNamespaces() }),
+      { wrapper: createTestWrapper({ initialEntries: ["/devices"] }) },
+    );
+    await vi.waitFor(() =>
+      expect(result.current.list.namespaces).toHaveLength(2),
+    );
+
+    await act(async () => {
+      await result.current.tabs.showTerminal(session);
+    });
+
+    expect(useAuthStore.getState().tenant).toBe("tenant-other");
+    expect(useTerminalStore.getState().restoreAfterNavigation).toBe(session.id);
   });
 });

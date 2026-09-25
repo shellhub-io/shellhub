@@ -14,16 +14,12 @@ import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useTerminalStore,
   type ConnectionStatus,
-  type TerminalSession,
 } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useNamespaces } from "@/hooks/useNamespaces";
-import {
-  namespaceTabId,
-  type WorkspaceTab,
-} from "@/stores/workspaceTabsStore";
+import { type WorkspaceTab } from "@/stores/workspaceTabsStore";
 import { getInitials } from "@/utils/string";
 import TerminalSettingsDrawer from "../terminal/TerminalSettingsDrawer";
 
@@ -204,7 +200,6 @@ export default function TabStrip({
   const workspace = useWorkspaceTabs();
   const { namespaces } = useNamespaces();
   const sessions = useTerminalStore((s) => s.sessions);
-  const restore = useTerminalStore((s) => s.restore);
   const closeSession = useTerminalStore((s) => s.close);
   const toggleFullscreen = useTerminalStore((s) => s.toggleFullscreen);
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
@@ -217,18 +212,6 @@ export default function TabStrip({
   ).length;
   const namespaceName = (tenant?: string) =>
     namespaces.find((ns) => ns.tenant_id === tenant)?.name;
-
-  const selectTerminal = (session: TerminalSession) => {
-    const home = session.tenant;
-    const homeName = namespaceName(home);
-    if (!home || !homeName || workspace.activeId === namespaceTabId(home)) {
-      restore(session.id);
-      return;
-    }
-    void workspace.openNamespace(home, homeName, {
-      restoreSession: session.id,
-    });
-  };
 
   return (
     // eslint-disable-next-line jsx-a11y/interactive-supports-focus -- focus sits on the tabs; the list only relays the arrow keys between them
@@ -282,7 +265,7 @@ export default function TabStrip({
             tooltip={owner ? `${s.deviceName} · ${owner}` : undefined}
             sublabel={openNamespaceTabs > 1 ? owner : undefined}
             icon={<TerminalIcon status={s.connectionStatus} />}
-            onSelect={() => selectTerminal(s)}
+            onSelect={() => void workspace.showTerminal(s)}
             onClose={() => closeSession(s.id)}
           />
         );

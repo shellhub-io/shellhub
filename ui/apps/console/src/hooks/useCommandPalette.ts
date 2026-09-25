@@ -80,7 +80,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
 
   const { devices } = useDevices({ page: 1, perPage: 50, status: "accepted" });
   const terminalSessions = useTerminalStore((s) => s.sessions);
-  const restoreTerminal = useTerminalStore((s) => s.restore);
   const logout = useAuthStore((s) => s.logout);
   const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("device:connect");
@@ -175,7 +174,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
     const existing = store.sessions.find((s) => s.deviceUid === uid);
     if (existing) {
       close();
-      store.restore(existing.id);
+      void workspace.showTerminal(existing);
       return;
     }
     if (!online) {
@@ -216,7 +215,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
       recentDevices: adminContext ? [] : recentDevices,
       canConnect,
       connectOrRestore,
-      restoreTerminal,
+      restoreTerminal: (session) => void workspace.showTerminal(session),
       rejectRow,
       enterDrillIn,
       close,

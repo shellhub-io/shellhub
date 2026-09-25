@@ -1,8 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiErrorMessage } from "@/api/errors";
 import { useEnterNamespace } from "@/hooks/useNamespaceMutations";
+import { useNamespaces } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
-import { useTerminalStore } from "@/stores/terminalStore";
+import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import {
   ADMIN_TAB_ID,
   adminTab,
@@ -18,7 +19,9 @@ import { isAdminPath } from "@/utils/adminRoute";
  * useEnterNamespace), so the open terminals outlive the switch. When a namespace cannot be
  * entered nothing moves: the terminals stay as they were, the tab records why for the strip to
  * show, and activate resolves false. restoreSession brings that terminal forward once the tab's
- * page is reached, rather than minimizing them all.
+ * page is reached, rather than minimizing them all. showTerminal brings a terminal forward inside
+ * its own namespace, entering it first when another one is active, and reopening its tab if it
+ * was closed.
  */
 export function useWorkspaceTabs() {
   const tabs = useWorkspaceTabsStore((s) => s.tabs);
@@ -27,6 +30,7 @@ export function useWorkspaceTabs() {
   const navigate = useNavigate();
   const tenant = useAuthStore((s) => s.tenant);
   const enterNamespace = useEnterNamespace();
+  const { namespaces } = useNamespaces();
 
   const activeId = isAdminPath(pathname)
     ? ADMIN_TAB_ID
@@ -80,6 +84,16 @@ export function useWorkspaceTabs() {
 
   const openAdmin = () => open(adminTab());
 
+  const showTerminal = (session: TerminalSession) => {
+    const home = session.tenant;
+    const name = namespaces.find((ns) => ns.tenant_id === home)?.name;
+    if (!home || !name || activeId === namespaceTabId(home)) {
+      useTerminalStore.getState().restore(session.id);
+      return Promise.resolve(true);
+    }
+    return openNamespace(home, name, { restoreSession: session.id });
+  };
+
   const close = (tab: WorkspaceTab) => {
     const index = tabs.findIndex((t) => t.id === tab.id);
     const remaining = tabs.filter((t) => t.id !== tab.id);
@@ -96,6 +110,7 @@ export function useWorkspaceTabs() {
     activate,
     openNamespace,
     openAdmin,
+    showTerminal,
     close,
   };
 }
