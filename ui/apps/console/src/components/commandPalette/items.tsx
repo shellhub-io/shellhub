@@ -127,7 +127,7 @@ export function buildConnectionItems(deps: {
     online: boolean,
     rowId: string,
   ) => void;
-  restoreTerminal: (id: string) => void;
+  restoreTerminal: (session: TerminalSession) => void;
   rejectRow: (rowId: string, message: string) => void;
   enterDrillIn: (uid: string) => void;
   close: () => void;
@@ -197,7 +197,7 @@ export function buildConnectionItems(deps: {
           return;
         }
         close();
-        restoreTerminal(s.id);
+        restoreTerminal(s);
       },
     });
   });
