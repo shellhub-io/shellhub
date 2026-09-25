@@ -1,45 +1,63 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useSyncExternalStore,
-} from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 
-const lgQuery = "(min-width: 1024px)";
+const PINNED_KEY = "sidebarPinned";
 
-const lgMql =
-  typeof window !== "undefined" ? window.matchMedia(lgQuery) : undefined;
-
-function subscribeToMediaQuery(callback: () => void) {
-  lgMql?.addEventListener("change", callback);
-  return () => lgMql?.removeEventListener("change", callback);
+function watchWidth(query: string) {
+  const mql =
+    typeof window !== "undefined" ? window.matchMedia(query) : undefined;
+  return {
+    subscribe: (callback: () => void) => {
+      mql?.addEventListener("change", callback);
+      return () => mql?.removeEventListener("change", callback);
+    },
+    matches: () => mql?.matches ?? true,
+  };
 }
 
-function getIsDesktop() {
-  return lgMql?.matches ?? true;
+const desktopWidth = watchWidth("(min-width: 1024px)");
+const wideWidth = watchWidth("(min-width: 1280px)");
+
+function readPinned(): boolean | null {
+  try {
+    const stored = localStorage.getItem(PINNED_KEY);
+    return stored === null ? null : stored === "true";
+  } catch {
+    return null;
+  }
 }
 
-function getIsDesktopServer() {
-  return true;
+function writePinned(pinned: boolean) {
+  try {
+    localStorage.setItem(PINNED_KEY, String(pinned));
+  } catch {
+    return;
+  }
 }
 
 /**
- * Drives the sidebar: expanded, pinned, and the mobile drawer. Desktop and mobile are the same
- * state seen two ways, so the viewport is watched rather than the layout duplicated.
+ * Drives the sidebar across window sizes. Wide windows keep it open, narrower ones fold it to a
+ * rail that opens over the content on hover, and below desktop width it becomes a drawer. Pinning
+ * or unpinning it is remembered and outranks the width, since it is the user's own choice.
  */
 export function useSidebarLayout() {
   const [expanded, setExpanded] = useState(false);
-  const [pinned, setPinned] = useState(true);
+  const [pinnedChoice, setPinnedChoice] = useState(readPinned);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isDesktop = useSyncExternalStore(
-    subscribeToMediaQuery,
-    getIsDesktop,
-    getIsDesktopServer,
+    desktopWidth.subscribe,
+    desktopWidth.matches,
+    () => true,
+  );
+  const isWide = useSyncExternalStore(
+    wideWidth.subscribe,
+    wideWidth.matches,
+    () => true,
   );
 
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  const pinned = pinnedChoice ?? isWide;
   const isOpen = expanded || pinned;
 
   const openDrawer = () => setDrawerOpen(true);
@@ -59,16 +77,15 @@ export function useSidebarLayout() {
   };
 
   const handleToggle = () => {
-    setPinned((prev) => {
-      if (prev) {
-        clearTimeout(hoverTimer.current);
-        setExpanded(true);
-      }
-      return !prev;
-    });
+    clearTimeout(hoverTimer.current);
+    setExpanded(false);
+    setPinnedChoice(!pinned);
+    writePinned(!pinned);
   };
 
-  const handleDrawerKeyDown = (e: React.KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
+  const handleDrawerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") closeDrawer();
+  };
 
   return {
     expanded,
