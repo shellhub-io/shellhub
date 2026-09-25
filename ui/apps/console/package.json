@@ -25,7 +25,7 @@
     "@shellhub/design-system": "*",
     "@stripe/react-stripe-js": "^3.11.0",
     "@stripe/stripe-js": "^4.8.0",
-    "@tanstack/react-query": "^5.102.3",
+    "@tanstack/react-query": "^5.103.1",
     "@tiptap/extension-image": "^3.31.3",
     "@tiptap/extension-link": "^3.31.3",
     "@tiptap/markdown": "^3.31.3",
@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@tanstack/react-query-devtools": "^5.102.3",
+    "@tanstack/react-query-devtools": "^5.103.1",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.5",
     "ansi-styles": "^5.2.0",
