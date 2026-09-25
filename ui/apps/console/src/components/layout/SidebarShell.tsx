@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
-import {
-  ShellHubCloudIcon,
-  ShellHubLogo,
-} from "@shellhub/design-system/primitives";
+import { useTerminalFullscreen } from "@/stores/terminalStore";
+import LogoMark from "./LogoMark";
 
 /**
  * The classes every sidebar link shares, so an active, idle and disabled link differ only in
@@ -133,7 +131,6 @@ export function SidebarMobileDrawer({
 interface SidebarShellProps {
   expanded: boolean;
   onClose?: () => void;
-  hidden?: boolean;
   ariaLabel: string;
   logoHref: string;
   account: ReactNode;
@@ -142,17 +139,19 @@ interface SidebarShellProps {
 
 /**
  * The frame both sidebars are built in, on the page background with the logo on top and the
- * account menu at the foot, so the app and admin navigations differ only in their links.
+ * account menu at the foot, so the app and admin navigations differ only in their links. It
+ * folds away while a terminal is fullscreen, when the tab strip shows the logo instead.
  */
 export default function SidebarShell({
   expanded,
   onClose,
-  hidden,
   ariaLabel,
   logoHref,
   account,
   children,
 }: SidebarShellProps) {
+  const hidden = useTerminalFullscreen();
+
   return (
     <aside
       className={cn(
@@ -162,32 +161,10 @@ export default function SidebarShell({
     >
       <div
         data-tauri-drag-region
-        className={cn(
-          "flex items-center h-12 px-3",
-          expanded ? "justify-start pl-5" : "justify-center",
-        )}
+        className="flex items-end h-12 pl-[12.7px] pb-[7px]"
       >
-        <NavLink
-          to={logoHref}
-          onClick={onClose}
-          className="relative flex items-center justify-center"
-          aria-label="ShellHub"
-        >
-          <ShellHubLogo
-            aria-hidden
-            className={cn(
-              "h-6 transition-opacity duration-200",
-              expanded ? "opacity-100" : "opacity-0 absolute",
-            )}
-          />
-          <ShellHubCloudIcon
-            aria-hidden
-            data-testid="sidebar-cloud-icon"
-            className={cn(
-              "h-6 w-6 transition-opacity duration-200",
-              expanded ? "opacity-0 absolute" : "opacity-100",
-            )}
-          />
+        <NavLink to={logoHref} onClick={onClose} aria-label="ShellHub">
+          <LogoMark full={expanded} />
         </NavLink>
       </div>
 

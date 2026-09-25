@@ -198,3 +198,13 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     }));
   },
 }));
+
+/**
+ * Whether a terminal fills the window. The sidebar folds away and the layout drops the room it
+ * keeps for it while this holds, so both read it from here to stay in step.
+ */
+export function useTerminalFullscreen() {
+  return useTerminalStore((s) =>
+    s.sessions.some((session) => session.state === "fullscreen"),
+  );
+}
