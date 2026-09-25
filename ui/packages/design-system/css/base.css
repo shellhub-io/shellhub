@@ -21,32 +21,14 @@
     --c-scrollbar-hover: 56 61 71;
   }
 
-  /* Pin a subtree to the dark token set regardless of the active theme.
-     Used for the app chrome (top bar + sidebar), which stays dark in light mode. */
-  .theme-dark {
-    --c-background: 24 25 27;
-    --c-surface: 30 33 39;
-    --c-card: 34 37 43;
-    --c-border: 44 47 54;
-    --c-border-light: 56 61 71;
-    --c-text-primary: 225 228 234;
-    --c-text-secondary: 139 143 153;
-    --c-text-muted: 129 135 156;
-    --c-hover: 255 255 255;
-    --c-scrollbar: 44 47 54;
-    --c-scrollbar-hover: 56 61 71;
-    color-scheme: dark;
-  }
-
   /* Light theme — applied by toggling `class="light"` on <html>. */
-  html.light,
-  html.light .theme-follow {
+  html.light {
     --dialog-backdrop-bg: rgba(17, 19, 24, 0.45);
 
-    --c-background: 238 240 243;
-    --c-surface: 255 255 255;
-    --c-card: 255 255 255;
-    --c-border: 224 227 233;
+    --c-background: 232 234 238;
+    --c-surface: 241 242 245;
+    --c-card: 249 250 251;
+    --c-border: 222 225 231;
     --c-border-light: 203 209 217;
     --c-text-primary: 26 28 31;
     --c-text-secondary: 90 96 107;

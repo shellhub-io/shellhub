@@ -167,7 +167,7 @@ export default function SidebarShell({
   return (
     <aside
       className={cn(
-        "theme-dark flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
+        "flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
         hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : railWidth,
       )}
     >

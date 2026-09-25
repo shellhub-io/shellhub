@@ -113,7 +113,7 @@ function Tab({
         "group flex items-center gap-2 min-w-0 max-w-[220px] px-3 rounded-t-lg border border-b-0 text-[13px] cursor-default select-none transition-colors duration-200",
         active
           ? cn(
-              "relative z-raised h-[39px] -mb-px border-border [.light_&]:border-0 text-text-primary",
+              "relative z-raised h-[39px] -mb-px border-border text-text-primary",
               surfaceClassName,
             )
           : "relative h-[38px] border-transparent text-text-secondary hover:text-text-primary",
@@ -293,7 +293,7 @@ export default function TabStrip({
             key={tab.id}
             id={tab.id}
             active={isActive}
-            surfaceClassName="theme-follow bg-surface"
+            surfaceClassName="bg-surface"
             label={tab.name}
             tooltip={
               failure ? `Couldn't open ${tab.name}: ${failure}` : undefined
@@ -329,7 +329,7 @@ export default function TabStrip({
             key={s.id}
             id={s.id}
             active={s.id === active?.id}
-            surfaceClassName="theme-follow"
+            surfaceClassName=""
             surfaceColors={terminalColors}
             label={s.deviceName}
             tooltip={owner ? `${s.deviceName} · ${owner}` : undefined}

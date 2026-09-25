@@ -31,7 +31,7 @@ import { isEnterprise } from "@/env";
 import { isAdminPath } from "@/utils/adminRoute";
 
 /**
- * The shell of the signed-in app: the sidebar and a tab strip sit on the dark chrome, and the
+ * The shell of the signed-in app: the sidebar and a tab strip sit on the chrome, and the
  * routed page and the terminal sessions share one framed panel below the tabs. The terminal lives
  * here rather than on a page, so a session survives navigating away from the device it belongs to.
  */
@@ -71,7 +71,7 @@ export default function AppLayout() {
             <DeviceLimitBanner />
           </>
         )}
-        <div className="theme-dark bg-background flex flex-1 min-h-0">
+        <div className="bg-background flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div
               className={cn(
@@ -137,7 +137,7 @@ export default function AppLayout() {
             />
             <div
               className={cn(
-                "theme-follow relative flex-1 min-h-0 overflow-hidden rounded-[10px] border border-border [.light_&]:border-0 bg-surface",
+                "relative flex-1 min-h-0 overflow-hidden rounded-[10px] border border-border bg-surface",
                 "peer-data-[first-tab-active=true]:rounded-tl-none",
               )}
             >
