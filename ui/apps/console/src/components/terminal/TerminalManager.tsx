@@ -66,7 +66,7 @@ export default function TerminalManager() {
   useEffect(() => {
     if (location.pathname !== prevPathRef.current) {
       prevPathRef.current = location.pathname;
-      if (!useTerminalStore.getState().restorePending()) minimizeAll();
+      if (!useTerminalStore.getState().dockPendingRestore()) minimizeAll();
     }
   }, [location.pathname, minimizeAll]);
 

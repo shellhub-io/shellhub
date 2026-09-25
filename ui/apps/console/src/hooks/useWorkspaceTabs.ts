@@ -48,7 +48,7 @@ export function useWorkspaceTabs() {
       const terminals = useTerminalStore.getState();
       if (restoreSession) terminals.setRestoreAfterNavigation(restoreSession);
       else terminals.minimizeAll();
-      if (tab.path === pathname && terminals.restorePending()) return;
+      if (tab.path === pathname && terminals.dockPendingRestore()) return;
       void navigate(tab.path);
     };
     if (
