@@ -4,6 +4,7 @@ import type { Session } from "@/client";
 import {
   sessionHasTerminal,
   sessionTerminal,
+  sessionTitle,
   sessionType,
 } from "@/utils/session";
 
@@ -93,5 +94,15 @@ describe("sessionTerminal", () => {
     ],
   ])("is undefined when %s", (_, input) => {
     expect(sessionTerminal(input)).toBeUndefined();
+  });
+});
+
+describe("sessionTitle", () => {
+  it.each([
+    [{ device: { name: "web-01" }, device_uid: "abcdef0123456789" }, "web-01"],
+    [{ device_uid: "abcdef0123456789" }, "abcdef01"],
+    [{}, ""],
+  ])("names %j as %j", (fields, title) => {
+    expect(sessionTitle(fields as Session)).toBe(title);
   });
 });

@@ -29,7 +29,6 @@ import {
   useDeleteSessionRecording,
 } from "../hooks/useSessionMutations";
 import { useSessionRecording } from "../hooks/useSessionRecording";
-import SessionPlayerDialog from "./sessions/SessionPlayerDialog";
 import CopyButton from "../components/common/CopyButton";
 import DeviceChip from "../components/common/DeviceChip";
 import DistroIcon from "../components/common/DistroIcon";
@@ -257,23 +256,17 @@ export default function SessionDetails() {
   const closeSession = useCloseSession();
   const deleteRecording = useDeleteSessionRecording();
   const {
-    logs: sessionLogs,
     isLoading: logsLoading,
     error: logsError,
-    fetchLogs,
-    clearLogs,
+    play,
   } = useSessionRecording();
   const [showClose, setShowClose] = useState(false);
-  const [showPlayer, setShowPlayer] = useState(false);
   const [showDeleteLogs, setShowDeleteLogs] = useState(false);
   const [deleteLogsError, setDeleteLogsError] = useState<string | null>(null);
   const [closeError, setCloseError] = useState<string | null>(null);
 
   const handlePlayRecording = async () => {
-    const ok = await fetchLogs(uid!);
-    if (ok) {
-      setShowPlayer(true);
-    }
+    if (session) await play(session);
   };
 
   const handleDeleteLogs = async () => {
@@ -594,18 +587,6 @@ export default function SessionDetails() {
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-banner px-4 py-2.5 bg-accent-red/10 border border-accent-red/30 text-accent-red text-sm font-mono rounded-lg shadow-lg">
           {logsError}
         </div>
-      )}
-
-      {/* Session Player Dialog */}
-      {showPlayer && sessionLogs && (
-        <SessionPlayerDialog
-          open={showPlayer}
-          onClose={() => {
-            setShowPlayer(false);
-            clearLogs();
-          }}
-          logs={sessionLogs}
-        />
       )}
     </div>
   );

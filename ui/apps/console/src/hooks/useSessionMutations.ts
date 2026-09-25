@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { closeSessionMutation, deleteSessionRecord } from "../client";
+import { useTerminalStore } from "@/stores/terminalStore";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 /**
@@ -16,7 +17,8 @@ export function useCloseSession() {
 
 /**
  * Deletes a session's recording, leaving the session itself. Seat zero is the only one the UI
- * records, so that is the one removed.
+ * records, so that is the one removed. A tab still playing the recording closes with it, so the
+ * deleted output is not kept on screen or played again from memory.
  */
 export function useDeleteSessionRecording() {
   const invalidate = useInvalidateByIds("getSessions", "getSession");
@@ -24,6 +26,9 @@ export function useDeleteSessionRecording() {
     mutationFn: async (uid: string) => {
       await deleteSessionRecord({ path: { uid, seat: 0 }, throwOnError: true });
     },
-    onSuccess: invalidate,
+    onSuccess: async (_data, uid) => {
+      useTerminalStore.getState().closeRecording(uid);
+      await invalidate();
+    },
   });
 }

@@ -5,6 +5,7 @@ import {
   ArrowsPointingOutIcon,
   Cog6ToothIcon,
   CommandLineIcon,
+  PlayCircleIcon,
   PlusIcon,
   ShieldCheckIcon,
   XMarkIcon,
@@ -231,13 +232,14 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
 
 /**
  * The tab strip above the framed content. The open contexts come first, namespaces and the admin
- * console, then every terminal session. The terminal in view carries its namespace atop the tab
- * once more than one namespace is open, and selecting a terminal from another namespace enters
- * that namespace first. Selecting a context minimizes the terminals, the same state navigating
- * away leaves them in. Tabs are reordered by dragging, or with Ctrl+Shift+Left/Right, each within
- * its own group: contexts always come first, terminals after. The strip is the framed panel's
- * peer: its root carries data-first-tab-active, which the panel right after it reads to square its
- * top-left corner, so the two must stay siblings.
+ * console, then every terminal session, then every open recording. The terminal in view carries
+ * its namespace atop the tab once more than one namespace is open, and selecting a terminal from
+ * another namespace enters that namespace first. Selecting a context puts away whichever terminal
+ * or recording is in view, the same state navigating away leaves them in. Tabs are reordered by
+ * dragging, or with Ctrl+Shift+Left/Right, each within its own group: contexts, then terminals,
+ * then recordings. The strip is the framed panel's peer: its root carries data-first-tab-active,
+ * which the panel right after it reads to square its top-left corner, so the two must stay
+ * siblings.
  */
 export default function TabStrip({
   leading,
@@ -254,6 +256,12 @@ export default function TabStrip({
   const toggleFullscreen = useTerminalStore((s) => s.toggleFullscreen);
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
   const terminalColors = useTerminalThemeStore((s) => s.theme.colors);
+  const recordings = useTerminalStore((s) => s.recordings);
+  const showRecording = useTerminalStore((s) => s.showRecording);
+  const closeRecording = useTerminalStore((s) => s.closeRecording);
+  const moveRecording = useTerminalStore((s) => s.moveRecording);
+  const shownRecording = recordings.find((r) => r.shown);
+  const playerOpen = shownRecording !== undefined;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const moveContext = useWorkspaceTabsStore((s) => s.move);
   const moveSession = useTerminalStore((s) => s.move);
@@ -261,10 +269,12 @@ export default function TabStrip({
   const contextIds = workspace.tabs.map((t) => t.id);
   const contextOrder = reorder.orderOf(contextIds);
   const sessionIds = sessions.map((s) => s.id);
+  const recordingIds = recordings.map((r) => r.id);
 
   const active = sessions.find((s) => s.state !== "minimized");
+  const contextCovered = active !== undefined || playerOpen;
   const firstTabActive =
-    !leading && !active && contextOrder[0] === workspace.activeId;
+    !leading && !contextCovered && contextOrder[0] === workspace.activeId;
   const openNamespaceTabs = workspace.tabs.filter(
     (t) => t.kind === "namespace",
   ).length;
@@ -286,7 +296,7 @@ export default function TabStrip({
     >
       {leading}
       {workspace.tabs.map((tab) => {
-        const isActive = !active && tab.id === workspace.activeId;
+        const isActive = !contextCovered && tab.id === workspace.activeId;
         const failure = workspace.failures[tab.id];
         return (
           <Tab
@@ -315,7 +325,7 @@ export default function TabStrip({
         );
       })}
 
-      {sessions.length > 0 && workspace.tabs.length > 0 && (
+      {sessions.length + recordings.length > 0 && workspace.tabs.length > 0 && (
         <span
           aria-hidden="true"
           className="mx-1.5 mb-3 h-4 w-px shrink-0 bg-border"
@@ -338,6 +348,30 @@ export default function TabStrip({
             onSelect={() => void workspace.showTerminal(s)}
             onClose={() => closeSession(s.id)}
             reorder={reorder.tab(sessionIds, moveSession, s.id)}
+          />
+        );
+      })}
+
+      {recordings.map((r) => {
+        const owner = namespaceName(r.tenant);
+        return (
+          <Tab
+            key={r.id}
+            id={r.id}
+            active={r.shown}
+            surfaceClassName=""
+            surfaceColors={terminalColors}
+            label={r.title}
+            tooltip={
+              owner
+                ? `Recording of ${r.title} · ${owner}`
+                : `Recording of ${r.title}`
+            }
+            sublabel={openNamespaceTabs > 1 ? owner : undefined}
+            icon={<PlayCircleIcon className="w-4 h-4 shrink-0 opacity-70" />}
+            onSelect={() => showRecording(r.id)}
+            onClose={() => closeRecording(r.id)}
+            reorder={reorder.tab(recordingIds, moveRecording, r.id)}
           />
         );
       })}

@@ -159,6 +159,7 @@ export const useAuthStore = create<AuthState>()(
         useVaultStore.getState().lock();
         const terminal = useTerminalStore.getState();
         terminal.sessions.forEach((s) => terminal.close(s.id));
+        terminal.recordings.forEach((r) => terminal.closeRecording(r.id));
         useWorkspaceTabsStore.getState().clear();
         set(initialState);
         localStorage.removeItem("shellhub-session");

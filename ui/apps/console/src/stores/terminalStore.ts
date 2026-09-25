@@ -44,8 +44,22 @@ export interface ReconnectTarget {
   tenant?: string;
 }
 
+/**
+ * An open session recording, played in its own tab beside the terminals. The recording is held
+ * whole, since it was fetched once to open the tab; id is the recorded session's uid, so playing
+ * the same session again brings its tab forward instead of opening another.
+ */
+export interface RecordingView {
+  id: string;
+  title: string;
+  tenant?: string;
+  logs: string;
+  shown: boolean;
+}
+
 interface TerminalState {
   sessions: TerminalSession[];
+  recordings: RecordingView[];
   reconnectTarget: ReconnectTarget | null;
   restoreAfterNavigation: string | null;
   setRestoreAfterNavigation: (id: string | null) => void;
@@ -64,25 +78,47 @@ interface TerminalState {
   clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
   clearSensitiveData: (id: string) => void;
+  openRecording: (params: Omit<RecordingView, "shown">) => void;
+  showRecording: (id: string) => void;
+  closeRecording: (id: string) => void;
+  moveRecording: (id: string, to: number) => void;
 }
 
-function demoteOthers(
+function bringForward(
+  state: Pick<TerminalState, "sessions" | "recordings">,
+  forward: { session?: string; recording?: string },
+): Pick<TerminalState, "sessions" | "recordings"> {
+  return {
+    sessions: state.sessions.map((s) =>
+      s.id === forward.session || s.state === "minimized"
+        ? s
+        : { ...s, state: "minimized" as const },
+    ),
+    recordings: state.recordings.map((r) =>
+      r.shown === (r.id === forward.recording)
+        ? r
+        : { ...r, shown: r.id === forward.recording },
+    ),
+  };
+}
+
+function withSessionState(
   sessions: TerminalSession[],
-  targetId: string,
+  id: string,
+  next: (s: TerminalSession) => TerminalWindowState,
 ): TerminalSession[] {
-  return sessions.map((s) => {
-    if (s.id === targetId) return s;
-    if (s.state !== "minimized") return { ...s, state: "minimized" as const };
-    return s;
-  });
+  return sessions.map((s) => (s.id === id ? { ...s, state: next(s) } : s));
 }
 
 /**
- * The open terminals. Several may run at once, so this is a list rather than one session, and
- * opening one also records the device as recently used.
+ * The open terminals and session recordings, the windows that stack over the page inside the
+ * content frame. Several may be open at once, but at most one is in view: every action that brings
+ * a terminal or a recording forward, or puts them all away, goes through bringForward, which puts
+ * every other one away. Opening a terminal also records the device as recently used.
  */
 export const useTerminalStore = create<TerminalState>((set, get) => ({
   sessions: [],
+  recordings: [],
   reconnectTarget: null,
   restoreAfterNavigation: null,
 
@@ -91,12 +127,14 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   dockPendingRestore: () => {
     const pending = get().restoreAfterNavigation;
     if (!pending) return false;
-    set((state) => ({
-      restoreAfterNavigation: null,
-      sessions: demoteOthers(state.sessions, pending).map((s) =>
-        s.id === pending ? { ...s, state: "docked" as const } : s,
-      ),
-    }));
+    set((state) => {
+      const shown = bringForward(state, { session: pending });
+      return {
+        restoreAfterNavigation: null,
+        recordings: shown.recordings,
+        sessions: withSessionState(shown.sessions, pending, () => "docked"),
+      };
+    });
     return true;
   },
 
@@ -105,13 +143,17 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     useRecentDevicesStore
       .getState()
       .record(params.deviceUid, params.deviceName);
-    set((state) => ({
-      reconnectTarget: null,
-      sessions: [
-        ...demoteOthers(state.sessions, id),
-        { ...params, id, state: "docked", connectionStatus: "connecting" },
-      ],
-    }));
+    set((state) => {
+      const shown = bringForward(state, { session: id });
+      return {
+        reconnectTarget: null,
+        recordings: shown.recordings,
+        sessions: [
+          ...shown.sessions,
+          { ...params, id, state: "docked", connectionStatus: "connecting" },
+        ],
+      };
+    });
   },
 
   minimize: (id) => {
@@ -123,34 +165,29 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   },
 
   minimizeAll: () => {
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.state !== "minimized" ? { ...s, state: "minimized" as const } : s,
-      ),
-    }));
+    set((state) => bringForward(state, {}));
   },
 
   restore: (id) => {
-    set((state) => ({
-      sessions: demoteOthers(state.sessions, id).map((s) =>
-        s.id === id ? { ...s, state: "docked" as const } : s,
-      ),
-    }));
+    set((state) => {
+      const shown = bringForward(state, { session: id });
+      return {
+        ...shown,
+        sessions: withSessionState(shown.sessions, id, () => "docked"),
+      };
+    });
   },
 
   toggleFullscreen: (id) => {
-    set((state) => ({
-      sessions: demoteOthers(state.sessions, id).map((s) => {
-        if (s.id !== id) return s;
-        return {
-          ...s,
-          state:
-            s.state === "fullscreen"
-              ? ("docked" as const)
-              : ("fullscreen" as const),
-        };
-      }),
-    }));
+    set((state) => {
+      const shown = bringForward(state, { session: id });
+      return {
+        ...shown,
+        sessions: withSessionState(shown.sessions, id, (s) =>
+          s.state === "fullscreen" ? "docked" : "fullscreen",
+        ),
+      };
+    });
   },
 
   close: (id) => {
@@ -205,6 +242,37 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
           : s,
       ),
     }));
+  },
+
+  openRecording: (params) => {
+    set((state) => {
+      const opened = state.recordings.some((r) => r.id === params.id)
+        ? state.recordings.map((r) =>
+            r.id === params.id ? { ...params, shown: r.shown } : r,
+          )
+        : [...state.recordings, { ...params, shown: false }];
+      return bringForward(
+        { sessions: state.sessions, recordings: opened },
+        { recording: params.id },
+      );
+    });
+  },
+
+  showRecording: (id) => {
+    set((state) => bringForward(state, { recording: id }));
+  },
+
+  closeRecording: (id) => {
+    set((state) => ({
+      recordings: state.recordings.filter((r) => r.id !== id),
+    }));
+  },
+
+  moveRecording: (id, to) => {
+    set((state) => {
+      const recordings = moveById(state.recordings, id, to);
+      return recordings === state.recordings ? state : { recordings };
+    });
   },
 }));
 

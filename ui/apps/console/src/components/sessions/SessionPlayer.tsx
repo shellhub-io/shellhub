@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { create, type Player } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
@@ -48,14 +48,20 @@ const SHORTCUTS = [
 
 interface SessionPlayerProps {
   logs: string;
+  visible?: boolean;
   onClose?: () => void;
 }
 
 /**
  * Replays a recorded session with asciinema. The recording is passed in already fetched, since
- * it is large and only wanted once the player is opened.
+ * it is large and only wanted once the player is opened. A player that is not visible, one whose
+ * tab is in the background, pauses and leaves the keyboard to the one in view.
  */
-export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
+export default function SessionPlayer({
+  logs,
+  visible = true,
+  onClose,
+}: SessionPlayerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
@@ -147,6 +153,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!visible) return;
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLSelectElement
@@ -216,7 +223,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, visible]);
 
   const handlePlayPause = () => {
     if (isPlayingRef.current) {
@@ -230,6 +237,13 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
       setIsPlaying(true);
     }
   };
+
+  const pauseWhenHidden = useEffectEvent(() => {
+    if (isPlayingRef.current) handlePlayPause();
+  });
+  useEffect(() => {
+    if (!visible) pauseWhenHidden();
+  }, [visible]);
 
   const handleSeek = (value: number) => {
     const wasPlaying = isPlayingRef.current;
