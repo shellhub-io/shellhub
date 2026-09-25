@@ -19,14 +19,14 @@ vi.mock("../AccountRequestsTab", () => ({
   default: () => null,
 }));
 
-vi.mock("../CreateUserDrawer", () => ({
+vi.mock("../CreateUserModal", () => ({
   default: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="create-drawer" /> : null,
+    open ? <div data-testid="create-modal" /> : null,
 }));
 
-vi.mock("../EditUserDrawer", () => ({
+vi.mock("../EditUserModal", () => ({
   default: ({ open }: { open: boolean; user: unknown; onClose: () => void }) =>
-    open ? <div data-testid="edit-drawer" /> : null,
+    open ? <div data-testid="edit-modal" /> : null,
 }));
 
 vi.mock("../DeleteUserDialog", () => ({

@@ -34,7 +34,7 @@ export type GenerateInstanceKeyFormValues = z.infer<
 
 /**
  * What the form starts as. The expiry opens on the shortest option, matching the namespace key
- * drawer, so the group is never in the empty state that reads as "selecting this is optional".
+ * modal, so the group is never in the empty state that reads as "selecting this is optional".
  */
 export const GENERATE_INSTANCE_KEY_DEFAULTS: GenerateInstanceKeyFormValues = {
   name: "",

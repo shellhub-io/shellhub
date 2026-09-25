@@ -13,7 +13,7 @@ import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import SearchField from "@/components/common/fields/SearchField";
-import Drawer from "@/components/common/Drawer";
+import Modal from "@/components/common/Modal";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import NumericInput from "@/components/common/fields/NumericInput";
 import InputField from "@/components/common/fields/InputField";
@@ -315,7 +315,7 @@ function TimeoutSelector({
   );
 }
 
-function EndpointDrawer({
+function EndpointModal({
   open,
   onClose,
 }: {
@@ -414,7 +414,8 @@ function EndpointDrawer({
   };
 
   return (
-    <Drawer
+    <Modal
+      size="lg"
       open={open}
       onClose={onClose}
       title="New Web Endpoint"
@@ -700,7 +701,7 @@ function EndpointDrawer({
           </div>
         )}
       </form>
-    </Drawer>
+    </Modal>
   );
 }
 
@@ -844,7 +845,7 @@ function WebEndpointsContent() {
     addressFilter: debouncedSearch,
   });
   const deleteEndpoint = useDeleteWebEndpoint();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     address: string;
     deviceName: string;
@@ -874,11 +875,11 @@ function WebEndpointsContent() {
   };
 
   const openNew = () => {
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
   };
 
   const totalPages = pageCount(totalCount);
@@ -1018,8 +1019,7 @@ function WebEndpointsContent() {
         </>
       )}
 
-      {/* Drawer */}
-      <EndpointDrawer open={drawerOpen} onClose={closeDrawer} />
+      <EndpointModal open={modalOpen} onClose={closeModal} />
 
       {/* Delete Dialog */}
       <ConfirmDialog

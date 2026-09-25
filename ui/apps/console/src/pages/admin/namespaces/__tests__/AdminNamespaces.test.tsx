@@ -15,14 +15,14 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../EditNamespaceDrawer", () => ({
+vi.mock("../EditNamespaceModal", () => ({
   default: ({
     open,
   }: {
     open: boolean;
     namespace: unknown;
     onClose: () => void;
-  }) => (open ? <div data-testid="edit-drawer" /> : null),
+  }) => (open ? <div data-testid="edit-modal" /> : null),
 }));
 
 vi.mock("../DeleteNamespaceDialog", () => ({

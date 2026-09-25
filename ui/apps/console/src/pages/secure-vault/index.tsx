@@ -26,7 +26,7 @@ import {
 } from "@/utils/vault-backend-factory";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
-import KeyDrawer from "./KeyDrawer";
+import KeyModal from "./KeyModal";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatRelative } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
@@ -69,7 +69,7 @@ export default function SecureVault() {
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<VaultKeyEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VaultKeyEntry | null>(null);
   const [search, setSearch] = useState("");
@@ -104,14 +104,14 @@ export default function SecureVault() {
 
   const openNew = () => {
     setEditTarget(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
   const openEdit = (entry: VaultKeyEntry) => {
     setEditTarget(entry);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditTarget(null);
   };
 
@@ -302,7 +302,7 @@ export default function SecureVault() {
 
       <VaultSettingsSection />
 
-      <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
+      <KeyModal open={modalOpen} editKey={editTarget} onClose={closeModal} />
       <KeyDeleteDialog
         open={!!deleteTarget}
         entry={deleteTarget}

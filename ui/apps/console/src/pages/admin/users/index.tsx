@@ -19,8 +19,8 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import SearchField from "@/components/common/fields/SearchField";
 import UserStatusChip from "./UserStatusChip";
-import CreateUserDrawer from "./CreateUserDrawer";
-import EditUserDrawer from "./EditUserDrawer";
+import CreateUserModal from "./CreateUserModal";
+import EditUserModal from "./EditUserModal";
 import DeleteUserDialog from "./DeleteUserDialog";
 import {
   Badge,
@@ -241,12 +241,12 @@ export default function AdminUsers() {
         }
       />
 
-      <CreateUserDrawer
+      <CreateUserModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
       />
 
-      <EditUserDrawer
+      <EditUserModal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
         user={editTarget}

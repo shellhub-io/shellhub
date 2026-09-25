@@ -30,7 +30,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
-import ConnectDrawer from "../components/ConnectDrawer";
+import ConnectModal from "../components/ConnectModal";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { buildSshid } from "../utils/sshid";
@@ -372,8 +372,7 @@ export default function DeviceDetails() {
         </Card>
       </div>
 
-      {/* Connect Drawer */}
-      <ConnectDrawer
+      <ConnectModal
         open={connectOpen}
         onClose={() => setConnectOpen(false)}
         deviceUid={device.uid}

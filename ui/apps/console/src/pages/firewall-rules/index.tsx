@@ -22,7 +22,7 @@ import SearchField from "@/components/common/fields/SearchField";
 import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import RuleDrawer from "./RuleDrawer";
+import RuleModal from "./RuleModal";
 import { pageCount } from "@/utils/pagination";
 
 type FirewallRulesParams = {
@@ -44,7 +44,7 @@ export default function FirewallRules() {
 
   const { rules, totalCount, isLoading } = useFirewallRules({ page: params.page });
   const deleteRule = useDeleteFirewallRule();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
@@ -73,16 +73,16 @@ export default function FirewallRules() {
 
   const openNew = () => {
     setEditTarget(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const openEdit = (rule: FirewallRule) => {
     setEditTarget(rule);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditTarget(null);
   };
 
@@ -239,10 +239,10 @@ export default function FirewallRules() {
           </RestrictedAction>
         </EmptyState>
 
-        <RuleDrawer
-          open={drawerOpen}
+        <RuleModal
+          open={modalOpen}
           editRule={editTarget}
-          onClose={closeDrawer}
+          onClose={closeModal}
         />
       </>
     );
@@ -300,10 +300,10 @@ export default function FirewallRules() {
         }
       />
 
-      <RuleDrawer
-        open={drawerOpen}
+      <RuleModal
+        open={modalOpen}
         editRule={editTarget}
-        onClose={closeDrawer}
+        onClose={closeModal}
       />
 
       <ConfirmDialog

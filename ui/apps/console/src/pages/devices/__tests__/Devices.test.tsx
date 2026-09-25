@@ -54,11 +54,11 @@ vi.mock("@/components/common/TagFilterDropdown", () => ({
   default: () => <div />,
 }));
 
-vi.mock("@/components/ManageTagsDrawer", () => ({
+vi.mock("@/components/ManageTagsModal", () => ({
   default: () => <div />,
 }));
 
-vi.mock("@/components/ConnectDrawer", () => ({
+vi.mock("@/components/ConnectModal", () => ({
   default: () => <div />,
 }));
 

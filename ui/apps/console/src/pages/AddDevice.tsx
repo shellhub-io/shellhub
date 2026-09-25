@@ -17,7 +17,7 @@ import {
 import CopyButton from "../components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
-import CreateProvisioningKeyDrawer from "@/pages/provisioning-keys/CreateProvisioningKeyDrawer";
+import CreateProvisioningKeyModal from "@/pages/provisioning-keys/CreateProvisioningKeyModal";
 import { isSystemKey } from "@/pages/provisioning-keys/helpers";
 import { modeInfo } from "@/pages/provisioning-keys/constants";
 import { METHODS, type Method } from "@/pages/install/methods";
@@ -562,7 +562,7 @@ export default function AddDevice() {
 
       {/* Create a key without leaving the page; on success it becomes the
           selected key and the command below fills in. */}
-      <CreateProvisioningKeyDrawer
+      <CreateProvisioningKeyModal
         open={createKeyOpen}
         onClose={() => setCreateKeyOpen(false)}
         onCreated={(name) => setSelectedKeyName(name)}

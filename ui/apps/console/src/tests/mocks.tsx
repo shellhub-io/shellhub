@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 /**
- * Stands in for Drawer. It renders its children flat, with no portal, focus trap or animation,
+ * Stands in for Modal. It renders its children flat, with no portal, focus trap or animation,
  * so a test can query them directly and does not wait on a transition.
  */
-export function MockDrawer({
+export function MockModal({
   open,
   onClose,
   title,
@@ -22,7 +22,7 @@ export function MockDrawer({
     <div role="dialog" aria-label={title}>
       <h2>{title}</h2>
       <button type="button" onClick={onClose}>
-        Close Drawer
+        Close Modal
       </button>
       <div>{children}</div>
       {footer && <div>{footer}</div>}

@@ -19,9 +19,9 @@ import RestrictedAction from "@/components/common/RestrictedAction";
 import { ExpiredBadge, RoleBadge } from "./constants";
 import { isExpired } from "./helpers";
 import { formatExpiry, formatDateShort } from "@/utils/date";
-import GenerateKeyDrawer from "./GenerateKeyDrawer";
-import KeySshAccessDrawer from "./KeySshAccessDrawer";
-import EditKeyDrawer from "./EditKeyDrawer";
+import GenerateKeyModal from "./GenerateKeyModal";
+import KeySshAccessModal from "./KeySshAccessModal";
+import EditKeyModal from "./EditKeyModal";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { pageCount } from "@/utils/pagination";
 
@@ -264,17 +264,17 @@ function ApiKeysTab() {
         }
       />
 
-      <KeySshAccessDrawer
+      <KeySshAccessModal
         open={!!sshTarget}
         apiKey={sshTarget}
         onClose={() => setSshTarget(null)}
       />
 
-      <GenerateKeyDrawer
+      <GenerateKeyModal
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
       />
-      <EditKeyDrawer
+      <EditKeyModal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
         apiKey={editTarget}

@@ -9,7 +9,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
-import KeyDrawer from "./KeyDrawer";
+import KeyModal from "./KeyModal";
 import { formatRelative } from "@/utils/date";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import {
@@ -116,7 +116,7 @@ export default function PublicKeys() {
     search: debouncedSearch,
   });
   const deleteKey = useDeletePublicKey();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     fingerprint: string;
@@ -147,14 +147,14 @@ export default function PublicKeys() {
 
   const openNew = () => {
     setEditTarget(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
   const openEdit = (key: PublicKey) => {
     setEditTarget(key);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditTarget(null);
   };
 
@@ -274,10 +274,10 @@ export default function PublicKeys() {
           </RestrictedAction>
         </EmptyState>
 
-        <KeyDrawer
-          open={drawerOpen}
+        <KeyModal
+          open={modalOpen}
           editKey={editTarget}
-          onClose={closeDrawer}
+          onClose={closeModal}
         />
       </>
     );
@@ -327,7 +327,7 @@ export default function PublicKeys() {
         }
       />
 
-      <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
+      <KeyModal open={modalOpen} editKey={editTarget} onClose={closeModal} />
 
       <ConfirmDialog
         open={!!deleteTarget}

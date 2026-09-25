@@ -3,7 +3,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 /**
  * Canonical rendering for a form-level (`root`) error surfaced via RHF's
  * `setError("root", …)`. Shared by every form so server-error presentation
- * stays identical across drawers.
+ * stays identical across modals.
  */
 export default function FormRootError({ message }: { message?: string }) {
   if (!message) return null;

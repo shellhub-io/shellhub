@@ -105,7 +105,7 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
   });
 });
 
-async function openEndpointDrawer(user: ReturnType<typeof userEvent.setup>) {
+async function openEndpointModal(user: ReturnType<typeof userEvent.setup>) {
   setEndpoints([ep("ep1.example.com")], 1);
   renderPage();
   await user.click(
@@ -113,12 +113,12 @@ async function openEndpointDrawer(user: ReturnType<typeof userEvent.setup>) {
   );
 }
 
-describe("WebEndpoints — drawer toggles", () => {
+describe("WebEndpoints — modal toggles", () => {
   it.each([/set expiration/i, /uses https/i])(
     "exposes %s as a switch whose aria-checked flips on click",
     async (name) => {
       const user = userEvent.setup();
-      await openEndpointDrawer(user);
+      await openEndpointModal(user);
       const toggle = screen.getByRole("switch", { name });
       expect(toggle).toHaveAttribute("aria-checked", "false");
       expect(toggle).not.toHaveAttribute("aria-pressed");

@@ -185,15 +185,13 @@ describe("VaultSettingsSection", () => {
   });
 
   describe("Change master password", () => {
-    it("opens ChangePasswordDrawer when the Change button is clicked", async () => {
+    it("opens ChangePasswordModal when the Change button is clicked", async () => {
       setUnlocked();
       renderSection();
 
-      const heading = screen.getByRole("heading", {
-        name: /change master password/i,
-        hidden: true,
-      });
-      expect(heading.closest("[inert]")).not.toBeNull();
+      expect(
+        screen.queryByRole("dialog", { name: /change master password/i }),
+      ).not.toBeInTheDocument();
 
       const changeBtn = screen.getByRole("button", {
         name: "Change master password",
@@ -201,9 +199,8 @@ describe("VaultSettingsSection", () => {
       await userEvent.click(changeBtn);
 
       expect(
-        screen.getByRole("heading", { name: /change master password/i }),
+        screen.getByRole("dialog", { name: /change master password/i }),
       ).toBeInTheDocument();
-      expect(heading.closest("[inert]")).toBeNull();
     });
   });
 

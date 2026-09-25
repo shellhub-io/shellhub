@@ -12,7 +12,7 @@ import type { Namespace } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
-import EditNamespaceDrawer from "./EditNamespaceDrawer";
+import EditNamespaceModal from "./EditNamespaceModal";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
@@ -183,7 +183,7 @@ export default function AdminNamespaces() {
         }
       />
 
-      <EditNamespaceDrawer
+      <EditNamespaceModal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
         namespace={editTarget}

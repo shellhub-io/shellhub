@@ -9,7 +9,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockFirewallRule } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../RuleDrawer", () => ({
+vi.mock("../RuleModal", () => ({
   default: () => null,
 }));
 

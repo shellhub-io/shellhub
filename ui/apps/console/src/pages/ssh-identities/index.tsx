@@ -39,7 +39,7 @@ import {
   sshIdentitySource,
   type IdentityStatusTone,
 } from "@/utils/sshIdentity";
-import IdentityDrawer from "./IdentityDrawer";
+import IdentityModal from "./IdentityModal";
 
 // Upload for a key somebody put here, a terminal for one an SSH client offered
 // at login, a browser window for one a browser holds. The pair that carries the
@@ -88,7 +88,7 @@ export default function SSHIdentities() {
     { value: "all" as const, label: "Everyone" },
   ];
   const deleteIdentity = useDeleteSSHIdentity();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SshIdentity | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SshIdentity | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -113,14 +113,14 @@ export default function SSHIdentities() {
 
   const openNew = () => {
     setEditTarget(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
   const openEdit = (identity: SshIdentity) => {
     setEditTarget(identity);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditTarget(null);
   };
 
@@ -344,10 +344,10 @@ export default function SSHIdentities() {
           </RestrictedAction>
         </EmptyState>
 
-        <IdentityDrawer
-          open={drawerOpen}
+        <IdentityModal
+          open={modalOpen}
           editIdentity={editTarget}
-          onClose={closeDrawer}
+          onClose={closeModal}
         />
 
         <Outlet />
@@ -414,10 +414,10 @@ export default function SSHIdentities() {
         }
       />
 
-      <IdentityDrawer
-        open={drawerOpen}
+      <IdentityModal
+        open={modalOpen}
         editIdentity={editTarget}
-        onClose={closeDrawer}
+        onClose={closeModal}
       />
 
       <ConfirmDialog

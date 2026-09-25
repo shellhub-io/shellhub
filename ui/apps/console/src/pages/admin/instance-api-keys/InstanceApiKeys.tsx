@@ -11,7 +11,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { formatDateShort } from "@/utils/date";
 import { pageCount } from "@/utils/pagination";
-import GenerateInstanceKeyDrawer from "./GenerateInstanceKeyDrawer";
+import GenerateInstanceKeyModal from "./GenerateInstanceKeyModal";
 
 type InstanceApiKeyListParams = {
   page: number;
@@ -162,7 +162,7 @@ function InstanceApiKeys() {
         }
       />
 
-      <GenerateInstanceKeyDrawer
+      <GenerateInstanceKeyModal
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
       />

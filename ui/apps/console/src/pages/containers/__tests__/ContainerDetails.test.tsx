@@ -22,7 +22,7 @@ vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
-vi.mock("@/components/ConnectDrawer", () => ({
+vi.mock("@/components/ConnectModal", () => ({
   default: () => <div />,
 }));
 

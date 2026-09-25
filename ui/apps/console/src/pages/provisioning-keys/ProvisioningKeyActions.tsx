@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type ProvisioningKey } from "@/client";
 import ProvisioningKeyActionsMenu from "./ProvisioningKeyActionsMenu";
-import EditProvisioningKeyDrawer from "./EditProvisioningKeyDrawer";
+import EditProvisioningKeyModal from "./EditProvisioningKeyModal";
 import RevokeProvisioningKeyDialog from "./RevokeProvisioningKeyDialog";
 import { useToggleProvisioningKey } from "./useToggleProvisioningKey";
 
@@ -31,7 +31,7 @@ export default function ProvisioningKeyActions({
         )}
       </div>
 
-      <EditProvisioningKeyDrawer
+      <EditProvisioningKeyModal
         provisioningKey={editOpen ? provisioningKey : null}
         onClose={() => setEditOpen(false)}
       />

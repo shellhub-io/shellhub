@@ -9,9 +9,9 @@ import { seedAuthStore } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
 
-vi.mock("../AccessPolicyDrawer", () => ({
+vi.mock("../AccessPolicyModal", () => ({
   default: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="policy-drawer" /> : null,
+    open ? <div data-testid="policy-modal" /> : null,
 }));
 
 function renderList(policies: AccessPolicy[]) {
@@ -58,10 +58,10 @@ describe("AccessPolicies", () => {
       within(menu).getByRole("menuitem", { name: /delete/i }),
     ).toBeInTheDocument();
 
-    expect(screen.queryByTestId("policy-drawer")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("policy-modal")).not.toBeInTheDocument();
 
     await user.keyboard("{Escape}");
     await user.click(screen.getByText("all"));
-    expect(await screen.findByTestId("policy-drawer")).toBeInTheDocument();
+    expect(await screen.findByTestId("policy-modal")).toBeInTheDocument();
   });
 });

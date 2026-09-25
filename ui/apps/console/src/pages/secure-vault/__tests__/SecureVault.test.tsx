@@ -8,7 +8,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
-import ConnectDrawer from "@/components/ConnectDrawer";
+import ConnectModal from "@/components/ConnectModal";
 import type { VaultKeyEntry } from "@/types/vault";
 
 vi.mock("@/components/common/PageHeader", () => ({
@@ -49,8 +49,8 @@ vi.mock("@/utils/sshKeys", () => ({
   getFingerprint: vi.fn(() => "fp"),
 }));
 
-vi.mock("@/components/common/Drawer", async () => ({
-  default: (await import("@/tests/mocks")).MockDrawer,
+vi.mock("@/components/common/Modal", async () => ({
+  default: (await import("@/tests/mocks")).MockModal,
 }));
 
 vi.mock("@/components/vault/VaultLockedBanner", () => ({
@@ -214,7 +214,7 @@ vi.mock("@/components/vault/VaultSettingsSection", () => ({
   default: () => <div data-testid="vault-settings-section" />,
 }));
 
-vi.mock("../KeyDrawer", () => ({
+vi.mock("../KeyModal", () => ({
   default: ({
     open,
     editKey,
@@ -230,7 +230,7 @@ vi.mock("../KeyDrawer", () => ({
         aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
       >
         <button type="button" onClick={onClose}>
-          Close Drawer
+          Close Modal
         </button>
       </div>
     ) : null,
@@ -488,7 +488,7 @@ describe("SecureVault", () => {
     });
   });
 
-  describe("ConnectDrawer — auto-lock degrade", () => {
+  describe("ConnectModal — auto-lock degrade", () => {
     const vaultKey = makeKey({
       id: "vault-key-1",
       name: "My Key",
@@ -508,9 +508,9 @@ describe("SecureVault", () => {
         };
     }
 
-    function renderConnectDrawer() {
+    function renderConnectModal() {
       return render(
-        <ConnectDrawer
+        <ConnectModal
           open
           onClose={vi.fn()}
           deviceUid="dev-1"
@@ -521,15 +521,15 @@ describe("SecureVault", () => {
       );
     }
 
-    it("shows locked UI and disables Connect when vault auto-locks while drawer is open", () => {
+    it("shows locked UI and disables Connect when vault auto-locks while modal is open", () => {
       setupConnectStore("unlocked", [vaultKey]);
-      const { rerender } = renderConnectDrawer();
+      const { rerender } = renderConnectModal();
 
       act(() => {
         setupConnectStore("locked", []);
       });
       rerender(
-        <ConnectDrawer
+        <ConnectModal
           open
           onClose={vi.fn()}
           deviceUid="dev-1"
@@ -544,13 +544,13 @@ describe("SecureVault", () => {
 
     it("hides key-selection UI when vault is locked", () => {
       setupConnectStore("unlocked", [vaultKey]);
-      const { rerender } = renderConnectDrawer();
+      const { rerender } = renderConnectModal();
 
       act(() => {
         setupConnectStore("locked", []);
       });
       rerender(
-        <ConnectDrawer
+        <ConnectModal
           open
           onClose={vi.fn()}
           deviceUid="dev-1"
@@ -569,7 +569,7 @@ describe("SecureVault", () => {
 
     it("does not crash when vault auto-locks while key auth mode is active", () => {
       setupConnectStore("unlocked", [vaultKey]);
-      const { rerender } = renderConnectDrawer();
+      const { rerender } = renderConnectModal();
 
       act(() => {
         setupConnectStore("locked", []);
@@ -577,7 +577,7 @@ describe("SecureVault", () => {
 
       expect(() =>
         rerender(
-          <ConnectDrawer
+          <ConnectModal
             open
             onClose={vi.fn()}
             deviceUid="dev-1"

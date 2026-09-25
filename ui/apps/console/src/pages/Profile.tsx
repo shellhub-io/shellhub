@@ -5,7 +5,7 @@ import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespaces } from "../hooks/useNamespaces";
 import PageHeader from "../components/common/PageHeader";
-import FormDrawer from "@/components/common/FormDrawer";
+import FormModal from "@/components/common/FormModal";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BaseDialog from "../components/common/BaseDialog";
 import CopyButton from "../components/common/CopyButton";
@@ -38,7 +38,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
+import MfaEnableModal from "../components/mfa/MfaEnableModal";
 import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
 import { isEnterpriseOrCloud } from "../env";
 import { Button } from "@shellhub/design-system/primitives";
@@ -226,7 +226,7 @@ function DeleteAccountWarningDialog({
  * Edits the signed-in user's own name, username and email. Changing the email starts a
  * re-confirmation, so the account keeps the old address until the new one is verified.
  */
-export function EditProfileDrawer({
+export function EditProfileModal({
   open,
   onClose,
   currentName,
@@ -293,7 +293,7 @@ export function EditProfileDrawer({
   };
 
   return (
-    <FormDrawer
+    <FormModal
       form={form}
       onSubmit={onValid}
       open={open}
@@ -356,11 +356,11 @@ export function EditProfileDrawer({
         hint="Optional. Used for account recovery if you lose access."
         onValueChange={() => clearErrors("root")}
       />
-    </FormDrawer>
+    </FormModal>
   );
 }
 
-function ChangePasswordDrawer({
+function ChangePasswordModal({
   open,
   onClose,
 }: {
@@ -402,7 +402,8 @@ function ChangePasswordDrawer({
   };
 
   return (
-    <FormDrawer
+    <FormModal
+      size="sm"
       form={form}
       onSubmit={onValid}
       open={open}
@@ -439,7 +440,7 @@ function ChangePasswordDrawer({
           Password changed successfully.
         </p>
       )}
-    </FormDrawer>
+    </FormModal>
   );
 }
 
@@ -459,8 +460,8 @@ export default function Profile() {
 
   const isSsoUser = origin === "saml";
 
-  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
-  const [pwDrawerOpen, setPwDrawerOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const isCloudEdition = isCloud();
@@ -476,7 +477,7 @@ export default function Profile() {
     return <PageLoader label="Loading profile" padding="lg" />;
   }
 
-  const openEdit = () => setEditDrawerOpen(true);
+  const openEdit = () => setEditModalOpen(true);
 
   return (
     <div>
@@ -569,7 +570,7 @@ export default function Profile() {
               >
                 <Button
                   variant="secondary"
-                  onClick={() => setPwDrawerOpen(true)}
+                  onClick={() => setPwModalOpen(true)}
                 >
                   Change Password
                 </Button>
@@ -655,17 +656,17 @@ export default function Profile() {
         </SettingsCard>
       </div>
 
-      <EditProfileDrawer
-        open={editDrawerOpen}
-        onClose={() => setEditDrawerOpen(false)}
+      <EditProfileModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
         currentName={name ?? ""}
         currentUsername={username ?? ""}
         currentEmail={email ?? ""}
         currentRecoveryEmail={recoveryEmail ?? ""}
       />
-      <ChangePasswordDrawer
-        open={pwDrawerOpen}
-        onClose={() => setPwDrawerOpen(false)}
+      <ChangePasswordModal
+        open={pwModalOpen}
+        onClose={() => setPwModalOpen(false)}
       />
       {isCloudEdition ? (
         <DeleteAccountDialog
@@ -680,7 +681,7 @@ export default function Profile() {
           isCommunity={isCommunityEdition}
         />
       )}
-      <MfaEnableDrawer
+      <MfaEnableModal
         open={mfaEnableOpen}
         onClose={() => setMfaEnableOpen(false)}
         onSuccess={() => {

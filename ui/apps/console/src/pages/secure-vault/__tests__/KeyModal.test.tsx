@@ -1,0 +1,435 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
+import KeyModal from "../KeyModal";
+import type { VaultKeyEntry } from "@/types/vault";
+
+vi.mock("@/stores/vaultStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/stores/vaultStore")>();
+  return {
+    ...actual,
+    useVaultStore: vi.fn(
+      (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state = (
+          useVaultStore as unknown as { _state: Record<string, unknown> }
+        )._state;
+        return selector ? selector(state) : state;
+      },
+    ),
+  };
+});
+
+vi.mock("@/utils/sshKeys", () => ({
+  validatePrivateKey: vi.fn(),
+  getFingerprint: vi.fn(),
+  getAlgorithm: vi.fn(),
+}));
+
+vi.mock("@/components/common/Modal", async () => ({
+  default: (await import("@/tests/mocks")).MockModal,
+}));
+
+vi.mock("@/components/common/fields/KeyFileInput", () => ({
+  default: ({
+    label,
+    id,
+    value,
+    onChange,
+    disabled,
+    error,
+  }: {
+    label: string;
+    id: string;
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+    error?: string | null;
+  }) => (
+    <div>
+      <label htmlFor={id}>{label}</label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        aria-invalid={!!error}
+      />
+      {error && <p role="alert">{error}</p>}
+    </div>
+  ),
+}));
+
+import {
+  validatePrivateKey,
+  getFingerprint,
+  getAlgorithm,
+} from "@/utils/sshKeys";
+
+const mockAddKey = vi.fn();
+const mockUpdateKey = vi.fn();
+
+const mockEntry: VaultKeyEntry = {
+  id: "key-1",
+  name: "Production Server",
+  data: "-----BEGIN OPENSSH PRIVATE KEY-----\nexisting\n-----END OPENSSH PRIVATE KEY-----",
+  hasPassphrase: false,
+  fingerprint: "aa:bb:cc:dd",
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+};
+
+const VALID_KEY =
+  "-----BEGIN OPENSSH PRIVATE KEY-----\nvalid\n-----END OPENSSH PRIVATE KEY-----";
+
+function setupStore() {
+  (useVaultStore as unknown as { _state: Record<string, unknown> })._state = {
+    addKey: mockAddKey,
+    updateKey: mockUpdateKey,
+  };
+}
+beforeEach(() => {
+  vi.clearAllMocks();
+  setupStore();
+
+  vi.mocked(validatePrivateKey).mockReturnValue({
+    valid: true,
+    encrypted: false,
+  });
+  vi.mocked(getFingerprint).mockReturnValue("aa:bb:cc:dd");
+  vi.mocked(getAlgorithm).mockReturnValue("Ed25519");
+});
+
+function renderModal(
+  overrides: Partial<{
+    open: boolean;
+    editKey: VaultKeyEntry | null;
+    onClose: () => void;
+  }> = {},
+) {
+  const defaults = { open: true, editKey: null, onClose: vi.fn() };
+  const props = { ...defaults, ...overrides };
+  return { onClose: props.onClose, ...render(<KeyModal {...props} />) };
+}
+
+async function fillName(name: string) {
+  await userEvent.type(screen.getByLabelText(/^name$/i), name);
+}
+
+async function fillKey(pem: string) {
+  await userEvent.type(screen.getByLabelText(/^private key$/i), pem);
+}
+
+describe("KeyModal", () => {
+  describe("rendering — add mode", () => {
+    it("renders the 'Add Private Key' title when editKey is null", () => {
+      renderModal();
+      expect(screen.getByText("Add Private Key")).toBeInTheDocument();
+    });
+
+    it("submit button is disabled when form is empty", () => {
+      renderModal();
+      expect(screen.getByRole("button", { name: /add key/i })).toBeDisabled();
+    });
+  });
+
+  describe("rendering — edit mode", () => {
+    it("renders the 'Edit Private Key' title", () => {
+      renderModal({ editKey: mockEntry });
+      expect(screen.getByText("Edit Private Key")).toBeInTheDocument();
+    });
+
+    it("pre-fills the name field with the entry name", () => {
+      renderModal({ editKey: mockEntry });
+      expect(screen.getByLabelText(/^name$/i)).toHaveValue("Production Server");
+    });
+
+    it("renders 'Save Changes' submit button", () => {
+      renderModal({ editKey: mockEntry });
+      expect(
+        screen.getByRole("button", { name: /save changes/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("key field is disabled in edit mode", () => {
+      renderModal({ editKey: mockEntry });
+      expect(screen.getByLabelText(/^private key$/i)).toBeDisabled();
+    });
+  });
+
+  describe("form state reset on open", () => {
+    it("clears fields when closed then reopened without editKey", () => {
+      const { rerender } = renderModal({ editKey: mockEntry });
+
+      rerender(<KeyModal open={false} editKey={null} onClose={vi.fn()} />);
+      rerender(<KeyModal open editKey={null} onClose={vi.fn()} />);
+
+      expect(screen.getByLabelText(/^name$/i)).toHaveValue("");
+    });
+  });
+
+  describe("name field validation", () => {
+    it("enables submit when both name and key are valid", async () => {
+      renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+
+      expect(
+        screen.getByRole("button", { name: /add key/i }),
+      ).not.toBeDisabled();
+    });
+
+    it("clears name error when the user starts typing again", async () => {
+      mockAddKey.mockRejectedValue(new DuplicateKeyError("name"));
+      renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/name is already used/i)).toBeInTheDocument();
+      });
+
+      await userEvent.type(screen.getByLabelText(/^name$/i), "X");
+      expect(
+        screen.queryByText(/name is already used/i),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("key validation", () => {
+    it("shows key error when key is invalid", async () => {
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: false,
+        error: "Invalid private key format.",
+      });
+
+      renderModal();
+      await fillKey("not-a-key");
+
+      expect(
+        screen.getByText(/invalid private key format/i),
+      ).toBeInTheDocument();
+    });
+
+    it("shows passphrase field when key is encrypted", async () => {
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
+
+      renderModal();
+      await fillKey(VALID_KEY);
+
+      expect(screen.getByLabelText(/passphrase/i)).toBeInTheDocument();
+    });
+
+    it("requires passphrase to be filled before enabling submit", async () => {
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
+
+      renderModal();
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+
+      expect(screen.getByRole("button", { name: /add key/i })).toBeDisabled();
+    });
+
+    it("enables submit after providing passphrase for encrypted key", async () => {
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
+
+      renderModal();
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.type(screen.getByLabelText(/passphrase/i), "secret");
+
+      expect(
+        screen.getByRole("button", { name: /add key/i }),
+      ).not.toBeDisabled();
+    });
+  });
+
+  describe("add flow", () => {
+    it("calls addKey with correct payload on submit", async () => {
+      mockAddKey.mockResolvedValue(undefined);
+      renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+      await waitFor(() => {
+        expect(mockAddKey).toHaveBeenCalledWith({
+          name: "My Key",
+          data: VALID_KEY,
+          hasPassphrase: false,
+          fingerprint: "aa:bb:cc:dd",
+          algorithm: "Ed25519",
+        });
+      });
+    });
+
+    it("calls onClose after successful add", async () => {
+      mockAddKey.mockResolvedValue(undefined);
+      const { onClose } = renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+      await waitFor(() => {
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("calls addKey with passphrase fingerprint for encrypted key", async () => {
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
+      vi.mocked(getFingerprint).mockReturnValue("ee:ff:00:11");
+      mockAddKey.mockResolvedValue(undefined);
+      renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.type(screen.getByLabelText(/passphrase/i), "secret");
+      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+      await waitFor(() => {
+        expect(getFingerprint).toHaveBeenCalledWith(VALID_KEY, "secret");
+        expect(mockAddKey).toHaveBeenCalledWith(
+          expect.objectContaining({
+            fingerprint: "ee:ff:00:11",
+            hasPassphrase: true,
+          }),
+        );
+      });
+    });
+  });
+
+  describe("edit flow", () => {
+    it("calls updateKey with the entry id and updated name on submit", async () => {
+      mockUpdateKey.mockResolvedValue(undefined);
+      renderModal({ editKey: mockEntry });
+
+      const nameInput = screen.getByLabelText(/^name$/i);
+      await userEvent.clear(nameInput);
+      await userEvent.type(nameInput, "Updated Name");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(mockUpdateKey).toHaveBeenCalledWith(
+          "key-1",
+          expect.objectContaining({ name: "Updated Name" }),
+        );
+      });
+    });
+
+    it("calls onClose after successful update", async () => {
+      mockUpdateKey.mockResolvedValue(undefined);
+      const { onClose } = renderModal({ editKey: mockEntry });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe("error states — duplicate key", () => {
+    const NAME_TAKEN = /name is already used/i;
+    const KEY_TAKEN = /private key is already stored/i;
+
+    it.each([
+      ["name", [NAME_TAKEN]],
+      ["private_key", [KEY_TAKEN]],
+      ["both", [NAME_TAKEN, KEY_TAKEN]],
+    ] as const)(
+      "DuplicateKeyError on '%s' marks the matching field",
+      async (field, messages) => {
+        mockAddKey.mockRejectedValue(new DuplicateKeyError(field));
+        renderModal();
+
+        await fillKey(VALID_KEY);
+        await fillName("My Key");
+        await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+        await waitFor(() => {
+          messages.forEach((message) => {
+            expect(screen.getByText(message)).toBeInTheDocument();
+          });
+        });
+      },
+    );
+  });
+
+  describe("error states — generic error", () => {
+    it("shows a generic error message on unexpected failure", async () => {
+      mockAddKey.mockRejectedValue(new Error("Network error"));
+      renderModal();
+
+      await fillKey(VALID_KEY);
+      await fillName("My Key");
+      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/network error/i)).toBeInTheDocument();
+      });
+    });
+
+    it.each([
+      [true, "KeyParseError", /incorrect passphrase/i],
+      [true, "Error", /could not decrypt key/i],
+      [false, "Error", /failed to read private key/i],
+    ] as const)(
+      "encrypted=%s with a %s from getFingerprint reports '%s'",
+      async (encrypted, errorName, message) => {
+        vi.mocked(validatePrivateKey).mockReturnValue({
+          valid: true,
+          encrypted,
+        });
+        vi.mocked(getFingerprint).mockImplementation(() => {
+          throw Object.assign(new Error("Unreadable"), { name: errorName });
+        });
+
+        renderModal();
+        await fillKey(VALID_KEY);
+        await fillName("My Key");
+        if (encrypted) {
+          await userEvent.type(
+            screen.getByLabelText(/passphrase/i),
+            "wrongpass",
+          );
+        }
+        await userEvent.click(screen.getByRole("button", { name: /add key/i }));
+
+        await waitFor(() => {
+          expect(screen.getByText(message)).toBeInTheDocument();
+        });
+      },
+    );
+  });
+
+  describe("cancel", () => {
+    it("calls onClose when Cancel is clicked", async () => {
+      const { onClose } = renderModal();
+
+      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+});

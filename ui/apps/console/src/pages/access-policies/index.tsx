@@ -36,7 +36,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
 import { formatRelative } from "@/utils/date";
-import AccessPolicyDrawer from "./AccessPolicyDrawer";
+import AccessPolicyModal from "./AccessPolicyModal";
 
 const CHIP_TONE = {
   neutral: "bg-card text-text-secondary border border-border",
@@ -235,7 +235,7 @@ export default function AccessPolicies() {
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members });
   const deletePolicy = useDeleteAccessPolicy();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccessPolicy | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -265,14 +265,14 @@ export default function AccessPolicies() {
 
   const openNew = () => {
     setEditTarget(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
   const openEdit = (policy: AccessPolicy) => {
     setEditTarget(policy);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditTarget(null);
   };
 
@@ -423,10 +423,10 @@ export default function AccessPolicies() {
           </RestrictedAction>
         </EmptyState>
 
-        <AccessPolicyDrawer
-          open={drawerOpen}
+        <AccessPolicyModal
+          open={modalOpen}
           editPolicy={editTarget}
-          onClose={closeDrawer}
+          onClose={closeModal}
         />
       </>
     );
@@ -471,10 +471,10 @@ export default function AccessPolicies() {
         rowClassName={() => "cursor-pointer"}
       />
 
-      <AccessPolicyDrawer
-        open={drawerOpen}
+      <AccessPolicyModal
+        open={modalOpen}
         editPolicy={editTarget}
-        onClose={closeDrawer}
+        onClose={closeModal}
       />
 
       <ConfirmDialog

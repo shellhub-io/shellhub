@@ -1,0 +1,501 @@
+import { useState, FormEvent, useEffect, useRef } from "react";
+import {
+  ShieldCheckIcon,
+  CheckCircleIcon,
+  EnvelopeIcon,
+} from "@heroicons/react/24/outline";
+import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
+import Modal from "../common/Modal";
+import CheckboxField from "@/components/common/fields/CheckboxField";
+import { QRCodeDisplay } from "./QRCodeDisplay";
+import { generateMfa, enableMfa, updateUser } from "@/client";
+import { isSdkError } from "@/api/errors";
+import { useOtpInput } from "@/hooks/useOtpInput";
+import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
+interface MfaEnableModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  currentRecoveryEmail: string | null;
+}
+
+type Step = 1 | 2 | 3 | 4;
+
+/**
+ * Sets MFA up: the secret, the QR code, a verifying code, and the recovery codes. The recovery
+ * codes are shown once, at the end, and the flow must not be completable without passing them.
+ */
+export default function MfaEnableModal({
+  open,
+  onClose,
+  onSuccess,
+  currentRecoveryEmail,
+}: MfaEnableModalProps) {
+  const [step, setStep] = useState<Step>(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [userWantsNewEmail, setUserWantsNewEmail] = useState(false);
+  const showRecoveryEmailInput = !currentRecoveryEmail || userWantsNewEmail;
+
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [codesSaved, setCodesSaved] = useState(false);
+
+  const [qrLink, setQrLink] = useState("");
+  const [secret, setSecret] = useState("");
+  const otp = useOtpInput(6);
+  const { handleDownload, handleCopy } = useRecoveryCodeActions();
+
+  const handleConfirmExistingEmail = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await handleGenerateMfa();
+      setStep(2);
+    } catch {
+      setError("Failed to generate MFA codes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveRecoveryEmail = async (e?: FormEvent) => {
+    e?.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await updateUser({
+        body: { recovery_email: recoveryEmail },
+        throwOnError: true,
+      });
+      await handleGenerateMfa();
+      setStep(2);
+    } catch (err) {
+      setError(
+        isSdkError(err) && err.status === 409
+          ? "Email already in use"
+          : "Failed to save recovery email",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateMfa = async () => {
+    try {
+      const { data } = await generateMfa({ throwOnError: true });
+      setQrLink(data.link);
+      setSecret(data.secret);
+      setRecoveryCodes(data.recovery_codes);
+    } catch (error) {
+      setError("Failed to generate MFA codes");
+      throw error; // Re-throw so callers know it failed
+    }
+  };
+
+  const handleNextToQr = async () => {
+    if (!codesSaved) return;
+    setError("");
+
+    if (!qrLink) {
+      setLoading(true);
+      try {
+        await handleGenerateMfa();
+        setStep(3);
+      } catch {
+        setError("Failed to generate QR code");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setStep(3);
+    }
+  };
+
+  const handleEnableMfa = async (e?: FormEvent) => {
+    e?.preventDefault();
+    if (!otp.isComplete) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+      await enableMfa({
+        body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes },
+        throwOnError: true,
+      });
+      setStep(4);
+    } catch {
+      setError("Invalid verification code");
+      otp.reset();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleClose = (): void => {
+    onClose();
+    timeoutRef.current = setTimeout(() => {
+      setStep(1);
+      setRecoveryEmail("");
+      setUserWantsNewEmail(false);
+      setRecoveryCodes([]);
+      setCodesSaved(false);
+      setQrLink("");
+      setSecret("");
+      otp.reset();
+      setError("");
+    }, 300);
+  };
+
+  const handleDone = (): void => {
+    onSuccess();
+    handleClose();
+  };
+
+  const isCodeComplete = otp.isComplete;
+
+  return (
+    <Modal
+      size="lg"
+      open={open}
+      onClose={handleClose}
+      title="Enable MFA"
+      subtitle="Secure your account with two-factor authentication"
+      icon={<ShieldCheckIcon className="w-5 h-5 text-primary" />}
+      footer={
+        step === 1 ? (
+          <>
+            <Button variant="ghost" onClick={handleClose}>
+              Cancel
+            </Button>
+            {showRecoveryEmailInput ? (
+              <Button
+                onClick={() => void handleSaveRecoveryEmail()}
+                disabled={!recoveryEmail.trim()}
+                loading={loading}
+              >
+                Save & Continue
+              </Button>
+            ) : (
+              <Button
+                onClick={() => void handleConfirmExistingEmail()}
+                loading={loading}
+              >
+                Continue
+              </Button>
+            )}
+          </>
+        ) : step === 2 ? (
+          <>
+            <Button variant="ghost" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleNextToQr()}
+              disabled={!codesSaved || recoveryCodes.length === 0}
+              loading={loading}
+            >
+              Next Step
+            </Button>
+          </>
+        ) : step === 3 ? (
+          <>
+            <Button variant="ghost" onClick={() => setStep(2)}>
+              Back
+            </Button>
+            <Button
+              onClick={() => void handleEnableMfa()}
+              disabled={!isCodeComplete || !qrLink || !secret}
+              loading={loading}
+            >
+              Verify & Enable
+            </Button>
+          </>
+        ) : (
+          <Button onClick={handleDone}>Done</Button>
+        )
+      }
+    >
+      <div className="space-y-5">
+        {error && <Callout variant="error">{error}</Callout>}
+
+        {/* Step 1: Recovery Email */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary mb-2">
+                Step 1:{" "}
+                {showRecoveryEmailInput
+                  ? "Set Recovery Email"
+                  : "Confirm Recovery Email"}
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed mb-4">
+                {showRecoveryEmailInput
+                  ? "This email will be used to recover your account if you lose access to your authenticator device."
+                  : "Continue enabling MFA with your current recovery email, or change it below."}
+              </p>
+            </div>
+
+            {showRecoveryEmailInput ? (
+              <div>
+                <label
+                  htmlFor="enable-mfa-recovery-email"
+                  className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
+                >
+                  Recovery Email
+                </label>
+                <input
+                  id="enable-mfa-recovery-email"
+                  type="email"
+                  value={recoveryEmail}
+                  onChange={(e) => setRecoveryEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                  placeholder="recovery@example.com"
+                />
+                <p className="text-2xs text-text-muted mt-1.5">
+                  Must be different from your main email address
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-surface border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <IconBadge size="md">
+                      <EnvelopeIcon className="w-5 h-5 text-primary" />
+                    </IconBadge>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1">
+                        Current Recovery Email
+                      </p>
+                      <p className="text-sm font-mono text-text-primary truncate">
+                        {currentRecoveryEmail}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setUserWantsNewEmail(true)}
+                >
+                  Use a different recovery email
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 2: Save Recovery Codes */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary mb-2">
+                Step 2: Save Recovery Codes
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed mb-4">
+                Save these codes in a secure location. You'll need them to
+                recover access if you lose your authenticator device.
+              </p>
+            </div>
+
+            <div className="bg-background border border-border rounded-lg p-4">
+              {recoveryCodes.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {recoveryCodes.map((code, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-2 bg-surface border border-border rounded text-xs font-mono text-text-primary text-center"
+                      >
+                        {code}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => void handleDownload(recoveryCodes)}
+                      className="flex-1"
+                    >
+                      Download
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => void handleCopy(recoveryCodes)}
+                      className="flex-1"
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-text-muted">
+                    Recovery codes failed to generate. Please close and try
+                    again.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg p-3">
+              <p className="text-2xs text-text-muted leading-relaxed">
+                <span className="font-semibold text-accent-yellow">
+                  Important:
+                </span>{" "}
+                Each recovery code can only be used once. Store them securely —
+                you won't be able to see them again.
+              </p>
+            </div>
+
+            <CheckboxField
+              id="mfa-enable-codes-saved"
+              label="I have saved my recovery codes in a secure location"
+              checked={codesSaved}
+              onChange={setCodesSaved}
+            />
+          </div>
+        )}
+
+        {/* Step 3: QR Code + Verification */}
+        {step === 3 && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary mb-2">
+                Step 3: Scan QR Code
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed mb-4">
+                Scan this QR code with your authenticator app (Google
+                Authenticator, Authy, etc.) and enter the 6-digit code to
+                verify.
+              </p>
+            </div>
+
+            <div className="bg-background border border-border rounded-lg p-4 space-y-4">
+              {qrLink && secret ? (
+                <>
+                  <div className="flex justify-center">
+                    <QRCodeDisplay data={qrLink} size={180} />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="enable-mfa-manual-key"
+                      className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
+                    >
+                      Manual Entry Key
+                    </label>
+                    <input
+                      id="enable-mfa-manual-key"
+                      type="text"
+                      value={secret}
+                      readOnly
+                      className="w-full px-3 py-2 bg-surface border border-border rounded text-xs font-mono text-text-primary text-center select-all"
+                    />
+                    <p className="text-2xs text-text-muted mt-1.5">
+                      Use this key if you can't scan the QR code
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-text-muted">
+                    QR code failed to generate. Please go back and try again.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
+                Verification Code
+              </p>
+              <div
+                className="flex gap-2 justify-center"
+                role="group"
+                aria-label="Verification Code"
+              >
+                {otp.code.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      (otp.inputRefs.current[index] = el);
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => otp.handleChange(index, e.target.value)}
+                    onKeyDown={(e) => otp.handleKeyDown(index, e)}
+                    aria-label={`Digit ${index + 1}`}
+                    className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Success */}
+        {step === 4 && (
+          <div className="text-center py-8 space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-green/15 border border-accent-green/25">
+              <CheckCircleIcon className="w-8 h-8 text-accent-green" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-text-primary mb-2">
+                MFA Enabled Successfully!
+              </h3>
+              <p className="text-sm text-text-muted leading-relaxed max-w-sm mx-auto">
+                Your account is now protected with two-factor authentication.
+              </p>
+            </div>
+
+            <div className="bg-surface border border-border rounded-lg p-4 text-left space-y-2">
+              <p className="text-xs font-semibold text-text-primary">
+                What's next?
+              </p>
+              <ul className="space-y-1.5 text-xs text-text-muted">
+                <li className="flex items-start gap-2">
+                  <span className="text-accent-green mt-0.5">•</span>
+                  <span>
+                    You'll be prompted for a code from your authenticator app at
+                    every login
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent-green mt-0.5">•</span>
+                  <span>
+                    Keep your recovery codes safe — they're your backup access
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent-green mt-0.5">•</span>
+                  <span>
+                    To regenerate recovery codes, disable MFA and re-enable it
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}

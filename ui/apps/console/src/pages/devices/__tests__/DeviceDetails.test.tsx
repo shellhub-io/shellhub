@@ -27,7 +27,7 @@ vi.mock("@/components/common/PlatformBadge", () => ({
   default: ({ platform }: { platform: string }) => <span>{platform}</span>,
 }));
 
-vi.mock("@/components/ConnectDrawer", () => ({
+vi.mock("@/components/ConnectModal", () => ({
   default: () => <div />,
 }));
 

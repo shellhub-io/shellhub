@@ -9,7 +9,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockPublicKey } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../KeyDrawer", () => ({
+vi.mock("../KeyModal", () => ({
   default: () => null,
 }));
 
