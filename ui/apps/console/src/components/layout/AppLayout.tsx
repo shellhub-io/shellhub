@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import Sidebar from "./Sidebar";
@@ -23,6 +24,7 @@ import {
   useTerminalStore,
 } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
+import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useScrollEdges } from "@/hooks/useScrollEdges";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
@@ -37,6 +39,10 @@ import { isAdminPath } from "@/utils/adminRoute";
  */
 export default function AppLayout() {
   const { pathname } = useLocation();
+  const loadTerminalThemes = useTerminalThemeStore((s) => s.loadThemes);
+  useEffect(() => {
+    void loadTerminalThemes();
+  }, [loadTerminalThemes]);
   const { namespaces } = useNamespaces();
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),

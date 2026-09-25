@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
@@ -40,12 +39,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
     setTheme,
     setFontFamily,
     setFontSize,
-    loadThemes,
   } = useTerminalThemeStore();
-
-  useEffect(() => {
-    if (open) void loadThemes();
-  }, [open, loadThemes]);
 
   return (
     <Drawer
