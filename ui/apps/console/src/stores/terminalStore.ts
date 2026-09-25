@@ -48,7 +48,7 @@ interface TerminalState {
   reconnectTarget: ReconnectTarget | null;
   restoreAfterNavigation: string | null;
   setRestoreAfterNavigation: (id: string | null) => void;
-  restorePending: () => boolean;
+  dockPendingRestore: () => boolean;
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
   ) => void;
@@ -86,7 +86,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   setRestoreAfterNavigation: (id) => set({ restoreAfterNavigation: id }),
 
-  restorePending: () => {
+  dockPendingRestore: () => {
     const pending = get().restoreAfterNavigation;
     if (!pending) return false;
     set((state) => ({
