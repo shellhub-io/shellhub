@@ -43,25 +43,27 @@ export function useWorkspaceTabs() {
     { restoreSession }: { restoreSession?: string } = {},
   ): Promise<boolean> => {
     const tabsStore = useWorkspaceTabsStore.getState();
+    const land = () => {
+      const terminals = useTerminalStore.getState();
+      if (restoreSession) terminals.setRestoreAfterNavigation(restoreSession);
+      else terminals.minimizeAll();
+      if (tab.path === pathname && terminals.restorePending()) return;
+      void navigate(tab.path);
+    };
     if (
       tab.kind === "namespace" &&
       tab.tenant !== useAuthStore.getState().tenant
     ) {
       try {
-        await enterNamespace.mutateAsync(tab.tenant);
+        await enterNamespace.mutateAsync({ tenantId: tab.tenant, land });
       } catch (error) {
         tabsStore.fail(tab.id, apiErrorMessage(error));
         return false;
       }
+    } else {
+      land();
     }
     tabsStore.clearFailure(tab.id);
-
-    const terminals = useTerminalStore.getState();
-    if (restoreSession) terminals.setRestoreAfterNavigation(restoreSession);
-    else terminals.minimizeAll();
-    if (tab.path !== pathname || !terminals.restorePending()) {
-      await navigate(tab.path);
-    }
     return true;
   };
 

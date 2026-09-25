@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 import {
   editNamespaceMutation,
   setSshAccessModeMutation,
-  getNamespaceToken,
   createNamespace as createNamespaceSdk,
   deleteNamespace as deleteNamespaceSdk,
   leaveNamespace as leaveNamespaceSdk,
 } from "../client";
+import { getNamespaceTokenOptions } from "../client/@tanstack/react-query.gen";
 import { useAuthStore } from "../stores/authStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { consumePendingDeviceCode } from "@/utils/navigation";
@@ -46,14 +46,24 @@ const KEPT_ACROSS_NAMESPACES = new Set([
   "getNamespaceToken",
 ]);
 
+const isNamespaceList = (queryKey: readonly unknown[]) =>
+  NAMESPACE_LIST_QUERIES.has(queryOperationId(queryKey) ?? "");
+
 async function enterNamespace(
   queryClient: QueryClient,
   tenantId: string,
-): Promise<{ refreshed: Promise<void> }> {
-  const { data } = await getNamespaceToken({
-    path: { tenant: tenantId },
-    throwOnError: true,
+  { land, freshList = false }: { land: () => void; freshList?: boolean },
+) {
+  const data = await queryClient.fetchQuery({
+    ...getNamespaceTokenOptions({ path: { tenant: tenantId } }),
+    staleTime: 0,
+    retry: false,
   });
+  if (freshList) {
+    await queryClient.refetchQueries({
+      predicate: (query) => isNamespaceList(query.queryKey),
+    });
+  }
   const leaving = useAuthStore.getState().tenant !== tenantId;
   if (leaving) useVaultStore.getState().lock();
   useAuthStore.getState().setSession({
@@ -66,53 +76,55 @@ async function enterNamespace(
     predicate: (query) =>
       !KEPT_ACROSS_NAMESPACES.has(queryOperationId(query.queryKey) ?? ""),
   });
-  const refreshed = queryClient.invalidateQueries({
-    predicate: (query) =>
-      NAMESPACE_LIST_QUERIES.has(queryOperationId(query.queryKey) ?? ""),
-  });
-  return { refreshed };
+  land();
+  if (!freshList) {
+    void queryClient.invalidateQueries({
+      predicate: (query) => isNamespaceList(query.queryKey),
+    });
+  }
 }
 
 /**
- * Makes a namespace the active one in place, without leaving the page: it re-issues the token and
- * drops what was cached for the namespace being left, since those keys do not carry the tenant.
- * The vault is locked first: each namespace has its own, and the unlocked key of the one being
- * left must not encrypt the next one's keys. Its state is then read again for the namespace
- * entered, which may have no vault at all. Re-entering the namespace already active leaves its
- * vault as it is.
- * The namespace list is refreshed rather than dropped, because dropping it would send
- * NamespaceGuard back to its loading screen and unmount the layout, open terminals included.
- * That refresh runs in the background, so the switch lands as soon as the token does. Rejects,
- * leaving the session as it was, when the token cannot be issued.
+ * Makes a namespace the active one in place, without leaving the page. It re-issues the token,
+ * locks the vault (each namespace has its own, and the key of the one being left must not
+ * encrypt the next one's), swaps the session, reads the state of the next namespace's vault and
+ * drops what was cached for the namespace being left, whose keys do not carry the tenant. land
+ * runs in the same tick as the swap, so a caller that navigates there renders the new
+ * namespace's page with its session at once, and the old page never refetches under the new
+ * token. The token lands in the query cache too, where NamespaceGuard's role lookup reads it
+ * instead of asking again. The namespace list is refreshed in the background rather than
+ * dropped, because dropping it would send NamespaceGuard back to its loading screen and unmount
+ * the layout, open terminals included. Re-entering the namespace already active leaves its vault
+ * as it is. Rejects, leaving the session as it was, when the token cannot be issued.
  */
 export function useEnterNamespace() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (tenantId: string) => {
-      await enterNamespace(queryClient, tenantId);
-    },
+    mutationFn: ({ tenantId, land }: { tenantId: string; land: () => void }) =>
+      enterNamespace(queryClient, tenantId, { land }),
   });
 }
 
 /**
- * Enters a namespace, as useEnterNamespace does, and lands on redirectTo once the namespace list
- * is fresh: a namespace just joined has to be in it before NamespaceGuard looks.
+ * Enters a namespace, as useEnterNamespace does, and lands on redirectTo. The namespace list is
+ * refreshed before rather than after: a namespace just joined has to be in it before
+ * NamespaceGuard looks.
  */
 export function useSwitchNamespace() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       tenantId,
       redirectTo,
     }: {
       tenantId: string;
       redirectTo?: string;
-    }) => {
-      const { refreshed } = await enterNamespace(queryClient, tenantId);
-      await refreshed;
-      await navigate(redirectTo ?? "/dashboard");
-    },
+    }) =>
+      enterNamespace(queryClient, tenantId, {
+        freshList: true,
+        land: () => void navigate(redirectTo ?? "/dashboard"),
+      }),
   });
 }
 
@@ -128,14 +140,16 @@ export function useCreateNamespace() {
         body: { name },
         throwOnError: true,
       });
-      const { refreshed } = await enterNamespace(queryClient, ns.tenant_id);
-      await refreshed;
       const pendingCode = consumePendingDeviceCode();
-      await navigate(
-        pendingCode
-          ? `/accept-device?code=${encodeURIComponent(pendingCode)}`
-          : "/dashboard",
-      );
+      await enterNamespace(queryClient, ns.tenant_id, {
+        freshList: true,
+        land: () =>
+          void navigate(
+            pendingCode
+              ? `/accept-device?code=${encodeURIComponent(pendingCode)}`
+              : "/dashboard",
+          ),
+      });
     },
   });
 }
