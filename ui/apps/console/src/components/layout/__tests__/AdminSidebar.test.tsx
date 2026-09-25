@@ -38,7 +38,7 @@ const mockGetConfig = vi.mocked(getConfig);
 function renderSidebar() {
   return render(
     <MemoryRouter>
-      <AdminSidebar expanded={true} pinned={true} onToggle={vi.fn()} />
+      <AdminSidebar expanded />
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );

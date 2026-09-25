@@ -9,6 +9,7 @@ interface PaletteHeaderProps {
   query: string;
   drillDevice: NormalizedDevice | null;
   commandMode: boolean;
+  adminContext: boolean;
   hasResults: boolean;
   activeOptionId: string | undefined;
   onQueryChange: (value: string) => void;
@@ -23,6 +24,7 @@ export default function PaletteHeader({
   query,
   drillDevice,
   commandMode,
+  adminContext,
   hasResults,
   activeOptionId,
   onQueryChange,
@@ -53,7 +55,10 @@ export default function PaletteHeader({
       ) : (
         <>
           <span
-            className={cn("shrink-0", commandMode ? "text-primary" : "text-text-muted")}
+            className={cn(
+              "shrink-0",
+              commandMode ? "text-primary" : "text-text-muted",
+            )}
             aria-hidden="true"
           >
             {commandMode ? icons.command : icons.search}
@@ -77,7 +82,9 @@ export default function PaletteHeader({
             ? `Search actions for ${drillDevice.name}`
             : commandMode
               ? "Search commands"
-              : "Search devices to connect, or type > for commands"
+              : adminContext
+                ? "Search sessions and namespaces, or type > for commands"
+                : "Search devices, sessions and namespaces, or type > for commands"
         }
         aria-expanded
         aria-controls={hasResults ? LISTBOX_ID : undefined}
@@ -91,7 +98,9 @@ export default function PaletteHeader({
             ? "Search actions…"
             : commandMode
               ? "Search commands…"
-              : "Search devices to connect…"
+              : adminContext
+                ? "Search sessions, namespaces…"
+                : "Search devices, sessions, namespaces…"
         }
         className="flex-1 h-12 bg-transparent text-sm text-text-primary placeholder:text-text-secondary focus:outline-none"
       />

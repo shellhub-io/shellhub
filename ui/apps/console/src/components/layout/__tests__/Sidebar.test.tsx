@@ -33,7 +33,7 @@ beforeEach(() => {
 function renderSidebar() {
   return render(
     <MemoryRouter>
-      <Sidebar expanded pinned={false} onToggle={vi.fn()} />
+      <Sidebar expanded />
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );

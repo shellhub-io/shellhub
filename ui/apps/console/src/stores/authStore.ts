@@ -14,6 +14,7 @@ import { queryClient } from "../api/queryClient";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
 import { useTerminalStore } from "./terminalStore";
+import { useWorkspaceTabsStore } from "./workspaceTabsStore";
 import { setRecordingsScope } from "../utils/recordings";
 
 interface AuthState {
@@ -158,6 +159,7 @@ export const useAuthStore = create<AuthState>()(
         useVaultStore.getState().lock();
         const terminal = useTerminalStore.getState();
         terminal.sessions.forEach((s) => terminal.close(s.id));
+        useWorkspaceTabsStore.getState().clear();
         set(initialState);
         localStorage.removeItem("shellhub-session");
         queryClient.clear();

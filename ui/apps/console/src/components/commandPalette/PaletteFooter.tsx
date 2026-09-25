@@ -32,7 +32,7 @@ export default function PaletteFooter({
       <KeyHint keys={["↑", "↓"]} label="navigate" />
       <KeyHint
         keys={["↵"]}
-        label={drillDevice || commandMode ? "select" : "connect"}
+        label={drillDevice || commandMode ? "select" : "open"}
       />
       {!drillDevice && !commandMode && <KeyHint keys={["→"]} label="actions" />}
       {drillDevice && <KeyHint keys={["←"]} label="back" />}

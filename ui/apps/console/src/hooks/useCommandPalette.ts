@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDevices } from "@/hooks/useDevices";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
+import { useCreateNamespaceStore } from "@/stores/createNamespaceStore";
+import { adminNavLinks, useAdminNav } from "@/components/layout/adminNav";
 import {
   useRecentDevicesStore,
   type RecentDevice,
 } from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
+import { isEnterpriseOrCloud } from "@/env";
 import { useCopy } from "@/hooks/useCopy";
+import { isAdminPath } from "@/utils/adminRoute";
 import {
   buildConnectionItems,
+  buildWorkspaceItems,
+  buildAdminItems,
   buildCommandItems,
   buildDeviceActionItems,
   fuzzyMatch,
@@ -37,6 +44,7 @@ export interface CommandPaletteViewModel {
   query: string;
   drillDevice: NormalizedDevice | null;
   commandMode: boolean;
+  adminContext: boolean;
   sections: Map<string, CommandItem[]>;
   hasResults: boolean;
   indexById: Map<string, number>;
@@ -59,6 +67,7 @@ export interface CommandPaletteViewModel {
 export function useCommandPalette(): CommandPaletteViewModel {
   const open = useCommandPaletteStore((s) => s.open);
   const closePalette = useCommandPaletteStore((s) => s.closePalette);
+  const openCreateNamespace = useCreateNamespaceStore((s) => s.openDialog);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [drillInUid, setDrillInUid] = useState<string | null>(null);
@@ -67,6 +76,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const adminContext = isAdminPath(useLocation().pathname);
 
   const { devices } = useDevices({ page: 1, perPage: 50, status: "accepted" });
   const terminalSessions = useTerminalStore((s) => s.sessions);
@@ -75,6 +85,10 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("device:connect");
   const { namespace } = useNamespace(tenant ?? "");
+  const { namespaces } = useNamespaces();
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const workspace = useWorkspaceTabs();
+  const adminNav = useAdminNav({ active: adminContext });
   const nsName = namespace?.name ?? "";
   const { copy } = useCopy();
   const recentEntries = useRecentDevicesStore(
@@ -105,76 +119,72 @@ export function useCommandPalette(): CommandPaletteViewModel {
     closePalette();
   }, [closePalette]);
 
-  const go = useCallback(
-    (path: string) => {
-      close();
-      void navigate(path);
-    },
-    [close, navigate],
-  );
+  const go = (path: string) => {
+    close();
+    void navigate(path);
+  };
 
-  const onLogout = useCallback(() => {
+  const onLogout = () => {
     close();
     logout();
     void navigate("/login");
-  }, [close, logout, navigate]);
+  };
 
-  const rejectRow = useCallback((rowId: string, message: string) => {
+  const rejectRow = (rowId: string, message: string) => {
     setFeedback({ kind: "error", text: message });
     setShakeId(rowId);
-  }, []);
+  };
 
-  const copyAction = useCallback(
-    (value: string, label: string) => {
-      copy(value);
-      setFeedback({ kind: "success", text: `Copied ${label} to clipboard` });
-    },
-    [copy],
-  );
+  const copyAction = (value: string, label: string) => {
+    copy(value);
+    setFeedback({ kind: "success", text: `Copied ${label} to clipboard` });
+  };
 
-  const enterDrillIn = useCallback((uid: string) => {
+  const enterDrillIn = (uid: string) => {
     setDrillInUid(uid);
     setQuery("");
     setActiveIndex(0);
     setFeedback(null);
     setShakeId(null);
-  }, []);
+  };
 
-  const exitDrillIn = useCallback(() => {
+  const exitDrillIn = () => {
     setDrillInUid(null);
     setQuery("");
     setActiveIndex(0);
     setFeedback(null);
     setShakeId(null);
-  }, []);
+  };
 
-  const handleDismiss = useCallback(() => {
+  const handleDismiss = () => {
     if (isDrilledIn) exitDrillIn();
     else close();
-  }, [isDrilledIn, exitDrillIn, close]);
+  };
 
-  const connectOrRestore = useCallback(
-    (uid: string, name: string, online: boolean, rowId: string) => {
-      if (!canConnect) {
-        rejectRow(rowId, NO_CONNECT_PERMISSION);
-        return;
-      }
-      const store = useTerminalStore.getState();
-      const existing = store.sessions.find((s) => s.deviceUid === uid);
-      if (existing) {
-        close();
-        store.restore(existing.id);
-        return;
-      }
-      if (!online) {
-        rejectRow(rowId, `${name} is offline — start it to connect`);
-        return;
-      }
+  const connectOrRestore = (
+    uid: string,
+    name: string,
+    online: boolean,
+    rowId: string,
+  ) => {
+    if (!canConnect) {
+      rejectRow(rowId, NO_CONNECT_PERMISSION);
+      return;
+    }
+    const store = useTerminalStore.getState();
+    const existing = store.sessions.find((s) => s.deviceUid === uid);
+    if (existing) {
       close();
-      store.requestConnect(uid, name);
-    },
-    [canConnect, rejectRow, close],
-  );
+      store.restore(existing.id);
+      return;
+    }
+    if (!online) {
+      rejectRow(rowId, `${name} is offline — start it to connect`);
+      return;
+    }
+    close();
+    store.requestConnect(uid, name);
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -189,80 +199,62 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => window.removeEventListener("keydown", handler);
   }, [close]);
 
-  const recentDevices = useMemo(() => {
-    const openUids = new Set(terminalSessions.map((s) => s.deviceUid));
-    const resolved: { device: NormalizedDevice; connectedAt: string }[] = [];
-    for (const entry of recentEntries) {
-      if (openUids.has(entry.uid)) continue;
-      const device = devices.find((d) => d.uid === entry.uid);
-      if (!device) continue;
-      resolved.push({ device, connectedAt: entry.connectedAt });
-      if (resolved.length >= RECENT_LIMIT) break;
-    }
-    return resolved;
-  }, [recentEntries, devices, terminalSessions]);
+  const openUids = new Set(terminalSessions.map((s) => s.deviceUid));
+  const recentDevices: { device: NormalizedDevice; connectedAt: string }[] = [];
+  for (const entry of recentEntries) {
+    if (openUids.has(entry.uid)) continue;
+    const device = devices.find((d) => d.uid === entry.uid);
+    if (!device) continue;
+    recentDevices.push({ device, connectedAt: entry.connectedAt });
+    if (recentDevices.length >= RECENT_LIMIT) break;
+  }
 
-  const connectionItems = useMemo(
-    () =>
-      buildConnectionItems({
-        devices,
-        terminalSessions,
-        recentDevices,
-        canConnect,
-        connectOrRestore,
-        restoreTerminal,
-        rejectRow,
-        enterDrillIn,
-        close,
-      }),
-    [
-      devices,
+  const connectionItems = [
+    ...buildConnectionItems({
+      devices: adminContext ? [] : devices,
       terminalSessions,
-      recentDevices,
+      recentDevices: adminContext ? [] : recentDevices,
       canConnect,
       connectOrRestore,
       restoreTerminal,
       rejectRow,
       enterDrillIn,
       close,
-    ],
-  );
+    }),
+    ...buildWorkspaceItems({
+      namespaces,
+      currentTenant: tenant,
+      showAdmin: isEnterpriseOrCloud() && isAdmin,
+      openNamespace: (namespaceTenant, name) =>
+        void workspace.openNamespace(namespaceTenant, name),
+      openAdmin: () => void workspace.openAdmin(),
+      createNamespace: openCreateNamespace,
+      close,
+    }),
+  ];
 
-  const commandItems = useMemo(
-    () =>
-      buildCommandItems({
-        go,
-        onLogout,
-        isIdentityMode: namespace?.settings?.ssh_access_mode === "identity",
-      }),
-    [go, onLogout, namespace?.settings?.ssh_access_mode],
-  );
+  const commandItems = buildCommandItems({
+    go,
+    onLogout,
+    isIdentityMode: namespace?.settings?.ssh_access_mode === "identity",
+    pages: adminContext
+      ? buildAdminItems({ links: adminNavLinks(adminNav.entries), go })
+      : undefined,
+  });
 
   const hasOpenSession = drillDevice
     ? terminalSessions.some((s) => s.deviceUid === drillDevice.uid)
     : false;
 
-  const deviceActionItems = useMemo(
-    () =>
-      buildDeviceActionItems({
-        drillDevice,
-        nsName,
-        canConnect,
-        hasOpenSession,
-        connectOrRestore,
-        copyAction,
-        go,
-      }),
-    [
-      drillDevice,
-      nsName,
-      canConnect,
-      hasOpenSession,
-      connectOrRestore,
-      copyAction,
-      go,
-    ],
-  );
+  const deviceActionItems = buildDeviceActionItems({
+    drillDevice,
+    nsName,
+    canConnect,
+    hasOpenSession,
+    connectOrRestore,
+    copyAction,
+    go,
+  });
 
   const trimmedQuery = query.trimStart();
   const commandMode = !drillDevice && trimmedQuery.startsWith(">");
@@ -273,37 +265,24 @@ export function useCommandPalette(): CommandPaletteViewModel {
       ? commandItems
       : connectionItems;
 
-  const filtered = useMemo(() => {
-    if (!term) return activeItems;
-    return activeItems.filter(
-      (item) =>
-        fuzzyMatch(term, item.label) ||
-        (item.sublabel && fuzzyMatch(term, item.sublabel)) ||
-        fuzzyMatch(term, item.section),
-    );
-  }, [activeItems, term]);
+  const filtered = term
+    ? activeItems.filter(
+        (item) =>
+          fuzzyMatch(term, item.label) ||
+          (item.sublabel && fuzzyMatch(term, item.sublabel)) ||
+          fuzzyMatch(term, item.section),
+      )
+    : activeItems;
 
-  const sections = useMemo(() => {
-    const map = new Map<string, CommandItem[]>();
-    filtered.forEach((item) => {
-      const existing = map.get(item.section);
-      if (existing) existing.push(item);
-      else map.set(item.section, [item]);
-    });
-    return map;
-  }, [filtered]);
+  const sections = new Map<string, CommandItem[]>();
+  filtered.forEach((item) => {
+    const existing = sections.get(item.section);
+    if (existing) existing.push(item);
+    else sections.set(item.section, [item]);
+  });
 
-  const flatList = useMemo(() => {
-    const flat: CommandItem[] = [];
-    sections.forEach((items) => flat.push(...items));
-    return flat;
-  }, [sections]);
-
-  const indexById = useMemo(() => {
-    const map = new Map<string, number>();
-    flatList.forEach((item, i) => map.set(item.id, i));
-    return map;
-  }, [flatList]);
+  const flatList = [...sections.values()].flat();
+  const indexById = new Map(flatList.map((item, i) => [item.id, i]));
 
   const safeIndex = flatList.length
     ? Math.min(activeIndex, flatList.length - 1)
@@ -316,69 +295,65 @@ export function useCommandPalette(): CommandPaletteViewModel {
     active?.scrollIntoView({ block: "nearest" });
   }, [safeIndex]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const len = flatList.length;
-      const move = (delta: number) =>
-        setActiveIndex((prev) => (Math.min(prev, len - 1) + delta + len) % len);
-      const input = e.currentTarget;
-      const caretAtEnd =
-        input.selectionStart === input.selectionEnd &&
-        input.selectionStart === input.value.length;
-      const caretAtStart =
-        input.selectionStart === input.selectionEnd &&
-        input.selectionStart === 0;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const len = flatList.length;
+    const move = (delta: number) =>
+      setActiveIndex((prev) => (Math.min(prev, len - 1) + delta + len) % len);
+    const input = e.currentTarget;
+    const caretAtEnd =
+      input.selectionStart === input.selectionEnd &&
+      input.selectionStart === input.value.length;
+    const caretAtStart =
+      input.selectionStart === input.selectionEnd && input.selectionStart === 0;
 
-      switch (e.key) {
-        case "ArrowDown":
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        if (len) move(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (len) move(-1);
+        break;
+      case "ArrowRight": {
+        const item = flatList[safeIndex];
+        if (caretAtEnd && !isDrilledIn && item?.onDrillIn) {
           e.preventDefault();
-          if (len) move(1);
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          if (len) move(-1);
-          break;
-        case "ArrowRight": {
-          const item = flatList[safeIndex];
-          if (caretAtEnd && !isDrilledIn && item?.onDrillIn) {
-            e.preventDefault();
-            item.onDrillIn();
-          }
-          break;
+          item.onDrillIn();
         }
-        case "ArrowLeft":
-          if (caretAtStart && isDrilledIn) {
-            e.preventDefault();
-            exitDrillIn();
-          }
-          break;
-        case "Home":
-          if (!len) break;
-          e.preventDefault();
-          setActiveIndex(0);
-          break;
-        case "End":
-          if (!len) break;
-          e.preventDefault();
-          setActiveIndex(len - 1);
-          break;
-        case "Enter": {
-          e.preventDefault();
-          const active = safeIndex >= 0 ? flatList[safeIndex] : undefined;
-          if (active && !active.disabled) active.onSelect();
-          break;
-        }
+        break;
       }
-    },
-    [flatList, safeIndex, isDrilledIn, exitDrillIn],
-  );
+      case "ArrowLeft":
+        if (caretAtStart && isDrilledIn) {
+          e.preventDefault();
+          exitDrillIn();
+        }
+        break;
+      case "Home":
+        if (!len) break;
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case "End":
+        if (!len) break;
+        e.preventDefault();
+        setActiveIndex(len - 1);
+        break;
+      case "Enter": {
+        e.preventDefault();
+        const active = safeIndex >= 0 ? flatList[safeIndex] : undefined;
+        if (active && !active.disabled) active.onSelect();
+        break;
+      }
+    }
+  };
 
-  const onQueryChange = useCallback((value: string) => {
+  const onQueryChange = (value: string) => {
     setQuery(value);
     setActiveIndex(0);
     setFeedback(null);
     setShakeId(null);
-  }, []);
+  };
 
   const hasResults = flatList.length > 0;
 
@@ -389,6 +364,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
     query,
     drillDevice,
     commandMode,
+    adminContext,
     sections,
     hasResults,
     indexById,

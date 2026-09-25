@@ -1,143 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  HomeIcon,
-  UsersIcon,
-  CpuChipIcon,
-  CommandLineIcon,
-  ShieldCheckIcon,
-  ServerStackIcon,
-  MegaphoneIcon,
-  Cog6ToothIcon,
-  KeyIcon,
-  LockClosedIcon,
-  DocumentCheckIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
-import type { ReactNode } from "react";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { getConfig, isCloud } from "@/env";
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useAuthStore } from "@/stores/authStore";
+import SessionMenu from "./SessionMenu";
 import SidebarShell, {
   NavItemLink,
   navBase,
   navDisabled,
   navIcon,
 } from "./SidebarShell";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: ReactNode;
-}
-
-interface NavGroup {
-  label: string;
-  icon: ReactNode;
-  children: NavItem[];
-}
-
-type NavEntry = NavItem | NavGroup;
-
-function isNavGroup(entry: NavEntry): entry is NavGroup {
-  return "children" in entry;
-}
-
-const coreNavEntries: NavEntry[] = [
-  {
-    to: "/admin/dashboard",
-    label: "Dashboard",
-    icon: <HomeIcon className={navIcon} />,
-  },
-  {
-    to: "/admin/users",
-    label: "Users",
-    icon: <UsersIcon className={navIcon} />,
-  },
-  {
-    to: "/admin/devices",
-    label: "Devices",
-    icon: <CpuChipIcon className={navIcon} />,
-  },
-  {
-    to: "/admin/sessions",
-    label: "Sessions",
-    icon: <CommandLineIcon className={navIcon} />,
-  },
-  {
-    to: "/admin/firewall-rules",
-    label: "Firewall Rules",
-    icon: <ShieldCheckIcon className={navIcon} />,
-  },
-  {
-    to: "/admin/namespaces",
-    label: "Namespaces",
-    icon: <ServerStackIcon className={navIcon} />,
-  },
-];
-
-const announcementsEntry: NavEntry = {
-  to: "/admin/announcements",
-  label: "Announcements",
-  icon: <MegaphoneIcon className={navIcon} />,
-};
-
-const settingsGroup: NavGroup = {
-  label: "Settings",
-  icon: <Cog6ToothIcon className={navIcon} />,
-  children: [
-    {
-      to: "/admin/settings/authentication",
-      label: "Authentication",
-      icon: <KeyIcon className={navIcon} />,
-    },
-    {
-      to: "/admin/instance-api-keys",
-      label: "Instance API Keys",
-      icon: <LockClosedIcon className={navIcon} />,
-    },
-    {
-      to: "/admin/license",
-      label: "License",
-      icon: <DocumentCheckIcon className={navIcon} />,
-    },
-  ],
-};
-
-const expiredNavEntries: NavEntry[] = [
-  {
-    label: "Settings",
-    icon: <Cog6ToothIcon className={navIcon} />,
-    children: [
-      {
-        to: "/admin/license",
-        label: "License",
-        icon: <DocumentCheckIcon className={navIcon} />,
-      },
-    ],
-  },
-];
-
-function buildNavEntries(): NavEntry[] {
-  const entries: NavEntry[] = [...coreNavEntries];
-
-  if (getConfig().announcements) {
-    entries.push(announcementsEntry);
-  }
-
-  const settings = isCloud()
-    ? {
-        ...settingsGroup,
-        children: settingsGroup.children.filter(
-          (c) => c.to !== "/admin/license",
-        ),
-      }
-    : settingsGroup;
-  entries.push(settings);
-
-  return entries;
-}
+import { isAdminNavGroup, useAdminNav, type AdminNavGroup } from "./adminNav";
 
 function NavGroupItem({
   group,
@@ -148,7 +20,7 @@ function NavGroupItem({
   currentPath,
   onNavClick,
 }: {
-  group: NavGroup;
+  group: AdminNavGroup;
   expanded: boolean;
   isOpen: boolean;
   disabled?: boolean;
@@ -181,7 +53,7 @@ function NavGroupItem({
           align,
         )}
       >
-        {group.icon}
+        <group.icon className={navIcon} />
         {expanded ? (
           <>
             <span className="flex-1 text-left truncate">{group.label}</span>
@@ -224,34 +96,18 @@ function NavGroupItem({
 
 /**
  * The admin navigation. Its links are instance-wide, so nothing here is filtered by namespace
- * role — only by whether the user is an instance admin at all.
+ * role, only by whether the user is an instance admin at all.
  */
 export default function AdminSidebar({
   expanded,
-  pinned,
-  onToggle,
   onClose,
-  toggleLabel,
 }: {
   expanded: boolean;
-  pinned: boolean;
-  onToggle: () => void;
   onClose?: () => void;
-  toggleLabel?: string;
 }) {
-  const { isLoading, isExpired } = useAdminLicense();
-  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const { entries, disabled } = useAdminNav();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const { pathname } = useLocation();
-
-  const showRestrictedNav = !isAdmin || isLoading || isExpired;
-  const isDisabled = !isAdmin;
-
-  const fullNavEntries = useMemo(() => buildNavEntries(), []);
-
-  const visibleEntries: NavEntry[] = showRestrictedNav
-    ? expiredNavEntries
-    : fullNavEntries;
 
   const toggleGroup = (label: string) => {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -260,23 +116,20 @@ export default function AdminSidebar({
   return (
     <SidebarShell
       expanded={expanded}
-      pinned={pinned}
-      onToggle={onToggle}
       onClose={onClose}
-      toggleLabel={toggleLabel}
       ariaLabel="Admin navigation"
-      footerLabel="Admin Panel"
       logoHref="/admin/dashboard"
+      account={<SessionMenu expanded={expanded} />}
     >
       <div className="space-y-0.5">
-        {visibleEntries.map((entry) =>
-          isNavGroup(entry) ? (
+        {entries.map((entry) =>
+          isAdminNavGroup(entry) ? (
             <NavGroupItem
               key={entry.label}
               group={entry}
               expanded={expanded}
               isOpen={openGroups[entry.label] ?? false}
-              disabled={isDisabled}
+              disabled={disabled}
               onToggle={() => toggleGroup(entry.label)}
               currentPath={pathname}
               onNavClick={onClose}
@@ -284,9 +137,9 @@ export default function AdminSidebar({
           ) : (
             <NavItemLink
               key={entry.to}
-              item={entry}
+              item={{ ...entry, icon: <entry.icon className={navIcon} /> }}
               expanded={expanded}
-              disabled={isDisabled}
+              disabled={disabled}
               onClick={onClose}
             />
           ),

@@ -33,8 +33,12 @@ vi.mock("../Sidebar", () => ({
   default: () => <nav data-testid="sidebar" />,
 }));
 
-vi.mock("../AppBar", () => ({
-  default: () => <div data-testid="app-bar" />,
+vi.mock("../AdminSidebar", () => ({
+  default: () => <nav data-testid="admin-sidebar" />,
+}));
+
+vi.mock("../TabStrip", () => ({
+  default: () => <div data-testid="tab-strip" />,
 }));
 
 vi.mock("@/terminal/TerminalManager", () => ({
@@ -68,12 +72,12 @@ beforeEach(() => {
   );
 });
 
-function renderLayout() {
+function renderLayout(path = "/") {
   return render(
     <ClipboardProvider>
       <AppLayout />
     </ClipboardProvider>,
-    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+    { wrapper: createTestWrapper({ initialEntries: [path] }) },
   );
 }
 
@@ -93,12 +97,18 @@ describe("AppLayout", () => {
         expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
       });
     });
+
+    it("gives way to the admin navigation on admin routes", async () => {
+      renderLayout("/admin/dashboard");
+      expect(await screen.findByTestId("admin-sidebar")).toBeInTheDocument();
+      expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+    });
   });
 
-  describe("AppBar", () => {
+  describe("tab strip", () => {
     it("renders regardless of namespaces", async () => {
       renderLayout();
-      expect(await screen.findByTestId("app-bar")).toBeInTheDocument();
+      expect(await screen.findByTestId("tab-strip")).toBeInTheDocument();
     });
   });
 
@@ -145,7 +155,7 @@ describe("AppLayout", () => {
       async (edition) => {
         mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
         renderLayout();
-        await screen.findByTestId("app-bar");
+        await screen.findByTestId("tab-strip");
         expect(
           screen.queryByTestId("device-limit-banner"),
         ).not.toBeInTheDocument();

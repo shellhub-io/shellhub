@@ -94,6 +94,21 @@ describe("CommandPalette", () => {
     useCommandPaletteStore.setState({ open: true });
   });
 
+  it("leaves the admin licence alone outside the admin console", async () => {
+    const licenceRequested = vi.fn();
+    useAuthStore.setState({ isAdmin: true });
+    server.use(
+      http.get("*/admin/api/license", () => {
+        licenceRequested();
+        return HttpResponse.json({});
+      }),
+    );
+    renderPalette();
+
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
+    expect(licenceRequested).not.toHaveBeenCalled();
+  });
+
   it("shows devices and hides navigation by default", async () => {
     renderPalette();
 
@@ -439,7 +454,7 @@ describe("CommandPalette", () => {
     await user.type(input, "{ArrowUp}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-device-dev-2",
+      "cmdk-opt-ws-create-namespace",
     );
     await user.type(input, "{ArrowDown}");
     expect(input).toHaveAttribute(
@@ -463,7 +478,7 @@ describe("CommandPalette", () => {
     await user.type(input, "{End}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-device-dev-2",
+      "cmdk-opt-ws-create-namespace",
     );
     await user.type(input, "{Home}");
     expect(input).toHaveAttribute(

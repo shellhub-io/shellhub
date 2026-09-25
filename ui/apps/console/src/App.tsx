@@ -19,7 +19,6 @@ import IdentityAccessGuard from "./components/common/IdentityAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
-import AdminLayout from "./components/layout/AdminLayout";
 import LicenseGuard from "./components/common/LicenseGuard";
 import FeatureGate from "./components/common/FeatureGate";
 
@@ -138,98 +137,96 @@ export default function App() {
               <Route path="/accept-invite" element={<AcceptInvite />} />
             </Route>
             <Route element={<ProtectedRoute />}>
-              {/* Admin panel — layout wraps all /admin routes including unauthorized */}
-              <Route element={<AdminLayout />}>
-                <Route
-                  path="/admin/unauthorized"
-                  element={<AdminUnauthorized />}
-                />
-                <Route element={<AdminRoute />}>
-                  <Route
-                    path="/admin/license"
-                    element={
-                      isCloud() ? (
-                        <Navigate to="/admin/dashboard" replace />
-                      ) : (
-                        <AdminLicense />
-                      )
-                    }
-                  />
-                  <Route element={<LicenseGuard />}>
-                    <Route
-                      path="/admin"
-                      element={<Navigate to="/admin/dashboard" replace />}
-                    />
-                    <Route
-                      path="/admin/dashboard"
-                      element={<AdminDashboard />}
-                    />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route
-                      path="/admin/users/:id"
-                      element={<AdminUserDetails />}
-                    />
-                    <Route
-                      path="/admin/namespaces"
-                      element={<AdminNamespaces />}
-                    />
-                    <Route
-                      path="/admin/namespaces/:id"
-                      element={<AdminNamespaceDetails />}
-                    />
-                    <Route path="/admin/devices" element={<AdminDevices />} />
-                    <Route
-                      path="/admin/devices/:uid"
-                      element={<AdminDeviceDetails />}
-                    />
-                    <Route
-                      path="/admin/firewall-rules"
-                      element={<AdminFirewallRules />}
-                    />
-                    <Route
-                      path="/admin/firewall-rules/:id"
-                      element={<AdminFirewallRuleDetails />}
-                    />
-                    {getConfig().announcements && (
-                      <>
-                        <Route
-                          path="/admin/announcements"
-                          element={<AdminAnnouncements />}
-                        />
-                        <Route
-                          path="/admin/announcements/new"
-                          element={<NewAnnouncement />}
-                        />
-                        <Route
-                          path="/admin/announcements/:uuid"
-                          element={<AdminAnnouncementDetails />}
-                        />
-                        <Route
-                          path="/admin/announcements/:uuid/edit"
-                          element={<EditAnnouncement />}
-                        />
-                      </>
-                    )}
-                    <Route path="/admin/sessions" element={<AdminSessions />} />
-                    <Route
-                      path="/admin/sessions/:uid"
-                      element={<AdminSessionDetails />}
-                    />
-                    <Route
-                      path="/admin/instance-api-keys"
-                      element={<AdminInstanceApiKeys />}
-                    />
-                    <Route
-                      path="/admin/settings/authentication"
-                      element={<AdminAuthentication />}
-                    />
-                  </Route>
-                </Route>
-              </Route>
-
-              {/* User console */}
               <Route element={<NamespaceGuard />}>
                 <Route element={<AppLayout />}>
+                  <Route
+                    path="/admin/unauthorized"
+                    element={<AdminUnauthorized />}
+                  />
+                  <Route element={<AdminRoute />}>
+                    <Route
+                      path="/admin/license"
+                      element={
+                        isCloud() ? (
+                          <Navigate to="/admin/dashboard" replace />
+                        ) : (
+                          <AdminLicense />
+                        )
+                      }
+                    />
+                    <Route element={<LicenseGuard />}>
+                      <Route
+                        path="/admin"
+                        element={<Navigate to="/admin/dashboard" replace />}
+                      />
+                      <Route
+                        path="/admin/dashboard"
+                        element={<AdminDashboard />}
+                      />
+                      <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route
+                        path="/admin/users/:id"
+                        element={<AdminUserDetails />}
+                      />
+                      <Route
+                        path="/admin/namespaces"
+                        element={<AdminNamespaces />}
+                      />
+                      <Route
+                        path="/admin/namespaces/:id"
+                        element={<AdminNamespaceDetails />}
+                      />
+                      <Route path="/admin/devices" element={<AdminDevices />} />
+                      <Route
+                        path="/admin/devices/:uid"
+                        element={<AdminDeviceDetails />}
+                      />
+                      <Route
+                        path="/admin/firewall-rules"
+                        element={<AdminFirewallRules />}
+                      />
+                      <Route
+                        path="/admin/firewall-rules/:id"
+                        element={<AdminFirewallRuleDetails />}
+                      />
+                      {getConfig().announcements && (
+                        <>
+                          <Route
+                            path="/admin/announcements"
+                            element={<AdminAnnouncements />}
+                          />
+                          <Route
+                            path="/admin/announcements/new"
+                            element={<NewAnnouncement />}
+                          />
+                          <Route
+                            path="/admin/announcements/:uuid"
+                            element={<AdminAnnouncementDetails />}
+                          />
+                          <Route
+                            path="/admin/announcements/:uuid/edit"
+                            element={<EditAnnouncement />}
+                          />
+                        </>
+                      )}
+                      <Route
+                        path="/admin/sessions"
+                        element={<AdminSessions />}
+                      />
+                      <Route
+                        path="/admin/sessions/:uid"
+                        element={<AdminSessionDetails />}
+                      />
+                      <Route
+                        path="/admin/instance-api-keys"
+                        element={<AdminInstanceApiKeys />}
+                      />
+                      <Route
+                        path="/admin/settings/authentication"
+                        element={<AdminAuthentication />}
+                      />
+                    </Route>
+                  </Route>
                   <Route
                     path="/"
                     element={<Navigate to="/dashboard" replace />}

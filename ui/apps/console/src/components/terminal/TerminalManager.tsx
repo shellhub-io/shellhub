@@ -2,28 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaces";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useAuthStore } from "@/stores/authStore";
 import ConnectDrawer from "../ConnectDrawer";
 import { buildSshid } from "@/utils/sshid";
 import TerminalInstance from "./TerminalInstance";
-import TerminalTaskbar from "./TerminalTaskbar";
 import RecordingSnackbar from "./RecordingSnackbar";
 
 /**
- * Holds every open terminal window. It lives in the layout rather than on a page, so a session
- * survives navigation.
+ * Holds every open terminal window, stacked over the page inside the content frame. It lives in
+ * the layout rather than on a page, so a session survives navigation.
  */
-export default function TerminalManager({
-  sidebarOffset,
-}: {
-  sidebarOffset: number;
-}) {
+export default function TerminalManager() {
   const sessions = useTerminalStore((s) => s.sessions);
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
   const reconnectTarget = useTerminalStore((s) => s.reconnectTarget);
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { namespaces } = useNamespaces();
+  const workspace = useWorkspaceTabs();
+  const enteringRef = useRef<string | null>(null);
 
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
@@ -33,8 +31,25 @@ export default function TerminalManager({
 
   useEffect(() => {
     if (!reconnectTarget) return;
+    const home = reconnectTarget.tenant;
+    if (home && home !== tenantId) {
+      if (enteringRef.current === home) return;
+      const homeNamespace = namespaces.find((ns) => ns.tenant_id === home);
+      if (!homeNamespace) {
+        useTerminalStore.getState().clearReconnect();
+        return;
+      }
+      enteringRef.current = home;
+      void workspace
+        .openNamespace(home, homeNamespace.name)
+        .then((entered) => {
+          enteringRef.current = null;
+          if (!entered) useTerminalStore.getState().clearReconnect();
+        });
+      return;
+    }
     useTerminalStore.getState().clearReconnect();
-    const nsName = currentNamespace?.name;
+    const nsName = namespaces.find((ns) => ns.tenant_id === tenantId)?.name;
     const sshid = nsName
       ? buildSshid(nsName, reconnectTarget.deviceName)
       : reconnectTarget.deviceUid;
@@ -44,14 +59,14 @@ export default function TerminalManager({
       name: reconnectTarget.deviceName,
       sshid,
     });
-  }, [reconnectTarget, currentNamespace]);
+  }, [reconnectTarget, tenantId, namespaces, workspace]);
 
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
   useEffect(() => {
     if (location.pathname !== prevPathRef.current) {
       prevPathRef.current = location.pathname;
-      minimizeAll();
+      if (!useTerminalStore.getState().restorePending()) minimizeAll();
     }
   }, [location.pathname, minimizeAll]);
 
@@ -69,15 +84,13 @@ export default function TerminalManager({
 
       {sessions.map((s) => {
         const isVisible = s.state !== "minimized";
-        const isFullscreen = s.state === "fullscreen";
 
         return (
           <div
             key={s.id}
-            style={{ left: isFullscreen ? 0 : sidebarOffset }}
             className={cn(
-              "fixed top-14 bottom-0 right-0 z-terminal flex flex-col bg-background",
-              "transition-[opacity,transform,left] duration-200 ease-out",
+              "absolute inset-0 z-terminal flex flex-col bg-background",
+              "transition-[opacity,transform] duration-200 ease-out",
               isVisible
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-3 pointer-events-none",
@@ -87,8 +100,6 @@ export default function TerminalManager({
           </div>
         );
       })}
-
-      <TerminalTaskbar sidebarOffset={sidebarOffset} />
 
       <RecordingSnackbar />
     </>

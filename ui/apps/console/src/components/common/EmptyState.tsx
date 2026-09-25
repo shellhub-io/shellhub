@@ -63,7 +63,7 @@ const ACCENT = {
  * Full-page onboarding / empty / gated-feature splash: a centered card over a
  * full-bleed decorative background. Owns the full-bleed layout so call sites
  * only declare content. Render it as the sole content of a page (inside the
- * AppLayout/AdminLayout `<main>`).
+ * AppLayout `<main>`).
  */
 export default function EmptyState({
   icon,
@@ -101,12 +101,19 @@ export default function EmptyState({
         <div className="text-center mb-10">
           <div
             aria-hidden="true"
-            className={cn("w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-6 shadow-lg", styles.badge, styles.icon)}
+            className={cn(
+              "w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-6 shadow-lg",
+              styles.badge,
+              styles.icon,
+            )}
           >
             {icon}
           </div>
           <span
-            className={cn("inline-block text-2xs font-mono font-semibold uppercase tracking-wide mb-2", styles.overline)}
+            className={cn(
+              "inline-block text-2xs font-mono font-semibold uppercase tracking-wide mb-2",
+              styles.overline,
+            )}
           >
             {overline}
           </span>

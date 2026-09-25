@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
 import { useConnectivityStore } from "@/stores/connectivityStore";
+import { isAdminPath } from "@/utils/adminRoute";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
@@ -75,7 +76,8 @@ function FetchErrorPage({
 
 /**
  * Holds a route until the user has a namespace, and offers to create or join one when they do
- * not. Everything below assumes a tenant, so this is where that assumption is established.
+ * not. Everything below assumes a tenant, so this is where that assumption is established. The
+ * admin console shares the layout but is instance-wide, so /admin passes through ungated.
  */
 export default function NamespaceGuard() {
   useInitRole();
@@ -88,6 +90,8 @@ export default function NamespaceGuard() {
       void refetch();
     }
   }, [apiReachable, error, refetch]);
+
+  if (isAdminPath(pathname)) return <Outlet />;
 
   if (error && !isLoading) {
     const apiDown = !apiReachable;

@@ -8,7 +8,7 @@ interface CommandPaletteState {
 
 /**
  * Shared open-state for the command palette so both the Cmd/Ctrl+K shortcut
- * (in CommandPalette) and the visible Sidebar trigger can drive it. Ephemeral
+ * (in CommandPalette) and the tab strip's "+" button can drive it. Ephemeral
  * by design — the palette resets on every open, so there is nothing to persist.
  *
  * Only `open` lives here; the palette's query/highlight stay local to the

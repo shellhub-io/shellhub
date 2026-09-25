@@ -1,0 +1,340 @@
+import { useState, type KeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import {
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
+  Cog6ToothIcon,
+  CommandLineIcon,
+  PlusIcon,
+  ShieldCheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
+import { IconButton } from "@shellhub/design-system/primitives";
+import {
+  useTerminalStore,
+  type ConnectionStatus,
+  type TerminalSession,
+} from "@/stores/terminalStore";
+import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
+import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
+import { useNamespaces } from "@/hooks/useNamespaces";
+import {
+  namespaceTabId,
+  type WorkspaceTab,
+} from "@/stores/workspaceTabsStore";
+import { getInitials } from "@/utils/string";
+import TerminalSettingsDrawer from "../terminal/TerminalSettingsDrawer";
+
+const STATUS_DOT: Record<ConnectionStatus, string> = {
+  connected: "bg-accent-green",
+  connecting: "bg-accent-yellow animate-pulse",
+  disconnected: "bg-accent-red",
+};
+
+interface TabProps {
+  active: boolean;
+  surfaceClassName: string;
+  surfaceColors?: { background: string; foreground: string };
+  label: string;
+  tooltip?: string;
+  sublabel?: string;
+  icon: ReactNode;
+  onSelect: () => void;
+  onClose?: () => void;
+}
+
+function Tab({
+  active,
+  surfaceClassName,
+  surfaceColors,
+  label,
+  tooltip,
+  sublabel,
+  icon,
+  onSelect,
+  onClose,
+}: TabProps) {
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect();
+    } else if (e.key === "Delete" && onClose) {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      role="tab"
+      aria-selected={active}
+      tabIndex={active ? 0 : -1}
+      title={tooltip ?? label}
+      style={
+        active && surfaceColors
+          ? {
+              backgroundColor: surfaceColors.background,
+              color: surfaceColors.foreground,
+            }
+          : undefined
+      }
+      onMouseDown={(e) => {
+        if (e.button === 1 && onClose) {
+          e.preventDefault();
+          onClose();
+        } else if (e.button === 0) {
+          onSelect();
+        }
+      }}
+      onKeyDown={onKeyDown}
+      className={cn(
+        "group flex items-center gap-2 min-w-0 max-w-[220px] px-3 rounded-t-lg border border-b-0 text-[13px] cursor-default select-none transition-colors duration-200",
+        active
+          ? cn(
+              "relative z-raised h-[39px] -mb-px border-border [.light_&]:border-0 text-text-primary",
+              surfaceClassName,
+            )
+          : "h-[38px] border-transparent text-text-secondary hover:text-text-primary",
+        active && sublabel && "h-[44px] pt-[5px]",
+      )}
+    >
+      {icon}
+      <span className="truncate">{label}</span>
+      {active && sublabel && (
+        <span className="absolute left-3 top-0.5 max-w-[calc(100%-24px)] truncate text-[10px] leading-none opacity-50">
+          {sublabel}
+        </span>
+      )}
+      {onClose && (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`Close ${label}`}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={onClose}
+          className={cn(
+            "-mr-1 w-[18px] h-[18px] rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-hover-medium shrink-0",
+            !active && "invisible group-hover:visible",
+          )}
+        >
+          <XMarkIcon className="w-3 h-3" strokeWidth={2.5} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function WorkspaceIcon({
+  tab,
+  active,
+  failed,
+}: {
+  tab: WorkspaceTab;
+  active: boolean;
+  failed: boolean;
+}) {
+  if (tab.kind === "admin") {
+    return (
+      <ShieldCheckIcon
+        className={cn(
+          "w-4 h-4 shrink-0",
+          active ? "text-primary" : "text-text-muted",
+        )}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "w-5 h-5 rounded border flex items-center justify-center text-[9px] font-bold font-mono shrink-0",
+        failed
+          ? "bg-accent-red/10 border-accent-red/30 text-accent-red"
+          : active
+            ? "bg-primary/15 border-primary/20 text-primary"
+            : "bg-card border-border text-text-muted",
+      )}
+    >
+      {getInitials(tab.name)}
+    </span>
+  );
+}
+
+function TerminalIcon({ status }: { status: ConnectionStatus }) {
+  return (
+    <span className="relative flex items-center shrink-0">
+      <CommandLineIcon className="w-4 h-4 opacity-70" />
+      <span
+        className={cn(
+          "absolute -right-0.5 -bottom-0.5 w-1.5 h-1.5 rounded-full ring-2 ring-background",
+          STATUS_DOT[status],
+        )}
+      />
+    </span>
+  );
+}
+
+function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const tabs = Array.from(
+    e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]'),
+  );
+  const current = tabs.indexOf(document.activeElement as HTMLElement);
+  if (current < 0) return;
+  e.preventDefault();
+  const step = e.key === "ArrowRight" ? 1 : -1;
+  tabs[(current + step + tabs.length) % tabs.length].focus();
+}
+
+/**
+ * The tab strip above the framed content. The open contexts come first, namespaces and the admin
+ * console, then every terminal session. The terminal in view carries its namespace atop the tab
+ * once more than one namespace is open, and selecting a terminal from another namespace enters
+ * that namespace first. Selecting a context minimizes the terminals, the same state navigating
+ * away leaves them in.
+ */
+export default function TabStrip({
+  leading,
+  trailing,
+}: {
+  leading?: ReactNode;
+  trailing?: ReactNode;
+}) {
+  const workspace = useWorkspaceTabs();
+  const { namespaces } = useNamespaces();
+  const sessions = useTerminalStore((s) => s.sessions);
+  const restore = useTerminalStore((s) => s.restore);
+  const closeSession = useTerminalStore((s) => s.close);
+  const toggleFullscreen = useTerminalStore((s) => s.toggleFullscreen);
+  const openPalette = useCommandPaletteStore((s) => s.openPalette);
+  const terminalColors = useTerminalThemeStore((s) => s.theme.colors);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const active = sessions.find((s) => s.state !== "minimized");
+  const openNamespaceTabs = workspace.tabs.filter(
+    (t) => t.kind === "namespace",
+  ).length;
+  const namespaceName = (tenant?: string) =>
+    namespaces.find((ns) => ns.tenant_id === tenant)?.name;
+
+  const selectTerminal = (session: TerminalSession) => {
+    const home = session.tenant;
+    const homeName = namespaceName(home);
+    if (!home || !homeName || workspace.activeId === namespaceTabId(home)) {
+      restore(session.id);
+      return;
+    }
+    void workspace.openNamespace(home, homeName, {
+      restoreSession: session.id,
+    });
+  };
+
+  return (
+    // eslint-disable-next-line jsx-a11y/interactive-supports-focus -- focus sits on the tabs; the list only relays the arrow keys between them
+    <div
+      role="tablist"
+      aria-label="Open views"
+      onKeyDown={moveFocus}
+      className="h-12 shrink-0 flex items-end gap-0.5 min-w-0"
+    >
+      {leading}
+      {workspace.tabs.map((tab) => {
+        const isActive = !active && tab.id === workspace.activeId;
+        const failure = workspace.failures[tab.id];
+        return (
+          <Tab
+            key={tab.id}
+            active={isActive}
+            surfaceClassName="theme-follow bg-surface"
+            label={tab.name}
+            tooltip={
+              failure ? `Couldn't open ${tab.name}: ${failure}` : undefined
+            }
+            icon={
+              <WorkspaceIcon tab={tab} active={isActive} failed={!!failure} />
+            }
+            onSelect={() => void workspace.activate(tab)}
+            onClose={
+              workspace.tabs.length > 1 ? () => workspace.close(tab) : undefined
+            }
+          />
+        );
+      })}
+
+      {sessions.length > 0 && workspace.tabs.length > 0 && (
+        <span
+          aria-hidden="true"
+          className="mx-1.5 mb-3 h-4 w-px shrink-0 bg-border"
+        />
+      )}
+
+      {sessions.map((s) => {
+        const owner = namespaceName(s.tenant);
+        return (
+          <Tab
+            key={s.id}
+            active={s.id === active?.id}
+            surfaceClassName="theme-follow"
+            surfaceColors={terminalColors}
+            label={s.deviceName}
+            tooltip={owner ? `${s.deviceName} · ${owner}` : undefined}
+            sublabel={openNamespaceTabs > 1 ? owner : undefined}
+            icon={<TerminalIcon status={s.connectionStatus} />}
+            onSelect={() => selectTerminal(s)}
+            onClose={() => closeSession(s.id)}
+          />
+        );
+      })}
+
+      <button
+        type="button"
+        aria-label="Open a device, session or namespace"
+        title="Open… (⌘K)"
+        onClick={openPalette}
+        className="mb-[5px] ml-1 w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-hover-subtle shrink-0"
+      >
+        <PlusIcon className="w-4 h-4" strokeWidth={2} />
+      </button>
+
+      <div className="ml-auto mb-1 flex items-center gap-0.5 shrink-0">
+        {active && (
+          <>
+            <IconButton
+              aria-label={
+                active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
+              }
+              title={
+                active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
+              }
+              onClick={() => toggleFullscreen(active.id)}
+            >
+              {active.state === "fullscreen" ? (
+                <ArrowsPointingInIcon className="w-4 h-4" />
+              ) : (
+                <ArrowsPointingOutIcon className="w-4 h-4" />
+              )}
+            </IconButton>
+            <IconButton
+              aria-label="Terminal settings"
+              title="Terminal settings"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Cog6ToothIcon className="w-4 h-4" />
+            </IconButton>
+            <span className="mx-1.5 h-4 w-px bg-border" aria-hidden="true" />
+          </>
+        )}
+        {trailing}
+      </div>
+
+      {createPortal(
+        <TerminalSettingsDrawer
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+        />,
+        document.body,
+      )}
+    </div>
+  );
+}
