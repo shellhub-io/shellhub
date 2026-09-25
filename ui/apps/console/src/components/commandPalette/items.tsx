@@ -14,6 +14,8 @@ import {
   DocumentDuplicateIcon,
   InformationCircleIcon,
   ClockIcon,
+  ShieldCheckIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { buildSshid } from "@/utils/sshid";
 import { formatRelative } from "@/utils/date";
@@ -21,6 +23,7 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
 import type { JSX } from "react";
+import type { AdminNavLink } from "@/components/layout/adminNav";
 
 /**
  * The tone of a badge on a palette row — device status, mostly, where green is online and yellow
@@ -87,6 +90,8 @@ export const icons = {
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
   team: <UsersIcon className="w-4 h-4" />,
   vault: <LockClosedIcon className="w-4 h-4" />,
+  namespace: <Squares2X2Icon className="w-4 h-4" />,
+  admin: <ShieldCheckIcon className="w-4 h-4" />,
 };
 
 /**
@@ -223,15 +228,93 @@ export function buildConnectionItems(deps: {
 }
 
 /**
+ * The contexts that can be opened as tabs: every namespace, and the admin console for an admin.
+ * Choosing one opens its tab, or activates it when it is already open.
+ */
+export function buildWorkspaceItems(deps: {
+  namespaces: { tenant_id: string; name: string }[];
+  currentTenant: string | null;
+  showAdmin: boolean;
+  openNamespace: (tenant: string, name: string) => void;
+  openAdmin: () => void;
+  createNamespace: () => void;
+  close: () => void;
+}): CommandItem[] {
+  const {
+    namespaces,
+    currentTenant,
+    showAdmin,
+    openNamespace,
+    openAdmin,
+    createNamespace,
+    close,
+  } = deps;
+  const list: CommandItem[] = namespaces.map((ns) => ({
+    id: `ns-${ns.tenant_id}`,
+    label: ns.name,
+    sublabel: ns.tenant_id === currentTenant ? "Current" : undefined,
+    section: "Namespaces",
+    icon: icons.namespace,
+    onSelect: () => {
+      close();
+      openNamespace(ns.tenant_id, ns.name);
+    },
+  }));
+  list.push({
+    id: "ws-create-namespace",
+    label: "Create namespace",
+    section: "Namespaces",
+    icon: icons.add,
+    onSelect: () => {
+      close();
+      createNamespace();
+    },
+  });
+  if (showAdmin) {
+    list.push({
+      id: "ws-admin",
+      label: "Admin Console",
+      sublabel: "Instance-wide",
+      section: "Namespaces",
+      icon: icons.admin,
+      onSelect: () => {
+        close();
+        openAdmin();
+      },
+    });
+  }
+  return list;
+}
+
+/**
+ * The admin console's pages, which stand in for the namespace's pages in command mode while the
+ * palette is opened from the admin area.
+ */
+export function buildAdminItems(deps: {
+  links: AdminNavLink[];
+  go: (path: string) => void;
+}): CommandItem[] {
+  return deps.links.map((link) => ({
+    id: `admin-${link.to}`,
+    label: link.label,
+    sublabel: link.to,
+    section: "Navigation",
+    icon: <link.icon className="w-4 h-4" />,
+    onSelect: () => deps.go(link.to),
+  }));
+}
+
+/**
  * Command mode, entered with a ">" prefix: page navigation and account actions rather than
- * devices.
+ * devices. pages replaces the namespace's pages, as the admin console does with its own.
  */
 export function buildCommandItems(deps: {
   go: (path: string) => void;
   onLogout: () => void;
   isIdentityMode?: boolean;
+  pages?: CommandItem[];
 }): CommandItem[] {
-  const { go, onLogout, isIdentityMode } = deps;
+  const { go, onLogout, isIdentityMode, pages } = deps;
   const legacyPaths = ["/sshkeys/public-keys", "/secure-vault"];
   const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
     { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
@@ -245,14 +328,16 @@ export function buildCommandItems(deps: {
     { label: "Claim a Device", path: "/accept-device", icon: icons.add },
   ].filter((n) => !isIdentityMode || !legacyPaths.includes(n.path));
 
-  const list: CommandItem[] = nav.map((n) => ({
-    id: `nav-${n.path}`,
-    label: n.label,
-    sublabel: n.path,
-    section: "Navigation",
-    icon: n.icon,
-    onSelect: () => go(n.path),
-  }));
+  const list: CommandItem[] = pages
+    ? [...pages]
+    : nav.map((n) => ({
+        id: `nav-${n.path}`,
+        label: n.label,
+        sublabel: n.path,
+        section: "Navigation",
+        icon: n.icon,
+        onSelect: () => go(n.path),
+      }));
 
   list.push({
     id: "action-logout",

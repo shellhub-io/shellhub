@@ -8,7 +8,7 @@ import PaletteFooter from "./PaletteFooter";
 
 /**
  * Cmd/Ctrl+K command palette. A thin presentational shell over
- * `useCommandPalette()` — connection-first by default, with a per-device action
+ * `useCommandPalette()` — opens anything by default: a terminal, a device, a namespace or the admin console, with a per-device action
  * menu (drill-in) and a ">"-prefixed command mode for navigation.
  */
 export default function CommandPalette() {
@@ -19,6 +19,7 @@ export default function CommandPalette() {
     query,
     drillDevice,
     commandMode,
+    adminContext,
     sections,
     hasResults,
     indexById,
@@ -48,6 +49,7 @@ export default function CommandPalette() {
         query={query}
         drillDevice={drillDevice}
         commandMode={commandMode}
+        adminContext={adminContext}
         hasResults={hasResults}
         activeOptionId={activeItem ? optionId(activeItem.id) : undefined}
         onQueryChange={onQueryChange}
@@ -68,7 +70,7 @@ export default function CommandPalette() {
                 ? "No actions match"
                 : commandMode
                   ? "No commands match"
-                  : "No devices match"}
+                  : "Nothing matches"}
             </p>
             <p className="text-2xs text-text-muted/50 mt-1">
               {drillDevice

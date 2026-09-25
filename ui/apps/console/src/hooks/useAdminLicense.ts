@@ -14,11 +14,13 @@ type LicenseData = GetLicenseResponse | null;
 
 /**
  * The installed licence, or null when there is none. Not run on cloud, where licensing is the
- * provider's concern and the endpoint does not exist.
+ * provider's concern and the endpoint does not exist, nor when the caller passes active false.
+ * The community edition has no such endpoint either, so a caller that can render there must pass
+ * false for it: the gateway answers with the console's HTML, which is not a licence.
  */
-export function useAdminLicense() {
+export function useAdminLicense({ active = true }: { active?: boolean } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
-  const enabled = isAdmin && !isCloud();
+  const enabled = active && isAdmin && !isCloud();
 
   const query = useQuery<LicenseData>({
     queryKey: getLicenseQueryKey(),

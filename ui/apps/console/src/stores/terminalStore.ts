@@ -30,19 +30,25 @@ export interface TerminalSession {
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
   record?: boolean;
+  tenant?: string;
 }
 
 /**
  * The device a closed terminal offers to reconnect to, which is all that outlives the session.
+ * tenant is the namespace the device belongs to, when that may not be the active one.
  */
 export interface ReconnectTarget {
   deviceUid: string;
   deviceName: string;
+  tenant?: string;
 }
 
 interface TerminalState {
   sessions: TerminalSession[];
   reconnectTarget: ReconnectTarget | null;
+  restoreAfterNavigation: string | null;
+  setRestoreAfterNavigation: (id: string | null) => void;
+  restorePending: () => boolean;
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
   ) => void;
@@ -73,9 +79,24 @@ function demoteOthers(
  * The open terminals. Several may run at once, so this is a list rather than one session, and
  * opening one also records the device as recently used.
  */
-export const useTerminalStore = create<TerminalState>((set) => ({
+export const useTerminalStore = create<TerminalState>((set, get) => ({
   sessions: [],
   reconnectTarget: null,
+  restoreAfterNavigation: null,
+
+  setRestoreAfterNavigation: (id) => set({ restoreAfterNavigation: id }),
+
+  restorePending: () => {
+    const pending = get().restoreAfterNavigation;
+    if (!pending) return false;
+    set((state) => ({
+      restoreAfterNavigation: null,
+      sessions: demoteOthers(state.sessions, pending).map((s) =>
+        s.id === pending ? { ...s, state: "docked" as const } : s,
+      ),
+    }));
+    return true;
+  },
 
   open: (params) => {
     const id = generateRandomUUID();
@@ -145,6 +166,7 @@ export const useTerminalStore = create<TerminalState>((set) => ({
         reconnectTarget: {
           deviceUid: session.deviceUid,
           deviceName: session.deviceName,
+          tenant: session.tenant,
         },
       };
     });

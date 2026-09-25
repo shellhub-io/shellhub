@@ -1,0 +1,97 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { QueryClient } from "@tanstack/react-query";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
+import { createTestWrapper } from "@/tests/wrapper";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useTerminalStore } from "@/stores/terminalStore";
+import {
+  namespaceTab,
+  useWorkspaceTabsStore,
+} from "@/stores/workspaceTabsStore";
+import { useWorkspaceTabs } from "../useWorkspaceTabs";
+
+const home = namespaceTab("tenant-home", "home", "/devices");
+const other = namespaceTab("tenant-other", "other", "/sessions");
+
+function openTerminal() {
+  useTerminalStore.getState().open({
+    deviceUid: "dev-1",
+    deviceName: "dev-1",
+    username: "root",
+    password: "",
+    tenant: "tenant-home",
+  });
+}
+
+function renderTabs(queryClient = new QueryClient()) {
+  return renderHook(() => useWorkspaceTabs(), {
+    wrapper: createTestWrapper({ queryClient, initialEntries: ["/devices"] }),
+  });
+}
+
+beforeEach(() => {
+  seedAuthStore({ tenant: "tenant-home" });
+  useWorkspaceTabsStore.setState({ tabs: [home, other], failures: {} });
+  useTerminalStore.setState({ sessions: [], restoreAfterNavigation: null });
+});
+
+describe("useWorkspaceTabs", () => {
+  it("records why a namespace could not be entered and moves nothing", async () => {
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({}, { status: 403 }),
+      ),
+    );
+    openTerminal();
+    const { result } = renderTabs();
+
+    let entered = true;
+    await act(async () => {
+      entered = await result.current.activate(other);
+    });
+
+    expect(entered).toBe(false);
+    expect(useWorkspaceTabsStore.getState().failures[other.id]).toBeTruthy();
+    expect(useAuthStore.getState().tenant).toBe("tenant-home");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+  });
+
+  it("enters a namespace in place, dropping its cache but keeping the terminals", async () => {
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({ token: "other-token", role: "owner" }),
+      ),
+    );
+    const queryClient = new QueryClient();
+    queryClient.setQueryData([{ _id: "getDevices" }], ["dev-1"]);
+    queryClient.setQueryData([{ _id: "getNamespaces" }], ["home", "other"]);
+    openTerminal();
+    const { result } = renderTabs(queryClient);
+
+    await act(async () => {
+      await result.current.activate(other);
+    });
+
+    expect(useAuthStore.getState().tenant).toBe("tenant-other");
+    expect(queryClient.getQueryData([{ _id: "getDevices" }])).toBeUndefined();
+    expect(queryClient.getQueryData([{ _id: "getNamespaces" }])).toEqual([
+      "home",
+      "other",
+    ]);
+    expect(useTerminalStore.getState().sessions).toHaveLength(1);
+  });
+
+  it("clears a recorded failure once the namespace opens", async () => {
+    useWorkspaceTabsStore.setState({ failures: { [home.id]: "offline" } });
+    const { result } = renderTabs();
+
+    await act(async () => {
+      await result.current.activate(home);
+    });
+
+    expect(useWorkspaceTabsStore.getState().failures).toEqual({});
+  });
+});

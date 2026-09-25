@@ -211,7 +211,7 @@ export default function ConnectDrawer({
       !namespaceRecords && state.recordSession && isRecordingSupported()
         ? { ...params, record: true }
         : params;
-    openTerminal(withRecord);
+    openTerminal({ ...withRecord, tenant: tenant ?? undefined });
     onClose();
   };
 

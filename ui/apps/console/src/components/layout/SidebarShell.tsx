@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import {
-  IconButton,
   ShellHubCloudIcon,
   ShellHubLogo,
 } from "@shellhub/design-system/primitives";
@@ -82,6 +80,7 @@ export function NavItemLink({
 }
 
 interface SidebarMobileDrawerProps {
+  side?: "left" | "right";
   open: boolean;
   onClose: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
@@ -93,6 +92,7 @@ interface SidebarMobileDrawerProps {
  * the page behind cannot be tabbed into.
  */
 export function SidebarMobileDrawer({
+  side = "left",
   open,
   onClose,
   onKeyDown,
@@ -121,8 +121,13 @@ export function SidebarMobileDrawer({
       />
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-drawer w-[220px] transition-transform duration-200 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full",
+          "fixed inset-y-0 z-drawer w-[220px] transition-transform duration-200 ease-in-out",
+          side === "right" ? "right-0" : "left-0",
+          open
+            ? "translate-x-0"
+            : side === "right"
+              ? "translate-x-full"
+              : "-translate-x-full",
         )}
       >
         {children}
@@ -133,49 +138,40 @@ export function SidebarMobileDrawer({
 
 interface SidebarShellProps {
   expanded: boolean;
-  pinned: boolean;
-  onToggle: () => void;
   onClose?: () => void;
-  toggleLabel?: string;
   hidden?: boolean;
   ariaLabel: string;
-  footerLabel: string;
   logoHref: string;
-  headerSlot?: ReactNode;
+  account: ReactNode;
   children: ReactNode;
 }
 
 /**
- * The frame both sidebars are built in — width, pinning, and the drawer on small screens — so
- * the app and admin navigations behave the same and differ only in their links.
+ * The frame both sidebars are built in, on the page background with the logo on top and the
+ * account menu at the foot, so the app and admin navigations differ only in their links.
  */
 export default function SidebarShell({
   expanded,
-  pinned,
-  onToggle,
   onClose,
-  toggleLabel: toggleLabelOverride,
   hidden,
   ariaLabel,
-  footerLabel,
   logoHref,
-  headerSlot,
+  account,
   children,
 }: SidebarShellProps) {
-  const toggleLabel =
-    toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar");
-  const toggleTitle =
-    toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar open");
-
   return (
     <aside
       className={cn(
-        "theme-dark bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden",
+        "theme-dark flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
         hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]",
       )}
     >
-      {/* Logo */}
-      <div className="h-14 flex items-center justify-center border-b border-border px-3">
+      <div
+        className={cn(
+          "flex items-center h-12 px-3",
+          expanded ? "justify-start pl-5" : "justify-center",
+        )}
+      >
         <NavLink
           to={logoHref}
           onClick={onClose}
@@ -185,7 +181,7 @@ export default function SidebarShell({
           <ShellHubLogo
             aria-hidden
             className={cn(
-              "h-8 transition-opacity duration-200",
+              "h-6 transition-opacity duration-200",
               expanded ? "opacity-100" : "opacity-0 absolute",
             )}
           />
@@ -200,13 +196,6 @@ export default function SidebarShell({
         </NavLink>
       </div>
 
-      {/* Optional fixed header band (e.g. command-palette trigger). Skipped
-          when the shell is hidden so its control isn't focusable off-screen. */}
-      {headerSlot && !hidden && (
-        <div className="px-2 py-2.5 border-b border-border">{headerSlot}</div>
-      )}
-
-      {/* Navigation (caller provides content) */}
       <nav
         aria-label={ariaLabel}
         className="flex-1 px-2 pt-4 pb-2 overflow-y-auto"
@@ -214,41 +203,8 @@ export default function SidebarShell({
         {children}
       </nav>
 
-      {/* Footer with context-specific sidebar toggle */}
-      <div
-        className={cn(
-          "h-11 px-3 flex items-center justify-between transition-colors duration-200",
-          expanded ? "border-t border-border" : "border-t border-transparent",
-        )}
-      >
-        <p
-          className={cn(
-            "text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200",
-            expanded ? "opacity-100" : "opacity-0",
-          )}
-        >
-          {footerLabel}
-        </p>
-        <IconButton
-          size="sm"
-          onClick={onToggle}
-          tabIndex={expanded ? 0 : -1}
-          aria-label={toggleLabel}
-          title={toggleTitle}
-          className={cn(
-            "duration-200",
-            expanded ? "opacity-100" : "opacity-0",
-            pinned && "text-primary bg-primary/10",
-          )}
-        >
-          <ChevronLeftIcon
-            className={cn(
-              "w-3.5 h-3.5 transition-transform duration-200",
-              !expanded && "rotate-180",
-            )}
-            strokeWidth={2}
-          />
-        </IconButton>
+      <div className="min-h-14 px-2 py-2 flex items-center">
+        <div className="min-w-0 flex-1">{account}</div>
       </div>
     </aside>
   );

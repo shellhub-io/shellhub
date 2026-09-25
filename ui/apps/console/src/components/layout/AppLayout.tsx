@@ -1,7 +1,11 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import AppBar from "./AppBar";
+import AdminSidebar from "./AdminSidebar";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
+import { useSyncWorkspaceTab } from "@/hooks/useSyncWorkspaceTab";
 import TerminalManager from "../terminal/TerminalManager";
+import TabStrip from "./TabStrip";
+import WindowControls from "./WindowControls";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import LicenseBanner from "../common/LicenseBanner";
 import DeviceLimitBanner from "@/components/common/DeviceLimitBanner";
@@ -12,17 +16,20 @@ import { SidebarMobileDrawer } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
 import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
+import CreateNamespaceHost from "./CreateNamespaceHost";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
+import { ShellHubLogo } from "@shellhub/design-system/primitives";
 import { isEnterprise } from "@/env";
+import { isAdminPath } from "@/utils/adminRoute";
 
 /**
- * The shell of the signed-in app: bar, sidebar, routed page and the terminal taskbar. The
- * terminal lives here rather than on a page, so a session survives navigating away from the
- * device it belongs to.
+ * The shell of the signed-in app: the sidebar and a tab strip sit on the dark chrome, and the
+ * routed page and the terminal sessions share one framed panel below the tabs. The terminal lives
+ * here rather than on a page, so a session survives navigating away from the device it belongs to.
  */
 export default function AppLayout() {
   const { pathname } = useLocation();
@@ -33,8 +40,13 @@ export default function AppLayout() {
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
     useSidebarLayout();
 
-  const showSidebar = namespaces.length > 0;
-  const sidebarOffset = showSidebar && isDesktop ? (isOpen ? 220 : 60) : 0;
+  const isAdminRoute = isAdminPath(pathname);
+  const showSidebar = isAdminRoute || namespaces.length > 0;
+  const NavSidebar = isAdminRoute ? AdminSidebar : Sidebar;
+  const workspace = useWorkspaceTabs();
+  const firstTabActive =
+    !hasVisibleTerminal && workspace.tabs[0]?.id === workspace.activeId;
+  useSyncWorkspaceTab(pathname, isAdminRoute);
 
   return (
     <ChatwootProvider>
@@ -52,7 +64,7 @@ export default function AppLayout() {
             <DeviceLimitBanner />
           </>
         )}
-        <div className="flex flex-1 min-h-0">
+        <div className="theme-dark bg-background flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div
               onMouseEnter={handlers.onMouseEnter}
@@ -60,50 +72,69 @@ export default function AppLayout() {
               onFocus={handlers.onFocus}
               onBlur={handlers.onBlur}
             >
-              <Sidebar
-                expanded={isOpen}
-                pinned={pinned}
-                onToggle={handlers.onToggle}
-              />
+              <NavSidebar expanded={isOpen} />
             </div>
           )}
           {showSidebar && !isDesktop && (
             <SidebarMobileDrawer
+              side="right"
               open={drawerOpen}
               onClose={handlers.closeDrawer}
               onKeyDown={handlers.onDrawerKeyDown}
             >
-              <Sidebar
-                expanded
-                pinned={false}
-                onToggle={handlers.closeDrawer}
-                onClose={handlers.closeDrawer}
-                toggleLabel="Close sidebar"
-              />
+              <NavSidebar expanded onClose={handlers.closeDrawer} />
             </SidebarMobileDrawer>
           )}
-          <div className="flex flex-col size-full">
-            <AppBar
-              onMenuToggle={
-                showSidebar && !isDesktop ? handlers.toggleDrawer : undefined
+          <div
+            className={cn(
+              "flex flex-col flex-1 min-w-0 pr-2 pb-2",
+              !(showSidebar && isDesktop) && "pl-2",
+            )}
+          >
+            <TabStrip
+              leading={
+                !isDesktop && (
+                  <ShellHubLogo
+                    aria-hidden
+                    className="h-6 mr-3 mb-3 shrink-0"
+                  />
+                )
+              }
+              trailing={
+                <WindowControls
+                  sidebarPinned={pinned}
+                  sidebarMode={isDesktop ? "pin" : "drawer"}
+                  onToggleSidebar={
+                    showSidebar
+                      ? isDesktop
+                        ? handlers.onToggle
+                        : handlers.toggleDrawer
+                      : undefined
+                  }
+                />
               }
             />
-            <div className="relative size-full">
+            <div
+              className={cn(
+                "theme-follow relative flex-1 min-h-0 overflow-hidden rounded-[10px] border border-border [.light_&]:border-0 bg-surface",
+                firstTabActive && isDesktop && "rounded-tl-none",
+              )}
+            >
               <div className="grid-bg scanline absolute inset-0 z-bg" />
               <main
                 id="main-content"
                 tabIndex={-1}
                 key={pathname}
-                className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto"
+                className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto outline-none"
               >
                 <Outlet />
               </main>
-              <div className="content-seam pointer-events-none absolute inset-0 z-raised" />
+              <TerminalManager />
             </div>
           </div>
         </div>
-        <TerminalManager sidebarOffset={sidebarOffset} />
         <CommandPalette />
+        <CreateNamespaceHost />
         <WelcomeWizardTrigger />
         <AnnouncementModalTrigger />
         <DeviceChooserTrigger />

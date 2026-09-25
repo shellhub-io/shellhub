@@ -28,16 +28,17 @@ export default function PageHeader({
   return (
     <div
       className={cn(
-        "relative -mx-8 -mt-8 px-8 py-6 mb-8 border-b border-border",
-        variant === "decorated"
-          ? "animate-fade-in overflow-hidden"
-          : "bg-surface page-header-band",
+        "relative -mx-8 -mt-8 px-8 py-6 mb-8",
+        variant === "decorated" && "animate-fade-in overflow-hidden",
       )}
     >
       {variant === "decorated" && <GlowOrbs preset="corner" tone="primary" />}
 
       <div
-        className={cn(variant === "decorated" && "relative", "flex flex-col sm:flex-row sm:items-center justify-between gap-4")}
+        className={cn(
+          variant === "decorated" && "relative",
+          "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
+        )}
       >
         <div className="flex items-start gap-4">
           <IconBadge size="lg" color={iconColor}>

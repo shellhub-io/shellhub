@@ -38,8 +38,10 @@
     color-scheme: dark;
   }
 
-  /* Light theme — applied by toggling `class="light"` on <html>. */
-  html.light {
+  /* Light theme — applied by toggling `class="light"` on <html>. `.theme-follow` re-applies it
+     inside the chrome that `.theme-dark` pins dark, for the content framed within it. */
+  html.light,
+  html.light .theme-follow {
     --dialog-backdrop-bg: rgba(17, 19, 24, 0.45);
 
     --c-background: 238 240 243;
@@ -117,22 +119,6 @@
 }
 
 @layer components {
-  /* Soft seam between the dark chrome (top bar + sidebar) and the light content.
-     Only in light mode — in dark mode chrome and content match, so no shadow. */
-  .content-seam {
-    box-shadow: none;
-  }
-
-  html.light .content-seam {
-    box-shadow: inset 8px 8px 14px -10px rgba(15, 18, 24, 0.35);
-  }
-
-  /* Page header keeps its default look (bg-surface + bottom border); in light
-     it just gains a soft drop shadow so it reads as a raised sheet. */
-  html.light .page-header-band {
-    box-shadow: 0 2px 5px rgb(var(--c-border) / 0.9);
-  }
-
   .grid-bg {
     background-image:
       linear-gradient(rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px),

@@ -4,6 +4,7 @@ import { server } from "@/tests/msw";
 import { useAuthStore } from "../authStore";
 import { mockUserAuth } from "@/tests/factories";
 import { VALID_JWT } from "@/tests/seedAuthStore";
+import { namespaceTab, useWorkspaceTabsStore } from "../workspaceTabsStore";
 
 beforeEach(() => {
   useAuthStore.setState({
@@ -158,6 +159,16 @@ describe("authStore", () => {
       expect(state.tenant).toBeNull();
       expect(state.role).toBeNull();
       expect(state.name).toBeNull();
+    });
+
+    it("closes the context tabs, so the next user does not see the last one's namespaces", () => {
+      useWorkspaceTabsStore.setState({
+        tabs: [namespaceTab("tenant-a", "acme")],
+      });
+
+      useAuthStore.getState().logout();
+
+      expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
     });
 
     describe("Chatwoot cleanup", () => {

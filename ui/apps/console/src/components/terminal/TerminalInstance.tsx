@@ -66,8 +66,8 @@ export default function TerminalInstance({
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
 
-  const tenant = useAuthStore((s) => s.tenant);
-  const { namespace } = useNamespace(tenant ?? "");
+  const activeTenant = useAuthStore((s) => s.tenant);
+  const { namespace } = useNamespace(session.tenant ?? activeTenant ?? "");
   const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
 
   const updateStatus = useCallback(
@@ -410,8 +410,9 @@ export default function TerminalInstance({
       )}
       <div
         ref={containerRef}
+        style={{ backgroundColor: theme.colors.background }}
         className={cn(
-          "flex-1",
+          "flex-1 min-h-0 px-3 py-2",
           error !== null && "opacity-30 pointer-events-none",
         )}
       />
