@@ -85,7 +85,12 @@ export default function Modal({
             )}
           </div>
         </div>
-        <IconButton variant="ghost" aria-label="Close" onClick={onClose}>
+        <IconButton
+          variant="ghost"
+          aria-label="Close"
+          data-dismiss
+          onClick={onClose}
+        >
           <XMarkIcon className="w-5 h-5" />
         </IconButton>
       </div>

@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+vi.unmock("@/hooks/useFocusTrap");
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Modal from "@/components/common/Modal";
@@ -37,5 +38,38 @@ describe("Modal", () => {
     renderModal({ open: false });
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  describe("focus on open", () => {
+    beforeEach(() => {
+      vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+        cb(0);
+        return 0;
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("lands on the first field, not the close button", () => {
+      render(
+        <Modal open onClose={vi.fn()} title="Rename">
+          <input aria-label="Name" />
+        </Modal>,
+      );
+
+      expect(screen.getByLabelText("Name")).toHaveFocus();
+    });
+
+    it("lands on the close button when there is nothing else to focus", () => {
+      render(
+        <Modal open onClose={vi.fn()} title="Details">
+          <p>Read only</p>
+        </Modal>,
+      );
+
+      expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
+    });
   });
 });

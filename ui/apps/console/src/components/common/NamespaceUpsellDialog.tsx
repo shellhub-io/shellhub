@@ -36,6 +36,7 @@ export default function NamespaceUpsellDialog({
       <button
         type="button"
         aria-label="Close"
+        data-dismiss
         onClick={onClose}
         className="absolute right-4 top-4 rounded-md p-1.5 text-text-muted transition-colors hover:text-text-secondary"
       >
