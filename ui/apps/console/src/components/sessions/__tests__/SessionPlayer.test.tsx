@@ -3,6 +3,7 @@ import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Player } from "asciinema-player";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
+import { useSessionPlayerStore } from "@/stores/sessionPlayerStore";
 import SessionPlayer from "../SessionPlayer";
 
 vi.mock("asciinema-player", () => ({ create: vi.fn() }));
@@ -45,6 +46,7 @@ const initialTerminalLook = useTerminalThemeStore.getState();
 
 beforeEach(() => {
   useTerminalThemeStore.setState(initialTerminalLook, true);
+  useSessionPlayerStore.setState({ controls: "auto" });
   listeners = {};
   currentTime = 0;
   duration = 60;
@@ -343,6 +345,17 @@ describe("SessionPlayer", () => {
       await user.tab();
 
       expect(bar()).toHaveAttribute("data-state", "shown");
+    });
+
+    it("cycles the controls preference with H", async () => {
+      const { user } = renderPlayer();
+
+      await user.keyboard("h");
+
+      expect(useSessionPlayerStore.getState().controls).toBe("always");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Controls: always shown",
+      );
     });
   });
 
