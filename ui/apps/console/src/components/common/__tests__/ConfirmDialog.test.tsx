@@ -110,7 +110,10 @@ describe("ConfirmDialog", () => {
     it("calls onClose when the native cancel event fires (ESC key)", () => {
       const { onClose } = renderDialog(true);
 
-      fireEvent(screen.getByRole("dialog"), new Event("cancel"));
+      fireEvent(
+        screen.getByRole("dialog"),
+        new Event("cancel", { cancelable: true }),
+      );
 
       expect(onClose).toHaveBeenCalledOnce();
     });

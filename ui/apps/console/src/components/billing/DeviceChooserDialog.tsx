@@ -174,10 +174,9 @@ export default function DeviceChooserDialog({
       open={open}
       onClose={onClose}
       canClose={canClose}
-      size="xl"
+      size="md"
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
-      className="sm:max-h-[85vh]"
     >
       <header className="px-6 pt-6 pb-2 shrink-0">
         <h2 id={titleId} className="text-base font-semibold text-text-primary">

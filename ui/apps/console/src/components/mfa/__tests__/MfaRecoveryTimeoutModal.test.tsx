@@ -225,7 +225,7 @@ describe("MfaRecoveryTimeoutModal", () => {
       );
 
       const dialog = document.querySelector("dialog") as HTMLElement;
-      fireEvent(dialog, new Event("cancel"));
+      fireEvent(dialog, new Event("cancel", { cancelable: true }));
       expect(onClose).not.toHaveBeenCalled();
     });
   });

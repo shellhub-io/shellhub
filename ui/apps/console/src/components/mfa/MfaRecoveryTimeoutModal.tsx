@@ -40,7 +40,7 @@ export default function MfaRecoveryTimeoutModal({
       open={open}
       onClose={onClose}
       canClose={() => false}
-      size="md"
+      size="sm"
       aria-label="Recovery Window Active"
     >
       <div className="p-6">

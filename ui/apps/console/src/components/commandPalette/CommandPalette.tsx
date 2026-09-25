@@ -40,9 +40,9 @@ export default function CommandPalette() {
     <BaseDialog
       open={open}
       onClose={handleDismiss}
-      size="xl"
+      size="md"
       aria-label="Command palette"
-      className="overflow-hidden sm:max-h-[85vh]"
+      className="overflow-hidden"
     >
       <PaletteHeader
         inputRef={inputRef}

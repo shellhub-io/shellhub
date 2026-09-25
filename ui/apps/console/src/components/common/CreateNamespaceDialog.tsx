@@ -41,7 +41,7 @@ export default function CreateNamespaceDialog({
     <BaseDialog
       open={open}
       onClose={onClose}
-      size="lg"
+      size="md"
       aria-labelledby={titleId}
     >
       {/* Header */}

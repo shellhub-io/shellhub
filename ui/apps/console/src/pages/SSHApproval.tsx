@@ -112,7 +112,7 @@ export default function SSHApproval({
   }
 
   return (
-    <BaseDialog open onClose={close} size="lg" aria-label={FLOWS[flow].label}>
+    <BaseDialog open onClose={close} size="md" aria-label={FLOWS[flow].label}>
       <div className="p-8">
         {phase === "loading" && <StatusMessage label="Loading request..." />}
 

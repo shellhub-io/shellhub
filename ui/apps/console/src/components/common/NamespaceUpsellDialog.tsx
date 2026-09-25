@@ -30,7 +30,7 @@ export default function NamespaceUpsellDialog({
     <BaseDialog
       open={open}
       onClose={onClose}
-      size="md"
+      size="sm"
       aria-labelledby="namespace-upsell-title"
     >
       <button
