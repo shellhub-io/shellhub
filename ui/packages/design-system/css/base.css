@@ -60,6 +60,17 @@
     margin: 0;
   }
 
+  :focus-visible:not(input, textarea, select) {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgb(var(--c-background)),
+      0 0 0 4px rgb(var(--color-primary-rgb));
+  }
+
+  [tabindex="-1"]:focus-visible {
+    box-shadow: none;
+  }
+
   body:has(dialog[open]) {
     overflow: hidden;
   }
