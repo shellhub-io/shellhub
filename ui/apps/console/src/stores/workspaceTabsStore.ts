@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { moveById } from "@/utils/moveById";
 
 /**
  * An open context in the tab strip: a namespace, or the admin console. Each remembers the page
@@ -50,6 +51,7 @@ interface WorkspaceTabsState {
   ensure: (tab: WorkspaceTab) => void;
   remember: (id: string, path: string) => void;
   remove: (id: string) => void;
+  move: (id: string, to: number) => void;
   retain: (tenants: Set<string>) => void;
   fail: (id: string, reason: string) => void;
   clearFailure: (id: string) => void;
@@ -83,6 +85,11 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         })),
       remove: (id) =>
         set((state) => ({ tabs: state.tabs.filter((t) => t.id !== id) })),
+      move: (id, to) =>
+        set((state) => {
+          const tabs = moveById(state.tabs, id, to);
+          return tabs === state.tabs ? state : { tabs };
+        }),
       retain: (tenants) =>
         set((state) => {
           const kept = state.tabs.filter(

@@ -19,8 +19,12 @@ import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useNamespaces } from "@/hooks/useNamespaces";
-import { type WorkspaceTab } from "@/stores/workspaceTabsStore";
+import {
+  useWorkspaceTabsStore,
+  type WorkspaceTab,
+} from "@/stores/workspaceTabsStore";
 import { getInitials } from "@/utils/string";
+import { useTabReorder, type TabReorder } from "./useTabReorder";
 import TerminalSettingsDrawer from "../terminal/TerminalSettingsDrawer";
 
 const STATUS_DOT: Record<ConnectionStatus, string> = {
@@ -30,6 +34,7 @@ const STATUS_DOT: Record<ConnectionStatus, string> = {
 };
 
 interface TabProps {
+  id: string;
   active: boolean;
   surfaceClassName: string;
   surfaceColors?: { background: string; foreground: string };
@@ -39,9 +44,11 @@ interface TabProps {
   icon: ReactNode;
   onSelect: () => void;
   onClose?: () => void;
+  reorder: TabReorder;
 }
 
 function Tab({
+  id,
   active,
   surfaceClassName,
   surfaceColors,
@@ -51,9 +58,16 @@ function Tab({
   icon,
   onSelect,
   onClose,
+  reorder,
 }: TabProps) {
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
+    const arrow =
+      e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : null;
+    if (arrow !== null && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      reorder.onMove(arrow);
+    } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onSelect();
     } else if (e.key === "Delete" && onClose) {
@@ -65,17 +79,26 @@ function Tab({
   return (
     <div
       role="tab"
+      data-tab-id={id}
       aria-selected={active}
       tabIndex={active ? 0 : -1}
       title={tooltip ?? label}
-      style={
-        active && surfaceColors
+      aria-keyshortcuts="Control+Shift+ArrowLeft Control+Shift+ArrowRight"
+      onPointerDown={reorder.onPointerDown}
+      onPointerMove={reorder.onPointerMove}
+      onPointerUp={reorder.onPointerUp}
+      onPointerCancel={reorder.onPointerCancel}
+      style={{
+        ...(active && surfaceColors
           ? {
               backgroundColor: surfaceColors.background,
               color: surfaceColors.foreground,
             }
-          : undefined
-      }
+          : {}),
+        ...(reorder.offset !== 0
+          ? { transform: `translateX(${reorder.offset}px)` }
+          : {}),
+      }}
       onMouseDown={(e) => {
         if (e.button === 1 && onClose) {
           e.preventDefault();
@@ -92,8 +115,12 @@ function Tab({
               "relative z-raised h-[39px] -mb-px border-border [.light_&]:border-0 text-text-primary",
               surfaceClassName,
             )
-          : "h-[38px] border-transparent text-text-secondary hover:text-text-primary",
+          : "relative h-[38px] border-transparent text-text-secondary hover:text-text-primary",
         active && sublabel && "h-[44px] pt-[5px]",
+        reorder.dragging && "z-terminal-bar",
+        reorder.settling &&
+          !reorder.dragging &&
+          "transition-[transform,color,background-color] duration-150",
       )}
     >
       {icon}
@@ -109,6 +136,7 @@ function Tab({
           tabIndex={-1}
           aria-label={`Close ${label}`}
           onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={onClose}
           className={cn(
             "-mr-1 w-[18px] h-[18px] rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-hover-medium shrink-0",
@@ -173,6 +201,7 @@ function TerminalIcon({ status }: { status: ConnectionStatus }) {
 
 function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  if (e.ctrlKey || e.metaKey) return;
   const tabs = Array.from(
     e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]'),
   );
@@ -188,7 +217,10 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
  * console, then every terminal session. The terminal in view carries its namespace atop the tab
  * once more than one namespace is open, and selecting a terminal from another namespace enters
  * that namespace first. Selecting a context minimizes the terminals, the same state navigating
- * away leaves them in.
+ * away leaves them in. Tabs are reordered by dragging, or with Ctrl+Shift+Left/Right, each within
+ * its own group: contexts always come first, terminals after. The strip is the framed panel's
+ * peer: its root carries data-first-tab-active, which the panel right after it reads to square its
+ * top-left corner, so the two must stay siblings.
  */
 export default function TabStrip({
   leading,
@@ -205,8 +237,16 @@ export default function TabStrip({
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
   const terminalColors = useTerminalThemeStore((s) => s.theme.colors);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const moveContext = useWorkspaceTabsStore((s) => s.move);
+  const moveSession = useTerminalStore((s) => s.move);
+  const reorder = useTabReorder();
+  const contextIds = workspace.tabs.map((t) => t.id);
+  const contextOrder = reorder.orderOf(contextIds);
+  const sessionIds = sessions.map((s) => s.id);
 
   const active = sessions.find((s) => s.state !== "minimized");
+  const firstTabActive =
+    !leading && !active && contextOrder[0] === workspace.activeId;
   const openNamespaceTabs = workspace.tabs.filter(
     (t) => t.kind === "namespace",
   ).length;
@@ -220,7 +260,11 @@ export default function TabStrip({
       aria-label="Open views"
       data-tauri-drag-region
       onKeyDown={moveFocus}
-      className="h-12 shrink-0 flex items-end gap-0.5 min-w-0"
+      onKeyDownCapture={(e) => {
+        if (e.key === "Escape") reorder.cancel();
+      }}
+      data-first-tab-active={firstTabActive}
+      className="peer h-12 shrink-0 flex items-end gap-0.5 min-w-0"
     >
       {leading}
       {workspace.tabs.map((tab) => {
@@ -229,6 +273,7 @@ export default function TabStrip({
         return (
           <Tab
             key={tab.id}
+            id={tab.id}
             active={isActive}
             surfaceClassName="theme-follow bg-surface"
             label={tab.name}
@@ -242,6 +287,7 @@ export default function TabStrip({
             onClose={
               workspace.tabs.length > 1 ? () => workspace.close(tab) : undefined
             }
+            reorder={reorder.tab(contextIds, moveContext, tab.id)}
           />
         );
       })}
@@ -258,6 +304,7 @@ export default function TabStrip({
         return (
           <Tab
             key={s.id}
+            id={s.id}
             active={s.id === active?.id}
             surfaceClassName="theme-follow"
             surfaceColors={terminalColors}
@@ -267,6 +314,7 @@ export default function TabStrip({
             icon={<TerminalIcon status={s.connectionStatus} />}
             onSelect={() => void workspace.showTerminal(s)}
             onClose={() => closeSession(s.id)}
+            reorder={reorder.tab(sessionIds, moveSession, s.id)}
           />
         );
       })}
