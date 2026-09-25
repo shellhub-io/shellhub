@@ -39,7 +39,9 @@ function Harness({ onCreated }: { onCreated?: () => void }) {
 }
 
 function renderForm(onCreated?: () => void) {
-  render(<Harness onCreated={onCreated} />, { wrapper: createTestWrapper() });
+  render(<Harness onCreated={onCreated} />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
+  });
   return {
     nameInput: () => screen.getByLabelText("Namespace Name"),
     create: () => screen.getByRole("button", { name: "Create" }),
@@ -91,7 +93,9 @@ describe("useNamespaceCreateForm", () => {
 
   it("clears the error once the name changes again", async () => {
     server.use(
-      http.post("*/api/namespaces", () => HttpResponse.json({}, { status: 409 })),
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 409 }),
+      ),
     );
 
     const user = await submitName("my-ns");

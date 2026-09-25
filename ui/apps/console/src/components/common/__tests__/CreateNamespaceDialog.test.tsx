@@ -32,7 +32,7 @@ function renderDialog(open: boolean, onClose = vi.fn()) {
       <ClipboardProvider>
         <CreateNamespaceDialog open={open} onClose={onClose} />
       </ClipboardProvider>,
-      { wrapper: createTestWrapper() },
+      { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
     ),
   };
 }
@@ -56,9 +56,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
   it("labels the dialog with its heading", () => {
     renderDialog(true);
-    const labelId = screen
-      .getByRole("dialog")
-      .getAttribute("aria-labelledby");
+    const labelId = screen.getByRole("dialog").getAttribute("aria-labelledby");
     expect(
       screen.getByRole("heading", { name: "Create a Namespace" }),
     ).toHaveAttribute("id", labelId);

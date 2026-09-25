@@ -21,7 +21,9 @@ beforeEach(() => {
 describe("CreateNamespace — NamespaceCreateForm", () => {
   it("surfaces a failed creation on the name field", async () => {
     const user = userEvent.setup();
-    render(<CreateNamespace />, { wrapper: createTestWrapper() });
+    render(<CreateNamespace />, {
+      wrapper: createTestWrapper({ initialEntries: ["/"] }),
+    });
 
     await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
     await user.click(screen.getByRole("button", { name: "Create" }));
