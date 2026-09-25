@@ -26,8 +26,21 @@ function resolve(preference: ThemePreference): AppTheme {
 }
 
 function readPreference(): ThemePreference {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  return saved === "light" || saved === "dark" ? saved : "system";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved === "light" || saved === "dark" ? saved : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function storePreference(preference: ThemePreference) {
+  try {
+    if (preference === "system") localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, preference);
+  } catch {
+    return;
+  }
 }
 
 function applyTheme(theme: AppTheme) {
@@ -51,8 +64,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   theme: resolve(readPreference()),
 
   setPreference: (preference) => {
-    if (preference === "system") localStorage.removeItem(STORAGE_KEY);
-    else localStorage.setItem(STORAGE_KEY, preference);
+    storePreference(preference);
     const theme = resolve(preference);
     applyTheme(theme);
     set({ preference, theme });
