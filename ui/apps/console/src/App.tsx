@@ -21,6 +21,7 @@ import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
 import LicenseGuard from "./components/common/LicenseGuard";
 import FeatureGate from "./components/common/FeatureGate";
+import { ADMIN_UNAUTHORIZED_PATH } from "./utils/adminRoute";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
@@ -140,7 +141,7 @@ export default function App() {
               <Route element={<NamespaceGuard />}>
                 <Route element={<AppLayout />}>
                   <Route
-                    path="/admin/unauthorized"
+                    path={ADMIN_UNAUTHORIZED_PATH}
                     element={<AdminUnauthorized />}
                   />
                   <Route element={<AdminRoute />}>

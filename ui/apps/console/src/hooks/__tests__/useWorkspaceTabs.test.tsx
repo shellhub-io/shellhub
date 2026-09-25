@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -154,5 +154,25 @@ describe("useWorkspaceTabs", () => {
 
     expect(useAuthStore.getState().tenant).toBe("tenant-other");
     expect(useTerminalStore.getState().restoreAfterNavigation).toBe(session.id);
+  });
+
+  it("keeps the active tab when the neighbour it would move to cannot be entered", async () => {
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({}, { status: 403 }),
+      ),
+    );
+    const { result } = renderTabs();
+
+    act(() => {
+      result.current.close(home);
+    });
+
+    await vi.waitFor(() =>
+      expect(useWorkspaceTabsStore.getState().failures[other.id]).toBeTruthy(),
+    );
+    expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toContain(
+      home.id,
+    );
   });
 });
