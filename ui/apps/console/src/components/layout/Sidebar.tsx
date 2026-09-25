@@ -40,9 +40,6 @@ export default function Sidebar({
   onClose?: () => void;
 }) {
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
-  const isFullscreen = useTerminalStore((state) =>
-    state.sessions.some((session) => session.state === "fullscreen"),
-  );
 
   const sections = useNavSections();
 
@@ -55,7 +52,6 @@ export default function Sidebar({
     <SidebarShell
       expanded={expanded}
       onClose={onClose}
-      hidden={isFullscreen}
       ariaLabel="Main navigation"
       logoHref="/dashboard"
       account={<SessionMenu expanded={expanded} />}

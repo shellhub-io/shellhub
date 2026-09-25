@@ -18,11 +18,14 @@ import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
 import CreateNamespaceHost from "./CreateNamespaceHost";
 import { useNamespaces } from "@/hooks/useNamespaces";
-import { useTerminalStore } from "@/stores/terminalStore";
+import {
+  useTerminalFullscreen,
+  useTerminalStore,
+} from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
-import { ShellHubLogo } from "@shellhub/design-system/primitives";
+import LogoMark from "./LogoMark";
 import { isEnterprise } from "@/env";
 import { isAdminPath } from "@/utils/adminRoute";
 
@@ -37,9 +40,7 @@ export default function AppLayout() {
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );
-  const terminalFullscreen = useTerminalStore((s) =>
-    s.sessions.some((t) => t.state === "fullscreen"),
-  );
+  const terminalFullscreen = useTerminalFullscreen();
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
     useSidebarLayout();
 
@@ -105,15 +106,15 @@ export default function AppLayout() {
           <div
             className={cn(
               "flex flex-col flex-1 min-w-0 pr-2 pb-2",
-              !(showSidebar && isDesktop) && "pl-2",
+              !(showSidebar && isDesktop && !terminalFullscreen) && "pl-2",
             )}
           >
             <TabStrip
               leading={
-                !isDesktop && (
-                  <ShellHubLogo
-                    aria-hidden
-                    className="h-6 mr-3 mb-3 shrink-0"
+                (!isDesktop || terminalFullscreen) && (
+                  <LogoMark
+                    full={isDesktop}
+                    className="mr-3 mb-[7px] shrink-0"
                   />
                 )
               }

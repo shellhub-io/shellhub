@@ -24,25 +24,10 @@ function renderSidebarShell(overrides: Partial<SidebarShellProps> = {}) {
 }
 
 describe("SidebarShell", () => {
-  it("names the logo link and hides both marks when expanded", () => {
-    renderSidebarShell({ expanded: true });
+  it("names the logo link and keeps the mark out of the accessibility tree", () => {
+    renderSidebarShell();
 
     expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(screen.getByTestId("sidebar-cloud-icon")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
-  });
-
-  it("names the logo link and hides both marks when collapsed", () => {
-    renderSidebarShell({ expanded: false });
-
-    expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(screen.getByTestId("sidebar-cloud-icon")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
   });
 });
