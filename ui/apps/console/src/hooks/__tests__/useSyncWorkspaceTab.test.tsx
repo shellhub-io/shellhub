@@ -4,14 +4,20 @@ import { http } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { useWorkspaceTabsStore } from "@/stores/workspaceTabsStore";
-import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
+import {
+  ACCOUNT_TAB_ID,
+  useWorkspaceTabsStore,
+} from "@/stores/workspaceTabsStore";
+import { ADMIN_UNAUTHORIZED_PATH, isAdminPath } from "@/utils/adminRoute";
 import { useSyncWorkspaceTab } from "../useSyncWorkspaceTab";
 
 function syncAt(pathname: string) {
-  return renderHook(() => useSyncWorkspaceTab(pathname, true), {
-    wrapper: createTestWrapper(),
-  });
+  return renderHook(
+    () => useSyncWorkspaceTab(pathname, isAdminPath(pathname)),
+    {
+      wrapper: createTestWrapper(),
+    },
+  );
 }
 
 beforeEach(() => {
@@ -26,6 +32,14 @@ describe("useSyncWorkspaceTab", () => {
 
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
       "admin",
+    ]);
+  });
+
+  it("opens the account's tab on its pages", () => {
+    syncAt("/profile");
+
+    expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
+      ACCOUNT_TAB_ID,
     ]);
   });
 

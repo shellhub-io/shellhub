@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useAuthStore } from "@/stores/authStore";
+import { accountDisplayName, useAuthStore } from "@/stores/authStore";
 import { getInitials } from "@/utils/string";
 import AccountMenuItems from "./AccountMenuItems";
 import SupportPaywallDialog from "./SupportPaywallDialog";
@@ -11,11 +11,11 @@ import SupportPaywallDialog from "./SupportPaywallDialog";
  * The signed-in user at the bottom of the sidebar, opening upward into the account actions.
  */
 export default function SessionMenu({ expanded }: { expanded: boolean }) {
-  const { user, name, email } = useAuthStore();
+  const email = useAuthStore((s) => s.email);
   const [open, setOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
-  const display = user || name || email || "Account";
+  const display = useAuthStore(accountDisplayName);
 
   return (
     <>

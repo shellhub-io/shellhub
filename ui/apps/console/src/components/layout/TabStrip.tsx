@@ -16,6 +16,7 @@ import {
   type ConnectionStatus,
 } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
+import { accountDisplayName, useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useNamespaces } from "@/hooks/useNamespaces";
@@ -154,11 +155,27 @@ function WorkspaceIcon({
   tab,
   active,
   failed,
+  accountName,
 }: {
   tab: WorkspaceTab;
   active: boolean;
   failed: boolean;
+  accountName: string;
 }) {
+  if (tab.kind === "account") {
+    return (
+      <span
+        className={cn(
+          "w-5 h-5 rounded-full border flex items-center justify-center text-[9px] font-bold font-mono shrink-0",
+          active
+            ? "bg-primary/15 border-primary/20 text-primary"
+            : "bg-card border-border text-text-muted",
+        )}
+      >
+        {getInitials(accountName)}
+      </span>
+    );
+  }
   if (tab.kind === "admin") {
     return (
       <ShieldCheckIcon
@@ -230,6 +247,7 @@ export default function TabStrip({
   trailing?: ReactNode;
 }) {
   const workspace = useWorkspaceTabs();
+  const accountName = useAuthStore(accountDisplayName);
   const { namespaces } = useNamespaces();
   const sessions = useTerminalStore((s) => s.sessions);
   const closeSession = useTerminalStore((s) => s.close);
@@ -281,7 +299,12 @@ export default function TabStrip({
               failure ? `Couldn't open ${tab.name}: ${failure}` : undefined
             }
             icon={
-              <WorkspaceIcon tab={tab} active={isActive} failed={!!failure} />
+              <WorkspaceIcon
+                tab={tab}
+                active={isActive}
+                failed={!!failure}
+                accountName={accountName}
+              />
             }
             onSelect={() => void workspace.activate(tab)}
             onClose={
