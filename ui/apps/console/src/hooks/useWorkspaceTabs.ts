@@ -5,6 +5,7 @@ import { useNamespaces } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import {
+  ACCOUNT_TAB_ID,
   ADMIN_TAB_ID,
   adminTab,
   namespaceTab,
@@ -12,7 +13,8 @@ import {
   useWorkspaceTabsStore,
   type WorkspaceTab,
 } from "@/stores/workspaceTabsStore";
-import { isAdminPath } from "@/utils/adminRoute";
+import { ADMIN_UNAUTHORIZED_PATH, isAdminPath } from "@/utils/adminRoute";
+import { isAccountPath } from "@/utils/accountRoute";
 
 /**
  * The context tabs and how to move between them. A namespace tab is entered in place (see
@@ -33,11 +35,13 @@ export function useWorkspaceTabs() {
   const enterNamespace = useEnterNamespace();
   const { namespaces } = useNamespaces();
 
-  const activeId = isAdminPath(pathname)
-    ? ADMIN_TAB_ID
-    : tenant
-      ? namespaceTabId(tenant)
-      : null;
+  const activeId = isAccountPath(pathname)
+    ? ACCOUNT_TAB_ID
+    : isAdminPath(pathname) && pathname !== ADMIN_UNAUTHORIZED_PATH
+      ? ADMIN_TAB_ID
+      : tenant
+        ? namespaceTabId(tenant)
+        : null;
 
   const activate = async (
     tab: WorkspaceTab,

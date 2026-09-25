@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useAuthStore } from "@/stores/authStore";
+import { accountDisplayName, useAuthStore } from "@/stores/authStore";
 import { getInitials } from "@/utils/string";
 import AccountMenuItems from "./AccountMenuItems";
 
@@ -13,7 +13,7 @@ export default function UserMenu() {
   const { user, name, email } = useAuthStore();
   const [open, setOpen] = useState(false);
 
-  const display = user || name || email || "Account";
+  const display = accountDisplayName({ user, name, email });
 
   if (!user && !name && !email) return null;
 

@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { moveById } from "@/utils/moveById";
 
 /**
- * An open context in the tab strip: a namespace, or the admin console. Each remembers the page
+ * An open context in the tab strip: a namespace, the admin console, or the user's own account. Each remembers the page
  * it was last on, so coming back to it lands where the user left it.
  */
 export type WorkspaceTab =
@@ -14,7 +14,8 @@ export type WorkspaceTab =
       name: string;
       path: string;
     }
-  | { id: "admin"; kind: "admin"; name: string; path: string };
+  | { id: "admin"; kind: "admin"; name: string; path: string }
+  | { id: "account"; kind: "account"; name: string; path: string };
 
 /**
  * The id of the admin console tab; there is only ever one.
@@ -25,6 +26,18 @@ export const ADMIN_TAB_ID = "admin";
  * The id a namespace tab is stored under, so opening the same namespace twice finds its tab.
  */
 export const namespaceTabId = (tenant: string) => `ns:${tenant}`;
+
+/**
+ * The id of the account tab; there is only ever one.
+ */
+export const ACCOUNT_TAB_ID = "account";
+
+/**
+ * The account's tab, landing on path when activated, as adminTab does for the admin console.
+ */
+export function accountTab(path = "/profile"): WorkspaceTab {
+  return { id: ACCOUNT_TAB_ID, kind: "account", name: "Account", path };
+}
 
 /**
  * The admin console's tab, landing on path when activated. ensure keeps an open tab's own path,

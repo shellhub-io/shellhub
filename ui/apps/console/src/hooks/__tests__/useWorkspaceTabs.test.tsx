@@ -9,10 +9,12 @@ import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import {
+  ACCOUNT_TAB_ID,
   namespaceTab,
   useWorkspaceTabsStore,
 } from "@/stores/workspaceTabsStore";
 import { mockNamespace } from "@/tests/factories";
+import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
 import { useNamespaces } from "../useNamespaces";
 import { useWorkspaceTabs } from "../useWorkspaceTabs";
 
@@ -174,5 +176,21 @@ describe("useWorkspaceTabs", () => {
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toContain(
       home.id,
     );
+  });
+
+  it("treats the profile as the account's context, not the namespace's", () => {
+    const { result } = renderHook(() => useWorkspaceTabs(), {
+      wrapper: createTestWrapper({ initialEntries: ["/profile"] }),
+    });
+
+    expect(result.current.activeId).toBe(ACCOUNT_TAB_ID);
+  });
+
+  it("keeps the namespace tab active where the admin console turned the user away", () => {
+    const { result } = renderHook(() => useWorkspaceTabs(), {
+      wrapper: createTestWrapper({ initialEntries: [ADMIN_UNAUTHORIZED_PATH] }),
+    });
+
+    expect(result.current.activeId).toBe(home.id);
   });
 });

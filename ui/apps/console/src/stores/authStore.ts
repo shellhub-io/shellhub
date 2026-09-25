@@ -312,3 +312,11 @@ setRecordingsScope(useAuthStore.getState().userId);
 useAuthStore.subscribe((state, prev) => {
   if (state.userId !== prev.userId) setRecordingsScope(state.userId);
 });
+
+/**
+ * How the signed-in user is named across the console: the username, else the display name, else
+ * the email, else "Account". A selector for useAuthStore.
+ */
+export const accountDisplayName = (
+  s: Pick<AuthState, "user" | "name" | "email">,
+) => s.user || s.name || s.email || "Account";

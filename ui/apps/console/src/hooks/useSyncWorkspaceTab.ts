@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
+import { isAccountPath } from "@/utils/accountRoute";
 import {
+  ACCOUNT_TAB_ID,
   ADMIN_TAB_ID,
+  accountTab,
   adminTab,
   namespaceTab,
   namespaceTabId,
@@ -25,6 +28,11 @@ export function useSyncWorkspaceTab(pathname: string, isAdminRoute: boolean) {
   useEffect(() => {
     if (pathname === ADMIN_UNAUTHORIZED_PATH) return;
     const store = useWorkspaceTabsStore.getState();
+    if (isAccountPath(pathname)) {
+      store.ensure(accountTab(pathname));
+      store.remember(ACCOUNT_TAB_ID, pathname);
+      return;
+    }
     if (isAdminRoute) {
       store.ensure(adminTab(pathname));
       store.remember(ADMIN_TAB_ID, pathname);
