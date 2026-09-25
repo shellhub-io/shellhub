@@ -51,6 +51,7 @@ import { cn } from "@shellhub/design-system/cn";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 function EditNameModal({
   open,
@@ -334,6 +335,7 @@ const SSH_ACCESS_MODES = {
  * with anchored sections, so a link can land on the section it means.
  */
 export default function Settings() {
+  const sectionTitle = useNavSectionTitle("/settings");
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const { policies } = useAccessPolicies();
@@ -393,7 +395,7 @@ export default function Settings() {
     <div>
       <PageHeader
         icon={<Cog6ToothIcon className="w-6 h-6" />}
-        overline="Namespace"
+        overline={sectionTitle}
         title="Settings"
         description="Manage namespace configuration, SSH options, and access"
       />

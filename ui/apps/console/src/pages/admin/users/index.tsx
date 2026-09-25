@@ -15,6 +15,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import SearchField from "@/components/common/fields/SearchField";
@@ -188,7 +189,7 @@ export default function AdminUsers() {
     <div>
       <PageHeader
         icon={<UsersIcon className="w-6 h-6" />}
-        overline="Account Management"
+        overline={adminNavSectionTitle("/admin/users")}
         title="Users"
         description="Manage all user accounts in the instance"
       >

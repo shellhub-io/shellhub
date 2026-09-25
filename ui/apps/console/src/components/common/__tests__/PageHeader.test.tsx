@@ -17,6 +17,13 @@ describe("PageHeader", () => {
     expect(screen.getByTestId("icon")).toBeInTheDocument();
   });
 
+  it("leaves the overline out when there is none", () => {
+    const { container } = render(
+      <PageHeader icon={<svg />} title="All Devices" />,
+    );
+    expect(container).toHaveTextContent(/^All Devices$/);
+  });
+
   it("renders description when provided", () => {
     render(
       <PageHeader

@@ -28,6 +28,7 @@ import { PublicKeyResponse as PublicKey } from "@/client";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 function ScopeCell({ pk }: { pk: PublicKey }) {
   const isAllUsers = pk.username === ".*" || !pk.username;
@@ -105,6 +106,7 @@ const DEFAULTS: PublicKeysParams = {
  * The public keys list: the keys that may authenticate to this namespace's devices.
  */
 export default function PublicKeys() {
+  const sectionTitle = useNavSectionTitle("/sshkeys/public-keys");
   const { params, setPage, setSearch } =
     usePaginatedListState<PublicKeysParams>({
       defaults: DEFAULTS,
@@ -287,7 +289,7 @@ export default function PublicKeys() {
     <div>
       <PageHeader
         icon={<KeyIcon className="w-6 h-6" />}
-        overline="Security"
+        overline={sectionTitle}
         title="Public Keys"
         description="Manage SSH public keys for passwordless authentication to your devices."
       >

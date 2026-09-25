@@ -36,6 +36,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
 import { formatRelative } from "@/utils/date";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 import AccessPolicyModal from "./AccessPolicyModal";
 
 const CHIP_TONE = {
@@ -223,6 +224,7 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
  * firewall pages in namespaces using identity access mode.
  */
 export default function AccessPolicies() {
+  const sectionTitle = useNavSectionTitle("/access-policies");
   const { policies, isLoading } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
@@ -436,7 +438,7 @@ export default function AccessPolicies() {
     <div>
       <PageHeader
         icon={<ShieldCheckIcon className="w-6 h-6" />}
-        overline="Security"
+        overline={sectionTitle}
         title="Access Policies"
         description="Control who may reach which devices, as which login, under the identity SSH access mode."
       >

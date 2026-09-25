@@ -42,6 +42,7 @@ import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -79,6 +80,7 @@ type SortField = "name" | "last_seen";
  * The containers list, filtered by status, search and tags.
  */
 export default function Containers() {
+  const sectionTitle = useNavSectionTitle("/containers");
   const {
     params,
     setPage,
@@ -371,7 +373,7 @@ export default function Containers() {
     <div>
       <PageHeader
         icon={<CubeIcon className="w-6 h-6" />}
-        overline="Container Management"
+        overline={sectionTitle}
         title="Containers"
         description="Manage and monitor Docker containers connected via ShellHub Connector"
       >

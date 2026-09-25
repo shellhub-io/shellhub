@@ -30,6 +30,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 
 const PLAY_BTN =
   "inline-flex items-center gap-1.5 px-2.5 py-1.5 text-2xs font-semibold text-white bg-primary rounded-md hover:bg-primary-600 transition-colors disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-primary";
@@ -70,6 +71,7 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
  * The sessions list: who connected to what, when, and for how long.
  */
 export default function Sessions() {
+  const sectionTitle = useNavSectionTitle("/sessions");
   const principalName = usePrincipalName();
   const { params, setPage } = usePaginatedListState<SessionsParams>({
     defaults: DEFAULTS,
@@ -268,7 +270,7 @@ export default function Sessions() {
     <div>
       <PageHeader
         icon={<CommandLineIcon className="w-6 h-6" />}
-        overline="SSH Sessions"
+        overline={sectionTitle}
         title="Sessions"
         description="View and monitor all SSH connections to your devices"
       />

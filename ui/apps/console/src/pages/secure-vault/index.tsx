@@ -26,6 +26,7 @@ import {
 } from "@/utils/vault-backend-factory";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
+import { useNavSectionTitle } from "@/components/layout/navSections";
 import KeyModal from "./KeyModal";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatRelative } from "@/utils/date";
@@ -58,6 +59,7 @@ const VAULT_FEATURES: EmptyStateFeature[] = [
  * What is shown depends on whether the vault exists, is locked, or is open.
  */
 export default function SecureVault() {
+  const sectionTitle = useNavSectionTitle("/secure-vault");
   const status = useVaultStore((s) => s.status);
   const keys = useVaultStore((s) => s.keys);
   const refreshStatus = useVaultStore((s) => s.refreshStatus);
@@ -262,7 +264,7 @@ export default function SecureVault() {
         <>
           <PageHeader
             icon={<ShieldCheckIcon className="w-6 h-6" />}
-            overline="Security"
+            overline={sectionTitle}
             title="Secure Vault"
             description="Manage your encrypted SSH private keys."
           >

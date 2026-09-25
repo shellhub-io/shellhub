@@ -9,6 +9,7 @@ import ActiveBadge from "@/components/common/ActiveBadge";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
+import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import SearchField from "@/components/common/fields/SearchField";
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
@@ -135,7 +136,7 @@ export default function AdminFirewallRules() {
     <div>
       <PageHeader
         icon={<ShieldExclamationIcon className="w-6 h-6" />}
-        overline="Firewall Administration"
+        overline={adminNavSectionTitle("/admin/firewall-rules")}
         title="Firewall Rules"
         description="View all firewall rules configured across the instance"
       />

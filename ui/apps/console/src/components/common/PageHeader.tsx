@@ -5,7 +5,7 @@ import { cn } from "@shellhub/design-system/cn";
 
 interface PageHeaderProps {
   icon: ReactNode;
-  overline: string;
+  overline?: string;
   title: string;
   description?: string;
   children?: ReactNode;
@@ -14,7 +14,8 @@ interface PageHeaderProps {
 }
 
 /**
- * The heading block every page opens with: icon, overline, title and actions.
+ * The heading block every page opens with: icon, overline, title and actions. The overline names
+ * where the page sits in the navigation; without one, the title stands alone.
  */
 export default function PageHeader({
   icon,
@@ -45,9 +46,11 @@ export default function PageHeader({
             {icon}
           </IconBadge>
           <div>
-            <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary mb-1">
-              {overline}
-            </p>
+            {overline && (
+              <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary mb-1">
+                {overline}
+              </p>
+            )}
             <h1 className="text-xl font-semibold text-text-primary leading-tight">
               {title}
             </h1>
