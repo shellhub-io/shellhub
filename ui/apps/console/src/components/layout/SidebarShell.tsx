@@ -80,7 +80,6 @@ export function NavItemLink({
 }
 
 interface SidebarMobileDrawerProps {
-  side?: "left" | "right";
   open: boolean;
   onClose: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
@@ -92,7 +91,6 @@ interface SidebarMobileDrawerProps {
  * the page behind cannot be tabbed into.
  */
 export function SidebarMobileDrawer({
-  side = "left",
   open,
   onClose,
   onKeyDown,
@@ -122,12 +120,8 @@ export function SidebarMobileDrawer({
       <div
         className={cn(
           "fixed inset-y-0 z-drawer w-[220px] transition-transform duration-200 ease-in-out",
-          side === "right" ? "right-0" : "left-0",
-          open
-            ? "translate-x-0"
-            : side === "right"
-              ? "translate-x-full"
-              : "-translate-x-full",
+          "left-0 border-r border-border",
+          open ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {children}

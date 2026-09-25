@@ -37,6 +37,9 @@ export default function AppLayout() {
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );
+  const terminalFullscreen = useTerminalStore((s) =>
+    s.sessions.some((t) => t.state === "fullscreen"),
+  );
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
     useSidebarLayout();
 
@@ -67,17 +70,31 @@ export default function AppLayout() {
         <div className="theme-dark bg-background flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div
-              onMouseEnter={handlers.onMouseEnter}
-              onMouseLeave={handlers.onMouseLeave}
-              onFocus={handlers.onFocus}
-              onBlur={handlers.onBlur}
+              className={cn(
+                "relative shrink-0",
+                !pinned && !terminalFullscreen && "w-[60px]",
+              )}
             >
-              <NavSidebar expanded={isOpen} />
+              <div
+                onMouseEnter={handlers.onMouseEnter}
+                onMouseLeave={handlers.onMouseLeave}
+                onFocus={handlers.onFocus}
+                onBlur={handlers.onBlur}
+                className={cn(
+                  "h-full",
+                  !pinned &&
+                    "absolute inset-y-0 left-0 z-appbar border-r border-transparent transition-[box-shadow,border-color] duration-200",
+                  !pinned &&
+                    isOpen &&
+                    "border-border shadow-[16px_0_40px_-12px_rgba(0,0,0,0.7)]",
+                )}
+              >
+                <NavSidebar expanded={isOpen} />
+              </div>
             </div>
           )}
           {showSidebar && !isDesktop && (
             <SidebarMobileDrawer
-              side="right"
               open={drawerOpen}
               onClose={handlers.closeDrawer}
               onKeyDown={handlers.onDrawerKeyDown}
