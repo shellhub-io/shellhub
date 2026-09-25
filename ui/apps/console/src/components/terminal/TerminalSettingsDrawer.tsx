@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -15,6 +15,13 @@ import {
   type TerminalFont,
   type TerminalTheme,
 } from "@/stores/terminalThemeStore";
+import {
+  PLAYER_CONTROLS,
+  useSessionPlayerStore,
+  type PlayerControls,
+} from "@/stores/sessionPlayerStore";
+import RadioGroupField from "../common/fields/RadioGroupField";
+import RadioTile from "../common/fields/RadioTile";
 import Drawer from "../common/Drawer";
 
 interface Props {
@@ -32,8 +39,8 @@ function isLightTheme(bg: string): boolean {
 }
 
 /**
- * The terminal's appearance settings. They apply to every open terminal at once, as a preference
- * rather than per-session state.
+ * The terminal's appearance settings, and how the session player shows its controls. They apply
+ * to every open terminal and player at once, as a preference rather than per-session state.
  */
 export default function TerminalSettingsDrawer({ open, onClose }: Props) {
   const {
@@ -45,6 +52,9 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
     setFontFamily,
     setFontSize,
   } = useTerminalThemeStore();
+  const playerControls = useSessionPlayerStore((s) => s.controls);
+  const setPlayerControls = useSessionPlayerStore((s) => s.setControls);
+  const playerControlsHeading = useId();
 
   return (
     <Drawer
@@ -113,7 +123,68 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
           </span>
         </div>
       </div>
+
+      <div className="p-4">
+        <div
+          id={playerControlsHeading}
+          className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted"
+        >
+          Session Player Controls
+        </div>
+        <RadioGroupField
+          labelledBy={playerControlsHeading}
+          value={playerControls}
+          onChange={setPlayerControls}
+          containerClassName="grid grid-cols-3 gap-1.5"
+        >
+          {PLAYER_CONTROLS.map(({ value, label }) => (
+            <RadioTile
+              key={value}
+              value={value}
+              label={label}
+              picture={<PlayerControlsSketch controls={value} />}
+            />
+          ))}
+        </RadioGroupField>
+      </div>
     </Drawer>
+  );
+}
+
+function PlayerControlsSketch({ controls }: { controls: PlayerControls }) {
+  return (
+    <svg
+      viewBox="0 0 64 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1}
+      strokeLinecap="round"
+      className="w-full h-auto"
+      aria-hidden="true"
+    >
+      <rect x="1" y="1" width="62" height="30" rx="3.5" />
+      <path d="M7 7h22M7 11h30M7 15h16" opacity={0.5} />
+      {controls !== "hidden" && (
+        <>
+          <rect
+            x="14"
+            y="21"
+            width="36"
+            height="6"
+            rx="3"
+            strokeDasharray={controls === "auto" ? "2.5 2.5" : undefined}
+          />
+          <circle
+            cx="18"
+            cy="24"
+            r="1.25"
+            fill="currentColor"
+            stroke="none"
+            opacity={controls === "auto" ? 0.5 : 1}
+          />
+        </>
+      )}
+    </svg>
   );
 }
 

@@ -17,6 +17,10 @@ import {
   type TerminalThemeColors,
 } from "@/stores/terminalThemeStore";
 import { useSettledValue } from "@/hooks/useSettledValue";
+import {
+  nextPlayerControls,
+  useSessionPlayerStore,
+} from "@/stores/sessionPlayerStore";
 import { useIdleControls } from "./useIdleControls";
 
 const SPEEDS = [0.5, 1, 1.5, 2, 4] as const;
@@ -29,6 +33,8 @@ function castPalette(colors: TerminalThemeColors): CSSProperties {
     ...ansiPalette(colors).map((color, i) => [`--cast-${i}`, color]),
   ]) as CSSProperties;
 }
+
+const NOTICE_MS = 1200;
 
 const LOOK_SETTLE_MS = 250;
 
@@ -69,6 +75,7 @@ const SHORTCUTS = [
   { keys: ["0–9"], description: "Jump to 0%, 10%, … 90%" },
   { keys: [",", "."], description: "Step back / forward one frame (paused)" },
   { keys: ["F"], description: "Toggle fullscreen" },
+  { keys: ["H"], description: "Controls: auto-hide, always, hidden" },
   { keys: ["Esc"], description: "Exit fullscreen / hide controls" },
 ];
 
@@ -147,10 +154,11 @@ function Timeline({
  * recording whose tab is in the background, it pauses and ignores the keyboard. Its shortcuts
  * answer only when focus is in the player or on nothing, never with Ctrl, Alt or Meta held.
  *
- * The controls float over the bottom of the screen. They fade after two seconds
+ * The controls float over the bottom of the screen. By default they fade after two seconds
  * without pointer or keyboard activity while the recording plays, and stay while it is paused,
  * while the pointer is on them, while they hold keyboard focus or while the shortcuts are open.
- * Esc puts them away until the next activity.
+ * Esc puts them away until the next activity, and H cycles the session player store's
+ * preference: auto-hide, always shown, hidden. The shortcuts work whatever the controls show.
  */
 export default function SessionPlayer({
   logs,
@@ -172,11 +180,15 @@ export default function SessionPlayer({
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState<Speed>(1);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const colors = useSettledValue(
     useTerminalThemeStore((s) => s.theme.colors),
     LOOK_SETTLE_MS,
   );
+  const controls = useSessionPlayerStore((s) => s.controls);
+  const setControls = useSessionPlayerStore((s) => s.setControls);
   const fontFamily = useSettledValue(
     useTerminalThemeStore((s) => s.fontFamilyWithFallback),
     LOOK_SETTLE_MS,
@@ -284,6 +296,19 @@ export default function SessionPlayer({
     }
   };
 
+  const announce = (message: string) => {
+    setNotice(message);
+    if (noticeRef.current !== null) clearTimeout(noticeRef.current);
+    noticeRef.current = setTimeout(() => setNotice(null), NOTICE_MS);
+  };
+
+  useEffect(
+    () => () => {
+      if (noticeRef.current !== null) clearTimeout(noticeRef.current);
+    },
+    [],
+  );
+
   const handleKeyDown = useEffectEvent((e: KeyboardEvent) => {
     if (!visible || e.defaultPrevented) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -335,6 +360,13 @@ export default function SessionPlayer({
           idle.stow();
         }
         return;
+      case "h":
+      case "H": {
+        const next = nextPlayerControls(controls);
+        setControls(next.value);
+        announce(next.notice);
+        break;
+      }
       default:
         if (e.key >= "0" && e.key <= "9" && !e.shiftKey) {
           seekTo((durationRef.current * parseInt(e.key)) / 10);
@@ -358,7 +390,9 @@ export default function SessionPlayer({
 
   const nextSpeed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
 
-  const barShown = idle.shown(!isPlaying || showShortcuts || keyboardInBar);
+  const barShown = idle.shown(
+    controls === "always" || !isPlaying || showShortcuts || keyboardInBar,
+  );
 
   return (
     <div
@@ -368,107 +402,126 @@ export default function SessionPlayer({
       onPointerMove={idle.wake}
       onPointerDown={idle.wake}
     >
-      <div className="absolute inset-0 overflow-auto p-4 pb-24 [scrollbar-gutter:stable]">
+      <div
+        className={cn(
+          "absolute inset-0 overflow-auto p-4 [scrollbar-gutter:stable]",
+          controls !== "hidden" && "pb-24",
+        )}
+      >
         <div ref={containerRef} />
       </div>
 
-      <div
-        className={cn(
-          "absolute bottom-[18px] left-1/2 -translate-x-1/2 w-[min(calc(100%-32px),660px)] h-[54px] flex items-center gap-2.5 pl-2.5 pr-2 rounded-xl border border-border bg-surface/90 backdrop-blur-sm shadow-lg transition-opacity duration-150",
-          barShown ? "opacity-100" : "opacity-0",
-        )}
-        onFocus={(e) => setKeyboardInBar(e.target.matches(":focus-visible"))}
-        onBlur={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget))
-            setKeyboardInBar(false);
-        }}
-        data-testid="player-controls"
-        data-state={barShown ? "shown" : "hidden"}
-        {...idle.barProps}
-      >
-        <button
-          type="button"
-          aria-label={isPlaying ? "Pause" : "Play"}
-          onClick={handlePlayPause}
-          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-        >
-          {isPlaying ? (
-            <PauseIcon className="w-3 h-3" />
-          ) : (
-            <PlayIcon className="w-3 h-3 ml-px" />
+      {controls !== "hidden" && (
+        <div
+          className={cn(
+            "absolute bottom-[18px] left-1/2 -translate-x-1/2 w-[min(calc(100%-32px),660px)] h-[54px] flex items-center gap-2.5 pl-2.5 pr-2 rounded-xl border border-border bg-surface/90 backdrop-blur-sm shadow-lg transition-opacity duration-150",
+            barShown ? "opacity-100" : "opacity-0",
           )}
-        </button>
-
-        <span className="shrink-0 min-w-[84px] text-center text-xs font-mono tabular-nums text-text-secondary">
-          {formatTime(currentTime, duration >= 3600)} / {formatTime(duration)}
-        </span>
-
-        <Timeline
-          currentTime={currentTime}
-          duration={duration}
-          onSeek={seekTo}
-        />
-
-        <button
-          type="button"
-          aria-label={`Playback speed ${speed}×, switch to ${nextSpeed}×`}
-          title="Playback speed"
-          onClick={() => setSpeed(nextSpeed)}
-          className="shrink-0 w-9 py-1 rounded text-xs font-mono tabular-nums text-text-secondary hover:text-text-primary hover:bg-hover-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
+          onFocus={(e) => setKeyboardInBar(e.target.matches(":focus-visible"))}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget))
+              setKeyboardInBar(false);
+          }}
+          data-testid="player-controls"
+          data-state={barShown ? "shown" : "hidden"}
+          {...idle.barProps}
         >
-          {speed}×
-        </button>
+          <button
+            type="button"
+            aria-label={isPlaying ? "Pause" : "Play"}
+            onClick={handlePlayPause}
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            {isPlaying ? (
+              <PauseIcon className="w-3 h-3" />
+            ) : (
+              <PlayIcon className="w-3 h-3 ml-px" />
+            )}
+          </button>
 
-        <Dropdown
-          mode="content"
-          placement="top-end"
-          open={showShortcuts}
-          onOpenChange={setShowShortcuts}
-        >
-          <Dropdown.Trigger>
-            <IconButton
-              variant={showShortcuts ? "primary" : "ghost"}
-              className={
-                showShortcuts
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "border border-transparent"
-              }
+          <span className="shrink-0 min-w-[84px] text-center text-xs font-mono tabular-nums text-text-secondary">
+            {formatTime(currentTime, duration >= 3600)} / {formatTime(duration)}
+          </span>
+
+          <Timeline
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={seekTo}
+          />
+
+          <button
+            type="button"
+            aria-label={`Playback speed ${speed}×, switch to ${nextSpeed}×`}
+            title="Playback speed"
+            onClick={() => setSpeed(nextSpeed)}
+            className="shrink-0 w-9 py-1 rounded text-xs font-mono tabular-nums text-text-secondary hover:text-text-primary hover:bg-hover-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
+          >
+            {speed}×
+          </button>
+
+          <Dropdown
+            mode="content"
+            placement="top-end"
+            open={showShortcuts}
+            onOpenChange={setShowShortcuts}
+          >
+            <Dropdown.Trigger>
+              <IconButton
+                variant={showShortcuts ? "primary" : "ghost"}
+                className={
+                  showShortcuts
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "border border-transparent"
+                }
+                aria-label="Keyboard shortcuts"
+                title="Keyboard shortcuts"
+              >
+                <KeyboardIcon className="w-4 h-4" />
+              </IconButton>
+            </Dropdown.Trigger>
+
+            <Dropdown.Panel
               aria-label="Keyboard shortcuts"
-              title="Keyboard shortcuts"
+              className="p-3 w-80"
             >
-              <KeyboardIcon className="w-4 h-4" />
-            </IconButton>
-          </Dropdown.Trigger>
-
-          <Dropdown.Panel aria-label="Keyboard shortcuts" className="p-3 w-80">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-widest text-text-muted/60 mb-2.5">
-              Keyboard Shortcuts
-            </p>
-            <div className="space-y-1.5">
-              {SHORTCUTS.map(({ keys, description }) => (
-                <div
-                  key={description}
-                  className="flex items-center justify-between gap-4"
-                >
-                  <span className="text-xs text-text-secondary">
-                    {description}
-                  </span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {keys.map((k) => (
-                      <kbd
-                        key={k}
-                        className="px-1.5 py-0.5 text-2xs font-mono bg-surface border border-border rounded text-text-secondary"
-                      >
-                        {k}
-                      </kbd>
-                    ))}
+              <p className="text-2xs font-mono font-semibold uppercase tracking-widest text-text-muted/60 mb-2.5">
+                Keyboard Shortcuts
+              </p>
+              <div className="space-y-1.5">
+                {SHORTCUTS.map(({ keys, description }) => (
+                  <div
+                    key={description}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <span className="text-xs text-text-secondary">
+                      {description}
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {keys.map((k) => (
+                        <kbd
+                          key={k}
+                          className="px-1.5 py-0.5 text-2xs font-mono bg-surface border border-border rounded text-text-secondary"
+                        >
+                          {k}
+                        </kbd>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Dropdown.Panel>
-        </Dropdown>
-      </div>
+                ))}
+              </div>
+            </Dropdown.Panel>
+          </Dropdown>
+        </div>
+      )}
+
+      {notice && (
+        <div
+          role="status"
+          className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg border border-border bg-surface/90 backdrop-blur-sm text-xs text-text-secondary shadow-lg"
+        >
+          {notice}
+        </div>
+      )}
     </div>
   );
 }
