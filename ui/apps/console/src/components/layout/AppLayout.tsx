@@ -1,7 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
-import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useSyncWorkspaceTab } from "@/hooks/useSyncWorkspaceTab";
 import TerminalManager from "../terminal/TerminalManager";
 import TabStrip from "./TabStrip";
@@ -47,9 +46,6 @@ export default function AppLayout() {
   const isAdminRoute = isAdminPath(pathname);
   const showSidebar = isAdminRoute || namespaces.length > 0;
   const NavSidebar = isAdminRoute ? AdminSidebar : Sidebar;
-  const workspace = useWorkspaceTabs();
-  const firstTabActive =
-    !hasVisibleTerminal && workspace.tabs[0]?.id === workspace.activeId;
   useSyncWorkspaceTab(pathname, isAdminRoute);
 
   return (
@@ -135,7 +131,7 @@ export default function AppLayout() {
             <div
               className={cn(
                 "theme-follow relative flex-1 min-h-0 overflow-hidden rounded-[10px] border border-border [.light_&]:border-0 bg-surface",
-                firstTabActive && isDesktop && "rounded-tl-none",
+                "peer-data-[first-tab-active=true]:rounded-tl-none",
               )}
             >
               <div className="grid-bg scanline absolute inset-0 z-bg" />

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { generateRandomUUID } from "@/utils/random-uuid";
+import { moveById } from "@/utils/moveById";
 import { useRecentDevicesStore } from "./recentDevicesStore";
 
 /**
@@ -57,6 +58,7 @@ interface TerminalState {
   restore: (id: string) => void;
   toggleFullscreen: (id: string) => void;
   close: (id: string) => void;
+  move: (id: string, to: number) => void;
   closeAndReconnect: (id: string) => void;
   requestConnect: (deviceUid: string, deviceName: string) => void;
   clearReconnect: () => void;
@@ -155,6 +157,13 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
     }));
+  },
+
+  move: (id, to) => {
+    set((state) => {
+      const sessions = moveById(state.sessions, id, to);
+      return sessions === state.sessions ? state : { sessions };
+    });
   },
 
   closeAndReconnect: (id) => {

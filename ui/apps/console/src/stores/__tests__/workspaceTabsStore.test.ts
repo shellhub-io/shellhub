@@ -44,4 +44,19 @@ describe("workspaceTabsStore", () => {
       tabs: [namespaceTab("t1", "one")],
     });
   });
+
+  it("reorders tabs", () => {
+    const store = useWorkspaceTabsStore.getState();
+    store.ensure(namespaceTab("t1", "one"));
+    store.ensure(namespaceTab("t2", "two"));
+    store.ensure(adminTab());
+
+    store.move("admin", 0);
+
+    expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
+      "admin",
+      "ns:t1",
+      "ns:t2",
+    ]);
+  });
 });
