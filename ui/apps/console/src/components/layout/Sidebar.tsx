@@ -58,19 +58,21 @@ export default function Sidebar({
     >
       {sections.map((section, idx) => (
         <div
-          key={section.title}
+          key={section.items[0]?.to}
           className={idx > 0 ? (expanded ? "mt-5" : "mt-1") : ""}
         >
-          <p
-            className={cn(
-              "px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200",
-              expanded
-                ? "opacity-100 mb-1.5"
-                : "opacity-0 h-0 overflow-hidden mb-0",
-            )}
-          >
-            {section.title}
-          </p>
+          {section.title && (
+            <p
+              className={cn(
+                "px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200",
+                expanded
+                  ? "opacity-100 mb-1.5"
+                  : "opacity-0 h-0 overflow-hidden mb-0",
+              )}
+            >
+              {section.title}
+            </p>
+          )}
           <div className="space-y-0.5">
             {section.items.map((item) => (
               <NavItemLink
