@@ -27,7 +27,7 @@ const baseCss = readFileSync(
   "utf8",
 );
 
-const rootBlock = baseCss.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+const rootBlock = baseCss.match(/:root[^{]*\{([\s\S]*?)\}/)?.[1] ?? "";
 
 function rgbChannelsToHex(channels: string): string {
   const hex = channels

@@ -22,8 +22,22 @@ import {
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioTile from "@/components/common/fields/RadioTile";
 
-function TerminalThemeGrid() {
+function TerminalThemeGrid({
+  onPreview,
+}: {
+  onPreview?: (name: string | null) => void;
+}) {
   const { themes, themeName, setTheme } = useTerminalThemeStore();
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+  const hover = (name: string | null) => {
+    setHovered(name);
+    onPreview?.(name ?? focused);
+  };
+  const focus = (name: string | null) => {
+    setFocused(name);
+    onPreview?.(hovered ?? name);
+  };
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {themes.map((t) => (
@@ -32,6 +46,8 @@ function TerminalThemeGrid() {
           theme={t}
           selected={t.name === themeName}
           onClick={() => setTheme(t.name)}
+          onHover={hover}
+          onFocusChange={focus}
         />
       ))}
     </div>
@@ -192,10 +208,14 @@ function ThemeCard({
   theme,
   selected,
   onClick,
+  onHover,
+  onFocusChange,
 }: {
   theme: TerminalTheme;
   selected: boolean;
   onClick: () => void;
+  onHover: (name: string | null) => void;
+  onFocusChange: (name: string | null) => void;
 }) {
   const light = !theme.dark;
   const swatches = [
@@ -211,6 +231,10 @@ function ThemeCard({
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => onHover(theme.name)}
+      onMouseLeave={() => onHover(null)}
+      onFocus={() => onFocusChange(theme.name)}
+      onBlur={() => onFocusChange(null)}
       className={cn(
         "relative rounded-lg border p-2 text-left transition-all duration-150",
         selected
@@ -267,16 +291,21 @@ const heading =
 /**
  * The terminal settings as the drawer lays them out: theme, font family, font size and how the
  * session player shows its controls. The drawer and the account's Appearance page both render
- * it, so the two cannot drift apart.
+ * it, so the two cannot drift apart. onPreviewTheme hears the theme to preview: the one under
+ * the pointer, else the one holding the keyboard focus, else null.
  */
-export default function TerminalSettingsBody() {
+export default function TerminalSettingsBody({
+  onPreviewTheme,
+}: {
+  onPreviewTheme?: (name: string | null) => void;
+}) {
   const playerControlsHeading = useId();
 
   return (
     <>
       <div className="border-b border-border p-4">
         <div className={`mb-2.5 ${heading}`}>Theme</div>
-        <TerminalThemeGrid />
+        <TerminalThemeGrid onPreview={onPreviewTheme} />
       </div>
 
       <div className="border-b border-border p-4 flex items-center justify-between gap-3">

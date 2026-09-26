@@ -14,7 +14,11 @@ import { Spinner } from "@shellhub/design-system/primitives";
 import { ChatwootContext, type ChatwootHandle } from "@/hooks/useChatwoot";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespaces } from "@/hooks/useNamespaces";
-import { useThemeStore, type ThemePreference } from "@/stores/themeStore";
+import {
+  THEME_PREFERENCES,
+  useThemeStore,
+  type ThemePreference,
+} from "@/stores/themeStore";
 
 const itemClass =
   "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group";
@@ -25,15 +29,11 @@ const itemLabelClass =
 
 const ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new/choose";
 
-const THEME_OPTIONS: {
-  value: ThemePreference;
-  label: string;
-  Icon: typeof SunIcon;
-}[] = [
-  { value: "system", label: "Match system", Icon: ComputerDesktopIcon },
-  { value: "light", label: "Light", Icon: SunIcon },
-  { value: "dark", label: "Dark", Icon: MoonIcon },
-];
+const THEME_ICONS: Record<ThemePreference, typeof SunIcon> = {
+  system: ComputerDesktopIcon,
+  light: SunIcon,
+  dark: MoonIcon,
+};
 
 function GettingHelpItem({
   support,
@@ -164,25 +164,28 @@ export default function AccountMenuItems({
             aria-label="Theme"
             className="flex items-center gap-0.5 p-0.5 rounded-md bg-hover-subtle"
           >
-            {THEME_OPTIONS.map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={preference === value}
-                aria-label={label}
-                title={label}
-                onClick={() => setPreference(value)}
-                className={cn(
-                  "w-7 h-6 rounded flex items-center justify-center transition-colors",
-                  preference === value
-                    ? "bg-card text-text-primary shadow-sm"
-                    : "text-text-muted hover:text-text-primary",
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-              </button>
-            ))}
+            {THEME_PREFERENCES.map(({ value, label }) => {
+              const Icon = THEME_ICONS[value];
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={preference === value}
+                  aria-label={label}
+                  title={label}
+                  onClick={() => setPreference(value)}
+                  className={cn(
+                    "w-7 h-6 rounded flex items-center justify-center transition-colors",
+                    preference === value
+                      ? "bg-card text-text-primary shadow-sm"
+                      : "text-text-muted hover:text-text-primary",
+                  )}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

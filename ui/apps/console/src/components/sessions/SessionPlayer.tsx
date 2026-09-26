@@ -22,6 +22,7 @@ import {
   useSessionPlayerStore,
 } from "@/stores/sessionPlayerStore";
 import { useIdleControls } from "./useIdleControls";
+import { PlayerBarShell, PlayerTime } from "./PlayerBar";
 
 const SPEEDS = [0.5, 1, 1.5, 2, 4] as const;
 type Speed = (typeof SPEEDS)[number];
@@ -412,11 +413,8 @@ export default function SessionPlayer({
       </div>
 
       {controls !== "hidden" && (
-        <div
-          className={cn(
-            "absolute bottom-[18px] left-1/2 -translate-x-1/2 w-[min(calc(100%-32px),660px)] h-[54px] flex items-center gap-2.5 pl-2.5 pr-2 rounded-xl border border-border bg-surface/90 backdrop-blur-sm shadow-lg transition-opacity duration-150",
-            barShown ? "opacity-100" : "opacity-0",
-          )}
+        <PlayerBarShell
+          className={barShown ? "opacity-100" : "opacity-0"}
           onFocus={(e) => setKeyboardInBar(e.target.matches(":focus-visible"))}
           onBlur={(e) => {
             if (!e.currentTarget.contains(e.relatedTarget))
@@ -439,9 +437,9 @@ export default function SessionPlayer({
             )}
           </button>
 
-          <span className="shrink-0 min-w-[84px] text-center text-xs font-mono tabular-nums text-text-secondary">
+          <PlayerTime>
             {formatTime(currentTime, duration >= 3600)} / {formatTime(duration)}
-          </span>
+          </PlayerTime>
 
           <Timeline
             currentTime={currentTime}
@@ -511,7 +509,7 @@ export default function SessionPlayer({
               </div>
             </Dropdown.Panel>
           </Dropdown>
-        </div>
+        </PlayerBarShell>
       )}
 
       {notice && (
