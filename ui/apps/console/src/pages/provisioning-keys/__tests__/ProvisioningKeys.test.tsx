@@ -69,15 +69,15 @@ describe("Provisioning keys", () => {
     renderPage();
 
     expect(
-      (await keyRow("fleet-key")).getByText(/0 \/ ∞ used/),
+      (await keyRow("fleet-key")).getByText("0 used"),
     ).toBeInTheDocument();
   });
 
   it("warns when accepting everything waiting would pass the key's limit", async () => {
     renderPage();
 
-    expect(
-      (await keyRow("edge-fleet")).getByText(/3 \/ 4 used · 2 over/),
-    ).toBeInTheDocument();
+    const row = await keyRow("edge-fleet");
+    expect(row.getByText("3 / 4")).toBeInTheDocument();
+    expect(row.getByText(/2 over/)).toBeInTheDocument();
   });
 });

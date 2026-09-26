@@ -164,11 +164,14 @@ export interface KeyBlockers {
   expired: boolean;
   overused: boolean;
   inert: boolean;
+  quiet: boolean;
 }
 
 /**
- * The independent reasons a key can't register right now — surfaced side by side, so a key that is
- * both expired and over its limit shows both.
+ * The independent reasons a key can't register right now, surfaced side by side so a key that is
+ * both expired and over its limit shows both. quiet marks a key someone took out of use (revoked
+ * or disabled): its expiry or spent limit is no longer news, so nothing about it is drawn as an
+ * alarm.
  */
 export function getKeyBlockers(key: ProvisioningKey): KeyBlockers {
   const revoked = !!key.revoked;
@@ -182,6 +185,7 @@ export function getKeyBlockers(key: ProvisioningKey): KeyBlockers {
     expired,
     overused,
     inert: revoked || disabled || expired || overused,
+    quiet: revoked || disabled,
   };
 }
 
