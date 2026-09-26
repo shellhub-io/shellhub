@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
+import SessionMenu from "./SessionMenu";
 import { useSyncWorkspaceTab } from "@/hooks/useSyncWorkspaceTab";
 import TerminalManager from "../terminal/TerminalManager";
 import TabStrip from "./TabStrip";
@@ -12,7 +13,11 @@ import DeviceLimitBanner from "@/components/common/DeviceLimitBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
-import { SidebarMobileDrawer, railWidth } from "./SidebarShell";
+import {
+  SIDEBAR_EXPANDED_PX,
+  SIDEBAR_RAIL_PX,
+  SidebarMobileDrawer,
+} from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
 import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
@@ -31,6 +36,7 @@ import { cn } from "@shellhub/design-system/cn";
 import LogoMark from "./LogoMark";
 import { isEnterprise } from "@/env";
 import { isAdminPath } from "@/utils/adminRoute";
+import { isAccountPath } from "@/utils/accountRoute";
 
 /**
  * The shell of the signed-in app: the sidebar and a tab strip sit on the chrome, and the
@@ -62,6 +68,11 @@ export default function AppLayout() {
   const showSidebar = isAdminRoute || namespaces.length > 0;
   const NavSidebar = isAdminRoute ? AdminSidebar : Sidebar;
   useSyncWorkspaceTab(pathname, isAdminRoute);
+  const frameOverNav =
+    showSidebar &&
+    isDesktop &&
+    !terminalFullscreen &&
+    isAccountPath(pathname);
 
   return (
     <ChatwootProvider>
@@ -82,10 +93,11 @@ export default function AppLayout() {
         <div className="bg-background flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div
-              className={cn(
-                "relative shrink-0",
-                !pinned && !terminalFullscreen && railWidth,
-              )}
+              style={{
+                width:
+                  !pinned && !terminalFullscreen ? SIDEBAR_RAIL_PX : undefined,
+              }}
+              className="relative shrink-0"
             >
               <div
                 onMouseEnter={handlers.onMouseEnter}
@@ -95,13 +107,17 @@ export default function AppLayout() {
                 className={cn(
                   "h-full",
                   !pinned &&
-                    "absolute inset-y-0 left-0 z-appbar border-r border-transparent transition-[box-shadow,border-color] duration-200",
+                    "absolute inset-y-0 left-0 border-r border-transparent transition-[box-shadow,border-color] duration-200",
+                  !pinned && !frameOverNav && "z-appbar",
                   !pinned &&
                     isOpen &&
                     "border-border shadow-[16px_0_40px_-12px_rgba(0,0,0,0.7)]",
                 )}
               >
-                <NavSidebar expanded={isOpen} />
+                <NavSidebar
+                  expanded={isOpen && (pinned || !frameOverNav)}
+                  covered={frameOverNav}
+                />
               </div>
             </div>
           )}
@@ -130,23 +146,37 @@ export default function AppLayout() {
                 )
               }
               trailing={
-                <WindowControls
-                  sidebarPinned={pinned}
-                  sidebarMode={isDesktop ? "pin" : "drawer"}
-                  onToggleSidebar={
-                    showSidebar
-                      ? isDesktop
-                        ? handlers.onToggle
-                        : handlers.toggleDrawer
-                      : undefined
-                  }
-                />
+                <>
+                  {frameOverNav && (
+                    <div className="mr-2 -mb-[1.5px]">
+                      <SessionMenu expanded={false} inTabStrip />
+                    </div>
+                  )}
+                  <WindowControls
+                    sidebarPinned={pinned}
+                    sidebarMode={isDesktop ? "pin" : "drawer"}
+                    onToggleSidebar={
+                      showSidebar && !frameOverNav
+                        ? isDesktop
+                          ? handlers.onToggle
+                          : handlers.toggleDrawer
+                        : undefined
+                    }
+                  />
+                </>
               }
             />
             <div
+              style={{
+                marginLeft: frameOverNav
+                  ? `calc(-${pinned ? SIDEBAR_EXPANDED_PX : SIDEBAR_RAIL_PX}px + 0.5rem)`
+                  : undefined,
+              }}
               className={cn(
                 "relative flex-1 min-h-0 overflow-hidden rounded-[10px] border border-border bg-surface",
-                "peer-data-[first-tab-active=true]:rounded-tl-none",
+                "transition-[margin-left] duration-200 ease-in-out",
+                !frameOverNav &&
+                  "peer-data-[first-tab-active=true]:rounded-tl-none",
               )}
             >
               <div className="grid-bg scanline absolute inset-0 z-bg" />

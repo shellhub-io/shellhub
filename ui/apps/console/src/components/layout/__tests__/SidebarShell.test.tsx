@@ -30,4 +30,14 @@ describe("SidebarShell", () => {
     expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
+
+  it("leaves only the logo usable once the page frame covers it", () => {
+    renderSidebarShell({ covered: true });
+
+    expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Test navigation" }),
+    ).toHaveAttribute("inert");
+    expect(screen.getByText("Account").closest("[inert]")).not.toBeNull();
+  });
 });

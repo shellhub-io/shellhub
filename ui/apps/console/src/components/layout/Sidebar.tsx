@@ -34,9 +34,11 @@ function pickBadge(item: NavItem): ReactNode | undefined {
  */
 export default function Sidebar({
   expanded,
+  covered,
   onClose,
 }: {
   expanded: boolean;
+  covered?: boolean;
   onClose?: () => void;
 }) {
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
@@ -51,6 +53,7 @@ export default function Sidebar({
   return (
     <SidebarShell
       expanded={expanded}
+      covered={covered}
       onClose={onClose}
       ariaLabel="Main navigation"
       logoHref="/dashboard"
