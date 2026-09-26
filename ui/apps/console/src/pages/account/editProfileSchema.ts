@@ -23,7 +23,7 @@ export type EditProfileFormValues = z.infer<typeof editProfileFields>;
 
 /**
  * Builds the edit-profile schema around the current values, so an unchanged field is not
- * re-validated: an email this very account already holds must not be rejected as taken.
+ * re-validated: a stored value that fails today's rules must not block saving the other fields.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
