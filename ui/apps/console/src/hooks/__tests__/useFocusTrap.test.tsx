@@ -42,6 +42,18 @@ function DismissFirstTrap({ onlyDismiss = false }: { onlyDismiss?: boolean }) {
   );
 }
 
+function AutofocusTrap() {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true);
+
+  return (
+    <div ref={ref}>
+      <button type="button">Copy</button>
+      <input aria-label="Login" data-autofocus />
+    </div>
+  );
+}
+
 function ToggleTrap() {
   const [active, setActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -95,6 +107,13 @@ describe("useFocusTrap", () => {
       render(<DismissFirstTrap />);
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "Name" }),
+      );
+    });
+
+    it("lands on the element marked data-autofocus", () => {
+      render(<AutofocusTrap />);
+      expect(document.activeElement).toBe(
+        screen.getByRole("textbox", { name: "Login" }),
       );
     });
 
