@@ -180,7 +180,7 @@ describe("useWorkspaceTabs", () => {
 
   it("treats the profile as the account's context, not the namespace's", () => {
     const { result } = renderHook(() => useWorkspaceTabs(), {
-      wrapper: createTestWrapper({ initialEntries: ["/profile"] }),
+      wrapper: createTestWrapper({ initialEntries: ["/account"] }),
     });
 
     expect(result.current.activeId).toBe(ACCOUNT_TAB_ID);

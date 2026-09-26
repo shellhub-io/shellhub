@@ -60,11 +60,11 @@ describe("UserMenu", () => {
   });
 
   describe("dropdown — with namespaces", () => {
-    it("shows Profile, Settings and Logout", async () => {
+    it("shows Account, Settings and Logout", async () => {
       renderMenu();
       await openDropdown();
       expect(
-        screen.getByRole("button", { name: /profile/i }),
+        screen.getByRole("button", { name: /account/i }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /settings/i }),
@@ -76,12 +76,12 @@ describe("UserMenu", () => {
   });
 
   describe("dropdown — without namespaces", () => {
-    it("shows Profile and Logout but hides Settings", async () => {
+    it("shows Account and Logout but hides Settings", async () => {
       mockNamespaceList([]);
       renderMenu();
       await openDropdown();
       expect(
-        screen.getByRole("button", { name: /profile/i }),
+        screen.getByRole("button", { name: /account/i }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /logout/i }),

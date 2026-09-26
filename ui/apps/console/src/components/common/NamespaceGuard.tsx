@@ -7,6 +7,7 @@ import {
 import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import { isAdminPath } from "@/utils/adminRoute";
+import { isAccountPath } from "@/utils/accountRoute";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
@@ -112,7 +113,7 @@ export default function NamespaceGuard() {
     );
   }
 
-  if (namespaces.length === 0 && pathname !== "/profile") {
+  if (namespaces.length === 0 && !isAccountPath(pathname)) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <MinimalHeader />
