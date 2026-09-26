@@ -7,9 +7,10 @@ const FOCUSABLE =
  * Traps keyboard focus within `containerRef` while `active` is true.
  * Restores focus to the previously focused element when deactivated.
  *
- * On activation focus goes to the first focusable child that is not marked
- * `data-dismiss`, so a close button in a title bar does not take focus ahead of
- * the first field; it is the fallback when nothing else can take focus.
+ * On activation focus goes to the child marked `data-autofocus`, or else to the
+ * first focusable child that is not marked `data-dismiss`, so a close button in
+ * a title bar does not take focus ahead of the first field; it is the fallback
+ * when nothing else can take focus.
  *
  * With `autoFocus` false the container itself takes focus instead of its first
  * focusable child, so no control shows a focus ring on open (the browser would
@@ -33,9 +34,11 @@ export function useFocusTrap(
         return;
       }
       const first =
+        container.querySelector<HTMLElement>(`${FOCUSABLE}[data-autofocus]`) ??
         container.querySelector<HTMLElement>(
           `${FOCUSABLE}:not([data-dismiss])`,
-        ) ?? container.querySelector<HTMLElement>(FOCUSABLE);
+        ) ??
+        container.querySelector<HTMLElement>(FOCUSABLE);
       first?.focus();
     });
 
