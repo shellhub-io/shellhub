@@ -8,7 +8,6 @@ const defaultProps = {
   open: true,
   onClose: vi.fn(),
   currentName: "Test User",
-  currentUsername: "testuser",
   currentEmail: "user@example.com",
   currentRecoveryEmail: "recovery@example.com",
 };

@@ -223,21 +223,19 @@ function DeleteAccountWarningDialog({
 }
 
 /**
- * Edits the signed-in user's own name, username and email. Changing the email starts a
+ * Edits the signed-in user's own name and emails. Changing the email starts a
  * re-confirmation, so the account keeps the old address until the new one is verified.
  */
 export function EditProfileModal({
   open,
   onClose,
   currentName,
-  currentUsername,
   currentEmail,
   currentRecoveryEmail,
 }: {
   open: boolean;
   onClose: () => void;
   currentName: string;
-  currentUsername: string;
   currentEmail: string;
   currentRecoveryEmail: string;
 }) {
@@ -245,18 +243,16 @@ export function EditProfileModal({
 
   const current: CurrentProfileValues = {
     name: currentName,
-    username: currentUsername,
     email: currentEmail,
   };
   const schema = editProfileSchema(current);
 
   const form = useDrawerForm(open, schema, {
     name: currentName,
-    username: currentUsername,
     email: currentEmail,
     recoveryEmail: currentRecoveryEmail,
   });
-  const { control, setValue, trigger, setError, clearErrors, formState } = form;
+  const { control, trigger, setError, clearErrors, formState } = form;
 
   const onValid = async (values: EditProfileFormValues) => {
     clearErrors("root");
@@ -264,12 +260,10 @@ export function EditProfileModal({
     const dirty = formState.dirtyFields;
     const data: {
       name?: string;
-      username?: string;
       email?: string;
       recovery_email?: string;
     } = {};
     if (dirty.name) data.name = values.name;
-    if (dirty.username) data.username = values.username;
     if (dirty.email) data.email = values.email;
     if (dirty.recoveryEmail) data.recovery_email = values.recoveryEmail;
 
@@ -280,7 +274,7 @@ export function EditProfileModal({
       const status = isSdkError(err) ? err.status : undefined;
       const errorMessages: Record<number, string> = {
         400: "Some fields have invalid values. Review and try again.",
-        409: "That username or email is already in use.",
+        409: "That email is already in use.",
       };
       const errorMessage =
         errorMessages[status ?? 0] ?? "Failed to update profile.";
@@ -297,7 +291,7 @@ export function EditProfileModal({
       onClose={onClose}
       icon={<UserCircleIcon />}
       title="Edit profile"
-      description="Your name, username, and the emails ShellHub signs you in with and writes to."
+      description="Your name and the emails ShellHub signs you in with and writes to."
       submitLabel="Save"
       requireDirty
       submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
@@ -311,27 +305,6 @@ export function EditProfileModal({
         hint="1-64 characters"
         maxLength={64}
         onValueChange={() => clearErrors("root")}
-      />
-      <FormInputField
-        name="username"
-        control={control}
-        id="profile-username"
-        label="Username"
-        labelAdornment={
-          <span className="px-1.5 py-0.5 text-3xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-            Deprecated
-          </span>
-        }
-        placeholder="username"
-        hint="Lowercase letters, numbers, dots, underscores, @ and hyphens"
-        maxLength={32}
-        onValueChange={(v) => {
-          setValue("username", v.toLowerCase(), {
-            shouldDirty: true,
-            shouldValidate: true,
-          });
-          clearErrors("root");
-        }}
       />
       <FormInputField
         name="email"
@@ -446,14 +419,14 @@ function ChangePasswordModal({
 }
 
 /**
- * The profile section of the account: name, username, email and recovery email, and the modal
- * that edits them.
+ * The profile section of the account: name, email and recovery email, and the modal that edits
+ * them.
  */
 export function AccountProfile() {
-  const { name, username, email, recoveryEmail } = useAuthStore();
+  const { name, email, recoveryEmail } = useAuthStore();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  if (!name && !username) {
+  if (!name && !email) {
     return <PageLoader label="Loading profile" padding="lg" />;
   }
 
@@ -478,22 +451,6 @@ export function AccountProfile() {
         </SettingsField>
 
         <SettingsField
-          title="Username"
-          description={
-            <>
-              The old login identifier; sign in with your email instead.
-              <span className="ml-2 px-1.5 py-0.5 text-3xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                Deprecated
-              </span>
-            </>
-          }
-        >
-          <span className="text-sm font-mono text-text-secondary">
-            {username}
-          </span>
-        </SettingsField>
-
-        <SettingsField
           title="Email"
           description="How you sign in and where account mail goes."
         >
@@ -515,7 +472,6 @@ export function AccountProfile() {
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         currentName={name ?? ""}
-        currentUsername={username ?? ""}
         currentEmail={email ?? ""}
         currentRecoveryEmail={recoveryEmail ?? ""}
       />

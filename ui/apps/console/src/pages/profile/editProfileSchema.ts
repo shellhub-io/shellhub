@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  validateName,
-  validateUsername,
-  validateEmail,
-  validateRecoveryEmail,
-} from "./validate";
+import { validateName, validateEmail, validateRecoveryEmail } from "./validate";
 
 /**
  * The profile as it stands. The schema is built around it so a field can be validated only when
@@ -12,13 +7,11 @@ import {
  */
 export interface CurrentProfileValues {
   name: string;
-  username: string;
   email: string;
 }
 
 const editProfileFields = z.object({
   name: z.string(),
-  username: z.string(),
   email: z.string(),
   recoveryEmail: z.string(),
 });
@@ -30,7 +23,7 @@ export type EditProfileFormValues = z.infer<typeof editProfileFields>;
 
 /**
  * Builds the edit-profile schema around the current values, so an unchanged field is not
- * re-validated — a username that is already taken by this very account must not be rejected.
+ * re-validated: an email this very account already holds must not be rejected as taken.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
@@ -38,16 +31,6 @@ export function editProfileSchema(current: CurrentProfileValues) {
       const nameError = validateName(values.name);
       if (nameError)
         ctx.addIssue({ code: "custom", path: ["name"], message: nameError });
-    }
-
-    if (values.username !== current.username) {
-      const usernameError = validateUsername(values.username);
-      if (usernameError)
-        ctx.addIssue({
-          code: "custom",
-          path: ["username"],
-          message: usernameError,
-        });
     }
 
     if (values.email !== current.email) {

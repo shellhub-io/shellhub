@@ -43,6 +43,13 @@ describe("Profile", () => {
       ).toBeGreaterThanOrEqual(1);
     });
 
+    it("leaves out the deprecated username", () => {
+      renderProfile();
+      expect(
+        screen.queryByRole("group", { name: "Username" }),
+      ).not.toBeInTheDocument();
+    });
+
     it("shows 'Not set' when recovery email is absent", () => {
       seedAuthStore({ recoveryEmail: "" });
       renderProfile();
