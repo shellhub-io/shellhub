@@ -55,6 +55,9 @@ const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
 const AccountProfile = lazy(() => import("./pages/account/AccountProfile"));
 const AccountSecurity = lazy(() => import("./pages/account/AccountSecurity"));
+const AccountAppearance = lazy(
+  () => import("./pages/account/AccountAppearance"),
+);
 const AccountDangerZone = lazy(
   () => import("./pages/account/AccountDangerZone"),
 );
@@ -329,6 +332,7 @@ export default function App() {
                   <Route path="/account" element={<AccountLayout />}>
                     <Route path="profile" element={<AccountProfile />} />
                     <Route path="security" element={<AccountSecurity />} />
+                    <Route path="appearance" element={<AccountAppearance />} />
                     <Route path="danger-zone" element={<AccountDangerZone />} />
                   </Route>
                 </Route>
