@@ -166,7 +166,7 @@ export default function DeviceChooserDialog({
 
   const goSubscribe = () => {
     onClose();
-    void navigate("/settings#billing");
+    void navigate("/settings/billing");
   };
 
   const canClose = () => !choice.isPending;

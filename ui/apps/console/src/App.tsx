@@ -48,8 +48,10 @@ const ProvisioningKeyHistory = lazy(
 );
 const FirewallRules = lazy(() => import("./pages/firewall-rules"));
 const WebEndpoints = lazy(() => import("./pages/WebEndpoints"));
-const Settings = lazy(() => import("./pages/Settings"));
-const BannerEdit = lazy(() => import("./pages/BannerEdit"));
+const SettingsLayout = lazy(() => import("./pages/settings/SettingsLayout"));
+const GeneralSettings = lazy(() => import("./pages/settings/GeneralSettings"));
+const SshSettings = lazy(() => import("./pages/settings/SshSettings"));
+const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
@@ -297,19 +299,24 @@ export default function App() {
                   )}
                   <Route path="/team" element={<Team />} />
                   <Route
-                    path="/settings/provisioning-keys"
-                    element={<ProvisioningKeys />}
-                  />
-                  <Route
                     path="/settings/provisioning-keys/:id/activity"
                     element={<ProvisioningKeyHistory />}
                   />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/settings/banner" element={<BannerEdit />} />
-                  <Route
-                    path="/settings/billing"
-                    element={<Navigate to="/settings#billing" replace />}
-                  />
+                  <Route path="/settings" element={<SettingsLayout />}>
+                    <Route path="general" element={<GeneralSettings />} />
+                    <Route path="ssh" element={<SshSettings />} />
+                    <Route
+                      path="provisioning-keys"
+                      element={<ProvisioningKeys />}
+                    />
+                    {isCloud() && (
+                      <Route path="billing" element={<BillingSettings />} />
+                    )}
+                    <Route
+                      path="banner"
+                      element={<Navigate to="../ssh" replace />}
+                    />
+                  </Route>
                   <Route path="/profile" element={<Profile />} />
                 </Route>
               </Route>

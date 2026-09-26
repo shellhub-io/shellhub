@@ -46,3 +46,21 @@ export function isExpired(expiresIn: number): boolean {
   if (expiresIn <= 0) return false;
   return Date.now() > expiresIn * 1000;
 }
+
+/**
+ * What each role lets its holder do, in a line.
+ */
+export const ROLE_SUMMARY: Record<AssignableRole | "owner", string> = {
+  owner: "Everything, including members, billing and deleting the namespace",
+  administrator:
+    "Full access: manage devices, members, keys, and firewall rules",
+  operator: "Manage devices and tags, connect via SSH, view sessions",
+  observer: "Read-only: view device and session details",
+};
+
+/**
+ * What a role lets its holder do, in a line. Undefined for a role this build does not recognise.
+ */
+export function roleSummary(role: string): string | undefined {
+  return (ROLE_SUMMARY as Record<string, string>)[role];
+}

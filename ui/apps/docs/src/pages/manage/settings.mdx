@@ -8,9 +8,11 @@ import Shot from '../../components/Shot.astro';
 
 # Settings
 
-Namespace settings apply to everything inside the namespace.
+Namespace settings apply to everything inside the namespace. They are split into sections:
+**General** (name, tenant ID, leaving or deleting the namespace), **SSH** (the settings below),
+**Provisioning keys** and, on Cloud, **Billing**.
 
-<Shot id="namespace-settings" route="/settings" alt="Namespace Settings page" />
+<Shot id="namespace-settings" route="/settings/general" alt="Namespace Settings page" />
 
 ## Session recording
 
@@ -22,7 +24,8 @@ Community records the web terminal in the browser regardless — this setting is
 
 ## Connection announcement
 
-A message shown in the terminal when somebody connects.
+A message shown in the terminal when somebody connects, labelled **Login banner** in the SSH
+section and edited in a dialog from its **Edit** button.
 
 Its most useful job is telling people recording is on. Somewhere between courtesy and a legal
 requirement depending on where you operate, and it costs one sentence:

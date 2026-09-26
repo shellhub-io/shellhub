@@ -197,7 +197,7 @@ describe("ActionDialog", () => {
       await userEvent.click(
         screen.getByRole("button", { name: "Go to billing" }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith("/settings#billing");
+      expect(mockNavigate).toHaveBeenCalledWith("/settings/billing");
     });
 
     it("does not trigger billing dialog for reject 402", async () => {

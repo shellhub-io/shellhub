@@ -12,7 +12,7 @@ import Shot from '../../components/Shot.astro';
 A namespace is the boundary everything lives inside: devices, members, identities, policies,
 tags, settings. Two namespaces share nothing.
 
-<Shot id="namespace-settings" route="/settings" alt="Namespace Settings page" />
+<Shot id="namespace-settings" route="/settings/general" alt="Namespace Settings page" />
 
 ## Name and Tenant ID
 
@@ -29,7 +29,7 @@ $ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 The **Tenant ID** is an immutable UUID generated when the namespace is created. It is what devices,
 API keys and sessions actually reference.
 
-<Shot id="tenant-id" route="/settings" of={{ role: "group", name: "Tenant ID" }} alt="The Tenant ID setting, with the control that copies it" />
+<Shot id="tenant-id" route="/settings/general" of={{ role: "group", name: "Tenant ID" }} alt="The Tenant ID setting, with the control that copies it" />
 
 Renaming a namespace changes every SSHID for it. Anything with a stored SSHID — an SSH config
 alias, an Ansible inventory, a script — breaks. The tenant ID does not change, so agent
@@ -69,7 +69,7 @@ A namespace born in identity mode can never leave it. See
 
 ## Deleting
 
-<Shot id="namespace-delete" route="/settings" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Delete" } }]} alt="The Delete Namespace dialog, which asks for the namespace name before it will proceed" />
+<Shot id="namespace-delete" route="/settings/general" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Delete namespace" } }]} alt="The Delete Namespace dialog, which asks for the namespace name before it will proceed" />
 
 Deleting takes the devices, identities, policies and history with it. Only the owner can do it —
 an administrator cannot.

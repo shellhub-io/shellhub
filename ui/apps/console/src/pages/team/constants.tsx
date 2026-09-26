@@ -14,7 +14,7 @@ import {
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { Badge, type BadgeColor } from "@shellhub/design-system/primitives";
-import { ROLES, type AssignableRole } from "./helpers";
+import { ROLES, ROLE_SUMMARY, type AssignableRole } from "./helpers";
 
 /** Roles that map directly to a Badge palette color. */
 const ROLE_COLOR: Record<string, BadgeColor> = {
@@ -33,15 +33,15 @@ const ROLE_META: Record<
 > = {
   administrator: {
     icon: ShieldCheckIcon,
-    summary: "Full access — manage devices, members, keys, and firewall rules",
+    summary: ROLE_SUMMARY.administrator,
   },
   operator: {
     icon: WrenchScrewdriverIcon,
-    summary: "Manage devices and tags, connect via SSH, view sessions",
+    summary: ROLE_SUMMARY.operator,
   },
   observer: {
     icon: EyeIcon,
-    summary: "Read-only — view device and session details",
+    summary: ROLE_SUMMARY.observer,
   },
 };
 
