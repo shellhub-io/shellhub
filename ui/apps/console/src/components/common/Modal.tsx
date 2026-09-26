@@ -83,14 +83,14 @@ export default function Modal({
       {children != null && (
         <div
           className={cn(
-            "relative flex-1 min-h-0 flex flex-col",
+            "relative flex-auto min-h-0 flex flex-col",
             layout === "default" && "border-t border-border",
           )}
         >
           <div
             ref={bodyRef}
             className={cn(
-              "flex-1 min-h-0 overflow-y-auto overscroll-contain",
+              "flex-auto min-h-0 overflow-y-auto overscroll-contain",
               bodyClassName ??
                 (layout === "center" ? "px-8 pb-2" : "px-6 py-5"),
             )}
