@@ -32,6 +32,7 @@ import { listSshIdentitiesOptions } from "../client";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
 import CopyButton from "./common/CopyButton";
 import Modal from "./common/Modal";
+import RecBadge from "@/components/sessions/RecBadge";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
 import VaultUnlockDialog from "./vault/VaultUnlockDialog";
 import InputField from "@/components/common/fields/InputField";
@@ -192,60 +193,6 @@ function DeviceContext({
         <CopyButton text={sshid} className="-ml-0.5" />
       </span>
     </span>
-  );
-}
-
-function RecBadge({
-  on,
-  onToggle,
-  describedBy,
-}: {
-  on: boolean;
-  onToggle?: () => void;
-  describedBy?: string;
-}) {
-  const className = cn(
-    "inline-flex items-center gap-1.5 h-6 pl-1.5 pr-2 shrink-0 rounded-full border transition-all",
-    on
-      ? "border-accent-red/40 bg-accent-red/10 text-accent-red"
-      : "border-border text-text-muted hover:border-border-light hover:text-text-secondary",
-  );
-  const content = (
-    <>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "w-3 h-3 rounded-full border-2 transition-all",
-          on
-            ? "border-accent-red bg-accent-red animate-pulse-subtle"
-            : "border-current bg-transparent",
-        )}
-      />
-      <span className="font-mono text-[10px] font-bold tracking-wider">
-        REC
-      </span>
-    </>
-  );
-
-  if (!onToggle) {
-    return <span className={className}>{content}</span>;
-  }
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label="Record this session in this browser"
-      aria-describedby={describedBy}
-      onClick={onToggle}
-      className={cn(
-        className,
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-      )}
-    >
-      {content}
-    </button>
   );
 }
 
@@ -803,6 +750,7 @@ export default function ConnectModal({
                     value: !state.recordSession,
                   })
                 }
+                label="Record this session in this browser"
                 describedBy={recordStateId}
               />
               <span id={recordStateId}>
