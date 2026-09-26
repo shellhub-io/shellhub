@@ -1,20 +1,8 @@
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
+import { useIsDesktop, watchWidth } from "@/hooks/useIsDesktop";
 
 const PINNED_KEY = "sidebarPinned";
 
-function watchWidth(query: string) {
-  const mql =
-    typeof window !== "undefined" ? window.matchMedia(query) : undefined;
-  return {
-    subscribe: (callback: () => void) => {
-      mql?.addEventListener("change", callback);
-      return () => mql?.removeEventListener("change", callback);
-    },
-    matches: () => mql?.matches ?? true,
-  };
-}
-
-const desktopWidth = watchWidth("(min-width: 1024px)");
 const wideWidth = watchWidth("(min-width: 1280px)");
 
 function readPinned(): boolean | null {
@@ -46,11 +34,7 @@ export function useSidebarLayout() {
   const [pinnedChoice, setPinnedChoice] = useState(readPinned);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const isDesktop = useSyncExternalStore(
-    desktopWidth.subscribe,
-    desktopWidth.matches,
-    () => true,
-  );
+  const isDesktop = useIsDesktop();
   const isWide = useSyncExternalStore(
     wideWidth.subscribe,
     wideWidth.matches,
