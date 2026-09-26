@@ -1,10 +1,6 @@
-import { ReactNode, lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowTopRightOnSquareIcon,
-  CalendarIcon,
-  CheckCircleIcon,
-  CreditCardIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
@@ -16,6 +12,7 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
 import type { BillingStatus } from "@/client";
 import { cn } from "@shellhub/design-system/cn";
+import SettingsField from "@/components/settings/SettingsField";
 import { Button } from "@shellhub/design-system/primitives";
 
 const BillingDialog = lazy(() => import("./BillingDialog"));
@@ -125,35 +122,6 @@ const BANNER_CLASSES: Record<BannerConfig["tone"], string> = {
   info: "bg-accent-blue/[0.06] border-accent-blue/10 text-accent-blue",
 };
 
-function SectionRow({
-  icon,
-  title,
-  description,
-  children,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: ReactNode;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-6 px-5 py-4">
-      <div className="flex items-start gap-3 min-w-0 flex-1">
-        <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
-          {icon}
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">{title}</p>
-          <div className="text-2xs text-text-muted mt-0.5 leading-relaxed">
-            {description}
-          </div>
-        </div>
-      </div>
-      {children !== undefined && <div className="shrink-0">{children}</div>}
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: BillingStatus }) {
   return (
     <span
@@ -178,17 +146,11 @@ function formatCurrency(amountCents: number, currency: string): string {
   }
 }
 
-interface BillingSectionProps {
-  sectionId: string;
-}
-
 /**
- * The billing panel on the settings page: the plan, the payment methods, and the way into the
- * provider's portal. sectionId lets a link land on it, since settings is one long page.
+ * The billing settings of a cloud namespace: its status, plan, cycle and upcoming charge, and the
+ * way to subscribe or into the provider's portal. Only whoever may subscribe sees the details.
  */
-export default function BillingSection({ sectionId }: BillingSectionProps) {
-  const location = useLocation();
-  const sectionRef = useRef<HTMLDivElement>(null);
+export default function BillingSection() {
   const canSubscribe = useHasPermission("billing:subscribe");
   const { tenant: tenantId } = useAuthStore();
   const { namespace } = useNamespace(tenantId ?? "");
@@ -202,11 +164,6 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
     "getNamespace",
   );
   const [wizardOpen, setWizardOpen] = useState(false);
-
-  useEffect(() => {
-    if (location.hash !== `#${sectionId}`) return;
-    sectionRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-  }, [location.hash, sectionId]);
 
   const invalidateRef = useRef(invalidate);
 
@@ -253,56 +210,44 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   })();
 
   return (
-    <div
-      id={sectionId}
-      ref={sectionRef}
-      className="bg-card border border-border rounded-xl overflow-hidden scroll-mt-8"
-    >
-      <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-text-primary">Billing</h3>
-        {!isLoading && <StatusBadge status={status} />}
-      </div>
-
-      <div className="divide-y divide-border">
-        {!canSubscribe && (
-          <SectionRow
-            icon={<InformationCircleIcon className="w-4 h-4" />}
-            title="Owner-only"
-            description="Only the namespace owner can view and manage billing details."
-          />
-        )}
-
-        {canSubscribe && banner && (
-          <div
-            role="status"
-            aria-live="polite"
-            className={cn(
-              "flex items-start gap-3 px-5 py-3 border-b",
-              BANNER_CLASSES[banner.tone],
-            )}
-          >
-            <banner.Icon
-              aria-hidden="true"
-              className="w-4 h-4 mt-0.5 shrink-0"
-            />
-            <div>
-              <p className="text-sm font-semibold">{banner.title}</p>
-              <p className="text-2xs opacity-90 mt-0.5">{banner.body}</p>
-            </div>
-          </div>
-        )}
-
-        {canSubscribe && (
-          <>
-            <SectionRow
-              icon={<CreditCardIcon className="w-4 h-4" />}
-              title="Plan"
-              description={
-                status === "inactive"
-                  ? "Free plan — up to 3 devices."
-                  : "ShellHub Cloud Premium — unlimited devices."
-              }
+    <>
+      {!canSubscribe ? (
+        <SettingsField
+          title="Owner only"
+          description="Only the namespace owner can see and manage billing."
+        />
+      ) : (
+        <>
+          {banner && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={cn(
+                "flex items-start gap-3 px-4 py-3 rounded-xl border",
+                BANNER_CLASSES[banner.tone],
+              )}
             >
+              <banner.Icon
+                aria-hidden="true"
+                className="w-4 h-4 mt-0.5 shrink-0"
+              />
+              <div>
+                <p className="text-sm font-semibold">{banner.title}</p>
+                <p className="text-2xs opacity-90 mt-0.5">{banner.body}</p>
+              </div>
+            </div>
+          )}
+
+          <SettingsField
+            title="Plan"
+            description={
+              status === "inactive"
+                ? "Free plan, up to 3 devices."
+                : "ShellHub Cloud Premium, unlimited devices."
+            }
+          >
+            <div className="flex items-center gap-2">
+              {!isLoading && <StatusBadge status={status} />}
               {isActiveLike ? (
                 <span className="inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border bg-primary/10 text-primary border-primary/20">
                   Premium
@@ -312,70 +257,66 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
                   Free
                 </span>
               )}
-            </SectionRow>
+            </div>
+          </SettingsField>
 
-            {endAt > 0 && (
-              <SectionRow
-                icon={<CalendarIcon className="w-4 h-4" />}
-                title="Billing cycle"
-                description={dateDescription}
-              />
-            )}
+          {endAt > 0 && (
+            <SettingsField title="Billing cycle" description={dateDescription} />
+          )}
 
-            {invoice && isActiveLike && (
-              <SectionRow
-                icon={<CheckCircleIcon className="w-4 h-4" />}
-                title="Upcoming charge"
-                description={`Next invoice ${invoice.status === "paid" ? "paid" : "due"}.`}
-              >
-                <span className="text-sm font-mono text-text-primary tabular-nums">
-                  {formatCurrency(invoice.amount, invoice.currency)}
-                </span>
-              </SectionRow>
-            )}
-
-            <SectionRow
-              icon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
-              title="Billing portal"
-              description="Manage invoices, payment methods, and download receipts in the Stripe portal."
+          {invoice && isActiveLike && (
+            <SettingsField
+              title="Upcoming charge"
+              description={`Next invoice ${invoice.status === "paid" ? "paid" : "due"}.`}
             >
-              <div className="flex items-center gap-2">
-                {canShowSubscribeButton && (
+              <span className="text-sm font-mono text-text-primary tabular-nums">
+                {formatCurrency(invoice.amount, invoice.currency)}
+              </span>
+            </SettingsField>
+          )}
+
+          <SettingsField
+            title="Billing portal"
+            description="Invoices, payment methods and receipts, in the Stripe portal."
+          >
+            <div className="flex items-center gap-2">
+              {canShowSubscribeButton && (
+                <Button
+                  size="sm"
+                  onClick={() => setWizardOpen(true)}
+                  onMouseEnter={preloadStripe}
+                  onFocus={preloadStripe}
+                >
+                  Subscribe
+                </Button>
+              )}
+              {canReopenPortal && (
+                <div className="flex flex-col items-end gap-1.5">
                   <Button
-                    onClick={() => setWizardOpen(true)}
-                    onMouseEnter={preloadStripe}
-                    onFocus={preloadStripe}
+                    size="sm"
+                    variant="secondary"
+                    loading={openPortal.isPending}
+                    icon={
+                      <ArrowTopRightOnSquareIcon
+                        className="w-4 h-4"
+                        strokeWidth={2}
+                      />
+                    }
+                    onClick={() => openPortal.mutate()}
                   >
-                    Subscribe
+                    Open portal
                   </Button>
-                )}
-                {canReopenPortal && (
-                  <div className="flex flex-col items-end gap-1.5">
-                    <Button
-                      variant="secondary"
-                      loading={openPortal.isPending}
-                      icon={
-                        <ArrowTopRightOnSquareIcon
-                          className="w-4 h-4"
-                          strokeWidth={2}
-                        />
-                      }
-                      onClick={() => openPortal.mutate()}
-                    >
-                      Open portal
-                    </Button>
-                    {openPortal.isError && (
-                      <p role="alert" className="text-2xs text-accent-red">
-                        Couldn't open the billing portal. Please try again.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </SectionRow>
-          </>
-        )}
-      </div>
+                  {openPortal.isError && (
+                    <p role="alert" className="text-2xs text-accent-red">
+                      Couldn't open the billing portal. Try again.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </SettingsField>
+        </>
+      )}
 
       <Suspense fallback={null}>
         {wizardOpen && (
@@ -388,6 +329,6 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
           />
         )}
       </Suspense>
-    </div>
+    </>
   );
 }

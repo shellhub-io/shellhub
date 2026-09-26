@@ -378,12 +378,12 @@ describe("DeviceChooserDialog", () => {
   });
 
   describe("Subscribe button", () => {
-    it("navigates to /settings#billing when Subscribe is clicked", async () => {
+    it("navigates to /settings/billing when Subscribe is clicked", async () => {
       const user = userEvent.setup();
       renderDialog();
       await screen.findByText("hostname-1");
       await user.click(screen.getByRole("button", { name: /subscribe/i }));
-      expect(mockNavigate).toHaveBeenCalledWith("/settings#billing");
+      expect(mockNavigate).toHaveBeenCalledWith("/settings/billing");
     });
 
     it("Subscribe is disabled while mutation is in flight", async () => {

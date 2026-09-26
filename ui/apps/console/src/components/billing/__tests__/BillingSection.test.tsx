@@ -44,7 +44,7 @@ import BillingSection from "../BillingSection";
 function renderSection() {
   return render(
     <React.Suspense fallback={null}>
-      <BillingSection sectionId="billing" />
+      <BillingSection />
     </React.Suspense>,
     { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
   );
@@ -141,10 +141,10 @@ describe("BillingSection — non-owner", () => {
     seedAuthStore({ role: "administrator" });
   });
 
-  it("shows the 'Owner-only' row instead of the Subscribe button", async () => {
+  it("shows the 'Owner only' row instead of the Subscribe button", async () => {
     setInactive();
     renderSection();
-    await screen.findByText("Owner-only");
+    await screen.findByText("Owner only");
     expect(
       screen.queryByRole("button", { name: SUBSCRIBE }),
     ).not.toBeInTheDocument();
@@ -153,7 +153,7 @@ describe("BillingSection — non-owner", () => {
   it("shows neither the portal button nor the banners", async () => {
     setStatus("past_due");
     renderSection();
-    await screen.findByText("Owner-only");
+    await screen.findByText("Owner only");
     expect(
       screen.queryByRole("button", { name: PORTAL }),
     ).not.toBeInTheDocument();

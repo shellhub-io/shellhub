@@ -26,6 +26,7 @@ interface FormModalProps<T extends FieldValues> {
   size?: ModalProps["size"];
   bodyClassName?: string;
   footerExtra?: ReactNode;
+  footerStart?: ReactNode;
   children: ReactNode;
 }
 
@@ -54,6 +55,7 @@ export default function FormModal<T extends FieldValues>({
   size,
   bodyClassName,
   footerExtra,
+  footerStart,
   children,
 }: FormModalProps<T>) {
   const {
@@ -80,6 +82,7 @@ export default function FormModal<T extends FieldValues>({
         icon={icon}
         size={size}
         bodyClassName={bodyClassName}
+        footerStart={footerStart}
         footer={
           <>
             {footerExtra}

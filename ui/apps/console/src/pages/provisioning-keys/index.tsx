@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { TicketIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
 import { useProvisioningKeys } from "@/hooks/useProvisioningKeys";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type ProvisioningKey } from "@/client";
-import PageHeader from "@/components/common/PageHeader";
+import SettingsSection from "@/components/settings/SettingsSection";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import ProvisioningKeysTable from "./ProvisioningKeysTable";
 import CreateProvisioningKeyModal from "./CreateProvisioningKeyModal";
@@ -30,13 +30,17 @@ export default function ProvisioningKeys() {
     defaults: PROVISIONING_KEY_LIST_DEFAULTS,
   });
   const page = params.page;
-  const { provisioningKeys, totalCount, isLoading } = useProvisioningKeys({ page });
+  const { provisioningKeys, totalCount, isLoading } = useProvisioningKeys({
+    page,
+  });
 
   const totalPages = pageCount(totalCount);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ProvisioningKey | null>(null);
-  const [revokeTarget, setRevokeTarget] = useState<ProvisioningKey | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<ProvisioningKey | null>(
+    null,
+  );
   const { toggle, error: toggleError } = useToggleProvisioningKey();
 
   const noCustomKeys =
@@ -44,59 +48,60 @@ export default function ProvisioningKeys() {
 
   return (
     <div>
-      <PageHeader
-        icon={<TicketIcon className="w-6 h-6" />}
-        overline="Settings"
-        title="Provisioning Keys"
-        description="Provisioning keys are reusable credentials that register devices with your namespace. Each key's mode decides how a device is admitted."
+      <SettingsSection
+        wide
+        title="Provisioning keys"
+        description="Keys devices register with. Each key's mode decides whether a device gets in."
+        action={
+          <RestrictedAction action="provisioningKey:create">
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
+            >
+              New key
+            </Button>
+          </RestrictedAction>
+        }
       >
-        <RestrictedAction action="provisioningKey:create">
-          <Button
-            onClick={() => setCreateOpen(true)}
-            icon={<TicketIcon className="w-4 h-4" strokeWidth={2} />}
-          >
-            Create Provisioning Key
-          </Button>
-        </RestrictedAction>
-      </PageHeader>
+        {isLoading ? (
+          <div className="flex justify-center py-24">
+            <Spinner />
+          </div>
+        ) : (
+          <div className="animate-fade-in">
+            {toggleError && (
+              <p className="mb-3 text-xs text-accent-red">{toggleError}</p>
+            )}
 
-      {isLoading ? (
-        <div className="flex justify-center py-24">
-          <Spinner />
-        </div>
-      ) : (
-        <div className="animate-fade-in">
-          {toggleError && (
-            <p className="mb-3 text-xs text-accent-red">{toggleError}</p>
-          )}
+            <ProvisioningKeysTable
+              data={provisioningKeys}
+              page={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              noCustomKeys={noCustomKeys}
+              onPageChange={setPage}
+              onCreate={() => setCreateOpen(true)}
+              onEdit={setEditTarget}
+              onToggleDisabled={(k) => void toggle(k)}
+              onRevoke={setRevokeTarget}
+            />
+          </div>
+        )}
 
-          <ProvisioningKeysTable
-            data={provisioningKeys}
-            page={page}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            noCustomKeys={noCustomKeys}
-            onPageChange={setPage}
-            onCreate={() => setCreateOpen(true)}
-            onEdit={setEditTarget}
-            onToggleDisabled={(k) => void toggle(k)}
-            onRevoke={setRevokeTarget}
-          />
-        </div>
-      )}
-
-      <CreateProvisioningKeyModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-      />
-      <EditProvisioningKeyModal
-        provisioningKey={editTarget}
-        onClose={() => setEditTarget(null)}
-      />
-      <RevokeProvisioningKeyDialog
-        provisioningKey={revokeTarget}
-        onRevoked={() => setRevokeTarget(null)}
-      />
+        <CreateProvisioningKeyModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+        />
+        <EditProvisioningKeyModal
+          provisioningKey={editTarget}
+          onClose={() => setEditTarget(null)}
+        />
+        <RevokeProvisioningKeyDialog
+          provisioningKey={revokeTarget}
+          onRevoked={() => setRevokeTarget(null)}
+        />
+      </SettingsSection>
     </div>
   );
 }

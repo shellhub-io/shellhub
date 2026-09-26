@@ -57,6 +57,23 @@ export function ansiPalette(colors: TerminalThemeColors): string[] {
 }
 
 /**
+ * The name of one of the sixteen ANSI colours, as a theme file keys it.
+ */
+export type AnsiColorName = (typeof XTERM_ANSI)[number][0];
+
+/**
+ * One of the sixteen ANSI colours by name, as the terminal ends up with it: the theme's own or
+ * xterm's default where the theme leaves it out.
+ */
+export function ansiColor(
+  colors: TerminalThemeColors,
+  name: AnsiColorName,
+): string {
+  const fallback = XTERM_ANSI.find(([key]) => key === name)?.[1] ?? "";
+  return colors[name] ?? fallback;
+}
+
+/**
  * A named terminal colour scheme. preview holds the two colours the picker swatch needs, so the
  * list can be drawn without applying a theme.
  */

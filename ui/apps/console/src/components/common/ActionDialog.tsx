@@ -134,7 +134,7 @@ export default function ActionDialog({
           open
           onClose={onClose}
           onConfirm={() => {
-            void navigate("/settings#billing");
+            void navigate("/settings/billing");
             onClose();
           }}
           icon={<ExclamationTriangleIcon />}
