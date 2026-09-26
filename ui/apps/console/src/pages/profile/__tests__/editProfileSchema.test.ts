@@ -4,7 +4,7 @@ import {
   type EditProfileFormValues,
 } from "../editProfileSchema";
 
-const ALL_CHANGED = { name: "\0", username: "\0", email: "\0" };
+const ALL_CHANGED = { name: "\0", email: "\0" };
 
 function resolve(
   values: Partial<EditProfileFormValues>,
@@ -12,7 +12,6 @@ function resolve(
 ): Partial<Record<keyof EditProfileFormValues, string>> {
   const result = editProfileSchema(current).safeParse({
     name: "",
-    username: "",
     email: "",
     recoveryEmail: "",
     ...values,
@@ -33,7 +32,6 @@ describe("editProfileSchema", () => {
       expect(
         resolve({
           name: "Alice",
-          username: "alice",
           email: "alice@example.com",
           recoveryEmail: "backup@example.com",
         }),
@@ -42,15 +40,13 @@ describe("editProfileSchema", () => {
 
     it("skips validation for unchanged fields so legacy-invalid values don't block save", () => {
       const legacy = {
-        name: "Alice",
-        username: "UPPERCASE",
+        name: "a".repeat(65),
         email: "alice@example.com",
       };
       expect(
         resolve(
           {
-            name: "Alice",
-            username: "UPPERCASE",
+            name: "a".repeat(65),
             email: "alice@example.com",
             recoveryEmail: "",
           },
@@ -63,7 +59,6 @@ describe("editProfileSchema", () => {
       expect(
         resolve({
           name: "Alice",
-          username: "alice",
           email: "alice@example.com",
           recoveryEmail: "",
         }),
@@ -84,40 +79,6 @@ describe("editProfileSchema", () => {
 
     it("emits no error for a valid name", () => {
       expect(resolve({ name: "Bob" }).name).toBeUndefined();
-    });
-  });
-
-  describe("username", () => {
-    it("emits 'Username is required' when username is empty", () => {
-      expect(resolve({ username: "" }).username).toBe("Username is required");
-    });
-
-    it("emits error when username exceeds 32 characters", () => {
-      expect(resolve({ username: "a".repeat(33) }).username).toBe(
-        "Username must be at most 32 characters",
-      );
-    });
-
-    it("emits error when username contains uppercase letters", () => {
-      expect(resolve({ username: "Alice" }).username).toBe(
-        "Username must be lowercase",
-      );
-    });
-
-    it("emits error when username contains spaces", () => {
-      expect(resolve({ username: "alice bob" }).username).toBe(
-        "Username cannot contain spaces",
-      );
-    });
-
-    it("emits error when username contains invalid characters", () => {
-      expect(resolve({ username: "alice!" }).username).toBe(
-        "Only lowercase letters, numbers, dots, underscores, @ and hyphens are allowed",
-      );
-    });
-
-    it("emits no error for a valid username", () => {
-      expect(resolve({ username: "alice.bob_123" }).username).toBeUndefined();
     });
   });
 
