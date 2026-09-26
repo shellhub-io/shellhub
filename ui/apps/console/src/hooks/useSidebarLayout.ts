@@ -1,37 +1,20 @@
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useIsDesktop, watchWidth } from "@/hooks/useIsDesktop";
-
-const PINNED_KEY = "sidebarPinned";
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 const wideWidth = watchWidth("(min-width: 1280px)");
-
-function readPinned(): boolean | null {
-  try {
-    const stored = localStorage.getItem(PINNED_KEY);
-    return stored === null ? null : stored === "true";
-  } catch {
-    return null;
-  }
-}
-
-function writePinned(pinned: boolean) {
-  try {
-    localStorage.setItem(PINNED_KEY, String(pinned));
-  } catch {
-    return;
-  }
-}
 
 /**
  * Drives the sidebar across window sizes. Wide windows keep it open, narrower ones fold it to a
  * rail that opens over the content on hover or when the keyboard reaches it (a click leaves focus
  * behind, which must not hold it open once the pointer leaves), and below desktop width it
- * becomes a drawer. Pinning
- * or unpinning it is remembered and outranks the width, since it is the user's own choice.
+ * becomes a drawer. Pinning or unpinning it is remembered in useSidebarStore and outranks the
+ * width, since it is the user's own choice.
  */
 export function useSidebarLayout() {
   const [expanded, setExpanded] = useState(false);
-  const [pinnedChoice, setPinnedChoice] = useState(readPinned);
+  const pin = useSidebarStore((st) => st.pin);
+  const setPin = useSidebarStore((st) => st.setPin);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isDesktop = useIsDesktop();
@@ -43,7 +26,7 @@ export function useSidebarLayout() {
 
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const pinned = pinnedChoice ?? isWide;
+  const pinned = pin === "auto" ? isWide : pin === "pinned";
   const isOpen = expanded || pinned;
 
   const openDrawer = () => setDrawerOpen(true);
@@ -71,8 +54,7 @@ export function useSidebarLayout() {
   const handleToggle = () => {
     clearTimeout(hoverTimer.current);
     setExpanded(false);
-    setPinnedChoice(!pinned);
-    writePinned(!pinned);
+    setPin(pinned ? "rail" : "pinned");
   };
 
   const handleDrawerKeyDown = (e: React.KeyboardEvent) => {
