@@ -1,14 +1,25 @@
 import { create } from "zustand";
 
 /**
- * The console's colour scheme, applied to the whole page, chrome included.
+ * The theme preferences in the order the account menu and the Appearance settings offer them, with
+ * the label both show, so the two cannot drift apart.
  */
-export type AppTheme = "dark" | "light";
+export const THEME_PREFERENCES = [
+  { value: "system", label: "Match system" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+] as const;
 
 /**
- * What the user asked for: a fixed scheme, or whatever the operating system is set to.
+ * What the user asked for: a fixed scheme, or whatever the operating system is set to. Derived
+ * from THEME_PREFERENCES, so a preference cannot exist without its place in the menu and the page.
  */
-export type ThemePreference = AppTheme | "system";
+export type ThemePreference = (typeof THEME_PREFERENCES)[number]["value"];
+
+/**
+ * The console's colour scheme, applied to the whole page, chrome included.
+ */
+export type AppTheme = Exclude<ThemePreference, "system">;
 
 const STORAGE_KEY = "appTheme";
 

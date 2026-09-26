@@ -6,11 +6,13 @@ import {
   UserIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
+  SwatchIcon,
 } from "@heroicons/react/24/outline";
 
 const ACCOUNT_SECTIONS = [
   { to: "profile", label: "Profile", icon: UserIcon },
   { to: "security", label: "Security", icon: ShieldCheckIcon },
+  { to: "appearance", label: "Appearance", icon: SwatchIcon },
   { to: "danger-zone", label: "Danger zone", icon: ExclamationTriangleIcon },
 ];
 

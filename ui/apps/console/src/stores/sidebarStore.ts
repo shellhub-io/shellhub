@@ -1,10 +1,20 @@
 import { create } from "zustand";
 
 /**
- * How the sidebar sits on a desktop window: auto pins it open on a wide window and folds it to a
- * rail on a narrower one; pinned and rail hold it open or folded whatever the width.
+ * The sidebar pins in the order the Appearance settings offer them, with the label each shows.
  */
-export type SidebarPin = "auto" | "pinned" | "rail";
+export const SIDEBAR_PINS = [
+  { value: "auto", label: "Automatic" },
+  { value: "pinned", label: "Pinned open" },
+  { value: "rail", label: "Folded" },
+] as const;
+
+/**
+ * How the sidebar sits on a desktop window: auto pins it open on a wide window and folds it to a
+ * rail on a narrower one; pinned and rail hold it open or folded whatever the width. Derived from
+ * SIDEBAR_PINS, so a pin cannot exist without its tile.
+ */
+export type SidebarPin = (typeof SIDEBAR_PINS)[number]["value"];
 
 const STORAGE_KEY = "sidebarPinned";
 
