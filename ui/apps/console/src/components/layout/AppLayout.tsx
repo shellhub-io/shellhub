@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
+import AdminNavBar, { belowAdminNavBar } from "./AdminNavBar";
 import SessionMenu from "./SessionMenu";
 import { useSyncWorkspaceTab } from "@/hooks/useSyncWorkspaceTab";
 import TerminalManager from "../terminal/TerminalManager";
@@ -56,7 +57,7 @@ export default function AppLayout() {
       s.recordings.some((r) => r.shown),
   );
   const terminalFullscreen = useTerminalFullscreen();
-  const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
+  const { isOpen, pinned, isDesktop, isWide, drawerOpen, handlers } =
     useSidebarLayout();
   const {
     ref: scrollRef,
@@ -66,13 +67,21 @@ export default function AppLayout() {
 
   const isAdminRoute = isAdminPath(pathname);
   const showSidebar = isAdminRoute || namespaces.length > 0;
-  const NavSidebar = isAdminRoute ? AdminSidebar : Sidebar;
+  const drawerNav = showSidebar && !isDesktop && !isAdminRoute;
   useSyncWorkspaceTab(pathname, isAdminRoute);
   const frameOverNav =
     showSidebar &&
     isDesktop &&
     !terminalFullscreen &&
-    isAccountPath(pathname);
+    (isAdminRoute || isAccountPath(pathname));
+  const sessionMenuInTabStrip = frameOverNav || (isAdminRoute && !isDesktop);
+  const toggleSidebar = isDesktop
+    ? showSidebar && !frameOverNav
+      ? handlers.onToggle
+      : undefined
+    : drawerNav
+      ? handlers.toggleDrawer
+      : undefined;
 
   return (
     <ChatwootProvider>
@@ -114,20 +123,24 @@ export default function AppLayout() {
                     "border-border shadow-[16px_0_40px_-12px_rgba(0,0,0,0.7)]",
                 )}
               >
-                <NavSidebar
-                  expanded={isOpen && (pinned || !frameOverNav)}
-                  covered={frameOverNav}
-                />
+                {isAdminRoute ? (
+                  <AdminSidebar expanded={isOpen && pinned} />
+                ) : (
+                  <Sidebar
+                    expanded={isOpen && (pinned || !frameOverNav)}
+                    covered={frameOverNav}
+                  />
+                )}
               </div>
             </div>
           )}
-          {showSidebar && !isDesktop && (
+          {drawerNav && (
             <SidebarMobileDrawer
               open={drawerOpen}
               onClose={handlers.closeDrawer}
               onKeyDown={handlers.onDrawerKeyDown}
             >
-              <NavSidebar expanded onClose={handlers.closeDrawer} />
+              <Sidebar expanded onClose={handlers.closeDrawer} />
             </SidebarMobileDrawer>
           )}
           <div
@@ -147,21 +160,15 @@ export default function AppLayout() {
               }
               trailing={
                 <>
-                  {frameOverNav && (
+                  {sessionMenuInTabStrip && (
                     <div className="mr-2 -mb-[1.5px]">
-                      <SessionMenu expanded={false} inTabStrip />
+                      <SessionMenu placement="tabStrip" />
                     </div>
                   )}
                   <WindowControls
                     sidebarPinned={pinned}
                     sidebarMode={isDesktop ? "pin" : "drawer"}
-                    onToggleSidebar={
-                      showSidebar && !frameOverNav
-                        ? isDesktop
-                          ? handlers.onToggle
-                          : handlers.toggleDrawer
-                        : undefined
-                    }
+                    onToggleSidebar={toggleSidebar}
                   />
                 </>
               }
@@ -180,12 +187,16 @@ export default function AppLayout() {
               )}
             >
               <div className="grid-bg scanline absolute inset-0 z-bg" />
+              {isAdminRoute && <AdminNavBar compact={!isWide} />}
               <main
                 id="main-content"
                 ref={scrollRef}
                 tabIndex={-1}
                 key={pathname}
-                className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto outline-none"
+                className={cn(
+                  "page-enter absolute inset-0 p-8 pb-4 overflow-y-auto outline-none",
+                  isAdminRoute && belowAdminNavBar,
+                )}
               >
                 <Outlet />
               </main>

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
@@ -10,12 +9,15 @@ import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
 import AppLayout from "../AppLayout";
 
+const viewport = vi.hoisted(() => ({ desktop: true }));
+
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
     expanded: false,
     pinned: false,
     isOpen: false,
-    isDesktop: true,
+    isDesktop: viewport.desktop,
+    isWide: viewport.desktop,
     drawerOpen: false,
     handlers: {
       onMouseEnter: vi.fn(),
@@ -28,22 +30,6 @@ vi.mock("@/hooks/useSidebarLayout", () => ({
       onDrawerKeyDown: vi.fn(),
     },
   }),
-}));
-
-vi.mock("../Sidebar", () => ({
-  default: ({ covered }: { covered?: boolean }) => (
-    <nav data-testid="sidebar" data-covered={String(!!covered)} />
-  ),
-}));
-
-vi.mock("../AdminSidebar", () => ({
-  default: () => <nav data-testid="admin-sidebar" />,
-}));
-
-vi.mock("../TabStrip", () => ({
-  default: ({ trailing }: { trailing?: ReactNode }) => (
-    <div data-testid="tab-strip">{trailing}</div>
-  ),
 }));
 
 vi.mock("@/terminal/TerminalManager", () => ({
@@ -66,6 +52,7 @@ const mockGetConfig = vi.mocked(getConfig);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  viewport.desktop = true;
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
   server.use(
@@ -93,20 +80,50 @@ describe("AppLayout", () => {
         http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
       );
       renderLayout();
-      expect(await screen.findByTestId("sidebar")).toBeInTheDocument();
+      expect(
+        await screen.findByRole("navigation", { name: "Main navigation" }),
+      ).toBeInTheDocument();
     });
 
     it("is hidden when there are no namespaces", async () => {
       renderLayout();
       await waitFor(() => {
-        expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("navigation", { name: "Main navigation" }),
+        ).not.toBeInTheDocument();
       });
     });
 
-    it("gives way to the admin navigation on admin routes", async () => {
+    it.each([
+      ["a wide", true],
+      ["a narrow", false],
+    ])(
+      "keeps the account menu reachable in the admin console on %s window",
+      async (_, desktop) => {
+        viewport.desktop = desktop;
+        seedAuthStore({ isAdmin: true });
+        mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+        renderLayout("/admin/dashboard");
+
+        const menus = await screen.findAllByRole("button", {
+          name: /account menu for/i,
+        });
+        expect(menus.filter((menu) => !menu.closest("[inert]"))).toHaveLength(
+          1,
+        );
+      },
+    );
+
+    it("gives way to the admin bar across the top on admin routes", async () => {
+      seedAuthStore({ isAdmin: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       renderLayout("/admin/dashboard");
-      expect(await screen.findByTestId("admin-sidebar")).toBeInTheDocument();
-      expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+      expect(
+        await screen.findByRole("link", { name: "Dashboard" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("navigation", { name: "Main navigation" }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -119,35 +136,40 @@ describe("AppLayout", () => {
 
     it("covers the namespace navigation with the page frame", async () => {
       renderLayout("/account/profile");
-      expect(await screen.findByTestId("sidebar")).toHaveAttribute(
-        "data-covered",
-        "true",
-      );
+      expect(
+        await screen.findByRole("navigation", { name: "Main navigation" }),
+      ).toHaveAttribute("inert");
     });
 
-    it("moves the account menu beside the tabs", async () => {
+    it("moves the account menu out from under the frame", async () => {
       renderLayout("/account/profile");
-      expect(
-        await screen.findByRole("button", { name: /account menu for/i }),
-      ).toBeInTheDocument();
+      await screen.findByRole("tablist", { name: "Open views" });
+
+      const menus = await screen.findAllByRole("button", {
+        name: /account menu for/i,
+      });
+      const reachable = menus.filter((menu) => !menu.closest("[inert]"));
+      expect(menus).toHaveLength(2);
+      expect(reachable).toHaveLength(1);
     });
 
     it("leaves the navigation uncovered elsewhere", async () => {
       renderLayout("/dashboard");
-      expect(await screen.findByTestId("sidebar")).toHaveAttribute(
-        "data-covered",
-        "false",
-      );
       expect(
-        screen.queryByRole("button", { name: /account menu for/i }),
-      ).not.toBeInTheDocument();
+        await screen.findByRole("navigation", { name: "Main navigation" }),
+      ).not.toHaveAttribute("inert");
+      expect(
+        screen.getAllByRole("button", { name: /account menu for/i }),
+      ).toHaveLength(1);
     });
   });
 
   describe("tab strip", () => {
     it("renders regardless of namespaces", async () => {
       renderLayout();
-      expect(await screen.findByTestId("tab-strip")).toBeInTheDocument();
+      expect(
+        await screen.findByRole("tablist", { name: "Open views" }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -194,7 +216,7 @@ describe("AppLayout", () => {
       async (edition) => {
         mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
         renderLayout();
-        await screen.findByTestId("tab-strip");
+        await screen.findByRole("tablist", { name: "Open views" });
         expect(
           screen.queryByTestId("device-limit-banner"),
         ).not.toBeInTheDocument();
