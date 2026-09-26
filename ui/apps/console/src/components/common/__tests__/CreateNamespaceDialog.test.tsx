@@ -58,7 +58,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     renderDialog(true);
     const labelId = screen.getByRole("dialog").getAttribute("aria-labelledby");
     expect(
-      screen.getByRole("heading", { name: "Create a Namespace" }),
+      screen.getByRole("heading", { name: "Create namespace" }),
     ).toHaveAttribute("id", labelId);
   });
 
@@ -76,7 +76,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     it("calls onClose when the X button is clicked", async () => {
       const user = userEvent.setup();
       const { onClose } = renderDialog(true);
-      await user.click(screen.getByRole("button", { name: "Close dialog" }));
+      await user.click(screen.getByRole("button", { name: "Close" }));
       expect(onClose).toHaveBeenCalledOnce();
     });
 

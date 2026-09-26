@@ -1,6 +1,10 @@
 import { useState } from "react";
+import {
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import ObjectName from "@/components/common/ObjectName";
 
 interface DeleteNamespaceDialogProps {
   open: boolean;
@@ -42,21 +46,16 @@ export default function DeleteNamespaceDialog({
           setError("Failed to delete namespace. Please try again.");
         }
       }}
-      title="Delete Namespace"
-      description={(
+      icon={<TrashIcon />}
+      title="Delete namespace"
+      description={
         <>
-          Are you sure you want to delete{" "}
-          <span className="font-medium text-text-primary">
-            {namespace?.name}
-          </span>
-          ? This will permanently remove all devices, sessions, public keys, and
-          API keys associated with this namespace. This action cannot be undone.
-          {error && (
-            <span className="block mt-2 text-accent-red text-2xs">{error}</span>
-          )}
+          <ObjectName>{namespace?.name}</ObjectName> goes away with its devices,
+          sessions, public keys and API keys. This can't be undone.
         </>
-      )}
-      confirmLabel="Delete"
+      }
+      errorMessage={error || null}
+      confirmLabel="Delete namespace"
     />
   );
 }

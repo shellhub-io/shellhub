@@ -3,6 +3,7 @@ import {
   ExclamationTriangleIcon,
   EyeIcon,
   LockClosedIcon,
+  TicketIcon,
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -17,6 +18,7 @@ import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { LABEL } from "@/utils/styles";
+import DialogHeader from "@/components/common/DialogHeader";
 
 /**
  * Shows a provisioning key's identity and secret. The fingerprint (non-secret, stable) is shown first;
@@ -59,19 +61,21 @@ export default function RevealProvisioningKeyDialog({
       onClose={onClose}
       size="md"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
     >
-      <div className="p-6 pb-0">
-        <h2 id={titleId} className="text-base font-semibold text-text-primary">
-          {displayName}
-        </h2>
-      </div>
-
-      <div className="px-6 pt-2 pb-6 space-y-4">
-        <p className="text-sm text-text-muted">
-          {hasSecret
+      <DialogHeader
+        icon={<TicketIcon />}
+        title={displayName ?? ""}
+        description={
+          hasSecret
             ? "The full key and its fingerprint."
-            : "No secret to reveal — devices register with the tenant ID alone. Its fingerprint still identifies the key."}
-        </p>
+            : "No secret to reveal: devices register with the tenant ID alone. Its fingerprint still identifies the key."
+        }
+        titleId={titleId}
+        descriptionId={`${titleId}-description`}
+        onClose={onClose}
+      />
+      <div className="px-6 pb-6 space-y-4">
 
         {/* Non-secret identity, shown first: stable, safe to share. */}
         <div>

@@ -7,6 +7,7 @@ import {
   TrashIcon,
   CheckIcon,
   ArrowRightStartOnRectangleIcon,
+  CheckBadgeIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useApproveAccountRequest } from "@/hooks/useAdminAccountRequestMutations";
@@ -31,6 +32,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
+import ObjectName from "@/components/common/ObjectName";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -275,22 +277,16 @@ export default function AdminUsers() {
             setApproveError("Failed to approve the account. Please try again.");
           }
         }}
-        title="Approve Account"
+        icon={<CheckBadgeIcon />}
+        title="Approve account"
         description={
           <>
-            Approve the account for{" "}
-            <span className="font-medium text-text-primary">
-              {approveTarget?.email}
-            </span>
-            ? They will be able to sign in once they complete activation.
-            {approveError && (
-              <span className="block mt-2 text-accent-red text-2xs">
-                {approveError}
-              </span>
-            )}
+            <ObjectName>{approveTarget?.email}</ObjectName> can sign in once they
+            finish activating the account.
           </>
         }
-        confirmLabel="Approve"
+        errorMessage={approveError || null}
+        confirmLabel="Approve account"
         variant="primary"
       />
     </div>

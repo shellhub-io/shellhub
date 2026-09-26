@@ -14,6 +14,7 @@ import {
   ComputerDesktopIcon,
   CheckCircleIcon,
   NoSymbolIcon,
+  ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon as DevicesIconComponent } from "@shellhub/design-system/primitives";
 import FormModal from "@/components/common/FormModal";
@@ -94,8 +95,10 @@ export default function RuleModal({
       onSubmit={onSubmit}
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Firewall Rule" : "New Firewall Rule"}
-      submitLabel={isEdit ? "Save Changes" : "Create Rule"}
+      icon={<ShieldExclamationIcon />}
+      title={isEdit ? "Edit firewall rule" : "New firewall rule"}
+      description="Allow or deny connections by source IP, username and device."
+      submitLabel={isEdit ? "Save changes" : "Create rule"}
     >
       <FormToggleField name="active" control={control} label="Status" />
 

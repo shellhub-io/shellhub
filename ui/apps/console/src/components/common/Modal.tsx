@@ -1,46 +1,64 @@
 import { ReactNode, useId } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { IconButton } from "@shellhub/design-system/primitives";
+import type { Palette } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import BaseDialog, { type DialogSize } from "@/components/common/BaseDialog";
+import ScrollFades from "@/components/common/ScrollFades";
+import { useScrollEdges } from "@/hooks/useScrollEdges";
+import DialogHeader, {
+  type DialogLayout,
+} from "@/components/common/DialogHeader";
 
 /**
- * Props of Modal. canClose refuses Escape and a backdrop click while it returns false; the close
- * button and onClose itself are the caller's to guard.
+ * Props of Modal. icon and description are required: a dialog opens by saying what it does.
+ * canClose refuses Escape and a backdrop click while it returns false; the close button and
+ * onClose itself are the caller's to guard. footerStart sits at the footer's left, across from the
+ * actions, for a link to the docs. The center layout stacks the header and turns the actions into
+ * full-width buttons, the last one on top; it has no room for footerStart.
  */
 export interface ModalProps {
+  layout?: DialogLayout;
   open: boolean;
   onClose: () => void;
   canClose?: () => boolean;
+  icon: ReactNode;
+  iconColor?: Palette;
   title: string;
-  subtitle?: ReactNode;
-  icon?: ReactNode;
+  description: ReactNode;
   size?: Exclude<DialogSize, "full">;
-  children: ReactNode;
+  children?: ReactNode;
   footer?: ReactNode;
+  footerStart?: ReactNode;
   bodyClassName?: string;
 }
 
 /**
- * The dialog for detail and edit flows: a title bar, a body and an optional footer of actions.
- * Only the body scrolls, so the title and the actions stay in view however long the content
- * runs. The panel is the `modal` container, which the fields laid out with container queries
- * read. The title bar is also the window's drag region inside the desktop app, since an open
- * modal leaves the app's own chrome inert.
+ * The dialog for detail and edit flows: the DialogHeader, a body and an optional footer of
+ * actions. Only the body scrolls, so the header and the actions stay in view however long the
+ * content runs. The panel is the `modal` container, which the fields laid out with container
+ * queries read.
  */
 export default function Modal({
+  layout = "default",
   open,
   onClose,
   canClose,
-  title,
-  subtitle,
   icon,
+  iconColor,
+  title,
+  description,
   size = "md",
   children,
   footer,
+  footerStart,
   bodyClassName,
 }: ModalProps) {
   const headingId = useId();
+  const descriptionId = useId();
+  const {
+    ref: bodyRef,
+    moreAbove,
+    moreBelow,
+  } = useScrollEdges<HTMLDivElement>();
 
   return (
     <BaseDialog
@@ -49,64 +67,57 @@ export default function Modal({
       canClose={canClose}
       size={size}
       aria-labelledby={headingId}
+      aria-describedby={descriptionId}
       className="overflow-hidden @container/modal"
     >
-      <div
-        data-tauri-drag-region
-        className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0"
-      >
+      <DialogHeader
+        layout={layout}
+        icon={icon}
+        iconColor={iconColor}
+        title={title}
+        description={description}
+        titleId={headingId}
+        descriptionId={descriptionId}
+        onClose={onClose}
+      />
+      {children != null && (
         <div
-          data-tauri-drag-region
-          className="flex items-center gap-2.5 min-w-0"
-        >
-          {icon && (
-            <div
-              data-tauri-drag-region
-              className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"
-            >
-              {icon}
-            </div>
+          className={cn(
+            "relative flex-1 min-h-0 flex flex-col",
+            layout === "default" && "border-t border-border",
           )}
-          <div data-tauri-drag-region className="min-w-0">
-            <h2
-              data-tauri-drag-region
-              id={headingId}
-              className="text-base font-semibold text-text-primary"
-            >
-              {title}
-            </h2>
-            {subtitle && (
-              <p
-                data-tauri-drag-region
-                className="text-2xs text-text-muted mt-0.5"
-              >
-                {subtitle}
-              </p>
-            )}
-          </div>
-        </div>
-        <IconButton
-          variant="ghost"
-          aria-label="Close"
-          data-dismiss
-          onClick={onClose}
         >
-          <XMarkIcon className="w-5 h-5" />
-        </IconButton>
-      </div>
-      <div
-        className={cn(
-          "flex-1 min-h-0 overflow-y-auto overscroll-contain",
-          bodyClassName ?? "px-6 py-5",
-        )}
-      >
-        {children}
-      </div>
-      {footer && (
-        <div className="px-6 py-4 border-t border-border shrink-0 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-          {footer}
+          <div
+            ref={bodyRef}
+            className={cn(
+              "flex-1 min-h-0 overflow-y-auto overscroll-contain",
+              bodyClassName ??
+                (layout === "center" ? "px-8 pb-2" : "px-6 py-5"),
+            )}
+          >
+            {children}
+          </div>
+          <ScrollFades moreAbove={moreAbove} moreBelow={moreBelow} />
         </div>
       )}
+      {layout === "center"
+        ? footer && (
+            <div className="px-8 pt-4 pb-7 shrink-0 flex flex-col-reverse gap-2 [&>*]:w-full [&>*]:justify-center">
+              {footer}
+            </div>
+          )
+        : (footer || footerStart) && (
+            <div className="px-6 py-4 border-t border-border shrink-0 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+              {footerStart && (
+                <div className="min-w-0 text-xs text-text-muted sm:mr-auto">
+                  {footerStart}
+                </div>
+              )}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:ml-auto">
+                {footer}
+              </div>
+            </div>
+          )}
     </BaseDialog>
   );
 }

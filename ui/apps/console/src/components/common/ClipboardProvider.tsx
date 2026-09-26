@@ -1,8 +1,9 @@
-import { ReactNode, useCallback, useId, useMemo, useState } from "react";
+import { ReactNode, useId, useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { ClipboardContext } from "@/hooks/useCopy";
 import BaseDialog from "./BaseDialog";
 import { Button } from "@shellhub/design-system/primitives";
+import DialogHeader from "@/components/common/DialogHeader";
 
 /**
  * Mounts a single clipboard-warning dialog for the whole app.
@@ -13,9 +14,9 @@ export function ClipboardProvider({ children }: { children: ReactNode }) {
   const titleId = useId();
   const descId = useId();
 
-  const triggerWarning = useCallback(() => setShowDialog(true), []);
-  const handleClose = useCallback(() => setShowDialog(false), []);
-  const ctxValue = useMemo(() => ({ triggerWarning }), [triggerWarning]);
+  const triggerWarning = () => setShowDialog(true);
+  const handleClose = () => setShowDialog(false);
+  const ctxValue = { triggerWarning };
 
   return (
     <ClipboardContext.Provider value={ctxValue}>
@@ -28,30 +29,15 @@ export function ClipboardProvider({ children }: { children: ReactNode }) {
         aria-labelledby={titleId}
         aria-describedby={descId}
       >
-        {/* Header */}
-        <div className="p-6 pb-0 flex items-center gap-3">
-          <ExclamationTriangleIcon
-            className="w-5 h-5 flex-shrink-0 text-accent-yellow"
-            aria-hidden="true"
-          />
-          <h2
-            id={titleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            Copying is not allowed
-          </h2>
-        </div>
+        <DialogHeader
+          icon={<ExclamationTriangleIcon />}
+          iconColor="yellow"
+          title="Copying is not allowed"
+          description="The clipboard only works on HTTPS or localhost. Serve this instance over HTTPS to copy from it."
+          titleId={titleId}
+          descriptionId={descId}
+        />
 
-        {/* Body */}
-        <div className="px-6 pt-3 pb-6">
-          <p id={descId} className="text-sm text-text-muted">
-            Clipboard access is only permitted on secure (HTTPS) or localhost
-            origins. Please ensure your instance is secure to enable clipboard
-            features.
-          </p>
-        </div>
-
-        {/* Footer */}
         <div className="flex justify-end px-6 py-4 border-t border-border">
           <Button data-testid="copy-warning-ok-btn" onClick={handleClose}>
             OK

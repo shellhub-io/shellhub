@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { KeyIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  KeyIcon,
+  TrashIcon,
+  NoSymbolIcon,
+} from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useInstanceApiKeys } from "@/hooks/useInstanceApiKeys";
@@ -13,6 +17,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { formatDateShort } from "@/utils/date";
 import { pageCount } from "@/utils/pagination";
 import GenerateInstanceKeyModal from "./GenerateInstanceKeyModal";
+import ObjectName from "@/components/common/ObjectName";
 
 type InstanceApiKeyListParams = {
   page: number;
@@ -171,17 +176,15 @@ function InstanceApiKeys() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Revoke Instance API Key"
+        icon={<NoSymbolIcon />}
+        title="Revoke instance API key"
         description={
           <>
-            Are you sure you want to revoke{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.name}
-            </span>
-            ? Any automation using this key will stop working immediately.
+            Automation using <ObjectName>{deleteTarget?.name}</ObjectName> stops
+            working right away.
           </>
         }
-        confirmLabel="Revoke"
+        confirmLabel="Revoke key"
       >
         {deleteError && (
           <p className="text-xs text-accent-red">{deleteError}</p>

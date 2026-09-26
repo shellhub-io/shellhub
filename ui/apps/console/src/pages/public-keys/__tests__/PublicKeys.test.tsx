@@ -82,7 +82,7 @@ describe("PublicKeys — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
 
     await waitFor(() =>
       expect(
@@ -101,7 +101,7 @@ describe("PublicKeys — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
 
     await waitFor(() =>
       expect(
@@ -114,7 +114,7 @@ describe("PublicKeys — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
 
     await waitFor(() =>
       expect(

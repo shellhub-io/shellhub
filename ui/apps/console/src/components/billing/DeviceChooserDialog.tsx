@@ -11,6 +11,7 @@ import {
   CheckIcon,
   ExclamationCircleIcon,
   XMarkIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
 import DataTable, { type Column } from "../common/DataTable";
@@ -31,6 +32,7 @@ import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { pageCount } from "@/utils/pagination";
+import DialogHeader from "@/components/common/DialogHeader";
 
 const DEVICES_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -178,19 +180,14 @@ export default function DeviceChooserDialog({
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
     >
-      <header className="px-6 pt-6 pb-2 shrink-0">
-        <h2 id={titleId} className="text-base font-semibold text-text-primary">
-          Update account or select three devices
-        </h2>
-        <p
-          id={descriptionId}
-          className="text-xs text-text-muted mt-1.5 leading-relaxed"
-        >
-          Your namespace has more than three accepted devices and no active
-          subscription. Subscribe to ShellHub Cloud to keep them all, or pick
-          three devices to remain accepted — the rest will be moved to pending.
-        </p>
-      </header>
+      <DialogHeader
+        icon={<ExclamationTriangleIcon />}
+        iconColor="yellow"
+        title="Update account or select three devices"
+        description="Your namespace has more than three accepted devices and no active subscription. Subscribe to ShellHub Cloud to keep them all, or pick three devices to stay accepted; the rest move to pending."
+        titleId={titleId}
+        descriptionId={descriptionId}
+      />
 
       <TabBar
         tab={tab}
@@ -411,7 +408,9 @@ const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
         onKeyDown={onKeyDown}
         className={cn(
           "relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md",
-          selected ? "text-text-primary" : "text-text-muted hover:text-text-secondary",
+          selected
+            ? "text-text-primary"
+            : "text-text-muted hover:text-text-secondary",
           disabled && "opacity-40 cursor-not-allowed hover:text-text-muted",
         )}
       >

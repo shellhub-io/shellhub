@@ -3,7 +3,10 @@ import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useWatch } from "react-hook-form";
 import { Card, Button } from "@shellhub/design-system/primitives";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationMutations";
 import Modal from "@/components/common/Modal";
 import CopyButton from "@/components/common/CopyButton";
@@ -20,6 +23,7 @@ import {
   type AddMemberFormValues,
 } from "./schemas";
 import { LABEL } from "@/utils/styles";
+import ObjectName from "@/components/common/ObjectName";
 
 interface AddMemberModalProps {
   open: boolean;
@@ -102,11 +106,24 @@ function AddMemberModal({ open, onClose, tenantId }: AddMemberModalProps) {
       <Modal
         open={open}
         onClose={requestClose}
+        icon={addedDirectly ? <CheckCircleIcon /> : <UserPlusIcon />}
+        iconColor={addedDirectly ? "green" : "primary"}
         title={
-          addedDirectly ? "Member Added" : done ? "Invitation Link" : "Add Member"
+          addedDirectly ? "Member added" : done ? "Invitation link" : "Add member"
         }
-        subtitle={
-          done ? <span className="font-mono">{trimmedEmail}</span> : undefined
+        description={
+          addedDirectly ? (
+            <>
+              <ObjectName>{trimmedEmail}</ObjectName> is a member now.
+            </>
+          ) : done ? (
+            <>
+              The invitation for <ObjectName>{trimmedEmail}</ObjectName> is
+              ready.
+            </>
+          ) : (
+            "Invite someone to this namespace by email."
+          )
         }
         footer={
           done ? (

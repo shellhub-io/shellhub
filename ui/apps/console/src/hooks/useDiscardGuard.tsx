@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 
@@ -34,9 +35,10 @@ export function useDiscardGuard({
         setConfirming(false);
         onClose();
       }}
+      icon={<ExclamationTriangleIcon />}
       title="Discard changes?"
       description="What you typed in this form will be lost."
-      confirmLabel="Discard"
+      confirmLabel="Discard changes"
       cancelLabel="Keep editing"
     />
   );

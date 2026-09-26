@@ -82,7 +82,7 @@ describe("AnnouncementModal", () => {
     expect(titleEl!.textContent).toBe("My Announcement");
   });
 
-  it.each([/close announcement/i, /got it/i])(
+  it.each([/^close$/i, /got it/i])(
     "calls onClose when the %s button is clicked",
     async (name) => {
       const user = userEvent.setup();

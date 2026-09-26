@@ -38,6 +38,7 @@ import SearchField from "@/components/common/fields/SearchField";
 import { formatRelative } from "@/utils/date";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import AccessPolicyModal from "./AccessPolicyModal";
+import ObjectName from "@/components/common/ObjectName";
 
 const CHIP_TONE = {
   neutral: "bg-card text-text-secondary border border-border",
@@ -483,17 +484,16 @@ export default function AccessPolicies() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Delete Access Policy"
+        icon={<TrashIcon />}
+        title="Delete access policy"
         description={
           <>
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.name}
-            </span>
-            ? This action cannot be undone.
+            <ObjectName>{deleteTarget?.name}</ObjectName> stops granting access.
+            Anyone who reached a device only through it loses that access. This
+            can't be undone.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete policy"
       >
         {deleteError && (
           <p className="text-xs text-accent-red">{deleteError}</p>

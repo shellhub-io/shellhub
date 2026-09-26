@@ -1,9 +1,13 @@
 import { useState } from "react";
+import {
+  NoSymbolIcon,
+} from "@heroicons/react/24/outline";
 import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { type ProvisioningKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
+import ObjectName from "@/components/common/ObjectName";
 
 /**
  * Confirms revoking a provisioning key. Revoking is final — unlike disabling, it cannot be undone —
@@ -47,14 +51,14 @@ export default function RevokeProvisioningKeyDialog({
       open={open}
       onClose={onRevoked}
       onConfirm={handleConfirm}
-      title="Revoke Provisioning Key"
+      icon={<NoSymbolIcon />}
+      title="Revoke provisioning key"
       description={
         <>
-          Revoking <span className="font-medium text-text-primary">{name}</span>{" "}
-          is permanent — there's no undo. Any device or pipeline still using
-          this key to register will stop; devices already registered keep
-          working. Type{" "}
-          <code className="font-mono text-accent-red">{name}</code> to confirm.
+          Devices and pipelines can no longer register with{" "}
+          <ObjectName>{name}</ObjectName>; the ones it already registered keep
+          working. This can't be undone. Type <ObjectName>{name}</ObjectName> to
+          confirm.
         </>
       }
       confirmLabel="Revoke key"

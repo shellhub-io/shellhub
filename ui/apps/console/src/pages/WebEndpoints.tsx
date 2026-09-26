@@ -47,6 +47,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
+import ObjectName from "@/components/common/ObjectName";
 
 const GO_ZERO_TIME = "0001-01-01T00:00:00Z";
 
@@ -419,8 +420,9 @@ function EndpointModal({
       size="lg"
       open={open}
       onClose={onClose}
-      title="New Web Endpoint"
-      subtitle="Tunnel HTTP traffic to a service on your device."
+      icon={<GlobeAltIcon />}
+      title="New web endpoint"
+      description="Tunnel HTTP traffic to a service on your device."
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -1028,17 +1030,15 @@ function WebEndpointsContent() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Delete Web Endpoint"
+        icon={<TrashIcon />}
+        title="Delete web endpoint"
         description={
           <>
-            Are you sure you want to delete the endpoint for{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.deviceName}
-            </span>
-            ? This action cannot be undone.
+            The endpoint for <ObjectName>{deleteTarget?.deviceName}</ObjectName>{" "}
+            stops serving traffic. This can't be undone.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete endpoint"
       >
         {deleteError && (
           <p className="text-xs text-accent-red" role="alert">

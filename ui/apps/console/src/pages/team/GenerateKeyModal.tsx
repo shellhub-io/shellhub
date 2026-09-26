@@ -81,7 +81,9 @@ function GenerateKeyModal({
       <Modal
         open={open}
         onClose={requestClose}
-        title="Generate API Key"
+        icon={<KeyIcon />}
+        title="Generate API key"
+        description="An API key lets scripts and integrations call the API as this namespace."
         footer={
           generatedKey ? (
             <Button variant="primary" onClick={onClose}>

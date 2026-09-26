@@ -1,5 +1,9 @@
 import { useState, FormEvent } from "react";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  PencilSquareIcon,
+  FingerPrintIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
@@ -136,7 +140,13 @@ function IdentityModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isEdit ? "Rename Key" : "Add a Key"}
+      icon={isEdit ? <PencilSquareIcon /> : <FingerPrintIcon />}
+      title={isEdit ? "Rename key" : "Add a key"}
+      description={
+        isEdit
+          ? "Only the name changes. The key stays the same."
+          : "Add an SSH key to connect with."
+      }
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>

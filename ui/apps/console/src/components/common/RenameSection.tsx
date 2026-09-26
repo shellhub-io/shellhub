@@ -5,7 +5,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
-import { isSdkError } from "@/api/errors";
+import { renameErrorMessage, renameFieldLabel } from "@/utils/rename";
 
 /**
  * Props of RenameSection. rename is passed in rather than chosen here, so the same section
@@ -52,12 +52,7 @@ export default function RenameSection({
       });
       setEditing(false);
     } catch (e) {
-      const status = isSdkError(e) ? e.status : undefined;
-      const errors: Record<number, string> = {
-        400: `Invalid ${entityLabel} name.`,
-        409: `A ${entityLabel} with that name already exists.`,
-      };
-      setError((status && errors[status]) || `Failed to rename ${entityLabel}.`);
+      setError(renameErrorMessage(e, entityLabel));
     }
     setSaving(false);
   };
@@ -94,7 +89,7 @@ export default function RenameSection({
             if (e.key === "Enter") void handleSave();
             if (e.key === "Escape") setEditing(false);
           }}
-          aria-label={`${entityLabel.charAt(0).toUpperCase() + entityLabel.slice(1)} name`}
+          aria-label={renameFieldLabel(entityLabel)}
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
         <IconButton

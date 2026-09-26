@@ -1,4 +1,6 @@
-import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
+import Modal from "@/components/common/Modal";
 
 const PRICING_URL = "https://www.shellhub.io/pricing";
 const DOCS_URL = "https://docs.shellhub.io/";
@@ -22,34 +24,35 @@ export default function SupportPaywallDialog({
   };
 
   return (
-    <ConfirmDialog
+    <Modal
+      layout="center"
+      size="sm"
       open={open}
       onClose={onClose}
-      onConfirm={handleUpgrade}
+      icon={<ChatBubbleLeftRightIcon />}
       title="Upgrade to access chat support"
-      variant="primary"
-      confirmLabel="Upgrade"
-      cancelLabel="Close"
-      description={
-        <div className="space-y-3">
-          <p className="text-sm text-text-secondary">
-            Get real-time assistance from our team with priority responses. Skip
-            the documentation hunt — upgrade now and unlock direct chat support.
-          </p>
-          <p className="text-sm text-text-muted">
-            You can still browse our{" "}
-            <a
-              href={DOCS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:text-primary-300 underline underline-offset-2"
-            >
-              documentation
-            </a>{" "}
-            to find answers and troubleshoot on your own.
-          </p>
-        </div>
+      description="Chat with our team directly, with priority responses, on a paid plan."
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Not now
+          </Button>
+          <Button onClick={handleUpgrade}>Upgrade</Button>
+        </>
       }
-    />
+    >
+      <p className="text-center text-sm text-text-muted">
+        You can still browse our{" "}
+        <a
+          href={DOCS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary-300 underline underline-offset-2"
+        >
+          documentation
+        </a>{" "}
+        to find answers and troubleshoot on your own.
+      </p>
+    </Modal>
   );
 }

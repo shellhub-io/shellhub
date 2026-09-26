@@ -122,9 +122,9 @@ async function fillKey(pem: string) {
 
 describe("KeyModal", () => {
   describe("rendering — add mode", () => {
-    it("renders the 'Add Private Key' title when editKey is null", () => {
+    it("renders the 'Add private key' title when editKey is null", () => {
       renderModal();
-      expect(screen.getByText("Add Private Key")).toBeInTheDocument();
+      expect(screen.getByText("Add private key")).toBeInTheDocument();
     });
 
     it("submit button is disabled when form is empty", () => {
@@ -134,9 +134,9 @@ describe("KeyModal", () => {
   });
 
   describe("rendering — edit mode", () => {
-    it("renders the 'Edit Private Key' title", () => {
+    it("renders the 'Edit private key' title", () => {
       renderModal({ editKey: mockEntry });
-      expect(screen.getByText("Edit Private Key")).toBeInTheDocument();
+      expect(screen.getByText("Edit private key")).toBeInTheDocument();
     });
 
     it("pre-fills the name field with the entry name", () => {

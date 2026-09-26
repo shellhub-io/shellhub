@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect, useId, useMemo } from "react";
+import { useState, FormEvent, useEffect, useId } from "react";
 import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
@@ -16,6 +16,7 @@ import {
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
 import { Button } from "@shellhub/design-system/primitives";
+import DialogHeader from "@/components/common/DialogHeader";
 
 interface Props {
   open: boolean;
@@ -64,10 +65,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
     if (open) clearError();
   }, [open, clearError]);
 
-  const legacyCount = useMemo(() => {
-    if (!open) return 0;
-    return loadLegacyKeysFromStorage().length;
-  }, [open]);
+  const legacyCount = open ? loadLegacyKeysFromStorage().length : 0;
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
@@ -83,128 +81,129 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <ShieldCheckIcon className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h2
-            id={titleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            Set Up Secure Vault
-          </h2>
-          <p className="text-2xs text-text-muted mt-0.5">
-            Encrypt your private keys with a master password
-          </p>
-        </div>
-      </div>
+    <div>
+      <DialogHeader
+        icon={<ShieldCheckIcon />}
+        title="Set up secure vault"
+        description="Encrypt your private keys with a master password."
+        titleId={titleId}
+        descriptionId={`${titleId}-description`}
+        onClose={onClose}
+      />
+      <div className="px-6 pb-6">
+        <p className="text-sm text-text-secondary mb-5">
+          Your master password protects all stored SSH keys. It cannot be
+          recovered — if you forget it, you must reset the vault and lose all
+          keys.
+        </p>
 
-      <p className="text-sm text-text-secondary mb-5">
-        Your master password protects all stored SSH keys. It cannot be
-        recovered — if you forget it, you must reset the vault and lose all
-        keys.
-      </p>
+        {legacyCount > 0 && (
+          <div className="flex items-start gap-2.5 bg-accent-yellow/[0.08] border border-accent-yellow/20 rounded-lg px-3.5 py-3 mb-5">
+            <ExclamationTriangleIcon className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5" />
+            <p className="text-xs text-text-secondary">
+              <strong className="text-text-primary">{legacyCount}</strong>{" "}
+              existing {legacyCount === 1 ? "key" : "keys"} will be imported and
+              encrypted.
+            </p>
+          </div>
+        )}
 
-      {legacyCount > 0 && (
-        <div className="flex items-start gap-2.5 bg-accent-yellow/[0.08] border border-accent-yellow/20 rounded-lg px-3.5 py-3 mb-5">
-          <ExclamationTriangleIcon className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5" />
-          <p className="text-xs text-text-secondary">
-            <strong className="text-text-primary">{legacyCount}</strong>{" "}
-            existing {legacyCount === 1 ? "key" : "keys"} will be imported and
-            encrypted.
-          </p>
-        </div>
-      )}
-
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        {serverEnabled && (
-          <fieldset className="space-y-2">
-            <legend className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
-              Where to store it
-            </legend>
-            {STORAGE_OPTIONS.map((option) => {
-              const selected = mode === option.mode;
-              const Icon = option.icon;
-              return (
-                <label
-                  key={option.mode}
-                  className={cn("flex items-start gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-colors", selected ? "border-primary bg-primary/[0.06]" : "border-border hover:border-border-light hover:bg-hover-subtle")}
-                >
-                  <input
-                    type="radio"
-                    name={`${instanceId}-storage`}
-                    value={option.mode}
-                    checked={selected}
-                    onChange={() => setMode(option.mode)}
-                    className="sr-only"
-                  />
-                  <Icon
-                    className={cn("w-5 h-5 shrink-0 mt-0.5", selected ? "text-primary" : "text-text-muted")}
-                    strokeWidth={2}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-text-primary">
-                        {option.title}
-                      </span>
-                      {selected && (
-                        <CheckCircleIcon
-                          className="w-4 h-4 text-primary shrink-0"
-                          strokeWidth={2}
-                        />
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+          {serverEnabled && (
+            <fieldset className="space-y-2">
+              <legend className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+                Where to store it
+              </legend>
+              {STORAGE_OPTIONS.map((option) => {
+                const selected = mode === option.mode;
+                const Icon = option.icon;
+                return (
+                  <label
+                    key={option.mode}
+                    className={cn(
+                      "flex items-start gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-colors",
+                      selected
+                        ? "border-primary bg-primary/[0.06]"
+                        : "border-border hover:border-border-light hover:bg-hover-subtle",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name={`${instanceId}-storage`}
+                      value={option.mode}
+                      checked={selected}
+                      onChange={() => setMode(option.mode)}
+                      className="sr-only"
+                    />
+                    <Icon
+                      className={cn(
+                        "w-5 h-5 shrink-0 mt-0.5",
+                        selected ? "text-primary" : "text-text-muted",
                       )}
+                      strokeWidth={2}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-text-primary">
+                          {option.title}
+                        </span>
+                        {selected && (
+                          <CheckCircleIcon
+                            className="w-4 h-4 text-primary shrink-0"
+                            strokeWidth={2}
+                          />
+                        )}
+                      </div>
+                      <p className="text-2xs text-text-muted mt-0.5">
+                        {option.description}
+                      </p>
                     </div>
-                    <p className="text-2xs text-text-muted mt-0.5">
-                      {option.description}
-                    </p>
-                  </div>
-                </label>
-              );
-            })}
-          </fieldset>
-        )}
+                  </label>
+                );
+              })}
+            </fieldset>
+          )}
 
-        <PasswordField
-          id={`${instanceId}-password`}
-          label="Master Password"
-          value={password}
-          onChange={setPassword}
-          placeholder="Minimum 8 characters"
-          suppressPasswordManager
-          error={
-            passwordTooShort
-              ? "Password must be at least 8 characters"
-              : undefined
-          }
-        />
+          <PasswordField
+            id={`${instanceId}-password`}
+            label="Master Password"
+            value={password}
+            onChange={setPassword}
+            placeholder="Minimum 8 characters"
+            suppressPasswordManager
+            error={
+              passwordTooShort
+                ? "Password must be at least 8 characters"
+                : undefined
+            }
+          />
 
-        <PasswordField
-          id={`${instanceId}-confirm`}
-          label="Confirm Password"
-          value={confirm}
-          onChange={setConfirm}
-          placeholder="Re-enter your password"
-          suppressPasswordManager
-          error={passwordsMismatch ? "Passwords do not match" : undefined}
-        />
+          <PasswordField
+            id={`${instanceId}-confirm`}
+            label="Confirm Password"
+            value={confirm}
+            onChange={setConfirm}
+            placeholder="Re-enter your password"
+            suppressPasswordManager
+            error={passwordsMismatch ? "Passwords do not match" : undefined}
+          />
 
-        {error && (
-          <p role="alert" className="text-xs text-accent-red">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p role="alert" className="text-xs text-accent-red">
+              {error}
+            </p>
+          )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={!canSubmit} loading={loading}>
-            Create Vault
-          </Button>
-        </div>
-      </form>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!canSubmit} loading={loading}>
+              Create Vault
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -223,6 +222,7 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
       onClose={onClose}
       size="sm"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
     >
       <SetupForm
         key={String(open)}

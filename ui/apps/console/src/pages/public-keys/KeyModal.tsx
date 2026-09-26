@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { isSdkError } from "@/api/errors";
 import {
@@ -6,6 +5,7 @@ import {
   UserIcon,
   TagIcon,
   ClipboardDocumentListIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@shellhub/design-system/primitives";
 import {
@@ -47,7 +47,7 @@ export default function KeyModal({
   const updateKey = useUpdatePublicKey();
   const isEdit = !!editKey;
 
-  const schema = useMemo(() => keySchema(isEdit ? "edit" : "create"), [isEdit]);
+  const schema = keySchema(isEdit ? "edit" : "create");
 
   const form = useDrawerForm(
     open,
@@ -103,8 +103,10 @@ export default function KeyModal({
       onSubmit={onSubmit}
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Public Key" : "New Public Key"}
-      submitLabel={isEdit ? "Save Changes" : "Create Key"}
+      icon={<KeyIcon />}
+      title={isEdit ? "Edit public key" : "New public key"}
+      description="Whoever holds the matching private key can connect to the devices, and as the users, you allow here."
+      submitLabel={isEdit ? "Save changes" : "Create key"}
     >
       <FormInputField
         name="name"

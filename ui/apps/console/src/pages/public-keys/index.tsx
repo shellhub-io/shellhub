@@ -29,6 +29,7 @@ import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
+import ObjectName from "@/components/common/ObjectName";
 
 function ScopeCell({ pk }: { pk: PublicKey }) {
   const isAllUsers = pk.username === ".*" || !pk.username;
@@ -335,17 +336,15 @@ export default function PublicKeys() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Delete Public Key"
+        icon={<TrashIcon />}
+        title="Delete public key"
         description={
           <>
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.name}
-            </span>
-            ? This action cannot be undone.
+            Whoever holds <ObjectName>{deleteTarget?.name}</ObjectName> can no
+            longer connect with it. This can't be undone.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete key"
       >
         {deleteError && (
           <p className="text-xs text-accent-red">{deleteError}</p>

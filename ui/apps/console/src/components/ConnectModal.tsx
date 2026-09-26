@@ -8,6 +8,7 @@ import {
   ExclamationCircleIcon,
   VideoCameraIcon,
   CheckIcon,
+  CommandLineIcon,
 } from "@heroicons/react/24/outline";
 import { useTerminalStore } from "../stores/terminalStore";
 import type { TerminalSession } from "../stores/terminalStore";
@@ -41,6 +42,7 @@ import { INPUT, LABEL } from "../utils/styles";
 import { cn } from "@shellhub/design-system/cn";
 import { Card, Button, Callout } from "@shellhub/design-system/primitives";
 import type { VaultKeyEntry } from "../types/vault";
+import ObjectName from "@/components/common/ObjectName";
 
 interface Props {
   open: boolean;
@@ -376,8 +378,14 @@ export default function ConnectModal({
         size="lg"
         open={open}
         onClose={onClose}
+        icon={<CommandLineIcon />}
+        iconColor="green"
         title="Connect"
-        subtitle={<span className="font-mono">{deviceName}</span>}
+        description={
+          <>
+            Open an SSH session to <ObjectName>{deviceName}</ObjectName>.
+          </>
+        }
         footer={
           <>
             <Button variant="ghost" onClick={onClose}>

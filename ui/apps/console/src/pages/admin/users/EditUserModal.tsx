@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import {
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import { useUpdateUser } from "@/hooks/useAdminUserMutations";
 import { useAuthStore } from "@/stores/authStore";
 import { isSdkError } from "@/api/errors";
@@ -12,6 +14,7 @@ import {
   type UserFormValues,
 } from "./userSchema";
 import type { UserAdminResponse } from "@/client";
+import ObjectName from "@/components/common/ObjectName";
 
 interface EditUserModalProps {
   open: boolean;
@@ -30,8 +33,8 @@ export default function EditUserModal({
   const updateUser = useUpdateUser();
   const currentUserId = useAuthStore((s) => s.userId);
 
-  const schema = useMemo(() => userSchema("edit"), []);
-  const defaults = useMemo(() => buildUserDefaults(user), [user]);
+  const schema = userSchema("edit");
+  const defaults = buildUserDefaults(user);
 
   const form = useDrawerForm(open, schema, defaults);
   const { control, setError, clearErrors } = form;
@@ -65,11 +68,15 @@ export default function EditUserModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Edit User"
-      submitLabel="Save Changes"
-      subtitle={
-        user ? <span className="font-mono">{user.username}</span> : undefined
+      icon={<PencilSquareIcon />}
+      title="Edit user"
+      description={
+        <>
+          Change <ObjectName>{user?.username}</ObjectName>'s details, password
+          and whether they administer the instance.
+        </>
       }
+      submitLabel="Save changes"
     >
       <UserFormFields
         control={control}

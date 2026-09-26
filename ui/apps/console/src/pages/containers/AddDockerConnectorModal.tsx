@@ -22,9 +22,9 @@ function AddDockerConnectorModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Registering a Docker Host"
-      subtitle="Install the ShellHub Connector to add Docker containers"
-      icon={<CubeIcon className="w-4 h-4 text-primary" />}
+      icon={<CubeIcon />}
+      title="Register a Docker host"
+      description="Install the ShellHub Connector on the host to bring its containers into ShellHub."
     >
       <div className="space-y-5">
         <p className="text-sm text-text-secondary leading-relaxed">

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -22,7 +22,9 @@ import TagsPopover from "@/components/common/TagsPopover";
 import {
   useAddDeviceTag,
   useRemoveDeviceTag,
+  useRenameDevice,
 } from "@/hooks/useDeviceMutations";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import {
   PlusIcon,
   TagIcon,
@@ -36,6 +38,7 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import RenameableName from "@/components/common/RenameableName";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
@@ -74,6 +77,8 @@ export default function Devices() {
 
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
+  const renameDevice = useRenameDevice();
+  const canRename = useHasPermission("device:rename");
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
     name: string;
@@ -102,14 +107,11 @@ export default function Devices() {
   const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
 
-  const addFilterTag = useCallback(
-    (tag: string) => {
-      mapArrayFilter("tags", (tags) =>
-        tags.includes(tag) ? tags : [...tags, tag],
-      );
-    },
-    [mapArrayFilter],
-  );
+  const addFilterTag = (tag: string) => {
+    mapArrayFilter("tags", (tags) =>
+      tags.includes(tag) ? tags : [...tags, tag],
+    );
+  };
 
   const removeFilterTag = (tag: string) => {
     mapArrayFilter("tags", (tags) => tags.filter((t) => t !== tag));
@@ -119,16 +121,21 @@ export default function Devices() {
     setArrayFilter("tags", []);
   };
 
-  const columns = useMemo<Column<NormalizedDevice>[]>(() => {
+  const columns = ((): Column<NormalizedDevice>[] => {
     const [hostnameColumn, ...detailColumns]: Column<NormalizedDevice>[] = [
       {
         key: "name",
         header: "Hostname",
         sortable: true,
         render: (device) => (
-          <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
-            {device.name}
-          </span>
+          <RenameableName
+            uid={device.uid}
+            name={device.name}
+            entityLabel="device"
+            rename={renameDevice.mutateAsync}
+            canRename={canRename}
+            nsName={nsName}
+          />
         ),
       },
       {
@@ -237,12 +244,7 @@ export default function Devices() {
           ),
       },
     ];
-  }, [
-    nsName,
-    addFilterTag,
-    addDeviceTag.mutateAsync,
-    removeDeviceTag.mutateAsync,
-  ]);
+  })();
 
   return (
     <div>

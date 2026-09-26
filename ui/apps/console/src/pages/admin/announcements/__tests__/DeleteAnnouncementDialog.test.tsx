@@ -70,7 +70,7 @@ describe("DeleteAnnouncementDialog", () => {
         </Wrapper>,
       );
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
 
       await waitFor(() => expect(onDeleted).toHaveBeenCalledTimes(1));
       expect(callOrder).toEqual(["onClose", "onDeleted"]);
@@ -86,7 +86,7 @@ describe("DeleteAnnouncementDialog", () => {
       );
       renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
 
       await waitFor(() => {
         expect(
@@ -103,7 +103,7 @@ describe("DeleteAnnouncementDialog", () => {
       );
       const { onDeleted } = renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
 
       await waitFor(() => screen.getByText(/failed to delete announcement/i));
       expect(onDeleted).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe("DeleteAnnouncementDialog", () => {
       );
       const { onClose } = renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
 
       await waitFor(() => screen.getByText(/failed to delete announcement/i));
       expect(onClose).not.toHaveBeenCalled();
@@ -131,7 +131,7 @@ describe("DeleteAnnouncementDialog", () => {
       );
       const { onClose } = renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
       await waitFor(() => screen.getByText(/failed to delete announcement/i));
 
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
@@ -143,7 +143,7 @@ describe("DeleteAnnouncementDialog", () => {
     it("does not throw when onDeleted is not provided and deletion succeeds", async () => {
       const { onClose } = renderDialog({ onDeleted: undefined });
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete announcement$/i }));
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });

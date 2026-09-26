@@ -95,7 +95,9 @@ function EditNameModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Rename Namespace"
+      icon={<PencilSquareIcon />}
+      title="Rename namespace"
+      description="Every device's SSHID in this namespace changes with it."
       submitLabel="Save"
       requireDirty
       submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
@@ -152,15 +154,10 @@ function DeleteDialog({
           throw new Error();
         }
       }}
-      title="Delete Namespace"
-      description={
-        <>
-          This action is{" "}
-          <span className="font-medium text-accent-red">permanent</span> and
-          cannot be undone. All devices, sessions, and data will be lost.
-        </>
-      }
-      confirmLabel="Delete Namespace"
+      icon={<TrashIcon />}
+      title="Delete namespace"
+      description="Its devices, sessions and data are lost. This can't be undone."
+      confirmLabel="Delete namespace"
       confirmDisabled={!canDelete}
     >
       <div className="mb-4">
@@ -200,9 +197,10 @@ function LeaveDialog({
           throw new Error();
         }
       }}
-      title="Leave Namespace"
+      icon={<ArrowRightStartOnRectangleIcon />}
+      title="Leave namespace"
       description="You will lose access to all devices and sessions. To rejoin, someone will need to invite you again."
-      confirmLabel="Leave"
+      confirmLabel="Leave namespace"
     >
       {error && <p className="text-2xs text-accent-red mb-3">{error}</p>}
     </ConfirmDialog>

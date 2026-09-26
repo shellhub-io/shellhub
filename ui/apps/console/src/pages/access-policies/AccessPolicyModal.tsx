@@ -552,7 +552,9 @@ function AccessPolicyModal({
       size="lg"
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Access Policy" : "New Access Policy"}
+      icon={<ShieldCheckIcon />}
+      title={isEdit ? "Edit access policy" : "New access policy"}
+      description="Choose who can connect to which devices, and as which users."
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>

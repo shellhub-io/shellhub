@@ -128,7 +128,7 @@ describe("InstanceApiKeys", () => {
     await user.click(
       await screen.findByRole("button", { name: /revoke instance api key/i }),
     );
-    await user.click(screen.getByRole("button", { name: /^revoke$/i }));
+    await user.click(screen.getByRole("button", { name: /^revoke key$/i }));
 
     await waitFor(() => {
       expect(deleteSpy).toHaveBeenCalledWith(

@@ -24,6 +24,7 @@ import KeySshAccessModal from "./KeySshAccessModal";
 import EditKeyModal from "./EditKeyModal";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { pageCount } from "@/utils/pagination";
+import ObjectName from "@/components/common/ObjectName";
 
 type SortField = "name" | "created_at" | "expires_in";
 
@@ -283,17 +284,15 @@ function ApiKeysTab() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Delete API Key"
+        icon={<TrashIcon />}
+        title="Delete API key"
         description={
           <>
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.name}
-            </span>
-            ? Any integrations using this key will stop working.
+            Integrations using <ObjectName>{deleteTarget?.name}</ObjectName> stop
+            working on their next request.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete key"
       >
         {deleteError && (
           <p className="text-xs text-accent-red">{deleteError}</p>

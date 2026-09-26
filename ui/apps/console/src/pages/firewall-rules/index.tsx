@@ -25,6 +25,7 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import RuleModal from "./RuleModal";
 import { pageCount } from "@/utils/pagination";
+import ObjectName from "@/components/common/ObjectName";
 
 type FirewallRulesParams = {
   page: number;
@@ -312,17 +313,16 @@ export default function FirewallRules() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Delete Firewall Rule"
+        icon={<TrashIcon />}
+        title="Delete firewall rule"
         description={
           <>
-            Are you sure you want to delete the rule with priority{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.priority}
-            </span>
-            ? This action cannot be undone.
+            The rule with priority{" "}
+            <ObjectName>{deleteTarget?.priority}</ObjectName> stops filtering
+            connections. This can't be undone.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete rule"
       >
         {deleteError && (
           <p className="text-xs text-accent-red" role="alert">

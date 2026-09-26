@@ -38,12 +38,12 @@ describe("KeyDeleteDialog", () => {
   describe("rendering", () => {
     it("renders nothing when open is false", () => {
       render(<KeyDeleteDialog open={false} entry={entry} onClose={vi.fn()} />);
-      expect(screen.queryByText("Delete Private Key")).not.toBeInTheDocument();
+      expect(screen.queryByText("Delete private key")).not.toBeInTheDocument();
     });
 
     it("renders dialog with title and entry name when open", () => {
       render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
-      expect(screen.getByText("Delete Private Key")).toBeInTheDocument();
+      expect(screen.getByText("Delete private key")).toBeInTheDocument();
       expect(screen.getByText("Production Server")).toBeInTheDocument();
     });
 

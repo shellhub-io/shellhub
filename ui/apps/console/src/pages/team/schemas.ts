@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { EMAIL_REGEX } from "@/utils/validation";
 import type { ApiKey, ApiKeyCreate } from "@/client";
-import type { NamespaceMember } from "@/hooks/useNamespaces";
-import { ROLES, isAssignableRole, type AssignableRole } from "./helpers";
+import { ROLES, assignableRoleOr } from "./helpers";
 
 const roleField = z.enum(ROLES);
 
@@ -38,33 +37,6 @@ export const ADD_MEMBER_DEFAULTS: AddMemberFormValues = {
  */
 export function buildAddMemberBody(values: AddMemberFormValues) {
   return { email: values.email.trim(), role: values.role };
-}
-
-/**
- * Validates the edit-role form.
- */
-export const editRoleSchema = z.object({ role: roleField });
-
-/**
- * The edit-role form's values, derived from the schema.
- */
-export type EditRoleFormValues = z.infer<typeof editRoleSchema>;
-
-function assignableRoleOr(
-  role: unknown,
-  fallback: AssignableRole,
-): AssignableRole {
-  return isAssignableRole(role) ? role : fallback;
-}
-
-/**
- * Fills the edit-role form from a member. A role that is not assignable — an owner — falls back
- * to operator rather than being offered for selection.
- */
-export function buildMemberRoleDefaults(
-  member: NamespaceMember | null,
-): EditRoleFormValues {
-  return { role: assignableRoleOr(member?.role, "operator") };
 }
 
 const keyNameField = z.string().superRefine((value, ctx) => {

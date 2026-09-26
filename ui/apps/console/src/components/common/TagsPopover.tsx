@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   TagIcon,
   XMarkIcon,
@@ -9,6 +9,10 @@ import { Dropdown } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import {
+  ContextualDialogHeader,
+  KeyHint,
+} from "@/components/common/ContextualDialog";
 
 interface TagsPopoverProps {
   uid: string;
@@ -38,6 +42,8 @@ export default function TagsPopover({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
   const canEditTags = useHasPermission("tag:edit");
   const tags = entityTags || [];
 
@@ -142,8 +148,19 @@ export default function TagsPopover({
                 </button>
               </Dropdown.Trigger>
 
-              <Dropdown.Panel aria-label="Manage tags" className="w-[300px]">
-                <div className="p-3 space-y-3">
+              <Dropdown.Panel
+                aria-labelledby={titleId}
+                aria-describedby={descriptionId}
+                className="w-[300px] bg-card border-border-light"
+              >
+                <ContextualDialogHeader
+                  icon={<TagIcon />}
+                  title="Manage tags"
+                  description="Up to three tags. Click one in the list to filter by it."
+                  titleId={titleId}
+                  descriptionId={descriptionId}
+                />
+                <div className="px-3.5 py-3 space-y-3">
                   {tags.length < 3 ? (
                     <div>
                       <input
@@ -256,6 +273,11 @@ export default function TagsPopover({
                     </p>
                   )}
                 </div>
+                {tags.length < 3 && (
+                  <div className="px-3.5 py-2.5 border-t border-border">
+                    <KeyHint action="add" />
+                  </div>
+                )}
               </Dropdown.Panel>
             </Dropdown>
           </span>

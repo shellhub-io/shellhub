@@ -13,6 +13,7 @@ import {
 } from "@/utils/vault-migrate";
 import BaseDialog from "@/components/common/BaseDialog";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
+import DialogHeader from "@/components/common/DialogHeader";
 
 type Direction = "to-server" | "to-local";
 
@@ -83,31 +84,24 @@ function SyncForm({
   const toServer = direction === "to-server";
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          {toServer ? (
-            <ServerStackIcon className="w-5 h-5 text-primary" />
-          ) : (
-            <ComputerDesktopIcon className="w-5 h-5 text-primary" />
-          )}
-        </div>
-        <div>
-          <h2
-            id={titleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            {toServer
-              ? "Sync vault to the ShellHub server"
-              : "Move vault to this device"}
-          </h2>
-          <p className="text-2xs text-text-muted mt-0.5">
-            {toServer
-              ? "Use your keys from any machine"
-              : "Keep your keys in this browser only"}
-          </p>
-        </div>
-      </div>
+    <div>
+      <DialogHeader
+        icon={toServer ? <ServerStackIcon /> : <ComputerDesktopIcon />}
+        title={
+          toServer
+            ? "Sync vault to the ShellHub server"
+            : "Move vault to this device"
+        }
+        description={
+          toServer
+            ? "Use your keys from any machine you sign in on."
+            : "Keep your keys in this browser only."
+        }
+        titleId={titleId}
+        descriptionId={`${titleId}-description`}
+        onClose={working ? undefined : onClose}
+      />
+      <div className="px-6 pb-6">
 
       {checking ? (
         <div className="flex items-center justify-center gap-2 py-6 text-sm text-text-secondary">
@@ -209,6 +203,7 @@ function SyncForm({
           </Button>
         )}
       </div>
+      </div>
     </div>
   );
 }
@@ -227,6 +222,7 @@ export default function VaultSyncDialog({ open, onClose, direction }: Props) {
       onClose={onClose}
       size="sm"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
     >
       <SyncForm
         key={String(open)}

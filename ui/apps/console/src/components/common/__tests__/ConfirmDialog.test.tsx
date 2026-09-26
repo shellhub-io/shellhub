@@ -40,6 +40,7 @@ function renderDialog(
         open={open}
         onClose={onClose}
         onConfirm={onConfirm}
+        icon={<svg />}
         title={title}
         description={description}
         confirmLabel={confirmLabel}
@@ -75,6 +76,13 @@ describe("ConfirmDialog", () => {
   });
 
   describe("ARIA", () => {
+    it("is described by its description", () => {
+      renderDialog(true, { description: "The key stops working." });
+      expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+        "The key stops working.",
+      );
+    });
+
     it("dialog has aria-labelledby wired to the title element", () => {
       renderDialog(true, { title: "My title" });
       const dialog = screen.getByRole("dialog");

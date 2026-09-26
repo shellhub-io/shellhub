@@ -84,7 +84,9 @@ function GenerateInstanceKeyModal({
       <Modal
         open={open}
         onClose={requestClose}
-        title="Generate Instance API Key"
+        icon={<KeyIcon />}
+        title="Generate instance API key"
+        description="Instance API keys let automation act as an instance administrator."
         footer={
           generatedKey ? (
             <Button variant="primary" onClick={onClose}>
