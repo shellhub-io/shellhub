@@ -17,8 +17,7 @@ export default function ExpiryLabel({
   provisioningKey: ProvisioningKey;
   className?: string;
 }) {
-  const { expired, revoked, disabled } = getKeyBlockers(provisioningKey);
-  const quiet = revoked || disabled;
+  const { expired, quiet } = getKeyBlockers(provisioningKey);
 
   return (
     <span
