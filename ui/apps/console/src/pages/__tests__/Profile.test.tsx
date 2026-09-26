@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import Profile from "../Profile";
+import { AccountDangerZone, AccountProfile, AccountSecurity } from "../Profile";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 
@@ -14,7 +14,9 @@ const mockGetConfig = vi.mocked(getConfig);
 function renderProfile() {
   return render(
     <MemoryRouter>
-      <Profile />
+      <AccountProfile />
+      <AccountSecurity />
+      <AccountDangerZone />
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );
@@ -109,9 +111,7 @@ describe("Profile", () => {
 
     it("shows 'Current password is incorrect.' on 403", async () => {
       server.use(
-        http.patch("*/api/users", () =>
-          HttpResponse.json({}, { status: 403 }),
-        ),
+        http.patch("*/api/users", () => HttpResponse.json({}, { status: 403 })),
       );
       const user = await openChangePasswordModal();
 

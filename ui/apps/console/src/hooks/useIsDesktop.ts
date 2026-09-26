@@ -2,11 +2,14 @@ import { useSyncExternalStore } from "react";
 
 /**
  * A media query as a store useSyncExternalStore can read: the current match, and a subscription
- * to its changes. Outside a browser it reads as a match.
+ * to its changes. Where there is no matchMedia (outside a browser, or in jsdom) it reads as a
+ * match.
  */
 export function watchWidth(query: string) {
   const mql =
-    typeof window !== "undefined" ? window.matchMedia(query) : undefined;
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia(query)
+      : undefined;
   return {
     subscribe: (callback: () => void) => {
       mql?.addEventListener("change", callback);

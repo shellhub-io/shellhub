@@ -4,7 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespaces } from "../hooks/useNamespaces";
-import PageHeader from "../components/common/PageHeader";
+import SectionedLayout from "@/components/settings/SectionedLayout";
 import FormModal from "@/components/common/FormModal";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BaseDialog from "../components/common/BaseDialog";
@@ -29,10 +29,8 @@ import {
   PencilSquareIcon,
   CheckIcon,
   UserCircleIcon,
-  EnvelopeIcon,
   LockClosedIcon,
   TrashIcon,
-  AtSymbolIcon,
   ExclamationTriangleIcon,
   CommandLineIcon,
   ArrowTopRightOnSquareIcon,
@@ -43,8 +41,10 @@ import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
 import { isEnterpriseOrCloud } from "../env";
 import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
-import SettingsCard from "@/components/common/SettingsCard";
-import SettingsRow from "@/components/common/SettingsRow";
+import SettingsSection from "@/components/settings/SettingsSection";
+import SettingsField from "@/components/settings/SettingsField";
+import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
+import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
 import DialogHeader from "@/components/common/DialogHeader";
 
 function DeleteAccountDialog({
@@ -152,7 +152,6 @@ function DeleteAccountWarningDialog({
         onClose={onClose}
       />
       <div className="px-6 pb-6">
-
         <div className="space-y-4 text-sm text-text-muted">
           {isCommunity ? (
             <>
@@ -447,177 +446,134 @@ function ChangePasswordModal({
 }
 
 /**
- * The user's own account page: profile, password, MFA and API keys.
+ * The profile section of the account: name, username, email and recovery email, and the modal
+ * that edits them.
  */
-export default function Profile() {
-  const {
-    name,
-    username,
-    email,
-    recoveryEmail,
-    origin,
-    mfaEnabled,
-    fetchUser,
-  } = useAuthStore();
-
-  const isSsoUser = origin === "saml";
-
+export function AccountProfile() {
+  const { name, username, email, recoveryEmail } = useAuthStore();
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [pwModalOpen, setPwModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const isCloudEdition = isCloud();
-  const isCommunityEdition = isCommunity();
-  const [mfaEnableOpen, setMfaEnableOpen] = useState(false);
-  const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
-
-  useEffect(() => {
-    void fetchUser();
-  }, [fetchUser]);
 
   if (!name && !username) {
     return <PageLoader label="Loading profile" padding="lg" />;
   }
 
-  const openEdit = () => setEditModalOpen(true);
-
   return (
-    <div>
-      <PageHeader
-        icon={<UserIcon className="w-6 h-6" />}
-        overline="Account"
+    <>
+      <SettingsSection
         title="Profile"
-        description="Manage your account details and security settings"
-      >
-        <Button
-          variant="secondary"
-          onClick={openEdit}
-          icon={<PencilSquareIcon className="w-4 h-4" />}
-        >
-          Edit Profile
-        </Button>
-      </PageHeader>
-
-      <div className="space-y-6 animate-fade-in">
-        {/* ── Profile ── */}
-        <SettingsCard title="Profile">
-          <SettingsRow
-            icon={<UserIcon className="w-4 h-4" />}
-            title="Name"
-            description="Your display name"
+        description="How you appear in ShellHub and how it reaches you."
+        action={
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setEditModalOpen(true)}
+            icon={<PencilSquareIcon className="w-4 h-4" />}
           >
-            <span className="text-sm font-mono text-text-secondary">
-              {name}
-            </span>
-          </SettingsRow>
+            Edit
+          </Button>
+        }
+      >
+        <SettingsField title="Name" description="Your display name.">
+          <span className="text-sm font-mono text-text-secondary">{name}</span>
+        </SettingsField>
 
-          <SettingsRow
-            icon={<UserCircleIcon className="w-4 h-4" />}
-            title="Username"
-            description="Legacy login identifier. Use email to sign in instead."
-            badge={
-              <span className="px-1.5 py-0.5 text-3xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+        <SettingsField
+          title="Username"
+          description={
+            <>
+              The old login identifier; sign in with your email instead.
+              <span className="ml-2 px-1.5 py-0.5 text-3xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
                 Deprecated
               </span>
-            }
-          >
-            <span className="text-sm font-mono text-text-secondary">
-              {username}
-            </span>
-          </SettingsRow>
+            </>
+          }
+        >
+          <span className="text-sm font-mono text-text-secondary">
+            {username}
+          </span>
+        </SettingsField>
 
-          <SettingsRow
-            icon={<EnvelopeIcon className="w-4 h-4" />}
-            title="Email"
-            description="Used for login and account communications"
-          >
-            <span className="text-sm font-mono text-text-secondary">
-              {email}
-            </span>
-          </SettingsRow>
+        <SettingsField
+          title="Email"
+          description="How you sign in and where account mail goes."
+        >
+          <span className="text-sm font-mono text-text-secondary">{email}</span>
+        </SettingsField>
 
-          <SettingsRow
-            icon={<AtSymbolIcon className="w-4 h-4" />}
-            title="Recovery Email"
-            description="Used for account recovery if you lose access"
-          >
-            <span className="text-sm font-mono text-text-secondary">
-              {recoveryEmail || (
-                <span className="text-text-muted italic font-sans">
-                  Not set
-                </span>
-              )}
-            </span>
-          </SettingsRow>
-        </SettingsCard>
+        <SettingsField
+          title="Recovery email"
+          description="Where account recovery goes if you lose access."
+        >
+          <span className="text-sm font-mono text-text-secondary">
+            {recoveryEmail || (
+              <span className="text-text-muted italic font-sans">Not set</span>
+            )}
+          </span>
+        </SettingsField>
+      </SettingsSection>
+      <EditProfileModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        currentName={name ?? ""}
+        currentUsername={username ?? ""}
+        currentEmail={email ?? ""}
+        currentRecoveryEmail={recoveryEmail ?? ""}
+      />
+    </>
+  );
+}
 
-        {/* ── Security ── */}
-        <SettingsCard title="Security">
-          {isSsoUser ? (
-            <SettingsRow
-              icon={<ShieldCheckIcon className="w-4 h-4" />}
-              title="Managed by your identity provider"
-              description="You sign in through SSO, so your password and multi-factor authentication are configured with your identity provider, not in ShellHub."
+/**
+ * The security section of the account: the password and multi-factor authentication, or a note
+ * that the identity provider manages both for an SSO user.
+ */
+export function AccountSecurity() {
+  const { origin, mfaEnabled, recoveryEmail, fetchUser } = useAuthStore();
+  const isSsoUser = origin === "saml";
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [mfaEnableOpen, setMfaEnableOpen] = useState(false);
+  const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
+
+  return (
+    <>
+      <SettingsSection
+        title="Security"
+        description="How you prove it's you when you sign in."
+      >
+        {isSsoUser ? (
+          <SettingsField
+            title="Managed by your identity provider"
+            description="You sign in through SSO, so your password and multi-factor authentication are set with your identity provider, not in ShellHub."
+          >
+            <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-primary/10 text-primary border border-primary/20">
+              SSO
+            </span>
+          </SettingsField>
+        ) : (
+          <>
+            <SettingsField
+              title="Password"
+              description="The password you sign in with."
             >
-              <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-primary/10 text-primary border border-primary/20">
-                SSO
-              </span>
-            </SettingsRow>
-          ) : (
-            <>
-              <SettingsRow
-                icon={<LockClosedIcon className="w-4 h-4" />}
-                title="Password"
-                description="Credentials used to authenticate into your account"
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setPwModalOpen(true)}
               >
-                <Button
-                  variant="secondary"
-                  onClick={() => setPwModalOpen(true)}
-                >
-                  Change Password
-                </Button>
-              </SettingsRow>
+                Change Password
+              </Button>
+            </SettingsField>
 
-              {isEnterpriseOrCloud() ? (
-                <SettingsRow
-                  icon={<ShieldCheckIcon className="w-4 h-4" />}
-                  title="Multi-Factor Authentication"
-                  description="Add an extra layer of security with TOTP-based 2FA. Recovery codes are shown once during setup."
-                  badge={
-                    mfaEnabled ? (
-                      <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
-                        Enabled
-                      </span>
-                    ) : null
-                  }
-                >
-                  {mfaEnabled ? (
-                    <Button
-                      variant="secondary"
-                      onClick={() => setMfaDisableOpen(true)}
-                    >
-                      Disable
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      onClick={() => setMfaEnableOpen(true)}
-                    >
-                      Enable MFA
-                    </Button>
-                  )}
-                </SettingsRow>
-              ) : (
-                <SettingsRow
-                  icon={<ShieldCheckIcon className="w-4 h-4" />}
-                  title="Multi-Factor Authentication"
-                  description="Enhance your account security with TOTP-based 2FA"
-                  badge={
-                    <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                      Pro
-                    </span>
-                  }
-                >
+            <SettingsSwitchCard
+              icon={<ShieldCheckIcon />}
+              title="Multi-factor authentication"
+              description={
+                isEnterpriseOrCloud()
+                  ? "A code from an authenticator app on every sign-in. Recovery codes are shown once, during setup."
+                  : "A code from an authenticator app on every sign-in. Available on paid editions."
+              }
+              control={
+                !isEnterpriseOrCloud() ? (
                   <Button
                     as="a"
                     size="sm"
@@ -628,48 +584,90 @@ export default function Profile() {
                   >
                     Upgrade
                   </Button>
-                </SettingsRow>
-              )}
-            </>
-          )}
-        </SettingsCard>
-
-        {/* ── Danger Zone ── */}
-        <SettingsCard title="Danger Zone" danger>
-          <SettingsRow
-            icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
-            title="Delete Account"
-            description={
-              isCloudEdition
-                ? "Permanently remove your account and all associated data."
-                : "Account deletion requires CLI or Admin Console access."
-            }
-          >
-            <Button
-              size="sm"
-              variant="dangerSoft"
-              onClick={() => setDeleteDialogOpen(true)}
-              data-test="delete-account-btn"
-              className="hover:border-accent-red/40"
-            >
-              Delete
-            </Button>
-          </SettingsRow>
-        </SettingsCard>
-      </div>
-
-      <EditProfileModal
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        currentName={name ?? ""}
-        currentUsername={username ?? ""}
-        currentEmail={email ?? ""}
-        currentRecoveryEmail={recoveryEmail ?? ""}
-      />
+                ) : mfaEnabled ? (
+                  <div className="flex items-center gap-3">
+                    <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
+                      Enabled
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setMfaDisableOpen(true)}
+                    >
+                      Disable
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setMfaEnableOpen(true)}
+                  >
+                    Enable MFA
+                  </Button>
+                )
+              }
+            />
+          </>
+        )}
+      </SettingsSection>
       <ChangePasswordModal
         open={pwModalOpen}
         onClose={() => setPwModalOpen(false)}
       />
+      <MfaEnableModal
+        open={mfaEnableOpen}
+        onClose={() => setMfaEnableOpen(false)}
+        onSuccess={() => {
+          setMfaEnableOpen(false);
+          void fetchUser();
+        }}
+        currentRecoveryEmail={recoveryEmail ?? null}
+      />
+      <MfaDisableDialog
+        open={mfaDisableOpen}
+        onClose={() => setMfaDisableOpen(false)}
+        onSuccess={() => {
+          setMfaDisableOpen(false);
+          void fetchUser();
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * The irreversible section of the account: deleting it, which only the cloud does from here.
+ */
+export function AccountDangerZone() {
+  const isCloudEdition = isCloud();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  return (
+    <>
+      <SettingsSection
+        title="Danger zone"
+        description="Actions on your account that can't be undone."
+      >
+        <SettingsDangerCard
+          title="Delete account"
+          description={
+            isCloudEdition
+              ? "Removes your account and everything tied to it for good."
+              : "Account deletion needs the CLI or the Admin Console."
+          }
+          action={
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+              data-test="delete-account-btn"
+            >
+              Delete account
+            </Button>
+          }
+        />
+      </SettingsSection>
       {isCloudEdition ? (
         <DeleteAccountDialog
           key={String(deleteDialogOpen)}
@@ -680,26 +678,37 @@ export default function Profile() {
         <DeleteAccountWarningDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
-          isCommunity={isCommunityEdition}
+          isCommunity={isCommunity()}
         />
       )}
-      <MfaEnableModal
-        open={mfaEnableOpen}
-        onClose={() => setMfaEnableOpen(false)}
-        onSuccess={() => {
-          setMfaEnableOpen(false);
-          void fetchUser(); // Refresh to update mfaEnabled
-        }}
-        currentRecoveryEmail={recoveryEmail ?? null}
-      />
-      <MfaDisableDialog
-        open={mfaDisableOpen}
-        onClose={() => setMfaDisableOpen(false)}
-        onSuccess={() => {
-          setMfaDisableOpen(false);
-          void fetchUser(); // Refresh to update mfaEnabled
-        }}
-      />
-    </div>
+    </>
+  );
+}
+
+const ACCOUNT_SECTIONS = [
+  { to: "profile", label: "Profile", icon: UserIcon },
+  { to: "security", label: "Security", icon: ShieldCheckIcon },
+  { to: "danger-zone", label: "Danger zone", icon: ExclamationTriangleIcon },
+];
+
+/**
+ * The user's own account, one section per URL under /account: who they are, how they sign in, and
+ * deleting the account.
+ */
+export default function Profile() {
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+
+  useEffect(() => {
+    void fetchUser();
+  }, [fetchUser]);
+
+  return (
+    <SectionedLayout
+      base="/account"
+      icon={<UserIcon className="w-6 h-6" />}
+      title="Account"
+      description="Your profile and how you sign in"
+      sections={ACCOUNT_SECTIONS}
+    />
   );
 }
