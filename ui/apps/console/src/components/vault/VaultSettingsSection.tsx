@@ -1,12 +1,10 @@
 import { useState, useEffect, FormEvent } from "react";
-import { Button, Dropdown } from "@shellhub/design-system/primitives";
+import { Button, Dropdown, Toggle } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
-  ExclamationTriangleIcon,
   ExclamationCircleIcon,
   ChevronDownIcon,
-  ServerStackIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
@@ -19,9 +17,10 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
-import CheckboxField from "@/components/common/fields/CheckboxField";
-import SettingsCard from "@/components/common/SettingsCard";
-import SettingsRow from "@/components/common/SettingsRow";
+import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
+import SettingsSection from "@/components/settings/SettingsSection";
+import SettingsField from "@/components/settings/SettingsField";
+import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import ObjectName from "@/components/common/ObjectName";
 function ChangePasswordModal({
   open,
@@ -196,8 +195,9 @@ function AutoLockTimeoutSelect({
 }
 
 /**
- * The vault panel on the settings page: lock timing, where the vault is stored, and the reset.
- * Resetting destroys the keys — the passphrase cannot be recovered — so it is guarded here.
+ * The vault's settings on the Secure Vault page: lock timing, where the vault is stored, and the
+ * reset. Resetting destroys the keys, and the passphrase cannot be recovered, so it is guarded
+ * here.
  */
 export default function VaultSettingsSection() {
   const status = useVaultStore((s) => s.status);
@@ -221,12 +221,14 @@ export default function VaultSettingsSection() {
 
   return (
     <>
-      <div className="mt-8 space-y-4 animate-fade-in">
-        <SettingsCard title="Vault Settings">
-          <SettingsRow
-            icon={<KeyIcon className="w-4 h-4" />}
-            title="Change Master Password"
-            description="Re-encrypt all keys with a new password."
+      <div className="mt-10 space-y-12 animate-fade-in">
+        <SettingsSection
+          title="Vault settings"
+          description="How the vault locks, where it is kept, and its master password."
+        >
+          <SettingsField
+            title="Master password"
+            description="Re-encrypts every key in the vault with a new password."
           >
             <Button
               size="sm"
@@ -236,12 +238,11 @@ export default function VaultSettingsSection() {
             >
               Change
             </Button>
-          </SettingsRow>
+          </SettingsField>
 
-          <SettingsRow
-            icon={<LockClosedIcon className="w-4 h-4" />}
-            title="Auto-lock Timeout"
-            description="Automatically lock the vault after this period of inactivity."
+          <SettingsField
+            title="Auto-lock timeout"
+            description="Locks the vault after this long without use."
           >
             <AutoLockTimeoutSelect
               value={autoLockTimeoutMinutes}
@@ -249,31 +250,25 @@ export default function VaultSettingsSection() {
                 void updateAutoLockSettings({ autoLockTimeoutMinutes: minutes })
               }
             />
-          </SettingsRow>
+          </SettingsField>
 
-          <SettingsRow
-            icon={<LockClosedIcon className="w-4 h-4" />}
+          <SettingsSwitchCard
+            icon={<LockClosedIcon />}
             title="Lock when hidden"
-            description="Locks the vault about a minute after you switch away or minimize."
-          >
-            <CheckboxField
-              id="vault-lock-on-hidden"
-              label="Lock when hidden"
-              hideLabel
-              aria-label="Lock when hidden"
-              checked={lockOnHidden}
-              onChange={(checked) =>
-                void updateAutoLockSettings({ lockOnHidden: checked })
-              }
-            />
-          </SettingsRow>
+            description="Locks the vault about a minute after you switch away or minimize the window."
+            control={
+              <Toggle
+                aria-label="Lock when hidden"
+                enabled={lockOnHidden}
+                onChange={(checked) =>
+                  void updateAutoLockSettings({ lockOnHidden: checked })
+                }
+              />
+            }
+          />
 
           {isVaultServerEnabled() && (
-            <SettingsRow
-              icon={<ServerStackIcon className="w-4 h-4" />}
-              title="Storage"
-              description={storageDescription}
-            >
+            <SettingsField title="Storage" description={storageDescription}>
               <Button
                 size="sm"
                 variant="secondary"
@@ -282,13 +277,12 @@ export default function VaultSettingsSection() {
               >
                 {storageMode === "server" ? "Move" : "Sync"}
               </Button>
-            </SettingsRow>
+            </SettingsField>
           )}
 
-          <SettingsRow
-            icon={<LockClosedIcon className="w-4 h-4" />}
-            title="Lock Vault"
-            description="Clear decrypted keys from memory."
+          <SettingsField
+            title="Lock now"
+            description="Clears the decrypted keys from memory."
           >
             <Button
               size="sm"
@@ -298,28 +292,31 @@ export default function VaultSettingsSection() {
             >
               Lock
             </Button>
-          </SettingsRow>
-        </SettingsCard>
+          </SettingsField>
+        </SettingsSection>
 
-        <SettingsCard title="Danger Zone" danger>
-          <SettingsRow
-            icon={<ExclamationTriangleIcon className="w-4 h-4" />}
-            title="Reset Vault"
-            description="Permanently delete all stored keys. This cannot be undone."
-          >
-            <Button
-              size="sm"
-              variant="dangerSoft"
-              aria-label="Reset vault"
-              onClick={() => {
-                setResetConfirmText("");
-                setResetOpen(true);
-              }}
-            >
-              Reset
-            </Button>
-          </SettingsRow>
-        </SettingsCard>
+        <SettingsSection
+          title="Danger zone"
+          description="Actions on the vault that can't be undone."
+        >
+          <SettingsDangerCard
+            title="Reset vault"
+            description="Deletes every key stored in the vault for good."
+            action={
+              <Button
+                size="sm"
+                variant="destructive"
+                aria-label="Reset vault"
+                onClick={() => {
+                  setResetConfirmText("");
+                  setResetOpen(true);
+                }}
+              >
+                Reset vault
+              </Button>
+            }
+          />
+        </SettingsSection>
       </div>
 
       <ChangePasswordModal

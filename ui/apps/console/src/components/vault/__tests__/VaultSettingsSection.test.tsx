@@ -117,25 +117,25 @@ describe("VaultSettingsSection", () => {
     it.each([
       ["30 minutes", 30],
       [/never/i, 0],
-    ] as const)("selecting %s persists a timeout of %i", async (
-      option,
-      expected,
-    ) => {
-      setUnlocked({ autoLockTimeoutMinutes: 15 });
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
+    ] as const)(
+      "selecting %s persists a timeout of %i",
+      async (option, expected) => {
+        setUnlocked({ autoLockTimeoutMinutes: 15 });
+        const updateAutoLockSettings = vi.fn();
+        useVaultStore.setState({ updateAutoLockSettings });
 
-      renderSection();
+        renderSection();
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      );
-      await userEvent.click(screen.getByRole("menuitem", { name: option }));
+        await userEvent.click(
+          screen.getByRole("button", { name: /auto-lock timeout/i }),
+        );
+        await userEvent.click(screen.getByRole("menuitem", { name: option }));
 
-      expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        autoLockTimeoutMinutes: expected,
-      });
-    });
+        expect(updateAutoLockSettings).toHaveBeenCalledWith({
+          autoLockTimeoutMinutes: expected,
+        });
+      },
+    );
 
     it.each([
       [15, "15 minutes"],
@@ -150,9 +150,9 @@ describe("VaultSettingsSection", () => {
     });
   });
 
-  describe("Lock-when-tab-hidden checkbox", () => {
-    function hiddenCheckbox() {
-      return screen.getByRole("checkbox", { name: /lock when hidden/i });
+  describe("Lock-when-tab-hidden switch", () => {
+    function hiddenSwitch() {
+      return screen.getByRole("switch", { name: /lock when hidden/i });
     }
 
     it.each([false, true])(
@@ -164,7 +164,7 @@ describe("VaultSettingsSection", () => {
 
         renderSection();
 
-        await userEvent.click(hiddenCheckbox());
+        await userEvent.click(hiddenSwitch());
 
         expect(updateAutoLockSettings).toHaveBeenCalledWith({
           lockOnHidden: !lockOnHidden,
@@ -173,13 +173,13 @@ describe("VaultSettingsSection", () => {
     );
 
     it.each([true, false])(
-      "a persisted lockOnHidden=%s paints the checkbox accordingly",
+      "a persisted lockOnHidden=%s paints the switch accordingly",
       (lockOnHidden) => {
         setUnlocked({ lockOnHidden });
         renderSection();
 
-        if (lockOnHidden) expect(hiddenCheckbox()).toBeChecked();
-        else expect(hiddenCheckbox()).not.toBeChecked();
+        if (lockOnHidden) expect(hiddenSwitch()).toBeChecked();
+        else expect(hiddenSwitch()).not.toBeChecked();
       },
     );
   });

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   KeyIcon,
   ArrowTopRightOnSquareIcon,
+  FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 import {
   getAuthenticationSettings,
@@ -10,17 +11,14 @@ import {
 } from "@/client";
 import type { GetAuthenticationSettingsResponse } from "@/client";
 import { isSdkError } from "@/api/errors";
+import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
+import SettingsField from "@/components/settings/SettingsField";
 import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import CopyButton from "@/components/common/CopyButton";
 import SamlConfigModal from "./SamlConfigModal";
 import PageLoader from "@/components/common/PageLoader";
-import {
-  Button,
-  Callout,
-  Card,
-  Toggle,
-} from "@shellhub/design-system/primitives";
+import { Button, Callout, Toggle } from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
@@ -142,121 +140,96 @@ export default function AdminAuthentication() {
       />
 
       {error && (
-        <Callout variant="error" className="mb-5">
+        <Callout variant="error" className="mb-5 max-w-2xl">
           {error}
         </Callout>
       )}
 
-      <div className="space-y-4">
-        {/* Local Authentication */}
-        <Card className="p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-text-primary mb-0.5">
-                Local Authentication
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Allow users to sign in with a username and password stored
-                locally.
-              </p>
-            </div>
+      <div className="max-w-2xl space-y-5">
+        <SettingsSwitchCard
+          icon={<KeyIcon />}
+          title="Local authentication"
+          description="Users sign in with a username and password stored in ShellHub."
+          control={
             <Toggle
               enabled={localEnabled}
               disabled={togglingLocal}
               onChange={() => void handleLocalToggle()}
               aria-label="Toggle local authentication"
             />
-          </div>
-        </Card>
+          }
+        />
 
-        {/* SAML Authentication */}
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between gap-4 p-5">
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-text-primary mb-0.5">
-                SAML Authentication
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Allow users to sign in via a SAML Identity Provider (SSO).
-                {!samlEnabled && (
-                  <span className="text-text-secondary">
-                    {" "}
-                    Enable to configure your IdP settings.
-                  </span>
-                )}
-              </p>
-            </div>
+        <SettingsSwitchCard
+          icon={<FingerPrintIcon />}
+          title="SAML authentication"
+          description={
+            samlEnabled
+              ? "Users sign in through a SAML identity provider (SSO)."
+              : "Users sign in through a SAML identity provider (SSO). Turn it on to configure the provider."
+          }
+          control={
             <Toggle
               enabled={samlEnabled}
               disabled={togglingSaml}
               onChange={() => void handleSamlToggle()}
               aria-label="Toggle SAML authentication"
             />
-          </div>
-
-          {/* SSO Details — shown only when SAML is enabled */}
+          }
+        >
           {samlEnabled && saml && (
-            <div className="border-t border-border px-5 pb-5 pt-4 space-y-4">
-              <h4 className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
-                SSO Configuration
-              </h4>
-
-              {/* Assertion URL */}
+            <div className="space-y-4">
               {saml.assertion_url && (
-                <div>
-                  <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5">
-                    Assertion URL
-                  </p>
+                <SettingsField
+                  stacked
+                  title="Assertion URL"
+                  description="Where the identity provider sends users after they sign in. Set it as the Assertion Consumer Service (ACS) URL in the provider."
+                >
                   <div className="flex items-center gap-2">
                     <code className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-xs font-mono text-text-secondary truncate">
                       {saml.assertion_url}
                     </code>
                     <CopyButton text={saml.assertion_url} size="md" />
                   </div>
-                  <p className="mt-1 text-2xs text-text-muted leading-relaxed">
-                    The URL where your IdP should redirect users after
-                    successful authentication. Configure this as the Assertion
-                    Consumer Service (ACS) URL in your IdP.
-                  </p>
-                </div>
+                </SettingsField>
               )}
 
-              {/* IdP Entity ID */}
               {saml.idp?.entity_id && (
-                <div>
-                  <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5">
-                    IdP Entity ID
-                  </p>
+                <SettingsField
+                  stacked
+                  title="IdP entity ID"
+                  description="How the identity provider names itself."
+                >
                   <code className="block px-3 py-2 bg-background border border-border rounded-lg text-xs font-mono text-text-secondary">
                     {saml.idp.entity_id}
                   </code>
-                </div>
+                </SettingsField>
               )}
 
-              {/* Binding URLs */}
               {saml.idp?.binding?.post && (
-                <div>
-                  <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5">
-                    IdP SignOn POST URL
-                  </p>
+                <SettingsField
+                  stacked
+                  title="IdP sign-on POST URL"
+                  description="Where sign-in requests are posted."
+                >
                   <code className="block px-3 py-2 bg-background border border-border rounded-lg text-xs font-mono text-text-secondary break-all">
                     {saml.idp.binding.post}
                   </code>
-                </div>
+                </SettingsField>
               )}
 
               {saml.idp?.binding?.redirect && (
-                <div>
-                  <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5">
-                    IdP SignOn Redirect URL
-                  </p>
+                <SettingsField
+                  stacked
+                  title="IdP sign-on redirect URL"
+                  description="Where sign-in requests are redirected."
+                >
                   <code className="block px-3 py-2 bg-background border border-border rounded-lg text-xs font-mono text-text-secondary break-all">
                     {saml.idp.binding.redirect}
                   </code>
-                </div>
+                </SettingsField>
               )}
 
-              {/* Actions */}
               <div className="flex items-center gap-3 pt-1">
                 {saml.auth_url && (
                   <Button
@@ -284,7 +257,7 @@ export default function AdminAuthentication() {
               </div>
             </div>
           )}
-        </Card>
+        </SettingsSwitchCard>
       </div>
 
       <SamlConfigModal
