@@ -36,7 +36,7 @@ describe("useSyncWorkspaceTab", () => {
   });
 
   it("opens the account's tab on its pages", () => {
-    syncAt("/profile");
+    syncAt("/account");
 
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
       ACCOUNT_TAB_ID,

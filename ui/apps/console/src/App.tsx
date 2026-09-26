@@ -53,6 +53,9 @@ const GeneralSettings = lazy(() => import("./pages/settings/GeneralSettings"));
 const SshSettings = lazy(() => import("./pages/settings/SshSettings"));
 const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const Profile = lazy(() => import("./pages/Profile"));
+const LegacyProfileRedirect = lazy(
+  () => import("./pages/profile/LegacyProfileRedirect"),
+);
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
@@ -140,6 +143,7 @@ export default function App() {
               <Route path="/accept-invite" element={<AcceptInvite />} />
             </Route>
             <Route element={<ProtectedRoute />}>
+              <Route path="/profile/*" element={<LegacyProfileRedirect />} />
               <Route element={<NamespaceGuard />}>
                 <Route element={<AppLayout />}>
                   <Route
@@ -317,7 +321,7 @@ export default function App() {
                       element={<Navigate to="../ssh" replace />}
                     />
                   </Route>
-                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/account" element={<Profile />} />
                 </Route>
               </Route>
             </Route>

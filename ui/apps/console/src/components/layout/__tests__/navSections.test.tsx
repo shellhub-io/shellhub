@@ -53,7 +53,7 @@ describe("useNavSectionTitle", () => {
     expect(await sectionTitle("/sshkeys/public-keys")).toBe("SSH");
   });
 
-  it.each(["/dashboard", "/profile"])(
+  it.each(["/dashboard", "/account"])(
     "gives %s no section title",
     async (route) => {
       expect(await sectionTitle(route)).toBeUndefined();

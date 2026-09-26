@@ -134,11 +134,11 @@ export default function AccountMenuItems({
       <div className="p-1.5">
         <button
           type="button"
-          onClick={() => go("/profile")}
+          onClick={() => go("/account")}
           className={itemClass}
         >
           <UserIcon className={itemIconClass} />
-          <span className={itemLabelClass}>Profile</span>
+          <span className={itemLabelClass}>Account</span>
         </button>
         {namespaces.length > 0 && (
           <button

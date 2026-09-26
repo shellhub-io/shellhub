@@ -35,7 +35,7 @@ export const ACCOUNT_TAB_ID = "account";
 /**
  * The account's tab, landing on path when activated, as adminTab does for the admin console.
  */
-export function accountTab(path = "/profile"): WorkspaceTab {
+export function accountTab(path = "/account"): WorkspaceTab {
   return { id: ACCOUNT_TAB_ID, kind: "account", name: "Account", path };
 }
 

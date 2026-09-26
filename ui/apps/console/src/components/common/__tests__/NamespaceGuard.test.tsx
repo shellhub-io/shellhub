@@ -33,7 +33,7 @@ function renderGuard(initialPath = "/dashboard") {
       <Routes>
         <Route element={<NamespaceGuard />}>
           <Route path="/dashboard" element={<div>dashboard content</div>} />
-          <Route path="/profile" element={<div>profile content</div>} />
+          <Route path="/account/*" element={<div>account content</div>} />
         </Route>
       </Routes>
     </MemoryRouter>,
@@ -67,9 +67,9 @@ describe("NamespaceGuard", () => {
     expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
   });
 
-  it("lets /profile through without namespaces", async () => {
-    renderGuard("/profile");
-    expect(await screen.findByText("profile content")).toBeInTheDocument();
+  it("lets the account pages through without namespaces", async () => {
+    renderGuard("/account/security");
+    expect(await screen.findByText("account content")).toBeInTheDocument();
     expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();
     expect(screen.queryByTestId("user-menu")).not.toBeInTheDocument();
   });
