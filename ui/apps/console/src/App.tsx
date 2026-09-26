@@ -53,6 +53,15 @@ const GeneralSettings = lazy(() => import("./pages/settings/GeneralSettings"));
 const SshSettings = lazy(() => import("./pages/settings/SshSettings"));
 const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const Profile = lazy(() => import("./pages/Profile"));
+const AccountProfile = lazy(() =>
+  import("./pages/Profile").then((m) => ({ default: m.AccountProfile })),
+);
+const AccountSecurity = lazy(() =>
+  import("./pages/Profile").then((m) => ({ default: m.AccountSecurity })),
+);
+const AccountDangerZone = lazy(() =>
+  import("./pages/Profile").then((m) => ({ default: m.AccountDangerZone })),
+);
 const LegacyProfileRedirect = lazy(
   () => import("./pages/profile/LegacyProfileRedirect"),
 );
@@ -321,7 +330,11 @@ export default function App() {
                       element={<Navigate to="../ssh" replace />}
                     />
                   </Route>
-                  <Route path="/account" element={<Profile />} />
+                  <Route path="/account" element={<Profile />}>
+                    <Route path="profile" element={<AccountProfile />} />
+                    <Route path="security" element={<AccountSecurity />} />
+                    <Route path="danger-zone" element={<AccountDangerZone />} />
+                  </Route>
                 </Route>
               </Route>
             </Route>
