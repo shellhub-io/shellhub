@@ -150,18 +150,19 @@ interface SidebarShellProps {
   expanded: boolean;
   covered?: boolean;
   onClose?: () => void;
-  ariaLabel: string;
+  ariaLabel?: string;
   logoHref: string;
   account?: ReactNode;
   children?: ReactNode;
 }
 
 /**
- * The frame both sidebars are built in, on the page background with the logo on top and the
- * account menu at the foot, so the app and admin navigations differ only in their links. It
- * folds away while a terminal is fullscreen, when the tab strip shows the logo instead. covered
- * says the page frame has slid over it, which leaves only the logo showing: the links and the
- * account menu fade out and leave the tab order.
+ * The frame the sidebars are built in, on the page background with the logo on top. children are
+ * the links and account the menu at the foot; both are optional, and without them the shell is
+ * the logo alone, which is all the admin console keeps. It folds away while a terminal is
+ * fullscreen, when the tab strip shows the logo instead. covered says the page frame has slid
+ * over it, which leaves only the logo showing: the links and the account menu fade out and leave
+ * the tab order. ariaLabel names the links, so it goes with children.
  */
 export default function SidebarShell({
   expanded,
@@ -193,16 +194,20 @@ export default function SidebarShell({
         </NavLink>
       </div>
 
-      <nav
-        aria-label={ariaLabel}
-        inert={covered}
-        className={cn(
-          "flex-1 -mt-1 px-2 pt-1 pb-2 overflow-y-auto transition-opacity duration-200",
-          covered && "opacity-0",
-        )}
-      >
-        {children}
-      </nav>
+      {children ? (
+        <nav
+          aria-label={ariaLabel}
+          inert={covered}
+          className={cn(
+            "flex-1 -mt-1 px-2 pt-1 pb-2 overflow-y-auto transition-opacity duration-200",
+            covered && "opacity-0",
+          )}
+        >
+          {children}
+        </nav>
+      ) : (
+        <div className="flex-1" />
+      )}
 
       <div
         inert={covered}

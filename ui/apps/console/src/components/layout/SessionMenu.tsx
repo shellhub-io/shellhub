@@ -8,16 +8,17 @@ import AccountMenuItems from "./AccountMenuItems";
 import SupportPaywallDialog from "./SupportPaywallDialog";
 
 /**
- * The signed-in user and the account actions behind it. It sits at the foot of the sidebar and
- * opens upward, or, while the sidebar is covered, beside the tabs and opens down.
+ * The signed-in user and the account actions behind it. placement says where it sits: at the foot
+ * of the sidebar, with the name when expanded or the avatar alone on the rail, opening upward; or
+ * beside the tabs while the sidebar is covered, as a round avatar opening down.
  */
 export default function SessionMenu({
-  expanded,
-  inTabStrip = false,
+  placement,
 }: {
-  expanded: boolean;
-  inTabStrip?: boolean;
+  placement: "expanded" | "rail" | "tabStrip";
 }) {
+  const expanded = placement === "expanded";
+  const inTabStrip = placement === "tabStrip";
   const email = useAuthStore((s) => s.email);
   const [open, setOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);

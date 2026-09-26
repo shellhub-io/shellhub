@@ -1,44 +1,16 @@
-import SessionMenu from "./SessionMenu";
-import SidebarShell, { navIcon } from "./SidebarShell";
-import NavSectionList from "./NavSectionList";
-import { useAdminNav } from "./adminNav";
+import SidebarShell from "./SidebarShell";
 
 /**
- * The admin navigation. Its links are instance-wide, so nothing here is filtered by namespace
- * role, only by whether the user is an instance admin at all.
+ * What stays of the sidebar in the admin console: the logo, over which the page frame slides. The
+ * admin pages are reached from AdminNavBar across the top of the frame, and the account menu sits
+ * beside the tabs, so the sidebar carries neither.
  */
-export default function AdminSidebar({
-  expanded,
-  covered,
-  onClose,
-}: {
-  expanded: boolean;
-  covered?: boolean;
-  onClose?: () => void;
-}) {
-  const { sections, disabled } = useAdminNav();
-
+export default function AdminSidebar({ expanded }: { expanded: boolean }) {
   return (
     <SidebarShell
       expanded={expanded}
-      covered={covered}
-      onClose={onClose}
-      ariaLabel="Admin navigation"
+      covered
       logoHref="/admin/dashboard"
-      account={<SessionMenu expanded={expanded} />}
-    >
-      <NavSectionList
-        sections={sections.map((section) => ({
-          ...section,
-          items: section.items.map((link) => ({
-            ...link,
-            icon: <link.icon className={navIcon} />,
-          })),
-        }))}
-        expanded={expanded}
-        disabled={disabled}
-        onNavClick={onClose}
-      />
-    </SidebarShell>
+    />
   );
 }

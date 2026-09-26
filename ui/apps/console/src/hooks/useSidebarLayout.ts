@@ -84,6 +84,7 @@ export function useSidebarLayout() {
     pinned,
     isOpen,
     isDesktop,
+    isWide,
     drawerOpen,
     handlers: {
       onMouseEnter: handleExpand,

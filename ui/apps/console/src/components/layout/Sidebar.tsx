@@ -57,7 +57,7 @@ export default function Sidebar({
       onClose={onClose}
       ariaLabel="Main navigation"
       logoHref="/dashboard"
-      account={<SessionMenu expanded={expanded} />}
+      account={<SessionMenu placement={expanded ? "expanded" : "rail"} />}
     >
       <NavSectionList
         sections={sections}
