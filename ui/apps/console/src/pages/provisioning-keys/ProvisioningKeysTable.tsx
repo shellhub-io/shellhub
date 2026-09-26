@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import {
-  BoltIcon,
   NoSymbolIcon,
   PauseCircleIcon,
   PlusIcon,
@@ -8,6 +7,7 @@ import {
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { type ProvisioningKey } from "@/client";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -16,58 +16,74 @@ import StatusChip, { DeprecatedBadge } from "./StatusChip";
 import UsageMeter from "./UsageMeter";
 import { modeInfo } from "./constants";
 import {
+  getExpiryInfo,
   getKeyBlockers,
   provisioningKeyDisplayName,
   isPairingKey,
   isSystemKey,
 } from "./helpers";
-import ExpiryLabel from "./ExpiryLabel";
 
-function EnrollmentCell({
-  provisioningKey,
+function KeyCell({
+  provisioningKey: key,
 }: {
   provisioningKey: ProvisioningKey;
 }) {
-  const { revoked, disabled, inert } = getKeyBlockers(provisioningKey);
-
-  const info = isPairingKey(provisioningKey)
-    ? { icon: QrCodeIcon, label: "Code pairing", summary: "Accepted by code" }
-    : modeInfo(provisioningKey.mode);
-  const Icon = info.icon;
-
+  const { revoked, disabled, expired, inert, quiet } = getKeyBlockers(key);
+  const system = isSystemKey(key);
+  const mode = isPairingKey(key)
+    ? { icon: QrCodeIcon, label: "Accepted by the code the agent prints" }
+    : modeInfo(key.mode);
   const state = revoked
-    ? { label: "Revoked", glyph: NoSymbolIcon }
+    ? { icon: NoSymbolIcon, label: "Revoked" }
     : disabled
-      ? { label: "Disabled", glyph: PauseCircleIcon }
-      : null;
+      ? { icon: PauseCircleIcon, label: "Disabled" }
+      : mode;
+  const Icon = state.icon;
+  const expiry = getExpiryInfo(key.expires_at);
+
+  const facts = [
+    state.label,
+    key.expires_at &&
+      (expired ? `expired ${expiry.label}` : `expires ${expiry.label}`),
+    key.ephemeral && `removed after ${key.ephemeral_timeout ?? 10}m offline`,
+  ].filter(Boolean);
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3 min-w-0">
       <span
-        className={`grid place-items-center w-7 h-7 rounded-lg shrink-0 ${
+        className={cn(
+          "grid place-items-center w-8 h-8 rounded-lg shrink-0",
           inert
             ? "bg-text-muted/10 text-text-muted"
-            : "bg-primary/10 text-primary"
-        }`}
+            : "bg-primary/10 text-primary",
+        )}
+        title={mode.label}
       >
         <Icon className="w-4 h-4" strokeWidth={1.8} />
       </span>
       <div className="min-w-0">
-        <div
-          className={`text-xs font-semibold whitespace-nowrap ${inert ? "text-text-muted" : "text-text-primary"}`}
-        >
-          {info.label}
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={cn(
+              "text-sm font-medium truncate",
+              inert ? "text-text-muted" : "text-text-primary",
+            )}
+          >
+            {provisioningKeyDisplayName(key)}
+          </span>
+          {system && !isPairingKey(key) && <DeprecatedBadge />}
+          {key.tags?.map((tag) => (
+            <StatusChip key={tag} label={tag} tone="primary" mono />
+          ))}
         </div>
-        {state ? (
-          <div className="flex items-center gap-1 text-2xs text-text-muted whitespace-nowrap">
-            <state.glyph className="w-3 h-3 shrink-0" strokeWidth={2} />
-            {state.label}
-          </div>
-        ) : (
-          <div className="text-2xs text-text-muted whitespace-nowrap">
-            {info.summary}
-          </div>
-        )}
+        <p
+          className={cn(
+            "mt-0.5 text-2xs truncate",
+            expired && !quiet ? "text-accent-red" : "text-text-muted",
+          )}
+        >
+          {facts.join(" · ")}
+        </p>
       </div>
     </div>
   );
@@ -100,10 +116,9 @@ function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
 }
 
 /**
- * The provisioning key list as a table with tall, content-rich rows: identity (name,
- * status, masked secret, tags) on the left, then the enrollment meter, expiry,
- * and the row actions. Inert keys (revoked/expired/overused) grey their meter so
- * a live key's colour is never confused with a dead one's.
+ * The provisioning key list: each key on one line with its mode, expiry and tags folded under
+ * its name, then its usage and the row actions. Inert keys (revoked/expired/overused) grey their
+ * icon and meter so a live key's colour is never confused with a dead one's.
  */
 export default function ProvisioningKeysTable({
   data,
@@ -132,71 +147,15 @@ export default function ProvisioningKeysTable({
 
   const columns: Column<ProvisioningKey>[] = [
     {
-      key: "enrollment",
-      header: "Mode",
-      render: (key) => <EnrollmentCell provisioningKey={key} />,
-    },
-    {
       key: "name",
       header: "Key",
-      render: (key) =>
-        isSystemKey(key) ? (
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-text-primary">
-                {provisioningKeyDisplayName(key)}
-              </span>
-              {!isPairingKey(key) && <DeprecatedBadge />}
-            </div>
-            <p className="mt-0.5 text-2xs text-text-muted">
-              {isPairingKey(key)
-                ? "Devices that pair by the code the agent prints during install — or by opening the link printed with it. Accepted on the code itself."
-                : "The legacy path for devices that register without a provisioning key. Kept for compatibility and will be removed in a future release. Its mode controls how those devices are handled."}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <span className="text-sm font-semibold text-text-primary">
-              {key.name}
-            </span>
-            {key.tags && key.tags.length > 0 && (
-              <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                {key.tags.map((tag) => (
-                  <StatusChip key={tag} label={tag} tone="primary" mono />
-                ))}
-              </div>
-            )}
-          </div>
-        ),
+      render: (key) => <KeyCell provisioningKey={key} />,
     },
     {
       key: "usage",
       header: "Usage",
       headerClassName: "w-40",
       render: (key) => <UsageMeter provisioningKey={key} muted />,
-    },
-    {
-      key: "expiry",
-      header: "Expires",
-      render: (key) => {
-        return (
-          <div className="flex flex-col gap-1">
-            <ExpiryLabel
-              provisioningKey={key}
-              className="text-2xs text-text-muted whitespace-nowrap"
-            />
-            {key.ephemeral && (
-              <span
-                className="flex items-center gap-1 text-2xs text-text-muted whitespace-nowrap"
-                title="Registered devices are removed after staying offline past the timeout"
-              >
-                <BoltIcon className="w-3.5 h-3.5 shrink-0" />
-                {key.ephemeral_timeout ?? 10}m
-              </span>
-            )}
-          </div>
-        );
-      },
     },
     {
       key: "actions",
@@ -234,7 +193,7 @@ export default function ProvisioningKeysTable({
         noCustomKeys ? <CustomKeysEmpty onCreate={onCreate} /> : undefined
       }
       rowClassName={(key) => {
-        const base = "[&>td]:py-5";
+        const base = "[&>td]:py-3.5";
         return key.revoked ? `${base} opacity-55` : base;
       }}
       onRowClick={(key) => {
