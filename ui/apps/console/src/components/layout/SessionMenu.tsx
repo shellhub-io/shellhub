@@ -8,9 +8,16 @@ import AccountMenuItems from "./AccountMenuItems";
 import SupportPaywallDialog from "./SupportPaywallDialog";
 
 /**
- * The signed-in user at the bottom of the sidebar, opening upward into the account actions.
+ * The signed-in user and the account actions behind it. It sits at the foot of the sidebar and
+ * opens upward, or, while the sidebar is covered, beside the tabs and opens down.
  */
-export default function SessionMenu({ expanded }: { expanded: boolean }) {
+export default function SessionMenu({
+  expanded,
+  inTabStrip = false,
+}: {
+  expanded: boolean;
+  inTabStrip?: boolean;
+}) {
   const email = useAuthStore((s) => s.email);
   const [open, setOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -21,7 +28,7 @@ export default function SessionMenu({ expanded }: { expanded: boolean }) {
     <>
       <Dropdown
         mode="content"
-        placement="top-start"
+        placement={inTabStrip ? "bottom-end" : "top-start"}
         portal
         open={open}
         onOpenChange={setOpen}
@@ -33,8 +40,12 @@ export default function SessionMenu({ expanded }: { expanded: boolean }) {
             aria-label={`Account menu for ${display}`}
             title={expanded ? undefined : display}
             className={cn(
-              "w-full flex items-center rounded-lg border border-border bg-card hover:border-border-light transition-colors duration-150",
-              expanded ? "gap-2.5 p-2" : "justify-center p-1.5",
+              "flex items-center transition-colors duration-150",
+              inTabStrip
+                ? "rounded-full p-0.5 hover:bg-hover-medium"
+                : "w-full rounded-lg border border-border bg-card hover:border-border-light",
+              !inTabStrip &&
+                (expanded ? "gap-2.5 p-2" : "justify-center p-1.5"),
             )}
           >
             <span className="w-7 h-7 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono shrink-0">

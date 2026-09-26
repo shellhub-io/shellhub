@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
@@ -30,7 +31,9 @@ vi.mock("@/hooks/useSidebarLayout", () => ({
 }));
 
 vi.mock("../Sidebar", () => ({
-  default: () => <nav data-testid="sidebar" />,
+  default: ({ covered }: { covered?: boolean }) => (
+    <nav data-testid="sidebar" data-covered={String(!!covered)} />
+  ),
 }));
 
 vi.mock("../AdminSidebar", () => ({
@@ -38,7 +41,9 @@ vi.mock("../AdminSidebar", () => ({
 }));
 
 vi.mock("../TabStrip", () => ({
-  default: () => <div data-testid="tab-strip" />,
+  default: ({ trailing }: { trailing?: ReactNode }) => (
+    <div data-testid="tab-strip">{trailing}</div>
+  ),
 }));
 
 vi.mock("@/terminal/TerminalManager", () => ({
@@ -102,6 +107,40 @@ describe("AppLayout", () => {
       renderLayout("/admin/dashboard");
       expect(await screen.findByTestId("admin-sidebar")).toBeInTheDocument();
       expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("on the account pages", () => {
+    beforeEach(() => {
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
+    });
+
+    it("covers the namespace navigation with the page frame", async () => {
+      renderLayout("/account/profile");
+      expect(await screen.findByTestId("sidebar")).toHaveAttribute(
+        "data-covered",
+        "true",
+      );
+    });
+
+    it("moves the account menu beside the tabs", async () => {
+      renderLayout("/account/profile");
+      expect(
+        await screen.findByRole("button", { name: /account menu for/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("leaves the navigation uncovered elsewhere", async () => {
+      renderLayout("/dashboard");
+      expect(await screen.findByTestId("sidebar")).toHaveAttribute(
+        "data-covered",
+        "false",
+      );
+      expect(
+        screen.queryByRole("button", { name: /account menu for/i }),
+      ).not.toBeInTheDocument();
     });
   });
 

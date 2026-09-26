@@ -9,9 +9,11 @@ import { useAdminNav } from "./adminNav";
  */
 export default function AdminSidebar({
   expanded,
+  covered,
   onClose,
 }: {
   expanded: boolean;
+  covered?: boolean;
   onClose?: () => void;
 }) {
   const { sections, disabled } = useAdminNav();
@@ -19,6 +21,7 @@ export default function AdminSidebar({
   return (
     <SidebarShell
       expanded={expanded}
+      covered={covered}
       onClose={onClose}
       ariaLabel="Admin navigation"
       logoHref="/admin/dashboard"

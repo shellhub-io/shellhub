@@ -24,10 +24,15 @@ export const navDisabled = "text-text-muted/50 cursor-not-allowed";
 export const navIcon = "w-[18px] h-[18px]";
 
 /**
- * The width of the sidebar folded to a rail. The layout reserves this much beside the content
- * while the rail floats over it, so the two must not drift apart.
+ * The sidebar's width folded to a rail, in pixels. The sidebar draws itself at this width and the
+ * layout reserves and offsets by it, so every one of them reads it from here.
  */
-export const railWidth = "w-[60px]";
+export const SIDEBAR_RAIL_PX = 60;
+
+/**
+ * The expanded sidebar's width in pixels, read the same way as SIDEBAR_RAIL_PX.
+ */
+export const SIDEBAR_EXPANDED_PX = 220;
 
 interface NavItemLinkProps {
   item: { to: string; label: string; icon: ReactNode };
@@ -128,8 +133,9 @@ export function SidebarMobileDrawer({
         aria-hidden="true"
       />
       <div
+        style={{ width: SIDEBAR_EXPANDED_PX }}
         className={cn(
-          "fixed inset-y-0 z-drawer w-[220px] transition-transform duration-200 ease-in-out",
+          "fixed inset-y-0 z-drawer transition-transform duration-200 ease-in-out",
           "left-0 border-r border-border",
           open ? "translate-x-0" : "-translate-x-full",
         )}
@@ -142,20 +148,24 @@ export function SidebarMobileDrawer({
 
 interface SidebarShellProps {
   expanded: boolean;
+  covered?: boolean;
   onClose?: () => void;
   ariaLabel: string;
   logoHref: string;
-  account: ReactNode;
-  children: ReactNode;
+  account?: ReactNode;
+  children?: ReactNode;
 }
 
 /**
  * The frame both sidebars are built in, on the page background with the logo on top and the
  * account menu at the foot, so the app and admin navigations differ only in their links. It
- * folds away while a terminal is fullscreen, when the tab strip shows the logo instead.
+ * folds away while a terminal is fullscreen, when the tab strip shows the logo instead. covered
+ * says the page frame has slid over it, which leaves only the logo showing: the links and the
+ * account menu fade out and leave the tab order.
  */
 export default function SidebarShell({
   expanded,
+  covered = false,
   onClose,
   ariaLabel,
   logoHref,
@@ -166,9 +176,12 @@ export default function SidebarShell({
 
   return (
     <aside
+      style={{
+        width: hidden ? 0 : expanded ? SIDEBAR_EXPANDED_PX : SIDEBAR_RAIL_PX,
+      }}
       className={cn(
         "flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
-        hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : railWidth,
+        hidden && "opacity-0",
       )}
     >
       <div
@@ -182,12 +195,22 @@ export default function SidebarShell({
 
       <nav
         aria-label={ariaLabel}
-        className="flex-1 -mt-1 px-2 pt-1 pb-2 overflow-y-auto"
+        inert={covered}
+        className={cn(
+          "flex-1 -mt-1 px-2 pt-1 pb-2 overflow-y-auto transition-opacity duration-200",
+          covered && "opacity-0",
+        )}
       >
         {children}
       </nav>
 
-      <div className="min-h-14 px-2 py-2 flex items-center">
+      <div
+        inert={covered}
+        className={cn(
+          "min-h-14 px-2 py-2 flex items-center transition-opacity duration-200",
+          covered && "opacity-0",
+        )}
+      >
         <div className="min-w-0 flex-1">{account}</div>
       </div>
     </aside>
