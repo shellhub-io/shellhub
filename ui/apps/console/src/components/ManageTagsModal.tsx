@@ -142,7 +142,7 @@ export default function ManageTagsModal({
         icon={<TagIcon />}
         title="Manage tags"
         description={`Create, rename and delete the ${tags.length} tag${tags.length !== 1 ? "s" : ""} in this namespace.`}
-        bodyClassName="flex-1 flex flex-col overflow-hidden"
+        bodyClassName="flex flex-col overflow-hidden"
         footer={
           <Button variant="ghost" onClick={onClose}>
             Done
@@ -207,7 +207,7 @@ export default function ManageTagsModal({
         )}
 
         {/* Tag list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-auto min-h-0 overflow-y-auto">
           {isLoading && tags.length === 0 ? (
             <PageLoader label="Loading tags" padding="sm" />
           ) : tags.length === 0 ? (
