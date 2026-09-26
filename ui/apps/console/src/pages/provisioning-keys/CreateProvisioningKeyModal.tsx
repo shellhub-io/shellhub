@@ -1,5 +1,8 @@
 import { useState, FormEvent } from "react";
-import { CheckIcon, TicketIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  TicketIcon,
+} from "@heroicons/react/24/outline";
 import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
@@ -151,7 +154,9 @@ function CreateProvisioningKeyModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Create Provisioning Key"
+      icon={<TicketIcon />}
+      title="Create provisioning key"
+      description="Devices installed with this key register in this namespace on their own."
       footer={
         generatedKey ? (
           <Button variant="primary" onClick={onClose}>

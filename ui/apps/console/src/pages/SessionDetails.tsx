@@ -48,6 +48,7 @@ import InfoItem from "@/components/common/InfoItem";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import { sessionTerminal } from "@/utils/session";
+import ObjectName from "@/components/common/ObjectName";
 
 type EventStatus = "success" | "error" | "info" | "active" | "muted";
 
@@ -548,9 +549,10 @@ export default function SessionDetails() {
           setDeleteLogsError(null);
         }}
         onConfirm={handleDeleteLogs}
-        title="Delete Recording"
-        description="Are you sure you want to delete the session recording? The recording will be permanently removed."
-        confirmLabel="Delete Recording"
+        icon={<TrashIcon />}
+        title="Delete recording"
+        description="This session's recording is deleted and can't be played back again."
+        confirmLabel="Delete recording"
         variant="danger"
         errorMessage={deleteLogsError}
       />
@@ -563,22 +565,19 @@ export default function SessionDetails() {
           setCloseError(null);
         }}
         onConfirm={handleClose}
-        title="Close Session"
+        icon={<XCircleIcon />}
+        title="Close session"
         description={
           <>
-            Are you sure you want to close the session for{" "}
-            <code className="text-xs font-mono text-text-primary">
-              {session.username}
-            </code>{" "}
-            on{" "}
-            <span className="font-medium text-text-primary">
+            <ObjectName>{session.username}</ObjectName> is disconnected from{" "}
+            <ObjectName>
               {session.device?.name ??
                 (session.device_uid ?? "").substring(0, 8)}
-            </span>
-            ?
+            </ObjectName>
+            .
           </>
         }
-        confirmLabel="Close Session"
+        confirmLabel="Close session"
         variant="danger"
         errorMessage={closeError}
       />

@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
@@ -178,7 +181,9 @@ function EditProvisioningKeyModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Edit Provisioning Key"
+      icon={<PencilSquareIcon />}
+      title="Edit provisioning key"
+      description="Change how this key registers devices."
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>

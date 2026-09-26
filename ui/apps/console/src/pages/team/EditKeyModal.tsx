@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import {
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
 import FormModal from "@/components/common/FormModal";
@@ -26,7 +28,7 @@ function EditKeyModal({
   apiKey: ApiKey | null;
 }) {
   const updateKey = useUpdateApiKey();
-  const defaults = useMemo(() => buildEditKeyDefaults(apiKey), [apiKey]);
+  const defaults = buildEditKeyDefaults(apiKey);
   const form = useDrawerForm(open, editKeySchema, defaults);
   const { control, setError, clearErrors } = form;
 
@@ -54,8 +56,10 @@ function EditKeyModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Edit API Key"
-      submitLabel="Save Changes"
+      icon={<PencilSquareIcon />}
+      title="Edit API key"
+      description="Change the key's name and role. Its value stays the same, so integrations using it keep working."
+      submitLabel="Save changes"
     >
       <FormInputField
         name="name"

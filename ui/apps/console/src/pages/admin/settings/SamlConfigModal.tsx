@@ -72,9 +72,9 @@ export default function SamlConfigModal({
       onSubmit={onSubmit}
       open={open}
       onClose={onClose}
-      title="Configure Single Sign-On"
-      subtitle="Configure SAML authentication for your ShellHub instance"
-      icon={<KeyIcon className="w-4 h-4 text-primary" />}
+      icon={<KeyIcon />}
+      title="Configure single sign-on"
+      description="Let users sign in to this instance through your SAML identity provider."
       submitLabel="Save Configuration"
     >
       <FormCheckboxField

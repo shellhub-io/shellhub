@@ -4,6 +4,7 @@ import { useVaultStore } from "@/stores/vaultStore";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
 import { Button } from "@shellhub/design-system/primitives";
+import DialogHeader from "@/components/common/DialogHeader";
 
 interface Props {
   open: boolean;
@@ -38,23 +39,16 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <LockClosedIcon className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h2
-            id={`vault-unlock-title-${instanceId}`}
-            className="text-base font-semibold text-text-primary"
-          >
-            Unlock Vault
-          </h2>
-          <p className="text-2xs text-text-muted mt-0.5">
-            Enter your master password to access your keys
-          </p>
-        </div>
-      </div>
+    <div>
+      <DialogHeader
+        icon={<LockClosedIcon />}
+        title="Unlock vault"
+        description="Enter your master password to reach your keys."
+        titleId={`vault-unlock-title-${instanceId}`}
+        descriptionId={`vault-unlock-title-${instanceId}-description`}
+        onClose={onClose}
+      />
+      <div className="px-6 pb-6">
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <PasswordField
@@ -86,6 +80,7 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
           </div>
         </div>
       </form>
+      </div>
     </div>
   );
 }
@@ -104,6 +99,7 @@ export default function VaultUnlockDialog({ open, onClose, onReset }: Props) {
       onClose={onClose}
       size="sm"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
     >
       <UnlockForm
         key={String(open)}

@@ -8,6 +8,8 @@ import {
   PlusIcon,
   ShieldCheckIcon,
   TrashIcon,
+  CommandLineIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import {
@@ -26,6 +28,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatDateShort } from "@/utils/date";
 import { type ApiKey, type SshIdentity } from "@/client";
+import ObjectName from "@/components/common/ObjectName";
 
 const SECTION =
   "text-2xs font-semibold tracking-wide text-text-muted uppercase";
@@ -117,7 +120,14 @@ function KeySshAccessModal({
         size="lg"
         open={open}
         onClose={onClose}
-        title={`SSH access · ${keyName}`}
+        icon={<CommandLineIcon />}
+        title="SSH access"
+        description={
+          <>
+            The keys and policies that let <ObjectName>{keyName}</ObjectName>{" "}
+            connect over SSH.
+          </>
+        }
         footer={
           <Button variant="primary" onClick={onClose}>
             Done
@@ -268,9 +278,15 @@ function KeySshAccessModal({
 
       <ConfirmDialog
         open={!!revokeTarget}
-        title="Revoke this key?"
-        description={`${keyName} stops being able to connect with it. Anything using it fails on its next run.`}
-        confirmLabel="Revoke"
+        icon={<NoSymbolIcon />}
+        title="Revoke key"
+        description={
+          <>
+            <ObjectName>{keyName}</ObjectName> can no longer connect with it.
+            Anything using it fails on its next run.
+          </>
+        }
+        confirmLabel="Revoke key"
         onConfirm={() => void confirmRevoke()}
         onClose={() => setRevokeTarget(null)}
       />

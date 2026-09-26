@@ -1,5 +1,7 @@
-import { useMemo } from "react";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 import { useCreateUser } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
@@ -27,8 +29,8 @@ export default function CreateUserModal({
 }: CreateUserModalProps) {
   const createUser = useCreateUser();
 
-  const schema = useMemo(() => userSchema("create"), []);
-  const defaults = useMemo(() => buildUserDefaults(), []);
+  const schema = userSchema("create");
+  const defaults = buildUserDefaults();
 
   const form = useDrawerForm(open, schema, defaults);
   const { control, setError, clearErrors } = form;
@@ -53,7 +55,9 @@ export default function CreateUserModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Create User"
+      icon={<UserPlusIcon />}
+      title="Create user"
+      description="Add an account that signs in with a username and password."
       submitLabel="Create User"
       submitIcon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
     >

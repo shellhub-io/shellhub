@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { dismissVaultSyncPromo } from "@/utils/vault-backend-factory";
 import BaseDialog from "@/components/common/BaseDialog";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import DialogHeader from "@/components/common/DialogHeader";
 
 interface Props {
   open: boolean;
@@ -51,24 +52,24 @@ export default function VaultSyncPromoDialog({ open, onClose, onSync }: Props) {
   };
 
   return (
-    <BaseDialog open={open} onClose={close} size="sm" aria-labelledby={titleId}>
-      <div className="p-6">
-        <div className="flex flex-col items-center text-center mb-5">
-          <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl z-bg" />
-            <ServerStackIcon className="w-7 h-7 text-primary" />
-          </div>
-          <h2
-            id={titleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            Take your vault anywhere
-          </h2>
-          <p className="text-sm text-text-secondary mt-1.5 max-w-xs">
-            This vault lives in this browser only. Sync it to the ShellHub
-            server and it follows you.
-          </p>
-        </div>
+    <BaseDialog
+open={open}
+onClose={close}
+size="sm"
+aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
+    >
+      <div>
+        <DialogHeader
+          layout="center"
+          icon={<ServerStackIcon />}
+          title="Take your vault anywhere"
+          description="This vault lives in this browser only. Sync it to the ShellHub server and it follows you."
+          titleId={titleId}
+          descriptionId={`${titleId}-description`}
+          onClose={close}
+        />
+        <div className="px-8 pb-6">
 
         <ul className="space-y-2.5 mb-5">
           {BENEFITS.map(({ icon: Icon, text }) => (
@@ -101,6 +102,7 @@ export default function VaultSyncPromoDialog({ open, onClose, onSync }: Props) {
             checked={dontShowAgain}
             onChange={setDontShowAgain}
           />
+        </div>
         </div>
       </div>
     </BaseDialog>

@@ -150,7 +150,7 @@ describe("Profile", () => {
       await user.type(screen.getByLabelText(/current password/i), "somevalue");
 
       await user.click(screen.getByRole("button", { name: /cancel/i }));
-      await user.click(screen.getByRole("button", { name: "Discard" }));
+      await user.click(screen.getByRole("button", { name: "Discard changes" }));
       await user.click(
         screen.getByRole("button", { name: /^change password$/i }),
       );

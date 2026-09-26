@@ -4,17 +4,14 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
-import { MegaphoneIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import {
-  Button,
-  IconBadge,
-  IconButton,
-} from "@shellhub/design-system/primitives";
+import { MegaphoneIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 import { formatDateShort } from "@/utils/date";
 import { isAllowedUrl } from "@/utils/url";
 import type { Announcement } from "@/client";
 import "@/styles/announcement-prose.css";
+import DialogHeader from "@/components/common/DialogHeader";
 
 interface AnnouncementContentProps {
   content: string;
@@ -72,36 +69,22 @@ export default function AnnouncementModal({
       onClose={onClose}
       size="md"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
     >
-      <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
-        <div className="flex items-center gap-3">
-          <IconBadge size="md">
-            <MegaphoneIcon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-          </IconBadge>
-          <div>
-            <h2
-              id={titleId}
-              className="text-base font-semibold text-text-primary leading-snug"
-            >
-              {announcement.title}
-            </h2>
-            <p className="text-xs text-text-muted font-mono mt-0.5">
-              {formatDateShort(announcement.date)}
-            </p>
-          </div>
-        </div>
-        <IconButton
-          size="sm"
-          onClick={onClose}
-          aria-label="Close announcement"
-          data-dismiss
-          className="-mt-0.5 -mr-1"
-        >
-          <XMarkIcon className="w-4 h-4" />
-        </IconButton>
-      </div>
+      <DialogHeader
+        icon={<MegaphoneIcon />}
+        title={announcement.title}
+        description={
+          <span className="font-mono">
+            {formatDateShort(announcement.date)}
+          </span>
+        }
+        titleId={titleId}
+        descriptionId={`${titleId}-description`}
+        onClose={onClose}
+      />
 
-      <div className="p-6 overflow-y-auto max-h-[60vh]">
+      <div className="p-6 overflow-y-auto max-h-[60vh] border-t border-border">
         <AnnouncementContent
           key={announcement.uuid}
           content={announcement.content}

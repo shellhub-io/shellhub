@@ -30,6 +30,16 @@ export function isAssignableRole(role: unknown): role is AssignableRole {
 }
 
 /**
+ * The role as an AssignableRole, or fallback when it is not one, such as an owner's.
+ */
+export function assignableRoleOr(
+  role: unknown,
+  fallback: AssignableRole,
+): AssignableRole {
+  return isAssignableRole(role) ? role : fallback;
+}
+
+/**
  * Whether a Unix expiry has passed. Zero or negative means no expiry, which is not expired.
  */
 export function isExpired(expiresIn: number): boolean {

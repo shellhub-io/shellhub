@@ -172,9 +172,9 @@ export default function MfaEnableModal({
       size="lg"
       open={open}
       onClose={handleClose}
+      icon={<ShieldCheckIcon />}
       title="Enable MFA"
-      subtitle="Secure your account with two-factor authentication"
-      icon={<ShieldCheckIcon className="w-5 h-5 text-primary" />}
+      description="Sign in with a code from your authenticator app on top of your password."
       footer={
         step === 1 ? (
           <>

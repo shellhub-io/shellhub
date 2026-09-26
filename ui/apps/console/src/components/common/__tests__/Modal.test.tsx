@@ -9,7 +9,14 @@ function renderModal(props: { open?: boolean; onClose?: () => void } = {}) {
   return {
     onClose,
     ...render(
-      <Modal open={props.open ?? true} onClose={onClose} title="Edit device">
+      <Modal
+        open={props.open ?? true}
+        onClose={onClose}
+        icon={<svg />}
+        title="Edit device"
+        description="Change how the device is named."
+        footerStart={<a href="/docs">Naming rules</a>}
+      >
         <p>Body</p>
       </Modal>,
     ),
@@ -22,6 +29,22 @@ describe("Modal", () => {
 
     expect(
       screen.getByRole("dialog", { name: "Edit device" }),
+    ).toBeInTheDocument();
+  });
+
+  it("is described by its description", () => {
+    renderModal();
+
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Change how the device is named.",
+    );
+  });
+
+  it("renders the footer's leading content", () => {
+    renderModal();
+
+    expect(
+      screen.getByRole("link", { name: "Naming rules" }),
     ).toBeInTheDocument();
   });
 
@@ -40,6 +63,28 @@ describe("Modal", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("keeps its name and description when laid out centred", () => {
+    render(
+      <Modal
+        open
+        onClose={vi.fn()}
+        layout="center"
+        icon={<svg />}
+        title="MFA is on"
+        description="Keep these recovery codes."
+        footer={<button type="button">I saved them</button>}
+      >
+        <p>codes</p>
+      </Modal>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "MFA is on" });
+    expect(dialog).toHaveAccessibleDescription("Keep these recovery codes.");
+    expect(
+      screen.getByRole("button", { name: "I saved them" }),
+    ).toBeInTheDocument();
+  });
+
   describe("focus on open", () => {
     beforeEach(() => {
       vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
@@ -54,7 +99,13 @@ describe("Modal", () => {
 
     it("lands on the first field, not the close button", () => {
       render(
-        <Modal open onClose={vi.fn()} title="Rename">
+        <Modal
+          open
+          onClose={vi.fn()}
+          icon={<svg />}
+          title="Rename"
+          description="Pick a new name."
+        >
           <input aria-label="Name" />
         </Modal>,
       );
@@ -64,7 +115,13 @@ describe("Modal", () => {
 
     it("lands on the close button when there is nothing else to focus", () => {
       render(
-        <Modal open onClose={vi.fn()} title="Details">
+        <Modal
+          open
+          onClose={vi.fn()}
+          icon={<svg />}
+          title="Details"
+          description="What the device reports."
+        >
           <p>Read only</p>
         </Modal>,
       );

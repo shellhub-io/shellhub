@@ -1,6 +1,10 @@
 import { useState } from "react";
+import {
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useAdminDeleteAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import ObjectName from "@/components/common/ObjectName";
 
 interface DeleteAnnouncementDialogProps {
   open: boolean;
@@ -42,20 +46,16 @@ export default function DeleteAnnouncementDialog({
           setError("Failed to delete announcement. Please try again.");
         }
       }}
-      title="Delete Announcement"
+      icon={<TrashIcon />}
+      title="Delete announcement"
       description={
         <>
-          Are you sure you want to delete{" "}
-          <span className="font-medium text-text-primary">
-            {announcement?.title}
-          </span>
-          ? This action cannot be undone.
-          {error && (
-            <span className="block mt-2 text-accent-red text-2xs">{error}</span>
-          )}
+          <ObjectName>{announcement?.title}</ObjectName> stops showing to users.
+          This can't be undone.
         </>
       }
-      confirmLabel="Delete"
+      errorMessage={error || null}
+      confirmLabel="Delete announcement"
     />
   );
 }

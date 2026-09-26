@@ -1,4 +1,7 @@
 import { useState } from "react";
+import {
+  FingerPrintIcon,
+} from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
@@ -40,8 +43,9 @@ export default function BrowserEnrollDialog({
       open={open}
       onClose={onClose}
       onConfirm={handleConfirm}
+      icon={<FingerPrintIcon />}
       title="Register this browser"
-      description="To connect from here, ShellHub registers this browser as an SSH identity — a key that never leaves it. You can revoke it anytime in SSH Identities."
+      description="To connect from here, ShellHub registers this browser as an SSH identity: a key that never leaves it. You can revoke it any time in SSH Identities."
       confirmLabel="Register and connect"
       variant="primary"
       errorMessage={error}

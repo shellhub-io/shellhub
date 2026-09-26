@@ -5,8 +5,9 @@
      `rgb(var(--x) / <alpha-value>)` tokens defined in tailwind.preset.js. */
   :root {
     --color-primary-rgb: 102, 122, 204;
-    --dialog-backdrop-bg: rgba(0, 0, 0, 0.7);
+    --dialog-backdrop-bg: rgba(0, 0, 0, 0.4);
     --dialog-backdrop-blur: 4px;
+    --dialog-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
 
     --c-background: 24 25 27;
     --c-surface: 30 33 39;
@@ -23,7 +24,8 @@
 
   /* Light theme — applied by toggling `class="light"` on <html>. */
   html.light {
-    --dialog-backdrop-bg: rgba(17, 19, 24, 0.45);
+    --dialog-backdrop-bg: rgba(17, 19, 24, 0.3);
+    --dialog-shadow: 0 12px 32px -8px rgba(17, 19, 24, 0.18);
 
     --c-background: 232 234 238;
     --c-surface: 241 242 245;

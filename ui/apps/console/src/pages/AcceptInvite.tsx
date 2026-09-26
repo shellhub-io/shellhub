@@ -9,6 +9,7 @@ import {
   ArrowRightIcon,
   UserCircleIcon,
   ClockIcon,
+  UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
@@ -349,9 +350,10 @@ export default function AcceptInvite() {
           setError("");
         }}
         onConfirm={handleAccept}
-        title="Accept Invitation"
-        description="You will be added to the namespace and switched to it immediately."
-        confirmLabel="Accept"
+        icon={<UserPlusIcon />}
+        title="Accept invitation"
+        description="You join the namespace and switch to it right away."
+        confirmLabel="Accept invitation"
         variant="primary"
         errorMessage={error || null}
       />

@@ -64,7 +64,7 @@ describe("FirewallRules — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete rule$/i }));
 
     await waitFor(() =>
       expect(
@@ -83,7 +83,7 @@ describe("FirewallRules — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete rule$/i }));
 
     await waitFor(() =>
       expect(
@@ -96,7 +96,7 @@ describe("FirewallRules — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete rule$/i }));
 
     await waitFor(() =>
       expect(
@@ -121,7 +121,7 @@ describe("FirewallRules — delete error handling", () => {
     const user = await openDeleteDialog();
     let dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await user.click(within(dialog).getByRole("button", { name: /^delete rule$/i }));
     await within(dialog).findByText("Failed to delete firewall rule.");
 
     await user.click(within(dialog).getByRole("button", { name: /cancel/i }));

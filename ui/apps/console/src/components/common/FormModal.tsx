@@ -21,8 +21,8 @@ interface FormModalProps<T extends FieldValues> {
   submitIcon?: ReactNode;
   requireDirty?: boolean;
   submitDisabled?: boolean;
-  subtitle?: ReactNode;
-  icon?: ReactNode;
+  description: ReactNode;
+  icon: ReactNode;
   size?: ModalProps["size"];
   bodyClassName?: string;
   footerExtra?: ReactNode;
@@ -49,7 +49,7 @@ export default function FormModal<T extends FieldValues>({
   submitIcon,
   requireDirty = false,
   submitDisabled = false,
-  subtitle,
+  description,
   icon,
   size,
   bodyClassName,
@@ -76,7 +76,7 @@ export default function FormModal<T extends FieldValues>({
         open={open}
         onClose={requestClose}
         title={title}
-        subtitle={subtitle}
+        description={description}
         icon={icon}
         size={size}
         bodyClassName={bodyClassName}

@@ -75,15 +75,17 @@ beforeEach(() => {
 describe("ActionDialog", () => {
   describe("title and confirm label", () => {
     it.each([
-      [acceptAction, "device", "Accept Device", "Accept"],
-      [rejectAction, "device", "Reject Device", "Reject"],
-      [removeAction, "device", "Remove Device", "Remove"],
-      [acceptAction, "container", "Accept Container", "Accept"],
+      [acceptAction, "device", "Accept device", "Accept device"],
+      [rejectAction, "device", "Reject device", "Reject device"],
+      [removeAction, "device", "Remove device", "Remove device"],
+      [acceptAction, "container", "Accept container", "Accept container"],
     ] as const)(
       "renders '%s' as '%s' with a '%s' button",
       (action, entityType, title, confirmLabel) => {
         renderDialog({ action, entityType });
-        expect(screen.getByText(title)).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: title }),
+        ).toBeInTheDocument();
         expect(
           screen.getByRole("button", { name: confirmLabel }),
         ).toBeInTheDocument();
@@ -103,7 +105,9 @@ describe("ActionDialog", () => {
       });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(status));
       renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^accept (device|container)$/i }),
+      );
       await waitFor(() =>
         expect(screen.getByRole("alert")).toHaveTextContent(message),
       );
@@ -112,9 +116,14 @@ describe("ActionDialog", () => {
 
   describe("error handling — reject/remove", () => {
     it.each([
-      [rejectAction, "device", "Reject", /failed to reject device/i],
-      [removeAction, "device", "Remove", /failed to remove device/i],
-      [removeAction, "container", "Remove", /failed to remove container/i],
+      [rejectAction, "device", "Reject device", /failed to reject device/i],
+      [removeAction, "device", "Remove device", /failed to remove device/i],
+      [
+        removeAction,
+        "container",
+        "Remove container",
+        /failed to remove container/i,
+      ],
     ] as const)(
       "shows the generic error naming the %s and %s",
       async (action, entityType, confirmLabel, message) => {
@@ -144,7 +153,9 @@ describe("ActionDialog", () => {
         useAuthStore.setState({ role: "owner" });
         const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
         renderDialog({ entityType, runAction });
-        await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+        await userEvent.click(
+          screen.getByRole("button", { name: /^accept (device|container)$/i }),
+        );
         await waitFor(() =>
           expect(screen.getByText(title)).toBeInTheDocument(),
         );
@@ -161,7 +172,9 @@ describe("ActionDialog", () => {
       useAuthStore.setState({ role: "observer" });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
       renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^accept (device|container)$/i }),
+      );
       await waitFor(() =>
         expect(screen.getByText("Device limit reached")).toBeInTheDocument(),
       );
@@ -177,7 +190,9 @@ describe("ActionDialog", () => {
       useAuthStore.setState({ role: "owner" });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
       renderDialog({ runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^accept (device|container)$/i }),
+      );
       await waitFor(() => screen.getByText("Device limit reached"));
       await userEvent.click(
         screen.getByRole("button", { name: "Go to billing" }),
@@ -188,7 +203,9 @@ describe("ActionDialog", () => {
     it("does not trigger billing dialog for reject 402", async () => {
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
       renderDialog({ action: rejectAction, runAction });
-      await userEvent.click(screen.getByRole("button", { name: "Reject" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: "Reject device" }),
+      );
       await waitFor(() =>
         expect(screen.getByRole("alert")).toBeInTheDocument(),
       );

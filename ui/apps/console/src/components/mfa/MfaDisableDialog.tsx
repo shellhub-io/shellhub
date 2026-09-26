@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useId } from "react";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -9,6 +9,7 @@ import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
 import BaseDialog from "@/components/common/BaseDialog";
+import DialogHeader from "@/components/common/DialogHeader";
 
 interface MfaDisableDialogProps {
   open: boolean;
@@ -28,6 +29,8 @@ export default function MfaDisableDialog({
   onSuccess,
 }: MfaDisableDialogProps) {
   const [mode, setMode] = useState<Mode>("totp");
+  const dialogTitleId = useId();
+  const dialogDescriptionId = useId();
   const otp = useOtpInput(6);
   const [recoveryCode, setRecoveryCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -130,27 +133,19 @@ export default function MfaDisableDialog({
       open={open}
       onClose={onClose}
       size="sm"
-      aria-label="Disable MFA"
+      aria-labelledby={dialogTitleId}
+      aria-describedby={dialogDescriptionId}
     >
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start gap-3 mb-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-red/15 border border-accent-red/25 flex items-center justify-center">
-            <ExclamationTriangleIcon
-              className="w-5 h-5 text-accent-red"
-              strokeWidth={2}
-            />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-text-primary">
-              Disable MFA
-            </h2>
-            <p className="text-xs text-text-muted mt-0.5">
-              This will reduce your account security
-            </p>
-          </div>
-        </div>
-
+      <DialogHeader
+        icon={<ExclamationTriangleIcon />}
+        iconColor="red"
+        title="Disable MFA"
+        description="Your account goes back to signing in with a password alone."
+        titleId={dialogTitleId}
+        descriptionId={dialogDescriptionId}
+        onClose={onClose}
+      />
+      <div className="px-6 pb-6">
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           {error && <Callout variant="error">{error}</Callout>}
 

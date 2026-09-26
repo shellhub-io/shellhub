@@ -1,10 +1,14 @@
 import { useId, useState } from "react";
+import {
+  FingerPrintIcon,
+} from "@heroicons/react/24/outline";
 import { Button, Card } from "@shellhub/design-system/primitives";
 import { type ProvisioningKeyEvent } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import { LABEL } from "@/utils/styles";
 import KeyValueChip from "./KeyValueChip";
+import DialogHeader from "@/components/common/DialogHeader";
 
 /**
  * The registered device's key fingerprint, shown inline in the row; clicking it opens the full device
@@ -43,21 +47,18 @@ export default function EventPublicKey({
         onClose={() => setOpen(false)}
         size="md"
         aria-labelledby={titleId}
+        aria-describedby={`${titleId}-description`}
       >
-        <div className="p-6 pb-0">
-          <h2
-            id={titleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            {event.hostname || "Device key"}
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            The device's own identity key, presented when it registered — not a
-            secret. Safe to share.
-          </p>
-        </div>
+        <DialogHeader
+          icon={<FingerPrintIcon />}
+          title={event.hostname || "Device key"}
+          description="The device's own identity key, presented when it registered. It's not a secret and is safe to share."
+          titleId={titleId}
+          descriptionId={`${titleId}-description`}
+          onClose={() => setOpen(false)}
+        />
 
-        <div className="space-y-4 px-6 pb-6 pt-4">
+        <div className="space-y-4 px-6 pb-6">
           <div>
             <span className={LABEL}>Fingerprint</span>
             <Card className="flex items-center gap-2 rounded-lg px-3.5 py-2.5">

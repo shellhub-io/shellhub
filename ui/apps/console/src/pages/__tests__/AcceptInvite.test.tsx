@@ -150,7 +150,7 @@ describe("AcceptInvite", () => {
       );
       const dialog = screen.getByRole("dialog");
       await user.click(
-        within(dialog).getByRole("button", { name: /^accept$/i }),
+        within(dialog).getByRole("button", { name: /^accept invitation$/i }),
       );
 
       await waitFor(() =>
@@ -349,7 +349,7 @@ describe("AcceptInvite", () => {
       await user.click(screen.getByRole("button", { name: /^accept$/i }));
       const dialog = screen.getByRole("dialog");
       await user.click(
-        within(dialog).getByRole("button", { name: /^accept$/i }),
+        within(dialog).getByRole("button", { name: /^accept invitation$/i }),
       );
 
       expect(

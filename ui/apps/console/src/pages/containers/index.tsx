@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -20,7 +20,10 @@ import TagsPopover from "@/components/common/TagsPopover";
 import {
   useAddContainerTag,
   useRemoveContainerTag,
+  useRenameContainer,
 } from "@/hooks/useContainerMutations";
+import { useHasPermission } from "@/hooks/useHasPermission";
+import RenameableName from "@/components/common/RenameableName";
 import { useActionDialog } from "@/hooks/useActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
 import ActionDialog from "@/components/common/ActionDialog";
@@ -100,6 +103,8 @@ export default function Containers() {
 
   const addContainerTag = useAddContainerTag();
   const removeContainerTag = useRemoveContainerTag();
+  const renameContainer = useRenameContainer();
+  const canRename = useHasPermission("device:rename");
   const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
   const runContainerAction = useContainerActionRunner();
@@ -136,14 +141,11 @@ export default function Containers() {
     setFilter("status", newStatus);
   };
 
-  const addFilterTag = useCallback(
-    (tag: string) => {
-      mapArrayFilter("tags", (tags) =>
-        tags.includes(tag) ? tags : [...tags, tag],
-      );
-    },
-    [mapArrayFilter],
-  );
+  const addFilterTag = (tag: string) => {
+    mapArrayFilter("tags", (tags) =>
+      tags.includes(tag) ? tags : [...tags, tag],
+    );
+  };
 
   const removeFilterTag = (tag: string) => {
     mapArrayFilter("tags", (tags) => tags.filter((t) => t !== tag));
@@ -153,16 +155,21 @@ export default function Containers() {
     setArrayFilter("tags", []);
   };
 
-  const columns = useMemo<Column<NormalizedContainer>[]>(() => {
+  const columns = ((): Column<NormalizedContainer>[] => {
     const baseColumns: Column<NormalizedContainer>[] = [
       {
         key: "name",
         header: "Hostname",
         sortable: true,
         render: (container) => (
-          <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
-            {container.name}
-          </span>
+          <RenameableName
+            uid={container.uid}
+            name={container.name}
+            entityLabel="container"
+            rename={renameContainer.mutateAsync}
+            canRename={canRename}
+            nsName={nsName}
+          />
         ),
       },
       {
@@ -360,14 +367,7 @@ export default function Containers() {
         ),
       },
     ];
-  }, [
-    params.status,
-    nsName,
-    addFilterTag,
-    requestContainerAction,
-    addContainerTag.mutateAsync,
-    removeContainerTag.mutateAsync,
-  ]);
+  })();
 
   return (
     <div>

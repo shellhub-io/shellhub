@@ -1,10 +1,18 @@
 import { useId, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  NoSymbolIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import BaseDialog from "@/components/common/BaseDialog";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import ObjectName from "@/components/common/ObjectName";
 import { isCloud } from "@/env";
 import type {
   Action,
@@ -15,11 +23,37 @@ import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { isSubscriptionBlocked } from "@/utils/billing";
+import DialogHeader from "@/components/common/DialogHeader";
 
-const VARIANT: Record<EntityOperation, "success" | "warning" | "danger"> = {
-  accept: "success",
-  reject: "warning",
-  remove: "danger",
+const OPERATION: Record<
+  EntityOperation,
+  {
+    variant: "success" | "warning" | "danger";
+    icon: ReactNode;
+    outcome: (name: ReactNode) => ReactNode;
+  }
+> = {
+  accept: {
+    variant: "success",
+    icon: <CheckCircleIcon />,
+    outcome: (name) => (
+      <>{name} joins the namespace and can be reached over SSH.</>
+    ),
+  },
+  reject: {
+    variant: "warning",
+    icon: <NoSymbolIcon />,
+    outcome: (name) => (
+      <>{name} stays out of the namespace and can't be reached.</>
+    ),
+  },
+  remove: {
+    variant: "danger",
+    icon: <TrashIcon />,
+    outcome: (name) => (
+      <>{name} is removed from the namespace. This can't be undone.</>
+    ),
+  },
 };
 
 function capitalize(str: string) {
@@ -28,7 +62,7 @@ function capitalize(str: string) {
 
 /**
  * The confirmation for an accept, reject or remove. It takes the action rather than a flag, so
- * the wording, the button and the danger all follow from one value and cannot disagree.
+ * the wording, the icon, the button and the danger all follow from one value and cannot disagree.
  */
 export default function ActionDialog({
   action,
@@ -103,6 +137,7 @@ export default function ActionDialog({
             void navigate("/settings#billing");
             onClose();
           }}
+          icon={<ExclamationTriangleIcon />}
           title={billingTitle}
           description={billingMessage}
           variant="warning"
@@ -113,18 +148,20 @@ export default function ActionDialog({
     }
 
     return (
-      <BaseDialog open onClose={onClose} aria-labelledby={billingTitleId}>
-        <div className="p-6 pb-0">
-          <h2
-            id={billingTitleId}
-            className="text-base font-semibold text-text-primary"
-          >
-            {billingTitle}
-          </h2>
-        </div>
-        <div className="px-6 pt-2 pb-6">
-          <p className="text-sm text-text-muted">{billingMessage}</p>
-        </div>
+      <BaseDialog
+        open
+        onClose={onClose}
+        aria-labelledby={billingTitleId}
+        aria-describedby={`${billingTitleId}-description`}
+      >
+        <DialogHeader
+          icon={<ExclamationTriangleIcon />}
+          iconColor="yellow"
+          title={billingTitle}
+          description={billingMessage}
+          titleId={billingTitleId}
+          descriptionId={`${billingTitleId}-description`}
+        />
         <div className="flex justify-end px-6 py-4 border-t border-border">
           <Button variant="ghost" onClick={onClose}>
             Close
@@ -134,27 +171,18 @@ export default function ActionDialog({
     );
   }
 
-  const description = (
-    <>
-      Do you want to {operation}{" "}
-      <span className="font-medium text-text-primary">{entity.name}</span>?
-      {operation === "remove" && (
-        <p className="text-xs text-text-muted/70 mt-1">
-          This action cannot be undone.
-        </p>
-      )}
-    </>
-  );
+  const { variant, icon, outcome } = OPERATION[operation];
 
   return (
     <ConfirmDialog
       open
       onClose={onClose}
       onConfirm={handleConfirm}
-      title={`${operationLabel} ${entityLabel}`}
-      description={description}
-      confirmLabel={operationLabel}
-      variant={VARIANT[operation]}
+      icon={icon}
+      title={`${operationLabel} ${entityType}`}
+      description={outcome(<ObjectName>{entity.name}</ObjectName>)}
+      confirmLabel={`${operationLabel} ${entityType}`}
+      variant={variant}
       errorMessage={error}
     />
   );

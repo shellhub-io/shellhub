@@ -2,10 +2,11 @@ import { lazy, Suspense, useState } from "react";
 import {
   PlusIcon,
   UserGroupIcon,
-  PencilSquareIcon,
   TrashIcon,
   CheckIcon,
   ArrowPathIcon,
+  UserMinusIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
@@ -13,7 +14,6 @@ import type { MemberView, MembershipInvitation } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useNamespaceMembers,
-  type NamespaceMember,
 } from "@/hooks/useNamespaces";
 import { useNamespaceInvitations } from "@/hooks/useInvitations";
 import { useRemoveMember, useApproveMember } from "@/hooks/useMemberMutations";
@@ -29,8 +29,9 @@ import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { RoleBadge } from "./constants";
 import UserBadge from "@/components/common/UserBadge";
-import EditMemberModal from "./EditMemberModal";
+import MemberRoleDialog from "./MemberRoleDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import ObjectName from "@/components/common/ObjectName";
 
 const AddMemberModal = lazy(() => import("./AddMemberModal"));
 
@@ -64,15 +65,6 @@ function Badge({
       {children}
     </span>
   );
-}
-
-function memberToNamespaceMember(m: MemberView): NamespaceMember {
-  return {
-    id: m.id ?? "",
-    role: m.role ?? "observer",
-    email: m.email ?? "",
-    added_at: m.added_at,
-  };
 }
 
 function cancelErrorMessage(err: unknown): string {
@@ -111,7 +103,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const isSuperAdmin = useAuthStore((s) => s.isAdmin);
 
   const [addOpen, setAddOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<NamespaceMember | null>(null);
   const [removeTarget, setRemoveTarget] = useState<MemberView | null>(null);
   const [cancelTarget, setCancelTarget] = useState<MembershipInvitation | null>(
     null,
@@ -308,14 +299,12 @@ function MembersTab({ tenantId }: { tenantId: string }) {
               </IconButton>
             )}
             <RestrictedAction action="namespace:editMember">
-              <IconButton
-                variant="primary"
-                title="Edit role"
-                aria-label="Edit role"
-                onClick={() => setEditTarget(memberToNamespaceMember(m))}
-              >
-                <PencilSquareIcon className="w-4 h-4" />
-              </IconButton>
+              <MemberRoleDialog
+                tenantId={tenantId}
+                memberId={m.id ?? ""}
+                email={m.email ?? ""}
+                role={m.role ?? "observer"}
+              />
             </RestrictedAction>
             <RestrictedAction action="namespace:removeMember">
               <IconButton
@@ -387,28 +376,19 @@ function MembersTab({ tenantId }: { tenantId: string }) {
         />
       </Suspense>
 
-      <EditMemberModal
-        open={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        tenantId={tenantId}
-        member={editTarget}
-      />
-
       <ConfirmDialog
         open={!!removeTarget}
         onClose={closeRemove}
         onConfirm={confirmRemove}
-        title="Remove Member"
+        icon={<UserMinusIcon />}
+        title="Remove member"
         description={
           <>
-            Are you sure you want to remove{" "}
-            <span className="font-medium text-text-primary">
-              {removeTarget?.email}
-            </span>{" "}
-            from this namespace?
+            <ObjectName>{removeTarget?.email}</ObjectName> loses access to this
+            namespace. Someone has to invite them again to bring them back.
           </>
         }
-        confirmLabel="Remove"
+        confirmLabel="Remove member"
       >
         {removeError && (
           <p className="text-xs text-accent-red">{removeError}</p>
@@ -433,17 +413,15 @@ function MembersTab({ tenantId }: { tenantId: string }) {
             setCancelError(cancelErrorMessage(err));
           }
         }}
-        title="Cancel Invitation"
+        icon={<EnvelopeIcon />}
+        title="Cancel invitation"
         description={
           <>
-            Cancel the invitation sent to{" "}
-            <span className="font-medium text-text-primary">
-              {cancelTarget?.user.email}
-            </span>
-            ? They will no longer be able to join via the existing link.
+            The link sent to <ObjectName>{cancelTarget?.user.email}</ObjectName>{" "}
+            stops working.
           </>
         }
-        confirmLabel="Cancel Invitation"
+        confirmLabel="Cancel invitation"
         cancelLabel="Keep"
         variant="danger"
         errorMessage={cancelError}
@@ -471,17 +449,15 @@ function MembersTab({ tenantId }: { tenantId: string }) {
             setRegenError("Failed to regenerate the link. Please try again.");
           }
         }}
-        title="Regenerate Link"
+        icon={<ArrowPathIcon />}
+        title="Regenerate link"
         description={
           <>
-            Generate a fresh invitation link for{" "}
-            <span className="font-medium text-text-primary">
-              {regenTarget?.user.email}
-            </span>
-            ? The current link will stop working.
+            <ObjectName>{regenTarget?.user.email}</ObjectName> gets a new
+            invitation link, and the current one stops working.
           </>
         }
-        confirmLabel="Regenerate"
+        confirmLabel="Regenerate link"
         variant="primary"
         errorMessage={regenError}
       />

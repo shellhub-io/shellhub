@@ -1,7 +1,11 @@
 import { useState } from "react";
+import {
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import type { VaultKeyEntry } from "@/types/vault";
+import ObjectName from "@/components/common/ObjectName";
 
 interface Props {
   open: boolean;
@@ -38,17 +42,15 @@ export default function KeyDeleteDialog({ open, entry, onClose }: Props) {
       open={open}
       onClose={handleClose}
       onConfirm={handleConfirm}
-      title="Delete Private Key"
-      description={(
+      icon={<TrashIcon />}
+      title="Delete private key"
+      description={
         <>
-          Are you sure you want to delete
-          {" "}
-          <strong className="text-text-primary">{entry?.name}</strong>
-          ? This
-          action cannot be undone.
+          <ObjectName>{entry?.name}</ObjectName> is removed from the vault. This
+          can't be undone.
         </>
-      )}
-      confirmLabel="Delete"
+      }
+      confirmLabel="Delete key"
       variant="danger"
     >
       {error && (

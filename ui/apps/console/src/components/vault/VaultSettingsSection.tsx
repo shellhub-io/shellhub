@@ -7,6 +7,7 @@ import {
   ExclamationCircleIcon,
   ChevronDownIcon,
   ServerStackIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -21,6 +22,7 @@ import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
+import ObjectName from "@/components/common/ObjectName";
 function ChangePasswordModal({
   open,
   onClose,
@@ -72,7 +74,9 @@ function ChangePasswordModal({
       size="sm"
       open={open}
       onClose={onClose}
-      title="Change Master Password"
+      icon={<KeyIcon />}
+      title="Change master password"
+      description="The vault re-encrypts your keys with the new password. The keys themselves don't change."
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -333,17 +337,15 @@ export default function VaultSettingsSection() {
           void resetVault();
           setResetOpen(false);
         }}
-        title="Reset Secure Vault"
+        icon={<TrashIcon />}
+        title="Reset secure vault"
         description={
           <>
-            This will permanently delete all your stored SSH private keys. This
-            action{" "}
-            <strong className="text-text-primary">cannot be undone</strong>.
-            Type <code className="text-accent-red font-mono">RESET</code> to
-            confirm.
+            Every private key stored in the vault is deleted, and this can't be
+            undone. Type <ObjectName>RESET</ObjectName> to confirm.
           </>
         }
-        confirmLabel="Reset Vault"
+        confirmLabel="Reset vault"
         confirmDisabled={resetConfirmText !== "RESET"}
       >
         <div className="mb-4">

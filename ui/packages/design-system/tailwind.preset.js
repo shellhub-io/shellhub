@@ -73,6 +73,9 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(ellipse at center, var(--tw-gradient-stops))",
       },
+      boxShadow: {
+        dialog: "var(--dialog-shadow)",
+      },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out",
         "slide-up": "slideUp 0.35s ease-out",

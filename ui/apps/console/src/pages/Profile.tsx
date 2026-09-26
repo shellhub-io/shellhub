@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -45,6 +45,7 @@ import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
+import DialogHeader from "@/components/common/DialogHeader";
 
 function DeleteAccountDialog({
   open,
@@ -80,13 +81,14 @@ function DeleteAccountDialog({
       open={open}
       onClose={onClose}
       onConfirm={handleDelete}
-      title="Confirm Account Deletion"
+      icon={<TrashIcon />}
+      title="Delete account"
       description={
         isNamespaceOwner
-          ? "You cannot delete your account while you have active namespaces."
-          : "Are you sure you want to delete your account? This action cannot be undone."
+          ? "You can't delete your account while you own namespaces."
+          : "Your account is deleted. This can't be undone."
       }
-      confirmLabel="Delete Account"
+      confirmLabel="Delete account"
       confirmDisabled={isNamespaceOwner}
     >
       {(isNamespaceOwner || !!error) && (
@@ -125,32 +127,31 @@ function DeleteAccountWarningDialog({
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
   const deleteCommand = `./bin/cli user delete ${username ?? ""}`;
+  const accountDeletionTitleId = useId();
+  const accountDeletionDescriptionId = useId();
 
   return (
     <BaseDialog
       open={open}
       onClose={onClose}
       size="md"
-      aria-label="Account Deletion"
+      aria-labelledby={accountDeletionTitleId}
+      aria-describedby={accountDeletionDescriptionId}
     >
-      <div className="p-6">
-        <div className="flex items-start gap-3 mb-5">
-          <span className="w-9 h-9 rounded-lg bg-hover-medium border border-border flex items-center justify-center shrink-0">
-            {isCommunity ? (
-              <CommandLineIcon className="w-5 h-5 text-text-muted" />
-            ) : (
-              <ShieldCheckIcon className="w-5 h-5 text-text-muted" />
-            )}
-          </span>
-          <div>
-            <h2 className="text-base font-semibold text-text-primary">
-              Account Deletion
-            </h2>
-            <p className="text-2xs text-text-muted mt-0.5">
-              {isCommunity ? "CLI Required" : "Admin Console Required"}
-            </p>
-          </div>
-        </div>
+      <DialogHeader
+        icon={isCommunity ? <CommandLineIcon /> : <ShieldCheckIcon />}
+        iconColor="neutral"
+        title="Account deletion"
+        description={
+          isCommunity
+            ? "On a Community instance, accounts are deleted from the CLI."
+            : "On an Enterprise instance, accounts are deleted from the Admin Console."
+        }
+        titleId={accountDeletionTitleId}
+        descriptionId={accountDeletionDescriptionId}
+        onClose={onClose}
+      />
+      <div className="px-6 pb-6">
 
         <div className="space-y-4 text-sm text-text-muted">
           {isCommunity ? (
@@ -243,15 +244,12 @@ export function EditProfileModal({
 }) {
   const updateProfile = useAuthStore((s) => s.updateProfile);
 
-  const current: CurrentProfileValues = useMemo(
-    () => ({
-      name: currentName,
-      username: currentUsername,
-      email: currentEmail,
-    }),
-    [currentName, currentUsername, currentEmail],
-  );
-  const schema = useMemo(() => editProfileSchema(current), [current]);
+  const current: CurrentProfileValues = {
+    name: currentName,
+    username: currentUsername,
+    email: currentEmail,
+  };
+  const schema = editProfileSchema(current);
 
   const form = useDrawerForm(open, schema, {
     name: currentName,
@@ -298,7 +296,9 @@ export function EditProfileModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Edit Profile"
+      icon={<UserCircleIcon />}
+      title="Edit profile"
+      description="Your name, username, and the emails ShellHub signs you in with and writes to."
       submitLabel="Save"
       requireDirty
       submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
@@ -408,8 +408,10 @@ function ChangePasswordModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Change Password"
-      submitLabel="Change Password"
+      icon={<LockClosedIcon />}
+      title="Change password"
+      description="Enter your current password, then the one to replace it."
+      submitLabel="Change password"
       submitDisabled={!allFilled}
       submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
     >

@@ -42,7 +42,9 @@ function Harness({
         }}
         open={open}
         onClose={() => setOpen(false)}
+        icon={<svg />}
         title="Test Form"
+        description="A form under test."
         submitLabel="Save"
       >
         <FormInputField
@@ -202,7 +204,7 @@ describe("FormModal discarding changes", () => {
 
     await user.type(screen.getByLabelText("Name"), "draft");
     await user.click(screen.getByRole("button", { name: "Cancel" }));
-    await user.click(screen.getByRole("button", { name: "Discard" }));
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
 
     expect(discardPrompt()).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();

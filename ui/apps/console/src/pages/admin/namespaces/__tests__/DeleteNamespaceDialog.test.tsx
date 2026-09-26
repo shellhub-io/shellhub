@@ -61,7 +61,7 @@ describe("DeleteNamespaceDialog", () => {
     it("calls deleteNamespaceAdmin with the correct tenant_id", async () => {
       renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => {
         expect(deleteSpy).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe("DeleteNamespaceDialog", () => {
         </Wrapper>,
       );
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => expect(onDeleted).toHaveBeenCalledTimes(1));
       expect(callOrder).toEqual(["onClose", "onDeleted"]);
@@ -103,7 +103,7 @@ describe("DeleteNamespaceDialog", () => {
       );
       renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => {
         expect(
@@ -120,7 +120,7 @@ describe("DeleteNamespaceDialog", () => {
       );
       const { onDeleted } = renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => screen.getByText(/failed to delete namespace/i));
       expect(onDeleted).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe("DeleteNamespaceDialog", () => {
       );
       const { onClose } = renderDialog();
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => screen.getByText(/failed to delete namespace/i));
       expect(onClose).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe("DeleteNamespaceDialog", () => {
   describe("null namespace", () => {
     it("does not call deleteNamespaceAdmin when confirmed with null namespace", async () => {
       renderDialog({ namespace: null });
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
       await waitFor(() => expect(deleteSpy).not.toHaveBeenCalled());
     });
   });
@@ -153,7 +153,7 @@ describe("DeleteNamespaceDialog", () => {
     it("does not throw when onDeleted is not provided and deletion succeeds", async () => {
       const { onClose } = renderDialog({ onDeleted: undefined });
 
-      await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });

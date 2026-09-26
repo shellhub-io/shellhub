@@ -13,6 +13,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   EllipsisVerticalIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -41,6 +42,7 @@ import {
 } from "@/utils/sshIdentity";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import IdentityModal from "./IdentityModal";
+import ObjectName from "@/components/common/ObjectName";
 
 // Upload for a key somebody put here, a terminal for one an SSH client offered
 // at login, a browser window for one a browser holds. The pair that carries the
@@ -426,14 +428,11 @@ export default function SSHIdentities() {
         open={!!deleteTarget}
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        title="Revoke Key"
+        icon={<NoSymbolIcon />}
+        title="Revoke key"
         description={
           <>
-            Are you sure you want to revoke{" "}
-            <span className="font-medium text-text-primary">
-              {deleteTarget?.name}
-            </span>
-            ?{" "}
+            <ObjectName>{deleteTarget?.name}</ObjectName> is revoked.{" "}
             {
               sshIdentitySource(
                 deleteTarget?.source,
@@ -442,7 +441,7 @@ export default function SSHIdentities() {
             }
           </>
         }
-        confirmLabel="Revoke"
+        confirmLabel="Revoke key"
       >
         {deleteError && (
           <p className="text-xs text-accent-red">{deleteError}</p>

@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import {
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
@@ -19,6 +21,7 @@ import {
   type EditNamespaceFormValues,
 } from "./editNamespaceSchema";
 import type { Namespace } from "@/client";
+import ObjectName from "@/components/common/ObjectName";
 
 interface EditNamespaceModalProps {
   open: boolean;
@@ -37,14 +40,8 @@ export default function EditNamespaceModal({
 }: EditNamespaceModalProps) {
   const editNamespace = useAdminEditNamespace();
 
-  const schema = useMemo(
-    () => editNamespaceSchema(namespace?.name ?? ""),
-    [namespace?.name],
-  );
-  const defaults = useMemo(
-    () => buildEditNamespaceDefaults(namespace),
-    [namespace],
-  );
+  const schema = editNamespaceSchema(namespace?.name ?? "");
+  const defaults = buildEditNamespaceDefaults(namespace);
 
   const form = useDrawerForm(open, schema, defaults);
   const { control, setValue, setError, clearErrors } = form;
@@ -74,13 +71,15 @@ export default function EditNamespaceModal({
       onSubmit={onValid}
       open={open}
       onClose={onClose}
-      title="Edit Namespace"
-      submitLabel="Save Changes"
-      subtitle={
-        namespace ? (
-          <span className="font-mono">{namespace.name}</span>
-        ) : undefined
+      icon={<PencilSquareIcon />}
+      title="Edit namespace"
+      description={
+        <>
+          Rename <ObjectName>{namespace?.name}</ObjectName>, cap its devices or
+          turn session recording on and off.
+        </>
       }
+      submitLabel="Save changes"
     >
       <FormInputField
         name="name"

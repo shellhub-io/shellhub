@@ -20,6 +20,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
+import ObjectName from "@/components/common/ObjectName";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 
@@ -138,9 +139,9 @@ export default function ManageTagsModal({
       <Modal
         open={open}
         onClose={onClose}
-        title="Manage Tags"
-        subtitle={`${tags.length} tag${tags.length !== 1 ? "s" : ""}`}
-        icon={<TagIcon className="w-4 h-4 text-primary" />}
+        icon={<TagIcon />}
+        title="Manage tags"
+        description={`Create, rename and delete the ${tags.length} tag${tags.length !== 1 ? "s" : ""} in this namespace.`}
         bodyClassName="flex-1 flex flex-col overflow-hidden"
         footer={
           <Button variant="ghost" onClick={onClose}>
@@ -301,15 +302,15 @@ export default function ManageTagsModal({
         open={!!deletingTag}
         onClose={() => setDeletingTag(null)}
         onConfirm={() => handleDelete(deletingTag!)}
-        title="Delete Tag"
+        icon={<TrashIcon />}
+        title="Delete tag"
         description={
           <>
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-text-primary">{deletingTag}</span>
-            ? This will remove the tag from all devices.
+            <ObjectName>{deletingTag}</ObjectName> comes off everything that
+            carries it.
           </>
         }
-        confirmLabel="Delete"
+        confirmLabel="Delete tag"
       />
     </>
   );

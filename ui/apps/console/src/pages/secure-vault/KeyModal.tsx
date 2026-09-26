@@ -1,3 +1,6 @@
+import {
+  KeyIcon,
+} from "@heroicons/react/24/outline";
 import { useWatch, useController } from "react-hook-form";
 import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
 import {
@@ -122,8 +125,10 @@ export default function KeyModal({ open, editKey, onClose }: Props) {
       onSubmit={onSubmit}
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Private Key" : "Add Private Key"}
-      submitLabel={isEdit ? "Save Changes" : "Add Key"}
+      icon={<KeyIcon />}
+      title={isEdit ? "Edit private key" : "Add private key"}
+      description="Keep a private key in the vault so you can connect with it without pasting it each time."
+      submitLabel={isEdit ? "Save changes" : "Add key"}
     >
       <FormInputField
         name="name"

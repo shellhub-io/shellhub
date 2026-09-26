@@ -206,7 +206,7 @@ describe("Settings", () => {
       await user.clear(input);
       await user.type(input, "changed-name");
       await user.click(screen.getByRole("button", { name: /cancel/i }));
-      await user.click(screen.getByRole("button", { name: "Discard" }));
+      await user.click(screen.getByRole("button", { name: "Discard changes" }));
       await user.click(
         screen.getByRole("button", { name: /rename namespace/i }),
       );

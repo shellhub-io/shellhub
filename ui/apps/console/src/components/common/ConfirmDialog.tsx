@@ -1,9 +1,13 @@
 import { ReactNode, useId, useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { Button, type ButtonVariant } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
+import {
+  Button,
+  type ButtonVariant,
+  type Palette,
+} from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
+import DialogHeader from "./DialogHeader";
 import { ignoreFailure } from "@/utils/failure";
 
 interface ConfirmDialogProps {
@@ -13,6 +17,8 @@ interface ConfirmDialogProps {
 
   onConfirm: () => Promise<void> | void;
 
+  icon: ReactNode;
+
   title: string;
 
   description: ReactNode;
@@ -21,7 +27,7 @@ interface ConfirmDialogProps {
 
   cancelLabel?: string;
 
-  variant?: "primary" | "danger" | "success" | "warning";
+  variant?: Variant;
 
   confirmDisabled?: boolean;
 
@@ -30,24 +36,26 @@ interface ConfirmDialogProps {
   errorMessage?: string | null;
 }
 
-const VARIANT_BUTTON: Record<
-  "primary" | "danger" | "success" | "warning",
-  ButtonVariant
-> = {
-  primary: "primary",
-  danger: "destructive",
-  success: "success",
-  warning: "warning",
-};
+type Variant = "primary" | "danger" | "success" | "warning";
+
+const VARIANT_STYLE: Record<Variant, { button: ButtonVariant; icon: Palette }> =
+  {
+    primary: { button: "primary", icon: "primary" },
+    danger: { button: "destructive", icon: "red" },
+    success: { button: "success", icon: "green" },
+    warning: { button: "warning", icon: "yellow" },
+  };
 
 /**
- * A yes/no confirmation. onConfirm may be async: the dialog stays open and busy until it
+ * A yes/no confirmation. The variant colours both the icon and the confirm button, so the gravity
+ * reads before the text does. onConfirm may be async: the dialog stays open and busy until it
  * settles, so a slow action cannot be triggered twice.
  */
 export default function ConfirmDialog({
   open,
   onClose,
   onConfirm,
+  icon,
   title,
   description,
   confirmLabel = "Confirm",
@@ -73,7 +81,7 @@ export default function ConfirmDialog({
       .finally(() => setConfirming(false));
   };
 
-  const buttonVariant = VARIANT_BUTTON[variant];
+  const style = VARIANT_STYLE[variant];
 
   return (
     <BaseDialog
@@ -81,47 +89,40 @@ export default function ConfirmDialog({
       onClose={onClose}
       size="sm"
       aria-labelledby={titleId}
-      aria-describedby={description != null ? descriptionId : undefined}
+      aria-describedby={descriptionId}
     >
-      {/* Header */}
-      <div className="p-6 pb-0">
-        <h2 id={titleId} className="text-base font-semibold text-text-primary">
-          {title}
-        </h2>
-      </div>
-
-      {/* Body */}
-      <div className="px-6 pt-2 pb-6">
-        {description != null && (
-          <div
-            id={descriptionId}
-            className={cn("text-sm text-text-muted", children || errorMessage ? "mb-4" : "mb-6")}
-          >
-            {description}
-          </div>
-        )}
-        {children}
-        {errorMessage && (
-          <div
-            role="alert"
-            className={cn("flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red", children && "mt-4")}
-          >
-            <ExclamationCircleIcon
-              className="w-4 h-4 shrink-0 mt-px"
-              strokeWidth={2}
-            />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
+      <DialogHeader
+        icon={icon}
+        iconColor={style.icon}
+        title={title}
+        description={description}
+        titleId={titleId}
+        descriptionId={descriptionId}
+        onClose={onClose}
+      />
+      {(children || errorMessage) && (
+        <div className="px-6 pb-6 space-y-4">
+          {children}
+          {errorMessage && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red"
+            >
+              <ExclamationCircleIcon
+                className="w-4 h-4 shrink-0 mt-px"
+                strokeWidth={2}
+              />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex justify-end gap-2 px-6 py-4 border-t border-border">
         <Button variant="ghost" onClick={onClose}>
           {cancelLabel}
         </Button>
         <Button
-          variant={buttonVariant}
+          variant={style.button}
           disabled={confirmDisabled}
           loading={confirming}
           onClick={() => void handleConfirm()}

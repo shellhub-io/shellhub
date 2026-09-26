@@ -60,7 +60,7 @@ describe("ResetPasswordDialog", () => {
         expect.objectContaining({ path: { id: "user-abc" } }),
       ),
     );
-    expect(screen.getByText("Password Generated")).toBeInTheDocument();
+    expect(screen.getByText("Password generated")).toBeInTheDocument();
   });
 
   describe("enable flow — error states", () => {
@@ -95,7 +95,7 @@ describe("ResetPasswordDialog", () => {
       await waitFor(() =>
         expect(screen.getByText(message)).toBeInTheDocument(),
       );
-      expect(screen.queryByText("Password Generated")).not.toBeInTheDocument();
+      expect(screen.queryByText("Password generated")).not.toBeInTheDocument();
     });
   });
 
@@ -105,7 +105,7 @@ describe("ResetPasswordDialog", () => {
       const { rerender } = renderDialog({ userId: "u1" });
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
-      await waitFor(() => screen.getByText("Password Generated"));
+      await waitFor(() => screen.getByText("Password generated"));
 
       rerender(
         <ResetPasswordDialog open={false} onClose={vi.fn()} userId="u1" />,
@@ -115,9 +115,9 @@ describe("ResetPasswordDialog", () => {
       );
 
       expect(
-        screen.getByText("Enable Local Authentication"),
+        screen.getByText("Enable local authentication"),
       ).toBeInTheDocument();
-      expect(screen.queryByText("Password Generated")).not.toBeInTheDocument();
+      expect(screen.queryByText("Password generated")).not.toBeInTheDocument();
     });
   });
 });
