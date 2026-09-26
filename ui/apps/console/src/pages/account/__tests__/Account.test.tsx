@@ -1,22 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { AccountDangerZone, AccountProfile, AccountSecurity } from "../Profile";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { useAuthStore } from "@/stores/authStore";
+
+const viewport = await vi.hoisted(async () =>
+  (await import("@/tests/viewport")).installViewport(),
+);
+
+import AccountLayout from "../AccountLayout";
+import AccountProfile from "../AccountProfile";
+import AccountSecurity from "../AccountSecurity";
+import AccountDangerZone from "../AccountDangerZone";
 
 const mockGetConfig = vi.mocked(getConfig);
+const fetchUser = vi.fn(() => Promise.resolve());
 
-function renderProfile() {
+function renderAt(path: string) {
   return render(
-    <MemoryRouter>
-      <AccountProfile />
-      <AccountSecurity />
-      <AccountDangerZone />
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/account" element={<AccountLayout />}>
+          <Route path="profile" element={<AccountProfile />} />
+          <Route path="security" element={<AccountSecurity />} />
+          <Route path="danger-zone" element={<AccountDangerZone />} />
+        </Route>
+      </Routes>
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );
@@ -25,17 +39,42 @@ function renderProfile() {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
+  viewport.wide = true;
   seedAuthStore();
+  useAuthStore.setState({ fetchUser });
   server.use(
     http.get("*/api/namespaces", () => jsonWithTotal([])),
     http.patch("*/api/users", () => new HttpResponse(null, { status: 204 })),
   );
 });
 
-describe("Profile", () => {
+describe("Account", () => {
+  describe("layout", () => {
+    it("opens the profile on a wide window", () => {
+      renderAt("/account");
+      expect(
+        screen.getByRole("heading", { name: "Profile" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows the section menu alone on a narrow window", () => {
+      viewport.wide = false;
+      renderAt("/account");
+      expect(screen.getByRole("link", { name: "Security" })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("heading", { name: "Profile" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("refreshes the signed-in user when it opens", () => {
+      renderAt("/account/profile");
+      expect(fetchUser).toHaveBeenCalled();
+    });
+  });
+
   describe("renders profile sections", () => {
     it("renders the signed-in user's details", () => {
-      renderProfile();
+      renderAt("/account/profile");
       expect(screen.getByText("Admin User")).toBeInTheDocument();
       expect(screen.getByText("admin@test.com")).toBeInTheDocument();
       expect(
@@ -44,7 +83,7 @@ describe("Profile", () => {
     });
 
     it("leaves out the deprecated username", () => {
-      renderProfile();
+      renderAt("/account/profile");
       expect(
         screen.queryByRole("group", { name: "Username" }),
       ).not.toBeInTheDocument();
@@ -52,7 +91,7 @@ describe("Profile", () => {
 
     it("shows 'Not set' when recovery email is absent", () => {
       seedAuthStore({ recoveryEmail: "" });
-      renderProfile();
+      renderAt("/account/profile");
       expect(screen.getByText(/not set/i)).toBeInTheDocument();
     });
   });
@@ -60,7 +99,7 @@ describe("Profile", () => {
   describe("SSO users", () => {
     it("hides password and MFA controls, showing the managed-by-IdP notice", () => {
       seedAuthStore({ origin: "saml" });
-      renderProfile();
+      renderAt("/account/security");
 
       expect(
         screen.getByText(/managed by your identity provider/i),
@@ -72,7 +111,7 @@ describe("Profile", () => {
 
     it("shows the password control for local users", () => {
       seedAuthStore({ origin: "local" });
-      renderProfile();
+      renderAt("/account/security");
 
       expect(
         screen.getByRole("button", { name: /^change password$/i }),
@@ -86,7 +125,7 @@ describe("Profile", () => {
   describe("ChangePasswordModal", () => {
     async function openChangePasswordModal() {
       const user = userEvent.setup();
-      renderProfile();
+      renderAt("/account/security");
       await user.click(
         screen.getByRole("button", { name: /^change password$/i }),
       );
