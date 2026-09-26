@@ -595,9 +595,7 @@ describe("CommandPalette", () => {
     await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.click(screen.getByText("Copy ssh command"));
 
-    expect(copyMock).toHaveBeenCalledWith(
-      "ssh <username>@dev.web-01@localhost",
-    );
+    expect(copyMock).toHaveBeenCalledWith("ssh <login>@dev.web-01@localhost");
   });
 
   it("navigates to device details and closes", async () => {

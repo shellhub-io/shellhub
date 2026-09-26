@@ -67,7 +67,10 @@ export default function DialogHeader({
       >
         {icon}
       </IconBadge>
-      <div data-tauri-drag-region className="min-w-0">
+      <div
+        data-tauri-drag-region
+        className={cn("min-w-0", !centered && "flex-1")}
+      >
         <h2
           data-tauri-drag-region
           id={titleId}

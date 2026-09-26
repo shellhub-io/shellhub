@@ -12,7 +12,7 @@ import DialogHeader, {
  * Props of Modal. icon and description are required: a dialog opens by saying what it does.
  * canClose refuses Escape and a backdrop click while it returns false; the close button and
  * onClose itself are the caller's to guard. footerStart sits at the footer's left, across from the
- * actions, for a link to the docs. The center layout stacks the header and turns the actions into
+ * actions, for a secondary link such as the docs or another way to do the same thing. The center layout stacks the header and turns the actions into
  * full-width buttons, the last one on top; it has no room for footerStart.
  */
 export interface ModalProps {

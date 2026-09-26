@@ -1,13 +1,12 @@
-import { useEffect, useReducer, useState, FormEvent } from "react";
+import { useEffect, useId, useReducer, useState, FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   LockClosedIcon,
   KeyIcon,
-  ChevronDoubleRightIcon,
   ShieldCheckIcon,
+  FingerPrintIcon,
+  ArrowTopRightOnSquareIcon,
   ExclamationCircleIcon,
-  VideoCameraIcon,
-  CheckIcon,
   CommandLineIcon,
 } from "@heroicons/react/24/outline";
 import { useTerminalStore } from "../stores/terminalStore";
@@ -23,7 +22,10 @@ import {
   browserLabel,
   type BrowserKey,
 } from "../utils/browserKey";
-import { BROWSER_KEY_QUERY_KEY } from "@/hooks/useBrowserKey";
+import {
+  BROWSER_KEY_QUERY_KEY,
+  useBrowserKeyFingerprint,
+} from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
 import { isAlreadyEnrolled } from "../utils/sshIdentity";
 import { listSshIdentitiesOptions } from "../client";
@@ -35,14 +37,17 @@ import VaultUnlockDialog from "./vault/VaultUnlockDialog";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import RadioCard from "@/components/common/fields/RadioCard";
+import FieldHint from "@/components/common/fields/FieldHint";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
-import { INPUT, LABEL } from "../utils/styles";
+import { INPUT } from "../utils/styles";
 import { cn } from "@shellhub/design-system/cn";
-import { Card, Button, Callout } from "@shellhub/design-system/primitives";
+import { Button, Callout, StatusDot } from "@shellhub/design-system/primitives";
+import DistroIcon from "@/components/common/DistroIcon";
+import { useDevice } from "@/hooks/useDevice";
+import { useSSHIdentities } from "@/hooks/useSSHIdentities";
+import { DEFAULT_LOGIN, parseSshid, sshUrl } from "@/utils/sshid";
 import type { VaultKeyEntry } from "../types/vault";
-import ObjectName from "@/components/common/ObjectName";
 
 interface Props {
   open: boolean;
@@ -130,9 +135,193 @@ function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
+function ContextDivider() {
+  return (
+    <span aria-hidden="true" className="w-px h-3 shrink-0 bg-border-light" />
+  );
+}
+
+function DeviceContext({
+  uid,
+  name,
+  sshid,
+}: {
+  uid: string;
+  name: string;
+  sshid: string;
+}) {
+  const { device } = useDevice(uid);
+  const online = device?.online ?? false;
+  const parts = parseSshid(sshid);
+
+  return (
+    <span className="mt-1.5 flex items-center justify-between gap-3 text-xs">
+      <span className="flex items-center gap-2 min-w-0 shrink">
+        <StatusDot online={online} className="shrink-0" />
+        <span title={name} className="font-medium text-text-primary truncate">
+          {name}
+        </span>
+      </span>
+      {device?.info?.pretty_name && (
+        <>
+          <ContextDivider />
+          <span className="inline-flex items-center gap-1.5 min-w-24 shrink-[3] text-text-muted">
+            <DistroIcon
+              id={device.info.id ?? ""}
+              className="shrink-0 text-sm leading-none"
+            />
+            <span title={device.info.pretty_name} className="truncate">
+              {device.info.pretty_name}
+            </span>
+          </span>
+        </>
+      )}
+      <ContextDivider />
+      <span className="flex items-center gap-0.5 min-w-0 shrink-[2]">
+        <code
+          title={sshid}
+          className="flex min-w-0 font-mono text-2xs text-accent-cyan"
+        >
+          {parts?.namespace && (
+            <span className="min-w-0 shrink-[1000] truncate">
+              {parts.namespace}.
+            </span>
+          )}
+          <span className="min-w-0 truncate">{parts?.device ?? sshid}</span>
+        </code>
+        <CopyButton text={sshid} className="-ml-0.5" />
+      </span>
+    </span>
+  );
+}
+
+function RecBadge({
+  on,
+  onToggle,
+  describedBy,
+}: {
+  on: boolean;
+  onToggle?: () => void;
+  describedBy?: string;
+}) {
+  const className = cn(
+    "inline-flex items-center gap-1.5 h-6 pl-1.5 pr-2 shrink-0 rounded-full border transition-all",
+    on
+      ? "border-accent-red/40 bg-accent-red/10 text-accent-red"
+      : "border-border text-text-muted hover:border-border-light hover:text-text-secondary",
+  );
+  const content = (
+    <>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "w-3 h-3 rounded-full border-2 transition-all",
+          on
+            ? "border-accent-red bg-accent-red animate-pulse-subtle"
+            : "border-current bg-transparent",
+        )}
+      />
+      <span className="font-mono text-[10px] font-bold tracking-wider">
+        REC
+      </span>
+    </>
+  );
+
+  if (!onToggle) {
+    return <span className={className}>{content}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label="Record this session in this browser"
+      aria-describedby={describedBy}
+      onClick={onToggle}
+      className={cn(
+        className,
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+      )}
+    >
+      {content}
+    </button>
+  );
+}
+
+function shortFingerprint(fingerprint: string) {
+  return fingerprint.length > 20
+    ? `${fingerprint.slice(0, 11)}…${fingerprint.slice(-4)}`
+    : fingerprint;
+}
+
+function IdentityCard({
+  name,
+  email,
+  keyName,
+  fingerprint,
+}: {
+  name: string;
+  email: string | null;
+  keyName: string;
+  fingerprint: string | null;
+}) {
+  const labelId = useId();
+  const hintId = useId();
+
+  return (
+    <div>
+      <FieldLabel id={labelId}>Identity</FieldLabel>
+      <div
+        role="group"
+        aria-labelledby={labelId}
+        aria-describedby={fingerprint ? undefined : hintId}
+        className="flex items-center gap-3.5 p-3.5 rounded-xl border border-border bg-card"
+      >
+        <span
+          aria-hidden="true"
+          className="grid place-items-center w-11 h-11 shrink-0 rounded-full border border-primary/20 bg-primary/15 font-mono text-base font-bold text-primary uppercase"
+        >
+          {name.charAt(0) || "?"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-text-primary truncate">
+            {name}
+          </div>
+          {email && (
+            <div className="mt-0.5 text-2xs text-text-muted truncate">
+              {email}
+            </div>
+          )}
+          <div className="mt-1 flex items-center gap-1.5 min-w-0 text-2xs text-text-secondary">
+            <FingerPrintIcon
+              aria-hidden="true"
+              className="w-3.5 h-3.5 shrink-0 text-primary"
+            />
+            <span className="truncate">{keyName}</span>
+            <code
+              title={fingerprint ?? undefined}
+              className="font-mono text-text-muted truncate"
+            >
+              {fingerprint ? shortFingerprint(fingerprint) : "new key"}
+            </code>
+          </div>
+        </div>
+      </div>
+      {!fingerprint && (
+        <FieldHint id={hintId}>
+          This browser makes a key and adds it to your SSH identities when you
+          open the shell.
+        </FieldHint>
+      )}
+    </div>
+  );
+}
+
 /**
- * The connect panel for a device: how to reach it over SSH, and the web terminal. It is the one
- * place a user copies an SSHID from, so the command shown has to be the one that works.
+ * The connect dialog for a device: it opens a shell in the browser, or hands the login to the
+ * user's own SSH client through an ssh:// link. It is the one place a user copies an SSHID from,
+ * so the SSHID it shows and copies has to be the one that works.
  */
 export default function ConnectModal({
   open,
@@ -147,6 +336,7 @@ export default function ConnectModal({
   const refreshVault = useVaultStore((s) => s.refreshStatus);
 
   const [state, dispatch] = useReducer(formReducer, initialState);
+  const recordStateId = useId();
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [pendingEnroll, setPendingEnroll] = useState<{
     key: BrowserKey;
@@ -157,18 +347,28 @@ export default function ConnectModal({
 
   const tenant = useAuthStore((s) => s.tenant);
   const userId = useAuthStore((s) => s.userId);
+  const accountName = useAuthStore((s) => s.name || s.username || s.email);
+  const accountEmail = useAuthStore((s) => s.email);
   const createIdentity = useCreateSSHIdentity();
   const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
 
   const identityMode = namespace?.settings?.ssh_access_mode === "identity";
+  const browserKeyFingerprint = useBrowserKeyFingerprint();
+  const { identities } = useSSHIdentities({ enabled: open && identityMode });
+  const browserIdentity = identities.find(
+    (i) => i.source === "browser" && i.fingerprint === browserKeyFingerprint,
+  );
 
   useEffect(() => {
     if (!open) return;
     dispatch({ type: "reset" });
     void refreshVault();
   }, [open, refreshVault]);
+
+  const username = state.username.trim() || DEFAULT_LOGIN;
+  const externalUrl = sshUrl(sshid, username);
 
   const hasVaultKeys = vaultStatus === "unlocked" && vaultKeys.length > 0;
   const effectiveKeySource = hasVaultKeys ? state.keySource : "manual";
@@ -178,16 +378,15 @@ export default function ConnectModal({
     : undefined;
 
   const canConnect =
-    state.username.trim().length > 0 &&
-    (identityMode ||
-      (state.authMethod === "password"
-        ? state.password.trim().length > 0
-        : effectiveKeySource === "vault"
-          ? !!selectedVaultKey &&
-            (!selectedVaultKey.hasPassphrase ||
-              state.passphrase.trim().length > 0)
-          : state.manualKeyValid &&
-            (!state.manualKeyEncrypted || state.passphrase.trim().length > 0)));
+    identityMode ||
+    (state.authMethod === "password"
+      ? state.password.trim().length > 0
+      : effectiveKeySource === "vault"
+        ? !!selectedVaultKey &&
+          (!selectedVaultKey.hasPassphrase ||
+            state.passphrase.trim().length > 0)
+        : state.manualKeyValid &&
+          (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
@@ -245,15 +444,12 @@ export default function ConnectModal({
     finalizeConnect(attachKey(params, key));
   };
 
-  const handleConnect = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!canConnect) return;
-
+  const connect = async () => {
     if (identityMode) {
       const params: ConnectParams = {
         deviceUid,
         deviceName,
-        username: state.username.trim(),
+        username,
         password: "",
       };
 
@@ -264,7 +460,7 @@ export default function ConnectModal({
         dispatch({
           type: "setKeyUnavailable",
           value:
-            "This browser can't hold an SSH key, so it can't open the web terminal. It needs Ed25519 in WebCrypto and IndexedDB, which private windows and older browsers often block. Connecting over SSH from your terminal still works.",
+            "This browser can't hold an SSH key, so it can't open the shell here. It needs Ed25519 in WebCrypto and IndexedDB, which private windows and older browsers often block. Open in external terminal still works.",
         });
         return;
       }
@@ -298,7 +494,7 @@ export default function ConnectModal({
       params = {
         deviceUid,
         deviceName,
-        username: state.username.trim(),
+        username,
         password: state.password,
       };
     } else {
@@ -321,7 +517,8 @@ export default function ConnectModal({
       } catch {
         dispatch({
           type: "setKeyError",
-          value: "Failed to read private key. Check the key or passphrase.",
+          value:
+            "Couldn't read the private key. Check the key and its passphrase.",
         });
         return;
       }
@@ -342,7 +539,7 @@ export default function ConnectModal({
       params = {
         deviceUid,
         deviceName,
-        username: state.username.trim(),
+        username,
         password: "",
         fingerprint,
         privateKey: key,
@@ -351,6 +548,11 @@ export default function ConnectModal({
     }
 
     finalizeConnect(params);
+  };
+
+  const handleConnect = (e: FormEvent) => {
+    e.preventDefault();
+    if (canConnect) void connect();
   };
 
   return (
@@ -375,16 +577,27 @@ export default function ConnectModal({
         }}
       />
       <Modal
-        size="lg"
         open={open}
         onClose={onClose}
         icon={<CommandLineIcon />}
-        iconColor="green"
         title="Connect"
         description={
           <>
-            Open an SSH session to <ObjectName>{deviceName}</ObjectName>.
+            Open a shell in the browser, or in your own SSH client.
+            <DeviceContext uid={deviceUid} name={deviceName} sshid={sshid} />
           </>
+        }
+        footerStart={
+          externalUrl && (
+            <a
+              href={externalUrl}
+              title="Open the shell in your own SSH client"
+              className="inline-flex items-center gap-1.5 hover:text-text-primary transition-colors"
+            >
+              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+              Open in external terminal
+            </a>
+          )
         }
         footer={
           <>
@@ -392,125 +605,64 @@ export default function ConnectModal({
               Cancel
             </Button>
             <Button
-              variant="success"
+              variant="primary"
               type="submit"
               form={`connect-form-${deviceUid}`}
               disabled={!canConnect}
-              icon={
-                <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
-              }
             >
-              Connect
+              Open in browser
             </Button>
           </>
         }
       >
         <form
           id={`connect-form-${deviceUid}`}
-          onSubmit={(e) => void handleConnect(e)}
+          onSubmit={handleConnect}
           className="space-y-5"
         >
-          {/* SSHID helper */}
-          <Card className="rounded-lg p-3.5">
-            <span className={LABEL}>Connect via terminal</span>
-            <div className="flex items-center gap-2">
-              <code className="text-xs font-mono flex-1 truncate">
-                <span className="text-accent-cyan">ssh </span>
-                {state.username.trim() ? (
-                  <span className="text-accent-cyan">
-                    {state.username.trim()}@{sshid}
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-text-muted italic">
-                      &lt;username&gt;
-                    </span>
-                    <span className="text-accent-cyan">@{sshid}</span>
-                  </>
-                )}
-              </code>
-              <CopyButton
-                text={
-                  state.username.trim()
-                    ? `ssh ${state.username.trim()}@${sshid}`
-                    : `ssh <username>@${sshid}`
-                }
-              />
-            </div>
-            {state.username.trim() ? (
-              <p className="text-2xs text-accent-green mt-2">
-                Command ready — copy and run in your terminal.
-              </p>
-            ) : (
-              <p className="text-2xs text-text-muted mt-2">
-                Enter your device OS username below to complete this command.
-              </p>
-            )}
-          </Card>
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-2xs text-text-secondary font-medium uppercase tracking-wider">
-              or connect via web
-            </span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
           <InputField
             id="connect-username"
-            label="Username"
+            label="Login"
+            data-autofocus
+            variant="mono"
+            autoComplete="off"
+            spellCheck={false}
             value={state.username}
             onChange={(v) => dispatch({ type: "setUsername", value: v })}
-            placeholder="e.g. root"
+            placeholder={DEFAULT_LOGIN}
           />
 
-          {identityMode ? (
-            state.keyUnavailable ? (
+          {identityMode &&
+            (state.keyUnavailable ? (
               <Callout variant="error">{state.keyUnavailable}</Callout>
             ) : (
-              <Card className="rounded-lg p-3.5">
-                <div className="flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-primary"
-                  >
-                    <ShieldCheckIcon className="w-5 h-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-text-primary">
-                      You connect as your identity
-                    </span>
-                    <span className="block text-2xs text-text-muted mt-0.5">
-                      This namespace uses key-based identity. Access is granted
-                      by policy — no device password or key needed.
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            )
-          ) : (
+              <IdentityCard
+                name={accountName ?? ""}
+                email={accountEmail}
+                keyName={browserIdentity?.name ?? browserLabel()}
+                fingerprint={browserIdentity?.fingerprint ?? null}
+              />
+            ))}
+
+          {!identityMode && (
             <>
-              {/* Auth Method */}
               <RadioGroupField
                 label="Authentication"
                 value={state.authMethod}
                 onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
+                containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
               >
-                <RadioCard
+                <RadioSegment
                   value="password"
-                  icon={<LockClosedIcon className="w-4 h-4" />}
                   label="Password"
-                  description="Authenticate with your device password."
+                  icon={<LockClosedIcon className="w-3.5 h-3.5" />}
                 />
-                <RadioCard
+                <RadioSegment
                   value="key"
-                  icon={<KeyIcon className="w-4 h-4" />}
-                  label="Private Key"
-                  description="Authenticate using your SSH private key."
+                  label="Private key"
+                  icon={<KeyIcon className="w-3.5 h-3.5" />}
                 />
               </RadioGroupField>
-
-              {/* Password field */}
               {state.authMethod === "password" && (
                 <PasswordField
                   id="connect-password"
@@ -518,22 +670,19 @@ export default function ConnectModal({
                   autoComplete="current-password"
                   value={state.password}
                   onChange={(v) => dispatch({ type: "setPassword", value: v })}
-                  placeholder="Enter device password"
+                  placeholder="The login's password on the device"
                 />
               )}
 
-              {/* Private Key fields */}
               {state.authMethod === "key" && (
                 <>
-                  {/* Vault locked warning */}
                   {vaultStatus === "locked" && (
                     <VaultLockedBanner onUnlock={() => setUnlockOpen(true)} />
                   )}
 
-                  {/* Key source toggle (only if vault has keys) */}
                   {hasVaultKeys && (
                     <RadioGroupField
-                      label="Key Source"
+                      label="Key source"
                       value={state.keySource}
                       onChange={(value) =>
                         dispatch({ type: "setKeySource", value })
@@ -552,13 +701,10 @@ export default function ConnectModal({
                       />
                     </RadioGroupField>
                   )}
-                  {/* Vault key selector */}
                   {effectiveKeySource === "vault" ? (
                     <>
                       <div>
-                        <FieldLabel htmlFor="connect-vault-key">
-                          Select Key
-                        </FieldLabel>
+                        <FieldLabel htmlFor="connect-vault-key">Key</FieldLabel>
                         <select
                           id="connect-vault-key"
                           value={state.selectedKeyId}
@@ -570,7 +716,7 @@ export default function ConnectModal({
                           }
                           className={INPUT}
                         >
-                          <option value="">Choose a key...</option>
+                          <option value="">Choose a key…</option>
                           {vaultKeys.map((k) => (
                             <option key={k.id} value={k.id}>
                               {k.name}
@@ -593,10 +739,9 @@ export default function ConnectModal({
                     </>
                   ) : (
                     <>
-                      {/* Manual key input */}
                       <div>
                         <FieldLabel htmlFor="connect-manual-private-key">
-                          Private Key
+                          Private key
                         </FieldLabel>
                         <textarea
                           id="connect-manual-private-key"
@@ -619,9 +764,9 @@ export default function ConnectModal({
                           onChange={(v) =>
                             dispatch({ type: "setPassphrase", value: v })
                           }
-                          placeholder="Enter passphrase for encrypted key"
+                          placeholder="Key passphrase"
                           suppressPasswordManager
-                          hint="This key is encrypted and requires a passphrase."
+                          hint="This key is encrypted."
                         />
                       )}
                     </>
@@ -639,83 +784,33 @@ export default function ConnectModal({
           )}
 
           {namespaceRecords && (
-            <div className="w-full px-3.5 py-3 rounded-lg border border-border bg-card text-left">
-              <div className="flex items-start gap-3">
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 shrink-0 text-text-secondary"
-                >
-                  <VideoCameraIcon className="w-5 h-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-text-primary">
-                    <span className="inline-flex items-center gap-1 text-accent-red">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-red animate-pulse-subtle" />
-                      <span className="text-[10px] font-bold tracking-wide">
-                        REC
-                      </span>
-                    </span>
-                    Session recording is on
-                  </span>
-                  <span className="block text-2xs text-text-muted mt-0.5">
-                    Recorded on the server by your namespace's policy.
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary">
+              <RecBadge on />
+              <span>
+                This session will be recorded and stored on the server by
+                namespace policy.
+              </span>
             </div>
           )}
 
           {!namespaceRecords && recordingSupported && (
-            <label
-              className={cn(
-                "flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
-                state.recordSession
-                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                  : "bg-card border-border hover:border-border-light hover:bg-hover-subtle",
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={state.recordSession}
-                onChange={(e) =>
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary">
+              <RecBadge
+                on={state.recordSession}
+                onToggle={() =>
                   dispatch({
                     type: "setRecordSession",
-                    value: e.target.checked,
+                    value: !state.recordSession,
                   })
                 }
-                className="sr-only"
+                describedBy={recordStateId}
               />
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "mt-0.5 shrink-0 transition-colors",
-                  state.recordSession ? "text-primary" : "text-text-muted",
-                )}
-              >
-                <VideoCameraIcon className="w-4 h-4" />
+              <span id={recordStateId}>
+                {state.recordSession
+                  ? "This session will be recorded and stored in this browser."
+                  : "This session won't be recorded. Press REC to record it and store it in this browser."}
               </span>
-              <div className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-text-primary">
-                  Record this session
-                </span>
-                <span className="block text-2xs text-text-muted mt-0.5">
-                  Save this session in your browser to replay it locally later.
-                </span>
-              </div>
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all",
-                  state.recordSession
-                    ? "bg-primary border-primary text-white"
-                    : "border-text-muted/40",
-                )}
-              >
-                {state.recordSession && (
-                  <CheckIcon className="w-3 h-3" strokeWidth={3} />
-                )}
-              </span>
-            </label>
+            </div>
           )}
         </form>
       </Modal>

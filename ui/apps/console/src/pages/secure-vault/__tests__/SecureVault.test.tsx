@@ -525,7 +525,7 @@ describe("SecureVault", () => {
       );
     }
 
-    it("shows locked UI and disables Connect when vault auto-locks while modal is open", () => {
+    it("disables opening the shell when vault auto-locks while modal is open", () => {
       setupConnectStore("unlocked", [vaultKey]);
       const { rerender } = renderConnectModal();
 
@@ -542,8 +542,9 @@ describe("SecureVault", () => {
         />,
       );
 
-      const connectBtn = screen.getByRole("button", { name: /connect/i });
-      expect(connectBtn).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Open in browser" }),
+      ).toBeDisabled();
     });
 
     it("hides key-selection UI when vault is locked", () => {

@@ -382,7 +382,7 @@ export function buildDeviceActionItems(deps: {
   if (!drillDevice) return [];
   const { uid, name, online } = drillDevice;
   const sshid = nsName ? buildSshid(nsName, name) : uid;
-  const sshCommand = `ssh <username>@${sshid}`;
+  const sshCommand = `ssh <login>@${sshid}`;
   const connectDisabled = !canConnect || (!online && !hasOpenSession);
   return [
     {
