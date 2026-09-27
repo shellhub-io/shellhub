@@ -125,6 +125,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 	compose := newSSHEnvironment(t, ctx, "legacy")
 	_, device := startAcceptedAgent(t, ctx, compose)
+	signer := registerDeviceKey(t, ctx, compose)
 
 	cases := []struct {
 		name   string
@@ -221,7 +222,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			before := currentSessions(t, ctx, compose)
 
-			conn := dialDevice(t, ctx, compose, device)
+			conn := dialDevice(t, ctx, compose, device, signer)
 			t.Cleanup(func() { _ = conn.Close() })
 
 			opened := sessionAfter(t, ctx, compose, before, func() { tc.open(t, conn) })
