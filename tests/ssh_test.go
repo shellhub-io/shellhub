@@ -187,6 +187,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	type Environment struct {
 		services *environment.DockerCompose
 		agent    testcontainers.Container
+		signer   ssh.Signer
 	}
 
 	tests := []struct {
@@ -254,6 +255,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
+				skipUnlessAgentAcceptsPasswords(t)
+
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
@@ -279,6 +282,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
+				skipUnlessAgentAcceptsPasswords(t)
+
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
@@ -298,6 +303,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
+
+				skipUnlessAgentAcceptsPasswords(t)
 
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
@@ -326,22 +333,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				ctx := context.Background()
 
-				signer, data := newSigner(t)
-
-				model := requests.PublicKeyCreate{
-					Name:     ShellHubAgentUsername,
-					Username: ".*",
-					Data:     []byte(data),
-					Filter: requests.PublicKeyFilter{
-						Hostname: ".*",
-					},
-				}
-
-				resp, err := environment.services.R(ctx).
-					SetBody(&model).
-					Post("/api/sshkeys/public-keys")
-				require.Equal(t, 200, resp.StatusCode())
-				require.NoError(t, err)
+				signer := registerDeviceKey(t, ctx, environment.services)
 
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
@@ -384,7 +376,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -423,7 +415,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password("password"),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -476,7 +468,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password("password"),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -510,7 +502,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -550,7 +542,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -585,7 +577,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -623,7 +615,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -663,7 +655,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -700,7 +692,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -737,7 +729,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(env.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -809,7 +801,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -838,7 +830,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -896,7 +888,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -926,7 +918,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -963,7 +955,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1006,7 +998,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1051,7 +1043,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1093,7 +1085,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1146,7 +1138,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1203,7 +1195,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1236,7 +1228,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1325,7 +1317,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1354,7 +1346,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1392,7 +1384,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 					Config: ssh.Config{
@@ -1430,7 +1422,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1491,7 +1483,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config1 := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 						learnedKey = key
@@ -1507,7 +1499,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config2 := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 						if !bytes.Equal(key.Marshal(), learnedKey.Marshal()) {
@@ -1531,7 +1523,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 					Timeout:         10 * time.Second,
@@ -1574,7 +1566,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1615,7 +1607,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1665,7 +1657,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				config := &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
+						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
@@ -1711,6 +1703,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	signer := registerDeviceKey(t, ctx, compose)
 
 	for _, tc := range tests {
 		test := tc
@@ -1724,6 +1717,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			test.run(tt, &Environment{
 				services: compose,
 				agent:    agent,
+				signer:   signer,
 			}, device)
 		})
 	}
@@ -1742,6 +1736,35 @@ func newSigner(t *testing.T) (ssh.Signer, string) {
 	require.NoError(t, err)
 
 	return signer, string(ssh.MarshalAuthorizedKey(pub))
+}
+
+func registerDeviceKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose) ssh.Signer {
+	t.Helper()
+
+	signer, data := newSigner(t)
+
+	resp, err := compose.R(ctx).
+		SetBody(&requests.PublicKeyCreate{
+			Name:     "e2e",
+			Username: ".*",
+			Data:     []byte(data),
+			Filter: requests.PublicKeyFilter{
+				Hostname: ".*",
+			},
+		}).
+		Post("/api/sshkeys/public-keys")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+	return signer
+}
+
+func skipUnlessAgentAcceptsPasswords(t *testing.T) {
+	t.Helper()
+
+	if os.Getenv("SHELLHUB_E2E_AGENT_PASSWORD") == "false" {
+		t.Skip("SHELLHUB_E2E_AGENT_PASSWORD=false: the agent under test does not accept passwords")
+	}
 }
 
 func deviceSSHID(device *models.Device) string {

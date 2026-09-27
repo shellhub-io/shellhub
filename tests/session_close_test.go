@@ -39,13 +39,13 @@ func dialClient(t *testing.T, ctx context.Context, addr string, config *ssh.Clie
 	return client
 }
 
-func dialDevice(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device) *ssh.Client {
+func dialDevice(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer) *ssh.Client {
 	t.Helper()
 
 	return dialClient(t, ctx, compose.SSHAddress(), &ssh.ClientConfig{ //nolint:exhaustruct // the remaining fields keep their defaults
 		User: deviceSSHID(device),
 		Auth: []ssh.AuthMethod{
-			ssh.Password(ShellHubAgentPassword),
+			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // the test stack's host key is ephemeral
 	})
@@ -54,7 +54,7 @@ func dialDevice(t *testing.T, ctx context.Context, compose *environment.DockerCo
 func openShellSession(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device) (*ssh.Client, *models.Session) {
 	t.Helper()
 
-	conn := dialDevice(t, ctx, compose, device)
+	conn := dialDevice(t, ctx, compose, device, registerDeviceKey(t, ctx, compose))
 
 	sess, err := conn.NewSession()
 	require.NoError(t, err)
