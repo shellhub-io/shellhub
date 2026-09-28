@@ -127,6 +127,24 @@ func (dc *DockerCompose) AwaitServerLog(t *testing.T, substr string) {
 	AwaitLogContains(t, dc.Service(ServiceServer), substr)
 }
 
+// CreateAPIKey creates an API key for the namespace the client is authenticated against and
+// returns it, including the key itself, which no later request can read back.
+func (dc *DockerCompose) CreateAPIKey(t *testing.T, req *requests.CreateAPIKey) *responses.CreateAPIKey {
+	t.Helper()
+
+	key := new(responses.CreateAPIKey)
+
+	resp, err := dc.R(t.Context()).
+		SetBody(req).
+		SetResult(key).
+		Post("/api/namespaces/api-key")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	require.NotEmpty(t, key.Key)
+
+	return key
+}
+
 // CreateProvisioningKey creates a provisioning key for the namespace the client is authenticated against
 // and returns it, including the key itself, which no later request can read back.
 func (dc *DockerCompose) CreateProvisioningKey(t *testing.T, req *requests.CreateProvisioningKey) *responses.CreateProvisioningKey {
