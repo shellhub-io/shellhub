@@ -295,3 +295,55 @@ func TestRolePreferences(t *testing.T) {
 		})
 	}
 }
+
+func TestRoleAtLeast(t *testing.T) {
+	cases := []struct {
+		description string
+		role        authorizer.Role
+		notAtLeast  []authorizer.Role
+		atLeast     []authorizer.Role
+	}{
+		{
+			description: "an invalid role is at least nothing",
+			role:        authorizer.RoleInvalid,
+			notAtLeast:  []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver, authorizer.RoleInvalid},
+			atLeast:     []authorizer.Role{},
+		},
+		{
+			description: "an owner is at least every valid role, its own included",
+			role:        authorizer.RoleOwner,
+			notAtLeast:  []authorizer.Role{authorizer.RoleInvalid},
+			atLeast:     []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver},
+		},
+		{
+			description: "an administrator is at least every valid role but the owner",
+			role:        authorizer.RoleAdministrator,
+			notAtLeast:  []authorizer.Role{authorizer.RoleOwner, authorizer.RoleInvalid},
+			atLeast:     []authorizer.Role{authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver},
+		},
+		{
+			description: "an operator is at least itself and the observer",
+			role:        authorizer.RoleOperator,
+			notAtLeast:  []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleInvalid},
+			atLeast:     []authorizer.Role{authorizer.RoleOperator, authorizer.RoleObserver},
+		},
+		{
+			description: "an observer is at least itself only",
+			role:        authorizer.RoleObserver,
+			notAtLeast:  []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleInvalid},
+			atLeast:     []authorizer.Role{authorizer.RoleObserver},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			for _, other := range tc.notAtLeast {
+				require.False(tt, tc.role.AtLeast(other), "%q is not at least %q", tc.role, other)
+			}
+
+			for _, other := range tc.atLeast {
+				require.True(tt, tc.role.AtLeast(other), "%q is at least %q", tc.role, other)
+			}
+		})
+	}
+}

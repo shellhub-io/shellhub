@@ -122,3 +122,10 @@ func (r Role) HasPermission(permission Permission) bool {
 func (r Role) HasAuthority(passive Role) bool {
 	return r != RoleInvalid && passive != RoleOwner && r.code() >= passive.code()
 }
+
+// AtLeast reports whether r ranks at or above other. Unlike [Role.HasAuthority] it makes no
+// exception for [RoleOwner], so an owner is at least an owner: it compares two roles, not the right
+// to manage a member who holds one. It returns false when either role is [RoleInvalid].
+func (r Role) AtLeast(other Role) bool {
+	return r != RoleInvalid && other != RoleInvalid && r.code() >= other.code()
+}

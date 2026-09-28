@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -39,7 +40,8 @@ type APIKeyService interface {
 	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int, err error)
 
 	// UpdateAPIKey updates an API key with the provided tenant ID and name, dropping the key's cached
-	// document so the new role is enforced on the next request. It returns an error, if any; an error from
+	// document so the new role is enforced on the next request. A new role must be less or equal than
+	// the user's role, or it returns ErrRoleForbidden. It returns an error, if any; an error from
 	// the invalidation means the key may still authenticate with its previous role until apiKeyCacheTTL
 	// lapses, so the caller must not report the update as applied.
 	UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) (err error)
@@ -74,7 +76,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	}
 
 	if req.OptRole != "" {
-		if !req.Role.HasAuthority(req.OptRole) {
+		if !req.Role.AtLeast(req.OptRole) {
 			return nil, NewErrRoleForbidden()
 		}
 
@@ -136,8 +138,13 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return err
 	}
 
-	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
+	_, actor, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
+	if err != nil {
 		return err
+	}
+
+	if req.Role != authorizer.RoleInvalid && !actor.Role.AtLeast(req.Role) {
+		return NewErrRoleForbidden()
 	}
 
 	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.CurrentName)

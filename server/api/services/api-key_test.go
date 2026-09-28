@@ -315,6 +315,86 @@ func TestCreateAPIKey(t *testing.T) {
 				err: nil,
 			},
 		},
+		{
+			description: "succeeds when an owner asks for an owner key",
+			req: &requests.CreateAPIKey{
+				UserID:    "000000000000000000000000",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Role:      "owner",
+				Name:      "dev",
+				ExpiresAt: -1,
+				OptRole:   "owner",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(
+						&models.Namespace{
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: "owner",
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
+					Once()
+
+				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
+				hashedKey := hex.EncodeToString(keySum[:])
+
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyCreate", ctx, &models.APIKey{
+						Digest:    hashedKey,
+						Name:      "dev",
+						CreatedBy: "000000000000000000000000",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "owner",
+						ExpiresIn: -1,
+					}).
+					Return(hashedKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyDigestResolver, hashedKey).
+					Return(&models.APIKey{
+						ID:        surrogateID,
+						Digest:    hashedKey,
+						Name:      "dev",
+						CreatedBy: "000000000000000000000000",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "owner",
+						ExpiresIn: -1,
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				res: &responses.CreateAPIKey{
+					ID:        surrogateID,
+					Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
+					Name:      "dev",
+					CreatedBy: "000000000000000000000000",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Role:      "owner",
+					ExpiresIn: -1,
+				},
+				err: nil,
+			},
+		},
 	}
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -733,6 +813,45 @@ func TestUpdateAPIKey(t *testing.T) {
 				storeMock.
 					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when an owner gives a key the owner role",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "dev",
+				Role:        "owner",
+			},
+			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					Digest:   "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "administrator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					Digest:   "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "owner",
+				}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
 					On("APIKeyUpdate", ctx, updatedAPIKey).
