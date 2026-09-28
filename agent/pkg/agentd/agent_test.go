@@ -2,6 +2,8 @@ package agentd
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,11 +13,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	client_mocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -668,27 +673,180 @@ func TestLoadConfigFromEnvRecordsTenantOrigin(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			envMock := new(env_mocks.MockBackend)
-			envs.DefaultBackend = envMock
-
 			key := filepath.Join(t.TempDir(), "shellhub.key")
 			if test.fileTenant != "" {
 				require.NoError(t, PersistTenant(TenantFilePath(key), test.fileTenant))
 			}
 
-			envMock.On("Process", "SHELLHUB_", new(Config)).Return(nil).Once().Run(func(args mock.Arguments) {
-				cfg, ok := args.Get(1).(*Config)
-				require.True(t, ok)
+			values := map[string]string{
+				"SHELLHUB_SERVER_ADDRESS": "http://localhost",
+				"SHELLHUB_PRIVATE_KEY":    key,
+			}
+			if test.envTenant != "" {
+				values["SHELLHUB_TENANT_ID"] = test.envTenant
+			}
 
-				cfg.ServerAddress = "http://localhost"
-				cfg.TenantID = test.envTenant
-				cfg.PrivateKey = key
-				cfg.MaxRetryConnectionTimeout = 30
-			})
-
-			cfg, _, err := LoadConfigFromEnv()
+			cfg, _, err := LoadConfigFromEnv(envs.Map(values))
 			require.NoError(t, err)
 			assert.Equal(t, test.expected, cfg.TenantOrigin)
+		})
+	}
+}
+
+func TestAuthorizeNamesTheCredentialItWasRefusedFor(t *testing.T) {
+	refused := errors.New("namespace not found")
+
+	tests := []struct {
+		description string
+		config      *Config
+		expected    string
+	}{
+		{
+			description: "a tenant an operator supplied names the variable it came from",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromEnvironment,
+			},
+			expected: "SHELLHUB_TENANT_ID",
+		},
+		{
+			description: "a tenant left by a previous pairing names the file holding it",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromFile,
+				PrivateKey:   "/etc/shellhub.key",
+			},
+			expected: "/etc/shellhub.key.tenant",
+		},
+		{
+			description: "a tenant an embedder set without an origin is still named",
+			config: &Config{
+				TenantID: "1c462afa-e4b6-41a5-ba54-7236a1770466",
+			},
+			expected: "the tenant 1c462afa-e4b6-41a5-ba54-7236a1770466",
+		},
+		{
+			description: "a provisioning key is named rather than the tenant it would have resolved",
+			config: &Config{
+				ProvisioningKey: "a-key",
+			},
+			expected: "provisioning key",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			cli := new(client_mocks.MockClient)
+			cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).Return(nil, refused).Once()
+
+			key, err := rsa.GenerateKey(rand.Reader, 2048)
+			require.NoError(t, err)
+
+			agent := &Agent{
+				cli:      cli,
+				config:   test.config,
+				key:      key,
+				Info:     new(models.DeviceInfo),
+				Identity: &models.DeviceIdentity{MAC: "83:18:77:25:78:0d"},
+			}
+
+			err = agent.Authorize(context.Background())
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), test.expected)
+			assert.ErrorIs(t, err, refused)
+		})
+	}
+}
+
+func TestAuthorizeNamesAProvisioningKeyAsTheLikelyCauseOfABadRequest(t *testing.T) {
+	tests := []struct {
+		description string
+		config      *Config
+		expected    string
+	}{
+		{
+			description: "a provisioning key the server answers with bad request is named as not accepted",
+			config:      &Config{ProvisioningKey: "a-key"},
+			expected:    "the server did not accept the device, most likely because of the provisioning key",
+		},
+		{
+			description: "a provisioning key sent beside a tenant is still the one named, as the server checks it",
+			config: &Config{
+				TenantID:        "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin:    TenantFromFile,
+				ProvisioningKey: "a-key",
+			},
+			expected: "the server did not accept the device, most likely because of the provisioning key",
+		},
+		{
+			description: "a tenant the server answers with bad request keeps naming the tenant",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromEnvironment,
+			},
+			expected: "failed to authorize device with the tenant 1c462afa-e4b6-41a5-ba54-7236a1770466 from SHELLHUB_TENANT_ID",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			cli := new(client_mocks.MockClient)
+			cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).Return(nil, client.ErrBadRequest).Once()
+
+			key, err := rsa.GenerateKey(rand.Reader, 2048)
+			require.NoError(t, err)
+
+			agent := &Agent{
+				cli:      cli,
+				config:   test.config,
+				key:      key,
+				Info:     new(models.DeviceInfo),
+				Identity: &models.DeviceIdentity{MAC: "83:18:77:25:78:0d"},
+			}
+
+			err = agent.Authorize(context.Background())
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), test.expected)
+			assert.ErrorIs(t, err, client.ErrBadRequest)
+		})
+	}
+}
+
+func TestCredentialFieldsUseTheFieldNamesAFatalRefusalLogs(t *testing.T) {
+	tests := []struct {
+		description string
+		config      *Config
+		expected    log.Fields
+	}{
+		{
+			description: "a tenant an operator supplied names its origin",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromEnvironment,
+			},
+			expected: log.Fields{
+				"tenant_id":     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				"tenant_origin": TenantFromEnvironment,
+			},
+		},
+		{
+			description: "a tenant left by a previous pairing names the file holding it",
+			config: &Config{
+				TenantID:     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantOrigin: TenantFromFile,
+				PrivateKey:   "/etc/shellhub.key",
+			},
+			expected: log.Fields{
+				"tenant_id":     "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				"tenant_origin": TenantFromFile,
+				"tenant_file":   "/etc/shellhub.key.tenant",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			assert.Equal(t, test.expected, test.config.CredentialFields())
 		})
 	}
 }
