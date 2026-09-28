@@ -28,6 +28,7 @@ type Manager struct {
 	DialerKeepAliveCallback func(string)
 
 	displaced atomic.Uint64
+	evicted   atomic.Uint64
 }
 
 // Stats is a snapshot of what a [Manager] holds.
@@ -38,6 +39,7 @@ type Stats struct {
 	Connections int
 	Devices     int
 	Displaced   uint64
+	Evicted     uint64
 }
 
 // Stats reports the store's size and how many connections have been displaced
@@ -53,6 +55,7 @@ func (m *Manager) Stats() Stats {
 		Connections: connections,
 		Devices:     devices,
 		Displaced:   m.displaced.Load(),
+		Evicted:     m.evicted.Load(),
 	}
 }
 
@@ -106,19 +109,42 @@ func (m *Manager) evict(key string, displaced []any) {
 		"size": len(displaced) + 1,
 	}).Warning("Multiple connections stored for the same identifier.")
 
-	go func() {
-		for _, conn := range displaced {
-			closer, ok := conn.(io.Closer)
-			if !ok {
-				continue
-			}
+	go closeConnections(key, displaced)
+}
 
-			if err := closer.Close(); err != nil {
-				log.WithError(err).WithField("key", key).
-					Warning("failed to close a displaced connection")
-			}
+// Evict closes every tunnel the device holds, for a device that no longer belongs to its
+// namespace. Its connections are dropped from the store at once, so the device reads as offline
+// and a dial finds nothing, while the agent learns of the removal when it next authenticates.
+func (m *Manager) Evict(tenant, uid string) {
+	key := NewKey(tenant, uid)
+
+	evicted := m.Connections.Drain(key)
+	if len(evicted) == 0 {
+		return
+	}
+
+	m.evicted.Add(uint64(len(evicted)))
+
+	log.WithFields(log.Fields{
+		"key":  key,
+		"size": len(evicted),
+	}).Info("Closing the tunnels of a removed device.")
+
+	go closeConnections(key, evicted)
+}
+
+func closeConnections(key string, conns []any) {
+	for _, conn := range conns {
+		closer, ok := conn.(io.Closer)
+		if !ok {
+			continue
 		}
-	}()
+
+		if err := closer.Close(); err != nil {
+			log.WithError(err).WithField("key", key).
+				Warning("failed to close a tunnel")
+		}
+	}
 }
 
 // BindPingInterval is the interval between pings sent to the yamux session

@@ -22,6 +22,12 @@ var (
 		"Reverse connections displaced by a newer registration for the same device. "+perProcess,
 		nil, nil,
 	)
+
+	evictedDesc = prometheus.NewDesc(
+		"shellhub_ssh_dialer_connections_evicted_total",
+		"Reverse connections closed because their device was removed. "+perProcess,
+		nil, nil,
+	)
 )
 
 // Collector publishes the state of a [Manager]'s connection store.
@@ -49,6 +55,7 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- connectionsDesc
 	ch <- devicesDesc
 	ch <- displacedDesc
+	ch <- evictedDesc
 }
 
 // Collect reads counters the manager already maintains rather than walking its
@@ -60,4 +67,5 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(connectionsDesc, prometheus.GaugeValue, float64(stats.Connections))
 	ch <- prometheus.MustNewConstMetric(devicesDesc, prometheus.GaugeValue, float64(stats.Devices))
 	ch <- prometheus.MustNewConstMetric(displacedDesc, prometheus.CounterValue, float64(stats.Displaced))
+	ch <- prometheus.MustNewConstMetric(evictedDesc, prometheus.CounterValue, float64(stats.Evicted))
 }

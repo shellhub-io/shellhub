@@ -278,6 +278,9 @@ func (s *Server) setupSSH(service services.Service) error {
 	}
 
 	d := dialer.NewDialer(service, s.heartbeater)
+	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
+		d.Manager.Evict(tenantID, uid)
+	})
 
 	if err := prometheus.Register(dialer.NewCollector(d.Manager)); err != nil {
 		log.WithError(err).Warning("failed to register the dialer connection metrics")
