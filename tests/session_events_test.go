@@ -286,21 +286,11 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 	})
 
 	t.Run("an API key", func(t *testing.T) {
-		key := struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		}{}
-
-		resp, err := compose.R(ctx).
-			SetBody(map[string]any{"name": "automation", "expires_at": -1}).
-			SetResult(&key).
-			Post("/api/namespaces/api-key")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode(), resp.String())
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "automation", ExpiresAt: -1})
 
 		signer, data := newSigner(t)
 
-		resp, err = compose.R(ctx).
+		resp, err := compose.R(ctx).
 			SetBody(map[string]any{"name": "automation", "data": data}).
 			Post("/api/namespaces/api-key/" + key.Name + "/ssh-identities")
 		require.NoError(t, err)
