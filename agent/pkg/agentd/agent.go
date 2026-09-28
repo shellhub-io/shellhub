@@ -58,6 +58,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -154,6 +155,8 @@ type Config struct {
 	// embedding program (where /proc/self/exe is not the agent binary) must set this to point
 	// at a binary/subcommand that runs the SFTP server.
 	SFTPServerCommand func() *exec.Cmd
+
+	pairedTenant bool
 }
 
 // HasNamespaceCredential reports whether the configuration carries something naming the namespace
@@ -188,6 +191,7 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		switch {
 		case cfg.TenantID == "":
 			cfg.TenantID = persisted
+			cfg.pairedTenant = true
 		case cfg.TenantID != persisted:
 			log.WithFields(log.Fields{
 				"env_tenant":       cfg.TenantID,
@@ -218,6 +222,7 @@ type Agent struct {
 	mode       Mode
 	listener   atomic.Pointer[net.Listener]
 	logger     *log.Entry
+	authMu     sync.Mutex
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -245,6 +250,14 @@ var (
 	ErrNewAgentWithConfigUnsupportedTransportVersion = errors.New("transport version is unsupported")
 
 	ErrAuthorizeNoNamespaceCredential = errors.New("no tenant or provisioning key to enroll with")
+
+	// ErrDeviceRemoved is returned when the server refuses the device because it was removed from
+	// its namespace. A device the agent paired goes back to pairing on it; see [Agent.Unpair].
+	ErrDeviceRemoved = errors.New("the device was removed from its namespace")
+
+	// ErrTenantFromEnvironment is returned by [Agent.Unpair] when the tenant was configured rather
+	// than learned from a pairing, so there is nothing the agent may forget on its own.
+	ErrTenantFromEnvironment = errors.New("the tenant comes from the environment")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
@@ -340,6 +353,10 @@ func (a *Agent) Authorize() error {
 	}
 
 	if err := a.authorize(); err != nil {
+		if errors.Is(err, ErrDeviceRemoved) {
+			return err
+		}
+
 		return errors.Wrap(err, "failed to authorize device")
 	}
 
@@ -364,9 +381,30 @@ func (a *Agent) Authorize() error {
 }
 
 // SetTenantID injects the tenant learned from a pairing so the agent can be
-// authorized.
+// authorized. The tenant is the pairing's, so [Agent.Unpair] may forget it.
 func (a *Agent) SetTenantID(tenant string) {
 	a.config.TenantID = tenant
+	a.config.pairedTenant = true
+}
+
+// Unpair forgets the tenant a pairing gave the agent, deleting the file that persisted it, and the
+// pre-authorized code it claimed, whose outcome the server keeps replaying, so the agent can pair
+// again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
+// was configured instead, because the agent would only learn it again on its next start.
+func (a *Agent) Unpair() error {
+	if !a.config.pairedTenant {
+		return ErrTenantFromEnvironment
+	}
+
+	if err := os.Remove(TenantFilePath(a.config.PrivateKey)); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	a.config.TenantID = ""
+	a.config.pairedTenant = false
+	a.config.PairingCode = ""
+
+	return nil
 }
 
 // ClearPairingCode drops a pre-authorized pairing code after the server rejected
@@ -494,14 +532,28 @@ func (a *Agent) authorize() error {
 		DeviceAuth: auth,
 	}
 
+	a.authMu.Lock()
+	defer a.authMu.Unlock()
+
 	data, err := a.cli.AuthDevice(req)
+	if errors.Is(err, client.ErrUnauthorized) {
+		return ErrDeviceRemoved
+	}
+
 	if err != nil {
 		return err
 	}
 
 	a.authData = data
 
-	return err
+	return nil
+}
+
+func (a *Agent) auth() *models.DeviceAuthResponse {
+	a.authMu.Lock()
+	defer a.authMu.Unlock()
+
+	return a.authData
 }
 
 // CreatePairing submits this tenant-less agent's identity to the server and
@@ -577,58 +629,79 @@ const (
 )
 
 // Listen serves connections until ctx is cancelled, using the transport named by the
-// configuration. It requires a prior Authorize, whose token it reconnects with and whose logger it
-// reports through.
+// configuration. It requires a prior Authorize, whose logger it reports through. It authorizes
+// again before every tunnel it opens, and returns [ErrDeviceRemoved] once the server refuses the
+// device, from that or from the periodic ping.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
 	switch a.config.TransportVersion {
 	case TransportV1:
-		return a.listenV1(ctx)
+		tun := tunnel.NewTunnelV1()
+
+		tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
+		tun.Handle(HandleSSHCloseV1, sshCloseHandlerV1(a))
+		tun.Handle(HandleHTTPProxyV1, httpProxyHandlerV1(a))
+
+		return a.serveTunnel(ctx, func(ctx context.Context) (net.Listener, error) {
+			return a.cli.NewReverseListenerV1(ctx, a.auth().Token, "/ssh/connection")
+		}, tun.Listen)
 	case TransportV2:
-		return a.listenV2(ctx)
+		tun := tunnel.NewTunnelV2(a.cli)
+
+		tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
+		tun.Handle(HandleSSHCloseV2, sshCloseHandlerV2(a))
+		tun.Handle(HandleHTTPProxyV2, httpProxyHandlerV2(a))
+
+		return a.serveTunnel(ctx, func(ctx context.Context) (net.Listener, error) {
+			auth := a.auth()
+
+			return a.cli.NewReverseListenerV2(ctx, auth.Token, "/agent/connection", client.NewReverseV2ConfigFromMap(auth.Config))
+		}, tun.Listen)
 	default:
 		return fmt.Errorf("unsupported transport version: %d", a.config.TransportVersion)
 	}
 }
 
-func (a *Agent) listenV1(ctx context.Context) error {
-	tun := tunnel.NewTunnelV1()
+func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (net.Listener, error), serve func(context.Context, net.Listener) error) error {
+	ctx, cancel := context.WithCancelCause(parent)
+	defer cancel(nil)
 
-	tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
-	tun.Handle(HandleSSHCloseV1, sshCloseHandlerV1(a))
-	tun.Handle(HandleHTTPProxyV1, httpProxyHandlerV1(a))
+	a.listening = make(chan bool)
 
-	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
+	go a.ping(ctx, cancel, AgentPingDefaultInterval)
 
 	logger := a.logger.WithField("transport", "tunnel")
 
-	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		tunnelServer := connectivity.NewTracker(logger)
 
 		for {
-			if a.isClosed() {
+			if a.isClosed() || ctx.Err() != nil {
 				logger.Info("Stopped listening for connections")
 
-				cancel()
+				cancel(nil)
 
 				return
 			}
 
-			ShellHubConnectV1Path := "/ssh/connection"
+			if err := a.reauthorize(); err != nil {
+				if errors.Is(err, ErrDeviceRemoved) {
+					cancel(ErrDeviceRemoved)
 
-			logger.Debug("Using tunnel version 1")
+					return
+				}
 
-			listener, err := a.cli.NewReverseListenerV1(
-				ctx,
-				a.authData.Token,
-				ShellHubConnectV1Path,
-			)
+				tunnelServer.Lost(err)
+				waitToReconnect(ctx)
+
+				continue
+			}
+
+			listener, err := dial(ctx)
 			if err != nil {
 				tunnelServer.Lost(err)
-
-				time.Sleep(tunnelReconnectInterval)
+				waitToReconnect(ctx)
 
 				continue
 			}
@@ -638,81 +711,50 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				logger.Info("Server connection established")
 			}
 
-			a.listening <- true
+			a.signalListening(ctx, true)
 
-			if err := tun.Listen(ctx, listener); err != nil {
+			if err := serve(ctx, listener); err != nil {
 				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
-			a.listening <- false
+			a.signalListening(ctx, false)
 		}
 	}()
 
 	<-ctx.Done()
 
-	return a.Close()
+	closeErr := a.Close()
+	if errors.Is(context.Cause(ctx), ErrDeviceRemoved) {
+		return ErrDeviceRemoved
+	}
+
+	return closeErr
 }
 
-func (a *Agent) listenV2(ctx context.Context) error {
-	tun := tunnel.NewTunnelV2(a.cli)
+func (a *Agent) reauthorize() error {
+	if err := a.authorize(); err != nil {
+		return err
+	}
 
-	tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
-	tun.Handle(HandleSSHCloseV2, sshCloseHandlerV2(a))
-	tun.Handle(HandleHTTPProxyV2, httpProxyHandlerV2(a))
+	if a.server != nil {
+		a.server.SetDeviceName(a.auth().Name)
+	}
 
-	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
+	return nil
+}
 
-	logger := a.logger.WithField("transport", "tunnel")
+func (a *Agent) signalListening(ctx context.Context, listening bool) {
+	select {
+	case a.listening <- listening:
+	case <-ctx.Done():
+	}
+}
 
-	ctx, cancel := context.WithCancel(ctx)
-	go func() {
-		tunnelServer := connectivity.NewTracker(logger)
-
-		for {
-			if a.isClosed() {
-				logger.Info("Stopped listening for connections")
-
-				cancel()
-
-				return
-			}
-
-			ShellHubConnectV2Path := "/agent/connection"
-
-			logger.Debug("Using tunnel version 2")
-
-			listener, err := a.cli.NewReverseListenerV2(
-				ctx,
-				a.authData.Token,
-				ShellHubConnectV2Path,
-				client.NewReverseV2ConfigFromMap(a.authData.Config),
-			)
-			if err != nil {
-				tunnelServer.Lost(err)
-
-				time.Sleep(tunnelReconnectInterval)
-
-				continue
-			}
-			a.listener.Store(&listener)
-
-			if !tunnelServer.Recovered() {
-				logger.Info("Server connection established")
-			}
-
-			a.listening <- true
-
-			if err := tun.Listen(ctx, listener); err != nil {
-				logger.WithError(err).Error("Tunnel listener exited with error")
-			}
-
-			a.listening <- false
-		}
-	}()
-
-	<-ctx.Done()
-
-	return a.Close()
+func waitToReconnect(ctx context.Context) {
+	select {
+	case <-time.After(tunnelReconnectInterval):
+	case <-ctx.Done():
+	}
 }
 
 // AgentPingDefaultInterval is the default time interval between ping on agent.
@@ -720,37 +762,41 @@ const AgentPingDefaultInterval = 10 * time.Minute
 
 const tunnelReconnectInterval = 10 * time.Second
 
-func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
-	a.listening = make(chan bool)
-
+func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, interval time.Duration) {
 	if interval == 0 {
 		interval = AgentPingDefaultInterval
 	}
 
-	<-a.listening // NOTE: wait for the first connection to start to ping the server.
+	select {
+	case <-a.listening:
+	case <-ctx.Done():
+		return
+	}
+
 	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
 	authorization := connectivity.NewTracker(a.logger.WithField("transport", "ping"))
 
 	for {
 		if a.isClosed() {
-			return nil
+			return
 		}
 
 		select {
 		case <-ctx.Done():
 			log.WithFields(log.Fields{
 				"version":        a.config.Version,
-				"tenant_id":      a.authData.Namespace,
+				"tenant_id":      a.auth().Namespace,
 				"server_address": a.config.ServerAddress,
 			}).Debug("stopped pinging server due to context cancellation")
 
-			return nil
+			return
 		case ok := <-a.listening:
 			if ok {
 				log.WithFields(log.Fields{
 					"version":        a.config.Version,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.auth().Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      clock.Now(),
 				}).Debug("Starting the ping interval to server")
@@ -759,7 +805,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			} else {
 				log.WithFields(log.Fields{
 					"version":        a.config.Version,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.auth().Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      clock.Now(),
 				}).Debug("Stopped pinging server due listener status")
@@ -767,19 +813,23 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			if err := a.authorize(); err != nil {
+			if err := a.reauthorize(); err != nil {
+				if errors.Is(err, ErrDeviceRemoved) {
+					removed(ErrDeviceRemoved)
+
+					return
+				}
+
 				authorization.Refused(err)
 			} else {
 				authorization.Recovered()
-
-				a.server.SetDeviceName(a.authData.Name)
 			}
 
 			log.WithFields(log.Fields{
 				"version":        a.config.Version,
-				"tenant_id":      a.authData.Namespace,
+				"tenant_id":      a.auth().Namespace,
 				"server_address": a.config.ServerAddress,
-				"name":           a.authData.Name,
+				"name":           a.auth().Name,
 				"hostname":       a.config.PreferredHostname,
 				"identity":       a.config.PreferredIdentity,
 				"timestamp":      clock.Now(),
