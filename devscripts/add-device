@@ -52,7 +52,7 @@ add_fake_device() {
 EOF
 )
 
-    echo $JSON | http post http://localhost/api/devices/auth && echo "Device added!"
+    echo $JSON | http --check-status post http://localhost/api/devices/auth && echo "Device added!"
 }
 
 add_agent_device() {
