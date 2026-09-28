@@ -35,3 +35,26 @@ func fireDeviceMerge(ctx context.Context, tenantID string, oldDevice, newDevice 
 
 	return nil
 }
+
+// DeviceRemovedHookFn is called after a device leaves its namespace, once the removal has
+// committed. It cannot fail the removal, which has already happened.
+type DeviceRemovedHookFn func(ctx context.Context, tenantID, uid string)
+
+var deviceRemovedHooks []DeviceRemovedHookFn
+
+// OnDeviceRemoved registers a hook that fires after a device is removed or deleted, on every path
+// that does it. It must be called before the server starts handling requests. The server uses it
+// to close the removed device's tunnel.
+func OnDeviceRemoved(fn DeviceRemovedHookFn) {
+	if fn == nil {
+		panic("services: OnDeviceRemoved called with nil hook")
+	}
+
+	deviceRemovedHooks = append(deviceRemovedHooks, fn)
+}
+
+func fireDeviceRemoved(ctx context.Context, tenantID, uid string) {
+	for _, fn := range deviceRemovedHooks {
+		fn(ctx, tenantID, uid)
+	}
+}

@@ -43,6 +43,12 @@ post:
                 $ref: ../components/schemas/namespaceTenantID.yaml
               namespace:
                 $ref: ../components/schemas/namespaceName.yaml
+              owner_id:
+                description: |
+                  The member the device is tied to. Absent when the device merged
+                  into a team device with the same MAC address and stayed the team's.
+                type: string
+                format: uuid
     '400':
       $ref: ../components/responses/400.yaml
     '401':

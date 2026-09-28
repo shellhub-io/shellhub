@@ -186,6 +186,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.POST(ConfirmSSHApprovalURL, gateway.Handler(handler.ConfirmSSHApproval), routesmiddleware.BlockAPIKey)
 	publicAPI.POST(RejectSSHApprovalURL, gateway.Handler(handler.RejectSSHApproval), routesmiddleware.BlockAPIKey)
 	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
+	publicAPI.DELETE(MakeTeamDeviceURL, gateway.Handler(handler.MakeTeamDevice), routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
 	publicAPI.PUT(SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
 	publicAPI.DELETE(DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
 

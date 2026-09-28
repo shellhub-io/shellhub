@@ -35,6 +35,7 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
 	"custom_fields": {"contains"},
+	"owner_id":      {"eq"},
 
 	"info.platform": {"contains", "eq", "ne"},
 	"identity.mac":  {"contains", "eq", "ne"},
@@ -48,7 +49,7 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 		string(models.DeviceStatusRemoved),
 		string(models.DeviceStatusUnused),
 	},
-})
+}).WithUUIDs("owner_id")
 
 // DeviceSortFields is the set of field names accepted in the sort_by query
 // parameter when listing devices.
@@ -107,6 +108,11 @@ type DeviceService interface {
 	// All operations are performed within a database transaction to ensure consistency during device merging
 	// and counter updates.
 	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
+
+	// MakeTeamDevice clears the owner of an accepted device, so it stays in the namespace whoever
+	// leaves. Nothing else about the device changes. It returns ErrDeviceNotFound for a device that
+	// is not accepted in the namespace, and nil for one that already has no owner.
+	MakeTeamDevice(ctx context.Context, tenantID, uid string) error
 
 	// SetDeviceCustomField sets or updates a single custom_fields entry on the device.
 	// It enforces the per-device entry cap defined by [maxCustomFieldsPerDevice] when
@@ -223,6 +229,12 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 
+		if device.OwnerID != "" {
+			if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ""); err != nil {
+				return err
+			}
+		}
+
 		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, 1); err != nil {
 			return err
 		}
@@ -236,7 +248,36 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return err
 	}
 
+	s.endRemovedDevice(ctx, tenant, device.UID)
+
 	return nil
+}
+
+func (s *service) endRemovedDevice(ctx context.Context, tenantID, uid string) {
+	if err := s.cache.Delete(ctx, deviceAuthCacheKey(uid)); err != nil {
+		log.WithError(err).WithFields(log.Fields{"tenant_id": tenantID, "device_uid": uid}).
+			Warn("failed to invalidate the removed device's authentication cache")
+	}
+
+	fireDeviceRemoved(ctx, tenantID, uid)
+}
+
+func (s *service) MakeTeamDevice(ctx context.Context, tenantID, uid string) error {
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return err
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(uid), err)
+	}
+
+	if device.OwnerID == "" {
+		return nil
+	}
+
+	return s.store.DeviceSetOwner(ctx, sc, uid, "")
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
@@ -294,7 +335,11 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error {
-	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req)); err != nil {
+	return s.updateDeviceStatusOwnedBy(ctx, req, "")
+}
+
+func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.DeviceUpdateStatus, ownerID string) error {
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID)); err != nil {
 		return err
 	}
 
@@ -331,7 +376,7 @@ func (s *service) chargeProvisioningKeyUse(ctx context.Context, tenantID, provis
 	return nil
 }
 
-func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.TransactionCb {
+func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string) store.TransactionCb {
 	return func(ctx context.Context) error {
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
@@ -387,6 +432,10 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
+				if existingMacDevice.OwnerID == "" {
+					ownerID = ""
+				}
+
 				if err := s.mergeDevice(ctx, namespace.TenantID, existingMacDevice, device); err != nil {
 					log.WithError(err).
 						WithFields(log.Fields{"device_uid": device.UID, "existing_device_uid": existingMacDevice.UID, "device_mac": device.Identity.MAC}).
@@ -429,6 +478,12 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			}
 
 			return err
+		}
+
+		if newStatus == models.DeviceStatusAccepted && ownerID != "" {
+			if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ownerID); err != nil {
+				return err
+			}
 		}
 
 		for status, count := range map[models.DeviceStatus]int64{oldStatus: -1, newStatus: 1} {

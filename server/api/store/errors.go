@@ -43,6 +43,9 @@ var (
 	// constructed. It catches a zero-value [scope.Scope] reaching the store, which would otherwise
 	// read as neither bounded nor deliberately unbounded.
 	ErrInvalidScope = errors.New("namespace scope is invalid", ErrLayer, ErrCodeInvalid)
+	// ErrDeviceNotOwned is returned when an operation names a device as owned by a member who
+	// does not own it.
+	ErrDeviceNotOwned = errors.New("device is not owned by the member", ErrLayer, ErrCodeInvalid)
 )
 
 // DuplicateFieldError carries the name of the field that caused a duplicate-key violation.

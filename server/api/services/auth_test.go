@@ -210,7 +210,7 @@ func TestAuthDevice(t *testing.T) {
 				}
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -252,7 +252,7 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice.DisconnectedAt = nil
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -295,7 +295,7 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice.DisconnectedAt = nil
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -348,7 +348,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -409,7 +409,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -511,7 +511,7 @@ func TestAuthDevice(t *testing.T) {
 				}
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -3197,7 +3197,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		expectedDevice.DisconnectedAt = nil
 
 		storeMock.
-			On("DeviceUpdate", ctx, &expectedDevice).
+			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 			Return(nil).
 			Once()
 		storeMock.
@@ -3252,7 +3252,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		expectedDevice.DisconnectedAt = nil
 
 		storeMock.
-			On("DeviceUpdate", ctx, &expectedDevice).
+			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 			Return(nil).
 			Once()
 		storeMock.

@@ -481,3 +481,17 @@ func TestValidateFiltersRejectsAValueTheFieldDoesNotDeclare(t *testing.T) {
 		})
 	}
 }
+
+func TestFieldConstraints_WithUUIDs(t *testing.T) {
+	constraints := NewFieldConstraints(map[string][]string{
+		"owner_id": {"eq"},
+		"name":     {"eq"},
+	}).WithUUIDs("owner_id")
+
+	assert.True(t, constraints.AllowsValue("owner_id", "11111111-1111-4111-8111-111111111111"))
+	assert.False(t, constraints.AllowsValue("owner_id", "not-a-uuid"))
+	assert.False(t, constraints.AllowsValue("owner_id", "urn:uuid:11111111-1111-4111-8111-111111111111"),
+		"a form Postgres rejects must be a 400, not a 500")
+	assert.False(t, constraints.AllowsValue("owner_id", "{11111111-1111-4111-8111-111111111111}"))
+	assert.True(t, constraints.AllowsValue("name", "not-a-uuid"), "a field not declared a uuid takes any string")
+}

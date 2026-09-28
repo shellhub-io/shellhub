@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	testifymock "github.com/stretchr/testify/mock"
 )
 
 func TestUserCreate(t *testing.T) {
@@ -455,9 +456,12 @@ func TestUserDelete(t *testing.T) {
 					AssociatedNamespaces: namespaceMember,
 				}, nil)
 
+				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
 				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000", "20000000-0000-0000-0000-000000000000"}).Return(int64(2), nil).Once()
 				for _, v := range namespaceMember {
-					mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded(v.TenantID), &models.Member{ID: "507f191e810c19729de860ea"}).Return(nil).Once()
+					mock.On("NamespaceDepartMember", ctx, scope.MustBounded(v.TenantID), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(&models.MemberDeparted{}, nil).Once()
 				}
 
 				mock.On("UserDelete", ctx, user).Return(nil).Once()

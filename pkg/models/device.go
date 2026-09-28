@@ -73,6 +73,9 @@ type Device struct {
 	// ProvisioningKeyID is the digest of the provisioning key the device enrolled with (a real key or the
 	// namespace's legacy key). It attributes the device to its enrollment source.
 	ProvisioningKeyID string `json:"provisioning_key_id,omitempty"`
+	// OwnerID is the member who paired the device. The device leaves the namespace when they lose
+	// the ability to accept devices in it. Empty for a team device, which leaves with nobody.
+	OwnerID string `json:"owner_id,omitempty"`
 	// LastEnrollmentAttemptAt is when the enrollment policy was last (re-)evaluated for the device. It
 	// throttles reconciliation of a still-pending enrollment on the agent's periodic AuthDevice. Nil
 	// until the first re-evaluation.
@@ -208,6 +211,7 @@ type DevicePairingAccepted struct {
 	UID       string `json:"uid"`
 	TenantID  string `json:"tenant_id"`
 	Namespace string `json:"namespace"`
+	OwnerID   string `json:"owner_id,omitempty"`
 }
 
 // DeviceIdentity is the hardware identity an agent claims. It feeds the device's UID, so a

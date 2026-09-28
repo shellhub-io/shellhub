@@ -124,7 +124,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrNamespaceRemoveOwner
 	}
 
-	if err = s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
+	if _, err = s.store.NamespaceDepartMember(ctx, scope.MustBounded(ns.TenantID), member.ID, store.MemberDeparture{}); err != nil {
 		return nil, ErrFailedNamespaceRemoveMember
 	}
 

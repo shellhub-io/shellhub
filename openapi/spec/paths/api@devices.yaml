@@ -4,6 +4,10 @@ get:
   description: |-
     List devices.
 
+    **Filtering by owner.** The `owner_id` field takes the ID of a member with the
+    `eq` operator and matches the devices that member paired. A value that is not a
+    UUID is a bad request.
+
     **Deprecated filter field names.** The `filter` parameter still accepts the
     legacy Mongo-style field names `info.platform` and `identity.mac`, which are
     duplicates of `platform` and `mac` respectively. These aliases are kept for

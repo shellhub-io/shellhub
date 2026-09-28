@@ -478,8 +478,16 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
 					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{KeepMembership: true}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				cacheMock.
 					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
@@ -572,8 +580,16 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
 					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{KeepMembership: true}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				cacheMock.
 					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
@@ -699,12 +715,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil, nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -766,12 +778,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil, nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -968,8 +976,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
-					Return(errors.New("error")).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -1004,12 +1012,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil, nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -1046,7 +1050,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "[community|enterprise|cloud] propagates unexpected store error from NamespaceDeleteMembership unchanged",
+			description: "[community|enterprise|cloud] propagates unexpected store error from NamespaceDepartMember unchanged",
 			req: &requests.NamespaceRemoveMember{
 				UserID:   "000000000000000000000000",
 				TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1072,8 +1076,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
-					Return(store.ErrInternal).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(nil, store.ErrInternal).
 					Once()
 			},
 			expected: Expected{
@@ -1108,12 +1112,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleInvalid}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
-					Return(nil, nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000001"}, nil).
 					Once()
 				storeMock.
 					On("SystemGet", ctx).
@@ -1272,8 +1272,8 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
-					Return(errors.New("error")).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
+					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -1304,12 +1304,12 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
-					Return(nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000", APIKeyDigests: []string{"digest-1", "digest-2"}}, nil).
 					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
-					Return([]string{"digest-1", "digest-2"}, nil).
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000").
+					Return(nil).
 					Once()
 				cacheMock.
 					On("Delete", ctx, "api-key/unique-digest={digest-1}").
@@ -1326,7 +1326,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 		},
 		{
-			description: "propagates unexpected store error from NamespaceDeleteMembership unchanged",
+			description: "propagates unexpected store error from NamespaceDepartMember unchanged",
 			req: &requests.LeaveNamespace{
 				UserID:                "000000000000000000000000",
 				TenantID:              "00000000-0000-4000-0000-000000000000",
@@ -1348,8 +1348,8 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
-					Return(store.ErrInternal).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
+					Return(nil, store.ErrInternal).
 					Once()
 			},
 			expected: Expected{
@@ -1402,12 +1402,8 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
-					Return([]string{"digest-1", "digest-2"}, nil).
+					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000", APIKeyDigests: []string{"digest-1", "digest-2"}}, nil).
 					Once()
 				cacheMock.
 					On("Delete", ctx, "api-key/unique-digest={digest-1}").

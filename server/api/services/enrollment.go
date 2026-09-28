@@ -116,7 +116,7 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.Provisioni
 	}
 }
 
-func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration, record bool) models.DeviceStatus {
+func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
 	if record {
 		s.recordEnrollment(ctx, key, req, uid, hostname, reRegistration)
 	}
@@ -128,7 +128,7 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 			UID:      uid,
 			Status:   string(models.DeviceStatusAccepted),
 		}
-		if err := s.UpdateDeviceStatus(ctx, acceptReq); err != nil {
+		if err := s.updateDeviceStatusOwnedBy(ctx, acceptReq, ownerID); err != nil {
 			switch {
 			case errors.Is(err, ErrProvisioningKeyExhausted):
 				log.WithError(err).WithField("device_uid", uid).Warn("provisioning key exhausted; device remains pending")
@@ -185,7 +185,7 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 	now := clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
-	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, uid, hostname, false, false)
+	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, uid, hostname, "", false, false)
 	if status != models.DeviceStatusPending {
 		device.Status = status
 		device.StatusUpdatedAt = clock.Now()

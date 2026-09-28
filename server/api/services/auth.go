@@ -205,10 +205,31 @@ func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey str
 // AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
 // attributes to the namespace's legacy key (see enrollmentProvisioningKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
-	return s.authDevice(ctx, req, false)
+	return s.authDevice(ctx, req, enrollmentOptions{})
 }
 
-func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.DeviceAuthResponse, error) {
+type enrollmentOptions struct {
+	paired  bool
+	ownerID string
+}
+
+func (s *service) enrolledByPairing(ctx context.Context, sc scope.Scope, device *models.Device) (bool, error) {
+	if device.ProvisioningKeyID == "" {
+		return false, nil
+	}
+
+	pairing, err := s.store.ProvisioningKeyResolveSystemPairing(ctx, sc)
+	switch {
+	case errors.Is(err, store.ErrNoDocuments):
+		return false, nil
+	case err != nil:
+		return false, err
+	}
+
+	return pairing.ID == device.ProvisioningKeyID, nil
+}
+
+func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrollment enrollmentOptions) (*models.DeviceAuthResponse, error) {
 	if req.TenantID == "" && req.ProvisioningKey != "" {
 		tenantID, err := s.provisioningKeyTenant(ctx, req.ProvisioningKey)
 		if err != nil {
@@ -253,7 +274,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 	}
 
 	cachedData := make(map[string]string)
-	if err := s.cache.Get(ctx, "auth_device/"+uid, &cachedData); err == nil && cachedData["device_name"] != "" {
+	if err := s.cache.Get(ctx, deviceAuthCacheKey(uid), &cachedData); err == nil && cachedData["device_name"] != "" {
 		resp := &models.DeviceAuthResponse{
 			UID:       uid,
 			Token:     token,
@@ -271,7 +292,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, err
 		}
 
-		provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, paired)
+		provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
 		if err != nil {
 			return nil, err
 		}
@@ -332,8 +353,10 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
 		}
 
-		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, paired), provisioningKey, req, uid, hostname, false, true)
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, uid, hostname, enrollment.ownerID, false, true)
 	} else {
+		revived := device.RemovedAt != nil
+
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
 
@@ -342,7 +365,18 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 
 		if device.RemovedAt != nil {
-			provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, paired)
+			if !enrollment.paired && req.ProvisioningKey == "" {
+				paired, err := s.enrolledByPairing(ctx, sc, device)
+				if err != nil {
+					return nil, err
+				}
+
+				if paired {
+					return nil, NewErrAuthUnathorized(nil)
+				}
+			}
+
+			provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
 			if err != nil {
 				return nil, err
 			}
@@ -367,7 +401,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
 			}
 
-			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, paired)
+			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
 
 			if decision == enrollAccept || decision == enrollReject {
 				if err := s.store.DeviceUpdate(ctx, device); err != nil {
@@ -375,7 +409,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				}
 			}
 
-			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, uid, hostname, true, true)
+			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, uid, hostname, enrollment.ownerID, true, true)
 			if status != models.DeviceStatusPending {
 				device.Status = status
 				device.StatusUpdatedAt = clock.Now()
@@ -394,7 +428,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, device); err != nil {
+		update := s.store.DeviceUpdateUnlessRemoved
+		if revived {
+			update = s.store.DeviceUpdate
+		}
+
+		if err := update(ctx, device); err != nil {
 			log.WithError(err).Error("failed to updated device to online")
 
 			return nil, err
@@ -441,7 +480,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 
 	cachedData["device_name"] = device.Name
 	cachedData["namespace_name"] = namespace.Name
-	if err := s.cache.Set(ctx, "auth_device/"+uid, cachedData, time.Second*30); err != nil {
+	if err := s.cache.Set(ctx, deviceAuthCacheKey(uid), cachedData, time.Second*30); err != nil {
 		log.WithError(err).Warn("cannot store device authentication metadata in cache")
 	}
 
@@ -677,6 +716,10 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}
 
 	return res, nil
+}
+
+func deviceAuthCacheKey(uid string) string {
+	return "auth_device/" + uid
 }
 
 // apiKeyCacheTTL bounds how long AuthAPIKey serves a key from the cache when nothing revokes it first.

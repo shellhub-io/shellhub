@@ -154,6 +154,8 @@ paths:
     $ref: paths/api@devices@{uid}@{status}.yaml
   /api/devices/{uid}/custom_fields/{key}:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
+  /api/devices/{uid}/owner:
+    $ref: paths/api@devices@{uid}@owner.yaml
   /api/devices/enroll/callback/{token}:
     $ref: paths/api@devices@enroll@callback@{token}.yaml
   /api/devices/auth:

@@ -2705,6 +2705,86 @@ func (_c *MockService_DeleteTag_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// DepartNamespaceMember provides a mock function for the type MockService
+func (_mock *MockService) DepartNamespaceMember(ctx context.Context, tenantID string, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
+	ret := _mock.Called(ctx, tenantID, memberID, departure)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DepartNamespaceMember")
+	}
+
+	var r0 *models.MemberDeparted
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, store.MemberDeparture) (*models.MemberDeparted, error)); ok {
+		return returnFunc(ctx, tenantID, memberID, departure)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, store.MemberDeparture) *models.MemberDeparted); ok {
+		r0 = returnFunc(ctx, tenantID, memberID, departure)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.MemberDeparted)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, store.MemberDeparture) error); ok {
+		r1 = returnFunc(ctx, tenantID, memberID, departure)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_DepartNamespaceMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DepartNamespaceMember'
+type MockService_DepartNamespaceMember_Call struct {
+	*mock.Call
+}
+
+// DepartNamespaceMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - memberID string
+//   - departure store.MemberDeparture
+func (_e *MockService_Expecter) DepartNamespaceMember(ctx any, tenantID any, memberID any, departure any) *MockService_DepartNamespaceMember_Call {
+	return &MockService_DepartNamespaceMember_Call{Call: _e.mock.On("DepartNamespaceMember", ctx, tenantID, memberID, departure)}
+}
+
+func (_c *MockService_DepartNamespaceMember_Call) Run(run func(ctx context.Context, tenantID string, memberID string, departure store.MemberDeparture)) *MockService_DepartNamespaceMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 store.MemberDeparture
+		if args[3] != nil {
+			arg3 = args[3].(store.MemberDeparture)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DepartNamespaceMember_Call) Return(memberDeparted *models.MemberDeparted, err error) *MockService_DepartNamespaceMember_Call {
+	_c.Call.Return(memberDeparted, err)
+	return _c
+}
+
+func (_c *MockService_DepartNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, tenantID string, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)) *MockService_DepartNamespaceMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EditNamespace provides a mock function for the type MockService
 func (_mock *MockService) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, req)
@@ -5256,6 +5336,69 @@ func (_c *MockService_LookupDevice_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// MakeTeamDevice provides a mock function for the type MockService
+func (_mock *MockService) MakeTeamDevice(ctx context.Context, tenantID string, uid string) error {
+	ret := _mock.Called(ctx, tenantID, uid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeTeamDevice")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_MakeTeamDevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MakeTeamDevice'
+type MockService_MakeTeamDevice_Call struct {
+	*mock.Call
+}
+
+// MakeTeamDevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - uid string
+func (_e *MockService_Expecter) MakeTeamDevice(ctx any, tenantID any, uid any) *MockService_MakeTeamDevice_Call {
+	return &MockService_MakeTeamDevice_Call{Call: _e.mock.On("MakeTeamDevice", ctx, tenantID, uid)}
+}
+
+func (_c *MockService_MakeTeamDevice_Call) Run(run func(ctx context.Context, tenantID string, uid string)) *MockService_MakeTeamDevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_MakeTeamDevice_Call) Return(err error) *MockService_MakeTeamDevice_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_MakeTeamDevice_Call) RunAndReturn(run func(ctx context.Context, tenantID string, uid string) error) *MockService_MakeTeamDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceHasAccessPolicies provides a mock function for the type MockService
 func (_mock *MockService) NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error) {
 	ret := _mock.Called(ctx, tenantID)
@@ -6657,6 +6800,52 @@ func (_c *MockService_SetDeviceCustomField_Call) Return(err error) *MockService_
 
 func (_c *MockService_SetDeviceCustomField_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeviceSetCustomField) error) *MockService_SetDeviceCustomField_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// SettleMemberDeparture provides a mock function for the type MockService
+func (_mock *MockService) SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted) {
+	_mock.Called(ctx, departed)
+	return
+}
+
+// MockService_SettleMemberDeparture_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SettleMemberDeparture'
+type MockService_SettleMemberDeparture_Call struct {
+	*mock.Call
+}
+
+// SettleMemberDeparture is a helper method to define mock.On call
+//   - ctx context.Context
+//   - departed *models.MemberDeparted
+func (_e *MockService_Expecter) SettleMemberDeparture(ctx any, departed any) *MockService_SettleMemberDeparture_Call {
+	return &MockService_SettleMemberDeparture_Call{Call: _e.mock.On("SettleMemberDeparture", ctx, departed)}
+}
+
+func (_c *MockService_SettleMemberDeparture_Call) Run(run func(ctx context.Context, departed *models.MemberDeparted)) *MockService_SettleMemberDeparture_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.MemberDeparted
+		if args[1] != nil {
+			arg1 = args[1].(*models.MemberDeparted)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_SettleMemberDeparture_Call) Return() *MockService_SettleMemberDeparture_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockService_SettleMemberDeparture_Call) RunAndReturn(run func(ctx context.Context, departed *models.MemberDeparted)) *MockService_SettleMemberDeparture_Call {
+	_c.Run(run)
 	return _c
 }
 

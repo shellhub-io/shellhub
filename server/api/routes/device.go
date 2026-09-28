@@ -23,6 +23,7 @@ const (
 	UpdateDevice               = "/devices/:uid"
 	SetDeviceCustomFieldURL    = "/devices/:uid/custom_fields/:key"
 	DeleteDeviceCustomFieldURL = "/devices/:uid/custom_fields/:key"
+	MakeTeamDeviceURL          = "/devices/:uid/owner"
 )
 
 // The path parameter names these routes bind by.
@@ -289,4 +290,28 @@ func (h *Handler) DeleteDeviceCustomField(c *gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+// MakeTeamDevice clears a device's owner, so it stays in the namespace when the member who paired
+// it leaves.
+func (h *Handler) MakeTeamDevice(c *gateway.Context) error {
+	var req requests.DeviceParam
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	if err := h.service.MakeTeamDevice(c.Ctx(), tenant, req.UID); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

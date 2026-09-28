@@ -111,6 +111,8 @@ paths:
     $ref: paths/api@devices@{uid}@{status}.yaml
   /api/devices/{uid}/custom_fields/{key}:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
+  /api/devices/{uid}/owner:
+    $ref: paths/api@devices@{uid}@owner.yaml
   /api/devices/auth/code:
     $ref: paths/api@devices@auth@code.yaml
   /api/devices/auth/status:
