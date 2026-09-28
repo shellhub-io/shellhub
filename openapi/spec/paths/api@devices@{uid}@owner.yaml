@@ -1,0 +1,28 @@
+delete:
+  operationId: makeTeamDevice
+  summary: Make a paired device a team device
+  description: |
+    Clears the owner of an accepted device, so the device stays in the namespace
+    when the member who paired it leaves or can no longer accept devices. The
+    device stays accepted and connected, and still records that it arrived by
+    pairing. A device that already has no owner is left as it is. There is no
+    way to give a team device an owner again.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+  responses:
+    '204':
+      description: The device is a team device.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

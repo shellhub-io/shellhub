@@ -62,6 +62,10 @@ type DeviceStore interface {
 
 	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, device *models.Device) error
+	// DeviceUpdateUnlessRemoved updates a device the way DeviceUpdate does, but only while it is not
+	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so
+	// writing back a snapshot taken before a removal cannot undo it.
+	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
 	// DeviceHeartbeat updates the last_seen timestamp and sets disconnected_at to nil for multiple devices.
 	// It returns the number of modified devices and an error if any.
 	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (modifiedCount int64, err error)
@@ -75,6 +79,11 @@ type DeviceStore interface {
 	// DeviceDeleteCustomField removes a single custom_fields entry from the device atomically.
 	// It is idempotent: removing a non-existent key is not an error.
 	DeviceDeleteCustomField(ctx context.Context, uid, key string) error
+
+	// DeviceSetOwner ties the device to the member ownerID, or makes it a team device when ownerID
+	// is empty. It returns [ErrNoDocuments] when the scope holds no such device. An owner who is not
+	// a member of the namespace fails when the enclosing transaction commits.
+	DeviceSetOwner(ctx context.Context, sc scope.Scope, uid, ownerID string) error
 
 	DeviceDelete(ctx context.Context, device *models.Device) error
 	// DeviceDeleteMany deletes multiple devices by their UIDs.

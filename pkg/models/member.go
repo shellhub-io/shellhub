@@ -52,3 +52,14 @@ type Member struct {
 	// sign in until an admin approves it.
 	AwaitingApproval bool `json:"awaiting_approval,omitempty"`
 }
+
+// MemberDeparted is what ending a member's standing in a namespace removed from the database,
+// which the caller still has to evict from the tunnels and caches once the transaction commits.
+type MemberDeparted struct {
+	TenantID string
+	MemberID string
+	// RemovedDevices are the UIDs of the devices that left with the member.
+	RemovedDevices []string
+	// APIKeyDigests are the digests of the API keys the member had created in the namespace.
+	APIKeyDigests []string
+}

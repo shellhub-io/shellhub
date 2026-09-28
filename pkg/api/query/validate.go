@@ -1,6 +1,10 @@
 package query
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+)
 
 // Size limits applied to client-supplied filters. Together they bound the
 // cost of serving a malicious filter payload: the outer limit caps the raw
@@ -53,6 +57,7 @@ type FieldConstraints struct {
 	operators    map[string]FieldSet
 	virtualBools FieldSet
 	values       map[string]FieldSet
+	uuids        FieldSet
 }
 
 // NewFieldConstraints returns a FieldConstraints initialized with the given
@@ -112,9 +117,26 @@ func (c FieldConstraints) WithValues(entries map[string][]string) FieldConstrain
 	return c
 }
 
+const canonicalUUIDLength = 36
+
+// WithUUIDs returns a copy of the constraints where each named field accepts only a UUID in its
+// canonical 36-character form under eq and ne. Declare it for a field backed by a uuid column: without it a malformed value reaches the
+// column and Postgres answers a type error the store reports as a 500 rather than a 400.
+func (c FieldConstraints) WithUUIDs(names ...string) FieldConstraints {
+	c.uuids = NewFieldSet(names...)
+
+	return c
+}
+
 // AllowsValue reports whether value is comparable against the given field. It is true for a field
 // that declares no values, so a field carrying free text is unaffected.
 func (c FieldConstraints) AllowsValue(name, value string) bool {
+	if c.uuids.Allows(name) {
+		_, err := uuid.Parse(value)
+
+		return err == nil && len(value) == canonicalUUIDLength
+	}
+
 	allowed, ok := c.values[name]
 	if !ok {
 		return true

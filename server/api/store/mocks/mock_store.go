@@ -2103,6 +2103,75 @@ func (_c *MockStore_DeviceSetCustomField_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// DeviceSetOwner provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceSetOwner(ctx context.Context, sc scope.Scope, uid string, ownerID string) error {
+	ret := _mock.Called(ctx, sc, uid, ownerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceSetOwner")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, string) error); ok {
+		r0 = returnFunc(ctx, sc, uid, ownerID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeviceSetOwner_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceSetOwner'
+type MockStore_DeviceSetOwner_Call struct {
+	*mock.Call
+}
+
+// DeviceSetOwner is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - uid string
+//   - ownerID string
+func (_e *MockStore_Expecter) DeviceSetOwner(ctx any, sc any, uid any, ownerID any) *MockStore_DeviceSetOwner_Call {
+	return &MockStore_DeviceSetOwner_Call{Call: _e.mock.On("DeviceSetOwner", ctx, sc, uid, ownerID)}
+}
+
+func (_c *MockStore_DeviceSetOwner_Call) Run(run func(ctx context.Context, sc scope.Scope, uid string, ownerID string)) *MockStore_DeviceSetOwner_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceSetOwner_Call) Return(err error) *MockStore_DeviceSetOwner_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeviceSetOwner_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid string, ownerID string) error) *MockStore_DeviceSetOwner_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceUpdate provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	ret := _mock.Called(ctx, device)
@@ -2156,6 +2225,63 @@ func (_c *MockStore_DeviceUpdate_Call) Return(err error) *MockStore_DeviceUpdate
 }
 
 func (_c *MockStore_DeviceUpdate_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeviceUpdateUnlessRemoved provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error {
+	ret := _mock.Called(ctx, device)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceUpdateUnlessRemoved")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
+		r0 = returnFunc(ctx, device)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeviceUpdateUnlessRemoved_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceUpdateUnlessRemoved'
+type MockStore_DeviceUpdateUnlessRemoved_Call struct {
+	*mock.Call
+}
+
+// DeviceUpdateUnlessRemoved is a helper method to define mock.On call
+//   - ctx context.Context
+//   - device *models.Device
+func (_e *MockStore_Expecter) DeviceUpdateUnlessRemoved(ctx any, device any) *MockStore_DeviceUpdateUnlessRemoved_Call {
+	return &MockStore_DeviceUpdateUnlessRemoved_Call{Call: _e.mock.On("DeviceUpdateUnlessRemoved", ctx, device)}
+}
+
+func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceUpdateUnlessRemoved_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Device
+		if args[1] != nil {
+			arg1 = args[1].(*models.Device)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) Return(err error) *MockStore_DeviceUpdateUnlessRemoved_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceUpdateUnlessRemoved_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3359,6 +3485,86 @@ func (_c *MockStore_NamespaceDeleteMembership_Call) Return(err error) *MockStore
 }
 
 func (_c *MockStore_NamespaceDeleteMembership_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, member *models.Member) error) *MockStore_NamespaceDeleteMembership_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NamespaceDepartMember provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
+	ret := _mock.Called(ctx, sc, memberID, departure)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceDepartMember")
+	}
+
+	var r0 *models.MemberDeparted
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, store.MemberDeparture) (*models.MemberDeparted, error)); ok {
+		return returnFunc(ctx, sc, memberID, departure)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, store.MemberDeparture) *models.MemberDeparted); ok {
+		r0 = returnFunc(ctx, sc, memberID, departure)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.MemberDeparted)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, string, store.MemberDeparture) error); ok {
+		r1 = returnFunc(ctx, sc, memberID, departure)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NamespaceDepartMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceDepartMember'
+type MockStore_NamespaceDepartMember_Call struct {
+	*mock.Call
+}
+
+// NamespaceDepartMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - memberID string
+//   - departure store.MemberDeparture
+func (_e *MockStore_Expecter) NamespaceDepartMember(ctx any, sc any, memberID any, departure any) *MockStore_NamespaceDepartMember_Call {
+	return &MockStore_NamespaceDepartMember_Call{Call: _e.mock.On("NamespaceDepartMember", ctx, sc, memberID, departure)}
+}
+
+func (_c *MockStore_NamespaceDepartMember_Call) Run(run func(ctx context.Context, sc scope.Scope, memberID string, departure store.MemberDeparture)) *MockStore_NamespaceDepartMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 store.MemberDeparture
+		if args[3] != nil {
+			arg3 = args[3].(store.MemberDeparture)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceDepartMember_Call) Return(memberDeparted *models.MemberDeparted, err error) *MockStore_NamespaceDepartMember_Call {
+	_c.Call.Return(memberDeparted, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceDepartMember_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)) *MockStore_NamespaceDepartMember_Call {
 	_c.Call.Return(run)
 	return _c
 }

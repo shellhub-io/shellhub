@@ -52,6 +52,18 @@ type MemberService interface {
 	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated.
 	// Returns an error, if any.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
+
+	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave,
+	// their API keys are revoked and, unless departure keeps it, their membership is deleted. It
+	// commits that as one unit and then settles it (see SettleMemberDeparture). A caller that must
+	// fold the departure into a transaction of its own calls the store's NamespaceDepartMember and
+	// SettleMemberDeparture instead.
+	DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)
+
+	// SettleMemberDeparture does what a committed departure leaves to the process: it closes the
+	// tunnels of the removed devices, drops their authentication cache, and uncaches the member's
+	// token and API keys. It cannot fail; what it cannot evict ends at the next authentication.
+	SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted)
 }
 
 func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role) (*models.Namespace, *models.Member, error) {
@@ -235,6 +247,10 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return err
 	}
 
+	if err := canKeepDevices(active, req.KeepDevices); err != nil {
+		return err
+	}
+
 	member, ok := namespace.FindMember(req.MemberID)
 	if !ok {
 		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
@@ -256,11 +272,43 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		member.Role = req.MemberRole
 	}
 
-	if err := s.store.NamespaceUpdateMembership(ctx, scope.MustBounded(namespace.TenantID), member); err != nil {
+	sc := scope.MustBounded(namespace.TenantID)
+
+	if member.Role.HasPermission(authorizer.DeviceAccept) {
+		if err := s.store.NamespaceUpdateMembership(ctx, sc, member); err != nil {
+			return err
+		}
+
+		if err := s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID); err != nil {
+			log.WithError(err).WithFields(log.Fields{"tenant_id": namespace.TenantID, "user_id": req.MemberID}).
+				Error("failed to uncache the member's token")
+		}
+
+		return nil
+	}
+
+	var departed *models.MemberDeparted
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		if err := s.store.NamespaceUpdateMembership(ctx, sc, member); err != nil {
+			return err
+		}
+
+		departed, err = s.departMember(ctx, namespace.TenantID, member.ID, store.MemberDeparture{KeepMembership: true, KeepDevices: req.KeepDevices})
+
+		return err
+	}); err != nil {
 		return err
 	}
 
-	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) //nolint:errcheck
+	s.SettleMemberDeparture(ctx, departed)
+
+	return nil
+}
+
+func canKeepDevices(active *models.Member, keep []string) error {
+	if len(keep) > 0 && !active.Role.HasPermission(authorizer.ProvisioningKeyCreate) {
+		return NewErrRoleForbidden()
+	}
 
 	return nil
 }
@@ -284,7 +332,11 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleForbidden()
 	}
 
-	if err := s.removeMember(ctx, namespace, passive); err != nil {
+	if err := canKeepDevices(active, req.KeepDevices); err != nil {
+		return nil, err
+	}
+
+	if _, err := s.DepartNamespaceMember(ctx, namespace.TenantID, passive.ID, store.MemberDeparture{KeepDevices: req.KeepDevices}); err != nil {
 		return nil, err
 	}
 
@@ -293,13 +345,6 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 			WithField("tenant_id", req.TenantID).
 			WithField("user_id", passive.ID).
 			Warn("failed to clean up orphaned member account")
-	}
-
-	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
-		log.WithError(err).
-			WithField("tenant_id", req.TenantID).
-			WithField("user_id", req.UserID).
-			Error("failed to uncache the token")
 	}
 
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
@@ -315,7 +360,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrAuthForbidden()
 	}
 
-	if err := s.removeMember(ctx, ns, member); err != nil {
+	if _, err := s.DepartNamespaceMember(ctx, ns.TenantID, member.ID, store.MemberDeparture{}); err != nil {
 		return nil, err
 	}
 
@@ -335,43 +380,54 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 			Error("failed to reset user's preferred namespace")
 	}
 
-	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
-		log.WithError(err).
-			WithField("tenant_id", req.TenantID).
-			WithField("user_id", req.UserID).
-			Error("failed to uncache the token")
-	}
-
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
-func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member *models.Member) error {
-	if err := s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
-		if errors.Is(err, store.ErrNoDocuments) {
-			return NewErrNamespaceNotFound(ns.TenantID, err)
-		}
-
-		return err
+func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
+	if _, err := BoundTo(tenantID); err != nil {
+		return nil, err
 	}
 
-	digests, err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID)
+	departed, err := s.departMember(ctx, tenantID, memberID, departure)
 	if err != nil {
-		log.WithError(err).
-			WithField("tenant_id", ns.TenantID).
-			WithField("user_id", member.ID).
-			Error("failed to revoke the removed member's API keys")
+		return nil, err
 	}
 
-	for _, digest := range digests {
+	s.SettleMemberDeparture(ctx, departed)
+
+	return departed, nil
+}
+
+func (s *service) departMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
+	departed, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(tenantID), memberID, departure)
+	switch {
+	case errors.Is(err, store.ErrDeviceNotOwned):
+		return nil, NewErrDeviceNotOwned(err)
+	case errors.Is(err, store.ErrNoDocuments):
+		return nil, NewErrNamespaceNotFound(tenantID, err)
+	case err != nil:
+		return nil, err
+	}
+
+	return departed, nil
+}
+
+func (s *service) SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted) {
+	fields := log.Fields{"tenant_id": departed.TenantID, "user_id": departed.MemberID}
+
+	for _, uid := range departed.RemovedDevices {
+		s.endRemovedDevice(ctx, departed.TenantID, uid)
+	}
+
+	if err := s.AuthUncacheToken(ctx, departed.TenantID, departed.MemberID); err != nil {
+		log.WithError(err).WithFields(fields).Error("failed to uncache the departed member's token")
+	}
+
+	for _, digest := range departed.APIKeyDigests {
 		if err := s.cache.Delete(ctx, apiKeyCacheKey(digest)); err != nil {
-			log.WithError(err).
-				WithField("tenant_id", ns.TenantID).
-				WithField("user_id", member.ID).
-				Error("failed to uncache the removed member's API key")
+			log.WithError(err).WithFields(fields).Error("failed to uncache the departed member's API key")
 		}
 	}
-
-	return nil
 }
 
 func (s *service) deleteOrphanedMemberAccount(ctx context.Context, userID string) error {

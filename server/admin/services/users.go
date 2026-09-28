@@ -87,22 +87,23 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		ownedNamespaces[i] = namespace.TenantID
 	}
 
-	if _, err := s.store.NamespaceDeleteMany(ctx, ownedNamespaces); err != nil {
-		return err
-	}
-
-	for _, ns := range userInfo.AssociatedNamespaces {
-		member := &models.Member{ID: user.ID}
-		if err := s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
+	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		if _, err := s.store.NamespaceDeleteMany(ctx, ownedNamespaces); err != nil {
 			return err
 		}
-	}
 
-	if err := s.store.UserDelete(ctx, user); err != nil {
-		return ErrFailedDeleteUser
-	}
+		for _, ns := range userInfo.AssociatedNamespaces {
+			if _, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(ns.TenantID), user.ID, store.MemberDeparture{}); err != nil {
+				return err
+			}
+		}
 
-	return nil
+		if err := s.store.UserDelete(ctx, user); err != nil {
+			return ErrFailedDeleteUser
+		}
+
+		return nil
+	})
 }
 
 // UserUpdate updates a user's data based on the provided username.

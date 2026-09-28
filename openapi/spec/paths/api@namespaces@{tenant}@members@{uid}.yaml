@@ -1,7 +1,11 @@
 delete:
   operationId: removeNamespaceMember
   summary: Remove a member from a namespace
-  description: Remove a member from a namespace.
+  description: |
+    Remove a member from a namespace. The devices the member paired are removed
+    with them and their agents go back to pairing, except the ones named in
+    `keep_devices`, which stay as team devices. The API keys the member created
+    are revoked.
   tags:
     - community
     - namespaces
@@ -10,6 +14,20 @@ delete:
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
     - $ref: ../components/parameters/path/namespaceMemberIDPath.yaml
+    - name: keep_devices
+      in: query
+      description: |
+        UIDs of devices the member paired that stay as team devices. Requires the
+        permission to create provisioning keys. A UID that is not a device the
+        member paired in this namespace is a bad request.
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        maxItems: 100
+        items:
+          $ref: ../components/schemas/deviceUID.yaml
   responses:
     '200':
       description: Success to delete a member from namespace.
@@ -17,6 +35,8 @@ delete:
         application/json:
           schema:
             $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':
@@ -28,7 +48,10 @@ delete:
 patch:
   operationId: updateNamespaceMember
   summary: Update a member from a namespace
-  description: Update a member role from a namespace.
+  description: |
+    Update a member role from a namespace. When the new role cannot accept
+    devices, the devices the member paired are removed and their agents go back
+    to pairing, except the ones named in `keep_devices`.
   tags:
     - community
     - namespaces
@@ -45,9 +68,20 @@ patch:
           properties:
             role:
               $ref: ../components/schemas/namespaceMemberRole.yaml
+            keep_devices:
+              description: |
+                UIDs of devices the member paired that stay as team devices when
+                the new role cannot accept devices. Requires the permission to
+                create provisioning keys.
+              type: array
+              maxItems: 100
+              items:
+                $ref: ../components/schemas/deviceUID.yaml
   responses:
     '200':
       description: Success to update member role from a namespace.
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':

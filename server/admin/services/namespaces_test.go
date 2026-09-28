@@ -579,7 +579,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "operator"}).Return(errors.New("error")).Once()
+				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
 		},
@@ -639,7 +639,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "operator"}).Return(nil).Once()
+				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(&models.MemberDeparted{}, nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

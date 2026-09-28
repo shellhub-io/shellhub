@@ -164,12 +164,26 @@ func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.
 
 // DeviceUpdate implements [store.DeviceStore].
 func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
+	return pg.deviceUpdate(ctx, device, false)
+}
+
+// DeviceUpdateUnlessRemoved implements [store.DeviceStore].
+func (pg *Pg) DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error {
+	return pg.deviceUpdate(ctx, device, true)
+}
+
+func (pg *Pg) deviceUpdate(ctx context.Context, device *models.Device, unlessRemoved bool) error {
 	db := pg.GetConnection(ctx)
 
 	d := entity.DeviceFromModel(device)
 	d.UpdatedAt = clock.Now()
 
-	r, err := db.NewUpdate().Model(d).Where("id = ?", d.ID).Where("namespace_id = ?", d.NamespaceID).Exec(ctx)
+	query := db.NewUpdate().Model(d).Where("id = ?", d.ID).Where("namespace_id = ?", d.NamespaceID)
+	if unlessRemoved {
+		query = query.Where("removed_at IS NULL")
+	}
+
+	r, err := query.Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -380,4 +394,35 @@ func DeviceResolverToString(resolver store.DeviceResolver) (string, error) {
 	default:
 		return "", store.ErrResolverNotFound
 	}
+}
+
+// DeviceSetOwner implements [store.DeviceStore].
+func (pg *Pg) DeviceSetOwner(ctx context.Context, sc scope.Scope, uid, ownerID string) error {
+	db := pg.GetConnection(ctx)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	var owner any
+	if ownerID != "" {
+		owner = ownerID
+	}
+
+	r, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("owner_id = ?", owner).
+		Where("id = ?", uid).
+		Where("namespace_id = ?", tenantID).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }

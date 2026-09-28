@@ -84,6 +84,9 @@ type NamespaceUpdateMember struct {
 	TenantID   string          `param:"tenant" validate:"required,uuid"`
 	MemberID   string          `param:"uid" validate:"required"`
 	MemberRole authorizer.Role `json:"role" validate:"omitempty,member_role"`
+	// KeepDevices names devices the member owns that stay as team devices when the new role
+	// cannot accept devices.
+	KeepDevices []string `json:"keep_devices" validate:"omitempty,max=100,dive,required"`
 }
 
 // NamespaceRemoveMember is the request to remove someone else from a namespace. A member removing
@@ -92,6 +95,8 @@ type NamespaceRemoveMember struct {
 	UserID   string `header:"X-ID" validate:"required"`
 	TenantID string `param:"tenant" validate:"required,uuid"`
 	MemberID string `param:"uid" validate:"required"`
+	// KeepDevices names devices the member owns that stay as team devices instead of leaving.
+	KeepDevices []string `query:"keep_devices" validate:"omitempty,max=100,dive,required"`
 }
 
 // LeaveNamespace is the request to give up one's own membership. It carries both the namespace

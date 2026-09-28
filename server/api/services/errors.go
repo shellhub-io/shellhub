@@ -110,6 +110,7 @@ var (
 	ErrConflictName                    = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInvalidFormat                   = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
+	ErrDeviceNotOwned                  = errors.New("device not owned by the member", ErrLayer, ErrCodeInvalid)
 	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
 	ErrDevicePairingCodeNotFound       = errors.New("device pairing code not found", ErrLayer, ErrCodeNotFound)
 	ErrSSHApprovalCodeNotFound         = errors.New("ssh approval code not found", ErrLayer, ErrCodeNotFound)
@@ -444,6 +445,12 @@ func NewErrDeviceNotFound(id models.UID, next error) error {
 // cases collapse into the same error to avoid leaking the existence of a code.
 func NewErrDeviceLoginCodeNotFound(code string, next error) error {
 	return NewErrNotFound(ErrDeviceLoginCodeNotFound, code, next)
+}
+
+// NewErrDeviceNotOwned returns an error when a request names a device as the member's own and the
+// member does not own it.
+func NewErrDeviceNotOwned(next error) error {
+	return NewErrInvalid(ErrDeviceNotOwned, nil, next)
 }
 
 // NewErrDevicePairingCodeNotFound returns an error when the device pairing code is not

@@ -54,6 +54,11 @@ var Groups = []Group{
 		(*Suite).TestDeviceOffline,
 		(*Suite).TestDeviceDelete,
 		(*Suite).TestDeviceDeleteMany,
+		(*Suite).TestDeviceSetOwner,
+		(*Suite).TestDeviceUpdateDoesNotClobberOwner,
+		(*Suite).TestDeviceListFiltersByOwner,
+		(*Suite).TestDeviceOwnerMustBeAMember,
+		(*Suite).TestDeviceUpdateUnlessRemoved,
 	}},
 	{Name: "SessionStore", Tests: []TestFunc{
 		(*Suite).TestSessionList,
@@ -143,6 +148,7 @@ var Groups = []Group{
 		(*Suite).TestNamespaceCreateMembership,
 		(*Suite).TestNamespaceUpdateMembership,
 		(*Suite).TestNamespaceDeleteMembership,
+		(*Suite).TestNamespaceDepartMember,
 	}},
 	{Name: "MembershipInvitationStore", Tests: []TestFunc{
 		(*Suite).TestMembershipInvitationCreate,

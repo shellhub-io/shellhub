@@ -92,6 +92,13 @@ properties:
       namespace's legacy key). Attributes the device to its registration source.
     type: string
     example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  owner_id:
+    description: |
+      The member who paired the device. The device is removed from the namespace
+      when they leave it or lose the permission to accept devices. Absent for a
+      team device, which stays whoever leaves.
+    type: string
+    format: uuid
   last_enrollment_attempt_at:
     description: |
       When the device's enrollment policy was last re-evaluated. Absent until the first

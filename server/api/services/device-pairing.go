@@ -59,6 +59,10 @@ type DevicePairingService interface {
 	// AcceptDevicePairing materializes the pairing payload as a device in the
 	// chosen namespace and accepts it. The user must be a member of the chosen
 	// namespace with the device accept permission.
+	//
+	// The response carries the surviving device's owner, which is empty only when
+	// the device merged into a team device. It returns an error when the accepted
+	// device cannot be read back, rather than a response that would read as one.
 	AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error)
 }
 
@@ -201,6 +205,12 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 		return nil, NewErrNamespaceNotFound(pairing.PreauthTenantID, err)
 	}
 
+	if minter, ok := namespace.FindMember(pairing.PreauthBy); !ok || !minter.Role.HasPermission(authorizer.DeviceAccept) {
+		_ = s.cache.Delete(ctx, claimRef)
+
+		return nil, NewErrDevicePairingCodeNotFound(code, nil)
+	}
+
 	pairing.Hostname = req.Hostname
 	pairing.PublicKey = req.PublicKey
 
@@ -218,7 +228,7 @@ func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePa
 		}
 	}
 
-	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID)
+	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, pairing.PreauthBy)
 	if err != nil {
 		_ = s.cache.Delete(ctx, claimRef)
 
@@ -290,7 +300,7 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrRoleForbidden()
 	}
 
-	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID)
+	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -304,14 +314,23 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 			Warn("device accepted but failed to store the pairing outcome; the agent will not learn its tenant from this code")
 	}
 
-	return &models.DevicePairingAccepted{
+	accepted := &models.DevicePairingAccepted{
 		UID:       auth.UID,
 		TenantID:  namespace.TenantID,
 		Namespace: namespace.Name,
-	}, nil
+	}
+
+	device, err := s.store.DeviceResolve(ctx, scope.MustBounded(namespace.TenantID), store.DeviceUIDResolver, auth.UID)
+	if err != nil {
+		return nil, err
+	}
+
+	accepted.OwnerID = device.OwnerID
+
+	return accepted, nil
 }
 
-func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairing, tenantID string) (*models.DeviceAuthResponse, error) {
+func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairing, tenantID, ownerID string) (*models.DeviceAuthResponse, error) {
 	authReq := requests.DeviceAuth{
 		Hostname:  pairing.Hostname,
 		PublicKey: pairing.PublicKey,
@@ -332,7 +351,7 @@ func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairin
 		}
 	}
 
-	auth, err := s.authDevice(ctx, authReq, true)
+	auth, err := s.authDevice(ctx, authReq, enrollmentOptions{paired: true, ownerID: ownerID})
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +361,7 @@ func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairin
 		UID:      auth.UID,
 		Status:   string(models.DeviceStatusAccepted),
 	}
-	if err := s.UpdateDeviceStatus(ctx, accept); err != nil && !errors.Is(err, ErrDeviceStatusAccepted) {
+	if err := s.updateDeviceStatusOwnedBy(ctx, accept, ownerID); err != nil && !errors.Is(err, ErrDeviceStatusAccepted) {
 		return nil, err
 	}
 

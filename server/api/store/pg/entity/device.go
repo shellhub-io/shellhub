@@ -42,6 +42,7 @@ type Device struct {
 	Ephemeral         bool              `bun:"ephemeral"`
 	EphemeralTimeout  int               `bun:"ephemeral_timeout"`
 	ProvisioningKeyID string            `bun:"provisioning_key_id,nullzero"`
+	OwnerID           string            `bun:"owner_id,type:uuid,nullzero,skipupdate"`
 
 	LastEnrollmentAttemptAt *time.Time `bun:"last_enrollment_attempt_at,nullzero"`
 
@@ -73,6 +74,7 @@ func DeviceFromModel(model *models.Device) *Device {
 		Ephemeral:         model.Ephemeral,
 		EphemeralTimeout:  model.EphemeralTimeout,
 		ProvisioningKeyID: model.ProvisioningKeyID,
+		OwnerID:           model.OwnerID,
 
 		LastEnrollmentAttemptAt: model.LastEnrollmentAttemptAt,
 
@@ -136,6 +138,7 @@ func DeviceToModel(entity *Device) *models.Device {
 		Ephemeral:         entity.Ephemeral,
 		EphemeralTimeout:  entity.EphemeralTimeout,
 		ProvisioningKeyID: entity.ProvisioningKeyID,
+		OwnerID:           entity.OwnerID,
 
 		LastEnrollmentAttemptAt: entity.LastEnrollmentAttemptAt,
 
