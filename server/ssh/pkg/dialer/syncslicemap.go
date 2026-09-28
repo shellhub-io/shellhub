@@ -84,6 +84,18 @@ func (ssm *SyncSliceMap) Delete(key, value any) int {
 	return len(remaining)
 }
 
+// Drain removes the key and returns every value that was stored under it.
+func (ssm *SyncSliceMap) Drain(key any) []any {
+	ssm.mu.Lock()
+	defer ssm.mu.Unlock()
+
+	drained := ssm.values[key]
+	ssm.total -= len(drained)
+	delete(ssm.values, key)
+
+	return drained
+}
+
 // Size returns the current size of the slice associated with the key.
 func (ssm *SyncSliceMap) Size(key any) int {
 	ssm.mu.RLock()

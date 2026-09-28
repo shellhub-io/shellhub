@@ -123,3 +123,43 @@ func TestManagerReportsTheDeviceOfflineWhenItsLastConnectionGoes(t *testing.T) {
 
 	assert.Equal(t, 0, m.Connections.Size(key))
 }
+
+func TestManagerEvictClosesTheDevicesConnections(t *testing.T) {
+	key := NewKey("tenant", "uid")
+
+	offline := make(chan string, 1)
+
+	m := NewManager()
+	m.DialerDoneCallback = func(key string) { offline <- key }
+
+	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
+	require.NoError(t, m.Bind("other", "uid", newAgentConn(t)))
+
+	stored, ok := m.Connections.Load(key)
+	require.True(t, ok)
+	session, ok := stored.(*yamux.Session)
+	require.True(t, ok)
+
+	m.Evict("tenant", "uid")
+
+	assert.Eventually(t, session.IsClosed, time.Second, 10*time.Millisecond, "an evicted device's tunnel is closed")
+	assert.Equal(t, 0, m.Connections.Size(key))
+	assert.Equal(t, 1, m.Connections.Size(NewKey("other", "uid")), "another device's tunnel is untouched")
+
+	select {
+	case reported := <-offline:
+		assert.Equal(t, key, reported)
+	case <-time.After(time.Second):
+		t.Fatal("the evicted device was never reported offline")
+	}
+
+	assert.Zero(t, m.Stats().Displaced, "an eviction is not a displacement")
+}
+
+func TestManagerEvictOfADeviceWithoutATunnelDoesNothing(t *testing.T) {
+	m := NewManager()
+
+	m.Evict("tenant", "uid")
+
+	assert.Zero(t, m.Stats().Evicted)
+}

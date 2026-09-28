@@ -108,3 +108,17 @@ func TestCollectorCountsDisplacedConnections(t *testing.T) {
 
 	assert.NoError(t, testutil.CollectAndCompare(collector, strings.NewReader(displacedExpositionOf(2)), displacedMetric))
 }
+
+func TestCollectorCountsEvictedConnections(t *testing.T) {
+	m := NewManager()
+	collector := NewCollector(m)
+
+	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
+	m.Evict("tenant", "uid")
+
+	assert.NoError(t, testutil.CollectAndCompare(collector, strings.NewReader(`
+		# HELP shellhub_ssh_dialer_connections_evicted_total Reverse connections closed because their device was removed. Counted per server process; sum() across replicas for a fleet total.
+		# TYPE shellhub_ssh_dialer_connections_evicted_total counter
+		shellhub_ssh_dialer_connections_evicted_total 1
+	`), "shellhub_ssh_dialer_connections_evicted_total"))
+}
