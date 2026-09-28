@@ -36,7 +36,7 @@ func TestListSSHIdentitiesScopesByPermission(t *testing.T) {
 			svcMock := servicemock.NewMockService(t)
 			svcMock.On("ListSSHIdentities", mock.Anything, mock.MatchedBy(func(req *requests.SSHIdentityList) bool {
 				return req.AllPrincipals == tc.expectedAll && req.UserID == userID && req.TenantID == tenantID
-			})).Return([]models.SSHIdentity{}, nil).Once()
+			})).Return([]models.SSHIdentity{}, 0, nil).Once()
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.url, nil)
 			req.Header.Set("X-ID", userID)

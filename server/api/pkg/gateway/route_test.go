@@ -2,12 +2,16 @@ package gateway_test
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
@@ -23,6 +27,7 @@ type probeRequest struct {
 	Name  string `query:"name" validate:"omitempty,min=3"`
 	query.Paginator
 	query.Sorter
+	query.Filters
 }
 
 type probeCall struct {
@@ -371,4 +376,136 @@ func TestDeclarationsRecordEveryClaim(t *testing.T) {
 	}
 
 	assert.True(t, found, "the wrapper recorded no declaration for the probe route")
+}
+
+// TestListHoldsTheQueryToTheContractItsRegistrationNamed drives the contract mechanism once,
+// through a mounted route: the wrapper is what decodes the filter and refuses a field the
+// resource does not allow, so no handler opens with a validation preamble.
+func TestListHoldsTheQueryToTheContractItsRegistrationNamed(t *testing.T) {
+	contract := query.Contract{
+		Filter:      query.NewFieldConstraints(map[string][]string{"name": {"contains"}}),
+		Sort:        query.NewFieldSet("name", "created_at"),
+		DefaultSort: query.Sorter{By: "created_at", Order: query.OrderAsc},
+	}
+
+	cases := []struct {
+		description    string
+		target         string
+		expectedStatus int
+		expectedFields map[string]string
+		assert         func(*testing.T, *probeCall)
+	}{
+		{
+			description:    "refuses a filter naming a field the contract does not allow",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "signature", "contains"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is not valid"},
+		},
+		{
+			description:    "refuses a filter naming an operator the contract does not allow",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "name", "eq"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is not valid"},
+		},
+		{
+			description:    "refuses a filter that is not base64",
+			target:         "/probe?filter=not-base64!!",
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "cannot be decoded"},
+		},
+		{
+			description:    "refuses a filter larger than the cap",
+			target:         "/probe?filter=" + strings.Repeat("A", query.MaxFilterRawBytes+1),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "cannot be decoded"},
+		},
+		{
+			description:    "refuses a sort naming a field the contract does not allow",
+			target:         "/probe?sort_by=secret",
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"sort_by": "secret"},
+		},
+		{
+			description:    "hands the handler a decoded filter, a normalized page and the contract's default sort",
+			target:         "/probe?page=0&per_page=999&filter=" + encodeProbeFilter(t, "name", "contains"),
+			expectedStatus: http.StatusOK,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				require.Len(t, call.req.Filters.Data, 1)
+				assert.Equal(t, &query.FilterProperty{Name: "name", Operator: "contains", Value: "value"}, call.req.Filters.Data[0].Params)
+				assert.Equal(t, query.MinPage, call.req.Paginator.Page)
+				assert.Equal(t, query.MaxPerPage, call.req.Paginator.PerPage)
+				assert.Equal(t, "created_at", call.req.Sorter.By)
+				assert.Equal(t, query.OrderAsc, call.req.Sorter.Order)
+			},
+		},
+		{
+			description:    "leaves a sort the client asked for alone when the contract allows it",
+			target:         "/probe?sort_by=name&order_by=asc",
+			expectedStatus: http.StatusOK,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, "name", call.req.Sorter.By)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			call := new(probeCall)
+
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)), gateway.Accepts(contract))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
+			req.Header.Set("X-Tenant-ID", probeTenant)
+			req.Header.Set("X-ID", "user-id")
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, tc.expectedStatus, rec.Code, rec.Body.String())
+			require.Equal(t, tc.expectedStatus == http.StatusOK, call.called)
+
+			if tc.expectedFields != nil {
+				var body responses.Error
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+				assert.Equal(t, tc.expectedFields, body.Fields)
+			}
+
+			if tc.assert != nil {
+				tc.assert(t, call)
+			}
+		})
+	}
+}
+
+// TestAcceptsRecordsTheContractOnTheDeclaration is what the route table's invariant reads: a claim
+// the wrapper enforces still has to be visible to an audit of the declarations.
+func TestAcceptsRecordsTheContractOnTheDeclaration(t *testing.T) {
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/accepting", gateway.List(probeHandler(new(probeCall), nil, 0, nil)),
+		gateway.Accepts(query.Contract{Sort: query.NewFieldSet("name")}))
+	gateway.GET(rootOf(e), "/silent", gateway.List(probeHandler(new(probeCall), nil, 0, nil)))
+
+	accepts := make(map[string]bool)
+	for _, declaration := range gateway.Declarations(e) {
+		accepts[declaration.Path] = declaration.AcceptsQuery
+	}
+
+	assert.True(t, accepts["/accepting"])
+	assert.False(t, accepts["/silent"])
+}
+
+func encodeProbeFilter(t *testing.T, name, operator string) string {
+	t.Helper()
+
+	encoded, err := json.Marshal([]query.Filter{
+		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: name, Operator: operator, Value: "value"}},
+	})
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(encoded)
 }

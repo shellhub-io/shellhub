@@ -152,12 +152,8 @@ func prepare[T any](c *echo.Context, declaration Declaration) (inputs[T], error)
 		return inputs[T]{}, err
 	}
 
-	if paginated, ok := any(req).(query.Paginated); ok {
-		paginated.GetPaginator().Normalize()
-	}
-
-	if sorted, ok := any(req).(query.Sorted); ok {
-		sorted.GetSorter().Normalize()
+	if err := applyQuery(req, declaration); err != nil {
+		return inputs[T]{}, err
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -175,6 +171,42 @@ func prepare[T any](c *echo.Context, declaration Declaration) (inputs[T], error)
 	}
 
 	return inputs[T]{ctx: gCtx.Ctx(), scope: sc, actor: actor, req: req}, nil
+}
+
+func applyQuery[T any](req *T, declaration Declaration) error {
+	if paginated, ok := any(req).(query.Paginated); ok {
+		paginated.GetPaginator().Normalize()
+	}
+
+	sorted, sorts := any(req).(query.Sorted)
+	if sorts {
+		declaration.Query.NormalizeSorter(sorted.GetSorter())
+	}
+
+	if !declaration.AcceptsQuery {
+		return nil
+	}
+
+	if filtered, ok := any(req).(query.Filtered); ok {
+		filters := filtered.GetFilters()
+
+		if err := filters.Unmarshal(); err != nil {
+			return routes.NewErrInvalidEntity(map[string]string{"filter": "cannot be decoded"})
+		}
+
+		if err := query.ValidateFilters(filters, declaration.Query.Filter); err != nil {
+			return routes.NewErrInvalidEntity(map[string]string{"filter": "is not valid"})
+		}
+	}
+
+	if sorts {
+		sorter := sorted.GetSorter()
+		if err := query.ValidateSorter(sorter, declaration.Query.Sort); err != nil {
+			return routes.NewErrInvalidEntity(map[string]string{"sort_by": sorter.By})
+		}
+	}
+
+	return nil
 }
 
 // RouteOption states one claim a route's registration makes, and returns the guard that enforces
@@ -230,6 +262,20 @@ func NoAPIKey() RouteOption {
 	}
 }
 
+// Accepts declares the query contract a list route holds a client's filter and sort to, and
+// installs no guard: the wrapper enforces it, before the handler is called and in one fixed order.
+//
+// A resource that accepts neither a filter nor a sort names a contract allowing nothing rather than
+// leaving the option off, because an omission cannot be told from a forgotten one — which is the
+// failure the route table's invariant exists to catch.
+func Accepts(contract query.Contract) RouteOption {
+	return func(d *Declaration) echo.MiddlewareFunc {
+		d.Query, d.AcceptsQuery = contract, true
+
+		return nil
+	}
+}
+
 // Guard installs a middleware the declaration says nothing about. It is what the guards that are
 // not claims — the tenant check, the legacy authorize middleware — are written with, and it runs
 // in the position it is written in, among the guards the other options install.
@@ -264,6 +310,12 @@ type Declaration struct {
 	// refusal is about the credential and not the authority: a key carrying a role that holds the
 	// route's permission is refused all the same.
 	BlocksAPIKey bool
+
+	// Query is the filter and sort fields the route accepts from a client, and the order it serves
+	// when the client names none. The zero value accepts neither, so AcceptsQuery is what tells a
+	// route deliberately taking no query from one that named no contract at all.
+	Query        query.Contract
+	AcceptsQuery bool
 
 	Unbounded       bool
 	UnboundedReason string

@@ -1,15 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	log "github.com/sirupsen/logrus"
 )
 
 // The session routes, relative to the API's base path.
@@ -24,42 +22,8 @@ const (
 )
 
 // GetSessionList serves the namespace's sessions, filtered and paginated as requested.
-func (h *Handler) GetSessionList(c *gateway.Context) error {
-	req := new(requests.ListSessions)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode session list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.SessionFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	sc, err := c.AdminOrScope()
-	if err != nil {
-		return err
-	}
-
-	sessions, count, err := h.service.ListSessions(c.Ctx(), sc, req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, sessions)
+func (h *Handler) GetSessionList(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.ListSessions) ([]models.Session, int, error) {
+	return h.service.ListSessions(ctx, sc, req)
 }
 
 // GetSession serves one session by UID.

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -42,6 +43,10 @@ func sshIdentityExpiry(days *int) *time.Time {
 	return &at
 }
 
+// SSHIdentityQuery is the query contract the SSH identity list accepts, which is nothing: what the
+// list serves is chosen by the all flag and the caller's permission, not by a filter or a sort.
+var SSHIdentityQuery = query.Contract{}
+
 // SSHIdentityService owns the enrolled public keys that identify a person to a device, as
 // opposed to the namespace-wide keys in [SSHKeysService].
 type SSHIdentityService interface {
@@ -57,12 +62,13 @@ type SSHIdentityService interface {
 	ConsumeSSHIdentity(ctx context.Context, tenantID, fingerprint string) (bool, error)
 
 	// ListSSHIdentities returns the caller's own enrolled identities, or every
-	// member's when req.AllPrincipals is set. The handler sets AllPrincipals from
+	// member's when req.AllPrincipals is set, and the size of the whole collection
+	// as the store counted it. The handler sets AllPrincipals from
 	// SSHIdentityManage; nothing here checks permissions.
 	//
 	// It lists people only. A credential an API key owns is read through that key, at
 	// ListAPIKeySSHIdentities, so this listing never mixes a person with an automation.
-	ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error)
+	ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, int, error)
 
 	// CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the
 	// caller and returns the stored identity.
@@ -189,10 +195,10 @@ func (s *service) persistSSHIdentity(ctx context.Context, identity *models.SSHId
 	return s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityIDResolver, id)
 }
 
-func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error) {
+func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, int, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	opts := []store.QueryOption{s.store.Options().WithoutAPIKeyOwner()}
@@ -200,12 +206,12 @@ func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdenti
 		opts = append(opts, s.store.Options().WithUserID(req.UserID))
 	}
 
-	identities, _, err := s.store.SSHIdentityList(ctx, sc, opts...)
+	identities, count, err := s.store.SSHIdentityList(ctx, sc, opts...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return identities, nil
+	return identities, count, nil
 }
 
 func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error) {

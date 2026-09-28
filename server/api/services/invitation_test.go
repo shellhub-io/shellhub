@@ -426,7 +426,7 @@ func TestService_UserMembershipInvitationList(t *testing.T) {
 
 	type Expected struct {
 		invitations []responses.MembershipInvitation
-		count       int64
+		count       int
 		err         error
 	}
 
@@ -503,7 +503,7 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 
 	type Expected struct {
 		invitations []responses.MembershipInvitation
-		count       int64
+		count       int
 		err         error
 	}
 

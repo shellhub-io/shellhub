@@ -15,21 +15,26 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// NamespaceFilterFields maps each filter field the namespace list endpoint accepts
-// to the set of operators valid for it. The "type" field maps to the "scope" column
-// in the database (see namespaceFilterColumns) and only supports equality operators
-// because it is an enum column. It declares the values it accepts for the same reason,
-// and declares them as the types the API names rather than the scopes the column stores,
-// because the rewrite to the column happens after validation.
-var NamespaceFilterFields = query.NewFieldConstraints(map[string][]string{
-	"name": {"contains", "eq", "ne"},
-	"type": {"eq", "ne"},
-}).WithValues(map[string][]string{
-	"type": {
-		string(models.TypePersonal),
-		string(models.TypeTeam),
-	},
-})
+// NamespaceQuery is the query contract the namespace list accepts. The "type" field maps to the
+// "scope" column in the database (see namespaceFilterColumns) and only supports equality operators
+// because it is an enum column. It declares the values it accepts for the same reason, and declares
+// them as the types the API names rather than the scopes the column stores, because the rewrite to
+// the column happens after validation. The list takes no sort.
+var NamespaceQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"name": {"contains", "eq", "ne"},
+		"type": {"eq", "ne"},
+	}).WithValues(map[string][]string{
+		"type": {
+			string(models.TypePersonal),
+			string(models.TypeTeam),
+		},
+	}),
+}
+
+// MemberQuery is the query contract the namespace member list accepts, which is nothing: the list
+// pages through a namespace's members and offers neither a filter nor a sort.
+var MemberQuery = query.Contract{}
 
 var namespaceFilterColumns = map[string]string{
 	"type": "scope",

@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
@@ -21,32 +23,16 @@ const (
 // ListSSHIdentities returns the SSH identities the caller may see in the current namespace:
 // their own, or every member's when they hold SSHIdentityManage, which is what offboarding
 // needs. The scope is not a parameter, so a caller cannot ask for one they do not hold.
-func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
-	req := new(requests.SSHIdentityList)
-	if err := c.Bind(req); err != nil {
-		return err
+func (h *Handler) ListSSHIdentities(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *requests.SSHIdentityList) ([]models.SSHIdentity, int, error) {
+	if actor.ID == "" {
+		return nil, 0, errs.NewErrUnauthorized(nil)
 	}
 
-	userID, ok := c.GetID()
-	if !ok {
-		return errs.NewErrUnauthorized(nil)
-	}
+	req.UserID = actor.ID
+	req.TenantID = sc.TenantID()
+	req.AllPrincipals = gateway.RoleFromContext(ctx).HasPermission(authorizer.SSHIdentityManage)
 
-	req.UserID = userID
-	if c.Tenant() != nil {
-		req.TenantID = c.Tenant().ID
-	}
-
-	req.AllPrincipals = c.Role().HasPermission(authorizer.SSHIdentityManage)
-
-	list, err := h.service.ListSSHIdentities(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(len(list)))
-
-	return c.JSON(http.StatusOK, list)
+	return h.service.ListSSHIdentities(ctx, req)
 }
 
 // CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the caller.

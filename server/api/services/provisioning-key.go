@@ -27,29 +27,35 @@ const (
 	provisioningKeyMaxEphemeralTimeout = 10
 )
 
-// ProvisioningKeySortFields is the set of field names accepted in the sort_by query parameter when
-// listing provisioning keys. The row also holds the key ciphertext and the webhook signing secret,
-// neither of which the response carries and neither of which a sort must order by.
-var ProvisioningKeySortFields = query.NewFieldSet(
-	"name",
-	"mode",
-	"type",
-	"used_times",
-	"last_used_at",
-	"created_at",
-	"updated_at",
-	"expires_at",
-)
+// ProvisioningKeyQuery is the query contract the provisioning key list accepts. The row also holds
+// the key ciphertext and the webhook signing secret, neither of which the response carries and
+// neither of which a sort must order by.
+var ProvisioningKeyQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"name",
+		"mode",
+		"type",
+		"used_times",
+		"last_used_at",
+		"created_at",
+		"updated_at",
+		"expires_at",
+	),
+	DefaultSort: query.Sorter{By: "created_at", Order: query.OrderDesc},
+}
 
-// ProvisioningKeyEventSortFields is the set of field names accepted in the sort_by query parameter
-// when listing a provisioning key's history.
-var ProvisioningKeyEventSortFields = query.NewFieldSet(
-	"hostname",
-	"source_ip",
-	"decided_status",
-	"decided_at",
-	"created_at",
-)
+// ProvisioningKeyEventQuery is the query contract a provisioning key's history accepts. The history
+// takes no filter, and the row holds nothing the response omits.
+var ProvisioningKeyEventQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"hostname",
+		"source_ip",
+		"decided_status",
+		"decided_at",
+		"created_at",
+	),
+	DefaultSort: query.Sorter{By: "created_at", Order: query.OrderDesc},
+}
 
 func provisioningKeyExpiry(days *int) *time.Time {
 	if days == nil {

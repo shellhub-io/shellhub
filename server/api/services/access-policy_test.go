@@ -1154,7 +1154,7 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-	policies, err := service.ListAccessPolicies(ctx, tenantID)
+	policies, _, err := service.ListAccessPolicies(ctx, tenantID)
 	require.NoError(t, err)
 
 	matches := make(map[string]bool, len(policies))
@@ -1378,4 +1378,29 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 		assert.False(t, decision.Allowed)
 		assert.Equal(t, models.ReasonKeyExpired, decision.Reason)
 	})
+}
+
+// TestListAccessPoliciesCarriesTheStoreCount pins the count the header is written from as the
+// store's, not the page's. The mock returns a count that disagrees with the slice length, which is
+// the only way to tell one from the other while the list is unpaginated.
+func TestListAccessPoliciesCarriesTheStoreCount(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	storeMock := new(storemock.MockStore)
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID}, nil).Once()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Once()
+	storeMock.On("AccessPolicyList", ctx, mock.Anything).
+		Return([]models.AccessPolicy{{ID: "policy1"}}, 7, nil).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, nil)
+
+	policies, count, err := service.ListAccessPolicies(ctx, tenantID)
+	require.NoError(t, err)
+	require.Len(t, policies, 1)
+	require.Equal(t, 7, count)
+
+	storeMock.AssertExpectations(t)
 }

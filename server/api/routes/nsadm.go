@@ -1,16 +1,15 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	log "github.com/sirupsen/logrus"
 )
 
 // The namespace and membership routes, relative to the API's base path.
@@ -36,37 +35,13 @@ const (
 )
 
 // GetNamespaceList serves the namespaces the caller belongs to.
-func (h *Handler) GetNamespaceList(c *gateway.Context) error {
-	req := new(requests.NamespaceList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Normalize()
-
-	if err := req.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.NamespaceFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), req)
+func (h *Handler) GetNamespaceList(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.NamespaceList) ([]responses.Namespace, int, error) {
+	namespaces, count, err := h.service.ListNamespaces(ctx, req)
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, responses.NamespacesFromModel(namespaces))
+	return responses.NamespacesFromModel(namespaces), count, nil
 }
 
 // CreateNamespace creates a namespace owned by the caller.
@@ -124,27 +99,8 @@ func (h *Handler) GetNamespace(c *gateway.Context) error {
 }
 
 // ListNamespaceMembers serves who belongs to a namespace and in what role.
-func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
-	req := new(requests.MemberList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	members, count, err := h.service.ListNamespaceMembers(c.Ctx(), req)
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, members)
+func (h *Handler) ListNamespaceMembers(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.MemberList) ([]models.MemberView, int, error) {
+	return h.service.ListNamespaceMembers(ctx, req)
 }
 
 // DeleteNamespace removes a namespace and everything scoped to it.
