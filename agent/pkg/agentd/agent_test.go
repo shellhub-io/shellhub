@@ -1,7 +1,9 @@
 package agentd
 
 import (
+	"math/rand/v2"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
@@ -525,4 +527,53 @@ func TestAgentAuthorizeRequiresANamespaceCredential(t *testing.T) {
 	agent := &Agent{config: &Config{}}
 
 	assert.Equal(t, ErrAuthorizeNoNamespaceCredential, agent.Authorize())
+}
+
+func TestNextPingInterval(t *testing.T) {
+	tests := []struct {
+		description string
+		base        time.Duration
+		lowest      time.Duration
+		highest     time.Duration
+	}{
+		{
+			description: "spreads the default interval between 8 and 12 minutes",
+			base:        10 * time.Minute,
+			lowest:      8 * time.Minute,
+			highest:     12 * time.Minute,
+		},
+		{
+			description: "spreads a custom interval by the same proportion",
+			base:        time.Minute,
+			lowest:      48 * time.Second,
+			highest:     72 * time.Second,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			rng := rand.New(rand.NewPCG(1, 2)) //nolint:gosec // a fixed seed keeps the draws repeatable
+
+			const draws = 10000
+			var sum time.Duration
+			var below, above int
+			for range draws {
+				interval := nextPingInterval(tt.base, rng)
+
+				require.GreaterOrEqual(t, interval, tt.lowest)
+				require.LessOrEqual(t, interval, tt.highest)
+
+				sum += interval
+				if interval < tt.base {
+					below++
+				} else if interval > tt.base {
+					above++
+				}
+			}
+
+			assert.Positive(t, below)
+			assert.Positive(t, above)
+			assert.InDelta(t, float64(tt.base), float64(sum/draws), float64(tt.base)/100)
+		})
+	}
 }
