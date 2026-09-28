@@ -100,3 +100,24 @@ func TestUnpairRefusesATenantFromTheEnvironment(t *testing.T) {
 	require.ErrorIs(t, ag.Unpair(), ErrTenantFromEnvironment)
 	assert.Equal(t, "00000000-0000-4000-0000-000000000000", ag.config.TenantID)
 }
+
+func TestTheTenantCanBeReadWhilePairingSetsIt(t *testing.T) {
+	ag := removalTestAgent(t, client_mocks.NewMockClient(t), "")
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+
+		for range 100 {
+			ag.CredentialFields()
+			_, _ = ag.buildDeviceAuth()
+		}
+	}()
+
+	for range 100 {
+		ag.SetTenantID("00000000-0000-4000-0000-000000000000")
+		require.NoError(t, ag.Unpair())
+	}
+
+	<-done
+}

@@ -163,6 +163,47 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.ProvisioningKey != ""
 }
 
+func (c *Config) usesProvisioningKey() bool {
+	return c.TenantID == "" && c.ProvisioningKey != ""
+}
+
+func (c *Config) credential() string {
+	if c.usesProvisioningKey() {
+		return "the provisioning key"
+	}
+
+	if c.TenantID == "" {
+		return "no namespace credential"
+	}
+
+	switch c.TenantOrigin {
+	case TenantFromEnvironment:
+		return fmt.Sprintf("the tenant %s from SHELLHUB_TENANT_ID", c.TenantID)
+	case TenantFromFile:
+		return fmt.Sprintf("the tenant %s persisted at %s", c.TenantID, TenantFilePath(c.PrivateKey))
+	case TenantFromPairing:
+		return fmt.Sprintf("the tenant %s learned from pairing", c.TenantID)
+	default:
+		return "the tenant " + c.TenantID
+	}
+}
+
+// CredentialFields returns the log fields that name the tenant a device enrolls with: tenant_id and
+// tenant_origin, plus tenant_file when the tenant was read from the persisted file. The agent's
+// client logs them on every retry, so a line about the same refusal uses the same names.
+func (c *Config) CredentialFields() log.Fields {
+	fields := log.Fields{
+		"tenant_id":     c.TenantID,
+		"tenant_origin": c.TenantOrigin,
+	}
+
+	if c.TenantOrigin == TenantFromFile {
+		fields["tenant_file"] = TenantFilePath(c.PrivateKey)
+	}
+
+	return fields
+}
+
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
 // variables, falling back to the .env file next to the binary when one is present.
 //
@@ -227,6 +268,7 @@ type Agent struct {
 	listener   atomic.Pointer[net.Listener]
 	logger     *log.Entry
 	authMu     sync.Mutex
+	tenantMu   sync.RWMutex
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -317,7 +359,11 @@ func (a *Agent) Initialize() error {
 func (a *Agent) Setup() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
+	a.cli, err = client.NewClient(
+		a.config.ServerAddress,
+		client.WithVersion(a.config.Version),
+		client.WithLogFields(a.CredentialFields),
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -361,12 +407,18 @@ func (a *Agent) Authorize() error {
 			return err
 		}
 
-		return errors.Wrap(err, "failed to authorize device")
+		if a.config.ProvisioningKey != "" && errors.Is(err, client.ErrBadRequest) {
+			return errors.Wrap(err, "the server did not accept the device, most likely because of the provisioning key")
+		}
+
+		return errors.Wrap(err, "failed to authorize device with "+a.config.credential())
 	}
 
+	a.tenantMu.Lock()
 	if a.config.TenantID == "" {
 		a.config.TenantID = a.authData.TenantID
 	}
+	a.tenantMu.Unlock()
 
 	a.closed.Store(false)
 
@@ -384,9 +436,21 @@ func (a *Agent) Authorize() error {
 	return nil
 }
 
+// CredentialFields returns [Config.CredentialFields] read under the lock that pairing and removal
+// take to change the tenant, so it is safe to call from any goroutine.
+func (a *Agent) CredentialFields() log.Fields {
+	a.tenantMu.RLock()
+	defer a.tenantMu.RUnlock()
+
+	return a.config.CredentialFields()
+}
+
 // SetTenantID injects the tenant learned from a pairing so the agent can be authorized, and
 // attributes it to that pairing so [Agent.Unpair] may forget it.
 func (a *Agent) SetTenantID(tenant string) {
+	a.tenantMu.Lock()
+	defer a.tenantMu.Unlock()
+
 	a.config.TenantID = tenant
 	a.config.TenantOrigin = TenantFromPairing
 }
@@ -395,6 +459,9 @@ func (a *Agent) SetTenantID(tenant string) {
 // agent can pair again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
 // was configured instead, because the agent would only learn it again on its next start.
 func (a *Agent) Unpair() error {
+	a.tenantMu.Lock()
+	defer a.tenantMu.Unlock()
+
 	if a.config.TenantOrigin != TenantFromFile && a.config.TenantOrigin != TenantFromPairing {
 		return ErrTenantFromEnvironment
 	}
@@ -501,10 +568,14 @@ func (a *Agent) probeServerInfo() error {
 var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
 
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
+	a.tenantMu.RLock()
+	tenant := a.config.TenantID
+	a.tenantMu.RUnlock()
+
 	auth := &models.DeviceAuth{
 		Hostname:        a.config.PreferredHostname,
 		Identity:        a.Identity,
-		TenantID:        a.config.TenantID,
+		TenantID:        tenant,
 		PublicKey:       string(keygen.EncodePublicKeyToPem(a.pubKey)),
 		ProvisioningKey: a.config.ProvisioningKey,
 	}

@@ -53,6 +53,7 @@ type client struct {
 	http      *resty.Client
 	logger    *log.Logger
 	logEntry  *log.Entry
+	logFields func() log.Fields
 	retryWait func() time.Duration
 	reverser  reverser.Reverser
 }
@@ -127,11 +128,11 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 		switch {
 		case r.StatusCode() == 0:
-			connectivity.Lost(client.logEntry, r.Request.Attempt, err)
+			connectivity.Lost(client.entry(), r.Request.Attempt, err)
 		case serverAtFault(r.StatusCode()):
-			connectivity.Lost(client.logEntry, r.Request.Attempt, answer(r))
+			connectivity.Lost(client.entry(), r.Request.Attempt, answer(r))
 		default:
-			connectivity.Refused(client.logEntry, r.Request.Attempt, answer(r))
+			connectivity.Refused(client.entry(), r.Request.Attempt, answer(r))
 		}
 	})
 	client.http.OnSuccess(func(_ *resty.Client, r *resty.Response) {
@@ -139,7 +140,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return
 		}
 
-		connectivity.Recovered(client.logEntry, r.Request.Attempt, since(r))
+		connectivity.Recovered(client.entry(), r.Request.Attempt, since(r))
 	})
 	client.http.SetRetryAfter(func(_ *resty.Client, r *resty.Response) (time.Duration, error) {
 		switch r.StatusCode() {
@@ -178,6 +179,14 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.logEntry = client.logger.WithField("server_address", uri.String())
 
 	return client, nil
+}
+
+func (c *client) entry() *log.Entry {
+	if c.logFields == nil {
+		return c.logEntry
+	}
+
+	return c.logEntry.WithFields(c.logFields())
 }
 
 func serverAtFault(status int) bool {

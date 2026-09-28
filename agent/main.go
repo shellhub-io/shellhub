@@ -89,16 +89,16 @@ func main() {
 
 			ag, err := agentd.NewAgentWithConfig(cfg, new(agentd.HostMode))
 			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
+				log.WithError(err).WithFields(cfg.CredentialFields()).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
 				}).Fatal("Failed to create agent")
 			}
 
 			if err := ag.Setup(); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
+				log.WithError(err).WithFields(cfg.CredentialFields()).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
 				}).Fatal("Failed to initialize agent")
 			}
 
@@ -109,10 +109,9 @@ func main() {
 					for {
 						nextVersion, err := ag.CheckUpdate()
 						if err != nil {
-							log.WithError(err).WithFields(log.Fields{
+							log.WithError(err).WithFields(ag.CredentialFields()).WithFields(log.Fields{
 								"version":            AgentVersion,
 								"mode":               mode,
-								"tenant_id":          cfg.TenantID,
 								"server_address":     cfg.ServerAddress,
 								"preferred_hostname": cfg.PreferredHostname,
 							}).Error("Failed to check update")
@@ -122,30 +121,27 @@ func main() {
 
 						if nextVersion.GreaterThan(currentVersion) {
 							if err := updater.ApplyUpdate(nextVersion); err != nil {
-								log.WithError(err).WithFields(log.Fields{
+								log.WithError(err).WithFields(ag.CredentialFields()).WithFields(log.Fields{
 									"version":            AgentVersion,
 									"mode":               mode,
-									"tenant_id":          cfg.TenantID,
 									"server_address":     cfg.ServerAddress,
 									"preferred_hostname": cfg.PreferredHostname,
 								}).Error("Failed to apply update")
 							}
 
-							log.WithFields(log.Fields{
+							log.WithFields(ag.CredentialFields()).WithFields(log.Fields{
 								"version":            currentVersion,
 								"next_version":       nextVersion.String(),
 								"mode":               mode,
-								"tenant_id":          cfg.TenantID,
 								"server_address":     cfg.ServerAddress,
 								"preferred_hostname": cfg.PreferredHostname,
 							}).Info("Update successfully applied")
 						}
 
 					sleep:
-						log.WithFields(log.Fields{
+						log.WithFields(ag.CredentialFields()).WithFields(log.Fields{
 							"version":            AgentVersion,
 							"mode":               mode,
-							"tenant_id":          cfg.TenantID,
 							"server_address":     cfg.ServerAddress,
 							"preferred_hostname": cfg.PreferredHostname,
 						}).Info("Sleeping for 24 hours")
@@ -166,6 +162,13 @@ func main() {
 				}
 
 				err := ag.Authorize()
+				if err != nil && !errors.Is(err, agentd.ErrDeviceRemoved) {
+					log.WithError(err).WithFields(cfg.CredentialFields()).WithFields(log.Fields{
+						"version":        AgentVersion,
+						"server_address": cfg.ServerAddress,
+					}).Fatal("Failed to authorize the device")
+				}
+
 				if err == nil {
 					log.WithFields(log.Fields{
 						"version":            AgentVersion,
@@ -316,9 +319,9 @@ func main() {
 
 			info, err := agentd.GetInfo(cfg)
 			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
+				log.WithError(err).WithFields(cfg.CredentialFields()).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
 				}).Fatal("Failed to get agent information")
 			}
 
@@ -330,9 +333,9 @@ func main() {
 
 			data, err := json.Marshal(info)
 			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
+				log.WithError(err).WithFields(cfg.CredentialFields()).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"server_address": cfg.ServerAddress,
 				}).Fatal("Failed to marshal agent information")
 			}
 

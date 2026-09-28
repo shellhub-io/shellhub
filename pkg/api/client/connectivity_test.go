@@ -280,3 +280,35 @@ func TestAPersistentRefusalKeepsBeingReported(t *testing.T) {
 
 	assert.Greater(t, surfaced, 1, "a refusal that keeps repeating must not decay to silence")
 }
+
+func TestRefusalsCarryTheFieldsTheCallerNamesAtTheTimeTheyAreLogged(t *testing.T) {
+	backend, hook := logtest.NewNullLogger()
+
+	named := "no namespace credential"
+
+	cli, err := NewClient("https://www.cloud.shellhub.io/",
+		withImmediateRetries(),
+		WithLogger(backend),
+		WithLogFields(func() logrus.Fields { return logrus.Fields{"credential": named} }),
+	)
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+	mock.RegisterResponder("POST", "/api/devices/auth",
+		mock.NewStringResponder(http.StatusNotFound, `{"message":"namespace not found"}`).Then(accepted))
+
+	named = "the tenant 00000000-0000-4000-0000-000000000000 persisted at /etc/shellhub.key.tenant"
+
+	_, err = cli.AuthDevice(authRequest())
+	require.NoError(t, err)
+
+	require.NotEmpty(t, hook.AllEntries())
+	assert.Equal(t, "Cannot authorize the device, retrying until the server accepts it", hook.AllEntries()[0].Message)
+	assert.Equal(t, named, hook.AllEntries()[0].Data["credential"])
+}

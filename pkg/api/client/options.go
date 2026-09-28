@@ -76,6 +76,17 @@ func WithLogger(logger *logrus.Logger) Opt {
 	}
 }
 
+// WithLogFields adds the fields fields returns to every line the client logs about reaching the
+// server. It is called at each line rather than once, so a field that changes after the client is
+// built, such as a tenant learned from a pairing, is logged as it is at that moment.
+func WithLogFields(fields func() logrus.Fields) Opt {
+	return func(c *client) error {
+		c.logFields = fields
+
+		return nil
+	}
+}
+
 // WithReverser supplies the reverse-tunnel dialer the agent listens on. Only an agent needs one;
 // an API-only client leaves it unset.
 func WithReverser(reverser reverser.Reverser) Opt {
