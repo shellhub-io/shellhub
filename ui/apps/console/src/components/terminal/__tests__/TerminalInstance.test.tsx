@@ -19,7 +19,7 @@ function makeSession(
     deviceName: "my-device",
     username: "root",
     password: "secret",
-    state: "docked",
+    state: "shown",
     connectionStatus: "connecting",
     ...overrides,
   };

@@ -1,8 +1,6 @@
 import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
-  ArrowsPointingInIcon,
-  ArrowsPointingOutIcon,
   Cog6ToothIcon,
   CommandLineIcon,
   PlayCircleIcon,
@@ -254,7 +252,6 @@ export default function TabStrip({
   const { namespaces } = useNamespaces();
   const sessions = useTerminalStore((s) => s.sessions);
   const closeSession = useTerminalStore((s) => s.close);
-  const toggleFullscreen = useTerminalStore((s) => s.toggleFullscreen);
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
   const terminalColors = useTerminalThemeStore((s) => s.theme.colors);
   const recordings = useTerminalStore((s) => s.recordings);
@@ -389,23 +386,6 @@ export default function TabStrip({
       </button>
 
       <div className="ml-auto mb-1 flex items-center gap-0.5 shrink-0">
-        {active && (
-          <IconButton
-            aria-label={
-              active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
-            }
-            title={
-              active.state === "fullscreen" ? "Exit fullscreen" : "Fullscreen"
-            }
-            onClick={() => toggleFullscreen(active.id)}
-          >
-            {active.state === "fullscreen" ? (
-              <ArrowsPointingInIcon className="w-4 h-4" />
-            ) : (
-              <ArrowsPointingOutIcon className="w-4 h-4" />
-            )}
-          </IconButton>
-        )}
         {(active || playerOpen) && (
           <>
             <IconButton

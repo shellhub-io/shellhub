@@ -70,7 +70,7 @@ describe("useWorkspaceTabs", () => {
     expect(entered).toBe(false);
     expect(useWorkspaceTabsStore.getState().failures[other.id]).toBeTruthy();
     expect(useAuthStore.getState().tenant).toBe("tenant-home");
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useVaultStore.getState().status).toBe("unlocked");
   });
 

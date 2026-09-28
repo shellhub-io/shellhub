@@ -5,10 +5,10 @@ import { moveById } from "@/utils/moveById";
 import { useRecentDevicesStore } from "./recentDevicesStore";
 
 /**
- * How a terminal window is displayed. Minimized keeps the session alive — the connection is not
- * torn down until the session is closed.
+ * How a terminal window is displayed. A shown terminal fills the window. A minimized one keeps
+ * its session alive, since the connection is not torn down until the session is closed.
  */
-export type TerminalWindowState = "docked" | "minimized" | "fullscreen";
+export type TerminalWindowState = "shown" | "minimized";
 /**
  * Where a terminal's connection stands.
  */
@@ -65,14 +65,13 @@ interface TerminalState {
   reconnectTarget: ReconnectTarget | null;
   restoreAfterNavigation: string | null;
   setRestoreAfterNavigation: (id: string | null) => void;
-  dockPendingRestore: () => boolean;
+  showPendingRestore: () => boolean;
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
   ) => void;
   minimize: (id: string) => void;
   minimizeAll: () => void;
   restore: (id: string) => void;
-  toggleFullscreen: (id: string) => void;
   close: (id: string) => void;
   closeAndReconnect: (id: string) => void;
   requestConnect: (deviceUid: string, deviceName: string) => void;
@@ -125,12 +124,13 @@ function bringForward(
   };
 }
 
-function withSessionState(
+function withSessionShown(
   sessions: TerminalSession[],
   id: string,
-  next: (s: TerminalSession) => TerminalWindowState,
 ): TerminalSession[] {
-  return sessions.map((s) => (s.id === id ? { ...s, state: next(s) } : s));
+  return sessions.map((s) =>
+    s.id === id ? { ...s, state: "shown" as const } : s,
+  );
 }
 
 /**
@@ -148,7 +148,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   setRestoreAfterNavigation: (id) => set({ restoreAfterNavigation: id }),
 
-  dockPendingRestore: () => {
+  showPendingRestore: () => {
     const pending = get().restoreAfterNavigation;
     if (!pending) return false;
     set((state) => {
@@ -156,7 +156,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       return {
         restoreAfterNavigation: null,
         recordings: shown.recordings,
-        sessions: withSessionState(shown.sessions, pending, () => "docked"),
+        sessions: withSessionShown(shown.sessions, pending),
       };
     });
     return true;
@@ -175,7 +175,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         windowOrder: [...orderedWindows(state), id],
         sessions: [
           ...shown.sessions,
-          { ...params, id, state: "docked", connectionStatus: "connecting" },
+          { ...params, id, state: "shown", connectionStatus: "connecting" },
         ],
       };
     });
@@ -198,19 +198,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       const shown = bringForward(state, { session: id });
       return {
         ...shown,
-        sessions: withSessionState(shown.sessions, id, () => "docked"),
-      };
-    });
-  },
-
-  toggleFullscreen: (id) => {
-    set((state) => {
-      const shown = bringForward(state, { session: id });
-      return {
-        ...shown,
-        sessions: withSessionState(shown.sessions, id, (s) =>
-          s.state === "fullscreen" ? "docked" : "fullscreen",
-        ),
+        sessions: withSessionShown(shown.sessions, id),
       };
     });
   },
@@ -307,9 +295,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
  * Whether a terminal fills the window. The sidebar folds away and the layout drops the room it
  * keeps for it while this holds, so both read it from here to stay in step.
  */
-export function useTerminalFullscreen() {
+export function useTerminalShown() {
   return useTerminalStore((s) =>
-    s.sessions.some((session) => session.state === "fullscreen"),
+    s.sessions.some((session) => session.state === "shown"),
   );
 }
 

@@ -7,9 +7,10 @@ import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
+import { useTerminalStore } from "@/stores/terminalStore";
 import AppLayout from "../AppLayout";
 
-const viewport = vi.hoisted(() => ({ desktop: true }));
+const viewport = vi.hoisted(() => ({ desktop: true, drawerOpen: false }));
 
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
@@ -18,7 +19,7 @@ vi.mock("@/hooks/useSidebarLayout", () => ({
     isOpen: false,
     isDesktop: viewport.desktop,
     isWide: viewport.desktop,
-    drawerOpen: false,
+    drawerOpen: viewport.drawerOpen,
     handlers: {
       onMouseEnter: vi.fn(),
       onMouseLeave: vi.fn(),
@@ -53,6 +54,8 @@ const mockGetConfig = vi.mocked(getConfig);
 beforeEach(() => {
   vi.clearAllMocks();
   viewport.desktop = true;
+  viewport.drawerOpen = false;
+  useTerminalStore.setState({ sessions: [], recordings: [] });
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
   server.use(
@@ -161,6 +164,51 @@ describe("AppLayout", () => {
       expect(
         screen.getAllByRole("button", { name: /account menu for/i }),
       ).toHaveLength(1);
+    });
+  });
+
+  describe("with a terminal shown", () => {
+    beforeEach(() => {
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
+      useTerminalStore.setState({
+        sessions: [
+          {
+            id: "session-1",
+            deviceUid: "device-uid",
+            deviceName: "my-device",
+            username: "root",
+            password: "",
+            state: "shown",
+            connectionStatus: "connected",
+          },
+        ],
+      });
+    });
+
+    it("folds the desktop navigation out of reach and drops its pin toggle", async () => {
+      renderLayout("/devices");
+
+      const nav = await screen.findByRole("navigation", {
+        name: "Main navigation",
+        hidden: true,
+      });
+      expect(nav.closest("[inert]")).not.toBeNull();
+      expect(
+        screen.queryByRole("button", { name: /pin sidebar/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps the navigation drawer usable on a narrow window", async () => {
+      viewport.desktop = false;
+      viewport.drawerOpen = true;
+      renderLayout("/devices");
+
+      const nav = await screen.findByRole("navigation", {
+        name: "Main navigation",
+      });
+      expect(nav.closest("[inert]")).toBeNull();
     });
   });
 
