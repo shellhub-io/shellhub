@@ -33,7 +33,7 @@ vi.mock("@/hooks/useSidebarLayout", () => ({
   }),
 }));
 
-vi.mock("@/terminal/TerminalManager", () => ({
+vi.mock("@/components/terminal/TerminalManager", () => ({
   default: () => null,
 }));
 
@@ -167,12 +167,10 @@ describe("AppLayout", () => {
     });
   });
 
-  describe("with a terminal shown", () => {
-    beforeEach(() => {
-      server.use(
-        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
-      );
-      useTerminalStore.setState({
+  describe.each([
+    [
+      "a terminal",
+      {
         sessions: [
           {
             id: "session-1",
@@ -180,11 +178,26 @@ describe("AppLayout", () => {
             deviceName: "my-device",
             username: "root",
             password: "",
-            state: "shown",
-            connectionStatus: "connected",
+            state: "shown" as const,
+            connectionStatus: "connected" as const,
           },
         ],
-      });
+      },
+    ],
+    [
+      "a recording",
+      {
+        recordings: [
+          { id: "recording-1", title: "my-device", logs: "", shown: true },
+        ],
+      },
+    ],
+  ])("with %s shown", (_, windows) => {
+    beforeEach(() => {
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      );
+      useTerminalStore.setState(windows);
     });
 
     it("folds the desktop navigation out of reach and drops its pin toggle", async () => {

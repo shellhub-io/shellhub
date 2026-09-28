@@ -292,12 +292,15 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 }));
 
 /**
- * Whether a terminal fills the window. The sidebar folds away and the layout drops the room it
- * keeps for it while this holds, so both read it from here to stay in step.
+ * Whether a terminal or a recording is in view, covering the page. While it holds the layout
+ * folds the sidebar and the tab strip marks no context tab active; both read it here so they
+ * cannot disagree.
  */
-export function useTerminalShown() {
-  return useTerminalStore((s) =>
-    s.sessions.some((session) => session.state === "shown"),
+export function useWindowShown() {
+  return useTerminalStore(
+    (s) =>
+      s.sessions.some((session) => session.state === "shown") ||
+      s.recordings.some((recording) => recording.shown),
   );
 }
 

@@ -160,10 +160,10 @@ interface SidebarShellProps {
  * The frame the sidebars are built in, on the page background with the logo on top. children are
  * the links and account the menu at the foot; both are optional, and without them the shell is
  * the logo alone, which is all the admin console keeps. folded collapses it to nothing and takes
- * it out of the tab order, which the desktop layout does while a terminal is shown and the tab
- * strip carries the logo; the mobile drawer never folds it. covered says the page frame has slid
- * over it, which leaves only the logo showing: the links and the account menu fade out and leave
- * the tab order. ariaLabel names the links, so it goes with children.
+ * it out of the tab order, which the desktop layout does while a terminal or a recording is shown
+ * and the tab strip carries the logo; the mobile drawer never folds it. covered says the page
+ * frame has slid over it, which leaves only the logo showing: the links and the account menu fade
+ * out and leave the tab order. ariaLabel names the links, so it goes with children.
  */
 export default function SidebarShell({
   expanded,
