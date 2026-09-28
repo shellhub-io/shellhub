@@ -174,6 +174,21 @@ test.describe("invitations", () => {
   });
 });
 
+async function changeRole(
+  page: Page,
+  owner: { username: string },
+  member: { email: string },
+  role: AssignableRole,
+) {
+  await signInAndOpen(page, owner.username, "/team");
+  const row = findRow(page, member.email);
+  await row.getByRole("button", { name: "Edit role" }).click();
+  const drawer = page.getByRole("dialog", { name: "Edit Role" });
+  await drawer.getByRole("radio", { name: role }).press("Space");
+  await drawer.getByRole("button", { name: "Save role" }).click();
+  await expect(row).toContainText(role);
+}
+
 test.describe("roles", () => {
   test("a role change applies to the member's existing token and API keys", async ({
     page,
@@ -181,15 +196,21 @@ test.describe("roles", () => {
     const { owner, member } = await createTeamWithMemberKey();
     await expectMemberStatus(listAccessPolicies, member, 200);
 
-    await signInAndOpen(page, owner.username, "/team");
-    const row = findRow(page, member.email);
-    await row.getByRole("button", { name: "Edit role" }).click();
-    const drawer = page.getByRole("dialog", { name: "Edit Role" });
-    await drawer.getByRole("radio", { name: "Observer" }).press("Space");
-    await drawer.getByRole("button", { name: "Save role" }).click();
-    await expect(row).toContainText("observer");
+    await changeRole(page, owner, member, "operator");
 
     await expectMemberStatus(listAccessPolicies, member, 403);
+  });
+
+  test("demoting to observer revokes the member's API keys", async ({
+    page,
+  }) => {
+    const { owner, member } = await createTeamWithMemberKey();
+    await expectMemberStatus(listAccessPolicies, member, 200);
+
+    await changeRole(page, owner, member, "observer");
+
+    await expectStatus(listAccessPolicies, { token: member.token }, 403);
+    await expectStatus(listAccessPolicies, { apiKey: member.apiKey }, 401);
   });
 });
 
