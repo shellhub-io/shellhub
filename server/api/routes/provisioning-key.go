@@ -1,15 +1,14 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The provisioning key routes, relative to the API's base path.
@@ -47,39 +46,8 @@ func (h *Handler) CreateProvisioningKey(c *gateway.Context) error {
 }
 
 // ListProvisioningKeys serves the namespace's provisioning keys, without their plaintext.
-func (h *Handler) ListProvisioningKeys(c *gateway.Context) error {
-	req := new(requests.ListProvisioningKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeySortFields); err != nil {
-		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListProvisioningKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, res)
+func (h *Handler) ListProvisioningKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int64, error) {
+	return h.service.ListProvisioningKeys(ctx, req)
 }
 
 // UpdateProvisioningKey changes a key's name, expiry or the device attributes it pre-assigns.
@@ -142,75 +110,13 @@ func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 }
 
 // HistoryProvisioningKey serves the record of what a key has been used for.
-func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
-	req := new(requests.ListProvisioningKeyEvents)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	defaultRegistrationSorter(&req.Sorter)
-
-	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
-		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	events, count, err := h.service.ListProvisioningKeyEvents(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, events)
+func (h *Handler) HistoryProvisioningKey(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error) {
+	return h.service.ListProvisioningKeyEvents(ctx, req)
 }
 
-// TenantRegistrations lists the registration history of the namespace's tenant-only key, newest
-// first unless sort_by and order_by say otherwise, so anyone who may accept devices can work that
-// queue without listing provisioning keys. It returns the bind or validation error for a malformed
-// query, an invalid-entity error for a sort_by outside ProvisioningKeyEventSortFields, ErrForbidden
-// when the request carries no tenant, and the store's error otherwise.
-func (h *Handler) TenantRegistrations(c *gateway.Context) error {
-	req := new(requests.ListTenantRegistrations)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	defaultRegistrationSorter(&req.Sorter)
-
-	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
-		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	events, count, err := h.service.ListTenantRegistrations(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, events)
-}
-
-func defaultRegistrationSorter(sorter *query.Sorter) {
-	if sorter.By == "" {
-		sorter.By = "created_at"
-	}
-
-	if sorter.Order == "" {
-		sorter.Order = "desc"
-	}
+// TenantRegistrations lists the registration history of the namespace's tenant-only key, so anyone
+// who may accept devices can work that queue without listing provisioning keys. It returns
+// ErrForbidden when the request carries no tenant, and the store's error otherwise.
+func (h *Handler) TenantRegistrations(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error) {
+	return h.service.ListTenantRegistrations(ctx, req)
 }

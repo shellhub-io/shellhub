@@ -285,7 +285,7 @@ func TestListSSHIdentitiesWidensOnlyForAManager(t *testing.T) {
 
 			service := NewService(storeMock, privateKey, publicKey, nil)
 
-			_, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{
+			_, _, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{
 				TenantID: tenantID, UserID: userID, AllPrincipals: tc.allPrincipals,
 			})
 			require.NoError(t, err)
@@ -759,13 +759,14 @@ func TestListSSHIdentities(t *testing.T) {
 		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
 		queryOptionsMock.On("WithUserID", userID).Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, int64(1), nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, int64(7), nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
-		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: false})
+		list, count, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: false})
 		require.NoError(t, err)
 		require.Len(t, list, 1)
+		require.Equal(t, int64(7), count)
 
 		storeMock.AssertExpectations(t)
 	})
@@ -776,13 +777,14 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
 		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, int64(2), nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, int64(9), nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
-		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: true})
+		list, count, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, AllPrincipals: true})
 		require.NoError(t, err)
 		require.Len(t, list, 2)
+		require.Equal(t, int64(9), count)
 
 		queryOptionsMock.AssertNotCalled(t, "WithUserID", mock.Anything)
 
