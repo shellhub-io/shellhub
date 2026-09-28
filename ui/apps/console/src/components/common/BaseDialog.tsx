@@ -1,4 +1,5 @@
 import { ReactNode, RefObject, useEffect, useEffectEvent, useRef } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useBackdropClose } from "@/hooks/useBackdropClose";
@@ -140,7 +141,7 @@ export default function BaseDialog({
     className,
   );
 
-  return (
+  return createPortal(
     <dialog
       ref={ref}
       tabIndex={-1}
@@ -152,6 +153,7 @@ export default function BaseDialog({
       className={panelClasses}
     >
       {children}
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }
