@@ -8,6 +8,7 @@ import {
   pullTagFromDeviceMutation,
   setDeviceCustomFieldMutation,
   deleteDeviceCustomFieldMutation,
+  makeTeamDeviceMutation,
   createTag,
   pushTagToDevice,
 } from "../client";
@@ -139,6 +140,18 @@ export function useRemoveDeviceTag() {
   );
   return useMutation({
     ...pullTagFromDeviceMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * Makes a paired device a team device, so it stays in the namespace when the member who paired
+ * it leaves.
+ */
+export function useMakeTeamDevice() {
+  const invalidate = useInvalidateByIds("getDevices", "getDevice");
+  return useMutation({
+    ...makeTeamDeviceMutation(),
     onSuccess: invalidate,
   });
 }

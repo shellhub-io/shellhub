@@ -5,18 +5,15 @@ import {
   TrashIcon,
   CheckIcon,
   ArrowPathIcon,
-  UserMinusIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import type { MemberView, MembershipInvitation } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
-import {
-  useNamespaceMembers,
-} from "@/hooks/useNamespaces";
+import { useNamespaceMembers } from "@/hooks/useNamespaces";
 import { useNamespaceInvitations } from "@/hooks/useInvitations";
-import { useRemoveMember, useApproveMember } from "@/hooks/useMemberMutations";
+import { useApproveMember } from "@/hooks/useMemberMutations";
 import {
   useCancelMembershipInvitation,
   useGenerateInvitationLink,
@@ -30,6 +27,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { RoleBadge } from "./constants";
 import UserBadge from "@/components/common/UserBadge";
 import MemberRoleDialog from "./MemberRoleDialog";
+import RemoveMemberModal from "./RemoveMemberModal";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -94,7 +92,6 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     enabled: true,
   });
 
-  const removeMember = useRemoveMember();
   const approveMember = useApproveMember();
   const cancelInvitation = useCancelMembershipInvitation();
   const regenerateInvitation = useGenerateInvitationLink();
@@ -110,29 +107,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const [regenTarget, setRegenTarget] = useState<MembershipInvitation | null>(
     null,
   );
-  const [removeError, setRemoveError] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [regenError, setRegenError] = useState<string | null>(null);
-
-  const closeRemove = () => {
-    setRemoveError(null);
-    setRemoveTarget(null);
-  };
-
-  const confirmRemove = async () => {
-    if (!removeTarget?.id) return;
-    setRemoveError(null);
-    try {
-      await removeMember.mutateAsync({
-        path: { tenant: tenantId, uid: removeTarget.id },
-      });
-      closeRemove();
-    } catch (err) {
-      setRemoveError(
-        err instanceof Error ? err.message : "Failed to remove member.",
-      );
-    }
-  };
 
   const members = memberViews
     .filter((m) => !!m.id && !!m.email)
@@ -376,24 +352,13 @@ function MembersTab({ tenantId }: { tenantId: string }) {
         />
       </Suspense>
 
-      <ConfirmDialog
-        open={!!removeTarget}
-        onClose={closeRemove}
-        onConfirm={confirmRemove}
-        icon={<UserMinusIcon />}
-        title="Remove member"
-        description={
-          <>
-            <ObjectName>{removeTarget?.email}</ObjectName> loses access to this
-            namespace. Someone has to invite them again to bring them back.
-          </>
-        }
-        confirmLabel="Remove member"
-      >
-        {removeError && (
-          <p className="text-xs text-accent-red">{removeError}</p>
-        )}
-      </ConfirmDialog>
+      {removeTarget && (
+        <RemoveMemberModal
+          tenantId={tenantId}
+          member={removeTarget}
+          onClose={() => setRemoveTarget(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={!!cancelTarget}

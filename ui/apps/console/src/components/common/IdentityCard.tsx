@@ -8,6 +8,7 @@ interface IdentityCardProps {
   mac: string;
   remoteAddr: string;
   registeredVia?: ReactNode;
+  pairedBy?: ReactNode;
 }
 
 /**
@@ -19,6 +20,7 @@ export default function IdentityCard({
   mac,
   remoteAddr,
   registeredVia,
+  pairedBy,
 }: IdentityCardProps) {
   return (
     <Card className="p-5 space-y-4">
@@ -33,6 +35,7 @@ export default function IdentityCard({
         {registeredVia && (
           <InfoItem label="Registered via">{registeredVia}</InfoItem>
         )}
+        {pairedBy && <InfoItem label="Paired by">{pairedBy}</InfoItem>}
       </dl>
     </Card>
   );

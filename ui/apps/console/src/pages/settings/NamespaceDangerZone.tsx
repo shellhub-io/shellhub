@@ -11,7 +11,10 @@ import {
   useLeaveNamespace,
 } from "@/hooks/useNamespaceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { useMemberDevices } from "@/hooks/useMemberDevices";
+import { useAuthStore } from "@/stores/authStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DepartingDevices from "@/components/common/DepartingDevices";
 import InputField from "@/components/common/fields/InputField";
 import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
 
@@ -77,6 +80,8 @@ export function LeaveDialog({
   onClose: () => void;
 }) {
   const leaveNs = useLeaveNamespace();
+  const userId = useAuthStore((s) => s.userId);
+  const devices = useMemberDevices(userId ?? "");
   const [error, setError] = useState("");
 
   return (
@@ -96,7 +101,9 @@ export function LeaveDialog({
       title="Leave namespace"
       description="You lose access to its devices and sessions. To rejoin, someone has to invite you again."
       confirmLabel="Leave namespace"
+      confirmDisabled={devices.isLoading || devices.isError}
     >
+      {userId && <DepartingDevices memberId={userId} self />}
       {error && <p className="text-2xs text-accent-red mb-3">{error}</p>}
     </ConfirmDialog>
   );

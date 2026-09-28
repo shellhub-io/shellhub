@@ -31,6 +31,8 @@ export function useUpdateMemberRole() {
     "getNamespaces",
     "getNamespace",
     "listNamespaceMembers",
+    "getDevices",
+    "getStats",
   );
   return useMutation({
     ...updateNamespaceMemberMutation(),
@@ -46,6 +48,8 @@ export function useRemoveMember() {
     "getNamespaces",
     "getNamespace",
     "listNamespaceMembers",
+    "getDevices",
+    "getStats",
   );
   return useMutation({
     ...removeNamespaceMemberMutation(),

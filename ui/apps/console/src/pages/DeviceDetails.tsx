@@ -38,6 +38,7 @@ import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import IdentityCard from "@/components/common/IdentityCard";
 import InfoItem from "@/components/common/InfoItem";
+import PairedBy from "@/pages/devices/PairedBy";
 import TimelineCard from "@/components/common/TimelineCard";
 import TagsSection from "@/components/common/TagsSection";
 import RenameSection from "@/components/common/RenameSection";
@@ -314,6 +315,14 @@ export default function DeviceDetails() {
             ) : (
               <span className="text-sm text-text-muted">—</span>
             )
+          }
+          pairedBy={
+            <PairedBy
+              tenantId={tenantId}
+              uid={device.uid}
+              name={device.name}
+              ownerId={device.owner_id}
+            />
           }
         />
 

@@ -5,6 +5,10 @@ import { apiErrorMessage } from "@/api/errors";
 import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
 import ContextualDialog from "@/components/common/ContextualDialog";
 import ObjectName from "@/components/common/ObjectName";
+import DepartingDevices from "@/components/common/DepartingDevices";
+import { useHasPermission } from "@/hooks/useHasPermission";
+import { useMemberDevices } from "@/hooks/useMemberDevices";
+import { hasPermission } from "@/utils/permission";
 import { RoleSelector } from "./constants";
 import { assignableRoleOr, type AssignableRole } from "./helpers";
 
@@ -25,7 +29,11 @@ export default function MemberRoleDialog({
 }) {
   const current = assignableRoleOr(role, "operator");
   const [next, setNext] = useState<AssignableRole>(current);
+  const [keepDevices, setKeepDevices] = useState<string[]>([]);
   const updateRole = useUpdateMemberRole();
+  const canKeepDevices = useHasPermission("provisioningKey:create");
+  const devicesLeave = !hasPermission(next, "device:accept");
+  const devices = useMemberDevices(memberId, devicesLeave);
 
   return (
     <ContextualDialog
@@ -36,7 +44,10 @@ export default function MemberRoleDialog({
         </IconButton>
       }
       onOpenChange={(open) => {
-        if (open) setNext(current);
+        if (open) {
+          setNext(current);
+          setKeepDevices([]);
+        }
       }}
       icon={<UserCircleIcon />}
       title="Edit role"
@@ -46,12 +57,18 @@ export default function MemberRoleDialog({
         </>
       }
       submitLabel="Save role"
-      submitDisabled={next === current}
+      submitDisabled={
+        next === current ||
+        (devicesLeave && (devices.isLoading || devices.isError))
+      }
       onSubmit={async () => {
         try {
           await updateRole.mutateAsync({
             path: { tenant: tenantId, uid: memberId },
-            body: { role: next },
+            body:
+              devicesLeave && keepDevices.length > 0
+                ? { role: next, keep_devices: keepDevices }
+                : { role: next },
           });
         } catch (err) {
           throw new Error(apiErrorMessage(err));
@@ -59,6 +76,13 @@ export default function MemberRoleDialog({
       }}
     >
       <RoleSelector label="Role" value={next} onChange={setNext} />
+      {devicesLeave && (
+        <DepartingDevices
+          memberId={memberId}
+          keep={keepDevices}
+          onKeepChange={canKeepDevices ? setKeepDevices : undefined}
+        />
+      )}
     </ContextualDialog>
   );
 }
