@@ -31,6 +31,8 @@ import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
 import { attempt } from "@/utils/failure";
 
+const FIT_SETTLE_MS = 100;
+
 interface TerminalInstanceProps {
   session: TerminalSession;
   visible: boolean;
@@ -59,12 +61,23 @@ export default function TerminalInstance({
   };
   const observerRef = useRef<ResizeObserver | null>(null);
   const prevVisibleRef = useRef(visible);
+  const visibleRef = useRef(visible);
+  const fitTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const resizeRegisteredRef = useRef(false);
   const recorderRef = useRef<OpfsCastRecorder | null>(null);
   const [error, setError] = useState<TerminalError | null>(null);
   const [approvalCode, setApprovalCode] = useState<string | null>(null);
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
+
+  const fitWhenSettled = () => {
+    clearTimeout(fitTimerRef.current);
+    fitTimerRef.current = setTimeout(() => {
+      if (visibleRef.current) fitRef.current?.fit();
+    }, FIT_SETTLE_MS);
+  };
 
   const activeTenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(session.tenant ?? activeTenant ?? "");
@@ -316,9 +329,7 @@ export default function TerminalInstance({
         }
       });
 
-      const observer = new ResizeObserver(() => {
-        if (fitRef.current) fitAddon.fit();
-      });
+      const observer = new ResizeObserver(fitWhenSettled);
       observer.observe(containerRef.current);
       observerRef.current = observer;
 
@@ -342,6 +353,7 @@ export default function TerminalInstance({
       useTerminalStore.getState().clearSensitiveData(session.id);
       observerRef.current?.disconnect();
       observerRef.current = null;
+      clearTimeout(fitTimerRef.current);
       if (wsRef.current) {
         wsRef.current.onopen = null;
         wsRef.current.onclose = null;
@@ -367,14 +379,14 @@ export default function TerminalInstance({
     const term = termRef.current;
     if (!term) return;
     term.options.fontFamily = fontFamilyWithFallback;
-    fitRef.current?.fit();
+    if (visibleRef.current) fitRef.current?.fit();
   }, [fontFamilyWithFallback]);
 
   useEffect(() => {
     const term = termRef.current;
     if (!term) return;
     term.options.fontSize = fontSize;
-    fitRef.current?.fit();
+    if (visibleRef.current) fitRef.current?.fit();
   }, [fontSize]);
 
   useEffect(() => {
@@ -386,14 +398,13 @@ export default function TerminalInstance({
   }, [error]);
 
   useEffect(() => {
+    visibleRef.current = visible;
     if (!prevVisibleRef.current && visible && error === null) {
-      requestAnimationFrame(() => {
-        fitRef.current?.fit();
-        termRef.current?.focus();
-      });
+      fitWhenSettled();
+      requestAnimationFrame(() => termRef.current?.focus());
     }
     prevVisibleRef.current = visible;
-  }, [visible, error]);
+  }, [visible, error, fitWhenSettled]);
 
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden">
