@@ -50,7 +50,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"math/rand"
+	"math/rand/v2" // nosemgrep: go.lang.security.audit.crypto.math_random.math-random-used
 	"net"
 	"net/url"
 	"os"
@@ -131,8 +131,8 @@ type Config struct {
 	// compatibility, this new variable was created.
 	SimpleUserPassword string `env:"SIMPLE_USER_PASSWORD"`
 
-	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
-	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
+	// MaxRetryConnectionTimeout has no effect. It is still read and validated so that a configuration
+	// setting it keeps starting.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
 
 	// TransportVersion specifies the version of the agent transport protocol to use.
@@ -762,6 +762,12 @@ const AgentPingDefaultInterval = 10 * time.Minute
 
 const tunnelReconnectInterval = 10 * time.Second
 
+func nextPingInterval(base time.Duration, rng *rand.Rand) time.Duration {
+	spread := base / 5
+
+	return base - spread + time.Duration(rng.Int64N(int64(2*spread)+1))
+}
+
 func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, interval time.Duration) {
 	if interval == 0 {
 		interval = AgentPingDefaultInterval
@@ -773,7 +779,9 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 		return
 	}
 
-	ticker := time.NewTicker(interval)
+	rng := rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())) //nolint:gosec // jitter needs no cryptographic randomness
+
+	ticker := time.NewTicker(nextPingInterval(interval, rng))
 	defer ticker.Stop()
 
 	authorization := connectivity.NewTracker(a.logger.WithField("transport", "ping"))
@@ -801,7 +809,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 					"timestamp":      clock.Now(),
 				}).Debug("Starting the ping interval to server")
 
-				ticker.Reset(interval)
+				ticker.Reset(nextPingInterval(interval, rng))
 			} else {
 				log.WithFields(log.Fields{
 					"version":        a.config.Version,
@@ -835,8 +843,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 				"timestamp":      clock.Now(),
 			}).Info("Ping")
 
-			randTimeout := time.Duration(rand.Intn(a.config.MaxRetryConnectionTimeout-10)+10) * time.Second //nolint:gosec
-			ticker.Reset(interval + randTimeout)
+			ticker.Reset(nextPingInterval(interval, rng))
 		}
 	}
 }
