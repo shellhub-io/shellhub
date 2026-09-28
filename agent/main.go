@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -101,32 +102,7 @@ func main() {
 				}).Fatal("Failed to initialize agent")
 			}
 
-			if !cfg.HasNamespaceCredential() {
-				tenant, err := waitForPairing(cmd.Context(), ag, cfg)
-				if err != nil {
-					log.WithError(err).Fatal("Failed to pair the device")
-				}
-
-				cfg.TenantID = tenant
-				ag.SetTenantID(tenant)
-			}
-
-			if err := ag.Authorize(); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
-				}).Fatal("Failed to initialize agent")
-			}
-
 			ctx := cmd.Context()
-
-			log.WithFields(log.Fields{
-				"version":            AgentVersion,
-				"mode":               mode,
-				"tenant_id":          cfg.TenantID,
-				"server_address":     cfg.ServerAddress,
-				"preferred_hostname": cfg.PreferredHostname,
-			}).Info("Listening for connections")
 
 			if AgentVersion != "latest" {
 				go func() {
@@ -179,14 +155,46 @@ func main() {
 				}()
 			}
 
-			if err := ag.Listen(ctx); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":            AgentVersion,
-					"mode":               mode,
-					"tenant_id":          cfg.TenantID,
-					"server_address":     cfg.ServerAddress,
-					"preferred_hostname": cfg.PreferredHostname,
-				}).Fatal("Failed to listen for connections")
+			for {
+				if !cfg.HasNamespaceCredential() {
+					tenant, err := waitForPairing(ctx, ag, cfg)
+					if err != nil {
+						log.WithError(err).Fatal("Failed to pair the device")
+					}
+
+					ag.SetTenantID(tenant)
+				}
+
+				err := ag.Authorize()
+				if err == nil {
+					log.WithFields(log.Fields{
+						"version":            AgentVersion,
+						"mode":               mode,
+						"tenant_id":          cfg.TenantID,
+						"server_address":     cfg.ServerAddress,
+						"preferred_hostname": cfg.PreferredHostname,
+					}).Info("Listening for connections")
+
+					err = ag.Listen(ctx)
+				}
+
+				if errors.Is(err, agentd.ErrDeviceRemoved) {
+					unpairRemovedDevice(ag, cfg)
+
+					continue
+				}
+
+				if err != nil {
+					log.WithError(err).WithFields(log.Fields{
+						"version":            AgentVersion,
+						"mode":               mode,
+						"tenant_id":          cfg.TenantID,
+						"server_address":     cfg.ServerAddress,
+						"preferred_hostname": cfg.PreferredHostname,
+					}).Fatal("Failed to serve the device")
+				}
+
+				break
 			}
 
 			log.WithFields(log.Fields{
@@ -431,6 +439,19 @@ It is initialized by the agent when a new SFTP session is created.`,
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func unpairRemovedDevice(ag *agentd.Agent, cfg *agentd.Config) {
+	if err := ag.Unpair(); err != nil {
+		if errors.Is(err, agentd.ErrTenantFromEnvironment) {
+			log.WithField("tenant_id", cfg.TenantID).Fatal("The device was removed from its namespace. " +
+				"Pair it again without SHELLHUB_TENANT_ID, or provision it with SHELLHUB_PROVISIONING_KEY.")
+		}
+
+		log.WithError(err).Fatal("The device was removed from its namespace, and its tenant could not be forgotten")
+	}
+
+	log.Info("The device was removed from its namespace; pairing it again")
 }
 
 func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config) (string, error) {
