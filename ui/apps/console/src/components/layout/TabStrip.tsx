@@ -13,6 +13,7 @@ import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useOrderedWindows,
   useTerminalStore,
+  useWindowShown,
   type ConnectionStatus,
 } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
@@ -258,8 +259,6 @@ export default function TabStrip({
   const showRecording = useTerminalStore((s) => s.showRecording);
   const closeRecording = useTerminalStore((s) => s.closeRecording);
   const moveWindow = useTerminalStore((s) => s.moveWindow);
-  const shownRecording = recordings.find((r) => r.shown);
-  const playerOpen = shownRecording !== undefined;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const moveContext = useWorkspaceTabsStore((s) => s.move);
   const reorder = useTabReorder();
@@ -270,7 +269,7 @@ export default function TabStrip({
   const windowIds = useOrderedWindows();
 
   const active = sessions.find((s) => s.state !== "minimized");
-  const contextCovered = active !== undefined || playerOpen;
+  const contextCovered = useWindowShown();
   const firstTabActive =
     !leading && !contextCovered && contextOrder[0] === workspace.activeId;
   const openNamespaceTabs = workspace.tabs.filter(
@@ -386,7 +385,7 @@ export default function TabStrip({
       </button>
 
       <div className="ml-auto mb-1 flex items-center gap-0.5 shrink-0">
-        {(active || playerOpen) && (
+        {contextCovered && (
           <>
             <IconButton
               aria-label="Terminal settings"
