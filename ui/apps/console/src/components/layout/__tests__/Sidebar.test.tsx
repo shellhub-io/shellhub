@@ -8,10 +8,13 @@ import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import Sidebar from "../Sidebar";
 
-function setAccessMode(mode: "legacy" | "identity") {
+async function renderSidebar(mode: "legacy" | "identity") {
+  let served: () => void;
+  const namespaceServed = new Promise<void>((resolve) => (served = resolve));
   server.use(
-    http.get("*/api/namespaces/:tenant", () =>
-      HttpResponse.json(
+    http.get("*/api/namespaces/:tenant", () => {
+      served();
+      return HttpResponse.json(
         mockNamespace({
           settings: {
             session_record: false,
@@ -20,9 +23,16 @@ function setAccessMode(mode: "legacy" | "identity") {
             ssh_legacy_allowed: true,
           },
         }),
-      ),
-    ),
+      );
+    }),
   );
+  render(
+    <MemoryRouter>
+      <Sidebar expanded />
+    </MemoryRouter>,
+    { wrapper: createTestWrapper() },
+  );
+  await namespaceServed;
 }
 
 beforeEach(() => {
@@ -30,19 +40,9 @@ beforeEach(() => {
   seedAuthStore();
 });
 
-function renderSidebar() {
-  return render(
-    <MemoryRouter>
-      <Sidebar expanded />
-    </MemoryRouter>,
-    { wrapper: createTestWrapper() },
-  );
-}
-
 describe("Sidebar", () => {
   it("offers the identity pages only in identity mode", async () => {
-    setAccessMode("identity");
-    renderSidebar();
+    await renderSidebar("identity");
 
     expect(
       await screen.findByRole("link", { name: /access policies/i }),
@@ -53,8 +53,7 @@ describe("Sidebar", () => {
   });
 
   it("hides the identity pages in legacy mode, where nothing reads them", async () => {
-    setAccessMode("legacy");
-    renderSidebar();
+    await renderSidebar("legacy");
 
     expect(
       await screen.findByRole("link", { name: /public keys/i }),
@@ -68,8 +67,7 @@ describe("Sidebar", () => {
   });
 
   it("groups the legacy key pages under SSH", async () => {
-    setAccessMode("legacy");
-    renderSidebar();
+    await renderSidebar("legacy");
 
     const ssh = await screen.findByRole("group", { name: "SSH" });
     expect(
@@ -79,8 +77,7 @@ describe("Sidebar", () => {
   });
 
   it("keeps hiding the legacy pages in identity mode", async () => {
-    setAccessMode("identity");
-    renderSidebar();
+    await renderSidebar("identity");
 
     await screen.findByRole("link", { name: /access policies/i });
     expect(
