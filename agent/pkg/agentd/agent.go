@@ -96,6 +96,10 @@ type Config struct {
 	// accept it into a namespace, learning the tenant from the server.
 	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
 
+	// TenantOrigin records where TenantID came from. It is not read from the environment;
+	// [LoadConfigFromEnv] and [Agent.SetTenantID] set it as they resolve the tenant.
+	TenantOrigin TenantOrigin
+
 	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
 	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
 	// with no TenantID configured the server resolves the namespace from the key, applying the key's
@@ -145,8 +149,6 @@ type Config struct {
 	// embedding program (where /proc/self/exe is not the agent binary) must set this to point
 	// at a binary/subcommand that runs the SFTP server.
 	SFTPServerCommand func() *exec.Cmd
-
-	pairedTenant bool
 }
 
 // HasNamespaceCredential reports whether the configuration carries something naming the namespace
@@ -173,11 +175,15 @@ func LoadConfigFromEnv(backend envs.Backend) (*Config, map[string]any, error) {
 		return nil, nil, err
 	}
 
+	if cfg.TenantID != "" {
+		cfg.TenantOrigin = TenantFromEnvironment
+	}
+
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
 			cfg.TenantID = persisted
-			cfg.pairedTenant = true
+			cfg.TenantOrigin = TenantFromFile
 		case cfg.TenantID != persisted:
 			log.WithFields(log.Fields{
 				"env_tenant":       cfg.TenantID,
@@ -379,18 +385,18 @@ func (a *Agent) Authorize(ctx context.Context) error {
 	return nil
 }
 
-// SetTenantID injects the tenant learned from a pairing so the agent can be
-// authorized. The tenant is the pairing's, so [Agent.Unpair] may forget it.
+// SetTenantID injects the tenant learned from a pairing so the agent can be authorized, and
+// attributes it to that pairing so [Agent.Unpair] may forget it.
 func (a *Agent) SetTenantID(tenant string) {
 	a.config.TenantID = tenant
-	a.config.pairedTenant = true
+	a.config.TenantOrigin = TenantFromPairing
 }
 
 // Unpair forgets the tenant a pairing gave the agent, deleting the file that persisted it, so the
 // agent can pair again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
 // was configured instead, because the agent would only learn it again on its next start.
 func (a *Agent) Unpair() error {
-	if !a.config.pairedTenant {
+	if a.config.TenantOrigin != TenantFromFile && a.config.TenantOrigin != TenantFromPairing {
 		return ErrTenantFromEnvironment
 	}
 
@@ -399,7 +405,7 @@ func (a *Agent) Unpair() error {
 	}
 
 	a.config.TenantID = ""
-	a.config.pairedTenant = false
+	a.config.TenantOrigin = TenantFromNowhere
 
 	return nil
 }
