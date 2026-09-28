@@ -6,6 +6,23 @@ import (
 	"strings"
 )
 
+// TenantOrigin names where the tenant a device enrolls with came from, so a refusal can say which
+// setting or file to fix.
+type TenantOrigin string
+
+const (
+	// TenantFromNowhere is the origin of a tenant nothing attributed: none at all, which enrolls by
+	// pairing or with a provisioning key instead, or one an embedder or a provisioning key set.
+	TenantFromNowhere TenantOrigin = ""
+	// TenantFromEnvironment is the origin of a tenant an operator supplied to the agent.
+	TenantFromEnvironment TenantOrigin = "environment"
+	// TenantFromFile is the origin of a tenant a previous pairing persisted beside the private key.
+	TenantFromFile TenantOrigin = "file"
+	// TenantFromPairing is the origin of a tenant the server resolved during a pairing this process
+	// performed, before it is persisted.
+	TenantFromPairing TenantOrigin = "pairing"
+)
+
 // TenantFilePath returns the path where the agent persists the tenant learned
 // from a pairing. It is a sibling of the private key so it lands on the same
 // persistent mount, and suffixing the key name avoids collisions when multiple
