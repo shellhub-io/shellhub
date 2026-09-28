@@ -40,7 +40,7 @@ See [How a device enrols](/manage/devices#how-a-device-enrols) for how these int
 | Variable | Default | Meaning |
 |---|---|---|
 | `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | Seconds between keepalives |
-| `SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT` | `60` | Despite the name, only the jitter added to the keepalive ping. Reconnection is automatic and not governed by it |
+| `SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT` | `60` | No effect, but a value outside 10 to 120 still stops the agent from starting |
 | `SHELLHUB_TRANSPORT_VERSION` | `2` | Transport. `1` uses HTTP-based revdial; `2` uses yamux multiplexing with multistream |
 
 Leave the transport at its default unless you are working around something specific. Version 1

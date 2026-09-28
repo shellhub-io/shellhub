@@ -54,7 +54,9 @@ forwarded port, a container session.
 It is the only piece that runs outside the server. It never listens for inbound connections.
 
 A few of its behaviors are worth knowing because they show up in troubleshooting. It sends a
-keepalive every 30 seconds by default (`SHELLHUB_KEEPALIVE_INTERVAL`). When the connection drops
+keepalive every 30 seconds by default (`SHELLHUB_KEEPALIVE_INTERVAL`). It re-authorizes with the
+server about every 10 minutes, at a random point between 8 and 12 minutes, so devices that connected
+together do not all re-authorize at once. When the connection drops
 it reconnects on its own, waiting a random 5 to 65 seconds before each attempt and retrying
 indefinitely, so a fleet losing its server does not come back in lockstep. It generates a private key on
 first run if one is not already at `SHELLHUB_PRIVATE_KEY`, and that key is what identifies the
