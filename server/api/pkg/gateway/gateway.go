@@ -7,6 +7,7 @@ package gateway
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -23,6 +24,18 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 	}
 
 	return nil
+}
+
+// RoleFromContext returns the role the request authenticated with, or the zero role when it carries
+// none. It is what a handler taking no gateway [Context] reads to widen or narrow what it serves by
+// the caller's authority — a decision the route's permission cannot express, because the route is
+// reachable either way.
+func RoleFromContext(ctx context.Context) authorizer.Role {
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		return c.Role()
+	}
+
+	return authorizer.RoleInvalid
 }
 
 // UsernameFromContext returns the authenticated username, or nil when the request is

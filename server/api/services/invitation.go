@@ -15,38 +15,38 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// MembershipInvitationFilterFields maps each filter field the invitation list endpoints accept to
-// the set of operators valid for it. It names only fields the response already carries: the row
-// also holds the invitation's signature, which the response omits and a filter must not reach.
-// Both fields are backed by enums and declare the values they accept, so an unknown one is
-// refused here rather than reaching the column and answering 500.
-var MembershipInvitationFilterFields = query.NewFieldConstraints(map[string][]string{
-	"status": {"eq", "ne"},
-	"role":   {"eq", "ne"},
-}).WithValues(map[string][]string{
-	"status": {
-		string(models.MembershipInvitationStatusPending),
-		string(models.MembershipInvitationStatusAccepted),
-		string(models.MembershipInvitationStatusRejected),
-		string(models.MembershipInvitationStatusCancelled),
-	},
-	"role": {
-		authorizer.RoleOwner.String(),
-		authorizer.RoleAdministrator.String(),
-		authorizer.RoleOperator.String(),
-		authorizer.RoleObserver.String(),
-	},
-})
-
-// MembershipInvitationSortFields is the set of field names accepted in the sort_by query
-// parameter when listing invitations.
-var MembershipInvitationSortFields = query.NewFieldSet(
-	"status",
-	"role",
-	"created_at",
-	"updated_at",
-	"expires_at",
-)
+// MembershipInvitationQuery is the query contract both invitation lists accept — the user's and the
+// namespace's, which face opposite directions across the same rows. It names only fields the
+// response already carries: the row also holds the invitation's signature, which the response omits
+// and neither a filter nor a sort must reach. Both filter fields are backed by enums and declare the
+// values they accept, so an unknown one is refused here rather than reaching the column and
+// answering 500.
+var MembershipInvitationQuery = query.Contract{
+	Filter: query.NewFieldConstraints(map[string][]string{
+		"status": {"eq", "ne"},
+		"role":   {"eq", "ne"},
+	}).WithValues(map[string][]string{
+		"status": {
+			string(models.MembershipInvitationStatusPending),
+			string(models.MembershipInvitationStatusAccepted),
+			string(models.MembershipInvitationStatusRejected),
+			string(models.MembershipInvitationStatusCancelled),
+		},
+		"role": {
+			authorizer.RoleOwner.String(),
+			authorizer.RoleAdministrator.String(),
+			authorizer.RoleOperator.String(),
+			authorizer.RoleObserver.String(),
+		},
+	}),
+	Sort: query.NewFieldSet(
+		"status",
+		"role",
+		"created_at",
+		"updated_at",
+		"expires_at",
+	),
+}
 
 // InvitationService owns membership invitations, from issuing an invite code through to the
 // invitee accepting it, whether or not they already have an account.

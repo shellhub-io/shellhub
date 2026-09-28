@@ -178,6 +178,20 @@ func staleExemptions(registered map[string]struct{}, exempt map[string]string) [
 	return stale
 }
 
+func unqueriedListRoutes(declarations []gateway.Declaration) []string {
+	unqueried := make([]string, 0)
+
+	for _, declaration := range declarations {
+		if declaration.Shape == gateway.ShapeList && !declaration.AcceptsQuery {
+			unqueried = append(unqueried, declaration.Address()+" serves a page and names no query contract")
+		}
+	}
+
+	sort.Strings(unqueried)
+
+	return unqueried
+}
+
 func TestRouteTableHoldsItsClaims(t *testing.T) {
 	router, authn, _ := authenticatedRouter(t)
 
@@ -204,6 +218,10 @@ func TestRouteTableHoldsItsClaims(t *testing.T) {
 
 	t.Run("the anonymity claims and the allowlist agree", func(t *testing.T) {
 		assert.Empty(t, anonymityMismatches(declarations, authn.AnonymousRoutes()))
+	})
+
+	t.Run("every list route names a query contract", func(t *testing.T) {
+		assert.Empty(t, unqueriedListRoutes(declarations))
 	})
 
 	t.Run("every exemption names a mounted route and states why", func(t *testing.T) {
@@ -313,4 +331,15 @@ func TestStaleExemptionsCatchesAnExemptionNothingMounts(t *testing.T) {
 		"GET /gone is exempt but no such route is mounted",
 		"GET /silent is exempt and states no reason",
 	}, stale)
+}
+
+func TestUnqueriedListRoutesCatchesAListThatNamesNoContract(t *testing.T) {
+	unqueried := unqueriedListRoutes([]gateway.Declaration{
+		{Method: "GET", Path: "/named", Shape: gateway.ShapeList, AcceptsQuery: true},
+		{Method: "GET", Path: "/silent", Shape: gateway.ShapeList},
+		{Method: "GET", Path: "/single", Shape: gateway.ShapeOne},
+		{Method: "GET", Path: "/legacy", Shape: gateway.ShapeLegacy},
+	})
+
+	assert.Equal(t, []string{"GET /silent serves a page and names no query contract"}, unqueried)
 }
