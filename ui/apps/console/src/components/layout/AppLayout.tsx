@@ -24,10 +24,7 @@ import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
 import CreateNamespaceHost from "./CreateNamespaceHost";
 import { useNamespaces } from "@/hooks/useNamespaces";
-import {
-  useTerminalFullscreen,
-  useTerminalStore,
-} from "@/stores/terminalStore";
+import { useTerminalShown, useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useScrollEdges } from "@/hooks/useScrollEdges";
@@ -51,12 +48,11 @@ export default function AppLayout() {
     void loadTerminalThemes();
   }, [loadTerminalThemes]);
   const { namespaces } = useNamespaces();
-  const windowInView = useTerminalStore(
-    (s) =>
-      s.sessions.some((t) => t.state !== "minimized") ||
-      s.recordings.some((r) => r.shown),
+  const terminalShown = useTerminalShown();
+  const recordingShown = useTerminalStore((s) =>
+    s.recordings.some((r) => r.shown),
   );
-  const terminalFullscreen = useTerminalFullscreen();
+  const windowInView = terminalShown || recordingShown;
   const { isOpen, pinned, isDesktop, isWide, drawerOpen, handlers } =
     useSidebarLayout();
   const {
@@ -72,11 +68,11 @@ export default function AppLayout() {
   const frameOverNav =
     showSidebar &&
     isDesktop &&
-    !terminalFullscreen &&
+    !terminalShown &&
     (isAdminRoute || isAccountPath(pathname));
   const sessionMenuInTabStrip = frameOverNav || (isAdminRoute && !isDesktop);
   const toggleSidebar = isDesktop
-    ? showSidebar && !frameOverNav
+    ? showSidebar && !frameOverNav && !terminalShown
       ? handlers.onToggle
       : undefined
     : drawerNav
@@ -103,8 +99,7 @@ export default function AppLayout() {
           {showSidebar && isDesktop && (
             <div
               style={{
-                width:
-                  !pinned && !terminalFullscreen ? SIDEBAR_RAIL_PX : undefined,
+                width: !pinned && !terminalShown ? SIDEBAR_RAIL_PX : undefined,
               }}
               className="relative shrink-0"
             >
@@ -124,10 +119,14 @@ export default function AppLayout() {
                 )}
               >
                 {isAdminRoute ? (
-                  <AdminSidebar expanded={isOpen && pinned} />
+                  <AdminSidebar
+                    expanded={isOpen && pinned}
+                    folded={terminalShown}
+                  />
                 ) : (
                   <Sidebar
                     expanded={isOpen && (pinned || !frameOverNav)}
+                    folded={terminalShown}
                     covered={frameOverNav}
                   />
                 )}
@@ -146,12 +145,12 @@ export default function AppLayout() {
           <div
             className={cn(
               "flex flex-col flex-1 min-w-0 pr-2 pb-2",
-              !(showSidebar && isDesktop && !terminalFullscreen) && "pl-2",
+              !(showSidebar && isDesktop && !terminalShown) && "pl-2",
             )}
           >
             <TabStrip
               leading={
-                (!isDesktop || terminalFullscreen) && (
+                (!isDesktop || terminalShown) && (
                   <LogoMark
                     full={isDesktop}
                     className="mr-3 mb-[7px] shrink-0"

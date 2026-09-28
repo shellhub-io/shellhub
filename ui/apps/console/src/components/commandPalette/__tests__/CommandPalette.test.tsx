@@ -172,7 +172,7 @@ describe("CommandPalette", () => {
     await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
@@ -246,7 +246,7 @@ describe("CommandPalette", () => {
 
     await user.click(await screen.findByText("web-01"));
 
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(useCommandPaletteStore.getState().open).toBe(false);
@@ -308,7 +308,7 @@ describe("CommandPalette", () => {
 
     await user.click(await screen.findByText("root@web-01"));
 
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
@@ -319,7 +319,7 @@ describe("CommandPalette", () => {
 
     await user.type(await screen.findByRole("combobox"), "{Enter}");
 
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
@@ -686,7 +686,7 @@ describe("CommandPalette", () => {
 
     await user.click(screen.getByText("Connect"));
 
-    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 });

@@ -182,12 +182,7 @@ export function buildConnectionItems(deps: {
     list.push({
       id: `term-${s.id}`,
       label: `${s.username}@${s.deviceName}`,
-      sublabel:
-        s.state === "minimized"
-          ? "Minimized"
-          : s.state === "fullscreen"
-            ? "Fullscreen"
-            : "Docked",
+      sublabel: s.state === "minimized" ? "Minimized" : undefined,
       section: "Terminal Sessions",
       icon: icons.terminal,
       badge: { text: statusLabel, variant: statusVariant },

@@ -34,10 +34,12 @@ function pickBadge(item: NavItem): ReactNode | undefined {
  */
 export default function Sidebar({
   expanded,
+  folded,
   covered,
   onClose,
 }: {
   expanded: boolean;
+  folded?: boolean;
   covered?: boolean;
   onClose?: () => void;
 }) {
@@ -53,6 +55,7 @@ export default function Sidebar({
   return (
     <SidebarShell
       expanded={expanded}
+      folded={folded}
       covered={covered}
       onClose={onClose}
       ariaLabel="Main navigation"
