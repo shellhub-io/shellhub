@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
@@ -178,6 +179,35 @@ func staleExemptions(registered map[string]struct{}, exempt map[string]string) [
 	return stale
 }
 
+func defaultsOutsideTheirContract(declarations []gateway.Declaration) []string {
+	outside := make([]string, 0)
+
+	for _, declaration := range declarations {
+		by := declaration.Query.DefaultSort.By
+		if declaration.AcceptsQuery && by != "" && !declaration.Query.Sort.Allows(by) {
+			outside = append(outside, declaration.Address()+" defaults to sorting by "+by+", which its contract does not allow")
+		}
+	}
+
+	sort.Strings(outside)
+
+	return outside
+}
+
+func unqueriedListRoutes(declarations []gateway.Declaration) []string {
+	unqueried := make([]string, 0)
+
+	for _, declaration := range declarations {
+		if declaration.Shape == gateway.ShapeList && !declaration.AcceptsQuery {
+			unqueried = append(unqueried, declaration.Address()+" serves a page and names no query contract")
+		}
+	}
+
+	sort.Strings(unqueried)
+
+	return unqueried
+}
+
 func TestRouteTableHoldsItsClaims(t *testing.T) {
 	router, authn, _ := authenticatedRouter(t)
 
@@ -204,6 +234,14 @@ func TestRouteTableHoldsItsClaims(t *testing.T) {
 
 	t.Run("the anonymity claims and the allowlist agree", func(t *testing.T) {
 		assert.Empty(t, anonymityMismatches(declarations, authn.AnonymousRoutes()))
+	})
+
+	t.Run("every list route names a query contract", func(t *testing.T) {
+		assert.Empty(t, unqueriedListRoutes(declarations))
+	})
+
+	t.Run("every contract's default sort is one it allows", func(t *testing.T) {
+		assert.Empty(t, defaultsOutsideTheirContract(declarations))
 	})
 
 	t.Run("every exemption names a mounted route and states why", func(t *testing.T) {
@@ -313,4 +351,25 @@ func TestStaleExemptionsCatchesAnExemptionNothingMounts(t *testing.T) {
 		"GET /gone is exempt but no such route is mounted",
 		"GET /silent is exempt and states no reason",
 	}, stale)
+}
+
+func TestUnqueriedListRoutesCatchesAListThatNamesNoContract(t *testing.T) {
+	unqueried := unqueriedListRoutes([]gateway.Declaration{
+		{Method: "GET", Path: "/named", Shape: gateway.ShapeList, AcceptsQuery: true},
+		{Method: "GET", Path: "/silent", Shape: gateway.ShapeList},
+		{Method: "GET", Path: "/single", Shape: gateway.ShapeOne},
+		{Method: "GET", Path: "/legacy", Shape: gateway.ShapeLegacy},
+	})
+
+	assert.Equal(t, []string{"GET /silent serves a page and names no query contract"}, unqueried)
+}
+
+func TestDefaultsOutsideTheirContractCatchesADefaultTheContractRefuses(t *testing.T) {
+	outside := defaultsOutsideTheirContract([]gateway.Declaration{
+		{Method: "GET", Path: "/allowed", AcceptsQuery: true, Query: query.Contract{Sort: query.NewFieldSet("name"), DefaultSort: query.Sorter{By: "name"}}},
+		{Method: "GET", Path: "/typo", AcceptsQuery: true, Query: query.Contract{Sort: query.NewFieldSet("created_at"), DefaultSort: query.Sorter{By: "create_at"}}},
+		{Method: "GET", Path: "/none", AcceptsQuery: true, Query: query.Contract{Sort: query.NewFieldSet("name")}},
+	})
+
+	assert.Equal(t, []string{"GET /typo defaults to sorting by create_at, which its contract does not allow"}, outside)
 }
