@@ -14,8 +14,13 @@ export default function AcceptDevice() {
   if (code) setPendingDeviceCode(code);
 
   return (
-    <LoginLayoutCard>
-      <AcceptDeviceFlow initialCode={code} />
-    </LoginLayoutCard>
+    <AcceptDeviceFlow
+      initialCode={code}
+      frame={(wide, content) => (
+        <LoginLayoutCard className={wide ? "max-w-xl" : undefined}>
+          {content}
+        </LoginLayoutCard>
+      )}
+    />
   );
 }

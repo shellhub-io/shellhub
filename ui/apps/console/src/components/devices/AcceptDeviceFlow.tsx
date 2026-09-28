@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   CpuChipIcon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowRightIcon,
   CommandLineIcon,
+  CheckIcon,
+  ChevronUpDownIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Dropdown, Spinner } from "@shellhub/design-system/primitives";
 import type { ResolveDeviceLoginCodeResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -26,11 +28,14 @@ import {
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
-import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
-import RadioGroupField from "@/components/common/fields/RadioGroupField";
-import RadioCard from "@/components/common/fields/RadioCard";
-import PairingCodeForm from "@/components/common/PairingCodeForm";
+import {
+  useNamespace,
+  useNamespaces,
+  type Namespace,
+} from "@/hooks/useNamespaces";
 import { getInitials } from "@/utils/string";
+import PairingCodeForm from "@/components/common/PairingCodeForm";
+import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
@@ -52,6 +57,7 @@ type Branch =
       uid: string;
       tenantId: string;
       namespace: string;
+      teamDevice: boolean;
     };
 
 const LINK_CLASS =
@@ -59,11 +65,17 @@ const LINK_CLASS =
 
 /**
  * Enrols a device from a code, either as a page or inside a dialog. initialCode is what an
- * accept-device link arrives with, so the code does not have to be typed twice.
+ * accept-device link arrives with, so the code does not have to be typed twice. frame wraps the
+ * flow in the page's card, and is told when a step needs a wider one.
  */
 export default function AcceptDeviceFlow({
   initialCode = "",
   inDialog = false,
+  frame,
+}: {
+  initialCode?: string;
+  inDialog?: boolean;
+  frame?: (wide: boolean, content: ReactNode) => ReactNode;
 }) {
   const authTenant = useAuthStore((s) => s.tenant);
 
@@ -86,7 +98,8 @@ export default function AcceptDeviceFlow({
   );
   const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
   const canSubscribeInAuth = useHasPermission("billing:subscribe");
-  const canSubscribe = canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
+  const canSubscribe =
+    canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 
   const finish = (b: Branch) => {
     clearPendingDeviceCode();
@@ -154,13 +167,14 @@ export default function AcceptDeviceFlow({
         uid: data.uid ?? "",
         tenantId: data.tenant_id ?? "",
         namespace: data.namespace ?? "",
+        teamDevice: !data.owner_id,
       });
     } catch (err) {
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
   };
 
-  return (
+  const content = (
     <>
       {branch.kind === "loading" && <StatusMessage label="Checking code..." />}
 
@@ -345,40 +359,52 @@ export default function AcceptDeviceFlow({
             identity and choose where it belongs.
           </p>
 
-          <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
-            <SpecRow label="hostname" value={branch.device.name} />
-            <SpecRow label="os" value={branch.device.info?.pretty_name} />
-            <SpecRow label="mac" value={branch.device.identity?.mac} />
-          </dl>
+          <div className="grid gap-6 text-left">
+            <div>
+              <dl className="text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-2">
+                <SpecRow label="code" value={formatPairingCode(code)} />
+                <SpecRow label="hostname" value={branch.device.name} />
+                <SpecRow label="os" value={branch.device.info?.pretty_name} />
+                <SpecRow label="mac" value={branch.device.identity?.mac} />
+              </dl>
+              <p className="text-2xs text-text-muted mb-6">
+                Check that the code matches the one your terminal shows.
+              </p>
 
-          <div className="text-left mb-6">
-            <NamespacePicker
-              value={selectedTenant}
-              onChange={setSelectedTenant}
-              preferredTenant={authTenant ?? ""}
-            />
+              <AcceptingAs code={code} canSwitch={!inDialog} />
+            </div>
+
+            <div>
+              <div className="mb-6">
+                <NamespacePicker
+                  value={selectedTenant}
+                  onChange={setSelectedTenant}
+                  preferredTenant={authTenant ?? ""}
+                />
+              </div>
+
+              {actionError && (
+                <p
+                  className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
+                  role="alert"
+                >
+                  {actionError}
+                </p>
+              )}
+
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
+                loading={acceptPairing.isPending}
+                disabled={!selectedTenant}
+                icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+                onClick={() => void handleAcceptPairing(branch.device)}
+              >
+                Accept device
+              </Button>
+            </div>
           </div>
-
-          {actionError && (
-            <p
-              className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
-              role="alert"
-            >
-              {actionError}
-            </p>
-          )}
-
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            loading={acceptPairing.isPending}
-            disabled={!selectedTenant}
-            icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-            onClick={() => void handleAcceptPairing(branch.device)}
-          >
-            Accept device
-          </Button>
 
           <CancelRow inDialog={inDialog} onReset={() => setCode("")} />
         </div>
@@ -400,6 +426,13 @@ export default function AcceptDeviceFlow({
               </span>
               . The agent will connect automatically. You can return to your
               terminal.
+              {branch.teamDevice && (
+                <>
+                  {" "}
+                  It took the place of a team device with the same MAC address,
+                  so it stays the team&apos;s rather than being tied to you.
+                </>
+              )}
             </>
           }
           action={
@@ -425,6 +458,8 @@ export default function AcceptDeviceFlow({
       )}
     </>
   );
+
+  return frame ? frame(branch.kind === "pick-namespace", content) : content;
 }
 
 function DashboardLink() {
@@ -465,6 +500,7 @@ function NamespacePicker({
   preferredTenant: string;
 }) {
   const { namespaces, isLoading } = useNamespaces();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (value || namespaces.length === 0) return;
@@ -496,22 +532,91 @@ function NamespacePicker({
     );
   }
 
+  const selected = namespaces.find((n) => n.tenant_id === value);
+
   return (
-    <RadioGroupField label="Namespace" value={value} onChange={onChange}>
-      {namespaces.map((namespace) => (
-        <RadioCard
-          key={namespace.tenant_id}
-          value={namespace.tenant_id ?? ""}
-          icon={
-            <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-              {getInitials(namespace.name ?? "")}
-            </span>
-          }
-          label={namespace.name ?? ""}
-          description={namespace.tenant_id ?? ""}
-        />
-      ))}
-    </RadioGroupField>
+    <div>
+      <p className={LABEL}>Namespace</p>
+      <Dropdown open={open} onOpenChange={setOpen}>
+        <Dropdown.Trigger>
+          <button
+            type="button"
+            aria-label={`Namespace: ${selected?.name ?? "none"}`}
+            className="w-full flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 text-left hover:border-border-light transition-colors focus:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
+          >
+            {selected ? (
+              <NamespaceCard namespace={selected} />
+            ) : (
+              <span className="flex-1 text-sm text-text-muted">
+                Choose a namespace
+              </span>
+            )}
+            <ChevronUpDownIcon className="w-4 h-4 shrink-0 text-text-muted" />
+          </button>
+        </Dropdown.Trigger>
+
+        <Dropdown.Panel aria-label="Namespaces">
+          {namespaces.map((namespace) => {
+            const checked = namespace.tenant_id === value;
+
+            return (
+              <Dropdown.Item
+                key={namespace.tenant_id}
+                label={namespace.name}
+                role="menuitemradio"
+                aria-checked={checked}
+                onSelect={() => onChange(namespace.tenant_id)}
+                className="gap-3 py-2.5"
+              >
+                <NamespaceCard namespace={namespace} />
+                {checked && (
+                  <CheckIcon className="w-4 h-4 shrink-0 text-primary" />
+                )}
+              </Dropdown.Item>
+            );
+          })}
+        </Dropdown.Panel>
+      </Dropdown>
+    </div>
+  );
+}
+
+function InitialsAvatar({
+  label,
+  shape,
+}: {
+  label: string;
+  shape: "circle" | "square";
+}) {
+  return (
+    <span
+      className={cn(
+        "w-8 h-8 shrink-0 bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono",
+        shape === "circle" ? "rounded-full" : "rounded-lg",
+      )}
+    >
+      {getInitials(label) || "?"}
+    </span>
+  );
+}
+
+function NamespaceCard({
+  namespace,
+}: {
+  namespace: Pick<Namespace, "name" | "tenant_id">;
+}) {
+  return (
+    <span className="flex flex-1 min-w-0 items-center gap-3">
+      <InitialsAvatar label={namespace.name} shape="square" />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-text-primary truncate">
+          {namespace.name}
+        </span>
+        <span className="block text-2xs font-mono text-text-muted truncate">
+          {namespace.tenant_id}
+        </span>
+      </span>
+    </span>
   );
 }
 
@@ -537,6 +642,72 @@ function StatusMessage({ label }: { label: string }) {
       <Spinner size="2xl" />
       <p className="text-sm text-text-muted">{label}</p>
     </div>
+  );
+}
+
+function formatPairingCode(code: string) {
+  const normalized = code.replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+  return normalized.length === 8
+    ? `${normalized.slice(0, 4)}-${normalized.slice(4)}`
+    : normalized;
+}
+
+function AcceptingAs({
+  code,
+  canSwitch,
+}: {
+  code: string;
+  canSwitch: boolean;
+}) {
+  const name = useAuthStore((s) => s.name);
+  const email = useAuthStore((s) => s.email);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+
+  const switchAccount = () => {
+    logout();
+    void navigate(
+      `/login?redirect=${encodeURIComponent(`/accept-device?code=${code}`)}`,
+    );
+  };
+
+  return (
+    <section
+      aria-label="Accepting as"
+      className="text-left rounded-xl border border-border bg-surface/60 p-4"
+    >
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className={LABEL}>Accepting as</p>
+          <span className="flex items-center gap-2.5 min-w-0">
+            <InitialsAvatar label={name || email || ""} shape="circle" />
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-text-primary truncate">
+                {name || email}
+              </span>
+              {name && email && (
+                <span className="block text-xs text-text-muted truncate">
+                  {email}
+                </span>
+              )}
+            </span>
+          </span>
+        </div>
+        {canSwitch && (
+          <button
+            type="button"
+            onClick={switchAccount}
+            className="shrink-0 text-xs text-primary hover:underline"
+          >
+            Not you? Switch account
+          </button>
+        )}
+      </div>
+      <p className="mt-3 pt-3 border-t border-border/70 text-xs text-text-muted leading-relaxed">
+        You&apos;ll own this device. If you leave this namespace or lose
+        permission to accept devices in it, the device is removed with you.
+      </p>
+    </section>
   );
 }
 

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
@@ -28,9 +30,7 @@ function mockDevice(overrides = {}) {
 
 function setResolveCode(device: ReturnType<typeof mockDevice>) {
   server.use(
-    http.get("*/api/devices/login-code/:code", () =>
-      HttpResponse.json(device),
-    ),
+    http.get("*/api/devices/login-code/:code", () => HttpResponse.json(device)),
   );
 }
 
@@ -46,10 +46,13 @@ beforeEach(() => {
       "*/api/devices/:uid/accept",
       () => new HttpResponse(null, { status: 204 }),
     ),
-    http.post(
-      "*/api/devices/pairing/:code/accept",
-      () =>
-        HttpResponse.json({ uid: "new-uid", tenant_id: "t1", namespace: "my-ns" }),
+    http.post("*/api/devices/pairing/:code/accept", () =>
+      HttpResponse.json({
+        uid: "new-uid",
+        tenant_id: "t1",
+        namespace: "my-ns",
+        owner_id: "user-1",
+      }),
     ),
     http.get("*/api/namespaces", () =>
       jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
@@ -59,6 +62,15 @@ beforeEach(() => {
     ),
   );
 });
+
+function CurrentLocation() {
+  const location = useLocation();
+  return (
+    <output data-testid="location">
+      {location.pathname + location.search}
+    </output>
+  );
+}
 
 function renderPage(path: string) {
   return render(<AcceptDevice />, {
@@ -206,6 +218,133 @@ describe("AcceptDeviceFlow standalone", () => {
     fireEvent.click(screen.getByRole("button", { name: /accept device/i }));
 
     await screen.findByRole("heading", { name: /device accepted/i });
+  });
+
+  it("says a paired device is tied to the member who accepts it", async () => {
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+
+    await screen.findByText("my-ns");
+    expect(screen.getByText(/you.ll own this device/i)).toBeInTheDocument();
+  });
+
+  it("shows the pairing code to check against the terminal", async () => {
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow({ initialCode: "wxyz2k7q" });
+
+    await screen.findByText("my-ns");
+    expect(screen.getByText("WXYZ-2K7Q")).toBeInTheDocument();
+  });
+
+  it("shows the account the device will be tied to", async () => {
+    useAuthStore.setState({ name: "Ada", email: "ada@example.com" });
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+
+    const owner = await screen.findByRole("region", { name: "Accepting as" });
+    expect(owner).toHaveTextContent("ada@example.com");
+    expect(owner).toHaveTextContent(/you.ll own this device/i);
+  });
+
+  it("switches account by signing out and coming back to the same code", async () => {
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    render(
+      <>
+        <AcceptDeviceFlow initialCode="CODE1234" />
+        <CurrentLocation />
+      </>,
+      {
+        wrapper: createTestWrapper({
+          initialEntries: ["/accept-device?code=CODE1234"],
+        }),
+      },
+    );
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole("button", { name: /not you\? switch account/i }),
+    );
+
+    expect(useAuthStore.getState().token).toBeFalsy();
+    const location = new URL(
+      screen.getByTestId("location").textContent ?? "",
+      "http://x",
+    );
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("redirect")).toBe(
+      "/accept-device?code=CODE1234",
+    );
+  });
+
+  it("accepts into the namespace chosen from the list", async () => {
+    let tenant: unknown;
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([
+          { name: "my-ns", tenant_id: "t1" },
+          { name: "other-ns", tenant_id: "t2" },
+        ]),
+      ),
+      http.post("*/api/devices/pairing/:code/accept", async ({ request }) => {
+        tenant = ((await request.json()) as { tenant_id: string }).tenant_id;
+        return HttpResponse.json({ uid: "u", tenant_id: "t2", namespace: "other-ns", owner_id: "user-1" });
+      }),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Namespace: my-ns" }));
+    await user.click(await screen.findByRole("menuitemradio", { name: /other-ns/ }));
+    await user.click(screen.getByRole("button", { name: /accept device/i }));
+
+    await screen.findByRole("heading", { name: /device accepted/i });
+    expect(tenant).toBe("t2");
+  });
+
+  it("offers no account switch inside the add-device dialog", async () => {
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow({ inDialog: true });
+
+    await screen.findByRole("region", { name: "Accepting as" });
+    expect(
+      screen.queryByRole("button", { name: /switch account/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  async function acceptPairingAnsweredWith(ownerId?: string) {
+    server.use(
+      http.post("*/api/devices/pairing/:code/accept", () =>
+        HttpResponse.json({
+          uid: "new-uid",
+          tenant_id: "t1",
+          namespace: "my-ns",
+          owner_id: ownerId,
+        }),
+      ),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+    const user = userEvent.setup();
+
+    await screen.findByText("my-ns");
+    const accept = screen.getByRole("button", { name: /accept device/i });
+    await waitFor(() => expect(accept).toBeEnabled());
+    await user.click(accept);
+
+    await screen.findByRole("heading", { name: /device accepted/i });
+  }
+
+  it("says nothing about the team when the device is tied to the member", async () => {
+    await acceptPairingAnsweredWith("user-1");
+
+    expect(screen.queryByText(/stays the team's/i)).not.toBeInTheDocument();
+  });
+
+  it("says the device stayed the team's when it merged into a team device", async () => {
+    await acceptPairingAnsweredWith(undefined);
+
+    expect(screen.getByText(/stays the team's/i)).toBeInTheDocument();
   });
 
   it("clears pending device code on error", async () => {
