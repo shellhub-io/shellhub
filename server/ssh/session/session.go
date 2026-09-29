@@ -652,10 +652,6 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 	}
 }
 
-// ErrDialUnknown is returned when a device announces a transport version the server has no
-// dial procedure for, which happens when an agent is newer than the server.
-var ErrDialUnknown = errors.New("unknown protocol version")
-
 func (s *Session) dropAgentConn() {
 	if s.agent.conn == nil {
 		return
