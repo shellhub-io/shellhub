@@ -67,23 +67,6 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 	return requireBody(res)
 }
 
-func (c *client) Endpoints() (*models.Endpoints, error) {
-	var endpoints *models.Endpoints
-
-	response, err := c.http.R().
-		SetResult(&endpoints).
-		Get("/endpoints")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(endpoints)
-}
-
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {
 	var res *models.PublicKeyAuthResponse
 
