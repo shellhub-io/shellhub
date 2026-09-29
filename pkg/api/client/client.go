@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"math"
-	"math/rand/v2"
+	"math/big"
 	"net"
 	"net/http"
 	"net/url"
@@ -82,10 +83,15 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	const MaxRetryWaitTime time.Duration = 1 * time.Hour
 
 	randomWaitTimeSecs := func() time.Duration {
-		const MinRetryAfterSecs int = 5
-		const MaxRetryAfterSecs int = 65
+		const MinRetryAfterSecs int64 = 5
+		const MaxRetryAfterSecs int64 = 65
 
-		return time.Duration(rand.IntN(MaxRetryAfterSecs-MinRetryAfterSecs)+MinRetryAfterSecs) * time.Second //nolint:gosec
+		secs, err := rand.Int(rand.Reader, big.NewInt(MaxRetryAfterSecs-MinRetryAfterSecs))
+		if err != nil {
+			return time.Duration(MinRetryAfterSecs) * time.Second
+		}
+
+		return time.Duration(secs.Int64()+MinRetryAfterSecs) * time.Second
 	}
 
 	client := new(client)
