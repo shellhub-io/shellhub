@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignore": ["**/dist/**", "**/.astro/**", "**/*.d.ts"],
+  "ignoreBinaries": ["vale"],
+  "workspaces": {
+    ".": {},
+    "apps/console": {
+      "entry": ["src/migrate.tsx", "playwright.config.ts"],
+      "ignore": ["src/client/**"],
+      "playwright": {
+        "config": [],
+        "entry": ["e2e/**/*.ts"]
+      }
+    },
+    "apps/docs": {
+      "ignore": ["test/fixtures/**"]
+    },
+    "apps/website": {},
+    "packages/*": {}
+  },
+  "ignoreDependencies": ["mdx2vast"]
+}
