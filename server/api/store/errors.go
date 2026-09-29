@@ -24,7 +24,6 @@ const (
 var (
 	ErrDuplicate        = errors.New("document duplicate", ErrLayer, ErrCodeDuplicated)
 	ErrNoDocuments      = errors.New("no documents", ErrLayer, ErrCodeNoDocument)
-	ErrInvalidHex       = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
 	ErrResolverNotFound = errors.New("resolver not found", ErrLayer, ErrCodeInvalid)
 	ErrInternal         = errors.New("internal store error", ErrLayer, ErrCodeInternal)
 	// ErrNamespaceInstanceProtected is returned when deleting the namespace bound to the
