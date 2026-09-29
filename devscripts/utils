@@ -13,3 +13,11 @@ check_bin() {
 }
 
 SHELLHUB_PATH=$(dirname $(dirname "$(realpath "$0")"))
+
+SHELLHUB_DOMAIN=$(
+    cd "$SHELLHUB_PATH"
+    . ./.env
+    [ ! -f .env.override ] || . ./.env.override
+    printf '%s' "$SHELLHUB_DOMAIN"
+)
+SHELLHUB_URL="http://$SHELLHUB_DOMAIN"
