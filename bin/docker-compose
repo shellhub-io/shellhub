@@ -45,6 +45,7 @@ env_var() {
 SHELLHUB_ENV=$(env_var SHELLHUB_ENV production)
 SHELLHUB_AUTO_SSL=$(env_var SHELLHUB_AUTO_SSL false)
 SHELLHUB_DATABASE=$(env_var SHELLHUB_DATABASE postgres)
+SHELLHUB_POSTGRES_EXTERNAL=$(env_var SHELLHUB_POSTGRES_EXTERNAL false)
 SHELLHUB_BILLING=$(env_var SHELLHUB_BILLING "")
 EXTRA_COMPOSE_FILE=${EXTRA_COMPOSE_FILE:-$(env_var EXTRA_COMPOSE_FILE "")}
 
@@ -73,16 +74,9 @@ COMPOSE_FILE="docker-compose.yml"
 # Activate the profile matching the configured billing provider.
 [ -n "$SHELLHUB_BILLING" ] && export COMPOSE_PROFILES="$SHELLHUB_BILLING"
 
-case "$SHELLHUB_DATABASE" in
-    postgres)
-        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
-        ;;
-    *)
-        echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to postgres." >&2
-        SHELLHUB_DATABASE="postgres"
-        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
-        ;;
-esac
+[ "$SHELLHUB_DATABASE" = "postgres" ] \
+    || echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to postgres." >&2
+[ "$SHELLHUB_POSTGRES_EXTERNAL" = "true" ] || COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
 
 # docker-compose.override.yml must come after the database overlays so user
 # customizations win (Compose applies later files with higher precedence).

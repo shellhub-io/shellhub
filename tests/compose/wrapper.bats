@@ -87,3 +87,13 @@ load helpers
     [ "$status" -ne 0 ]
     [[ "$output" == *"missing.yml"* ]]
 }
+
+@test "external postgres: the postgres overlay is left out" {
+    out=$(capture_with SHELLHUB_POSTGRES_EXTERNAL=true)
+    [[ "$out" != *"docker-compose.postgres.yml"* ]]
+}
+
+@test "external postgres: false keeps the postgres overlay" {
+    out=$(capture_with SHELLHUB_POSTGRES_EXTERNAL=false)
+    [[ "$out" == *"docker-compose.postgres.yml"* ]]
+}
