@@ -10,7 +10,6 @@ services:
       args:
         - SHELLHUB_VERSION=latest
         - GOPROXY=${SHELLHUB_GOPROXY:-}
-        - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
         - USERNAME=${SHELLHUB_DEV_AGENT_USERNAME:-shellhub}
         - PASSWORD=${SHELLHUB_DEV_AGENT_PASSWORD:-shellhub}
     network_mode: service:gateway
