@@ -13,15 +13,6 @@ type Sorter struct {
 	Tiebreak string // stable secondary sort column, set by service layer
 }
 
-// NewSorter returns a sorter with no field and descending order, which is what a request that
-// asked for no ordering gets.
-func NewSorter() *Sorter {
-	return &Sorter{
-		By:    "",
-		Order: OrderDesc,
-	}
-}
-
 // Normalize ensures that the sorting order is valid.
 // If an invalid order is provided, it defaults to descending order.
 func (s *Sorter) Normalize() {

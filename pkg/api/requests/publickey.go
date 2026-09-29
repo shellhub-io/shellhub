@@ -14,12 +14,6 @@ type ListPublicKeys struct {
 	query.Filters
 }
 
-// PublicKeyGet is the structure to represent the request data for get public key endpoint.
-type PublicKeyGet struct {
-	FingerprintParam
-	TenantParam
-}
-
 // PublicKeyFilter is the device selector attached to a key: either a hostname pattern or a tag
 // set, never both. It mirrors models.PublicKeyFilter, kept apart so the wire shape can change
 // without moving the stored one.
@@ -52,24 +46,6 @@ type PublicKeyUpdate struct {
 // PublicKeyDelete is the structure to represent the request data for delete public key endpoint.
 type PublicKeyDelete struct {
 	FingerprintParam
-}
-
-// PublicKeyTagAdd is the structure to represent the request data for add tag to public key endpoint.
-type PublicKeyTagAdd struct {
-	FingerprintParam
-	TagParam
-}
-
-// PublicKeyTagRemove is the structure to represent the request data for remove tag from public key endpoint.
-type PublicKeyTagRemove struct {
-	FingerprintParam
-	TagParam
-}
-
-// PublicKeyTagsUpdate is the structure to represent the request data for update tags from public key endpoint.
-type PublicKeyTagsUpdate struct {
-	FingerprintParam
-	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 // PublicKeyAuth is the structure to represent the request data for public key auth endpoint.

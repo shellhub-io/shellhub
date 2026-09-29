@@ -10,16 +10,6 @@ type TenantParam struct {
 	Tenant string `param:"tenant" validate:"required,uuid"`
 }
 
-// RoleBody is a structure to represent and validate a namespace role as request body.
-type RoleBody struct {
-	Role string `json:"role" validate:"required,oneof=administrator operator observer"`
-}
-
-// MemberParam is a structure to represent and validate a member UID as path param.
-type MemberParam struct {
-	MemberUID string `param:"uid" validate:"required"`
-}
-
 // NamespaceList is the structure to represent the request data for list namespaces endpoint.
 type NamespaceList struct {
 	UserID   string `header:"X-ID"`
