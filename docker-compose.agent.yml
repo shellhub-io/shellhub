@@ -1,6 +1,6 @@
 services:
   agent:
-    image: agent
+    image: agent:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     restart: unless-stopped
     build:
       context: .
