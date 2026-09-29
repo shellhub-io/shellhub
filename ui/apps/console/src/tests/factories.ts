@@ -16,6 +16,7 @@ import type {
   UserAuth,
   Webendpoint,
 } from "@/client";
+import type { RecordingMeta } from "@/utils/recordings";
 
 /**
  * Builds a signed-in user for a test. Every field has a value, so a case names only what it is about
@@ -396,6 +397,29 @@ export function mockProvisioningKey(
     disabled: false,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+/**
+ * Builds the sidecar of a recording the browser holds for a test. Every field has a value, so a case
+ * names only what it is about and the rest stays out of the way.
+ */
+export function mockRecordingMeta(
+  overrides: Partial<RecordingMeta> = {},
+): RecordingMeta {
+  return {
+    id: "local-1",
+    filename: "shellhub-web-01-20240101-000000.cast",
+    deviceName: "web-01",
+    deviceUid: "dev-1",
+    username: "root",
+    sessionUid: "session-1",
+    width: 80,
+    height: 24,
+    durationSec: 10,
+    createdAt: 0,
+    size: 0,
     ...overrides,
   };
 }

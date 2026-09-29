@@ -200,7 +200,14 @@ describe("AppLayout", () => {
       "a recording",
       {
         recordings: [
-          { id: "recording-1", title: "my-device", logs: "", shown: true },
+          {
+            id: "recording-1",
+            title: "my-device",
+            logs: "",
+            filename: "my-device.cast",
+            recorded: true,
+            shown: true,
+          },
         ],
       },
     ],

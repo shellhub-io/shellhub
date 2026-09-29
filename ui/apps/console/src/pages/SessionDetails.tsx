@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import Breadcrumb from "@/components/common/Breadcrumb";
 import {
   ClockIcon,
   ShieldExclamationIcon,
@@ -19,24 +18,9 @@ import {
   InformationCircleIcon,
   CpuChipIcon,
   TrashIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import { useSession } from "../hooks/useSession";
-import SessionPrincipal from "@/components/sessions/SessionPrincipal";
-import { usePrincipalName } from "@/hooks/usePrincipalName";
-import {
-  useCloseSession,
-  useDeleteSessionRecording,
-} from "../hooks/useSessionMutations";
-import { useSessionRecording } from "../hooks/useSessionRecording";
-import CopyButton from "../components/common/CopyButton";
-import DeviceChip from "../components/common/DeviceChip";
-import DistroIcon from "../components/common/DistroIcon";
-import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
-import type { Session } from "../client";
-import RestrictedAction from "../components/common/RestrictedAction";
-import PageLoader from "@/components/common/PageLoader";
-import ConfirmDialog from "../components/common/ConfirmDialog";
 import {
   Badge,
   Button,
@@ -44,11 +28,28 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import Breadcrumb from "@/components/common/Breadcrumb";
+import SessionPrincipal from "@/components/sessions/SessionPrincipal";
+import { usePrincipalName } from "@/hooks/usePrincipalName";
+import { useLocalRecordings } from "@/hooks/useLocalRecordings";
+import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
+import DeleteRecordingDialog from "@/components/sessions/DeleteRecordingDialog";
+import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "@/components/common/InfoItem";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import { sessionTerminal } from "@/utils/session";
 import ObjectName from "@/components/common/ObjectName";
+import { useSession } from "../hooks/useSession";
+import { useCloseSession } from "../hooks/useSessionMutations";
+import { useSessionRecording } from "../hooks/useSessionRecording";
+import CopyButton from "../components/common/CopyButton";
+import DeviceChip from "../components/common/DeviceChip";
+import DistroIcon from "../components/common/DistroIcon";
+import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
+import type { Session } from "../client";
+import RestrictedAction from "../components/common/RestrictedAction";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 type EventStatus = "success" | "error" | "info" | "active" | "muted";
 
@@ -255,29 +256,22 @@ export default function SessionDetails() {
   const principalName = usePrincipalName();
 
   const closeSession = useCloseSession();
-  const deleteRecording = useDeleteSessionRecording();
   const {
     isLoading: logsLoading,
+    isDownloading,
     error: logsError,
     play,
+    download,
   } = useSessionRecording();
+  useLocalRecordings();
+  const permissions = useRecordingPermissions(uid!, session?.recorded ?? false);
+
   const [showClose, setShowClose] = useState(false);
   const [showDeleteLogs, setShowDeleteLogs] = useState(false);
-  const [deleteLogsError, setDeleteLogsError] = useState<string | null>(null);
   const [closeError, setCloseError] = useState<string | null>(null);
 
   const handlePlayRecording = async () => {
     if (session) await play(session);
-  };
-
-  const handleDeleteLogs = async () => {
-    setDeleteLogsError(null);
-    try {
-      await deleteRecording.mutateAsync(uid!);
-      setShowDeleteLogs(false);
-    } catch {
-      setDeleteLogsError("Failed to delete recording. Check your permissions.");
-    }
   };
 
   const handleClose = async () => {
@@ -391,9 +385,9 @@ export default function SessionDetails() {
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {session.recorded && (
+          {permissions.available && (
             <>
-              <RestrictedAction action="session:play">
+              <RestrictedAction action={permissions.read}>
                 <Button
                   icon={<PlayIcon className="w-4 h-4" />}
                   loading={logsLoading}
@@ -403,7 +397,20 @@ export default function SessionDetails() {
                   {logsLoading ? "Loading…" : "Play Recording"}
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="session:removeRecord">
+              <RestrictedAction action={permissions.read}>
+                <IconButton
+                  size="lg"
+                  type="button"
+                  title="Download recording"
+                  aria-label="Download recording"
+                  className="border border-border"
+                  disabled={isDownloading}
+                  onClick={() => void download(session)}
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                </IconButton>
+              </RestrictedAction>
+              <RestrictedAction action={permissions.remove}>
                 <IconButton
                   variant="danger"
                   size="lg"
@@ -542,19 +549,11 @@ export default function SessionDetails() {
       </div>
 
       {/* Delete Recording Dialog */}
-      <ConfirmDialog
+      <DeleteRecordingDialog
         open={showDeleteLogs}
-        onClose={() => {
-          setShowDeleteLogs(false);
-          setDeleteLogsError(null);
-        }}
-        onConfirm={handleDeleteLogs}
-        icon={<TrashIcon />}
-        title="Delete recording"
-        description="This session's recording is deleted and can't be played back again."
-        confirmLabel="Delete recording"
-        variant="danger"
-        errorMessage={deleteLogsError}
+        onClose={() => setShowDeleteLogs(false)}
+        sessionUid={session.uid}
+        recorded={session.recorded}
       />
 
       {/* Close Session Dialog */}

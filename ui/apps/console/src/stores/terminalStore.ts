@@ -48,13 +48,16 @@ export interface ReconnectTarget {
 /**
  * An open session recording, played in its own tab beside the terminals. The recording is held
  * whole, since it was fetched once to open the tab; id is the recorded session's uid, so playing
- * the same session again brings its tab forward instead of opening another.
+ * the same session again brings its tab forward instead of opening another. filename is what a
+ * download of it is saved as, and recorded says whether the server holds a copy too.
  */
 export interface RecordingView {
   id: string;
   title: string;
   tenant?: string;
   logs: string;
+  filename: string;
+  recorded: boolean;
   shown: boolean;
 }
 

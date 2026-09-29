@@ -2,7 +2,6 @@ import { create } from "zustand";
 import {
   listRecordings,
   deleteRecording,
-  downloadRecording,
   clearRecordings,
   pruneRecordings,
   type RecordingMeta,
@@ -26,10 +25,17 @@ interface RecordingsState {
   remove: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
   setRetentionDays: (days: number | null) => void;
-  download: (meta: RecordingMeta) => Promise<void>;
   notify: (meta: RecordingMeta) => void;
   clearNotice: () => void;
 }
+
+/**
+ * Selects the recording the browser holds of a session, or undefined when it holds none.
+ */
+export const heldByBrowser =
+  (sessionUid: string) =>
+  (state: RecordingsState): RecordingMeta | undefined =>
+    state.recordings.find((r) => r.sessionUid === sessionUid);
 
 /**
  * The locally recorded sessions, listed from OPFS. Retention is applied here, so a recording
@@ -67,10 +73,6 @@ export const useRecordingsStore = create<RecordingsState>((set, get) => ({
     else localStorage.removeItem(RETENTION_KEY);
     set({ retentionDays: days && days > 0 ? days : null });
     void get().refresh();
-  },
-
-  download: async (meta) => {
-    await downloadRecording(meta);
   },
 
   notify: (meta) => {

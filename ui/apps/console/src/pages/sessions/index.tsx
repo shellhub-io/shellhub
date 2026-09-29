@@ -1,19 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { CommandLineIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import {
+  Callout,
+  IconButton,
+  Spinner,
+} from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useSessions } from "@/hooks/useSessions";
 import { useCloseSession } from "@/hooks/useSessionMutations";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
-import { useRecordingsStore } from "@/stores/recordingsStore";
-import { isRecordingSupported, readRecording } from "@/utils/recordings";
+import { useLocalRecordings } from "@/hooks/useLocalRecordings";
+import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import RecordingActionsMenu from "@/components/sessions/RecordingActionsMenu";
 import { formatRelative, formatDuration } from "@/utils/date";
 import { sessionHasTerminal } from "@/utils/session";
 import { usePrincipalName } from "@/hooks/usePrincipalName";
@@ -22,12 +29,6 @@ import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import SessionLogin from "@/components/sessions/SessionLogin";
 import EmptyCell from "@/components/common/EmptyCell";
 import { isEnterpriseOrCloud } from "@/env";
-import {
-  Callout,
-  IconButton,
-  Spinner,
-} from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
@@ -67,6 +68,73 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   );
 }
 
+function SessionActions({
+  session,
+  playing,
+  premium,
+  onPlay,
+  onDownload,
+  onClose,
+}: {
+  session: Session;
+  playing: boolean;
+  premium: boolean;
+  onPlay: (canPlay: boolean) => void;
+  onDownload: () => void;
+  onClose: () => Promise<unknown>;
+}) {
+  const { available: canPlay, read } = useRecordingPermissions(
+    session.uid,
+    session.recorded,
+  );
+  const hasTerminal = sessionHasTerminal(session);
+
+  return (
+    <div className="flex items-center justify-end gap-1.5">
+      {hasTerminal && (
+        <RestrictedAction action={read}>
+          <button
+            type="button"
+            className={PLAY_BTN}
+            disabled={playing || (!canPlay && premium)}
+            title={canPlay ? "Play recording" : "This session was not recorded"}
+            aria-label="Play recording"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay(canPlay);
+            }}
+          >
+            {playing ? (
+              <Spinner size="xs" tone="onPrimary" />
+            ) : (
+              <PlayIcon className="w-3.5 h-3.5" />
+            )}
+            Play
+          </button>
+        </RestrictedAction>
+      )}
+      {session.active && (
+        <RestrictedAction action="session:close">
+          <CloseButton onClose={onClose} />
+        </RestrictedAction>
+      )}
+      {hasTerminal && canPlay && (
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <RecordingActionsMenu
+            sessionUid={session.uid}
+            recorded={session.recorded}
+            onDownload={onDownload}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * The sessions list: who connected to what, when, and for how long.
  */
@@ -89,37 +157,21 @@ export default function Sessions() {
     isLoading: logsLoading,
     error: logsError,
     play,
+    download,
   } = useSessionRecording();
 
-  const recordings = useRecordingsStore((s) => s.recordings);
-  const refreshRecordings = useRecordingsStore((s) => s.refresh);
-
-  useEffect(() => {
-    if (isRecordingSupported()) void refreshRecordings();
-  }, [refreshRecordings]);
-
-  const localBySessionUid = useMemo(
-    () =>
-      new Map(
-        recordings
-          .filter((r) => r.sessionUid)
-          .map((r) => [r.sessionUid, r] as const),
-      ),
-    [recordings],
-  );
+  useLocalRecordings();
 
   const totalPages = pageCount(totalCount);
 
-  const handlePlayClick = async (e: React.MouseEvent, s: Session) => {
-    e.stopPropagation();
-    const local = localBySessionUid.get(s.uid);
-    if (local || s.recorded) {
-      setPlayTarget(s.uid);
-      await play(s, local ? () => readRecording(local) : undefined);
-      setPlayTarget(null);
+  const handlePlay = async (s: Session, canPlay: boolean) => {
+    if (!canPlay) {
+      setUpsellOpen(true);
       return;
     }
-    setUpsellOpen(true);
+    setPlayTarget(s.uid);
+    await play(s);
+    setPlayTarget(null);
   };
 
   const columns: Column<Session>[] = [
@@ -215,54 +267,21 @@ export default function Sessions() {
     {
       key: "actions",
       header: "",
-      render: (s) => {
-        const local = localBySessionUid.get(s.uid);
-        const hasTerminal = sessionHasTerminal(s);
-        const canPlay = Boolean(local) || s.recorded;
-        const playing = logsLoading && playTarget === s.uid;
-        const needsPermission = !local && s.recorded;
-        const playButton = (
-          <button
-            type="button"
-            className={PLAY_BTN}
-            disabled={playing || (!canPlay && premium)}
-            title={canPlay ? "Play recording" : "This session was not recorded"}
-            aria-label="Play recording"
-            onClick={(e) => void handlePlayClick(e, s)}
-          >
-            {playing ? (
-              <Spinner size="xs" tone="onPrimary" />
-            ) : (
-              <PlayIcon className="w-3.5 h-3.5" />
-            )}
-            Play
-          </button>
-        );
-        return (
-          <div className="flex items-center justify-end gap-1.5">
-            {hasTerminal &&
-              (needsPermission ? (
-                <RestrictedAction action="session:play">
-                  {playButton}
-                </RestrictedAction>
-              ) : (
-                playButton
-              ))}
-            {s.active && (
-              <RestrictedAction action="session:close">
-                <CloseButton
-                  onClose={() =>
-                    closeSession.mutateAsync({
-                      path: { uid: s.uid },
-                      body: { device: s.device_uid ?? s.device?.uid ?? "" },
-                    })
-                  }
-                />
-              </RestrictedAction>
-            )}
-          </div>
-        );
-      },
+      render: (s) => (
+        <SessionActions
+          session={s}
+          playing={logsLoading && playTarget === s.uid}
+          premium={premium}
+          onPlay={(canPlay) => void handlePlay(s, canPlay)}
+          onDownload={() => void download(s)}
+          onClose={() =>
+            closeSession.mutateAsync({
+              path: { uid: s.uid },
+              body: { device: s.device_uid ?? s.device?.uid ?? "" },
+            })
+          }
+        />
+      ),
     },
   ];
 
