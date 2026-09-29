@@ -12,10 +12,10 @@
 //     its key. It also exposes callbacks for tracking when connections are
 //     closed or when keep-alive events occur.
 //
-//   - Dialer: a thin wrapper around a Manager which also holds an
-//     internalclient to perform device lifecycle operations (heartbeat /
-//     offline notifications) and provides DialTo which returns a ready-to-use
-//     net.Conn for a requested Target.
+//   - Dialer: a thin wrapper around a Manager whose callbacks report device
+//     lifecycle events (heartbeat / offline notifications) through the
+//     DeviceStatuser and Heartbeater it was built with, and which provides
+//     DialTo returning a ready-to-use net.Conn for a requested Target.
 //
 //   - TunnelDialer: the dial on its own, without the registry behind it. A
 //     consumer that only reaches a device takes this rather than Dialer, and
