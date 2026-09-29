@@ -5,12 +5,11 @@ import {
   CommandLineIcon,
   ShieldCheckIcon,
   ServerStackIcon,
-  MegaphoneIcon,
   KeyIcon,
   LockClosedIcon,
   DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import { getConfig, isCloud } from "@/env";
+import { isCloud } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
 import { navSectionTitle, type NavSection } from "./navSections";
@@ -41,15 +40,7 @@ const licenseLink: AdminNavLink = {
 const licenseOnlySections: AdminNavSection[] = [{ items: [licenseLink] }];
 
 function buildFullSections(): AdminNavSection[] {
-  const instance: AdminNavLink[] = [];
-  if (getConfig().announcements) {
-    instance.push({
-      to: "/admin/announcements",
-      label: "Announcements",
-      icon: MegaphoneIcon,
-    });
-  }
-  instance.push(
+  const instance: AdminNavLink[] = [
     {
       to: "/admin/settings/authentication",
       label: "Authentication",
@@ -60,7 +51,7 @@ function buildFullSections(): AdminNavSection[] {
       label: "Instance API Keys",
       icon: LockClosedIcon,
     },
-  );
+  ];
   if (!isCloud()) instance.push(licenseLink);
 
   return [

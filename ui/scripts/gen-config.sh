@@ -30,7 +30,6 @@ require_bool() {
     esac
 }
 
-require_bool SHELLHUB_ANNOUNCEMENTS "${SHELLHUB_ANNOUNCEMENTS:-false}"
 require_bool SHELLHUB_WEB_ENDPOINTS "${SHELLHUB_WEB_ENDPOINTS:-false}"
 
 # Escape a value for use inside a JSON string literal. Values arrive verbatim
@@ -58,7 +57,6 @@ cat > "$OUTPUT" <<EOF
   "version": "$(json_string "${SHELLHUB_VERSION:-}")",
   "edition": "${EDITION}",
   "onboardingUrl": "$(json_string "${SHELLHUB_ONBOARDING_URL:-}")",
-  "announcements": ${SHELLHUB_ANNOUNCEMENTS:-false},
   "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false},
   "stripePublishableKey": "$(json_string "${SHELLHUB_STRIPE_PUBLISHABLE_KEY:-}")",
   "chatwootWebsiteToken": "$(json_string "${SHELLHUB_CHATWOOT_WEBSITE_TOKEN:-}")",

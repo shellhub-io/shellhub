@@ -1,7 +1,5 @@
 import type {
   AccessPolicy,
-  Announcement,
-  AnnouncementShort,
   Customer,
   Device,
   FirewallRulesResponse,
@@ -180,37 +178,6 @@ export function mockPublicKey(
     name: "my-key",
     filter: { hostname: ".*", tags: [] },
     username: ".*",
-    ...overrides,
-  };
-}
-
-/**
- * Builds an announcement as it appears in a list, without its body for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockAnnouncement(
-  overrides: Partial<AnnouncementShort> = {},
-): AnnouncementShort {
-  return {
-    uuid: "uuid-0001",
-    title: "Welcome to ShellHub",
-    date: "2024-06-01T10:00:00.000Z",
-    ...overrides,
-  };
-}
-
-/**
- * Builds an announcement with its body for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockAnnouncementFull(
-  overrides: Partial<Announcement> = {},
-): Announcement {
-  return {
-    uuid: "uuid-0001",
-    title: "Welcome to ShellHub",
-    content: "Announcement body",
-    date: "2024-06-01T10:00:00.000Z",
     ...overrides,
   };
 }

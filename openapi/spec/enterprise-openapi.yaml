@@ -173,7 +173,3 @@ paths:
     $ref: paths/admin@api@export@namespaces.yaml
   /admin/api/export/users:
     $ref: paths/admin@api@export@users.yaml
-  /admin/api/announcements:
-    $ref: paths/admin@api@announcements.yaml
-  /admin/api/announcements/{uuid}:
-    $ref: paths/admin@api@announcements@{uuid}.yaml

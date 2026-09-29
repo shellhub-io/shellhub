@@ -13,7 +13,6 @@ export type Edition = "community" | "enterprise" | "cloud";
 export interface ClientConfig {
   version: string;
   edition: Edition;
-  announcements: boolean;
   webEndpoints: boolean;
   onboardingUrl: string;
   stripePublishableKey: string;
@@ -29,7 +28,6 @@ export interface ClientConfig {
 export const defaultConfig: ClientConfig = {
   version: "",
   edition: "community",
-  announcements: false,
   webEndpoints: false,
   onboardingUrl: "",
   stripePublishableKey: "",
