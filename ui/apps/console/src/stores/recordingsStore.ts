@@ -18,7 +18,6 @@ function loadRetention(): number | null {
 
 interface RecordingsState {
   recordings: RecordingMeta[];
-  loading: boolean;
   retentionDays: number | null;
   notice: RecordingMeta | null;
   refresh: () => Promise<void>;
@@ -43,19 +42,13 @@ export const heldByBrowser =
  */
 export const useRecordingsStore = create<RecordingsState>((set, get) => ({
   recordings: [],
-  loading: false,
   retentionDays: loadRetention(),
   notice: null,
 
   refresh: async () => {
-    set({ loading: true });
-    try {
-      const { retentionDays } = get();
-      if (retentionDays) await pruneRecordings(retentionDays);
-      set({ recordings: await listRecordings() });
-    } finally {
-      set({ loading: false });
-    }
+    const { retentionDays } = get();
+    if (retentionDays) await pruneRecordings(retentionDays);
+    set({ recordings: await listRecordings() });
   },
 
   remove: async (id) => {

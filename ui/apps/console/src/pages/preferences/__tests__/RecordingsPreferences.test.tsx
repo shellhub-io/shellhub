@@ -24,7 +24,6 @@ const { default: RecordingsPreferences } = await import(
 function recording(id: string, size: number): RecordingMeta {
   return {
     id,
-    filename: `${id}.cast`,
     deviceName: "web-01",
     deviceUid: "dev-1",
     username: "root",

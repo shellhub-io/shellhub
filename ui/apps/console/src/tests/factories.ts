@@ -432,7 +432,6 @@ export function mockRecordingMeta(
 ): RecordingMeta {
   return {
     id: "local-1",
-    filename: "shellhub-web-01-20240101-000000.cast",
     deviceName: "web-01",
     deviceUid: "dev-1",
     username: "root",
