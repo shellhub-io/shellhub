@@ -1,7 +1,6 @@
 package agentd
 
 import (
-	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -552,13 +551,11 @@ func TestNextPingInterval(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			rng := rand.New(rand.NewPCG(1, 2)) //nolint:gosec // a fixed seed keeps the draws repeatable
-
 			const draws = 10000
 			var sum time.Duration
 			var below, above int
 			for range draws {
-				interval := nextPingInterval(tt.base, rng)
+				interval := nextPingInterval(tt.base)
 
 				require.GreaterOrEqual(t, interval, tt.lowest)
 				require.LessOrEqual(t, interval, tt.highest)
