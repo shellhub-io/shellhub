@@ -85,6 +85,13 @@ type DeviceStore interface {
 	// a member of the namespace fails when the enclosing transaction commits.
 	DeviceSetOwner(ctx context.Context, sc scope.Scope, uid, ownerID string) error
 
+	// DeviceLockMAC blocks until no other transaction holds the lock on mac in the scope's namespace,
+	// then holds it until the transaction in ctx ends. It locks the MAC itself rather than a device
+	// row, so a waiter is not released early when the device holding that MAC is deleted. It returns
+	// ErrInvalidScope for an unbounded scope and ErrLockOutsideTransaction when ctx carries no
+	// transaction.
+	DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error
+
 	DeviceDelete(ctx context.Context, device *models.Device) error
 	// DeviceDeleteMany deletes multiple devices by their UIDs.
 	DeviceDeleteMany(ctx context.Context, uids []string) (deletedCount int64, err error)
