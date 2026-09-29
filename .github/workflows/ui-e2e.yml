@@ -57,13 +57,26 @@ jobs:
           repositories: cloud
           permission-contents: read
 
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
+        env:
+          GH_TOKEN: ${{ steps.cloud-token.outputs.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ -n "$HEAD_REF" ] && gh api "repos/shellhub-io/cloud/branches/$HEAD_REF" >/dev/null 2>&1; then
+            echo "ref=$HEAD_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=master" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check out cloud source
         if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/cloud
           token: ${{ steps.cloud-token.outputs.token }}
-          ref: master
+          ref: ${{ steps.cloud-branch.outputs.ref }}
           fetch-depth: 1
           path: cloud
           persist-credentials: false
