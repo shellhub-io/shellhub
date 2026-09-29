@@ -69,9 +69,7 @@ EOF
 # enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
 # is visible then, rather than only in the agent's log once it is already running.
 enrollment_summary() {
-  if [ -n "$CODE" ]; then
-    echo "pairing code (pre-authorized)"
-  elif [ -n "$PROVISIONING_KEY" ]; then
+  if [ -n "$PROVISIONING_KEY" ]; then
     echo "provisioning key"
   elif [ -n "$TENANT_ID" ]; then
     echo "tenant $TENANT_ID (device lands pending)"
@@ -94,13 +92,6 @@ enrollment_summary() {
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
-
-  if [ -n "$CODE" ]; then
-    echo ""
-    echo "The device is pre-authorized and will be accepted automatically once it connects."
-
-    return 0
-  fi
 
   if [ -n "$PROVISIONING_KEY" ]; then
     echo ""
@@ -162,7 +153,6 @@ podman_install() {
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
-  [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
   # An empty assignment is not the same as an absent one: the agent reads the variable as set and
   # blank, which overrides a tenant it had persisted from an earlier enrollment.
@@ -250,7 +240,6 @@ docker_install() {
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
-  [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
   # An empty assignment is not the same as an absent one: the agent reads the variable as set and
   # blank, which overrides a tenant it had persisted from an earlier enrollment.
@@ -556,10 +545,6 @@ main() {
     echo "Please refer to the ShellHub port at https://github.com/shellhub-io/ports"
     exit 1
   fi
-
-  # TENANT_ID is optional wherever something else names the namespace: a provisioning key does so on its
-  # own, a pairing code claims one, and with neither the container methods boot into pairing and
-  # enroll via 'shellhub-agent login'. Snap always requires it (checked in its function).
 
   SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
   TENANT_ID="${TENANT_ID}"
