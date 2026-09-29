@@ -1,10 +1,6 @@
 package requests
 
-import (
-	"time"
-
-	"github.com/shellhub-io/shellhub/pkg/api/query"
-)
+import "github.com/shellhub-io/shellhub/pkg/api/query"
 
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {
@@ -24,12 +20,6 @@ type SessionGet struct {
 	SessionIDParam
 }
 
-// SessionAuthenticatedSet is the structure to represent the request data for set authenticated session endpoint.
-type SessionAuthenticatedSet struct {
-	SessionIDParam
-	Authenticated bool `json:"authenticated" validate:"required"`
-}
-
 // SessionCreate is the structure to represent the request data for create session endpoint.
 type SessionCreate struct {
 	UID       string `json:"uid" validate:"required"`
@@ -43,39 +33,4 @@ type SessionCreate struct {
 	// APIKeyID is the API key the session acts as, when an automation opened it. It is
 	// separate from UserID because the two name different tables.
 	APIKeyID string `json:"api_key_id" validate:""`
-}
-
-// SessionFinish is the structure to represent the request data for finish session endpoint.
-type SessionFinish struct {
-	SessionIDParam
-}
-
-// SessionKeepAlive is the request an active session sends to stay marked live. Missing them is
-// what eventually marks a session inactive.
-type SessionKeepAlive struct {
-	SessionIDParam
-}
-
-// SessionUpdate is a partial update to a live session: a nil field is left alone.
-type SessionUpdate struct {
-	SessionIDParam
-	Recorded      *bool   `json:"recorded"`
-	Authenticated *bool   `json:"authenticated"`
-	Type          *string `json:"type"`
-}
-
-// SessionEvent is one recorded event within a session. Data's shape follows Type, and Seat says
-// which of a multiplexed session's terminals it came from.
-type SessionEvent struct {
-	Type      string    `json:"type" validate:"required"`
-	Timestamp time.Time `json:"timestamp" validate:"required"`
-	Data      any       `json:"data" validate:"required"`
-	Seat      int       `json:"seat" validate:"min=0"`
-}
-
-// SessionSeat addresses one terminal within a session, which is how a single SSH connection can
-// carry more than one.
-type SessionSeat struct {
-	SessionIDParam
-	ID int `json:"id"`
 }

@@ -68,35 +68,12 @@ type DeviceRename struct {
 	Name string `json:"name" validate:"required"`
 }
 
-// DeviceOffline is the structure to represent the request data for offline device endpoint.
-type DeviceOffline struct {
-	DeviceParam
-}
-
-// DeviceLookup is the structure to represent the request data for lookup device endpoint.
-type DeviceLookup struct {
-	TenantID string `query:"tenant_id" validate:"required"`
-	Name     string `query:"name" validate:"required"`
-}
-
 // DeviceUpdateStatus is the request to accept, reject or re-pend a device. The target status is a
 // path parameter, so the same route serves all three transitions.
 type DeviceUpdateStatus struct {
 	TenantID string `header:"X-Tenant-ID"`
 	UID      string `param:"uid" validate:"required"`
 	Status   string `param:"status" validate:"required"`
-}
-
-// DeviceCreateTag is the structure to represent the request data for device create tag endpoint.
-type DeviceCreateTag struct {
-	DeviceParam
-	TagBody
-}
-
-// DeviceRemoveTag is the structure to represent the request data for device remove tag endpoint.
-type DeviceRemoveTag struct {
-	DeviceParam
-	TagBody
 }
 
 // DeviceLoginCodeResolve is the structure to represent the request data for the device login code resolve endpoint.
@@ -129,12 +106,6 @@ type DevicePairingAccept struct {
 // DevicePairingStatus is the structure to represent the request data for the device pairing status endpoint.
 type DevicePairingStatus struct {
 	Code string `param:"code" validate:"required"`
-}
-
-// DeviceUpdateTag is the structure to represent the request data for device update tags endpoint.
-type DeviceUpdateTag struct {
-	DeviceParam
-	Tags []string `json:"tags" validate:"required,min=0,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 // DeviceIdentity is the hardware identity an agent sends when authenticating. It mirrors

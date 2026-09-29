@@ -6,12 +6,6 @@ type SSHCommand struct {
 	Command string `json:"command"`
 }
 
-// SSHSubsystem is the payload of a "subsystem" request, which is how SFTP and friends are asked
-// for by name rather than by command line.
-type SSHSubsystem struct {
-	Subsystem string `json:"subsystem"`
-}
-
 // SSHExitStatus is the payload of an "exit-status" request: the process's exit code, sent when it
 // ended normally rather than on a signal.
 type SSHExitStatus struct {
