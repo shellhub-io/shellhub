@@ -16,10 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// StatusAccepted is the device status that permits connections. It is spelled out here
-// because the store and the API both compare against the wire value.
-const StatusAccepted = "accepted"
-
 // DeviceFilterFields maps each filter field the device list endpoint accepts
 // to the set of operators valid for it. Operators that the database rejects
 // on a given column type (e.g. ILIKE on the status enum) are omitted so the
