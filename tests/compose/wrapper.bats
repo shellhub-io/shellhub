@@ -65,3 +65,25 @@ load helpers
     # And cloud/.env must appear earlier in the chain.
     [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
 }
+
+@test "extra compose file: read from the env override" {
+    extra="$BATS_TEST_TMPDIR/compose.instance.yml"
+    touch "$extra"
+    out=$(capture_with EXTRA_COMPOSE_FILE="$extra")
+    [[ "$out" == *":$extra"* ]]
+}
+
+@test "extra compose file: the process environment wins over the env override" {
+    from_file="$BATS_TEST_TMPDIR/from-file.yml"
+    from_env="$BATS_TEST_TMPDIR/from-env.yml"
+    touch "$from_file" "$from_env"
+    out=$(EXTRA_COMPOSE_FILE="$from_env" capture_with EXTRA_COMPOSE_FILE="$from_file")
+    [[ "$out" == *":$from_env"* ]]
+    [[ "$out" != *"$from_file"* ]]
+}
+
+@test "extra compose file: a missing file aborts" {
+    run capture_with EXTRA_COMPOSE_FILE="$BATS_TEST_TMPDIR/missing.yml"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"missing.yml"* ]]
+}
