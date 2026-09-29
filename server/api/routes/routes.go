@@ -11,7 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
-	"github.com/shellhub-io/shellhub/pkg/websocket"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
@@ -122,7 +121,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		return nil
 	}
 
-	handler := NewHandler(service, websocket.NewGorillaWebSocketUpgrader())
+	handler := NewHandler(service)
 	for _, opt := range opts {
 		if err := opt(router, handler); err != nil {
 			return nil
