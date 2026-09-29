@@ -162,7 +162,7 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	case "contains":
 		condition, args, err = fromContains(fp.Name, fp.Value, tableAlias)
 	case "eq":
-		condition, args, err = fromEq(fp.Name, fp.Value, tableAlias)
+		condition, args = fromEq(fp.Name, fp.Value, tableAlias)
 	case "bool":
 		condition, args, err = fromBool(fp.Name, fp.Value, tableAlias)
 	case "gt":
@@ -170,7 +170,7 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	case "lt":
 		condition, args, err = fromLt(fp.Name, fp.Value, tableAlias)
 	case "ne":
-		condition, args, err = fromNe(fp.Name, fp.Value, tableAlias)
+		condition, args = fromNe(fp.Name, fp.Value, tableAlias)
 	default:
 		return "", nil, false, nil
 	}
@@ -223,8 +223,8 @@ func fromContains(column string, value any, tableAlias string) (string, []any, e
 	return "", nil, ErrUnsupportedContainsType
 }
 
-func fromEq(column string, value any, tableAlias string) (string, []any, error) {
-	return "? = ?", []any{qualifyColumn(column, tableAlias), value}, nil
+func fromEq(column string, value any, tableAlias string) (string, []any) {
+	return "? = ?", []any{qualifyColumn(column, tableAlias), value}
 }
 
 func fromBool(column string, value any, tableAlias string) (string, []any, error) {
@@ -298,8 +298,8 @@ func fromLt(column string, value any, tableAlias string) (string, []any, error) 
 	}
 }
 
-func fromNe(column string, value any, tableAlias string) (string, []any, error) {
-	return "? <> ?", []any{qualifyColumn(column, tableAlias), value}, nil
+func fromNe(column string, value any, tableAlias string) (string, []any) {
+	return "? <> ?", []any{qualifyColumn(column, tableAlias), value}
 }
 
 func fromCustomFieldsFilter(operator string, value any) (string, []any, bool, error) {
