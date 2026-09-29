@@ -66,11 +66,6 @@ func Wrap(err error, next error) error {
 	return errors.Join(err, next)
 }
 
-// Unwrap returns the next error from the error tree.
-func Unwrap(err error) error {
-	return errors.Unwrap(err)
-}
-
 // As wraps [errors.As]. Check [errors.As] for more information.
 func As(err error, target any) bool {
 	return errors.As(err, target)

@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"reflect"
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
@@ -226,15 +225,4 @@ func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error
 	}
 
 	return true, nil, nil
-}
-
-// GetTagFromStructure returns the validation's tag from structure.
-func GetTagFromStructure(structure any, field string) (Tag, bool) {
-	kind := reflect.TypeOf(structure)
-	name, ok := kind.FieldByName(field)
-	if !ok {
-		return "", false
-	}
-
-	return Tag(name.Tag.Get("validate")), true
 }
