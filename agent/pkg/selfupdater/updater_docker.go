@@ -55,7 +55,7 @@ func (d *dockerUpdater) ApplyUpdate(v *semver.Version) error {
 	}
 
 	image, _ := container.splitImageVersion()
-	_, err = d.updateContainer(container, fmt.Sprintf("%s:%s", image, v.Original()), "", true)
+	err = d.updateContainer(container, fmt.Sprintf("%s:%s", image, v.Original()), "", true)
 
 	return err
 }
@@ -124,7 +124,7 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		}
 	}
 
-	_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
+	err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func (d *dockerUpdater) removeContainer(container *dockerContainer) error {
 	return d.api.ContainerRemove(ctx, container.info.ID, opts)
 }
 
-func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) { //nolint:unparam
+func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) error {
 	ctx := context.Background()
 
 	config := container.info.Config
@@ -198,25 +198,21 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 
 	rd, err := d.api.ImagePull(ctx, image, dockerimage.PullOptions{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer rd.Close() //nolint:errcheck
 
 	_, err = io.Copy(io.Discard, rd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	clone, err := d.api.ContainerCreate(ctx, config, container.info.HostConfig, netConfig, nil, name)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if err := d.api.ContainerStart(ctx, clone.ID, containertypes.StartOptions{}); err != nil {
-		return nil, err
-	}
-
-	return d.getContainer(clone.ID)
+	return d.api.ContainerStart(ctx, clone.ID, containertypes.StartOptions{})
 }
 
 // NewUpdater returns the [Updater] matching how the agent was installed: outside a container
