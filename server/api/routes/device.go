@@ -26,13 +26,6 @@ const (
 	MakeTeamDeviceURL          = "/devices/:uid/owner"
 )
 
-// The path parameter names these routes bind by.
-const (
-	ParamDeviceID             = "uid"
-	ParamDeviceStatus         = "status"
-	ParamDeviceCustomFieldKey = "key"
-)
-
 // GetDeviceList serves the namespace's devices, filtered, sorted and paginated as requested.
 func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	req := new(requests.DeviceList)

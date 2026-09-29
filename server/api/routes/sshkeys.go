@@ -19,11 +19,6 @@ const (
 	DeletePublicKeyURL = "/sshkeys/public-keys/:fingerprint"
 )
 
-// The path parameter name these routes bind by.
-const (
-	ParamPublicKeyFingerprint = "fingerprint"
-)
-
 // GetPublicKeys serves the namespace's public keys.
 func (h *Handler) GetPublicKeys(c *gateway.Context) error {
 	req := new(requests.ListPublicKeys)

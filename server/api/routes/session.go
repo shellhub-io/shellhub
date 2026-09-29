@@ -18,11 +18,6 @@ const (
 	GetSessionURL  = "/sessions/:uid"
 )
 
-// The path parameter name these routes bind by.
-const (
-	ParamSessionID = "uid"
-)
-
 // GetSessionList serves the namespace's sessions, filtered and paginated as requested.
 func (h *Handler) GetSessionList(c *gateway.Context) error {
 	req := new(requests.ListSessions)

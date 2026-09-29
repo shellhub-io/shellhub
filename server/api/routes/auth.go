@@ -21,7 +21,6 @@ const (
 	AuthLocalUserURLV2     = "/auth/user"
 	AuthUserTokenPublicURL = "/auth/token/:tenant" //nolint:gosec
 	AuthPublicKeyURL       = "/auth/ssh"
-	AuthMFAURL             = "/auth/mfa"
 )
 
 // AuthDevice authenticates an agent and enrols its device if the namespace has not seen it

@@ -31,8 +31,7 @@ const (
 
 // The path parameter names these routes bind by.
 const (
-	ParamNamespaceTenant   = "tenant"
-	ParamNamespaceMemberID = "uid"
+	ParamNamespaceTenant = "tenant"
 )
 
 // GetNamespaceList serves the namespaces the caller belongs to.
