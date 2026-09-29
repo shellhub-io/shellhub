@@ -108,3 +108,50 @@ jobs:
         if: steps.filter.outputs[matrix.app] == 'true' && matrix.app != 'design-system'
         working-directory: ui
         run: npm run build -w ${{ matrix.workspace }}
+
+  unused:
+    name: unused files, exports and dependencies
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: filter
+        with:
+          filters: |
+            ui:
+              - 'ui/**'
+              - 'openapi/spec/**'
+
+      - name: Set up Node.JS 24.13.0
+        if: steps.filter.outputs.ui == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.13.0"
+
+      - name: Cache node modules
+        if: steps.filter.outputs.ui == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
+
+      - name: Install Node Dependencies
+        if: steps.filter.outputs.ui == 'true'
+        working-directory: ui
+        run: npm install
+
+      - name: Generate OpenAPI client
+        if: steps.filter.outputs.ui == 'true'
+        working-directory: ui
+        run: |
+          npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
+
+      - name: knip
+        if: steps.filter.outputs.ui == 'true'
+        working-directory: ui
+        run: npm run knip

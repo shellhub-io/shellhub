@@ -11,6 +11,7 @@
     "build": "npm run build --workspaces --if-present",
     "dev:console": "npm run dev -w @shellhub/console",
     "lint": "npm run lint --workspaces --if-present",
+    "knip": "knip --no-gitignore",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.4.0",
     "jsdom": "^28.1.0",
+    "knip": "^5.88.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.9.3",
