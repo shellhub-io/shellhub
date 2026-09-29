@@ -29,8 +29,8 @@ properties:
       type: string
     description: Replace the allowlist, matched against the identity the agent claims.
     example:
-      - "aa:bb:cc:dd:ee:ff"
-      - "SN-99f2"
+      - 'aa:bb:cc:dd:ee:ff'
+      - 'SN-99f2'
   webhook_timeout:
     type: integer
     description: Update the synchronous webhook timeout in seconds (1-15). 0 uses the default.
