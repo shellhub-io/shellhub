@@ -45,8 +45,8 @@ properties:
       replace it, so an entry is commonly an equipment serial. Matching ignores case
       and surrounding whitespace.
     example:
-      - "aa:bb:cc:dd:ee:ff"
-      - "sn-99f2"
+      - 'aa:bb:cc:dd:ee:ff'
+      - 'sn-99f2'
   webhook_timeout:
     type: integer
     description: Seconds the synchronous webhook call may take (0 = default).
