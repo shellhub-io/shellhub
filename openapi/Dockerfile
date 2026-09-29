@@ -11,7 +11,7 @@ RUN npm install -g @redocly/cli@2.31.5
 
 RUN npm install -g @stoplight/prism-cli@4.6.1
 
-RUN npm install -g prettier@2.8.7
+RUN npm install -g prettier@3.9.9
 
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
     CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
