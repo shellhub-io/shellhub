@@ -77,12 +77,6 @@ type PublicKey struct {
 	PublicKeyFields
 }
 
-// PublicKeyUpdate is what an edit may change: the rule, never the key material. Replacing a key
-// means deleting and re-adding it, so its fingerprint stays the identity.
-type PublicKeyUpdate struct {
-	PublicKeyFields
-}
-
 // PublicKeyAuthRequest is what the SSH gateway sends to have a key challenge signed on behalf of a
 // session.
 type PublicKeyAuthRequest struct {
