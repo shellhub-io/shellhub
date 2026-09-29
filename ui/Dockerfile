@@ -65,7 +65,7 @@ RUN apk add --no-cache brotli gzip && \
       -exec brotli -q 11 -k {} \; \
       -exec gzip -9 -k {} \;
 
-FROM alpine:3.24.1 AS production
+FROM alpine:3.24.2 AS production
 
 # CVE-2026-14456: remove when alpine base image includes the fix
 RUN apk upgrade --no-cache libssl3 libcrypto3
