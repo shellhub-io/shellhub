@@ -41,7 +41,6 @@ var _ Mode = new(HostMode)
 // Serve attaches an SSH server that authenticates against the host's own user database.
 func (m *HostMode) Serve(agent *Agent) {
 	agent.server = server.NewServer(
-		agent.cli,
 		&host.Mode{
 			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
 			Sessioner:     *host.NewSessioner(&agent.authData.Name, agent.config.SFTPServerCommand),
@@ -52,8 +51,6 @@ func (m *HostMode) Serve(agent *Agent) {
 			Features:          server.LocalPortForwardFeature,
 		},
 	)
-
-	agent.server.SetDeviceName(agent.authData.Name)
 }
 
 // GetInfo reports the host's distribution, read from its os-release file.
@@ -93,7 +90,6 @@ var _ Mode = new(ConnectorMode)
 // Serve attaches an SSH server whose sessions exec into the container rather than the host.
 func (m *ConnectorMode) Serve(agent *Agent) {
 	agent.server = server.NewServer(
-		agent.cli,
 		&connector.Mode{
 			Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
 			Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
@@ -106,7 +102,6 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 	)
 
 	agent.server.SetContainerID(agent.Identity.MAC)
-	agent.server.SetDeviceName(agent.authData.Name)
 }
 
 // GetInfo reports the container's image, which stands in for the device's platform.
