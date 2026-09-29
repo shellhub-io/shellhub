@@ -1,7 +1,0 @@
-description: Not Acceptable
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/apiError.yaml
-    example:
-      message: not acceptable
