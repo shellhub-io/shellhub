@@ -508,11 +508,6 @@ func TestConfigHasNamespaceCredential(t *testing.T) {
 			},
 			expected: true,
 		},
-		{
-			description: "has none when only a pairing code is set, since the code is claimed by the pairing flow",
-			config:      &Config{PairingCode: "XDGBESC4"},
-			expected:    false,
-		},
 	}
 
 	for _, tt := range tests {

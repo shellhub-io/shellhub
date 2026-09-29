@@ -97,12 +97,6 @@ type Config struct {
 	// accept it into a namespace, learning the tenant from the server.
 	TenantID string `env:"TENANT_ID"`
 
-	// PairingCode is a pre-authorized pairing code handed to the agent at install
-	// time (minted from the console's Add Device page). When set and no tenant is
-	// configured, the agent claims it: the server accepts the device into the
-	// code's namespace automatically, so it never lands in the pending list.
-	PairingCode string `env:"PAIRING_CODE"`
-
 	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
 	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
 	// with no TenantID configured the server resolves the namespace from the key, applying the key's
@@ -163,7 +157,6 @@ type Config struct {
 // HasNamespaceCredential reports whether the configuration carries something naming the namespace
 // the device enrolls into: a tenant ID, or a provisioning key, which is namespace-scoped and so resolves
 // one on its own. A configuration with neither has to pair, the only path that waits on a user.
-// PairingCode does not count, as the pairing flow claims it and returns the tenant it resolved.
 func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.ProvisioningKey != ""
 }
@@ -388,9 +381,8 @@ func (a *Agent) SetTenantID(tenant string) {
 	a.config.pairedTenant = true
 }
 
-// Unpair forgets the tenant a pairing gave the agent, deleting the file that persisted it, and the
-// pre-authorized code it claimed, whose outcome the server keeps replaying, so the agent can pair
-// again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
+// Unpair forgets the tenant a pairing gave the agent, deleting the file that persisted it, so the
+// agent can pair again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
 // was configured instead, because the agent would only learn it again on its next start.
 func (a *Agent) Unpair() error {
 	if !a.config.pairedTenant {
@@ -403,16 +395,8 @@ func (a *Agent) Unpair() error {
 
 	a.config.TenantID = ""
 	a.config.pairedTenant = false
-	a.config.PairingCode = ""
 
 	return nil
-}
-
-// ClearPairingCode drops a pre-authorized pairing code after the server rejected
-// it, so a retry falls back to a normal (user-accepted) pairing instead of
-// re-sending the dead code.
-func (a *Agent) ClearPairingCode() {
-	a.config.PairingCode = ""
 }
 
 func cleanKeyPath(raw string) (string, error) {
@@ -559,10 +543,6 @@ func (a *Agent) auth() *models.DeviceAuthResponse {
 
 // CreatePairing submits this tenant-less agent's identity to the server and
 // returns a short-lived pairing code. [Agent.Setup] must have been run first.
-//
-// When the agent was configured with a pre-authorized PairingCode, it is sent
-// along so the server claims it and accepts the device immediately, returning
-// an "accepted" pairing with the tenant instead of a code to poll.
 func (a *Agent) CreatePairing() (*models.DevicePairing, error) {
 	auth, err := a.buildDeviceAuth()
 	if err != nil {
@@ -574,7 +554,6 @@ func (a *Agent) CreatePairing() (*models.DevicePairing, error) {
 		Identity:  auth.Identity,
 		Info:      a.Info,
 		PublicKey: auth.PublicKey,
-		Code:      a.config.PairingCode,
 	})
 }
 

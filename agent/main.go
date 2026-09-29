@@ -462,16 +462,7 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	pairing, err := ag.CreatePairing()
 	if err != nil {
-		if cfg.PairingCode != "" {
-			log.WithError(err).Warn("The pre-authorized pairing code was rejected; falling back to manual pairing")
-			ag.ClearPairingCode()
-
-			pairing, err = ag.CreatePairing()
-		}
-
-		if err != nil {
-			return "", err
-		}
+		return "", err
 	}
 
 	if pairing.Status == models.DeviceStatusAccepted && pairing.TenantID != "" {
