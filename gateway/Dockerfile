@@ -46,7 +46,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.24.1 AS production
+FROM alpine:3.24.2 AS production
 
 RUN apk add --no-cache ca-certificates libgcc && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
