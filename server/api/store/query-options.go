@@ -35,6 +35,12 @@ type QueryOptions interface {
 	// WithoutAPIKeyOwner matches records no API key owns, leaving the ones a person does.
 	WithoutAPIKeyOwner() QueryOption
 
+	// ForUpdate locks the rows the query returns until the transaction in the context ends, so a
+	// concurrent ForUpdate on the same rows waits for that transaction and then reads what it
+	// committed. Outside a transaction the lock is released as soon as the query returns. The pg
+	// store fails the query with ErrLockWithoutTableAlias when the query sets no table alias.
+	ForUpdate() QueryOption
+
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
 

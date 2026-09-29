@@ -46,6 +46,9 @@ var (
 	// ErrDeviceNotOwned is returned when an operation names a device as owned by a member who
 	// does not own it.
 	ErrDeviceNotOwned = errors.New("device is not owned by the member", ErrLayer, ErrCodeInvalid)
+	// ErrLockOutsideTransaction is returned when a lock that lasts until the transaction ends is
+	// asked for without one, where it would be released as soon as it was taken.
+	ErrLockOutsideTransaction = errors.New("lock requires a transaction", ErrLayer, ErrCodeInternal)
 )
 
 // DuplicateFieldError carries the name of the field that caused a duplicate-key violation.

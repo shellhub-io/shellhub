@@ -274,6 +274,25 @@ func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time
 	return nil
 }
 
+// DeviceLockMAC implements [store.DeviceStore].
+func (pg *Pg) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	tx, ok := pg.GetConnection(ctx).(bun.Tx)
+	if !ok {
+		return store.ErrLockOutsideTransaction
+	}
+
+	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", "device-mac:"+tenantID+":"+mac); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 // DeviceDelete implements [store.DeviceStore].
 func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 	deletedCount, err := pg.DeviceDeleteMany(ctx, []string{device.UID})

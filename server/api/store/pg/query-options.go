@@ -16,6 +16,10 @@ import (
 // ErrQueryNotFound is returned when the query context value is not found or has the wrong type
 var ErrQueryNotFound = errors.New("query not found in context")
 
+// ErrLockWithoutTableAlias is returned by ForUpdate on a query that set no CtxTableAlias, since
+// only an aliased query can name the one table to lock.
+var ErrLockWithoutTableAlias = errors.New("for update requires a table alias")
+
 // Options implements [store.Store].
 func (pg *Pg) Options() store.QueryOptions {
 	return pg.options
@@ -202,6 +206,24 @@ func (*queryOptions) WithoutAPIKeyOwner() store.QueryOption {
 		}
 
 		wrapper.query = wrapper.query.Where("api_key_id IS NULL")
+
+		return nil
+	}
+}
+
+func (*queryOptions) ForUpdate() store.QueryOption {
+	return func(ctx context.Context) error {
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		alias, ok := ctx.Value(CtxTableAlias).(string)
+		if !ok || alias == "" {
+			return ErrLockWithoutTableAlias
+		}
+
+		wrapper.query = wrapper.query.For("UPDATE OF ?", bun.Ident(alias))
 
 		return nil
 	}

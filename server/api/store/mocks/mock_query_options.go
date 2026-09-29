@@ -38,6 +38,52 @@ func (_m *MockQueryOptions) EXPECT() *MockQueryOptions_Expecter {
 	return &MockQueryOptions_Expecter{mock: &_m.Mock}
 }
 
+// ForUpdate provides a mock function for the type MockQueryOptions
+func (_mock *MockQueryOptions) ForUpdate() store.QueryOption {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ForUpdate")
+	}
+
+	var r0 store.QueryOption
+	if returnFunc, ok := ret.Get(0).(func() store.QueryOption); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+	return r0
+}
+
+// MockQueryOptions_ForUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ForUpdate'
+type MockQueryOptions_ForUpdate_Call struct {
+	*mock.Call
+}
+
+// ForUpdate is a helper method to define mock.On call
+func (_e *MockQueryOptions_Expecter) ForUpdate() *MockQueryOptions_ForUpdate_Call {
+	return &MockQueryOptions_ForUpdate_Call{Call: _e.mock.On("ForUpdate")}
+}
+
+func (_c *MockQueryOptions_ForUpdate_Call) Run(run func()) *MockQueryOptions_ForUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockQueryOptions_ForUpdate_Call) Return(queryOption store.QueryOption) *MockQueryOptions_ForUpdate_Call {
+	_c.Call.Return(queryOption)
+	return _c
+}
+
+func (_c *MockQueryOptions_ForUpdate_Call) RunAndReturn(run func() store.QueryOption) *MockQueryOptions_ForUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Match provides a mock function for the type MockQueryOptions
 func (_mock *MockQueryOptions) Match(fs *query.Filters) store.QueryOption {
 	ret := _mock.Called(fs)
