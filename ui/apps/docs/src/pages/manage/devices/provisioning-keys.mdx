@@ -188,12 +188,6 @@ which is why a plain tenant-only enrollment lands in **Pending** — but its mod
 any other, and it is worth confirming nobody has moved it to automatic. On automatic, anything
 holding your namespace identifier enrolls itself.
 
-<Callout variant="warning">
-Do not put a pairing code in an image. A pairing code accepts one device, and every
-machine written from that image will try to use the same one. A provisioning key is the credential
-meant for that job.
-</Callout>
-
 ## Treating a key as a secret
 
 A key in an image is a credential you shipped. Anyone with the image has it, and on `automatic`
