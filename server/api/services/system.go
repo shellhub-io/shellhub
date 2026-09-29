@@ -58,7 +58,7 @@ func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo
 		return nil, err
 	}
 
-	apiHost := strings.Split(req.Host, ":")[0]
+	apiHost, _, _ := strings.Cut(req.Host, ":")
 	sshPort := envs.DefaultBackend.Get("SHELLHUB_SSH_PORT")
 
 	resp := &responses.SystemInfo{

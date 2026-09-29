@@ -15,8 +15,7 @@ func denyRequest(logger *log.Entry, req *gossh.Request) {
 }
 
 func openFailureReason(err error) gossh.RejectionReason {
-	var openErr *gossh.OpenChannelError
-	if errors.As(err, &openErr) {
+	if openErr, ok := errors.AsType[*gossh.OpenChannelError](err); ok {
 		return openErr.Reason
 	}
 

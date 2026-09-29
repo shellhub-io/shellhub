@@ -36,8 +36,7 @@ func WithData(parent error, data Data) error {
 		return nil
 	}
 
-	var err Error
-	if errors.As(parent, &err) {
+	if err, ok := errors.AsType[Error](parent); ok {
 		err.Data = data
 
 		return err

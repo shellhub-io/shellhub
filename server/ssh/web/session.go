@@ -300,9 +300,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		BannerCallback:  bannerCallback(),
 	})
 	if err != nil {
-		var e *BannerError
-
-		if errors.As(err, &e) {
+		if e, ok := errors.AsType[*BannerError](err); ok {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
 			return mapBannerError(e)

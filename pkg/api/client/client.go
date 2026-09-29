@@ -106,8 +106,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return false
 		}
 
-		var netErr net.Error
-		if errors.As(err, &netErr) {
+		if _, ok := errors.AsType[net.Error](err); ok {
 			return true
 		}
 

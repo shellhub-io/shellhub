@@ -216,8 +216,7 @@ func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error
 	if err := v.Validate.Struct(structure); err != nil {
 		fields := make(map[string]any, 0)
 
-		var errs validator.ValidationErrors
-		if errors.As(err, &errs) {
+		if errs, ok := errors.AsType[validator.ValidationErrors](err); ok {
 			for _, e := range errs {
 				fields[e.Field()] = e.Tag()
 			}
