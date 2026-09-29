@@ -150,6 +150,41 @@ jobs:
             done
 
 
+  mocks:
+    name: generated mocks
+    if: ${{ github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Ensure generated mocks match the pinned generator
+        run: |
+          VERSION=$(sed -n 's|.*mockery/v3/\.\.\.@\(v[0-9][0-9.]*\).*|\1|p' server/Dockerfile | head -1)
+          if [ -z "$VERSION" ]; then
+              echo "could not read the mockery version from server/Dockerfile"
+              exit 1
+          fi
+
+          go install github.com/vektra/mockery/v3/...@"$VERSION"
+
+          for module in . server agent; do
+              (cd "$module" && "$(go env GOPATH)/bin/mockery")
+          done
+
+          if [ -n "$(git status --porcelain)" ]; then
+              echo "generated mocks do not match mockery $VERSION: run mockery in ., server and agent"
+              git --no-pager diff --stat
+              exit 1
+          fi
+
   cross-compile:
     name: cross-compile (${{ matrix.goos }})
     if: ${{ github.event.pull_request.draft == false }}
