@@ -665,7 +665,7 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 				return
 			}
 
-			if err := a.reauthorize(); err != nil {
+			if err := a.authorize(); err != nil {
 				if errors.Is(err, ErrDeviceRemoved) {
 					cancel(ErrDeviceRemoved)
 
@@ -709,18 +709,6 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 	}
 
 	return closeErr
-}
-
-func (a *Agent) reauthorize() error {
-	if err := a.authorize(); err != nil {
-		return err
-	}
-
-	if a.server != nil {
-		a.server.SetDeviceName(a.auth().Name)
-	}
-
-	return nil
 }
 
 func (a *Agent) signalListening(ctx context.Context, listening bool) {
@@ -804,7 +792,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			if err := a.reauthorize(); err != nil {
+			if err := a.authorize(); err != nil {
 				if errors.Is(err, ErrDeviceRemoved) {
 					removed(ErrDeviceRemoved)
 
