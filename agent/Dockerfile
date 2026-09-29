@@ -67,6 +67,11 @@ RUN go mod download
 
 #RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
 
+ARG USERNAME
+ARG PASSWORD
+
+RUN [ -z "$USERNAME" ] || { adduser -D "$USERNAME" && echo "$USERNAME:$PASSWORD" | chpasswd; }
+
 COPY ./agent/entrypoint-dev.sh /entrypoint.sh
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent

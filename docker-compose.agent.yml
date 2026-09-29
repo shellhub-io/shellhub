@@ -11,13 +11,15 @@ services:
         - SHELLHUB_VERSION=latest
         - GOPROXY=${SHELLHUB_GOPROXY:-}
         - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
-    privileged: true
-    network_mode: host
-    pid: host
+        - USERNAME=${SHELLHUB_DEV_AGENT_USERNAME:-shellhub}
+        - PASSWORD=${SHELLHUB_DEV_AGENT_PASSWORD:-shellhub}
+    network_mode: service:gateway
     environment:
-      - SHELLHUB_SERVER_ADDRESS=http://localhost:${SHELLHUB_HTTP_PORT}
+      - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
       - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
+      - SHELLHUB_PREFERRED_HOSTNAME=${SHELLHUB_DEV_AGENT_NAME:-shellhub}
+      - SHELLHUB_PREFERRED_IDENTITY=${SHELLHUB_DEV_AGENT_NAME:-shellhub}
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
@@ -26,11 +28,13 @@ services:
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - /:/host
-      - /dev:/dev
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
-      - /tmp:/tmp
     depends_on:
-      - server
-      - gateway
+      server:
+        condition: service_started
+      gateway:
+        condition: service_started
+        restart: true
+  gateway:
+    extra_hosts:
+      - "${SHELLHUB_DOMAIN}:127.0.0.1"
