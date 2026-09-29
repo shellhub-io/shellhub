@@ -117,6 +117,8 @@ paths:
     $ref: paths/api@billing@evaluate.yaml
   /api/billing/portal:
     $ref: paths/api@billing@portal.yaml
+  /api/webhook-billing:
+    $ref: paths/api@webhook-billing.yaml
   /api/user/saml/reauth:
     $ref: paths/api@user@saml@reauth.yaml
   /api/user/mfa/auth:
