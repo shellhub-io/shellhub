@@ -108,7 +108,7 @@ jobs:
 
       - name: Code format [Go]
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-        if: matrix.os == 'ubuntu-latest' && github.event.pull_request.draft == false
+        if: github.event.pull_request.draft == false
 
       - name: Code linting [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
