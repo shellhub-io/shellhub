@@ -31,7 +31,6 @@ func Log(level string, verbose bool) Option {
 				Logger:     logger,
 				QueryLevel: logrus.DebugLevel,
 				ErrorLevel: logrus.ErrorLevel,
-				SlowLevel:  logrus.WarnLevel,
 			}),
 		))
 
