@@ -385,7 +385,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 
 		sc := scope.MustBounded(namespace.TenantID)
 
-		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
+		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID, s.store.Options().ForUpdate())
 		if err != nil {
 			return NewErrDeviceNotFound(models.UID(req.UID), err)
 		}
@@ -405,8 +405,14 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 		}
 
 		if newStatus == models.DeviceStatusAccepted {
-			opts := []store.QueryOption{s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)}
-			existingMacDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceMACResolver, device.Identity.MAC, opts...)
+			if err := s.store.DeviceLockMAC(ctx, sc, device.Identity.MAC); err != nil {
+				return err
+			}
+
+			acceptedOnly := s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)
+			opts := []store.QueryOption{acceptedOnly}
+			lockedOpts := []store.QueryOption{acceptedOnly, s.store.Options().ForUpdate()}
+			existingMacDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceMACResolver, device.Identity.MAC, lockedOpts...)
 			if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 				log.WithError(err).
 					WithFields(log.Fields{"mac": device.Identity.MAC}).
