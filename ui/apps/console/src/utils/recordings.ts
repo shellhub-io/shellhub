@@ -12,7 +12,6 @@ const DIR = "session-recordings";
  */
 export interface RecordingMeta {
   id: string;
-  filename: string;
   deviceName: string;
   deviceUid: string;
   username: string;
@@ -217,7 +216,6 @@ export class OpfsCastRecorder {
     }
     const meta: RecordingMeta = {
       id: this.id,
-      filename: castFilename(this.deviceName),
       deviceName: this.deviceName,
       deviceUid: this.deviceUid,
       username: this.username,

@@ -1,16 +1,8 @@
 /**
- * Shortest accepted display name.
- */
-export const NAME_MIN_LENGTH = 1;
-/**
  * Longest accepted display name. Mirrors the server, so the form catches it first.
  */
 export const NAME_MAX_LENGTH = 64;
 
-/**
- * Shortest accepted username.
- */
-export const USERNAME_MIN_LENGTH = 3;
 /**
  * Longest accepted username.
  */
@@ -116,16 +108,6 @@ export const NAMESPACE_NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
  */
 export const NAMESPACE_NAME_HINT =
   "3-30 characters, lowercase letters, numbers, and hyphens only.";
-
-/**
- * The same rule broken into checklist lines, for the create form, where the requirements are
- * shown as a list the user watches turn green.
- */
-export const NAMESPACE_NAME_RULES: readonly string[] = [
-  "3-30 characters",
-  "Lowercase letters, numbers, and hyphens only",
-  "Cannot begin or end with a hyphen",
-];
 
 /**
  * Checks a namespace name, returning the message to show or null. Length is reported separately
