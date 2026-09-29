@@ -26,6 +26,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 func plaintextFor(b byte) string { return fmt.Sprintf("provisioning-key-%02x", b) }
@@ -34,6 +35,7 @@ func digest(b byte) string       { return hashProvisioningKey(plaintextFor(b)) }
 type enrollmentE2E struct {
 	svc      *APIService
 	st       store.Store
+	db       *bun.DB
 	tenantID string
 }
 
@@ -88,7 +90,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache())
 
-	return &enrollmentE2E{svc: svc, st: st, tenantID: tenantID}
+	return &enrollmentE2E{svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }
 
 func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode models.ProvisioningKeyMode, keyType models.ProvisioningKeyType, opts func(*models.ProvisioningKey)) {
@@ -112,12 +114,18 @@ func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode 
 
 func (e *enrollmentE2E) enroll(t *testing.T, mac, provisioningKey string) string {
 	t.Helper()
+
+	return e.enrollWithPublicKey(t, mac, "pk-"+mac, provisioningKey)
+}
+
+func (e *enrollmentE2E) enrollWithPublicKey(t *testing.T, mac, publicKey, provisioningKey string) string {
+	t.Helper()
 	req := requests.DeviceAuth{
 		TenantID:       e.tenantID,
 		Hostname:       "host-" + mac,
 		Identity:       &requests.DeviceIdentity{MAC: mac},
 		Info:           &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
-		PublicKey:      "pk-" + mac,
+		PublicKey:      publicKey,
 		RealIP:         "203.0.113.7",
 		ForwardedHost:  "shellhub.test",
 		ForwardedProto: "https",
