@@ -8,12 +8,17 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
+
+// AccessPolicyQuery is the query contract the access policy list accepts, which is nothing: the
+// list serves every policy in the namespace and offers neither a filter nor a sort.
+var AccessPolicyQuery = query.Contract{}
 
 // AccessPolicyService answers whether a principal may connect to a device. The namespace's
 // Access Policies decide which devices and logins, and the member's role decides whether they
@@ -37,8 +42,9 @@ type AccessPolicyService interface {
 	// browser to run one in.
 	Authorize(ctx context.Context, tenantID string, principal models.Principal, deviceUID, login, sourceIP string) (*models.Decision, error)
 
-	// ListAccessPolicies returns every access policy in the namespace.
-	ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error)
+	// ListAccessPolicies returns every access policy in the namespace, and the size of the whole
+	// collection as the store counted it.
+	ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, int, error)
 
 	// NamespaceHasAccessPolicies reports whether the namespace has any access
 	// policy. The gateway uses it to refuse an identity-mode login before minting
@@ -351,32 +357,32 @@ func stricterReauthPeriod(a, b *int) *int {
 	return a
 }
 
-func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error) {
+func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, int, error) {
 	sc, err := BoundTo(tenantID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
+		return nil, 0, NewErrNamespaceNotFound(tenantID, err)
 	}
 
 	apiKeys, _, err := s.store.APIKeyList(ctx, sc)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	policies, _, err := s.store.AccessPolicyList(ctx, sc)
+	policies, count, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	for i := range policies {
 		policies[i].SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policies[i].Subject)
 	}
 
-	return policies, nil
+	return policies, count, nil
 }
 
 func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {

@@ -1,17 +1,12 @@
 package routes
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -72,109 +67,24 @@ func TestGetDeviceHandler(t *testing.T) {
 	}
 }
 
-// TestGetDeviceListHandler covers what the device list handler still decides now that the wrapper
-// owns the ceremony: the sort field, the caller's encoded filter, and nothing else.
+// TestGetDeviceListHandler drives what the device list handler still decides now that the wrapper
+// owns the whole query ceremony: nothing but which service call the scope and the request go to.
+// The refusals it used to make are the wrapper's, and are driven there.
 func TestGetDeviceListHandler(t *testing.T) {
 	const tenantID = "00000000-0000-4000-0000-000000000000"
 
-	encode := func(t *testing.T, filters []query.Filter) string {
-		t.Helper()
+	req := &requests.DeviceList{TenantID: tenantID, Connector: true}
 
-		raw, err := json.Marshal(filters)
-		require.NoError(t, err)
+	service := mocks.NewMockService(t)
+	service.
+		On("ListDevices", gomock.Anything, scope.MustBounded(tenantID), req).
+		Return([]models.Device{{UID: "uid"}}, 7, nil).
+		Once()
 
-		return base64.StdEncoding.EncodeToString(raw)
-	}
+	handler := NewHandler(service, nil)
 
-	cases := []struct {
-		description    string
-		req            func(*testing.T) *requests.DeviceList
-		requiredMocks  func(*mocks.MockService)
-		expectedFields map[string]string
-	}{
-		{
-			description: "refuses a sort field the device list does not accept",
-			req: func(*testing.T) *requests.DeviceList {
-				return &requests.DeviceList{Sorter: query.Sorter{By: "not_a_column", Order: query.OrderAsc}}
-			},
-			requiredMocks:  func(*mocks.MockService) {},
-			expectedFields: map[string]string{"sort_by": "not_a_column"},
-		},
-		{
-			description: "refuses a filter that is not valid base64",
-			req: func(*testing.T) *requests.DeviceList {
-				return &requests.DeviceList{Filters: query.Filters{Raw: "!!!not-base64!!!"}}
-			},
-			requiredMocks:  func(*mocks.MockService) {},
-			expectedFields: map[string]string{"filter": "cannot be decoded"},
-		},
-		{
-			description: "refuses a filter naming a field the device list does not know",
-			req: func(t *testing.T) *requests.DeviceList {
-				t.Helper()
-
-				raw := encode(t, []query.Filter{{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "nonexistent_field", Operator: "eq", Value: "foo"},
-				}})
-
-				return &requests.DeviceList{Filters: query.Filters{Raw: raw}}
-			},
-			requiredMocks:  func(*mocks.MockService) {},
-			expectedFields: map[string]string{"filter": "is not valid"},
-		},
-		{
-			description: "hands the service the decoded filter and the caller's connector intent",
-			req: func(t *testing.T) *requests.DeviceList {
-				t.Helper()
-
-				raw := encode(t, []query.Filter{{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				}})
-
-				return &requests.DeviceList{TenantID: tenantID, Connector: true, Filters: query.Filters{Raw: raw}}
-			},
-			requiredMocks: func(service *mocks.MockService) {
-				service.
-					On("ListDevices", gomock.Anything, scope.MustBounded(tenantID), gomock.MatchedBy(func(req *requests.DeviceList) bool {
-						if !req.Connector || len(req.Filters.Data) != 1 {
-							return false
-						}
-
-						property, ok := req.Filters.Data[0].Params.(*query.FilterProperty)
-
-						return ok && property.Name == "name" && property.Value == "foo"
-					})).
-					Return([]models.Device{}, 0, nil).
-					Once()
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			service := mocks.NewMockService(t)
-			tc.requiredMocks(service)
-
-			handler := NewHandler(service, nil)
-
-			_, _, err := handler.GetDeviceList(t.Context(), scope.MustBounded(tenantID), gateway.Actor{ID: "user-id"}, tc.req(t))
-
-			if tc.expectedFields != nil {
-				require.Error(t, err)
-
-				var wrapped errors.Error
-				require.ErrorAs(t, err, &wrapped, "a refusal must be a ShellHub error")
-
-				data, ok := wrapped.Data.(errs.ErrDataInvalidEntity)
-				require.True(t, ok, "a refusal must carry the fields the caller can act on, got %v", wrapped.Data)
-				assert.Equal(t, tc.expectedFields, data.Fields)
-
-				return
-			}
-
-			require.NoError(t, err)
-		})
-	}
+	devices, count, err := handler.GetDeviceList(t.Context(), scope.MustBounded(tenantID), gateway.Actor{ID: "user-id"}, req)
+	require.NoError(t, err)
+	assert.Equal(t, []models.Device{{UID: "uid"}}, devices)
+	assert.Equal(t, 7, count)
 }

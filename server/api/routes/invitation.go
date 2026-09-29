@@ -1,14 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	log "github.com/sirupsen/logrus"
+	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 )
 
 // The registration and invitation routes, relative to the API's base path.
@@ -110,81 +109,13 @@ func (h *Handler) AcceptInvite(c *gateway.Context) error {
 }
 
 // GetUserMembershipInvitationList serves the invitations awaiting the caller.
-func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
-	req := new(requests.UserMembershipInvitationList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-	req.Sorter.Normalize()
-
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode user membership invitation list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	invitations, count, err := h.service.UserMembershipInvitationList(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, invitations)
+func (h *Handler) GetUserMembershipInvitationList(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int, error) {
+	return h.service.UserMembershipInvitationList(ctx, req)
 }
 
 // GetNamespaceMembershipInvitationList serves the invitations a namespace has outstanding.
-func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error {
-	req := new(requests.NamespaceMembershipInvitationList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-	req.Sorter.Normalize()
-
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace membership invitation list filter")
-
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	invitations, count, err := h.service.NamespaceMembershipInvitationList(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, invitations)
+func (h *Handler) GetNamespaceMembershipInvitationList(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int, error) {
+	return h.service.NamespaceMembershipInvitationList(ctx, req)
 }
 
 // CancelMembershipInvitation withdraws an invitation, invalidating its code.

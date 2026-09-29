@@ -1,14 +1,14 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The provisioning key routes, relative to the API's base path.
@@ -45,39 +45,8 @@ func (h *Handler) CreateProvisioningKey(c *gateway.Context) error {
 }
 
 // ListProvisioningKeys serves the namespace's provisioning keys, without their plaintext.
-func (h *Handler) ListProvisioningKeys(c *gateway.Context) error {
-	req := new(requests.ListProvisioningKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeySortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListProvisioningKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, res)
+func (h *Handler) ListProvisioningKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int, error) {
+	return h.service.ListProvisioningKeys(ctx, req)
 }
 
 // UpdateProvisioningKey changes a key's name, expiry or the device attributes it pre-assigns.
@@ -140,37 +109,6 @@ func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 }
 
 // HistoryProvisioningKey serves the record of what a key has been used for.
-func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
-	req := new(requests.ListProvisioningKeyEvents)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	events, count, err := h.service.ListProvisioningKeyEvents(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, events)
+func (h *Handler) HistoryProvisioningKey(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int, error) {
+	return h.service.ListProvisioningKeyEvents(ctx, req)
 }

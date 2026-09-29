@@ -24,16 +24,6 @@ var bodylessSuccesses = map[string]bool{
 
 const errorHandlerRenderingEveryRefusal = "api/pkg/echo/handlers/errors.go"
 
-var refusalsAwaitingTheRouteShapes = map[string]int{
-	"api/routes/api-key.go":          1,
-	"api/routes/provisioning-key.go": 2,
-	"api/routes/invitation.go":       6,
-	"api/routes/nsadm.go":            2,
-	"api/routes/session.go":          2,
-	"api/routes/sshkeys.go":          2,
-	"api/routes/tags.go":             3,
-}
-
 func answersASuccess(arg ast.Expr) bool {
 	switch status := arg.(type) {
 	case *ast.SelectorExpr:
@@ -108,27 +98,17 @@ func bodylessRefusals(t *testing.T) map[string]int {
 // TestEveryRefusalCarriesABody fails when anything in the server module answers a refusal with no
 // body. A refusal returns an error so the error handler renders one, and c.NoContent is left to
 // the successes that genuinely carry nothing. It walks the whole module rather than this package,
-// because the SSH surface registers its own handlers on the same router. The tolerated set is
-// keyed by path, so a file sharing its name with a tolerated one is not tolerated too; it shrinks
-// and never grows, and empties when the route shapes take the last filter rejection with them.
+// because the SSH surface registers its own handlers on the same router.
 func TestEveryRefusalCarriesABody(t *testing.T) {
 	found := bodylessRefusals(t)
 
-	unexpected := make([]string, 0)
-
-	for path, count := range found {
-		if count > refusalsAwaitingTheRouteShapes[path] {
-			unexpected = append(unexpected, path)
-		}
+	unexpected := make([]string, 0, len(found))
+	for path := range found {
+		unexpected = append(unexpected, path)
 	}
 
 	sort.Strings(unexpected)
 
 	assert.Empty(t, unexpected,
 		"these files refuse a request without a body; return an error instead so the handler renders one")
-
-	for path, tolerated := range refusalsAwaitingTheRouteShapes {
-		assert.Equal(t, tolerated, found[path],
-			"%s no longer needs %d tolerated refusals; lower or remove its entry", path, tolerated)
-	}
 }
