@@ -147,7 +147,7 @@ get:
           examples:
             user_confirmed:
               value:
-                id: '68ada99d2f96ee43fd86306a'
+                id: '3f6a0c1e-9b2d-4c7a-8e51-2d9f4b6a7c10'
                 status: 'confirmed'
                 admin: true
                 max_namespaces: 0
@@ -165,7 +165,7 @@ get:
                     - 'local'
             user_not_confirmed:
               value:
-                id: '507f1f77bcf86cd799439012'
+                id: '8b1d5e27-4a3c-4f96-b0e2-6c7a9d3f1e54'
                 status: 'not-confirmed'
                 admin: false
                 max_namespaces: 5
