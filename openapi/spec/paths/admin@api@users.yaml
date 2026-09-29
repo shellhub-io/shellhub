@@ -62,7 +62,7 @@ get:
           examples:
             one_user:
               value:
-                - id: 507f1f77bcf86cd799439011
+                - id: 3f6a0c1e-9b2d-4c7a-8e51-2d9f4b6a7c10
                   namespaces: 0
                   status: not-confirmed
                   admin: false
@@ -74,7 +74,7 @@ get:
                   password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
             two_users:
               value:
-                - id: 507f1f77bcf86cd799439011
+                - id: 3f6a0c1e-9b2d-4c7a-8e51-2d9f4b6a7c10
                   namespaces: 0
                   status: confirmed
                   admin: false
@@ -84,7 +84,7 @@ get:
                   email: example@example.com
                   username: example
                   password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
-                - id: 507f191e810c19729de860ea
+                - id: 8b1d5e27-4a3c-4f96-b0e2-6c7a9d3f1e54
                   namespaces: 2
                   status: not-confirmed
                   admin: true
