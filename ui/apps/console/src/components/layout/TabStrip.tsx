@@ -395,18 +395,18 @@ export default function TabStrip({
         <PlusIcon className="w-4 h-4" strokeWidth={2} />
       </button>
 
-      <div className="ml-auto mb-1 flex items-center gap-0.5 shrink-0">
+      <div
+        data-tauri-drag-region
+        className="ml-auto self-stretch pt-2.5 flex items-center gap-2 shrink-0"
+      >
         {contextCovered && (
-          <>
-            <IconButton
-              aria-label="Terminal settings"
-              title="Terminal settings"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Cog6ToothIcon className="w-4 h-4" />
-            </IconButton>
-            <span className="mx-1.5 h-4 w-px bg-border" aria-hidden="true" />
-          </>
+          <IconButton
+            aria-label="Terminal settings"
+            title="Terminal settings"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Cog6ToothIcon className="w-4 h-4" />
+          </IconButton>
         )}
         {trailing}
       </div>

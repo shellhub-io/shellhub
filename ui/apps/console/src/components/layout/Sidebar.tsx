@@ -30,17 +30,18 @@ function pickBadge(item: NavItem): ReactNode | undefined {
 
 /**
  * The main navigation. Links the role cannot use are shown disabled rather than hidden, so the
- * shape of the product does not change with permissions.
+ * shape of the product does not change with permissions. withAccount false leaves the account
+ * menu out, for the mobile drawer, whose page already has it beside the tabs.
  */
 export default function Sidebar({
   expanded,
-  folded,
   covered,
+  withAccount = true,
   onClose,
 }: {
   expanded: boolean;
-  folded?: boolean;
   covered?: boolean;
+  withAccount?: boolean;
   onClose?: () => void;
 }) {
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
@@ -55,12 +56,15 @@ export default function Sidebar({
   return (
     <SidebarShell
       expanded={expanded}
-      folded={folded}
       covered={covered}
-      onClose={onClose}
+      onNavigate={handleNavClick}
       ariaLabel="Main navigation"
       logoHref="/dashboard"
-      account={<SessionMenu placement={expanded ? "expanded" : "rail"} />}
+      account={
+        withAccount && (
+          <SessionMenu placement={expanded ? "expanded" : "rail"} />
+        )
+      }
     >
       <NavSectionList
         sections={sections}

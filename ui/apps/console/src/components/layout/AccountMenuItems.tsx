@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
   LifebuoyIcon,
-  SwatchIcon,
+  AdjustmentsHorizontalIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
@@ -109,17 +109,15 @@ export default function AccountMenuItems({
   const support = useContext(ChatwootContext);
   const logout = useAuthStore((s) => s.logout);
 
-  const go = (path: string) => {
-    onDone();
-    void navigate(path);
-  };
-
   return (
     <>
       <div className="p-1.5">
         <button
           type="button"
-          onClick={() => go("/account/profile")}
+          onClick={() => {
+            onDone();
+            void workspace.openAccount("/account/profile");
+          }}
           className={itemClass}
         >
           <UserIcon className={itemIconClass} />
@@ -133,7 +131,7 @@ export default function AccountMenuItems({
           }}
           className={itemClass}
         >
-          <SwatchIcon className={itemIconClass} />
+          <AdjustmentsHorizontalIcon className={itemIconClass} />
           <span className={itemLabelClass}>Preferences</span>
         </button>
         {support && (

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
@@ -110,9 +111,10 @@ describe("AppLayout", () => {
         const menus = await screen.findAllByRole("button", {
           name: /account menu for/i,
         });
-        expect(menus.filter((menu) => !menu.closest("[inert]"))).toHaveLength(
-          1,
-        );
+        const reachable = menus.filter((menu) => !menu.closest("[inert]"));
+        expect(reachable).toHaveLength(1);
+        if (desktop) expect(reachable[0]).toHaveTextContent("admin");
+        else expect(reachable[0]).not.toHaveTextContent("admin");
       },
     );
 
@@ -128,6 +130,17 @@ describe("AppLayout", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it.each(["/account/profile", "/preferences/appearance"])(
+    "keeps the account menu reachable on %s without a namespace",
+    async (path) => {
+      renderLayout(path);
+
+      expect(
+        await screen.findByRole("button", { name: /account menu for/i }),
+      ).toBeInTheDocument();
+    },
+  );
 
   describe("on the account pages", () => {
     beforeEach(() => {
@@ -145,9 +158,9 @@ describe("AppLayout", () => {
 
     it("moves the account menu out from under the frame", async () => {
       renderLayout("/account/profile");
-      await screen.findByRole("tablist", { name: "Open views" });
+      await screen.findByRole("navigation", { name: "Main navigation" });
 
-      const menus = await screen.findAllByRole("button", {
+      const menus = screen.getAllByRole("button", {
         name: /account menu for/i,
       });
       const reachable = menus.filter((menu) => !menu.closest("[inert]"));
@@ -199,7 +212,7 @@ describe("AppLayout", () => {
       useTerminalStore.setState(windows);
     });
 
-    it("folds the desktop navigation out of reach and drops its pin toggle", async () => {
+    it("covers the desktop navigation with the frame", async () => {
       renderLayout("/devices");
 
       const nav = await screen.findByRole("navigation", {
@@ -207,9 +220,72 @@ describe("AppLayout", () => {
         hidden: true,
       });
       expect(nav.closest("[inert]")).not.toBeNull();
-      expect(
-        screen.queryByRole("button", { name: /pin sidebar/i }),
-      ).not.toBeInTheDocument();
+    });
+
+    it("keeps the account menu reachable beside the tabs", async () => {
+      renderLayout("/devices");
+
+      const menus = await screen.findAllByRole("button", {
+        name: /account menu for/i,
+        hidden: true,
+      });
+      expect(menus.filter((menu) => !menu.closest("[inert]"))).toHaveLength(1);
+    });
+
+    it("puts the window away when the logo is clicked on its own page", async () => {
+      const user = userEvent.setup();
+      renderLayout("/dashboard");
+
+      await user.click(
+        await screen.findByRole("link", { name: "ShellHub", hidden: true }),
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole("navigation", { name: "Main navigation" }),
+        ).not.toHaveAttribute("inert"),
+      );
+    });
+
+    it("puts the window away when the admin logo is clicked on its own page", async () => {
+      const user = userEvent.setup();
+      seedAuthStore({ isAdmin: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      renderLayout("/admin/dashboard");
+
+      const adminTab = await screen.findByRole("tab", {
+        name: /admin console/i,
+      });
+      expect(adminTab).toHaveAttribute("aria-selected", "false");
+
+      await user.click(
+        screen.getByRole("link", { name: "ShellHub", hidden: true }),
+      );
+
+      await waitFor(() =>
+        expect(adminTab).toHaveAttribute("aria-selected", "true"),
+      );
+    });
+
+    it("puts the window away when Account is picked on the account's own page", async () => {
+      const user = userEvent.setup();
+      renderLayout("/account/profile");
+
+      const accountTab = await screen.findByRole("tab", { name: /account/i });
+      expect(accountTab).toHaveAttribute("aria-selected", "false");
+
+      const menu = (
+        await screen.findAllByRole("button", {
+          name: /account menu for/i,
+          hidden: true,
+        })
+      ).find((button) => !button.closest("[inert]"))!;
+      await user.click(menu);
+      await user.click(await screen.findByRole("button", { name: "Account" }));
+
+      await waitFor(() =>
+        expect(accountTab).toHaveAttribute("aria-selected", "true"),
+      );
     });
 
     it("keeps the navigation drawer usable on a narrow window", async () => {
@@ -221,6 +297,9 @@ describe("AppLayout", () => {
         name: "Main navigation",
       });
       expect(nav.closest("[inert]")).toBeNull();
+      expect(
+        screen.getAllByRole("button", { name: /account menu for/i }),
+      ).toHaveLength(1);
     });
   });
 

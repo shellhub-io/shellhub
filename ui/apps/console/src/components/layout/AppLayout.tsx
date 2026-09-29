@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
-import { IconButton } from "@shellhub/design-system/primitives";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
 import AdminNavBar, { belowAdminNavBar } from "./AdminNavBar";
@@ -37,7 +35,6 @@ import { isEnterprise } from "@/env";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
 import { isPreferencesPath } from "@/utils/preferencesRoute";
-import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 
 /**
  * The shell of the signed-in app: the sidebar and a tab strip sit on the chrome, and the
@@ -46,7 +43,6 @@ import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
  */
 export default function AppLayout() {
   const { pathname } = useLocation();
-  const workspace = useWorkspaceTabs();
   const loadTerminalThemes = useTerminalThemeStore((s) => s.loadThemes);
   useEffect(() => {
     void loadTerminalThemes();
@@ -64,13 +60,15 @@ export default function AppLayout() {
   const isAdminRoute = isAdminPath(pathname);
   const showSidebar = isAdminRoute || namespaces.length > 0;
   const drawerNav = showSidebar && !isDesktop && !isAdminRoute;
+  const desktopSidebar = showSidebar && isDesktop;
   useSyncWorkspaceTab(pathname, isAdminRoute);
   const frameOverNav =
-    showSidebar &&
-    isDesktop &&
-    !windowShown &&
-    (isAdminRoute || isAccountPath(pathname) || isPreferencesPath(pathname));
-  const sessionMenuInTabStrip = frameOverNav || (isAdminRoute && !isDesktop);
+    desktopSidebar &&
+    (windowShown ||
+      isAdminRoute ||
+      isAccountPath(pathname) ||
+      isPreferencesPath(pathname));
+  const sessionMenuInTabStrip = frameOverNav || !desktopSidebar;
 
   return (
     <ChatwootProvider>
@@ -89,10 +87,10 @@ export default function AppLayout() {
           </>
         )}
         <div className="bg-background flex flex-1 min-h-0">
-          {showSidebar && isDesktop && (
+          {desktopSidebar && (
             <div
               style={{
-                width: !pinned && !windowShown ? SIDEBAR_RAIL_PX : undefined,
+                width: !pinned ? SIDEBAR_RAIL_PX : undefined,
               }}
               className="relative shrink-0"
             >
@@ -108,18 +106,17 @@ export default function AppLayout() {
                   !pinned && !frameOverNav && "z-appbar",
                   !pinned &&
                     isOpen &&
+                    !frameOverNav &&
                     "border-border shadow-[16px_0_40px_-12px_rgba(0,0,0,0.7)]",
                 )}
               >
                 {isAdminRoute ? (
                   <AdminSidebar
                     expanded={isOpen && pinned}
-                    folded={windowShown}
                   />
                 ) : (
                   <Sidebar
                     expanded={isOpen && (pinned || !frameOverNav)}
-                    folded={windowShown}
                     covered={frameOverNav}
                   />
                 )}
@@ -132,38 +129,35 @@ export default function AppLayout() {
               onClose={handlers.closeDrawer}
               onKeyDown={handlers.onDrawerKeyDown}
             >
-              <Sidebar expanded onClose={handlers.closeDrawer} />
+              <Sidebar
+                expanded
+                withAccount={false}
+                onClose={handlers.closeDrawer}
+              />
             </SidebarMobileDrawer>
           )}
           <div
             className={cn(
               "flex flex-col flex-1 min-w-0 pr-2 pb-2",
-              !(showSidebar && isDesktop && !windowShown) && "pl-2",
+              !desktopSidebar && "pl-2",
             )}
           >
             <TabStrip
               leading={
-                (!isDesktop || windowShown) && (
+                !desktopSidebar && (
                   <LogoMark
                     full={isDesktop}
-                    className="mr-3 mb-[7px] shrink-0"
+                    className="mr-3 mb-[5px] shrink-0"
                   />
                 )
               }
               trailing={
                 <>
                   {sessionMenuInTabStrip && (
-                    <div className="mr-2 -mb-[1.5px]">
-                      <SessionMenu placement="tabStrip" />
-                    </div>
+                    <SessionMenu
+                      placement={isDesktop ? "tabStrip" : "tabStripAvatar"}
+                    />
                   )}
-                  <IconButton
-                    aria-label="Preferences"
-                    title="Preferences"
-                    onClick={() => void workspace.openPreferences()}
-                  >
-                    <AdjustmentsHorizontalIcon className="w-4 h-4" />
-                  </IconButton>
                   <WindowControls
                     onOpenNavigation={
                       drawerNav ? handlers.toggleDrawer : undefined
