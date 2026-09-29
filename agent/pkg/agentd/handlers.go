@@ -241,33 +241,33 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 			"version":   agent.config.Version,
 		})
 
-		errorResponse := func(err error, msg string, code int) error {
+		errorResponse := func(err error, msg string) error {
 			logger.WithError(err).Debug(msg)
 
-			return c.String(code, msg)
+			return c.String(http.StatusInternalServerError, msg)
 		}
 
 		host, port, err := net.SplitHostPort(c.Param("addr"))
 		if err != nil {
-			return errorResponse(err, "failed because address is invalid", http.StatusInternalServerError)
+			return errorResponse(err, "failed because address is invalid")
 		}
 
 		if _, ok := agent.mode.(*ConnectorMode); ok {
 			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 			if err != nil {
-				return errorResponse(err, "failed to connect to the Docker Engine", http.StatusInternalServerError)
+				return errorResponse(err, "failed to connect to the Docker Engine")
 			}
 
 			container, err := cli.ContainerInspect(context.Background(), agent.server.ContainerID)
 			if err != nil {
-				return errorResponse(err, "failed to inspect the container", http.StatusInternalServerError)
+				return errorResponse(err, "failed to inspect the container")
 			}
 
 			var target string
 
 			addr, err := netip.ParseAddr(host)
 			if err != nil {
-				return errorResponse(err, "failed to parse the for lookback checkage", http.StatusInternalServerError)
+				return errorResponse(err, "failed to parse the for lookback checkage")
 			}
 
 			if addr.IsLoopback() {
@@ -301,7 +301,7 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 			}
 
 			if target == "" {
-				return errorResponse(nil, "address not found on the device", http.StatusInternalServerError)
+				return errorResponse(nil, "address not found on the device")
 			}
 
 			host = target
@@ -311,18 +311,18 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 
 		in, err := new(net.Dialer).DialContext(c.Request().Context(), ProxyHandlerNetwork, addr)
 		if err != nil {
-			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
+			return errorResponse(err, "failed to connect to the server on device")
 		}
 
 		defer in.Close() //nolint:errcheck
 
 		if err := c.NoContent(http.StatusOK); err != nil {
-			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
+			return errorResponse(err, "failed to send the ok status code back to server")
 		}
 
 		out, _, err := http.NewResponseController(c.Response()).Hijack()
 		if err != nil {
-			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
+			return errorResponse(err, "failed to hijack connection")
 		}
 
 		defer out.Close() //nolint:errcheck
