@@ -44,6 +44,35 @@ const STATUS_LABEL: Record<BillingStatus, string> = {
   inactive: "Inactive",
 };
 
+const PREMIUM = {
+  tier: "Premium",
+  description: "ShellHub Cloud Premium, unlimited devices.",
+} as const;
+const SUSPENDED = {
+  tier: "Premium",
+  description: "ShellHub Cloud Premium, suspended.",
+} as const;
+const FREE = {
+  tier: "Free",
+  description: "Free plan, up to 3 devices.",
+} as const;
+
+const PLAN: Record<
+  BillingStatus,
+  { tier: "Premium" | "Free"; description: string }
+> = {
+  active: PREMIUM,
+  trialing: PREMIUM,
+  to_cancel_at_end_of_period: PREMIUM,
+  past_due: PREMIUM,
+  unpaid: SUSPENDED,
+  incomplete: SUSPENDED,
+  incomplete_expired: SUSPENDED,
+  paused: SUSPENDED,
+  canceled: FREE,
+  inactive: FREE,
+};
+
 interface BannerConfig {
   tone: "error" | "warning" | "info";
   title: string;
@@ -238,17 +267,10 @@ export default function BillingSection() {
             </div>
           )}
 
-          <SettingsField
-            title="Plan"
-            description={
-              status === "inactive"
-                ? "Free plan, up to 3 devices."
-                : "ShellHub Cloud Premium, unlimited devices."
-            }
-          >
+          <SettingsField title="Plan" description={PLAN[status].description}>
             <div className="flex items-center gap-2">
               {!isLoading && <StatusBadge status={status} />}
-              {isActiveLike ? (
+              {PLAN[status].tier === "Premium" ? (
                 <span className="inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border bg-primary/10 text-primary border-primary/20">
                   Premium
                 </span>
@@ -261,7 +283,10 @@ export default function BillingSection() {
           </SettingsField>
 
           {endAt > 0 && (
-            <SettingsField title="Billing cycle" description={dateDescription} />
+            <SettingsField
+              title="Billing cycle"
+              description={dateDescription}
+            />
           )}
 
           {invoice && isActiveLike && (
