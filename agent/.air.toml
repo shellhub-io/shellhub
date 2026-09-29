@@ -2,6 +2,6 @@ root = "../"
 tmp_dir = "/tmp/air"
 
 [build]
-cmd = "go build -tags docker -ldflags \"-X main.AgentVersion=latest\" -o /tmp/air/main ."
+cmd = "go build -ldflags \"-X main.AgentVersion=latest\" -o /tmp/air/main ."
 bin = "/tmp/air/main"
 exclude_regex = ["_test.go"]
