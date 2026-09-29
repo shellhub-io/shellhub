@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"slices"
+
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -33,5 +35,28 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		return next(c)
+	}
+}
+
+// RequiresAnyPermission refuses the request with 403 unless the role the request authenticated
+// with holds at least one of permissions. Naming none refuses every request, so the programming
+// error fails closed rather than admitting every caller.
+//
+// It answers 403 for the same reason [RequiresPermission] does: the caller is known and simply not
+// allowed.
+func RequiresAnyPermission(permissions ...authorizer.Permission) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			ctx, ok := From(c)
+			if !ok {
+				return routes.NewErrForbidden(nil)
+			}
+
+			if !slices.ContainsFunc(permissions, ctx.Role().HasPermission) {
+				return routes.NewErrForbidden(nil)
+			}
+
+			return next(c)
+		}
 	}
 }
