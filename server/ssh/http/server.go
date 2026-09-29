@@ -52,7 +52,7 @@ var upgrader = websocket.Upgrader{
 // authn is the API's authenticator, used to declare which of these routes are
 // reachable without a credential and which accept a device token. It must not be
 // nil.
-func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, sessions *session.Registry, cfg *Config) *Handlers {
+func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, sessions *session.Registry, cfg *Config) {
 	handlers := &Handlers{
 		Dialer:   d,
 		Tunnels:  d.Manager,
@@ -75,6 +75,4 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 	if err := applyTunnelExtensions(router, authn, d); err != nil {
 		log.WithError(err).Error("failed to register the tunnel extensions")
 	}
-
-	return handlers
 }
