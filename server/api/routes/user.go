@@ -15,11 +15,6 @@ const (
 	URLDeprecatedUpdateUserPassword = "/users/:id/password" //nolint:gosec
 )
 
-const (
-	// ParamUserName User's username.
-	ParamUserName = "username"
-)
-
 // UpdateUser changes the caller's profile.
 func (h *Handler) UpdateUser(c *gateway.Context) error {
 	req := new(requests.UpdateUser)
