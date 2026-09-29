@@ -205,20 +205,6 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 	return result
 }
 
-// EnablePath enables validation for a specific path
-func (v *OpenAPIValidator) EnablePath(path string) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	v.enabledPaths[path] = true
-}
-
-// DisablePath disables validation for a specific path
-func (v *OpenAPIValidator) DisablePath(path string) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	delete(v.enabledPaths, path)
-}
-
 func schemaPathFromEnv() *url.URL {
 	u, err := url.Parse(envs.OpenAPISchemaURL())
 	if err != nil {
