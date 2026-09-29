@@ -6,6 +6,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import {
   ACCOUNT_TAB_ID,
+  PREFERENCES_TAB_ID,
   useWorkspaceTabsStore,
 } from "@/stores/workspaceTabsStore";
 import { ADMIN_UNAUTHORIZED_PATH, isAdminPath } from "@/utils/adminRoute";
@@ -40,6 +41,17 @@ describe("useSyncWorkspaceTab", () => {
 
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
       ACCOUNT_TAB_ID,
+    ]);
+  });
+
+  it("opens the preferences' tab on their pages, remembering the section", () => {
+    syncAt("/preferences/terminal");
+
+    expect(useWorkspaceTabsStore.getState().tabs).toEqual([
+      expect.objectContaining({
+        id: PREFERENCES_TAB_ID,
+        path: "/preferences/terminal",
+      }),
     ]);
   });
 

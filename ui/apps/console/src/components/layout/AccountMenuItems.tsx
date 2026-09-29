@@ -2,23 +2,15 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
-  Cog6ToothIcon,
-  ComputerDesktopIcon,
   LifebuoyIcon,
-  MoonIcon,
-  SunIcon,
+  SwatchIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Spinner } from "@shellhub/design-system/primitives";
 import { ChatwootContext, type ChatwootHandle } from "@/hooks/useChatwoot";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespaces } from "@/hooks/useNamespaces";
-import {
-  THEME_PREFERENCES,
-  useThemeStore,
-  type ThemePreference,
-} from "@/stores/themeStore";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 
 const itemClass =
   "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group";
@@ -28,12 +20,6 @@ const itemLabelClass =
   "text-sm text-text-secondary group-hover:text-text-primary transition-colors";
 
 const ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new/choose";
-
-const THEME_ICONS: Record<ThemePreference, typeof SunIcon> = {
-  system: ComputerDesktopIcon,
-  light: SunIcon,
-  dark: MoonIcon,
-};
 
 function GettingHelpItem({
   support,
@@ -104,9 +90,10 @@ function GettingHelpItem({
 }
 
 /**
- * The account actions every account menu offers: profile, settings (once there is a namespace to
- * set), getting help, the theme (following the system unless fixed), and sign-out. onDone closes
- * the menu holding them. Getting help needs the support widget's provider above it and is left
+ * The account actions every account menu offers: the account, opening the user's own tab on the
+ * profile; this browser's preferences, in their own tab where they were last left; getting help,
+ * and sign-out. onDone closes the menu
+ * holding them. Getting help needs the support widget's provider above it and is left
  * out without one; on a plan without chat support it calls onHelpNeedsPlan instead, since the
  * menu closes before a dialog of its own could show.
  */
@@ -118,11 +105,9 @@ export default function AccountMenuItems({
   onHelpNeedsPlan?: () => void;
 }) {
   const navigate = useNavigate();
+  const workspace = useWorkspaceTabs();
   const support = useContext(ChatwootContext);
   const logout = useAuthStore((s) => s.logout);
-  const { namespaces } = useNamespaces();
-  const preference = useThemeStore((s) => s.preference);
-  const setPreference = useThemeStore((s) => s.setPreference);
 
   const go = (path: string) => {
     onDone();
@@ -134,22 +119,23 @@ export default function AccountMenuItems({
       <div className="p-1.5">
         <button
           type="button"
-          onClick={() => go("/account")}
+          onClick={() => go("/account/profile")}
           className={itemClass}
         >
           <UserIcon className={itemIconClass} />
           <span className={itemLabelClass}>Account</span>
         </button>
-        {namespaces.length > 0 && (
-          <button
-            type="button"
-            onClick={() => go("/settings")}
-            className={itemClass}
-          >
-            <Cog6ToothIcon className={itemIconClass} />
-            <span className={itemLabelClass}>Settings</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            onDone();
+            void workspace.openPreferences();
+          }}
+          className={itemClass}
+        >
+          <SwatchIcon className={itemIconClass} />
+          <span className={itemLabelClass}>Preferences</span>
+        </button>
         {support && (
           <GettingHelpItem
             support={support}
@@ -157,37 +143,6 @@ export default function AccountMenuItems({
             onNeedsPlan={onHelpNeedsPlan}
           />
         )}
-        <div className="flex items-center justify-between gap-2 px-3 py-1.5">
-          <span className="text-sm text-text-secondary">Theme</span>
-          <div
-            role="radiogroup"
-            aria-label="Theme"
-            className="flex items-center gap-0.5 p-0.5 rounded-md bg-hover-subtle"
-          >
-            {THEME_PREFERENCES.map(({ value, label }) => {
-              const Icon = THEME_ICONS[value];
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={preference === value}
-                  aria-label={label}
-                  title={label}
-                  onClick={() => setPreference(value)}
-                  className={cn(
-                    "w-7 h-6 rounded flex items-center justify-center transition-colors",
-                    preference === value
-                      ? "bg-card text-text-primary shadow-sm"
-                      : "text-text-muted hover:text-text-primary",
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       <div className="p-1.5 border-t border-border">

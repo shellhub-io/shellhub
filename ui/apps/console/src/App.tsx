@@ -55,8 +55,23 @@ const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
 const AccountProfile = lazy(() => import("./pages/account/AccountProfile"));
 const AccountSecurity = lazy(() => import("./pages/account/AccountSecurity"));
-const AccountAppearance = lazy(
-  () => import("./pages/account/AccountAppearance"),
+const PreferencesLayout = lazy(
+  () => import("./pages/preferences/PreferencesLayout"),
+);
+const AppearancePreferences = lazy(
+  () => import("./pages/preferences/AppearancePreferences"),
+);
+const TerminalPreferences = lazy(
+  () => import("./pages/preferences/TerminalPreferences"),
+);
+const RecordingsPreferences = lazy(
+  () => import("./pages/preferences/RecordingsPreferences"),
+);
+const BrowserIdentityPreferences = lazy(
+  () => import("./pages/preferences/BrowserIdentityPreferences"),
+);
+const RecentDevicesPreferences = lazy(
+  () => import("./pages/preferences/RecentDevicesPreferences"),
 );
 const AccountDangerZone = lazy(
   () => import("./pages/account/AccountDangerZone"),
@@ -152,6 +167,10 @@ export default function App() {
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route path="/profile/*" element={<LegacyProfileRedirect />} />
+              <Route
+                path="/account/appearance"
+                element={<Navigate to="/preferences/appearance" replace />}
+              />
               <Route element={<NamespaceGuard />}>
                 <Route element={<AppLayout />}>
                   <Route
@@ -329,10 +348,28 @@ export default function App() {
                       element={<Navigate to="../ssh" replace />}
                     />
                   </Route>
+                  <Route path="/preferences" element={<PreferencesLayout />}>
+                    <Route
+                      path="appearance"
+                      element={<AppearancePreferences />}
+                    />
+                    <Route path="terminal" element={<TerminalPreferences />} />
+                    <Route
+                      path="recordings"
+                      element={<RecordingsPreferences />}
+                    />
+                    <Route
+                      path="browser-identity"
+                      element={<BrowserIdentityPreferences />}
+                    />
+                    <Route
+                      path="recent-devices"
+                      element={<RecentDevicesPreferences />}
+                    />
+                  </Route>
                   <Route path="/account" element={<AccountLayout />}>
                     <Route path="profile" element={<AccountProfile />} />
                     <Route path="security" element={<AccountSecurity />} />
-                    <Route path="appearance" element={<AccountAppearance />} />
                     <Route path="danger-zone" element={<AccountDangerZone />} />
                   </Route>
                 </Route>

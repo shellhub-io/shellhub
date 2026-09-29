@@ -6,19 +6,17 @@ import {
   UserIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
-  SwatchIcon,
 } from "@heroicons/react/24/outline";
 
 const ACCOUNT_SECTIONS = [
   { to: "profile", label: "Profile", icon: UserIcon },
   { to: "security", label: "Security", icon: ShieldCheckIcon },
-  { to: "appearance", label: "Appearance", icon: SwatchIcon },
   { to: "danger-zone", label: "Danger zone", icon: ExclamationTriangleIcon },
 ];
 
 /**
  * The user's own account, one section per URL under /account: who they are, how they sign in, and
- * deleting the account.
+ * deleting the account. Nothing kept in the browser lives here; that is Preferences.
  */
 export default function AccountLayout() {
   const fetchUser = useAuthStore((s) => s.fetchUser);

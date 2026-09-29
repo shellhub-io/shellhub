@@ -7,7 +7,9 @@ import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import {
   ACCOUNT_TAB_ID,
   ADMIN_TAB_ID,
+  PREFERENCES_TAB_ID,
   adminTab,
+  preferencesTab,
   namespaceTab,
   namespaceTabId,
   useWorkspaceTabsStore,
@@ -15,13 +17,20 @@ import {
 } from "@/stores/workspaceTabsStore";
 import { ADMIN_UNAUTHORIZED_PATH, isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
+import { isPreferencesPath } from "@/utils/preferencesRoute";
+
+interface OpenOptions {
+  restoreSession?: string;
+  landOn?: string;
+}
 
 /**
  * The context tabs and how to move between them. A namespace tab is entered in place (see
  * useEnterNamespace), so the open terminals outlive the switch. When a namespace cannot be
  * entered nothing moves: the terminals stay as they were, the tab records why for the strip to
  * show, and activate resolves false. restoreSession brings that terminal forward once the tab's
- * page is reached, rather than minimizing them all. showTerminal brings a terminal forward inside
+ * page is reached, rather than minimizing them all; landOn lands on that page instead of the one
+ * the tab last showed. showTerminal brings a terminal forward inside
  * its own namespace, entering it first when another one is active, and reopening its tab if it
  * was closed. Closing the active tab moves to its neighbour first, and keeps the tab when the
  * neighbour cannot be entered.
@@ -37,23 +46,26 @@ export function useWorkspaceTabs() {
 
   const activeId = isAccountPath(pathname)
     ? ACCOUNT_TAB_ID
-    : isAdminPath(pathname) && pathname !== ADMIN_UNAUTHORIZED_PATH
-      ? ADMIN_TAB_ID
-      : tenant
-        ? namespaceTabId(tenant)
-        : null;
+    : isPreferencesPath(pathname)
+      ? PREFERENCES_TAB_ID
+      : isAdminPath(pathname) && pathname !== ADMIN_UNAUTHORIZED_PATH
+        ? ADMIN_TAB_ID
+        : tenant
+          ? namespaceTabId(tenant)
+          : null;
 
   const activate = async (
     tab: WorkspaceTab,
-    { restoreSession }: { restoreSession?: string } = {},
+    { restoreSession, landOn }: OpenOptions = {},
   ): Promise<boolean> => {
     const tabsStore = useWorkspaceTabsStore.getState();
+    const destination = landOn ?? tab.path;
     const land = () => {
       const terminals = useTerminalStore.getState();
       if (restoreSession) terminals.setRestoreAfterNavigation(restoreSession);
       else terminals.minimizeAll();
-      if (tab.path === pathname && terminals.showPendingRestore()) return;
-      void navigate(tab.path);
+      if (destination === pathname && terminals.showPendingRestore()) return;
+      void navigate(destination);
     };
     if (
       tab.kind === "namespace" &&
@@ -72,10 +84,7 @@ export function useWorkspaceTabs() {
     return true;
   };
 
-  const open = (
-    tab: WorkspaceTab,
-    options: { restoreSession?: string } = {},
-  ) => {
+  const open = (tab: WorkspaceTab, options: OpenOptions = {}) => {
     useWorkspaceTabsStore.getState().ensure(tab);
     const stored = useWorkspaceTabsStore
       .getState()
@@ -86,10 +95,12 @@ export function useWorkspaceTabs() {
   const openNamespace = (
     namespaceTenant: string,
     name: string,
-    options: { restoreSession?: string } = {},
+    options: OpenOptions = {},
   ) => open(namespaceTab(namespaceTenant, name), options);
 
   const openAdmin = () => open(adminTab());
+
+  const openPreferences = () => open(preferencesTab());
 
   const showTerminal = (session: TerminalSession) => {
     const home = session.tenant;
@@ -122,6 +133,7 @@ export function useWorkspaceTabs() {
     activate,
     openNamespace,
     openAdmin,
+    openPreferences,
     showTerminal,
     close,
   };

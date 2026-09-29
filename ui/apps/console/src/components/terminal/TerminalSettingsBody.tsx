@@ -290,9 +290,10 @@ const heading =
 
 /**
  * The terminal settings as the drawer lays them out: theme, font family, font size and how the
- * session player shows its controls. The drawer and the account's Appearance page both render
- * it, so the two cannot drift apart. onPreviewTheme hears the theme to preview: the one under
- * the pointer, else the one holding the keyboard focus, else null.
+ * session player shows its controls. The drawer and the Terminal section of Preferences both
+ * render it, so the two cannot drift apart. onPreviewTheme, which the drawer passes and Preferences
+ * leaves out, hears the theme to preview: the one under the pointer, else the one holding the
+ * keyboard focus, else null.
  */
 export default function TerminalSettingsBody({
   onPreviewTheme,

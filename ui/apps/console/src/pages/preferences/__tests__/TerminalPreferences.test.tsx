@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useThemeStore } from "@/stores/themeStore";
-import { useSidebarStore } from "@/stores/sidebarStore";
 import { useSessionPlayerStore } from "@/stores/sessionPlayerStore";
 import {
   TERMINAL_FONTS,
   useTerminalThemeStore,
   type TerminalTheme,
 } from "@/stores/terminalThemeStore";
-import AccountAppearance from "../AccountAppearance";
+import TerminalPreferences from "../TerminalPreferences";
 
 function terminalTheme(name: string, dark: boolean): TerminalTheme {
   const background = dark ? "#101010" : "#f8f8f8";
@@ -22,9 +20,9 @@ function terminalTheme(name: string, dark: boolean): TerminalTheme {
   };
 }
 
-function renderAppearance() {
+function renderTerminal() {
   const user = userEvent.setup();
-  render(<AccountAppearance />);
+  render(<TerminalPreferences />);
   return user;
 }
 
@@ -37,41 +35,12 @@ beforeEach(() => {
     themeName: "Night",
     theme: THEMES[0],
   });
-  useThemeStore.getState().setPreference("system");
-  useSidebarStore.getState().setPin("auto");
   useSessionPlayerStore.getState().setControls("auto");
 });
 
-describe("AccountAppearance", () => {
-  it("switches the console theme", async () => {
-    const user = renderAppearance();
-
-    await user.click(screen.getByRole("radio", { name: "Light" }));
-
-    expect(useThemeStore.getState().preference).toBe("light");
-  });
-
-  it("names each choice's group by its title", () => {
-    renderAppearance();
-
-    expect(
-      screen.getByRole("radiogroup", { name: "Theme" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("radiogroup", { name: "Sidebar" }),
-    ).toBeInTheDocument();
-  });
-
-  it("pins the sidebar, the same choice the layout's pin button makes", async () => {
-    const user = renderAppearance();
-
-    await user.click(screen.getByRole("radio", { name: "Folded" }));
-
-    expect(useSidebarStore.getState().pin).toBe("rail");
-  });
-
+describe("TerminalPreferences", () => {
   it("sets how the session player shows its controls", async () => {
-    const user = renderAppearance();
+    const user = renderTerminal();
 
     await user.click(screen.getByRole("radio", { name: "Always" }));
 
@@ -79,41 +48,16 @@ describe("AccountAppearance", () => {
   });
 
   it("picks the terminal theme", async () => {
-    const user = renderAppearance();
+    const user = renderTerminal();
 
     await user.click(screen.getByRole("button", { name: /Paper/ }));
 
     expect(useTerminalThemeStore.getState().themeName).toBe("Paper");
   });
 
-  it("shows a theme in the preview while the pointer is on it, without choosing it", async () => {
-    const user = renderAppearance();
-    const preview = screen.getByLabelText("Terminal preview");
-
-    await user.hover(screen.getByRole("button", { name: /Paper/ }));
-    expect(preview).toHaveStyle({ color: "#202020" });
-    expect(useTerminalThemeStore.getState().themeName).toBe("Night");
-
-    await user.unhover(screen.getByRole("button", { name: /Paper/ }));
-    expect(preview).toHaveStyle({ color: "#e0e0e0" });
-  });
-
-  it("keeps previewing the focused theme after the pointer passes over another", async () => {
-    const user = renderAppearance();
-    const preview = screen.getByLabelText("Terminal preview");
-    const paper = screen.getByRole("button", { name: /Paper/ });
-    const night = screen.getByRole("button", { name: /Night/ });
-
-    paper.focus();
-    await user.hover(night);
-    await user.unhover(night);
-
-    expect(preview).toHaveStyle({ color: "#202020" });
-  });
-
   it("sets the terminal font size and shows it in the preview", async () => {
     useTerminalThemeStore.getState().setFontSize(14);
-    const user = renderAppearance();
+    const user = renderTerminal();
 
     await user.click(
       screen.getByRole("button", { name: "Increase font size" }),
@@ -126,7 +70,7 @@ describe("AccountAppearance", () => {
   });
 
   it("sets the terminal font family", async () => {
-    const user = renderAppearance();
+    const user = renderTerminal();
     const other = TERMINAL_FONTS.find(
       (f) => f !== useTerminalThemeStore.getState().fontFamily,
     )!;
@@ -138,7 +82,7 @@ describe("AccountAppearance", () => {
   });
 
   it("draws the player's controls in the preview unless they are hidden", async () => {
-    const user = renderAppearance();
+    const user = renderTerminal();
     expect(screen.getByText("01:24 / 04:10")).toBeInTheDocument();
 
     await user.click(screen.getByRole("radio", { name: "Hidden" }));

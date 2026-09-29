@@ -68,6 +68,26 @@ describe("recentDevicesStore", () => {
     expect(recentsFor("tenant-b").map((d) => d.uid)).toEqual(["dev-2"]);
   });
 
+  it("forgets one device and keeps the rest", () => {
+    const { record, forget } = useRecentDevicesStore.getState();
+    record("dev-1", "web-01");
+    record("dev-2", "db-01");
+
+    forget(TENANT, "dev-2");
+
+    expect(recentsFor(TENANT).map((d) => d.uid)).toEqual(["dev-1"]);
+  });
+
+  it("clears the history of every namespace", () => {
+    useRecentDevicesStore.getState().record("dev-1", "web-01");
+    tenantRef.current = "tenant-b";
+    useRecentDevicesStore.getState().record("dev-2", "db-01");
+
+    useRecentDevicesStore.getState().clear();
+
+    expect(useRecentDevicesStore.getState().byTenant).toEqual({});
+  });
+
   it("no-ops when there is no active tenant", () => {
     tenantRef.current = null;
     useRecentDevicesStore.getState().record("dev-1", "web-01");

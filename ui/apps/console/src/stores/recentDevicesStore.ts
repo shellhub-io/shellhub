@@ -12,6 +12,8 @@ export interface RecentDevice {
 interface RecentDevicesState {
   byTenant: Record<string, RecentDevice[]>;
   record: (uid: string, name: string) => void;
+  forget: (tenant: string, uid: string) => void;
+  clear: () => void;
 }
 
 /* Keep a few more than the palette shows (`RECENT_LIMIT` in useCommandPalette),
@@ -46,6 +48,18 @@ export const useRecentDevicesStore = create<RecentDevicesState>()(
           return { byTenant: { ...state.byTenant, [tenant]: next } };
         });
       },
+
+      forget: (tenant, uid) =>
+        set((state) => ({
+          byTenant: {
+            ...state.byTenant,
+            [tenant]: (state.byTenant[tenant] ?? []).filter(
+              (d) => d.uid !== uid,
+            ),
+          },
+        })),
+
+      clear: () => set({ byTenant: {} }),
     }),
     {
       name: "shellhub:recent-devices",

@@ -9,6 +9,7 @@ import { INPUT_MONO } from "@/utils/styles";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import FieldError from "@/components/common/fields/FieldError";
 import FieldHint from "@/components/common/fields/FieldHint";
+import { formatBytes } from "@/utils/bytes";
 
 interface KeyFileInputProps {
   id: string;
@@ -27,12 +28,6 @@ interface KeyFileInputProps {
   loadedLabel?: string;
   emptyLabel?: string;
   maxBytes?: number;
-}
-
-function formatBytes(bytes: number): string {
-  return bytes >= 1024 * 1024
-    ? `${Math.round(bytes / (1024 * 1024))} MB`
-    : `${Math.round(bytes / 1024)} KB`;
 }
 
 /**

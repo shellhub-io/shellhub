@@ -15,6 +15,7 @@ import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
 import { useTerminalStore } from "./terminalStore";
 import { useWorkspaceTabsStore } from "./workspaceTabsStore";
+import { useRecentDevicesStore } from "./recentDevicesStore";
 import { setRecordingsScope } from "../utils/recordings";
 
 interface AuthState {
@@ -161,6 +162,7 @@ export const useAuthStore = create<AuthState>()(
         terminal.sessions.forEach((s) => terminal.close(s.id));
         terminal.recordings.forEach((r) => terminal.closeRecording(r.id));
         useWorkspaceTabsStore.getState().clear();
+        useRecentDevicesStore.getState().clear();
         set(initialState);
         localStorage.removeItem("shellhub-session");
         queryClient.clear();
