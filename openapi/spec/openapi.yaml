@@ -128,8 +128,6 @@ paths:
     $ref: paths/api@auth@ssh.yaml
   /api/auth/token/{tenant}:
     $ref: paths/api@auth@token@{tenant}.yaml
-  /api/token/{tenant}:
-    $ref: paths/api@token@{tenant}.yaml
   /api/devices/{uid}/accept:
     $ref: paths/api@devices@{uid}@accept.yaml
   /api/users:
@@ -284,10 +282,6 @@ paths:
     $ref: paths/api@billing@device-choice.yaml
   /api/billing/devices-most-used:
     $ref: paths/api@billing@devices-most-used.yaml
-  /api/billing/report:
-    $ref: paths/api@billing@report.yaml
-  /api/billing/evaluate:
-    $ref: paths/api@billing@evaluate.yaml
   /api/billing/portal:
     $ref: paths/api@billing@portal.yaml
   /api/webhook-billing:

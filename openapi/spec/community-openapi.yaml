@@ -92,8 +92,6 @@ paths:
     $ref: paths/api@auth@ssh.yaml
   /api/auth/token/{tenant}:
     $ref: paths/api@auth@token@{tenant}.yaml
-  /api/token/{tenant}:
-    $ref: paths/api@token@{tenant}.yaml
   /api/devices/{uid}/accept:
     $ref: paths/api@devices@{uid}@accept.yaml
   /api/users:

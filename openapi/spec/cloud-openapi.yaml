@@ -111,10 +111,6 @@ paths:
     $ref: paths/api@billing@device-choice.yaml
   /api/billing/devices-most-used:
     $ref: paths/api@billing@devices-most-used.yaml
-  /api/billing/report:
-    $ref: paths/api@billing@report.yaml
-  /api/billing/evaluate:
-    $ref: paths/api@billing@evaluate.yaml
   /api/billing/portal:
     $ref: paths/api@billing@portal.yaml
   /api/webhook-billing:
