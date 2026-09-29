@@ -32,11 +32,6 @@ packages:
     interfaces:
       Locator:
 
-  github.com/shellhub-io/shellhub/pkg/websocket:
-    interfaces:
-      Conn:
-      Upgrader:
-
   github.com/shellhub-io/shellhub/pkg/api/internalclient:
     interfaces:
       Client:
