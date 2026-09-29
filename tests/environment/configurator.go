@@ -56,13 +56,6 @@ func (dcc *DockerComposeConfigurator) WithEnvs(envs map[string]string) *DockerCo
 	return dcc
 }
 
-// WithEdition selects the ShellHub edition the stack will run.
-func (dcc *DockerComposeConfigurator) WithEdition(edition Edition) *DockerComposeConfigurator {
-	dcc.cfg.Edition = edition
-
-	return dcc
-}
-
 // Clone clones a [DockerComposeConfigurator] instance, automatically assigning random ports
 // and network to available services. The new instance will use the provided testing.T.
 //

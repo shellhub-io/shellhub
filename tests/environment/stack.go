@@ -40,8 +40,6 @@ var stackImages struct {
 // Stack is a running ShellHub compose stack. All methods return errors instead of calling
 // [testing.T], so standalone binaries can use it. The test-time wrapper is [DockerCompose].
 type Stack struct {
-	edition   Edition
-	name      string
 	files     []string
 	envs      map[string]string
 	services  map[Service]*tc.DockerContainer
@@ -154,8 +152,6 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	}
 
 	return &Stack{
-		edition:   cfg.Edition,
-		name:      cfg.Name,
 		files:     files,
 		envs:      merged,
 		services:  services,
@@ -200,7 +196,6 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 	}
 
 	s := &Stack{
-		name:     name,
 		files:    files,
 		envs:     envs,
 		services: make(map[Service]*tc.DockerContainer),
@@ -228,14 +223,6 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 func (s *Stack) Down(ctx context.Context) error {
 	return s.dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
 }
-
-// Name returns the compose project name.
-func (s *Stack) Name() string { return s.name }
-
-// Edition returns the edition the stack was configured for, which determines the compose
-// overlays, environment and server image tag in use. It is empty after [Attach], which does
-// not know the edition.
-func (s *Stack) Edition() Edition { return s.edition }
 
 // Files returns a copy of the compose file list used to start the stack.
 func (s *Stack) Files() []string { return slices.Clone(s.files) }
