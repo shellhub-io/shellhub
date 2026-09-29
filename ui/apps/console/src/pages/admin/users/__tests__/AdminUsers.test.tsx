@@ -15,10 +15,6 @@ import type { UserAdminResponse } from "@/client";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("../AccountRequestsTab", () => ({
-  default: () => null,
-}));
-
 vi.mock("../CreateUserModal", () => ({
   default: ({ open }: { open: boolean }) =>
     open ? <div data-testid="create-modal" /> : null,
