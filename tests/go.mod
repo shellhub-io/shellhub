@@ -4,7 +4,6 @@ go 1.26.7
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
-	github.com/docker/docker v28.5.3-0.20260325154711-31a1689cb0a1+incompatible
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.13.11
@@ -44,6 +43,7 @@ require (
 	github.com/docker/buildx v0.35.0 // indirect
 	github.com/docker/cli v29.6.0+incompatible // indirect
 	github.com/docker/compose/v5 v5.2.0 // indirect
+	github.com/docker/docker v28.5.3-0.20260325154711-31a1689cb0a1+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.8 // indirect
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect

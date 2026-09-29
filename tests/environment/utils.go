@@ -1,15 +1,12 @@
 package environment
 
 import (
-	"bytes"
 	"errors"
-	"io"
 	"net"
 	"slices"
 	"strconv"
 	"testing"
 
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +16,6 @@ type Service string
 // The services a test may reach through [DockerCompose.Service].
 const (
 	ServiceGateway Service = "gateway"
-	ServiceAgent   Service = "agent"
 	ServiceServer  Service = "server"
 )
 
@@ -62,16 +58,4 @@ func GetFreePort(t *testing.T) string {
 	require.NoError(t, err)
 
 	return port
-}
-
-// ReaderToString drains a Docker multiplexed stream, returning its stdout and discarding stderr.
-func ReaderToString(t *testing.T, reader io.Reader) string {
-	t.Helper()
-
-	buffer := bytes.NewBuffer(make([]byte, 1024))
-
-	_, err := stdcopy.StdCopy(buffer, io.Discard, reader)
-	require.NoError(t, err)
-
-	return buffer.String()
 }
