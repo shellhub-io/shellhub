@@ -38,7 +38,6 @@ services:
     image: registry.infra.ossystems.io/cache/shellhubio/ui:${SHELLHUB_VERSION}
     environment:
       - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
-      - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}
 
   gateway:
     image: registry.infra.ossystems.io/cache/shellhubio/gateway:${SHELLHUB_VERSION}
