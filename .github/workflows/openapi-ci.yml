@@ -28,7 +28,7 @@ jobs:
         run: npm install -g prettier@2.8.7
 
       - name: Run Prettier lint on project
-        run: prettier -c openapi/spec/**/*.yaml
+        run: prettier -c 'openapi/spec/**/*.yaml'
 
       - name: Setup Redocly
         run: npm install -g @redocly/cli@2.31.5
