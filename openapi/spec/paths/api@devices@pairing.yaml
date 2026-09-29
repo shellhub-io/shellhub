@@ -27,14 +27,6 @@ post:
             public_key:
               description: Device's public key in PEM format.
               type: string
-            code:
-              description: |
-                Pre-authorized pairing code the agent was given at install time
-                (see the prepare endpoint). When set, the device is accepted into
-                the code's namespace automatically instead of a code being minted.
-              type: string
-              pattern: '^[2-9A-HJKMNP-TV-Z-]+$'
-              example: WXYZ-2K7Q
           required:
             - info
             - public_key

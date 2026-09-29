@@ -168,8 +168,6 @@ paths:
     $ref: paths/api@devices@login-code@{code}.yaml
   /api/devices/pairing:
     $ref: paths/api@devices@pairing.yaml
-  /api/devices/pairing/prepare:
-    $ref: paths/api@devices@pairing@prepare.yaml
   /api/devices/pairing/{code}/status:
     $ref: paths/api@devices@pairing@{code}@status.yaml
   /api/devices/pairing/{code}/accept:

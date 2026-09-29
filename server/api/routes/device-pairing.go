@@ -8,12 +8,10 @@ import (
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
-// The device pairing routes. Create and status are unauthenticated (the code is the secret)
-// and must be covered by the auth-off /api/devices/pairing nginx location; accept and
-// prepare require a user token and have their own regex locations.
+// The device pairing routes. Create and status are on the anonymous allowlist (the code is
+// the secret); accept requires a user token.
 const (
 	CreateDevicePairingURL    = "/devices/pairing"
-	PrepareDevicePairingURL   = "/devices/pairing/prepare"
 	GetDevicePairingStatusURL = "/devices/pairing/:code/status"
 	AcceptDevicePairingURL    = "/devices/pairing/:code/accept"
 )
@@ -32,29 +30,6 @@ func (h *Handler) CreateDevicePairing(c *gateway.Context) error {
 	}
 
 	pairing, err := h.service.CreateDevicePairing(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, pairing)
-}
-
-// PrepareDevicePairing mints a pre-authorized pairing code for the session's
-// namespace so the Add Device page can embed it in the install command and have
-// the device accepted automatically. The permission is enforced by route
-// middleware; the service re-checks membership.
-func (h *Handler) PrepareDevicePairing(c *gateway.Context) error {
-	userID, ok := c.GetID()
-	if !ok {
-		return errs.NewErrUnauthorized(nil)
-	}
-
-	tenant, ok := c.GetTennat()
-	if !ok {
-		return errs.NewErrForbidden(nil)
-	}
-
-	pairing, err := h.service.PrepareDevicePairing(c.Ctx(), userID, tenant)
 	if err != nil {
 		return err
 	}
