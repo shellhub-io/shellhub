@@ -128,7 +128,7 @@ export const DEFAULT_FONT_SIZE = 14;
  * Holds a font size inside the allowed range. Used on the stored value too, so a size written by
  * an older build cannot put the terminal outside what the UI can render.
  */
-export const clampFontSize = (size: number) =>
+const clampFontSize = (size: number) =>
   Math.min(Math.max(size, MIN_FONT_SIZE), MAX_FONT_SIZE);
 
 const STORAGE_KEYS = {

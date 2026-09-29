@@ -18,7 +18,6 @@ vi.mock("@/components/common/CopyButton", async () => ({
 vi.mock("@/utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
-  INPUT_BASE: "input-base",
   INPUT_ERROR: "input-error",
   INPUT_MONO: "input-mono",
   INPUT_MONO_ERROR: "input-mono-error",

@@ -7,7 +7,7 @@ import LogoMark from "./LogoMark";
  * The classes every sidebar link shares, so an active, idle and disabled link differ only in
  * colour and cannot drift apart in spacing or type.
  */
-export const navBase =
+const navBase =
   "flex items-center gap-3 h-[38px] px-3 rounded-md text-[13px] font-medium whitespace-nowrap [&>svg]:shrink-0 focus-visible:relative focus-visible:z-raised";
 const navActive = "bg-primary/10 text-primary border border-primary/20";
 const navIdle =

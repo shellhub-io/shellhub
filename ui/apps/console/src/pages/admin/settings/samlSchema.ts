@@ -28,7 +28,7 @@ function isCertValid(s: string): boolean {
  * whitespace, and the server wants one consistent form. Input without the PEM markers is
  * returned untouched, so a partial paste is reported by validation rather than mangled here.
  */
-export function normalizeCert(raw: string): string {
+function normalizeCert(raw: string): string {
   const begin = "-----BEGIN CERTIFICATE-----";
   const end = "-----END CERTIFICATE-----";
   if (!raw.includes(begin) || !raw.includes(end)) return raw;

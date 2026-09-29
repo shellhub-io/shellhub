@@ -2,7 +2,7 @@
  * The DOM events counted as user activity. Chosen to cover pointer, keyboard, scroll and touch,
  * so an idle timer does not fire under someone who is reading and scrolling.
  */
-export const ACTIVITY_EVENTS = [
+const ACTIVITY_EVENTS = [
   "mousemove",
   "mousedown",
   "keydown",
@@ -14,7 +14,7 @@ export const ACTIVITY_EVENTS = [
  * How rarely the idle clock is reset. Without it every mousemove would write, and the tracker
  * would cost more than the thing it guards.
  */
-export const THROTTLE_MS = 1_000;
+const THROTTLE_MS = 1_000;
 
 /**
  * How the tracker locks. lockOnHidden also locks when the tab is hidden, after hiddenGraceMs —

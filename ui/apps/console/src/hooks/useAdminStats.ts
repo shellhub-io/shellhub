@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getStatsOptions, getStatsQueryKey } from "../client";
+import { getStatsOptions } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
-
-export { getStatsQueryKey };
 
 /**
  * Instance-wide counts for the admin dashboard.
