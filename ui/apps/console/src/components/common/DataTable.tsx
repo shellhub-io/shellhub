@@ -53,18 +53,12 @@ export interface DataTableProps<T> {
 
   trailingEmptyState?: ReactNode;
 
-  expandedRowKey?: string | null;
-  renderExpandedRow?: (row: T) => ReactNode;
-
-  hideHeader?: boolean;
-
   isLoading?: boolean;
   loadingMessage?: string;
   emptyState?: ReactNode;
   emptyMessage?: string;
 
   noWrapper?: boolean;
-  headerTopBorder?: boolean;
 }
 
 function SortIndicator({
@@ -130,15 +124,11 @@ export default function DataTable<T>({
   sectionOf,
   sectionLabel,
   trailingEmptyState,
-  expandedRowKey,
-  renderExpandedRow,
-  hideHeader = false,
   isLoading,
   loadingMessage = "Loading...",
   emptyState,
   emptyMessage = "No data available",
   noWrapper = false,
-  headerTopBorder = false,
 }: DataTableProps<T>) {
   const hasPagination =
     page !== undefined &&
@@ -148,49 +138,42 @@ export default function DataTable<T>({
   const tableContent = (
     <div className="overflow-x-auto">
       <table className="w-full" aria-label={label}>
-        {!hideHeader && (
-          <thead>
-            <tr
-              className={cn(
-                "border-b border-border bg-surface/50",
-                headerTopBorder && "border-t",
-              )}
-            >
-              {columns.map((col) => {
-                const isSortable = !!(col.sortable && onSort);
-                return (
-                  <th
-                    key={col.key}
-                    className={cn(TH_CLASS, col.headerClassName)}
-                    aria-sort={
-                      isSortable
-                        ? getAriaSort(col.key, sortField, sortOrder)
-                        : undefined
-                    }
-                  >
-                    {isSortable ? (
-                      <button
-                        type="button"
-                        onClick={() => onSort(col.key)}
-                        aria-label={`Sort by ${col.header}`}
-                        className="text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted inline-flex items-center rounded-sm hover:text-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50"
-                      >
-                        {col.header}
-                        <SortIndicator
-                          field={col.key}
-                          sortField={sortField}
-                          sortOrder={sortOrder}
-                        />
-                      </button>
-                    ) : (
-                      col.header
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-        )}
+        <thead>
+          <tr className="border-b border-border bg-surface/50">
+            {columns.map((col) => {
+              const isSortable = !!(col.sortable && onSort);
+              return (
+                <th
+                  key={col.key}
+                  className={cn(TH_CLASS, col.headerClassName)}
+                  aria-sort={
+                    isSortable
+                      ? getAriaSort(col.key, sortField, sortOrder)
+                      : undefined
+                  }
+                >
+                  {isSortable ? (
+                    <button
+                      type="button"
+                      onClick={() => onSort(col.key)}
+                      aria-label={`Sort by ${col.header}`}
+                      className="text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted inline-flex items-center rounded-sm hover:text-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50"
+                    >
+                      {col.header}
+                      <SortIndicator
+                        field={col.key}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                      />
+                    </button>
+                  ) : (
+                    col.header
+                  )}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
         <tbody className="divide-y divide-border/60">
           {isLoading && data.length === 0 ? (
             <tr>
@@ -215,8 +198,6 @@ export default function DataTable<T>({
                 const clickHandler = onRowClick;
                 const isClickable = !!clickHandler;
                 const key = rowKey(row, index);
-                const isExpanded =
-                  !!renderExpandedRow && expandedRowKey === key;
                 const section = sectionOf?.(row);
                 const showSection =
                   section !== undefined &&
@@ -262,13 +243,6 @@ export default function DataTable<T>({
                         </td>
                       ))}
                     </tr>
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={columns.length} className="p-0">
-                          {renderExpandedRow(row)}
-                        </td>
-                      </tr>
-                    )}
                   </Fragment>
                 );
               })}

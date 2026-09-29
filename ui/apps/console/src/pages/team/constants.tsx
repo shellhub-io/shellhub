@@ -107,14 +107,10 @@ export function RoleSelector({
 export function FormRoleSelector<T extends FieldValues>({
   control,
   name,
-  label,
 }: {
   control: Control<T>;
   name: Path<T>;
-  label?: string;
 }) {
   const { field } = useController({ name, control });
-  return (
-    <RoleSelector label={label} value={field.value} onChange={field.onChange} />
-  );
+  return <RoleSelector value={field.value} onChange={field.onChange} />;
 }

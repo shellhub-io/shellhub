@@ -13,7 +13,6 @@ export default function KeyValueChip({
   label,
   value,
   onClick,
-  trailing,
   title,
   ariaLabel,
   labelTone = "muted",
@@ -21,7 +20,6 @@ export default function KeyValueChip({
   label?: string;
   value: ReactNode;
   onClick?: () => void;
-  trailing?: ReactNode;
   title?: string;
   ariaLabel?: string;
   labelTone?: "muted" | "primary";
@@ -43,7 +41,6 @@ export default function KeyValueChip({
       <span className="min-w-0 font-mono text-2xs text-text-secondary">
         {value}
       </span>
-      {trailing}
     </>
   );
 

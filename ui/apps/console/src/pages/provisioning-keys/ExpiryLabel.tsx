@@ -12,16 +12,14 @@ const ICON_CLASS = "w-3.5 h-3.5 shrink-0";
  */
 export default function ExpiryLabel({
   provisioningKey,
-  className,
 }: {
   provisioningKey: ProvisioningKey;
-  className?: string;
 }) {
   const { expired, quiet } = getKeyBlockers(provisioningKey);
 
   return (
     <span
-      className={cn("flex items-center gap-1 font-mono", className)}
+      className="flex items-center gap-1 font-mono"
       title={expired ? "Expired" : undefined}
     >
       {expired ? (

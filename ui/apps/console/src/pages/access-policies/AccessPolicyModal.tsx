@@ -154,11 +154,9 @@ function Label({ children, hint }: { children: ReactNode; hint?: string }) {
 
 function PickerBox({
   trigger,
-  active,
   children,
 }: {
   trigger: ReactNode;
-  active?: boolean;
   children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -170,7 +168,7 @@ function PickerBox({
           type="button"
           className={cn(
             "w-full min-h-[44px] flex flex-wrap items-center gap-1.5 px-3 py-2 bg-card border rounded-lg text-left transition-colors",
-            open || active
+            open
               ? "border-primary/60"
               : "border-border hover:border-border-light",
           )}
