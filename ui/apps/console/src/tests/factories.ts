@@ -1,18 +1,14 @@
 import type {
   AccessPolicy,
-  Customer,
   Device,
   FirewallRulesResponse,
   GetLicenseResponse,
   GetStatusDevicesResponse,
   ProvisioningKey,
   ProvisioningKeyEvent,
-  MembershipInvitation,
   Namespace,
   PublicKeyResponse,
   Session,
-  SshIdentity,
-  Subscription,
   Tag,
   UserAuth,
   Webendpoint,
@@ -275,37 +271,6 @@ export function mockWebEndpoint(
 }
 
 /**
- * Builds an active subscription for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockSubscription(
-  overrides: Partial<Subscription> = {},
-): Subscription {
-  return {
-    id: "sub-1",
-    active: true,
-    status: "active",
-    end_at: Math.floor(Date.now() / 1000) + 86400 * 30,
-    invoices: null,
-    ...overrides,
-  };
-}
-
-/**
- * Builds a billing customer with a default card for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockCustomer(overrides: Partial<Customer> = {}): Customer {
-  return {
-    id: "cus-1",
-    name: "Test Customer",
-    email: "billing@test.com",
-    payment_methods: null,
-    ...overrides,
-  };
-}
-
-/**
  * Builds an installed licence, unexpired for a test. Every field has a value, so a case names only what it is about
  * and the rest stays out of the way.
  */
@@ -330,48 +295,6 @@ export function mockLicense(
       login_link: true,
       billing: true,
     },
-    ...overrides,
-  };
-}
-
-/**
- * Builds a pending invitation for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockInvitation(
-  overrides: Partial<MembershipInvitation> = {},
-): MembershipInvitation {
-  return {
-    namespace: { tenant_id: "tenant-456", name: "my-namespace" },
-    user: { id: "user-123", email: "invited@test.com" },
-    invited_by: "owner-123",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    expires_at: "2025-01-01T00:00:00Z",
-    status: "pending",
-    status_updated_at: "2024-01-01T00:00:00Z",
-    role: "observer",
-    ...overrides,
-  };
-}
-
-/**
- * Builds an enrolled SSH identity for a test. Every field has a value, so a case names only what it is about
- * and the rest stays out of the way.
- */
-export function mockSshIdentity(
-  overrides: Partial<SshIdentity> = {},
-): SshIdentity {
-  return {
-    id: "identity-1",
-    principal_id: "user-123",
-    principal_name: "admin",
-    principal_email: "admin@test.com",
-    principal_type: "user",
-    fingerprint: "SHA256:abc123",
-    name: "my-key",
-    source: "manual",
-    created_at: "2024-01-01T00:00:00Z",
     ...overrides,
   };
 }
