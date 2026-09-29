@@ -86,7 +86,7 @@ export default function SectionedLayout({
         )}
 
         {!atMenu && (
-          <div className="min-w-0 flex-1 lg:border-l lg:border-border lg:pl-8 animate-fade-in">
+          <div className="min-w-0 flex-1 lg:flex lg:flex-col lg:border-l lg:border-border lg:pl-8 animate-fade-in">
             {!isDesktop && (
               <Link
                 to={base}

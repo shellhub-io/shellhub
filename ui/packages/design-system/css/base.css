@@ -9,6 +9,7 @@
     --dialog-backdrop-bg: rgba(0, 0, 0, 0.4);
     --dialog-backdrop-blur: 4px;
     --dialog-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+    --float-shadow: 0 24px 60px -4px rgba(0, 0, 0, 0.9), 0 10px 24px -4px rgba(0, 0, 0, 0.75);
 
     --c-background: 24 25 27;
     --c-surface: 30 33 39;

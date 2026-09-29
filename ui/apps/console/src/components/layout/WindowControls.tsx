@@ -1,5 +1,4 @@
 import { MinusIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { desktopWindow } from "@/utils/desktopWindow";
 
@@ -10,38 +9,26 @@ function report(action: Promise<void>) {
 }
 
 interface WindowControlsProps {
-  sidebarPinned?: boolean;
-  sidebarMode?: "pin" | "drawer";
-  onToggleSidebar?: () => void;
+  onOpenNavigation?: () => void;
 }
 
 /**
- * The top-right corner of the app chrome: the sidebar toggle and, inside the desktop app, the
- * window buttons. The browser has its own, so there they are left out.
+ * The top-right corner of the app chrome: the button that opens the navigation drawer on a narrow
+ * window, given onOpenNavigation, and, inside the desktop app, the window buttons. The browser has
+ * its own, so there they are left out.
  */
 export default function WindowControls({
-  sidebarPinned = false,
-  sidebarMode = "pin",
-  onToggleSidebar,
+  onOpenNavigation,
 }: WindowControlsProps) {
   const win = desktopWindow();
-  const pinMode = sidebarMode === "pin";
-  const sidebarLabel = pinMode
-    ? sidebarPinned
-      ? "Unpin sidebar"
-      : "Pin sidebar"
-    : "Open navigation menu";
 
   return (
     <div className="flex items-center gap-0.5">
-      {onToggleSidebar && (
+      {onOpenNavigation && (
         <IconButton
-          onClick={onToggleSidebar}
-          aria-label={sidebarLabel}
-          title={sidebarLabel}
-          className={cn(
-            pinMode && sidebarPinned && "text-primary bg-primary/10",
-          )}
+          onClick={onOpenNavigation}
+          aria-label="Open navigation menu"
+          title="Open navigation menu"
         >
           <svg
             viewBox="0 0 24 24"

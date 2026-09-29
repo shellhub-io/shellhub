@@ -71,6 +71,18 @@ export default function SessionMenu({
         </Dropdown.Trigger>
 
         <Dropdown.Panel aria-label="Account" className="w-56">
+          {!expanded && (
+            <div className="px-4 pt-3 pb-2.5 border-b border-border leading-tight">
+              <p className="text-sm font-medium text-text-primary truncate">
+                {display}
+              </p>
+              {email && email !== display && (
+                <p className="text-2xs text-text-muted truncate mt-0.5">
+                  {email}
+                </p>
+              )}
+            </div>
+          )}
           <AccountMenuItems
             onDone={() => setOpen(false)}
             onHelpNeedsPlan={() => setPaywallOpen(true)}

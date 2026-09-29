@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import Sidebar from "./Sidebar";
 import AdminSidebar from "./AdminSidebar";
 import AdminNavBar, { belowAdminNavBar } from "./AdminNavBar";
@@ -34,6 +36,8 @@ import LogoMark from "./LogoMark";
 import { isEnterprise } from "@/env";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
+import { isPreferencesPath } from "@/utils/preferencesRoute";
+import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 
 /**
  * The shell of the signed-in app: the sidebar and a tab strip sit on the chrome, and the
@@ -42,6 +46,7 @@ import { isAccountPath } from "@/utils/accountRoute";
  */
 export default function AppLayout() {
   const { pathname } = useLocation();
+  const workspace = useWorkspaceTabs();
   const loadTerminalThemes = useTerminalThemeStore((s) => s.loadThemes);
   useEffect(() => {
     void loadTerminalThemes();
@@ -64,15 +69,8 @@ export default function AppLayout() {
     showSidebar &&
     isDesktop &&
     !windowShown &&
-    (isAdminRoute || isAccountPath(pathname));
+    (isAdminRoute || isAccountPath(pathname) || isPreferencesPath(pathname));
   const sessionMenuInTabStrip = frameOverNav || (isAdminRoute && !isDesktop);
-  const toggleSidebar = isDesktop
-    ? showSidebar && !frameOverNav && !windowShown
-      ? handlers.onToggle
-      : undefined
-    : drawerNav
-      ? handlers.toggleDrawer
-      : undefined;
 
   return (
     <ChatwootProvider>
@@ -159,10 +157,17 @@ export default function AppLayout() {
                       <SessionMenu placement="tabStrip" />
                     </div>
                   )}
+                  <IconButton
+                    aria-label="Preferences"
+                    title="Preferences"
+                    onClick={() => void workspace.openPreferences()}
+                  >
+                    <AdjustmentsHorizontalIcon className="w-4 h-4" />
+                  </IconButton>
                   <WindowControls
-                    sidebarPinned={pinned}
-                    sidebarMode={isDesktop ? "pin" : "drawer"}
-                    onToggleSidebar={toggleSidebar}
+                    onOpenNavigation={
+                      drawerNav ? handlers.toggleDrawer : undefined
+                    }
                   />
                 </>
               }

@@ -14,7 +14,6 @@ import {
   useSidebarStore,
   type SidebarPin,
 } from "@/stores/sidebarStore";
-import TerminalSettingsPreview from "./TerminalSettingsPreview";
 
 function WindowPane({
   scheme,
@@ -105,11 +104,10 @@ function SidebarSketch({ pin }: { pin: SidebarPin }) {
 }
 
 /**
- * The appearance section of the account: the console's colours, how the sidebar sits, the
- * terminal's theme and font, and how the session player shows its controls. Every choice applies
- * at once and is kept in this browser, not in the account, so another browser keeps its own.
+ * How the console looks in this browser: its colours and how the sidebar sits. Every choice
+ * applies at once and is kept in this browser, so another one keeps its own.
  */
-export default function AccountAppearance() {
+export default function AppearancePreferences() {
   const preference = useThemeStore((s) => s.preference);
   const setPreference = useThemeStore((s) => s.setPreference);
   const pin = useSidebarStore((s) => s.pin);
@@ -121,7 +119,7 @@ export default function AccountAppearance() {
     <SettingsSection
       wide
       title="Appearance"
-      description="How the console looks and behaves here. Kept in this browser, not in your account."
+      description="The console's colours and how the sidebar sits. Changes apply at once."
     >
       <SettingsField
         stacked
@@ -167,14 +165,6 @@ export default function AccountAppearance() {
             />
           ))}
         </RadioGroupField>
-      </SettingsField>
-
-      <SettingsField
-        stacked
-        title="Terminal"
-        description="The theme and font of every terminal, and how the session player shows its controls."
-      >
-        <TerminalSettingsPreview />
       </SettingsField>
     </SettingsSection>
   );

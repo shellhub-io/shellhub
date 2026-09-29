@@ -75,6 +75,7 @@ export default {
       },
       boxShadow: {
         dialog: "var(--dialog-shadow)",
+        float: "var(--float-shadow)",
       },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out",

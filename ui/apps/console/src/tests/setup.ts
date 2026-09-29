@@ -33,3 +33,15 @@ global.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 };
+
+global.IntersectionObserver = class {
+  root = null;
+  rootMargin = "";
+  thresholds = [];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+};

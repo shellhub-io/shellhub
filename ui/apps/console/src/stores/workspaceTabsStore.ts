@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { moveById } from "@/utils/moveById";
+import { PREFERENCES_PATH } from "@/utils/preferencesRoute";
 
 /**
- * An open context in the tab strip: a namespace, the admin console, or the user's own account. Each remembers the page
+ * An open context in the tab strip: a namespace, the admin console, the user's own account, or
+ * this browser's preferences. Each remembers the page
  * it was last on, so coming back to it lands where the user left it.
  */
 export type WorkspaceTab =
@@ -15,7 +17,8 @@ export type WorkspaceTab =
       path: string;
     }
   | { id: "admin"; kind: "admin"; name: string; path: string }
-  | { id: "account"; kind: "account"; name: string; path: string };
+  | { id: "account"; kind: "account"; name: string; path: string }
+  | { id: "preferences"; kind: "preferences"; name: string; path: string };
 
 /**
  * The id of the admin console tab; there is only ever one.
@@ -37,6 +40,19 @@ export const ACCOUNT_TAB_ID = "account";
  */
 export function accountTab(path = "/account"): WorkspaceTab {
   return { id: ACCOUNT_TAB_ID, kind: "account", name: "Account", path };
+}
+
+/**
+ * The id of the preferences tab; there is only ever one.
+ */
+export const PREFERENCES_TAB_ID = "preferences";
+
+/**
+ * This browser's preferences tab, landing on path when activated, as accountTab does for the
+ * account.
+ */
+export function preferencesTab(path = PREFERENCES_PATH): WorkspaceTab {
+  return { id: PREFERENCES_TAB_ID, kind: "preferences", name: "Preferences", path };
 }
 
 /**
@@ -74,7 +90,8 @@ interface WorkspaceTabsState {
 /**
  * The contexts open as tabs. Only the tabs persist, so they survive a reload; why a tab last
  * failed to open is kept for the session alone, and the active tab is not kept at all, since it
- * follows the route and the session's tenant.
+ * follows the route and the session's tenant. Version 1 moved Appearance out of the account, so
+ * an account tab stored on /account/appearance is brought back to the profile.
  */
 export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
   persist(
@@ -122,6 +139,19 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
     }),
     {
       name: "workspaceTabs",
+      version: 1,
+      migrate: (persisted, version) => {
+        const state = persisted as Pick<WorkspaceTabsState, "tabs">;
+        if (version >= 1) return state;
+        return {
+          tabs: state.tabs.map((tab) =>
+            tab.kind === "account" &&
+            tab.path.startsWith("/account/appearance")
+              ? { ...tab, path: "/account/profile" }
+              : tab,
+          ),
+        };
+      },
       partialize: (state) => ({ tabs: state.tabs }),
     },
   ),

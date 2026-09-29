@@ -5,17 +5,26 @@ import { http } from "msw";
 import { ChatwootContext, type ChatwootHandle } from "@/hooks/useChatwoot";
 import { createTestWrapper } from "@/tests/wrapper";
 import { server, jsonWithTotal } from "@/tests/msw";
+import { useLocation } from "react-router-dom";
+import { useWorkspaceTabsStore } from "@/stores/workspaceTabsStore";
 import AccountMenuItems from "../AccountMenuItems";
+
+function LocationProbe() {
+  return <div data-testid="location">{useLocation().pathname}</div>;
+}
 
 function renderItems(
   status: ChatwootHandle["status"] | null,
   handlers: { openWidget?: () => void; onHelpNeedsPlan?: () => void } = {},
 ) {
   const items = (
-    <AccountMenuItems
-      onDone={vi.fn()}
-      onHelpNeedsPlan={handlers.onHelpNeedsPlan}
-    />
+    <>
+      <AccountMenuItems
+        onDone={vi.fn()}
+        onHelpNeedsPlan={handlers.onHelpNeedsPlan}
+      />
+      <LocationProbe />
+    </>
   );
   return render(
     status === null ? (
@@ -33,6 +42,18 @@ function renderItems(
 
 beforeEach(() => {
   server.use(http.get("*/api/namespaces", () => jsonWithTotal([])));
+});
+
+describe("AccountMenuItems preferences", () => {
+  it("opens this browser's preferences", async () => {
+    const user = userEvent.setup();
+    useWorkspaceTabsStore.setState({ tabs: [], failures: {} });
+    renderItems(null);
+
+    await user.click(screen.getByRole("button", { name: "Preferences" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/preferences");
+  });
 });
 
 describe("AccountMenuItems getting help", () => {

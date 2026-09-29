@@ -7,6 +7,7 @@ import {
   PlusIcon,
   ShieldCheckIcon,
   XMarkIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
@@ -175,6 +176,16 @@ function WorkspaceIcon({
       >
         {getInitials(accountName)}
       </span>
+    );
+  }
+  if (tab.kind === "preferences") {
+    return (
+      <AdjustmentsHorizontalIcon
+        className={cn(
+          "w-4 h-4 shrink-0",
+          active ? "text-primary" : "text-text-muted",
+        )}
+      />
     );
   }
   if (tab.kind === "admin") {

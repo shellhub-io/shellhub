@@ -59,36 +59,19 @@ describe("UserMenu", () => {
     });
   });
 
-  describe("dropdown — with namespaces", () => {
-    it("shows Account, Settings and Logout", async () => {
+  describe("dropdown", () => {
+    it("offers the account, this browser's preferences and logout", async () => {
       renderMenu();
       await openDropdown();
       expect(
-        screen.getByRole("button", { name: /account/i }),
+        screen.getByRole("button", { name: "Account" }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /settings/i }),
+        screen.getByRole("button", { name: "Preferences" }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /logout/i }),
       ).toBeInTheDocument();
-    });
-  });
-
-  describe("dropdown — without namespaces", () => {
-    it("shows Account and Logout but hides Settings", async () => {
-      mockNamespaceList([]);
-      renderMenu();
-      await openDropdown();
-      expect(
-        screen.getByRole("button", { name: /account/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /logout/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /settings/i }),
-      ).not.toBeInTheDocument();
     });
   });
 });
