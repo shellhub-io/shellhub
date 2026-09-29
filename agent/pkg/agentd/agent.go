@@ -733,15 +733,7 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 }
 
 func (a *Agent) reauthorize() error {
-	if err := a.authorize(); err != nil {
-		return err
-	}
-
-	if a.server != nil {
-		a.server.SetDeviceName(a.auth().Name)
-	}
-
-	return nil
+	return a.authorize()
 }
 
 func (a *Agent) signalListening(ctx context.Context, listening bool) {
