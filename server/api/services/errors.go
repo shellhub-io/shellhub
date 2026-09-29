@@ -68,7 +68,6 @@ type ErrDataInvalid struct {
 var (
 	ErrReport                          = errors.New("report error", ErrLayer, ErrCodeInvalid)
 	ErrPaymentRequired                 = errors.New("payment required", ErrLayer, ErrCodePayment)
-	ErrEvaluate                        = errors.New("evaluate error", ErrLayer, ErrCodeInvalid)
 	ErrBillingNotAvailable             = errors.New("billing not available", ErrLayer, ErrCodeInvalid)
 	ErrFirewallBlocked                 = errors.New("firewall blocked the connection", ErrLayer, ErrCodeForbidden)
 	ErrLicenseBlocked                  = errors.New("license blocked the connection", ErrLayer, ErrCodePayment)
@@ -83,7 +82,6 @@ var (
 	ErrUserDuplicated                  = errors.New("user duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrUserUnhandledDuplicate          = errors.New("unhandled duplicated field for the user", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
-	ErrUserPasswordDuplicated          = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeForbidden)
 	ErrUserNotConfirmed                = errors.New("user not confirmed", ErrLayer, ErrCodeForbidden)
 	ErrUserAwaitingApproval            = errors.New("user awaiting approval", ErrLayer, ErrCodeLocked)
@@ -91,12 +89,9 @@ var (
 	ErrUserCreate                      = errors.New("user creation failed", ErrLayer, ErrCodeInvalid)
 	ErrUserGetToken                    = errors.New("user failed to get token", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceNotFound               = errors.New("namespace not found", ErrLayer, ErrCodeNotFound)
-	ErrNamespaceInvalid                = errors.New("namespace invalid", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceList                   = errors.New("namespace member list", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceDuplicated             = errors.New("namespace duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceMemberNotFound         = errors.New("member not found", ErrLayer, ErrCodeNotFound)
-	ErrNamespaceMemberInvalid          = errors.New("member invalid", ErrLayer, ErrCodeInvalid)
-	ErrNamespaceMemberFillData         = errors.New("member fill data", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
@@ -105,10 +100,7 @@ var (
 	ErrMaxTagReached                   = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrTagNameNotFound                 = errors.New("tag not found", ErrLayer, ErrCodeNotFound)
-	ErrTagInvalid                      = errors.New("tag invalid", ErrLayer, ErrCodeInvalid)
 	ErrNoTags                          = errors.New("no tags has found", ErrLayer, ErrCodeNotFound)
-	ErrConflictName                    = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrInvalidFormat                   = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceNotOwned                  = errors.New("device not owned by the member", ErrLayer, ErrCodeInvalid)
 	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
@@ -119,36 +111,26 @@ var (
 	ErrDeviceLimit                     = errors.New("device limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceBillingBlocked            = errors.New("the namespace's subscription blocks new devices", ErrLayer, ErrCodePayment)
 	ErrDeviceLicenseLimit              = errors.New("device license limit reached", ErrLayer, ErrCodePayment)
-	ErrDeviceStatusInvalid             = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
 	ErrDeviceCreate                    = errors.New("device create", ErrLayer, ErrCodeStore)
-	ErrDeviceSetOnline                 = errors.New("device set online", ErrLayer, ErrCodeStore)
 	ErrDeviceCustomFieldLimitReached   = errors.New("device custom field limit reached", ErrLayer, ErrCodeLimit)
 	ErrMaxDeviceCountReached           = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
-	ErrDuplicatedDeviceName            = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyDuplicated             = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyNotFound               = errors.New("public key not found", ErrLayer, ErrCodeNotFound)
-	ErrPublicKeyInvalid                = errors.New("public key invalid", ErrLayer, ErrCodeInvalid)
-	ErrPublicKeyNoTags                 = errors.New("public key has no tags", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyDataInvalid            = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
-	ErrPublicKeyFilter                 = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
 	ErrAccessPolicyNotFound            = errors.New("access policy not found", ErrLayer, ErrCodeNotFound)
 	ErrAccessPolicyInvalidField        = errors.New("access policy field is invalid", ErrLayer, ErrCodeInvalid)
 	ErrSSHIdentityNotFound             = errors.New("ssh identity not found", ErrLayer, ErrCodeNotFound)
 	ErrSSHIdentityDuplicated           = errors.New("ssh identity duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrSSHIdentityInvalid              = errors.New("ssh identity public key invalid", ErrLayer, ErrCodeInvalid)
 	ErrTokenSigned                     = errors.New("token signed", ErrLayer, ErrCodeInvalid)
-	ErrTypeAssertion                   = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound                 = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthInvalid                     = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized                 = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached           = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
 	ErrNamespaceCreationIsForbidden    = errors.New("namespace creation not permitted for user", ErrLayer, ErrCodeForbidden)
-	ErrDeviceRemovedFull               = errors.New("device removed full", ErrLayer, ErrCodePayment)
 	ErrBillingReportNamespaceDelete    = errors.New("billing report namespace delete", ErrLayer, ErrCodePayment)
-	ErrBillingReportDevice             = errors.New("billing report device", ErrLayer, ErrCodePayment)
 	ErrBillingEvaluate                 = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
-	ErrSameTags                        = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstanceAPIKeyNotFound          = errors.New("InstanceAPIKey not found", ErrLayer, ErrCodeNotFound)
@@ -166,11 +148,6 @@ var (
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErrAuthDeviceNoIdentity            = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 )
-
-// NewErrNoContentChange returns an error to be used when an operation results in no content change.
-func NewErrNoContentChange(err error, next error) error {
-	return errors.Wrap(err, next)
-}
 
 // NewErrAuthMethodNotAllowed reports that method is not among those the instance accepts.
 func NewErrAuthMethodNotAllowed(method string) error {
@@ -305,16 +282,6 @@ func NewErrProvisioningKeyInvalidField(fields map[string]string) error {
 	return NewErrInvalidFields(ErrProvisioningKeyInvalidField, fields)
 }
 
-// NewErrTagInvalid returns an error when the tag is invalid.
-func NewErrTagInvalid(tag string, next error) error {
-	return NewErrInvalid(ErrTagInvalid, map[string]any{"name": tag}, next)
-}
-
-// NewErrSameTags returns an error when the
-func NewErrSameTags() error {
-	return NewErrNoContentChange(ErrSameTags, nil)
-}
-
 // NewErrTagEmpty returns an error when the none tag is found.
 func NewErrTagEmpty(tenant string, next error) error {
 	return NewErrNotFound(ErrNoTags, tenant, next)
@@ -368,11 +335,6 @@ func NewErrUserPasswordInvalid(next error) error {
 	return NewErrInvalid(ErrUserPasswordInvalid, nil, next)
 }
 
-// NewErrUserPasswordDuplicated returns an error when the user's current password is equal to new password.
-func NewErrUserPasswordDuplicated(next error) error {
-	return NewErrDuplicated(ErrUserPasswordDuplicated, nil, next)
-}
-
 // NewErrUserPasswordNotMatch returns an error when the user's password doesn't match with the current password.
 func NewErrUserPasswordNotMatch(next error) error {
 	return NewErrForbidden(ErrUserPasswordNotMatch, next)
@@ -405,34 +367,14 @@ func NewErrSSHIdentityInvalid(data string, next error) error {
 	return NewErrInvalid(ErrSSHIdentityInvalid, map[string]any{"data": data}, next)
 }
 
-// NewErrPublicKeyInvalid returns an error when the public key is invalid.
-func NewErrPublicKeyInvalid(data map[string]any, next error) error {
-	return NewErrInvalid(ErrPublicKeyInvalid, data, next)
-}
-
-// NewErrTagLimit returns an error when the tag limit is reached.
-func NewErrTagLimit(limit int, next error) error {
-	return NewErrLimit(ErrMaxTagReached, limit, next)
-}
-
 // NewErrPublicKeyDuplicated returns an error when the public key is duplicated.
 func NewErrPublicKeyDuplicated(values []string, next error) error {
 	return NewErrDuplicated(ErrPublicKeyDuplicated, values, next)
 }
 
-// NewErrPublicKeyTagsEmpty returns an error when the public key has no tags.
-func NewErrPublicKeyTagsEmpty(next error) error {
-	return NewErrNotFound(ErrPublicKeyNoTags, "", next)
-}
-
 // NewErrPublicKeyDataInvalid returns an error when the public key data is invalid.
 func NewErrPublicKeyDataInvalid(value []byte, next error) error {
 	return NewErrInvalid(ErrPublicKeyDataInvalid, map[string]any{"Data": value}, next)
-}
-
-// NewErrPublicKeyFilter returns an error when the public key has more than one filter.
-func NewErrPublicKeyFilter(next error) error {
-	return NewErrInvalid(ErrPublicKeyFilter, nil, next)
 }
 
 // NewErrDeviceNotFound returns an error when the device is not found.
@@ -477,11 +419,6 @@ func NewErrNamespaceList(next error) error {
 	return NewErrInvalid(ErrNamespaceList, nil, next)
 }
 
-// NewErrNamespaceInvalid returns an error to be used when the namespace is invalid.
-func NewErrNamespaceInvalid(next error) error {
-	return NewErrInvalid(ErrNamespaceInvalid, nil, next)
-}
-
 // NewErrNamespaceInstanceProtected returns an error to be used when deleting the namespace bound
 // to the instance is refused (single-namespace Community deployments).
 func NewErrNamespaceInstanceProtected(next error) error {
@@ -504,20 +441,9 @@ func NewErrNamespaceCreateStore(next error) error {
 	return NewErrStore(ErrNamespaceCreateStore, nil, next)
 }
 
-// NewErrNamespaceMemberInvalid returns an error to be used when the namespace member is invalid.
-func NewErrNamespaceMemberInvalid(next error) error {
-	return NewErrInvalid(ErrNamespaceMemberInvalid, nil, next)
-}
-
 // NewErrNamespaceMemberNotFound returns an error to be used when the namespace member is not found.
 func NewErrNamespaceMemberNotFound(id string, next error) error {
 	return NewErrNotFound(ErrNamespaceMemberNotFound, id, next)
-}
-
-// NewErrNamespaceMemberFillData returns an error to be used when the conversion of models.Member, with only the ID and
-// role set, to a complete structure, fails.
-func NewErrNamespaceMemberFillData(next error) error {
-	return NewErrInvalid(ErrNamespaceMemberFillData, nil, next)
 }
 
 // NewErrNamespaceMemberDuplicated returns an error to be used when the namespace member already exist in the namespace.
@@ -544,11 +470,6 @@ func NewErrDeviceLimit(limit int, next error) error {
 // the maximum allowed number of custom_fields entries.
 func NewErrDeviceCustomFieldLimitReached(limit int, next error) error {
 	return NewErrLimit(ErrDeviceCustomFieldLimitReached, limit, next)
-}
-
-// NewErrDeviceStatusInvalid returns an error to be used when the device's status is invalid.
-func NewErrDeviceStatusInvalid(status string, next error) error {
-	return NewErrInvalid(ErrDeviceStatusInvalid, map[string]any{"status": status}, next)
 }
 
 // NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.
@@ -587,11 +508,6 @@ func NewErrDeviceCreate(device models.Device, err error) error {
 	return NewErrStore(ErrDeviceCreate, device, err)
 }
 
-// NewErrDeviceSetOnline returns a error to be used when the device set online fails.
-func NewErrDeviceSetOnline(id models.UID, err error) error {
-	return NewErrStore(ErrDeviceSetOnline, id, err)
-}
-
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
 func NewErrAuthUnathorized(err error) error {
 	return NewErrUnathorized(ErrAuthUnathorized, err)
@@ -612,19 +528,9 @@ func NewErrNamespaceCreationIsForbidden(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceCreationIsForbidden, limit, err)
 }
 
-// NewErrDeviceRemovedFull reports that the namespace's removed-device history is at limit.
-func NewErrDeviceRemovedFull(limit int, next error) error {
-	return NewErrLimit(ErrDeviceRemovedFull, limit, next)
-}
-
 // NewErrBillingReportNamespaceDelete reports that billing refused a namespace deletion.
 func NewErrBillingReportNamespaceDelete(next error) error {
 	return NewErrInvalid(ErrBillingReportNamespaceDelete, nil, next)
-}
-
-// NewErrBillingReportDevice reports that billing refused a device change.
-func NewErrBillingReportDevice(next error) error {
-	return NewErrInvalid(ErrBillingReportDevice, nil, next)
 }
 
 // NewErrBillingEvaluate reports that billing could not be consulted.
