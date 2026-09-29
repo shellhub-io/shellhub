@@ -1,9 +1,11 @@
+const devDomain = import.meta.env.PUBLIC_SHELLHUB_DOMAIN || "localhost";
+
 /**
  * URL of the public website used by the docs app.
  * Uses a local development host when running in DEV mode, otherwise the production URL.
  */
 export const websiteUrl = import.meta.env.DEV
-  ? "http://website.localhost"
+  ? `http://website.${devDomain}`
   : "https://shellhub.io";
 
 /**
@@ -11,7 +13,7 @@ export const websiteUrl = import.meta.env.DEV
  * published address otherwise.
  */
 export const docsUrl = import.meta.env.DEV
-  ? "http://docs.localhost"
+  ? `http://docs.${devDomain}`
   : "https://docs.shellhub.io";
 
 /**

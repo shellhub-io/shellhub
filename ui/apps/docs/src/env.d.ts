@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_DOCS_CHANNEL?: string;
   /** The stack's `SHELLHUB_VERSION`, carried in by the workflow that builds the site. */
   readonly PUBLIC_SHELLHUB_VERSION?: string;
+  readonly PUBLIC_SHELLHUB_DOMAIN?: string;
 }
 
 interface ImportMeta {

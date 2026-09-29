@@ -12,6 +12,7 @@ export default defineConfig({
     }),
   ],
   base: "/",
+  envPrefix: ["VITE_", "PUBLIC_"],
   server: {
     port: 8082,
     allowedHosts: true,
