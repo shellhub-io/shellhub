@@ -29,6 +29,10 @@ linters:
       # npm ships Go sources inside ui/node_modules. CI never installs them for the
       # Go jobs, so only a local run sees the package — and lints a vendor's code.
       - "node_modules/"
+    rules:
+      - path: _test\.go$
+        linters:
+          - unparam
   enable:
     - errcheck
     - revive
@@ -89,6 +93,7 @@ linters:
     - mirror
     - exptostd
     - tparallel
+    - unparam
 
   settings:
     forbidigo:
@@ -143,6 +148,15 @@ linters:
               desc: 'RC4 is broken; use crypto/aes'
             - pkg: crypto/dsa
               desc: 'DSA is deprecated; use crypto/ed25519 or crypto/ecdsa'
+        production:
+          files:
+            - "$all"
+            - "!$test"
+            - "!**/*test/**"
+            - "!**/tests/**"
+          deny:
+            - pkg: testing
+              desc: "only _test.go files and *test helper packages import testing; a file that needs it is a test and must end in _test.go"
     whitespace:
       multi-if: true
       multi-func: true
