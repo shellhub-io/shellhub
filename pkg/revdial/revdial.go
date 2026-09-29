@@ -38,12 +38,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// The errors a dialer returns once it can no longer serve connections: closed for good, or with no
-// answer from the peer in time. Both are terminal for the dialer, and the caller reconnects.
-var (
-	ErrDialerClosed   = errors.New("revdial.Dialer closed")
-	ErrDialerTimedout = errors.New("revdial.Dialer timedout")
-)
+// ErrDialerClosed is returned once a dialer can no longer serve connections. It is terminal for the
+// dialer, and the caller reconnects.
+var ErrDialerClosed = errors.New("revdial.Dialer closed")
 
 const dialerUniqParam = "revdial.dialer"
 
@@ -337,9 +334,8 @@ type Listener struct {
 	dial   func(context.Context, string) (*websocket.Conn, *http.Response, error)
 	writec chan<- []byte
 
-	mu      sync.Mutex // guards below, closing connc, and writing to rw
-	readErr error
-	closed  bool
+	mu     sync.Mutex // guards below, closing connc, and writing to rw
+	closed bool
 }
 
 type controlMsg struct {
@@ -458,25 +454,10 @@ func (ln *Listener) grabConn(path string) {
 	}
 }
 
-// Closed reports whether the listener has been closed.
-func (ln *Listener) Closed() bool {
-	ln.mu.Lock()
-	defer ln.mu.Unlock()
-
-	return ln.closed
-}
-
 // Accept blocks and returns a new connection, or an error.
 func (ln *Listener) Accept() (net.Conn, error) {
 	c, ok := <-ln.connc
 	if !ok {
-		ln.mu.Lock()
-		err, closed := ln.readErr, ln.closed
-		ln.mu.Unlock()
-		if err != nil && !closed {
-			return nil, fmt.Errorf("revdial: Listener closed; %w", err)
-		}
-
 		return nil, ErrListenerClosed
 	}
 
