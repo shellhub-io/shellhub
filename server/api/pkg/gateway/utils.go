@@ -22,14 +22,3 @@ func Handler(next func(*Context) error) echo.HandlerFunc {
 		return next(gCtx)
 	}
 }
-
-// Middleware adapts echo middleware so it runs with a gateway [Context] in place.
-func Middleware(m echo.MiddlewareFunc) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c *echo.Context) error {
-			return Handler(func(c *Context) error {
-				return m(next)(c.Context)
-			})(c)
-		}
-	}
-}

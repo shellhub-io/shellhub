@@ -18,25 +18,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DefaultHTTPHandlerConfig is what the router needs beyond the service layer. Every field is
-// optional; a zero config yields a router with no reporting and no metrics.
-type DefaultHTTPHandlerConfig struct {
-	// Reporter represents an instance of [*sentry.Client] that should be proper configured to send error messages
-	// from the error handler. If it's nil, the error handler will ignore the Sentry client.
-	Reporter *sentry.Client
-}
-
 // DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v5] package, with the default
-// configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/server/api/pkg/gateway] into
-// the context, and the service layer. The configuration received controls the error reporter and more.
-func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Handler {
+// configuration required by ShellHub's services and the [github.com/shellhub-io/shellhub/server/api/pkg/gateway]
+// loaded into the context. Its error handler reports nowhere until [WithReporter] replaces it.
+func DefaultHTTPHandler() http.Handler {
 	server := echo.New()
 
 	server.Binder = handlers.NewBinder()
 
 	server.Validator = handlers.NewValidator()
 
-	server.HTTPErrorHandler = handlers.NewErrors(cfg.Reporter)
+	server.HTTPErrorHandler = handlers.NewErrors(nil)
 
 	server.IPExtractor = handlers.RealIPExtractor()
 
@@ -48,7 +40,7 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 		},
 	}))
 	server.Use(echoMiddleware.Secure())
-	server.Use(gateway.WithContext(service))
+	server.Use(gateway.WithContext())
 	server.Use(pkgmiddleware.Log)
 
 	return server
@@ -116,7 +108,7 @@ func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 
 // NewRouter builds the API router over service, applying each option in turn.
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
-	router, ok := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
+	router, ok := DefaultHTTPHandler().(*echo.Echo)
 	if !ok {
 		return nil
 	}
