@@ -16,7 +16,6 @@ func configurations() map[string]*GatewayConfig {
 		return &GatewayConfig{ //nolint:exhaustruct
 			Domain:          "shellhub.example",
 			APIBackend:      "server:8080",
-			Database:        "postgres",
 			ProxyTrustedIPs: "0.0.0.0/0 ::/0",
 		}
 	}
@@ -31,7 +30,6 @@ func configurations() map[string]*GatewayConfig {
 	return map[string]*GatewayConfig{
 		"community":       base(),
 		"enterprise":      with(func(c *GatewayConfig) { c.EnableEnterprise = true }),
-		"cloud":           with(func(c *GatewayConfig) { c.EnableEnterprise = true; c.EnableCloud = true }),
 		"web endpoints":   with(func(c *GatewayConfig) { c.EnableEnterprise = true; c.WebEndpoints = true }),
 		"proxy protocol":  with(func(c *GatewayConfig) { c.EnableProxyProtocol = true }),
 		"auto ssl":        with(func(c *GatewayConfig) { c.EnableAutoSSL = true }),
