@@ -48,9 +48,10 @@ package agentd
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
-	"math/rand/v2" // nosemgrep: go.lang.security.audit.crypto.math_random.math-random-used
+	"math/big"
 	"net"
 	"net/url"
 	"os"
@@ -762,10 +763,15 @@ const AgentPingDefaultInterval = 10 * time.Minute
 
 const tunnelReconnectInterval = 10 * time.Second
 
-func nextPingInterval(base time.Duration, rng *rand.Rand) time.Duration {
+func nextPingInterval(base time.Duration) time.Duration {
 	spread := base / 5
 
-	return base - spread + time.Duration(rng.Int64N(int64(2*spread)+1))
+	offset, err := rand.Int(rand.Reader, big.NewInt(int64(2*spread)+1))
+	if err != nil {
+		return base
+	}
+
+	return base - spread + time.Duration(offset.Int64())
 }
 
 func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, interval time.Duration) {
@@ -779,9 +785,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 		return
 	}
 
-	rng := rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())) //nolint:gosec // jitter needs no cryptographic randomness
-
-	ticker := time.NewTicker(nextPingInterval(interval, rng))
+	ticker := time.NewTicker(nextPingInterval(interval))
 	defer ticker.Stop()
 
 	authorization := connectivity.NewTracker(a.logger.WithField("transport", "ping"))
@@ -809,7 +813,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 					"timestamp":      clock.Now(),
 				}).Debug("Starting the ping interval to server")
 
-				ticker.Reset(nextPingInterval(interval, rng))
+				ticker.Reset(nextPingInterval(interval))
 			} else {
 				log.WithFields(log.Fields{
 					"version":        a.config.Version,
@@ -843,7 +847,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 				"timestamp":      clock.Now(),
 			}).Info("Ping")
 
-			ticker.Reset(nextPingInterval(interval, rng))
+			ticker.Reset(nextPingInterval(interval))
 		}
 	}
 }
