@@ -74,13 +74,6 @@ func WithUserStatus(status models.UserStatus) UserOption {
 	}
 }
 
-// WithMaxNamespaces sets max namespaces
-func WithMaxNamespaces(n int) UserOption {
-	return func(u *models.User) {
-		u.MaxNamespaces = n
-	}
-}
-
 // CreateUser creates a user with default or customized values
 // Returns the generated user ID
 func (s *Suite) CreateUser(t *testing.T, opts ...UserOption) string {
@@ -125,13 +118,6 @@ func WithNamespaceName(name string) NamespaceOption {
 func WithOwner(ownerID string) NamespaceOption {
 	return func(ns *models.Namespace) {
 		ns.Owner = ownerID
-	}
-}
-
-// WithMaxDevices sets max devices
-func WithMaxDevices(n int) NamespaceOption {
-	return func(ns *models.Namespace) {
-		ns.MaxDevices = n
 	}
 }
 
@@ -473,20 +459,6 @@ func WithAPIKeyCreatedBy(userID string) APIKeyOption {
 	}
 }
 
-// WithAPIKeyDigest sets a specific digest (use sparingly, mainly for testing conflicts)
-func WithAPIKeyDigest(digest string) APIKeyOption {
-	return func(key *models.APIKey) {
-		key.Digest = digest
-	}
-}
-
-// WithAPIKeyExpiresIn sets expiration
-func WithAPIKeyExpiresIn(expiresIn int64) APIKeyOption {
-	return func(key *models.APIKey) {
-		key.ExpiresIn = expiresIn
-	}
-}
-
 // CreateAPIKey creates an API key with default or customized values
 // Returns the generated API key digest (SHA256 hash)
 // If tenant/user are not provided via options, defaults will be created
@@ -546,13 +518,6 @@ func WithPublicKeyTenant(tenantID string) PublicKeyOption {
 	}
 }
 
-// WithPublicKeyUsername sets the username filter
-func WithPublicKeyUsername(username string) PublicKeyOption {
-	return func(key *models.PublicKey) {
-		key.Username = username
-	}
-}
-
 // WithPublicKeyHostname sets the hostname filter
 func WithPublicKeyHostname(hostname string) PublicKeyOption {
 	return func(key *models.PublicKey) {
@@ -564,20 +529,6 @@ func WithPublicKeyHostname(hostname string) PublicKeyOption {
 func WithPublicKeyTags(tagIDs []string) PublicKeyOption {
 	return func(key *models.PublicKey) {
 		key.Filter.TagIDs = tagIDs
-	}
-}
-
-// WithPublicKeyFingerprint sets a specific fingerprint (use sparingly)
-func WithPublicKeyFingerprint(fingerprint string) PublicKeyOption {
-	return func(key *models.PublicKey) {
-		key.Fingerprint = fingerprint
-	}
-}
-
-// WithPublicKeyData sets the public key data
-func WithPublicKeyData(data []byte) PublicKeyOption {
-	return func(key *models.PublicKey) {
-		key.Data = data
 	}
 }
 
@@ -623,13 +574,6 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 
 // PrivateKeyOption allows customization of test private keys
 type PrivateKeyOption func(*models.PrivateKey)
-
-// WithPrivateKeyFingerprint sets the private key fingerprint
-func WithPrivateKeyFingerprint(fingerprint string) PrivateKeyOption {
-	return func(key *models.PrivateKey) {
-		key.Fingerprint = fingerprint
-	}
-}
 
 // WithPrivateKeyData sets the private key data
 func WithPrivateKeyData(data []byte) PrivateKeyOption {

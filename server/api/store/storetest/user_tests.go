@@ -121,7 +121,6 @@ func (s *Suite) TestUserCreate(t *testing.T) {
 	tests := []struct {
 		description string
 		user        *models.User
-		fixtures    []string
 		expected    error
 	}{
 		{
@@ -136,7 +135,6 @@ func (s *Suite) TestUserCreate(t *testing.T) {
 					Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 				},
 			},
-			fixtures: []string{},
 			expected: nil,
 		},
 	}
@@ -144,7 +142,6 @@ func (s *Suite) TestUserCreate(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
 			require.NoError(t, s.provider.CleanDatabase(t))
-			require.NoError(t, s.provider.LoadFixtures(t, tc.fixtures...))
 
 			insertedID, err := st.UserCreate(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)

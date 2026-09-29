@@ -15,7 +15,6 @@ require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/labstack/echo-contrib/v5 v5.0.1
 	github.com/labstack/echo/v5 v5.3.1
-	github.com/lib/pq v1.12.3
 	github.com/mark3labs/mcp-go v1.0.0
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.15.0
@@ -77,6 +76,7 @@ require (
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
+	github.com/lib/pq v1.12.3 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
 	github.com/magiconair/properties v1.8.10 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
