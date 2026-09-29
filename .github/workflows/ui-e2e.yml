@@ -68,7 +68,7 @@ jobs:
           path: cloud
           persist-credentials: false
 
-      - name: Set up Node.JS 24.13.0
+      - name: Set up Node.js
         if: steps.filter.outputs.e2e == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
