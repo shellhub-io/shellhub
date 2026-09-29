@@ -28,21 +28,7 @@ post:
     content:
       application/json:
         schema:
-          type: object
-          properties:
-            uid:
-              $ref: ../components/schemas/deviceUID.yaml
-            token:
-              $ref: ../components/schemas/deviceToken.yaml
-            name:
-              $ref: ../components/schemas/deviceName.yaml
-            namespace:
-              $ref: ../components/schemas/deviceNamespaceName.yaml
-          required:
-            - uid
-            - token
-            - name
-            - namespaces
+          $ref: ../components/schemas/deviceAuthRequest.yaml
   responses:
     '200':
       description: Success to auth device
