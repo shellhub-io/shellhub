@@ -18,8 +18,3 @@ type UserUpdate struct {
 type UserDelete struct {
 	Username string `validate:"required,username"`
 }
-
-// UserPassword the structure for validate passowrd.
-type UserPassword struct {
-	Password string `validate:"required,password"`
-}
