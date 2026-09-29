@@ -62,7 +62,7 @@ jobs:
         if: steps.filter.outputs[matrix.app] == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.13.0"
+          node-version: "24.20.0"
 
       - name: Cache node modules [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
