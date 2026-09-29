@@ -1,6 +1,6 @@
 services:
   server:
-    image: server
+    image: server:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: server/Dockerfile
@@ -23,7 +23,7 @@ services:
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
-    image: ui
+    image: ui:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -38,7 +38,7 @@ services:
       - ./ui:/src
       - ./openapi:/openapi:ro
   gateway:
-    image: gateway
+    image: gateway:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: gateway/Dockerfile
@@ -57,7 +57,7 @@ services:
       # the production rate limit on a rehearsal.
       - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
   openapi:
-    image: openapi
+    image: openapi:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: openapi/Dockerfile
