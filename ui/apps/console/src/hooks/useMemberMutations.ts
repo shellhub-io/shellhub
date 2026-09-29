@@ -1,26 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import {
-  addNamespaceMemberMutation,
   approveUserMutation,
   removeNamespaceMemberMutation,
   updateNamespaceMemberMutation,
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
-
-/**
- * Adds a member to the namespace, refreshing the member list and the namespace itself.
- */
-export function useAddMember() {
-  const invalidate = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
-    "listNamespaceMembers",
-  );
-  return useMutation({
-    ...addNamespaceMemberMutation(),
-    onSuccess: invalidate,
-  });
-}
 
 /**
  * Changes a member's role. The namespace queries are refreshed because the caller's own

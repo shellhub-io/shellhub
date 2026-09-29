@@ -1,7 +1,6 @@
 import {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useSyncExternalStore,
@@ -42,22 +41,8 @@ export interface ChatwootHandle {
 export const ChatwootContext = createContext<ChatwootHandle | null>(null);
 
 /**
- * The widget handle from context. Throws outside a ChatwootProvider rather than returning null,
- * so the mistake surfaces where it was made.
- */
-export function useChatwootContext(): ChatwootHandle {
-  const ctx = useContext(ChatwootContext);
-  if (!ctx) {
-    throw new Error(
-      "useChatwootContext must be used within a ChatwootProvider",
-    );
-  }
-  return ctx;
-}
-
-/**
- * Loads and manages the support widget. For the provider only — everything else should use
- * useChatwootContext, since calling this twice would inject the script twice.
+ * Loads and manages the support widget. For the provider only: everything else reads
+ * ChatwootContext, since calling this twice would inject the script twice.
  */
 export function useChatwoot(): ChatwootHandle {
   const config = getConfig();
