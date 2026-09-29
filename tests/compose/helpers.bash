@@ -8,6 +8,8 @@
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
+unset EXTRA_COMPOSE_FILE
+
 # Run the wrapper with the given override variables written to a tmpfile,
 # while replacing `docker` in PATH with a stub that just echoes the env
 # the wrapper exported.
