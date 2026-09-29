@@ -39,9 +39,13 @@ var nonTransactionalStatements = []string{
 }
 
 // TestNonTransactionalMigrations guards the two conditions such a statement needs, neither of
-// which is visible in the SQL itself: bun decides transactionality from the ".tx." filename
+// which is visible in the SQL itself: the runner decides transactionality from the ".tx." filename
 // suffix, and the pool runs in pgx simple-protocol mode where a multi-statement Exec is itself
 // an implicit transaction block. Getting either wrong fails at boot, not in review.
+//
+// Such a file must also be safe to run twice. The runner records it only after its last chunk,
+// so a boot killed in between runs every chunk again, as 033 and 038 can, since they drop their
+// index before creating it.
 func TestNonTransactionalMigrations(t *testing.T) {
 	files, err := fs.Glob(sqlMigrations, "*.sql")
 	if err != nil {

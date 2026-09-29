@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/dbtest"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/migrations"
+	"github.com/shellhub-io/shellhub/server/api/store/pg/migrator"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/options"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
@@ -66,11 +67,9 @@ func NewProviderAt(ctx context.Context, version int) (*Provider, error) {
 	return provider, nil
 }
 
-// ApplyNext runs the migration following the one the provider is at, inside its own transaction when
-// the file is transactional, and reports the migration's own error. The migrator records a migration
-// as applied before running it, so a failed one keeps that record while its changes roll back: the
-// provider then refuses every later ApplyNext and Rollback rather than working from a version its
-// database no longer matches.
+// ApplyNext runs the migration following the one the provider is at and reports the migration's own
+// error. A failed transactional migration leaves neither its changes nor its record, so the
+// provider stays at its version and a later ApplyNext runs it again.
 func (p *Provider) ApplyNext(ctx context.Context) error {
 	if err := p.describesItsDatabase(); err != nil {
 		return err
@@ -78,14 +77,12 @@ func (p *Provider) ApplyNext(ctx context.Context) error {
 
 	next := p.version + 1
 
-	registry, err := migrationsThrough(next)
+	through, err := migrationsThrough(next)
 	if err != nil {
 		return err
 	}
 
-	if err := applyRegistry(ctx, p.driver, registry, next); err != nil {
-		p.failed = next
-
+	if err := apply(ctx, p.driver, through, next); err != nil {
 		return err
 	}
 
@@ -96,10 +93,10 @@ func (p *Provider) ApplyNext(ctx context.Context) error {
 
 // Rollback undoes the migration the last ApplyNext ran, and fails when the migrator undoes anything
 // else. It refuses when no ApplyNext has run, because the migrator rolls back a whole group and the
-// provider booted with every migration up to its version in one. A migration whose down file
-// reverses nothing, as 014 and 022 do, is reported rolled back with its rows still in place. A
-// rollback that fails leaves the provider refusing later calls, as a failed ApplyNext does: the
-// migrator unmarks a migration before running its down, so the database no longer matches either.
+// provider booted with every migration up to its version in one. A migration whose down reverses
+// nothing is reported rolled back with its rows still in place: 014, whose down file is a no-op, and
+// 022, a Go migration with no down. A rollback that fails leaves the provider refusing later calls: the migrator unmarks a migration
+// before running its down, so the database no longer matches its record.
 func (p *Provider) Rollback(ctx context.Context) error {
 	if err := p.describesItsDatabase(); err != nil {
 		return err
@@ -130,75 +127,61 @@ func (p *Provider) Rollback(ctx context.Context) error {
 
 func (p *Provider) describesItsDatabase() error {
 	if p.failed != 0 {
-		return fmt.Errorf("migration %03d failed and stays recorded as applied, so this provider no longer describes its database", p.failed)
+		return fmt.Errorf("rolling back migration %03d failed, so this provider no longer describes its database", p.failed)
 	}
 
 	return nil
 }
 
 func headVersion() (int, error) {
-	sorted := migrations.FetchMigrations().Sorted()
-	if len(sorted) == 0 {
+	if len(migrations.All) == 0 {
 		return 0, errors.New("no migrations are registered")
 	}
 
-	return strconv.Atoi(sorted[len(sorted)-1].Name)
+	return strconv.Atoi(migrations.All[len(migrations.All)-1].Name)
 }
 
 func migrateThrough(version int) options.Option {
 	return func(ctx context.Context, db *bun.DB) error {
-		registry, err := migrationsThrough(version)
+		through, err := migrationsThrough(version)
 		if err != nil {
 			return err
 		}
 
-		return applyRegistry(ctx, db, registry, version)
+		return apply(ctx, db, through, version)
 	}
 }
 
-func applyRegistry(ctx context.Context, db *bun.DB, registry *migrate.Migrations, version int) error {
-	migrator := migrate.NewMigrator(db, registry)
-	if err := migrator.Init(ctx); err != nil {
-		return err
-	}
-
-	group, err := migrator.Migrate(ctx)
+func apply(ctx context.Context, db *bun.DB, through []migrator.Migration, version int) error {
+	applied, err := migrator.Apply(ctx, db, migrations.Tables, through)
 	if err != nil {
 		return err
 	}
 
-	if group.IsZero() {
+	if applied == 0 {
 		return fmt.Errorf("migration %03d is already applied", version)
 	}
 
 	return nil
 }
 
-func migrationsThrough(version int) (*migrate.Migrations, error) {
-	registry := migrate.NewMigrations()
-
-	found := false
-
-	for _, migration := range migrations.FetchMigrations().Sorted() {
+func migrationsThrough(version int) ([]migrator.Migration, error) {
+	for i, migration := range migrations.All {
 		number, err := strconv.Atoi(migration.Name)
 		if err != nil {
 			return nil, err
 		}
 
+		if number == version {
+			return migrations.All[:i+1], nil
+		}
+
 		if number > version {
 			break
 		}
-
-		registry.Add(migration)
-
-		found = number == version
 	}
 
-	if !found {
-		return nil, fmt.Errorf("no migration numbered %03d", version)
-	}
-
-	return registry, nil
+	return nil, fmt.Errorf("no migration numbered %03d", version)
 }
 
 func newProvider(ctx context.Context, migrateOption options.Option) (*Provider, error) {
