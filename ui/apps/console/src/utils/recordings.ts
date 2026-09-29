@@ -78,18 +78,6 @@ export function castFilename(deviceName: string): string {
   return `shellhub-${slug || "session"}-${format(new Date(), "yyyyMMdd-HHmmss")}.cast`;
 }
 
-/** Trigger a normal browser download (lands in the default Downloads dir). */
-export function downloadCast(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 /**
  * Streams a terminal recording to an OPFS file. Created via `create()` (async,
  * opens the writable); `start()` writes the header; output/resize append event
@@ -299,55 +287,9 @@ export async function listRecordings(): Promise<RecordingMeta[]> {
   return metas.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-/** Read a recording's bytes and trigger a browser download. */
-export async function downloadRecording(meta: RecordingMeta): Promise<void> {
-  const dir = await recordingsDir();
-  const handle = await dir.getFileHandle(`${meta.id}.cast`);
-  const file = await handle.getFile();
-  downloadCast(
-    new Blob([await file.arrayBuffer()], { type: "application/x-asciicast" }),
-    meta.filename,
-  );
-}
-
 /** Read a recording's .cast content as a string (for inline playback). */
 export async function readRecording(meta: RecordingMeta): Promise<string> {
   const dir = await recordingsDir();
   const handle = await dir.getFileHandle(`${meta.id}.cast`);
   return (await handle.getFile()).text();
-}
-
-/** Delete a recording (payload + sidecar). */
-export async function deleteRecording(id: string): Promise<void> {
-  const dir = await recordingsDir();
-  await dir.removeEntry(`${id}.cast`).catch(() => undefined);
-  await dir.removeEntry(`${id}.json`).catch(() => undefined);
-}
-
-/** Delete every stored recording (payloads + sidecars). */
-export async function clearRecordings(): Promise<void> {
-  if (!isRecordingSupported() || !userScope) return;
-  const dir = await recordingsDir();
-  const names: string[] = [];
-  const entries = (
-    dir as unknown as {
-      entries(): AsyncIterableIterator<[string, FileSystemHandle]>;
-    }
-  ).entries();
-  for await (const [name, handle] of entries) {
-    if (handle.kind === "file") names.push(name);
-  }
-  await Promise.all(
-    names.map((n) => dir.removeEntry(n).catch(() => undefined)),
-  );
-}
-
-/** Delete recordings whose start time is older than `maxAgeDays`. */
-export async function pruneRecordings(maxAgeDays: number): Promise<void> {
-  if (!isRecordingSupported() || !userScope || maxAgeDays <= 0) return;
-  const cutoff = Date.now() - maxAgeDays * 86_400_000;
-  const metas = await listRecordings();
-  await Promise.all(
-    metas.filter((m) => m.createdAt < cutoff).map((m) => deleteRecording(m.id)),
-  );
 }

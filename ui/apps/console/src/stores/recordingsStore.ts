@@ -1,76 +1,23 @@
 import { create } from "zustand";
-import {
-  listRecordings,
-  deleteRecording,
-  downloadRecording,
-  clearRecordings,
-  pruneRecordings,
-  type RecordingMeta,
-} from "@/utils/recordings";
-
-/** Local retention is a per-browser preference, so it lives in localStorage. */
-const RETENTION_KEY = "shellhub:recordings:retentionDays";
-
-function loadRetention(): number | null {
-  const raw = localStorage.getItem(RETENTION_KEY);
-  const days = raw ? Number(raw) : NaN;
-  return Number.isFinite(days) && days > 0 ? days : null;
-}
+import { listRecordings, type RecordingMeta } from "@/utils/recordings";
 
 interface RecordingsState {
   recordings: RecordingMeta[];
-  loading: boolean;
-  retentionDays: number | null;
   notice: RecordingMeta | null;
   refresh: () => Promise<void>;
-  remove: (id: string) => Promise<void>;
-  clearAll: () => Promise<void>;
-  setRetentionDays: (days: number | null) => void;
-  download: (meta: RecordingMeta) => Promise<void>;
   notify: (meta: RecordingMeta) => void;
   clearNotice: () => void;
 }
 
 /**
- * The locally recorded sessions, listed from OPFS. Retention is applied here, so a recording
- * older than the limit is dropped when the list is refreshed rather than on a timer.
+ * The locally recorded sessions, listed from OPFS.
  */
 export const useRecordingsStore = create<RecordingsState>((set, get) => ({
   recordings: [],
-  loading: false,
-  retentionDays: loadRetention(),
   notice: null,
 
   refresh: async () => {
-    set({ loading: true });
-    try {
-      const { retentionDays } = get();
-      if (retentionDays) await pruneRecordings(retentionDays);
-      set({ recordings: await listRecordings() });
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  remove: async (id) => {
-    await deleteRecording(id);
-    set((s) => ({ recordings: s.recordings.filter((r) => r.id !== id) }));
-  },
-
-  clearAll: async () => {
-    await clearRecordings();
-    set({ recordings: [] });
-  },
-
-  setRetentionDays: (days) => {
-    if (days && days > 0) localStorage.setItem(RETENTION_KEY, String(days));
-    else localStorage.removeItem(RETENTION_KEY);
-    set({ retentionDays: days && days > 0 ? days : null });
-    void get().refresh();
-  },
-
-  download: async (meta) => {
-    await downloadRecording(meta);
+    set({ recordings: await listRecordings() });
   },
 
   notify: (meta) => {

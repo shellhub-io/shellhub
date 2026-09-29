@@ -69,7 +69,6 @@ interface TerminalState {
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
   ) => void;
-  minimize: (id: string) => void;
   minimizeAll: () => void;
   restore: (id: string) => void;
   close: (id: string) => void;
@@ -179,14 +178,6 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         ],
       };
     });
-  },
-
-  minimize: (id) => {
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === id ? { ...s, state: "minimized" as const } : s,
-      ),
-    }));
   },
 
   minimizeAll: () => {
