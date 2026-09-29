@@ -4,7 +4,7 @@ import type { AssignableRole } from "@/pages/team/helpers";
 
 const stackName = `shellhub-e2e-${process.env.E2E_STACK_NAME || "default"}`;
 
-function composeExec(service: string, args: string[], input?: string) {
+export function composeExec(service: string, args: string[], input?: string) {
   return execFileSync(
     "docker",
     ["compose", "-p", stackName, "exec", "-T", service, ...args],

@@ -22,7 +22,7 @@ func TestEdition(t *testing.T) {
 		buildEdition string
 		files        []string
 		envFiles     []string
-		dummyBilling bool
+		editionEnvs  map[string]string
 	}{
 		{
 			edition:      EditionCommunity,
@@ -32,8 +32,8 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.test.yml",
 				"../docker-compose.postgres.test.yml",
 			},
-			envFiles:     []string{"../.env"},
-			dummyBilling: false,
+			envFiles:    []string{"../.env"},
+			editionEnvs: map[string]string{},
 		},
 		{
 			edition:      EditionEnterprise,
@@ -45,8 +45,11 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.postgres.test.yml",
 				"../docker-compose.enterprise.test.yml",
 			},
-			envFiles:     []string{"../.env", "../.env.enterprise", cloudEnv},
-			dummyBilling: true,
+			envFiles: []string{"../.env", "../.env.enterprise", cloudEnv},
+			editionEnvs: map[string]string{
+				"SHELLHUB_EMAIL_PROVIDER": "dummy",
+				"SHELLHUB_MAXMIND_MIRROR": "",
+			},
 		},
 		{
 			edition:      EditionCloud,
@@ -59,8 +62,13 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.postgres.test.yml",
 				"../docker-compose.enterprise.test.yml",
 			},
-			envFiles:     []string{"../.env", "../.env.enterprise", cloudEnv},
-			dummyBilling: true,
+			envFiles: []string{"../.env", "../.env.enterprise", cloudEnv},
+			editionEnvs: map[string]string{
+				"SHELLHUB_BILLING":        "stripe",
+				"COMPOSE_PROFILES":        "stripe",
+				"SHELLHUB_EMAIL_PROVIDER": "dummy",
+				"SHELLHUB_MAXMIND_MIRROR": "",
+			},
 		},
 	}
 
@@ -78,13 +86,7 @@ func TestEdition(t *testing.T) {
 			assert.Equal(t, tt.buildEdition, envs["SHELLHUB_BUILD_EDITION"])
 			assert.Equal(t, "production", envs["SHELLHUB_ENV"])
 
-			if tt.dummyBilling {
-				assert.Equal(t, "dummy", envs["SHELLHUB_BILLING"])
-				assert.Equal(t, "dummy", envs["SHELLHUB_EMAIL_PROVIDER"])
-			} else {
-				_, hasBilling := envs["SHELLHUB_BILLING"]
-				assert.False(t, hasBilling)
-			}
+			assert.Equal(t, tt.editionEnvs, pick(envs, "SHELLHUB_BILLING", "COMPOSE_PROFILES", "SHELLHUB_EMAIL_PROVIDER", "SHELLHUB_MAXMIND_MIRROR"))
 		})
 	}
 
@@ -108,6 +110,17 @@ func TestEdition(t *testing.T) {
 		_, err := ParseEdition("invalid")
 		assert.Error(t, err)
 	})
+}
+
+func pick(envs map[string]string, keys ...string) map[string]string {
+	picked := map[string]string{}
+	for _, key := range keys {
+		if value, ok := envs[key]; ok {
+			picked[key] = value
+		}
+	}
+
+	return picked
 }
 
 func TestMergeEnvs(t *testing.T) {
