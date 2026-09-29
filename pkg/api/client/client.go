@@ -21,14 +21,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type commonAPI interface {
-	ListDevices() ([]models.Device, error)
-	GetDevice(uid string) (*models.Device, error)
-}
-
 type publicAPI interface {
 	GetInfo(agentVersion string) (*models.Info, error)
-	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
@@ -42,14 +36,10 @@ type publicAPI interface {
 // Client is the agent's view of the ShellHub API: the routes an agent calls, plus the reverse
 // listener it serves SSH on. Build one with NewClient.
 type Client interface {
-	commonAPI
 	publicAPI
 }
 
 type client struct {
-	scheme    string
-	host      string
-	port      int
 	http      *resty.Client
 	logger    *log.Logger
 	logEntry  *log.Entry
