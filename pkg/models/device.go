@@ -171,16 +171,11 @@ type DeviceAuthStatus struct {
 // DevicePairingRequest is the identity payload a tenant-less agent submits to
 // start a pairing. It mirrors the fields of a device auth request minus the
 // tenant, which the user chooses at accept time.
-//
-// Code carries a pre-authorized pairing code the agent was given at install
-// time. When set, the server claims it and accepts the device into the
-// pre-authorized namespace instead of returning a code to poll.
 type DevicePairingRequest struct {
 	Hostname  string          `json:"hostname,omitempty"`
 	Identity  *DeviceIdentity `json:"identity,omitempty"`
 	Info      *DeviceInfo     `json:"info"`
 	PublicKey string          `json:"public_key"`
-	Code      string          `json:"code,omitempty"`
 }
 
 // DevicePairing is the response to a pairing creation request. When the device
@@ -195,10 +190,9 @@ type DevicePairing struct {
 	TenantID  string       `json:"tenant_id,omitempty"`
 }
 
-// DevicePairingStatus is what a tenant-less agent — or the console page that
-// minted a pre-authorized code — polls while waiting for the device to be
-// accepted. TenantID is set once accepted; UID and Name identify the resulting
-// device so the console can link straight to it.
+// DevicePairingStatus is what a tenant-less agent polls while waiting for the
+// device to be accepted. TenantID is set once accepted; UID and Name identify
+// the resulting device.
 type DevicePairingStatus struct {
 	Status   DeviceStatus `json:"status"`
 	TenantID string       `json:"tenant_id,omitempty"`

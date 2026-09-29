@@ -203,68 +203,6 @@ func TestNamespaceCredentialsEnrollTeamDevices(t *testing.T) {
 	assert.Empty(t, device.OwnerID)
 }
 
-func TestPreauthorizedPairingTiesTheDeviceToTheMinter(t *testing.T) {
-	ctx := context.Background()
-
-	claim := func(t *testing.T, e *ownershipE2E, minter string) (*models.DevicePairing, error) {
-		t.Helper()
-
-		prepared, err := e.svc.PrepareDevicePairing(ctx, minter, e.tenantID)
-		require.NoError(t, err)
-
-		req := pairingRequest("aa:bb:cc:dd:ee:01", "pk-1")
-		req.Code = prepared.Code
-
-		return e.svc.CreateDevicePairing(ctx, req)
-	}
-
-	t.Run("the minter owns the claimed device", func(t *testing.T) {
-		e := setupOwnershipE2E(t)
-		minter := e.member(t, "minter", authorizer.RoleOperator)
-
-		_, err := claim(t, e, minter)
-		require.NoError(t, err)
-
-		devices := e.accepted(t)
-		require.Len(t, devices, 1)
-		assert.Equal(t, minter, devices[0].OwnerID)
-	})
-
-	t.Run("a minter removed before the claim leaves an unknown code", func(t *testing.T) {
-		e := setupOwnershipE2E(t)
-		minter := e.member(t, "minter", authorizer.RoleOperator)
-
-		prepared, err := e.svc.PrepareDevicePairing(ctx, minter, e.tenantID)
-		require.NoError(t, err)
-
-		require.NoError(t, e.st.NamespaceDeleteMembership(ctx, scope.MustBounded(e.tenantID), &models.Member{ID: minter}))
-
-		req := pairingRequest("aa:bb:cc:dd:ee:01", "pk-1")
-		req.Code = prepared.Code
-
-		_, err = e.svc.CreateDevicePairing(ctx, req)
-		require.ErrorIs(t, err, ErrDevicePairingCodeNotFound)
-		assert.Empty(t, e.accepted(t))
-	})
-
-	t.Run("a minter demoted to observer before the claim leaves an unknown code", func(t *testing.T) {
-		e := setupOwnershipE2E(t)
-		minter := e.member(t, "minter", authorizer.RoleOperator)
-
-		prepared, err := e.svc.PrepareDevicePairing(ctx, minter, e.tenantID)
-		require.NoError(t, err)
-
-		require.NoError(t, e.st.NamespaceUpdateMembership(ctx, scope.MustBounded(e.tenantID), &models.Member{ID: minter, Role: authorizer.RoleObserver}))
-
-		req := pairingRequest("aa:bb:cc:dd:ee:01", "pk-1")
-		req.Code = prepared.Code
-
-		_, err = e.svc.CreateDevicePairing(ctx, req)
-		require.ErrorIs(t, err, ErrDevicePairingCodeNotFound)
-		assert.Empty(t, e.accepted(t))
-	})
-}
-
 func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 	const mac = "aa:bb:cc:dd:ee:01"
 

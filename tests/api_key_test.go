@@ -121,11 +121,6 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 			path:        "/api/devices/login-code/any",
 		},
 		{
-			description: "preparing a device pairing",
-			method:      http.MethodPost,
-			path:        "/api/devices/pairing/prepare",
-		},
-		{
 			description: "accepting a device pairing",
 			method:      http.MethodPost,
 			path:        "/api/devices/pairing/any/accept",

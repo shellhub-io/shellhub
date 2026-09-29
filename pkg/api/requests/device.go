@@ -106,16 +106,11 @@ type DeviceLoginCodeResolve struct {
 
 // DevicePairingCreate is the structure to represent the request data for the device pairing creation
 // endpoint. It mirrors DeviceAuth minus the tenant, which the user chooses at accept time.
-//
-// Code is optional: when set, the agent was handed a pre-authorized pairing code
-// at install time (see PrepareDevicePairing), so instead of minting a code for a
-// user to accept, the server claims it and accepts the device automatically.
 type DevicePairingCreate struct {
 	Info      *DeviceInfo     `json:"info" validate:"required"`
 	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key" validate:"required"`
-	Code      string          `json:"code,omitempty"`
 }
 
 // DevicePairingAccept is the structure to represent the request data for the device pairing accept endpoint.

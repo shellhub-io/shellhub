@@ -28,28 +28,14 @@ type devicePairing struct {
 	Status   models.DeviceStatus `json:"status"`
 	TenantID string              `json:"tenant_id"`
 	UID      string              `json:"uid"`
-
-	PreauthTenantID string `json:"preauth_tenant_id,omitempty"`
-	PreauthBy       string `json:"preauth_by,omitempty"`
 }
 
-// DevicePairingService issues and redeems pre-authorized pairing codes, which let a device
-// join a namespace already accepted instead of waiting in the pending list.
+// DevicePairingService issues pairing codes to tenant-less agents and lets a logged-in member
+// accept the paired device into a namespace.
 type DevicePairingService interface {
-	// PrepareDevicePairing mints a short-lived, single-use pre-authorized pairing
-	// code for a namespace. A logged-in member with the device-accept permission
-	// calls it (from the Add Device page); the code is then embedded in the
-	// install command so the device that claims it is accepted automatically,
-	// with no trip through the pending list.
-	PrepareDevicePairing(ctx context.Context, userID, tenantID string) (*models.DevicePairing, error)
-
 	// CreateDevicePairing stores the identity payload of a tenant-less agent and
 	// returns a short-lived code that deep-links it into the console's accept
 	// page. No device exists until a user accepts the pairing into a namespace.
-	//
-	// When the request carries a pre-authorized code (req.Code), it takes the
-	// claim path instead: the device is accepted into the code's namespace
-	// straight away and the code is consumed.
 	CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error)
 
 	// GetDevicePairingStatus reports the pairing outcome to the agent. The code
@@ -67,10 +53,6 @@ type DevicePairingService interface {
 }
 
 func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
-	if req.Code != "" {
-		return s.claimDevicePairing(ctx, req)
-	}
-
 	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
 	if device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, req.PublicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); err == nil && device != nil {
 		return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: device.TenantID}, nil
@@ -131,122 +113,6 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 	}, nil
 }
 
-func (s *service) PrepareDevicePairing(ctx context.Context, userID, tenantID string) (*models.DevicePairing, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	member, ok := namespace.FindMember(userID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(userID, nil)
-	}
-
-	if !member.Role.HasPermission(authorizer.DeviceAccept) {
-		return nil, NewErrRoleForbidden()
-	}
-
-	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return nil, err
-	}
-
-	pairing := &devicePairing{
-		Status:          models.DeviceStatusPending,
-		PreauthTenantID: namespace.TenantID,
-		PreauthBy:       userID,
-	}
-
-	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
-		return nil, err
-	}
-
-	return &models.DevicePairing{
-		Code:      code,
-		ExpiresIn: int(devicePairingTTL.Seconds()),
-		Status:    models.DeviceStatusPending,
-	}, nil
-}
-
-func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
-	code := pairingcode.Normalize(req.Code)
-	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
-		return nil, NewErrDevicePairingCodeNotFound(code, nil)
-	}
-
-	pairing := new(devicePairing)
-	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PreauthTenantID == "" {
-		return nil, NewErrDevicePairingCodeNotFound(code, err)
-	}
-
-	if pairing.PublicKey != "" {
-		if pairing.PublicKey == req.PublicKey {
-			return &models.DevicePairing{Status: pairing.Status, TenantID: pairing.TenantID}, nil
-		}
-
-		return nil, NewErrDevicePairingCodeNotFound(code, nil)
-	}
-
-	claimRef := "pairing_claim/" + code
-
-	reserved, err := s.cache.SetNX(ctx, claimRef, hashPublicKey(req.PublicKey), devicePairingTTL)
-	if err != nil {
-		return nil, err
-	}
-
-	if !reserved {
-		return nil, NewErrDevicePairingCodeNotFound(code, nil)
-	}
-
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, pairing.PreauthTenantID)
-	if err != nil {
-		_ = s.cache.Delete(ctx, claimRef)
-
-		return nil, NewErrNamespaceNotFound(pairing.PreauthTenantID, err)
-	}
-
-	if minter, ok := namespace.FindMember(pairing.PreauthBy); !ok || !minter.Role.HasPermission(authorizer.DeviceAccept) {
-		_ = s.cache.Delete(ctx, claimRef)
-
-		return nil, NewErrDevicePairingCodeNotFound(code, nil)
-	}
-
-	pairing.Hostname = req.Hostname
-	pairing.PublicKey = req.PublicKey
-
-	if req.Identity != nil {
-		pairing.Identity = &models.DeviceIdentity{MAC: req.Identity.MAC}
-	}
-
-	if req.Info != nil {
-		pairing.Info = &models.DeviceInfo{
-			ID:         req.Info.ID,
-			PrettyName: req.Info.PrettyName,
-			Version:    req.Info.Version,
-			Arch:       req.Info.Arch,
-			Platform:   req.Info.Platform,
-		}
-	}
-
-	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, pairing.PreauthBy)
-	if err != nil {
-		_ = s.cache.Delete(ctx, claimRef)
-
-		return nil, err
-	}
-
-	pairing.Status = models.DeviceStatusAccepted
-	pairing.TenantID = namespace.TenantID
-	pairing.UID = auth.UID
-
-	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
-		log.WithError(err).WithField("device_uid", auth.UID).
-			Warn("device accepted but failed to store the pairing outcome; the console will not see it via this code")
-	}
-
-	return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: namespace.TenantID}, nil
-}
-
 func hashPublicKey(publicKey string) string {
 	sum := sha256.Sum256([]byte(publicKey))
 
@@ -257,9 +123,7 @@ func (s *service) GetDevicePairingStatus(ctx context.Context, code string) (*mod
 	code = pairingcode.Normalize(code)
 
 	pairing := new(devicePairing)
-	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil ||
-		(pairing.PublicKey == "" && pairing.PreauthTenantID == "") {
-
+	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
 		return nil, NewErrDevicePairingCodeNotFound(code, err)
 	}
 
@@ -280,10 +144,6 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 	pairing := new(devicePairing)
 	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
 		return nil, NewErrDevicePairingCodeNotFound(code, err)
-	}
-
-	if pairing.PreauthTenantID != "" {
-		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)

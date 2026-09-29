@@ -35,8 +35,8 @@ type Cache interface {
 
 	// SetNX atomically sets key to value with the given ttl only if the key does
 	// not already exist, and reports whether it was set. It is the building block
-	// for single-use reservations (e.g. a pairing code claimed by exactly one
-	// device even under concurrent requests), which Get+Set cannot do race-free.
+	// for single-use reservations, such as a one-time token that must be redeemed
+	// exactly once under concurrent requests, which Get+Set cannot do race-free.
 	SetNX(ctx context.Context, key string, value any, ttl time.Duration) (bool, error)
 
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
