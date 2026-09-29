@@ -9,8 +9,7 @@
 -- The timeouts bound a boot, because migrations run inline before the listener binds. bun marks
 -- a migration applied before running it, so if one fires the boot fails but the restart skips
 -- this migration and comes up with the table merely still bloated — re-run the VACUUM by hand
--- to finish the job. Peer replicas that boot while this holds the migration lock fail outright
--- rather than wait: migrator.Lock inserts a row, it does not block.
+-- to finish the job.
 SET lock_timeout = '60s';
 
 --bun:split
