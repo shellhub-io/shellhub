@@ -15,8 +15,6 @@ type Response interface {
 var (
 	// ErrUnknown is returned when a non-mapped error occurred.
 	ErrUnknown = errors.New("unknown error")
-	// ErrConnectionFailed is returned when the client could not communicate with the sever.
-	ErrConnectionFailed = errors.New("connection failed")
 	// ErrNotFound is returned when the resource wasn't found or the route does't exist.
 	ErrNotFound = errors.New("not found")
 	// ErrBadRequest is returned when the request is malformed or invalid.
