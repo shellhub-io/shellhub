@@ -19,7 +19,10 @@ servers:
     description: ShellHub server.
 components:
   securitySchemes:
-    $ref: ./components/schemas/security.yaml
+    jwt:
+      $ref: ./components/schemas/security.yaml#/jwt
+    api-key:
+      $ref: ./components/schemas/security.yaml#/api-key
 tags:
   - name: devices
     x-displayName: Devices
