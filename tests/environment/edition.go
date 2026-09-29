@@ -107,9 +107,13 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	}
 
 	if e != EditionCommunity {
-		envs["SHELLHUB_BILLING"] = "dummy"
 		envs["SHELLHUB_EMAIL_PROVIDER"] = "dummy"
 		envs["SHELLHUB_MAXMIND_MIRROR"] = ""
+	}
+
+	if e == EditionCloud {
+		envs["SHELLHUB_BILLING"] = "stripe"
+		envs["COMPOSE_PROFILES"] = "stripe"
 	}
 
 	return envs, nil

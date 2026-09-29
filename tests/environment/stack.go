@@ -51,7 +51,10 @@ type Stack struct {
 }
 
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
-// healthy. The first Up per edition in a process builds the images; later Ups reuse them.
+// healthy. The first Up per edition in a process builds the images; later Ups reuse them. A cloud
+// stack bills through Stripe test mode: Up returns an error naming the first of STRIPE_SECRET_KEY,
+// STRIPE_PRICE_ID and SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and
+// .env.override, and an error when Stripe returns no webhook secret for the key.
 func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	if cfg.CloudDir == "" {
 		cfg.CloudDir = "../../cloud"
@@ -65,6 +68,13 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	editionEnvs, err := cfg.Edition.envs(cfg.CloudDir)
 	if err != nil {
 		return nil, err
+	}
+
+	var billingEnvs map[string]string
+	if editionEnvs["SHELLHUB_BILLING"] == "stripe" {
+		if billingEnvs, err = stripeEnvs(ctx, cfg.CloudDir); err != nil {
+			return nil, err
+		}
 	}
 
 	if cfg.HTTPPort == "" {
@@ -89,7 +99,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		cfg.Name = uuid.Generate()
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, map[string]string{
+	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 		"SHELLHUB_NETWORK":   cfg.Network,
