@@ -7,20 +7,17 @@ import (
 // Failures in setting up a web terminal session: resolving the device, authenticating to it,
 // and opening the SSH session behind the browser's connection.
 var (
-	ErrPublicKey               = errors.New("failed to get the parsed public key")
-	ErrConnect                 = errors.New("failed to connect to device")
-	ErrSession                 = errors.New("failed to create a session between the server to the agent")
-	ErrGetAuth                 = errors.New("failed to get auth data from key")
-	ErrWebData                 = errors.New("failed to get the data to connect to device")
-	ErrFindDevice              = errors.New("failed to find the device")
-	ErrFindPublicKey           = errors.New("failed to get the public key from the server")
-	ErrForbiddenPublicKey      = errors.New("failed to use the public key for this action")
-	ErrDataPublicKey           = errors.New("failed to parse the public key data")
-	ErrPty                     = errors.New("failed to request the pty to agent")
-	ErrShell                   = errors.New("failed to get the shell to agent")
-	ErrAuthentication          = errors.New("failed to authenticate to device")
-	ErrInvalidVersion          = errors.New("failed to parse device version")
-	ErrUnsuportedPublicKeyAuth = errors.New("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
+	ErrPublicKey          = errors.New("failed to get the parsed public key")
+	ErrConnect            = errors.New("failed to connect to device")
+	ErrSession            = errors.New("failed to create a session between the server to the agent")
+	ErrGetAuth            = errors.New("failed to get auth data from key")
+	ErrFindDevice         = errors.New("failed to find the device")
+	ErrFindPublicKey      = errors.New("failed to get the public key from the server")
+	ErrForbiddenPublicKey = errors.New("failed to use the public key for this action")
+	ErrDataPublicKey      = errors.New("failed to parse the public key data")
+	ErrPty                = errors.New("failed to request the pty to agent")
+	ErrShell              = errors.New("failed to get the shell to agent")
+	ErrAuthentication     = errors.New("failed to authenticate to device")
 )
 
 // Failures in framing the messages exchanged with the browser.

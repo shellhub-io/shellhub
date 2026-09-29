@@ -2,10 +2,6 @@
 package token
 
 import (
-	"crypto/rsa"
-	"errors"
-	"fmt"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
@@ -35,27 +31,4 @@ func NewToken(issuer string) (*Token, error) {
 	}
 
 	return &Token{ID: identifier, Data: token}, nil
-}
-
-// Parse a JWT token to a session's token.
-func Parse(token string) (*Token, error) {
-	claims := new(jwt.MapClaims)
-	if _, err := jwt.ParseWithClaims(token, claims, func(jwtToken *jwt.Token) (any, error) {
-		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
-		}
-
-		public, ok := magickey.GetReference().Public().(*rsa.PublicKey)
-		if !ok {
-			return nil, errors.New("signing key is not RSA")
-		}
-
-		return public, nil
-	}); err != nil {
-		return nil, err
-	}
-
-	id := (*claims)["id"].(string) //nolint:forcetypeassert
-
-	return &Token{ID: id, Data: token}, nil
 }
