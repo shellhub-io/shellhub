@@ -131,6 +131,18 @@ linters:
               desc: "Uuid generation is only allowed using 'github.com/shellhub-io/shellhub/pkg/uuid'"
             - pkg: github.com/dgrijalva/jwt-go
               desc: "dgrijalva/jwt-go is deprecated please use 'github.com/golang-jwt/jwt'"
+            - pkg: math/rand
+              desc: "math/rand is predictable; use 'crypto/rand'"
+            - pkg: crypto/md5
+              desc: 'MD5 is broken; use crypto/sha256 or stronger'
+            - pkg: crypto/sha1
+              desc: 'SHA-1 is broken; use crypto/sha256 or stronger'
+            - pkg: crypto/des
+              desc: 'DES is broken; use crypto/aes'
+            - pkg: crypto/rc4
+              desc: 'RC4 is broken; use crypto/aes'
+            - pkg: crypto/dsa
+              desc: 'DSA is deprecated; use crypto/ed25519 or crypto/ecdsa'
     whitespace:
       multi-if: true
       multi-func: true
