@@ -39,6 +39,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_SSH_PORT` | `22` | SSH port. Published by the server, not the gateway |
 | `SHELLHUB_DOMAIN` | `localhost` | Public domain. Required for auto-SSL |
 | `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
+| `SHELLHUB_NETWORK_EXTERNAL` | `false` | Join `SHELLHUB_NETWORK` as an existing network instead of creating it. It must exist before the stack starts, and `down` leaves it in place |
 
 ## TLS
 
