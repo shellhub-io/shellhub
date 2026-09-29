@@ -47,7 +47,6 @@ func TestTenantFromContext(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -96,7 +95,6 @@ func TestUsernameFromContext(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -145,7 +143,6 @@ func TestIDFromContext(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 

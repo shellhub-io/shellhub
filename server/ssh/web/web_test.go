@@ -223,7 +223,7 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 
 			e := echo.New()
 			e.HTTPErrorHandler = handlers.NewErrors(nil)
-			e.Use(gateway.WithContext(nil))
+			e.Use(gateway.WithContext())
 
 			require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 

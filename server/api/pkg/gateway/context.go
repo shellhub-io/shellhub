@@ -17,7 +17,6 @@ const ctxAdminRoute ctxKey = "admin-route"
 // Context is echo's request context extended with the service layer and with the identity the
 // authentication middleware resolved. Handlers take one of these instead of echo's own.
 type Context struct {
-	service any
 	*echo.Context
 }
 
@@ -36,20 +35,20 @@ func (c *Context) isAdminRoute() bool {
 
 const contextKey = "gateway-context"
 
-// NewContext wraps c, binding service as the one its handlers will reach.
-func NewContext(service any, c *echo.Context) *Context {
-	return &Context{service: service, Context: c}
+// NewContext wraps c.
+func NewContext(c *echo.Context) *Context {
+	return &Context{Context: c}
 }
 
-// WithContext installs a gateway [Context] bound to service on every request passing through it.
+// WithContext installs a gateway [Context] on every request passing through it.
 //
 // Echo's Context is a concrete struct, so the gateway context cannot be handed to the next
 // handler in its place — it rides along in the request store instead, and [From] takes it back
 // out. Register this before anything that calls [From].
-func WithContext(service any) echo.MiddlewareFunc {
+func WithContext() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			c.Set(contextKey, NewContext(service, c))
+			c.Set(contextKey, NewContext(c))
 
 			return next(c)
 		}
@@ -65,12 +64,6 @@ func From(c *echo.Context) (*Context, bool) {
 	gCtx, ok := c.Get(contextKey).(*Context)
 
 	return gCtx, ok
-}
-
-// Service returns the service layer bound to this request. Callers assert it to the concrete
-// interface they need, which is what lets community and enterprise share these handlers.
-func (c *Context) Service() any {
-	return c.service
 }
 
 // Role returns the user's namespace role got from JWT through gateway. It is
