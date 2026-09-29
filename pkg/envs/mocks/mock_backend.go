@@ -14,10 +14,19 @@ func NewMockBackend(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *MockBackend {
+	if helper, ok := t.(interface{ Helper() }); ok {
+		helper.Helper()
+	}
+
 	mock := &MockBackend{}
 	mock.Mock.Test(t)
 
-	t.Cleanup(func() { mock.AssertExpectations(t) })
+	t.Cleanup(func() {
+		if helper, ok := t.(interface{ Helper() }); ok {
+			helper.Helper()
+		}
+		mock.AssertExpectations(t)
+	})
 
 	return mock
 }
@@ -87,7 +96,7 @@ func (_c *MockBackend_Get_Call) RunAndReturn(run func(key string) string) *MockB
 }
 
 // Process provides a mock function for the type MockBackend
-func (_mock *MockBackend) Process(prefix string, spec interface{}) error {
+func (_mock *MockBackend) Process(prefix string, spec any) error {
 	ret := _mock.Called(prefix, spec)
 
 	if len(ret) == 0 {
@@ -95,7 +104,7 @@ func (_mock *MockBackend) Process(prefix string, spec interface{}) error {
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, any) error); ok {
 		r0 = returnFunc(prefix, spec)
 	} else {
 		r0 = ret.Error(0)
@@ -110,20 +119,20 @@ type MockBackend_Process_Call struct {
 
 // Process is a helper method to define mock.On call
 //   - prefix string
-//   - spec interface{}
+//   - spec any
 func (_e *MockBackend_Expecter) Process(prefix any, spec any) *MockBackend_Process_Call {
 	return &MockBackend_Process_Call{Call: _e.mock.On("Process", prefix, spec)}
 }
 
-func (_c *MockBackend_Process_Call) Run(run func(prefix string, spec interface{})) *MockBackend_Process_Call {
+func (_c *MockBackend_Process_Call) Run(run func(prefix string, spec any)) *MockBackend_Process_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
-		var arg1 interface{}
+		var arg1 any
 		if args[1] != nil {
-			arg1 = args[1].(interface{})
+			arg1 = args[1].(any)
 		}
 		run(
 			arg0,
@@ -138,7 +147,7 @@ func (_c *MockBackend_Process_Call) Return(err error) *MockBackend_Process_Call 
 	return _c
 }
 
-func (_c *MockBackend_Process_Call) RunAndReturn(run func(prefix string, spec interface{}) error) *MockBackend_Process_Call {
+func (_c *MockBackend_Process_Call) RunAndReturn(run func(prefix string, spec any) error) *MockBackend_Process_Call {
 	_c.Call.Return(run)
 	return _c
 }

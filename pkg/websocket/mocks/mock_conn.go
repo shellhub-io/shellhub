@@ -19,10 +19,19 @@ func NewMockConn(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *MockConn {
+	if helper, ok := t.(interface{ Helper() }); ok {
+		helper.Helper()
+	}
+
 	mock := &MockConn{}
 	mock.Mock.Test(t)
 
-	t.Cleanup(func() { mock.AssertExpectations(t) })
+	t.Cleanup(func() {
+		if helper, ok := t.(interface{ Helper() }); ok {
+			helper.Helper()
+		}
+		mock.AssertExpectations(t)
+	})
 
 	return mock
 }
@@ -432,8 +441,8 @@ func (_c *MockConn_PongHandler_Call) RunAndReturn(run func() func(appData string
 }
 
 // ReadJSON provides a mock function for the type MockConn
-func (_mock *MockConn) ReadJSON(v any) error {
-	ret := _mock.Called(v)
+func (_mock *MockConn) ReadJSON(anyMoqParam any) error {
+	ret := _mock.Called(anyMoqParam)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ReadJSON")
@@ -441,7 +450,7 @@ func (_mock *MockConn) ReadJSON(v any) error {
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(any) error); ok {
-		r0 = returnFunc(v)
+		r0 = returnFunc(anyMoqParam)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -454,12 +463,12 @@ type MockConn_ReadJSON_Call struct {
 }
 
 // ReadJSON is a helper method to define mock.On call
-//   - v any
-func (_e *MockConn_Expecter) ReadJSON(v any) *MockConn_ReadJSON_Call {
-	return &MockConn_ReadJSON_Call{Call: _e.mock.On("ReadJSON", v)}
+//   - anyMoqParam any
+func (_e *MockConn_Expecter) ReadJSON(anyMoqParam any) *MockConn_ReadJSON_Call {
+	return &MockConn_ReadJSON_Call{Call: _e.mock.On("ReadJSON", anyMoqParam)}
 }
 
-func (_c *MockConn_ReadJSON_Call) Run(run func(v any)) *MockConn_ReadJSON_Call {
+func (_c *MockConn_ReadJSON_Call) Run(run func(anyMoqParam any)) *MockConn_ReadJSON_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 any
 		if args[0] != nil {
@@ -477,7 +486,7 @@ func (_c *MockConn_ReadJSON_Call) Return(err error) *MockConn_ReadJSON_Call {
 	return _c
 }
 
-func (_c *MockConn_ReadJSON_Call) RunAndReturn(run func(v any) error) *MockConn_ReadJSON_Call {
+func (_c *MockConn_ReadJSON_Call) RunAndReturn(run func(anyMoqParam any) error) *MockConn_ReadJSON_Call {
 	_c.Call.Return(run)
 	return _c
 }

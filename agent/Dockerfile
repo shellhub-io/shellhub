@@ -59,7 +59,7 @@ ENV GOPROXY=${GOPROXY}
 RUN apk add --update openssl openssh-client util-linux setpriv
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
     CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 && \
-    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.7.1
+    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.8.0
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
