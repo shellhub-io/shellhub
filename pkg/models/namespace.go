@@ -11,14 +11,12 @@ type Namespace struct {
 	TenantID string             `json:"tenant_id"`
 	Members  []Member           `json:"members"`
 	Settings *NamespaceSettings `json:"settings"`
-	Devices  int                `json:"-"`
 
 	DevicesAcceptedCount int64 `json:"devices_accepted_count"`
 	DevicesPendingCount  int64 `json:"devices_pending_count"`
 	DevicesRejectedCount int64 `json:"devices_rejected_count"`
 	DevicesRemovedCount  int64 `json:"devices_removed_count"`
 
-	Sessions   int       `json:"-"`
 	MaxDevices int       `json:"max_devices"`
 	CreatedAt  time.Time `json:"created_at"`
 	Billing    *Billing  `json:"billing"`
