@@ -118,15 +118,6 @@ enter_wsl() {
     assert_output_contains "skipping podman-restart.service check"
 }
 
-@test "enrollment_summary reports a pairing code ahead of every other credential" {
-    with_tenant
-    export CODE=ABC123 PROVISIONING_KEY=key-1
-
-    call_install enrollment_summary
-
-    [ "$output" = "pairing code (pre-authorized)" ]
-}
-
 @test "enrollment_summary reports a provisioning key ahead of a tenant" {
     with_tenant
     export PROVISIONING_KEY=key-1
@@ -187,17 +178,6 @@ enter_wsl() {
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
 
     [ "$status" -eq 0 ]
-}
-
-@test "enroll_agent_interactively skips the login flow for a pairing code" {
-    export CODE=ABC123
-    stub_bin shellhub-agent
-
-    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
-
-    [ "$status" -eq 0 ]
-    refute_called "shellhub-agent"
-    assert_output_contains "pre-authorized"
 }
 
 @test "enroll_agent_interactively skips the login flow for a provisioning key" {
@@ -362,13 +342,12 @@ enter_wsl() {
 
 @test "docker_install maps credentials and preferences onto the agent environment" {
     with_tenant
-    export CODE=ABC123 PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
+    export PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
     export PREFERRED_HOSTNAME=box PREFERRED_IDENTITY=eth0
 
     container_install
 
     [ "$status" -eq 0 ]
-    assert_called "-e SHELLHUB_PAIRING_CODE=ABC123"
     assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
     assert_called "-e SHELLHUB_KEEPALIVE_INTERVAL=45"
     assert_called "-e SHELLHUB_PREFERRED_HOSTNAME=box"
@@ -380,13 +359,12 @@ enter_wsl() {
 @test "podman_install maps credentials and preferences onto the agent environment" {
     use_podman
     with_tenant
-    export CODE=ABC123 PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
+    export PROVISIONING_KEY=key-1 KEEPALIVE_INTERVAL=45
     export PREFERRED_HOSTNAME=box PREFERRED_IDENTITY=eth0
 
     container_install
 
     [ "$status" -eq 0 ]
-    assert_called "-e SHELLHUB_PAIRING_CODE=ABC123"
     assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
     assert_called "-e SHELLHUB_KEEPALIVE_INTERVAL=45"
     assert_called "-e SHELLHUB_PREFERRED_HOSTNAME=box"
@@ -400,7 +378,6 @@ enter_wsl() {
 
     [ "$status" -eq 0 ]
     refute_called "SHELLHUB_TENANT_ID"
-    refute_called "SHELLHUB_PAIRING_CODE"
     refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
     refute_called "SHELLHUB_PREFERRED_"
@@ -414,7 +391,6 @@ enter_wsl() {
 
     [ "$status" -eq 0 ]
     refute_called "SHELLHUB_TENANT_ID"
-    refute_called "SHELLHUB_PAIRING_CODE"
     refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
     refute_called "SHELLHUB_PREFERRED_"

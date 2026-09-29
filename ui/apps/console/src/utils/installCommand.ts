@@ -1,9 +1,7 @@
 /**
  * Builds the ShellHub agent install command. Pass the credential env pair:
  * `PROVISIONING_KEY=<key>` to enroll into the key's namespace under the key's mode,
- * `TENANT_ID=<id>` to land the device in a namespace's pending list, or
- * `CODE=<code>` for a pre-authorized install that is accepted
- * automatically and can be confirmed live.
+ * or `TENANT_ID=<id>` to land the device in a namespace's pending list.
  */
 export function buildInstallCommand(
   credential: string,
