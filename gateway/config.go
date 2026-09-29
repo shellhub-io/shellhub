@@ -25,18 +25,13 @@ const (
 
 // GatewayConfig holds the configuration settings for the gateway.
 type GatewayConfig struct {
-	Env                          string      `env:"SHELLHUB_ENV"`
-	Domain                       string      `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
-	WebEndpoints                 bool        `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
-	WebEndpointsDomain           string      `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
-	WebEndpointsDNSProvider      DNSProvider `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
-	WebEndpointsDNSProviderToken string      `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN"`
-	WebEndpointsAcmeDNSURL       string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_URL"`
-	WebEndpointsAcmeDNSUsername  string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_USERNAME"`
-	WebEndpointsAcmeDNSPassword  string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD"`
-	WebEndpointsAcmeDNSSubdomain string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN"`
-	EnableAutoSSL                bool        `env:"SHELLHUB_AUTO_SSL"`
-	EnableProxyProtocol          bool        `env:"SHELLHUB_PROXY"`
+	Env                     string      `env:"SHELLHUB_ENV"`
+	Domain                  string      `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	WebEndpoints            bool        `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	WebEndpointsDomain      string      `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
+	WebEndpointsDNSProvider DNSProvider `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
+	EnableAutoSSL           bool        `env:"SHELLHUB_AUTO_SSL"`
+	EnableProxyProtocol     bool        `env:"SHELLHUB_PROXY"`
 
 	// ProxyTrustedIPs names the peers allowed to declare the client's address,
 	// through the PROXY protocol preamble and the X-Forwarded-* headers. The
@@ -58,11 +53,9 @@ type GatewayConfig struct {
 	// CA instead of serving what the operator supplied.
 	TLSCertFile      string `env:"SHELLHUB_TLS_CERT_FILE" validate:"required_with=TLSKeyFile"`
 	TLSKeyFile       string `env:"SHELLHUB_TLS_KEY_FILE" validate:"required_with=TLSCertFile"`
-	Database         string `env:"SHELLHUB_DATABASE,default=mongo"`
 	EnableAccessLogs bool   `env:"SHELLHUB_GATEWAY_ACCESS_LOGS,default=true"`
 
 	EnableEnterprise bool
-	EnableCloud      bool
 	APIBackend       string
 }
 
@@ -80,7 +73,6 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 	}
 
 	config.EnableEnterprise = edition == envs.Enterprise || edition == envs.Cloud
-	config.EnableCloud = edition == envs.Cloud
 
 	config.applyDefaults()
 
