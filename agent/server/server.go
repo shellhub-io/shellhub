@@ -8,7 +8,6 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/server/modes"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -23,8 +22,6 @@ const (
 // serves arrive over the tunnel the agent holds open to the ShellHub server.
 type Server struct {
 	sshd              *gliderssh.Server
-	api               client.Client
-	deviceName        string
 	ContainerID       string
 	keepAliveInterval uint32
 
@@ -78,9 +75,8 @@ type Config struct {
 }
 
 // NewServer creates a new server SSH agent server.
-func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
+func NewServer(mode modes.Mode, cfg *Config) *Server {
 	server := &Server{
-		api:               api,
 		mode:              mode,
 		keepAliveInterval: cfg.KeepAliveInterval,
 		Sessions:          sync.Map{},
@@ -174,11 +170,6 @@ const (
 	RequestTypeExec = "exec"
 	// RequestTypeSubsystem is the request type for any subsystem.
 	RequestTypeSubsystem = "subsystem"
-	// RequestTypeUnknown is the request type for unknown.
-	//
-	// It is not a valid request type documentated by SSH's RFC, but it can be useful to identify the request type when
-	// it is not known.
-	RequestTypeUnknown = "unknown"
 )
 
 func (s *Server) sessionRequestCallback(session gliderssh.Session, requestType string) bool {
@@ -192,12 +183,6 @@ func (s *Server) sessionRequestCallback(session gliderssh.Session, requestType s
 // HandleConn serves conn as an SSH connection. It is how the tunnel hands a session over.
 func (s *Server) HandleConn(conn net.Conn) {
 	s.sshd.HandleConn(conn)
-}
-
-// SetDeviceName records the name the server knows this device by, for session bookkeeping.
-// It is set after enrolment, because the name is assigned by the server.
-func (s *Server) SetDeviceName(name string) {
-	s.deviceName = name
 }
 
 // SetContainerID records the container sessions should target in connector mode.
@@ -214,10 +199,4 @@ func (s *Server) CloseSession(id string) {
 
 		s.Sessions.Delete(id)
 	}
-}
-
-// ListenAndServe listens on the configured address. It is used only by tests and by direct,
-// non-tunnelled access; normal traffic reaches the server through [Server.HandleConn].
-func (s *Server) ListenAndServe() error {
-	return s.sshd.ListenAndServe()
 }
