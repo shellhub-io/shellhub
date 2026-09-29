@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -30,25 +29,6 @@ func WithEnabled(on bool) Option {
 func WithVerbose(on bool) Option {
 	return func(h *QueryHook) {
 		h.verbose = on
-	}
-}
-
-// FromEnv enables the hook when any of the named environment variables is set, defaulting to
-// BUNDEBUG. A value of 2 or more also turns on verbose logging.
-func FromEnv(keys ...string) Option {
-	if len(keys) == 0 {
-		keys = []string{"BUNDEBUG"}
-	}
-
-	return func(h *QueryHook) {
-		for _, key := range keys {
-			if env, ok := os.LookupEnv(key); ok {
-				h.enabled = env != "" && env != "0"
-				h.verbose = env == "2"
-
-				break
-			}
-		}
 	}
 }
 
@@ -79,13 +59,10 @@ func WithQueryHookOptions(opts QueryHookOptions) Option {
 	}
 }
 
-// QueryHookOptions is how queries are logged: which logger, at which level, above which
-// duration, and in what format.
+// QueryHookOptions is how queries are logged: which logger, at which level, and in what format.
 type QueryHookOptions struct {
-	LogSlow         time.Duration
 	Logger          logrus.FieldLogger
 	QueryLevel      logrus.Level
-	SlowLevel       logrus.Level
 	ErrorLevel      logrus.Level
 	MessageTemplate string
 	ErrorTemplate   string
@@ -136,8 +113,8 @@ func isQuiet(err error) bool {
 	return err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone)
 }
 
-// AfterQuery implements bun.QueryHook, logging the query if it failed, ran slowly, or verbose
-// logging is on. A no-rows or closed-transaction result is not a failure and stays quiet.
+// AfterQuery implements bun.QueryHook, logging the query if it failed or verbose logging is on.
+// A no-rows or closed-transaction result is not a failure and stays quiet.
 func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	if !h.enabled {
 		return
@@ -157,11 +134,7 @@ func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	switch {
 	case event.Err == nil, errors.Is(event.Err, sql.ErrNoRows):
 		isError = false
-		if h.opts.LogSlow > 0 && dur >= h.opts.LogSlow {
-			level = h.opts.SlowLevel
-		} else {
-			level = h.opts.QueryLevel
-		}
+		level = h.opts.QueryLevel
 	default:
 		isError = true
 		level = h.opts.ErrorLevel
