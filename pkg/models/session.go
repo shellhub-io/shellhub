@@ -49,24 +49,6 @@ type ActiveSession struct {
 	TenantID string    `json:"tenant_id"`
 }
 
-// RecordedSession is one frame of a recorded terminal session. Recording is a cloud feature and
-// the type lives there too; this copy exists because migrations reference it, so it cannot move
-// until they no longer do.
-type RecordedSession struct {
-	UID      UID       `json:"uid"`
-	Message  string    `json:"message"`
-	TenantID string    `json:"tenant_id"`
-	Time     time.Time `json:"time"`
-	Width    int       `json:"width"`
-	Height   int       `json:"height"`
-}
-
-// Status is the authentication state of a session, as the agent reports it back once the SSH
-// handshake has completed.
-type Status struct {
-	Authenticated bool `json:"authenticated"`
-}
-
 // SessionUpdate is a partial update to a session: a nil field is left alone, which is why every
 // field is a pointer.
 type SessionUpdate struct {
@@ -86,19 +68,13 @@ const (
 
 	SessionEventTypePtyRequest   SessionEventType = "pty-req"
 	SessionEventTypeWindowChange SessionEventType = "window-change"
-	SessionEventTypeExitCode     SessionEventType = "exit-code"
 
 	SessionEventTypeExitStatus SessionEventType = "exit-status"
-	SessionEventTypeExitSignal SessionEventType = "exit-signal"
 
 	SessionEventTypeEnv       SessionEventType = "env"
 	SessionEventTypeShell     SessionEventType = "shell"
 	SessionEventTypeExec      SessionEventType = "exec"
 	SessionEventTypeSubsystem SessionEventType = "subsystem"
-
-	SessionEventTypeSignal       SessionEventType = "signal"
-	SessionEventTypeTcpipForward SessionEventType = "tcpip-forward"
-	SessionEventTypeAuthAgentReq SessionEventType = "auth-agent-req"
 )
 
 // SessionEvent represents a session event.
@@ -132,10 +108,4 @@ type SessionEvents struct {
 	// every event the session recorded, and it is absent both when there is nothing to show and
 	// when the read failed.
 	Items []SessionEvent `json:"items,omitempty"`
-}
-
-// SessionSeat stores a session's seat.
-type SessionSeat struct {
-	// ID is the identifier of session's seat.
-	ID int `json:"id"`
 }

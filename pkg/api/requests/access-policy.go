@@ -17,11 +17,6 @@ type AccessPolicyIDParam struct {
 	ID string `param:"id" validate:"required"`
 }
 
-// AccessPolicyList is the structure to represent the request data for the list access policies endpoint.
-type AccessPolicyList struct {
-	TenantID string `json:"-"`
-}
-
 // AccessPolicyGet is the structure to represent the request data for the get access policy endpoint.
 type AccessPolicyGet struct {
 	AccessPolicyIDParam

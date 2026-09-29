@@ -231,20 +231,6 @@ type DevicePosition struct {
 	Longitude float64 `json:"longitude"`
 }
 
-// DeviceTag is a single tag as it is validated, which is where the character restrictions live —
-// a tag ends up in an SSH address, so "/@&:" would make one ambiguous.
-type DeviceTag struct {
-	Tag string `validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
-}
-
-// NewDeviceTag wraps a raw tag for validation. It does not validate on its own: pass the result to
-// the validator.
-func NewDeviceTag(tag string) DeviceTag {
-	return DeviceTag{
-		Tag: tag,
-	}
-}
-
 // DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
 // to identify conflicts.
 type DeviceConflicts struct {

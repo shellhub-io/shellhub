@@ -189,15 +189,6 @@ type UserAuthResponse struct {
 	Admin         bool             `json:"admin"`
 }
 
-// UserTokenRecover is a password-recovery token. Recovery is a cloud feature and the type lives
-// there too; this copy exists because migrations reference it, so it cannot move until they no
-// longer do.
-type UserTokenRecover struct {
-	Token     string    `json:"uid"`
-	User      string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
 // UserInfo is the namespaces a user can reach, split by whether they own them. A namespace appears
 // in exactly one of the two lists.
 type UserInfo struct {

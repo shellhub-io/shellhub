@@ -13,8 +13,6 @@ var (
 	// ErrFilterPropertyInvalid is returned when a property node names a field the store does not
 	// allow filtering on.
 	ErrFilterPropertyInvalid = errors.New("filter property is not valid")
-	// ErrFilterOperatorInvalid is returned when a node names an operator the store does not support.
-	ErrFilterOperatorInvalid = errors.New("filter operator is not valid")
 	// ErrFilterTooLarge is returned when the encoded filter is longer than the cap, which bounds the
 	// work a single query can ask for.
 	ErrFilterTooLarge = errors.New("filter exceeds the maximum size")
@@ -30,11 +28,6 @@ type Filters struct {
 
 	// Data stores the decoded filters; it's automatically populated with the Unmarshal method.
 	Data []Filter
-}
-
-// NewFilters creates a new instance of Filters with an empty Data slice.
-func NewFilters() *Filters {
-	return &Filters{Data: nil}
 }
 
 // Unmarshal decodes and unmarshals the raw filters, populating the Data attribute.
