@@ -53,6 +53,8 @@ jobs:
       - name: Install bats
         if: steps.filter.outputs.scripts == 'true'
         uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          bats-version: 1.14.0
 
       - name: Run gen-config tests
         if: steps.filter.outputs.scripts == 'true'
@@ -84,6 +86,15 @@ jobs:
 
       - name: Install bats
         uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          bats-version: 1.14.0
+
+      - name: Install shellcheck 0.11.0
+        run: |
+          curl -fsSL -o /tmp/shellcheck.tar.xz \
+            https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  /tmp/shellcheck.tar.xz" | sha256sum -c -
+          sudo tar -xJf /tmp/shellcheck.tar.xz -C /usr/local/bin --strip-components=1 shellcheck-v0.11.0/shellcheck
 
       # No paths filter: install.sh is served from server/api/services/system.go
       # and drives the agent, so a change on either side can break it without
