@@ -70,7 +70,7 @@ func TestRequiresTenant(t *testing.T) {
 
 			handler := RequiresTenant("tenant")(next)
 			if tc.useGateway {
-				handler = gateway.WithContext(nil)(handler)
+				handler = gateway.WithContext()(handler)
 			}
 
 			renderRefusal(t, c, handler(c))

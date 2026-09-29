@@ -43,7 +43,6 @@ func TestRole(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -90,7 +89,6 @@ func TestTenant(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -137,7 +135,6 @@ func TestUsername(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -184,7 +181,6 @@ func TestID(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -239,7 +235,6 @@ func TestGetID(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -294,7 +289,6 @@ func TestGetTennat(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
@@ -349,7 +343,6 @@ func TestGetUsername(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			ctxNew := Context{
-				nil,
 				ctx,
 			}
 
