@@ -15,12 +15,13 @@ interface WindowControlsProps {
 /**
  * The top-right corner of the app chrome: the button that opens the navigation drawer on a narrow
  * window, given onOpenNavigation, and, inside the desktop app, the window buttons. The browser has
- * its own, so there they are left out.
+ * its own, so there they are left out, and with neither there is nothing to render.
  */
 export default function WindowControls({
   onOpenNavigation,
 }: WindowControlsProps) {
   const win = desktopWindow();
+  if (!onOpenNavigation && !win) return null;
 
   return (
     <div className="flex items-center gap-0.5">

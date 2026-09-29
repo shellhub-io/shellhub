@@ -8,6 +8,7 @@ import {
   ACCOUNT_TAB_ID,
   ADMIN_TAB_ID,
   PREFERENCES_TAB_ID,
+  accountTab,
   adminTab,
   preferencesTab,
   namespaceTab,
@@ -102,6 +103,8 @@ export function useWorkspaceTabs() {
 
   const openPreferences = () => open(preferencesTab());
 
+  const openAccount = (landOn?: string) => open(accountTab(), { landOn });
+
   const showTerminal = (session: TerminalSession) => {
     const home = session.tenant;
     const name = namespaces.find((ns) => ns.tenant_id === home)?.name;
@@ -134,6 +137,7 @@ export function useWorkspaceTabs() {
     openNamespace,
     openAdmin,
     openPreferences,
+    openAccount,
     showTerminal,
     close,
   };

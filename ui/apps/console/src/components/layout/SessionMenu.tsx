@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  ChevronUpDownIcon,
+} from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { accountDisplayName, useAuthStore } from "@/stores/authStore";
@@ -10,15 +13,17 @@ import SupportPaywallDialog from "./SupportPaywallDialog";
 /**
  * The signed-in user and the account actions behind it. placement says where it sits: at the foot
  * of the sidebar, with the name when expanded or the avatar alone on the rail, opening upward; or
- * beside the tabs while the sidebar is covered, as a round avatar opening down.
+ * beside the tabs whenever the sidebar cannot show it, opening down, as a compact avatar and name
+ * (tabStrip) or the round avatar alone (tabStripAvatar), which the caller picks by window width.
  */
 export default function SessionMenu({
   placement,
 }: {
-  placement: "expanded" | "rail" | "tabStrip";
+  placement: "expanded" | "rail" | "tabStrip" | "tabStripAvatar";
 }) {
   const expanded = placement === "expanded";
-  const inTabStrip = placement === "tabStrip";
+  const named = placement === "tabStrip";
+  const inTabStrip = named || placement === "tabStripAvatar";
   const email = useAuthStore((s) => s.email);
   const [open, setOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -39,19 +44,35 @@ export default function SessionMenu({
             type="button"
             data-testid="session-menu"
             aria-label={`Account menu for ${display}`}
-            title={expanded ? undefined : display}
+            title={expanded || named ? undefined : display}
             className={cn(
               "flex items-center transition-colors duration-150",
-              inTabStrip
-                ? "rounded-full p-0.5 hover:bg-hover-medium"
-                : "w-full rounded-lg border border-border bg-card hover:border-border-light",
+              inTabStrip && !named
+                ? "rounded-full p-0.5 hover:bg-hover-subtle"
+                : "rounded-lg border border-border bg-card hover:border-border-light",
+              named && "gap-2 p-1 pr-2.5 max-w-48",
               !inTabStrip &&
-                (expanded ? "gap-2.5 p-2" : "justify-center p-1.5"),
+                (expanded
+                  ? "w-full gap-2.5 p-2"
+                  : "w-full justify-center p-1.5"),
             )}
           >
-            <span className="w-7 h-7 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono shrink-0">
+            <span
+              className={cn(
+                "rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono shrink-0",
+                named ? "w-5 h-5" : inTabStrip ? "w-6 h-6" : "w-7 h-7",
+              )}
+            >
               {getInitials(display)}
             </span>
+            {named && (
+              <>
+                <span className="min-w-0 truncate text-xs font-medium text-text-primary">
+                  {display}
+                </span>
+                <ChevronDownIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
+              </>
+            )}
             {expanded && (
               <>
                 <span className="min-w-0 flex-1 text-left leading-tight">

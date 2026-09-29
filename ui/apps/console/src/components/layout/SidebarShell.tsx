@@ -147,9 +147,8 @@ export function SidebarMobileDrawer({
 
 interface SidebarShellProps {
   expanded: boolean;
-  folded?: boolean;
   covered?: boolean;
-  onClose?: () => void;
+  onNavigate?: () => void;
   ariaLabel?: string;
   logoHref: string;
   account?: ReactNode;
@@ -159,17 +158,16 @@ interface SidebarShellProps {
 /**
  * The frame the sidebars are built in, on the page background with the logo on top. children are
  * the links and account the menu at the foot; both are optional, and without them the shell is
- * the logo alone, which is all the admin console keeps. folded collapses it to nothing and takes
- * it out of the tab order, which the desktop layout does while a terminal or a recording is shown
- * and the tab strip carries the logo; the mobile drawer never folds it. covered says the page
- * frame has slid over it, which leaves only the logo showing: the links and the account menu fade
- * out and leave the tab order. ariaLabel names the links, so it goes with children.
+ * the logo alone, which is all the admin console keeps. The logo leads to logoHref and calls
+ * onNavigate, which the caller passes to its links as well, so both do what navigating from the
+ * sidebar does even when the path does not change. covered says the page frame has slid over it,
+ * which leaves only the logo showing: the links and the account menu fade out and leave the tab
+ * order. ariaLabel names the links, so it goes with children.
  */
 export default function SidebarShell({
   expanded,
-  folded = false,
   covered = false,
-  onClose,
+  onNavigate,
   ariaLabel,
   logoHref,
   account,
@@ -177,20 +175,14 @@ export default function SidebarShell({
 }: SidebarShellProps) {
   return (
     <aside
-      inert={folded}
-      style={{
-        width: folded ? 0 : expanded ? SIDEBAR_EXPANDED_PX : SIDEBAR_RAIL_PX,
-      }}
-      className={cn(
-        "flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden",
-        folded && "opacity-0",
-      )}
+      style={{ width: expanded ? SIDEBAR_EXPANDED_PX : SIDEBAR_RAIL_PX }}
+      className="flex flex-col h-full shrink-0 bg-background transition-all duration-200 ease-in-out overflow-hidden"
     >
       <div
         data-tauri-drag-region
-        className="flex items-end h-12 pl-[12.7px] pb-[7px]"
+        className="flex items-end h-12 pl-[12.7px] pb-[5px]"
       >
-        <NavLink to={logoHref} onClick={onClose} aria-label="ShellHub">
+        <NavLink to={logoHref} onClick={onNavigate} aria-label="ShellHub">
           <LogoMark full={expanded} />
         </NavLink>
       </div>

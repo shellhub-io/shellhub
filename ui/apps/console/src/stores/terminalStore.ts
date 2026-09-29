@@ -293,8 +293,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
 /**
  * Whether a terminal or a recording is in view, covering the page. While it holds the layout
- * folds the sidebar and the tab strip marks no context tab active; both read it here so they
- * cannot disagree.
+ * slides the frame over the sidebar and the tab strip marks no context tab active; both read it
+ * here so they cannot disagree.
  */
 export function useWindowShown() {
   return useTerminalStore(
