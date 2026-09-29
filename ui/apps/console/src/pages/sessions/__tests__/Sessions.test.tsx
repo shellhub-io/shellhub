@@ -4,11 +4,16 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
-import Sessions from "../index";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockNamespace, mockSession } from "@/tests/factories";
+import {
+  mockNamespace,
+  mockRecordingMeta,
+  mockSession,
+} from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useTerminalStore } from "@/stores/terminalStore";
+import { useRecordingsStore } from "@/stores/recordingsStore";
+import Sessions from "../index";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -40,6 +45,7 @@ function renderSessions(initialEntries: string[] = ["/"]) {
 beforeEach(() => {
   vi.clearAllMocks();
   useTerminalStore.setState({ sessions: [], recordings: [] });
+  useRecordingsStore.setState({ recordings: [] });
   setSessions([]);
   server.use(
     http.post(
@@ -147,6 +153,54 @@ describe("Sessions", () => {
         await screen.findByText("Failed to load recording"),
       ).toBeInTheDocument();
       expect(useTerminalStore.getState().recordings).toEqual([]);
+    });
+  });
+
+  describe("recording actions", () => {
+    it("offers them for a session the server recorded", async () => {
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
+      renderSessions();
+
+      expect(
+        await screen.findByRole("button", { name: "Recording actions" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers them for a session the browser holds a copy of", async () => {
+      useRecordingsStore.setState({
+        recordings: [mockRecordingMeta({ sessionUid: "session-1" })],
+      });
+      setSessions([mockSession({ uid: "session-1", recorded: false })]);
+      renderSessions();
+
+      expect(
+        await screen.findByRole("button", { name: "Recording actions" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers none for a session with no recording", async () => {
+      setSessions([mockSession({ uid: "session-1", recorded: false })]);
+      renderSessions();
+
+      await screen.findByTitle("This session was not recorded");
+      expect(
+        screen.queryByRole("button", { name: "Recording actions" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("opens the menu without opening the session", async () => {
+      const user = userEvent.setup();
+      setSessions([mockSession({ uid: "session-1", recorded: true })]);
+      renderSessions();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Recording actions" }),
+      );
+
+      expect(
+        screen.getByRole("menuitem", { name: "Download recording" }),
+      ).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

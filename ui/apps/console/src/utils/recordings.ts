@@ -69,18 +69,26 @@ async function recordingsDir(): Promise<FileSystemDirectoryHandle> {
   return base.getDirectoryHandle(userScope, { create: true });
 }
 
-/** Build a filesystem-safe `.cast` download name for a device. */
-export function castFilename(deviceName: string): string {
+/** Build a filesystem-safe `.cast` download name for a device, stamped with `at`. */
+export function castFilename(
+  deviceName: string,
+  at: Date = new Date(),
+): string {
   const slug = (deviceName || "session")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return `shellhub-${slug || "session"}-${format(new Date(), "yyyyMMdd-HHmmss")}.cast`;
+  return `shellhub-${slug || "session"}-${format(at, "yyyyMMdd-HHmmss")}.cast`;
 }
 
-/** Trigger a normal browser download (lands in the default Downloads dir). */
-export function downloadCast(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
+/**
+ * Saves an asciicast recording held as text through a normal browser download, landing in the
+ * default Downloads directory under filename.
+ */
+export function saveRecording(logs: string, filename: string): void {
+  const url = URL.createObjectURL(
+    new Blob([logs], { type: "application/x-asciicast" }),
+  );
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
@@ -297,17 +305,6 @@ export async function listRecordings(): Promise<RecordingMeta[]> {
     if (meta) metas.push(meta);
   }
   return metas.sort((a, b) => b.createdAt - a.createdAt);
-}
-
-/** Read a recording's bytes and trigger a browser download. */
-export async function downloadRecording(meta: RecordingMeta): Promise<void> {
-  const dir = await recordingsDir();
-  const handle = await dir.getFileHandle(`${meta.id}.cast`);
-  const file = await handle.getFile();
-  downloadCast(
-    new Blob([await file.arrayBuffer()], { type: "application/x-asciicast" }),
-    meta.filename,
-  );
 }
 
 /** Read a recording's .cast content as a string (for inline playback). */

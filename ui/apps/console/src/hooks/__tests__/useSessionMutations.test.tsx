@@ -22,6 +22,8 @@ describe("useDeleteSessionRecording", () => {
       id: "session-1",
       title: "dev",
       logs: "cast",
+      filename: "dev.cast",
+      recorded: true,
     });
     const { result } = renderHook(() => useDeleteSessionRecording(), {
       wrapper: createTestWrapper(),

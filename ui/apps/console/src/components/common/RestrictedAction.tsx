@@ -3,7 +3,7 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import type { Action } from "@/utils/permission";
 
 interface RestrictedActionProps {
-  action: Action;
+  action?: Action;
   children: ReactNode;
   message?: string;
 }
@@ -18,7 +18,7 @@ interface RestrictedActionProps {
  *   native `title` tooltip explaining the restriction
  * - The child remains visible so users understand the feature exists
  *
- * When allowed: children are rendered without any wrapper.
+ * When allowed, or given no action to check: children are rendered without any wrapper.
  */
 export default function RestrictedAction({
   action,

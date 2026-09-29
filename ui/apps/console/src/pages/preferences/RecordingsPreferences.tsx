@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { TrashIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import SettingsSection from "@/components/settings/SettingsSection";
@@ -7,6 +7,7 @@ import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useRecordingsStore } from "@/stores/recordingsStore";
+import { useLocalRecordings } from "@/hooks/useLocalRecordings";
 import { isRecordingSupported } from "@/utils/recordings";
 import { formatBytes } from "@/utils/bytes";
 
@@ -29,18 +30,13 @@ function retentionOf(days: number | null): Retention {
  * is read.
  */
 export default function RecordingsPreferences() {
-  const recordings = useRecordingsStore((s) => s.recordings);
+  const recordings = useLocalRecordings();
   const retentionDays = useRecordingsStore((s) => s.retentionDays);
   const setRetentionDays = useRecordingsStore((s) => s.setRetentionDays);
-  const refresh = useRecordingsStore((s) => s.refresh);
   const clearAll = useRecordingsStore((s) => s.clearAll);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const retentionId = useId();
   const supported = isRecordingSupported();
-
-  useEffect(() => {
-    if (supported) void refresh();
-  }, [supported, refresh]);
 
   const count = recordings.length;
   const used = recordings.reduce((total, r) => total + r.size, 0);

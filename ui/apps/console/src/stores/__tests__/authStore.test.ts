@@ -177,6 +177,8 @@ describe("authStore", () => {
         id: "session-1",
         title: "dev",
         logs: "cast",
+        filename: "dev.cast",
+        recorded: true,
       });
 
       useAuthStore.getState().logout();

@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import { create, type Player } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
@@ -82,6 +83,7 @@ const SHORTCUTS = [
 
 interface SessionPlayerProps {
   logs: string;
+  actions?: ReactNode;
   visible?: boolean;
 }
 
@@ -160,9 +162,11 @@ function Timeline({
  * while the pointer is on them, while they hold keyboard focus or while the shortcuts are open.
  * Esc puts them away until the next activity, and H cycles the session player store's
  * preference: auto-hide, always shown, hidden. The shortcuts work whatever the controls show.
+ * actions go at the end of the controls, for what the caller offers to do with the recording.
  */
 export default function SessionPlayer({
   logs,
+  actions,
   visible = true,
 }: SessionPlayerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -509,6 +513,8 @@ export default function SessionPlayer({
               </div>
             </Dropdown.Panel>
           </Dropdown>
+
+          {actions}
         </PlayerBarShell>
       )}
 

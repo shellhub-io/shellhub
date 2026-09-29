@@ -11,7 +11,13 @@ function openTerminal() {
   return useTerminalStore.getState().sessions.at(-1)!.id;
 }
 
-const recording = { id: "session-1", title: "dev-1", logs: "cast" };
+const recording = {
+  id: "session-1",
+  title: "dev-1",
+  logs: "cast",
+  filename: "dev-1.cast",
+  recorded: true,
+};
 
 const shownRecordings = () =>
   useTerminalStore

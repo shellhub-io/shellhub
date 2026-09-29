@@ -404,4 +404,17 @@ describe("SessionPlayer", () => {
       expect(screen.getByText("Keyboard Shortcuts")).toBeInTheDocument();
     });
   });
+
+  it("puts the actions it is given in the controls", () => {
+    render(
+      <SessionPlayer
+        logs="test-logs"
+        actions={<button type="button">Recording actions</button>}
+      />,
+    );
+
+    expect(screen.getByTestId("player-controls")).toContainElement(
+      screen.getByRole("button", { name: "Recording actions" }),
+    );
+  });
 });

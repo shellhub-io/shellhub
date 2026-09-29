@@ -5,11 +5,13 @@ import { useTerminalStore } from "@/stores/terminalStore";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useAuthStore } from "@/stores/authStore";
-import ConnectModal from "../ConnectModal";
 import { buildSshid } from "@/utils/sshid";
+import { saveRecording } from "@/utils/recordings";
+import ConnectModal from "../ConnectModal";
+import SessionPlayer from "../sessions/SessionPlayer";
+import RecordingActionsMenu from "../sessions/RecordingActionsMenu";
 import TerminalInstance from "./TerminalInstance";
 import RecordingSnackbar from "./RecordingSnackbar";
-import SessionPlayer from "../sessions/SessionPlayer";
 
 /**
  * Holds every open terminal and session recording, stacked over the page inside the content frame.
@@ -109,7 +111,20 @@ export default function TerminalManager() {
           hidden={!r.shown}
           className="absolute inset-0 z-terminal"
         >
-          <SessionPlayer logs={r.logs} visible={r.shown} />
+          <SessionPlayer
+            logs={r.logs}
+            visible={r.shown}
+            actions={
+              <RecordingActionsMenu
+                sessionUid={r.id}
+                recorded={r.recorded}
+                placement="top-end"
+                portal={false}
+                loaded
+                onDownload={() => saveRecording(r.logs, r.filename)}
+              />
+            }
+          />
         </div>
       ))}
 

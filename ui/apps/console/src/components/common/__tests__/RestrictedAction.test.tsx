@@ -64,7 +64,10 @@ describe("RestrictedAction", () => {
         </RestrictedAction>,
       );
       const button = screen.getByRole("button", { name: "Add Key" });
-      expect(button.closest("[title]")).toHaveAttribute("title", "Admins only.");
+      expect(button.closest("[title]")).toHaveAttribute(
+        "title",
+        "Admins only.",
+      );
     });
   });
 
@@ -88,5 +91,19 @@ describe("RestrictedAction", () => {
       );
       expect(screen.getByRole("button").closest("[aria-disabled]")).toBeNull();
     });
+  });
+
+  it("renders the child as it is when given no action to check", () => {
+    render(
+      <RestrictedAction>
+        <button type="button">Download</button>
+      </RestrictedAction>,
+    );
+
+    expect(
+      screen
+        .getByRole("button", { name: "Download" })
+        .closest("[aria-disabled]"),
+    ).toBeNull();
   });
 });
