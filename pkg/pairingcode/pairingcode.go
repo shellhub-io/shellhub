@@ -14,9 +14,9 @@ import (
 // type it on another without confusion. 30 characters.
 const Alphabet = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
 
-// Canonical code lengths. Device pairing keeps 8 (~2^39, paired with a short TTL
-// and per-IP rate rejectAtOrAbove); invitation codes use 12 (~2^59) because their link
-// lives for days.
+// Canonical code lengths. Device codes keep 8 (~2^39) because they live minutes
+// and only a logged-in user redeems them; invitation codes use 12 (~2^59)
+// because their link lives for days.
 const (
 	DeviceCodeLength = 8
 	InviteCodeLength = 12
