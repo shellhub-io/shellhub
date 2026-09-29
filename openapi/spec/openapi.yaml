@@ -110,8 +110,6 @@ tags:
     description: Routes related to tunnels resource.
   - name: web-endpoints
     description: Routes related to web-endpoints resource.
-  - name: announcements
-    description: Routes related to announcements resource
   - name: mfa
     description: Routes related to MFA
   - name: vault
@@ -240,10 +238,6 @@ paths:
     $ref: paths/api@namespaces@{tenant}@devices@{uid}@tags@{name}.yaml
   /api/namespaces/{tenant}/containers/{uid}/tags/{name}:
     $ref: paths/api@namespaces@{tenant}@containers@{uid}@tags@{name}.yaml
-  /api/announcements:
-    $ref: paths/api@announcements.yaml
-  /api/announcements/{uuid}:
-    $ref: paths/api@announcements@{uuid}.yaml
   /api/containers:
     $ref: paths/api@containers.yaml
   /api/containers/{uid}:
@@ -393,9 +387,5 @@ paths:
     $ref: paths/admin@api@export@namespaces.yaml
   /admin/api/export/users:
     $ref: paths/admin@api@export@users.yaml
-  /admin/api/announcements:
-    $ref: paths/admin@api@announcements.yaml
-  /admin/api/announcements/{uuid}:
-    $ref: paths/admin@api@announcements@{uuid}.yaml
   /ws/ssh/session:
     $ref: paths/ws@ssh@session.yaml

@@ -12,8 +12,8 @@ describe("Breadcrumb", () => {
     renderBreadcrumb(
       <Breadcrumb
         items={[
-          { label: "Announcements", to: "/admin/announcements" },
-          { label: "Title", to: "/admin/announcements/1" },
+          { label: "Namespaces", to: "/admin/namespaces" },
+          { label: "dev", to: "/admin/namespaces/1" },
           { label: "Edit" },
         ]}
       />,

@@ -215,10 +215,6 @@ paths:
     $ref: paths/api@namespaces@{tenant}@devices@{uid}@tags@{name}.yaml
   /api/namespaces/{tenant}/containers/{uid}/tags/{name}:
     $ref: paths/api@namespaces@{tenant}@containers@{uid}@tags@{name}.yaml
-  /api/announcements:
-    $ref: paths/api@announcements.yaml
-  /api/announcements/{uuid}:
-    $ref: paths/api@announcements@{uuid}.yaml
   /api/containers:
     $ref: paths/api@containers.yaml
   /api/containers/{uid}:

@@ -95,12 +95,14 @@ require_jq() {
     [ "$(printf '%s' "$out" | jq -er .onboardingUrl)" = "ab" ]
 }
 
-@test "boolean flags render as JSON booleans" {
+@test "a boolean flag renders as a JSON boolean, false when unset" {
     require_jq
-    out=$(gen_config SHELLHUB_ANNOUNCEMENTS=true)
-    [ "$(printf '%s' "$out" | jq -er '.announcements | type')" = "boolean" ]
+    out=$(gen_config)
+    [ "$(printf '%s' "$out" | jq -r '.webEndpoints | type')" = "boolean" ]
+    [ "$(printf '%s' "$out" | jq -r .webEndpoints)" = "false" ]
+    out=$(gen_config SHELLHUB_WEB_ENDPOINTS=true)
     [ "$(printf '%s' "$out" | jq -er '.webEndpoints | type')" = "boolean" ]
-    [ "$(printf '%s' "$out" | jq -er .announcements)" = "true" ]
+    [ "$(printf '%s' "$out" | jq -er .webEndpoints)" = "true" ]
 }
 
 @test "a non-boolean flag aborts instead of injecting raw JSON" {
@@ -108,7 +110,7 @@ require_jq() {
     # "edition" key that wins at parse time, silently overriding the guard
     # above and promoting a community deployment to cloud.
     run env -i PATH="$PATH" SHELLHUB_EDITION=community \
-        SHELLHUB_ANNOUNCEMENTS='false, "edition": "cloud"' \
+        SHELLHUB_WEB_ENDPOINTS='false, "edition": "cloud"' \
         sh "$GEN_CONFIG" "$BATS_TEST_TMPDIR/config.json"
     [ "$status" -ne 0 ]
     [ ! -f "$BATS_TEST_TMPDIR/config.json" ]

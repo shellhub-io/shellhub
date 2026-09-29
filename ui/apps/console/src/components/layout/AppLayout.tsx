@@ -12,7 +12,6 @@ import ConnectivityBanner from "../common/ConnectivityBanner";
 import LicenseBanner from "../common/LicenseBanner";
 import DeviceLimitBanner from "@/components/common/DeviceLimitBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
-import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
 import {
   SIDEBAR_EXPANDED_PX,
@@ -203,7 +202,6 @@ export default function AppLayout() {
         <CommandPalette />
         <CreateNamespaceHost />
         <WelcomeWizardTrigger />
-        <AnnouncementModalTrigger />
         <DeviceChooserTrigger />
         <VaultAutoLockBanner />
       </div>

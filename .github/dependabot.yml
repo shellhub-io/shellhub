@@ -80,9 +80,6 @@ updates:
         - "react-dom"
         - "@types/react"
         - "@types/react-dom"
-    tiptap:
-      patterns:
-        - "@tiptap/*"
     # A dependency matching more than one group is not placed in the first match, so
     # the catch-all has to exclude the groups above by hand.
     ui:
@@ -95,7 +92,6 @@ updates:
         - "react-dom"
         - "@types/react"
         - "@types/react-dom"
-        - "@tiptap/*"
 
 # One entry for every Go module rather than one entry each. The modules share a
 # workspace, so `go mod tidy` on any of them rewrites the others' go.sum, and a

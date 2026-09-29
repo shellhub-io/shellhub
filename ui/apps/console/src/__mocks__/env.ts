@@ -10,7 +10,6 @@ export type { ClientConfig, Edition };
 export const defaultConfig: ClientConfig = {
   version: "",
   edition: "community",
-  announcements: false,
   webEndpoints: false,
   onboardingUrl: "",
   stripePublishableKey: "",

@@ -91,16 +91,6 @@ const AdminFirewallRules = lazy(() => import("./pages/admin/firewall-rules"));
 const AdminFirewallRuleDetails = lazy(
   () => import("./pages/admin/firewall-rules/AdminFirewallRuleDetails"),
 );
-const AdminAnnouncements = lazy(() => import("./pages/admin/announcements"));
-const AdminAnnouncementDetails = lazy(
-  () => import("./pages/admin/announcements/AnnouncementDetails"),
-);
-const NewAnnouncement = lazy(
-  () => import("./pages/admin/announcements/NewAnnouncement"),
-);
-const EditAnnouncement = lazy(
-  () => import("./pages/admin/announcements/EditAnnouncement"),
-);
 
 const AdminAuthentication = lazy(
   () => import("./pages/admin/settings/Authentication"),
@@ -204,26 +194,6 @@ export default function App() {
                         path="/admin/firewall-rules/:id"
                         element={<AdminFirewallRuleDetails />}
                       />
-                      {getConfig().announcements && (
-                        <>
-                          <Route
-                            path="/admin/announcements"
-                            element={<AdminAnnouncements />}
-                          />
-                          <Route
-                            path="/admin/announcements/new"
-                            element={<NewAnnouncement />}
-                          />
-                          <Route
-                            path="/admin/announcements/:uuid"
-                            element={<AdminAnnouncementDetails />}
-                          />
-                          <Route
-                            path="/admin/announcements/:uuid/edit"
-                            element={<EditAnnouncement />}
-                          />
-                        </>
-                      )}
                       <Route
                         path="/admin/sessions"
                         element={<AdminSessions />}
