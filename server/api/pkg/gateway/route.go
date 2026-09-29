@@ -6,11 +6,13 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
@@ -211,11 +213,11 @@ func applyQuery[T any](req *T, declaration Declaration) error {
 		filters := filtered.GetFilters()
 
 		if err := filters.Unmarshal(); err != nil {
-			return routes.NewErrInvalidEntity(map[string]string{"filter": "cannot be decoded"})
+			return routes.NewErrInvalidEntity(map[string]string{"filter": filterRejectionReason(err)})
 		}
 
 		if err := query.ValidateFilters(filters, declaration.Query.Filter); err != nil {
-			return routes.NewErrInvalidEntity(map[string]string{"filter": "is not valid"})
+			return routes.NewErrInvalidEntity(map[string]string{"filter": filterRejectionReason(err)})
 		}
 	}
 
@@ -227,6 +229,50 @@ func applyQuery[T any](req *T, declaration Declaration) error {
 	}
 
 	return nil
+}
+
+const maxEchoedIdentifier = 64
+
+func filterRejectionReason(err error) string {
+	var (
+		rejection       *query.FilterError
+		field, operator string
+	)
+
+	if errors.As(err, &rejection) {
+		field, operator = echoIdentifier(rejection.Field), echoIdentifier(rejection.Operator)
+	}
+
+	switch {
+	case errors.Is(err, query.ErrFilterNotBase64):
+		return "is not valid base64"
+	case errors.Is(err, query.ErrFilterTooLarge):
+		return "exceeds the maximum size"
+	case errors.Is(err, query.ErrFilterTooManyItems):
+		return "carries too many conditions"
+	case errors.Is(err, query.ErrFilterInvalid):
+		return "is not valid JSON"
+	case errors.Is(err, query.ErrFilterShapeInvalid):
+		return "is valid JSON but not a filter"
+	case errors.Is(err, query.ErrFilterPropertyInvalid):
+		return "names an unknown field: " + field
+	case errors.Is(err, query.ErrFilterOperatorInvalid):
+		return "operator " + operator + " is not valid for " + field
+	case errors.Is(err, query.ErrFilterValueTooLarge):
+		return "value exceeds the maximum size for " + field
+	case errors.Is(err, query.ErrFilterValueInvalid):
+		return "value has the wrong type for " + field
+	}
+
+	return "is not valid"
+}
+
+func echoIdentifier(name string) string {
+	if utf8.RuneCountInString(name) <= maxEchoedIdentifier {
+		return name
+	}
+
+	return string([]rune(name)[:maxEchoedIdentifier]) + "..."
 }
 
 // RouteOption states one claim a route's registration makes, and returns the guard that enforces
