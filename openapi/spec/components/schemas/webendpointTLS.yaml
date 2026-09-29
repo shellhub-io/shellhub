@@ -12,7 +12,7 @@ properties:
   domain:
     type: string
     description: Domain for TLS verification
-    example: "example.com"
+    example: 'example.com'
 required:
   - enabled
   - verify

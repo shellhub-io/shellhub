@@ -35,8 +35,8 @@ properties:
       the agent claims. Commonly an equipment serial rather than a MAC address, since
       SHELLHUB_PREFERRED_IDENTITY replaces the interface address.
     example:
-      - "aa:bb:cc:dd:ee:ff"
-      - "SN-99f2"
+      - 'aa:bb:cc:dd:ee:ff'
+      - 'SN-99f2'
   webhook_timeout:
     type: integer
     description: |
