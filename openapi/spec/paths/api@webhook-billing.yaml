@@ -30,6 +30,6 @@ post:
         The event was applied, ignored, or abandoned for missing data. An applied or ignored
         event has no body; an abandoned one carries a JSON `message` with the reason.
     '400':
-      $ref: ../components/schemas/billingError.yaml
+      $ref: ../components/responses/400.yaml
     '500':
-      $ref: ../components/schemas/billingError.yaml
+      $ref: ../components/responses/500.yaml
