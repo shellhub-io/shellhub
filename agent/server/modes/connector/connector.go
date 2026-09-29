@@ -38,8 +38,8 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 	}
 
 	s := &[2]uint{
-		uint(size[0]), //nolint:gosec
-		uint(size[1]), //nolint:gosec
+		uint(size[0]),
+		uint(size[1]),
 	}
 
 	id, err := cli.ContainerExecCreate(ctx, container, dockercontainer.ExecOptions{

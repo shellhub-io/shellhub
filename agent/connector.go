@@ -146,7 +146,7 @@ func (d *DockerConnector) Start(ctx context.Context, id string, name string) {
 	id = id[:12]
 
 	d.mu.Lock()
-	ctx, d.cancels[id] = context.WithCancel(ctx) //nolint:gosec // G118: cancel is stored in d.cancels for later use
+	ctx, d.cancels[id] = context.WithCancel(ctx)
 	d.mu.Unlock()
 
 	privateKey := fmt.Sprintf("%s/%s.key", d.privateKeys, id)

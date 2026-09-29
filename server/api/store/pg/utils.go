@@ -41,8 +41,7 @@ func fromSQLError(err error) error {
 	case errors.Is(err, sql.ErrNoRows), errors.Is(err, io.EOF):
 		return store.ErrNoDocuments
 	default:
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" { // unique_violation
 				if field := constraintToField(pgErr.ConstraintName); field != "" {
 					return errors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: field})

@@ -115,7 +115,7 @@ jobs:
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           working-directory: ${{ matrix.project }}
-          version: v2.11.3
+          version: v2.14.0
           args: --timeout 2m ${{ matrix.lint_args }} ./...
           skip-cache: true
           verify: false

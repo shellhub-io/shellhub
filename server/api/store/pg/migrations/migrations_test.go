@@ -18,7 +18,7 @@ func TestNoDuplicateMigrationVersions(t *testing.T) {
 
 	seen := make(map[string]string, len(files))
 	for _, file := range files {
-		version := strings.SplitN(file, "_", 2)[0]
+		version, _, _ := strings.Cut(file, "_")
 		if prev, ok := seen[version]; ok {
 			t.Errorf("duplicate migration version %q: %q and %q must have distinct numbers", version, prev, file)
 		}

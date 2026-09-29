@@ -632,7 +632,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				sess, err := sftp.NewClient(conn)
 				require.NoError(t, err)
 
-				received, err := sess.OpenFile("/etc/os-release", (os.O_RDONLY))
+				received, err := sess.OpenFile("/etc/os-release", os.O_RDONLY)
 				require.NoError(t, err)
 
 				var data string

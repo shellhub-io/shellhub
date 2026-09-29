@@ -202,7 +202,7 @@ func TestGenerateShellCmdExcludesForbiddenVarsPresentInCmdEnv(t *testing.T) {
 	require.NotNil(t, cmd)
 
 	for _, danger := range dangerousEnv {
-		name := strings.SplitN(danger, "=", 2)[0]
+		name, _, _ := strings.Cut(danger, "=")
 
 		for _, e := range cmd.Env {
 			if strings.HasPrefix(e, name+"=") {
