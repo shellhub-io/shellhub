@@ -15,6 +15,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
 type mcpContextKey string
@@ -23,12 +24,6 @@ const (
 	mcpKeyTenantID mcpContextKey = "mcp_tenant_id"
 	mcpKeyHeaders  mcpContextKey = "mcp_headers"
 )
-
-var mcpAuthHeaders = []string{
-	"X-Tenant-ID",
-	"X-Role",
-	"X-Api-Key",
-}
 
 // SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp.
 func SetupMCPRoutes(router *echo.Echo) {
@@ -45,7 +40,7 @@ func SetupMCPRoutes(router *echo.Echo) {
 		ctx = context.WithValue(ctx, mcpKeyTenantID, tenantID)
 
 		headers := http.Header{}
-		for _, key := range mcpAuthHeaders {
+		for _, key := range gateway.IdentityHeaders() {
 			if value := r.Header.Get(key); value != "" {
 				headers.Set(key, value)
 			}

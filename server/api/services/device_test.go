@@ -57,7 +57,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -99,7 +99,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -140,7 +140,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -194,7 +194,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 
 	expectQueryOptions := func(queryOptionsMock *storemock.MockQueryOptions) {
 		queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
-		queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
+		queryOptionsMock.On("Match", withoutConnectors()).Return(nil).Once()
 		queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).Return(nil).Once()
 		queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 	}
@@ -276,7 +276,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -314,7 +314,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -392,7 +392,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -431,7 +431,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -474,7 +474,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -517,7 +517,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -560,7 +560,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Match", &query.Filters{}).
+					On("Match", withoutConnectors()).
 					Return(nil).
 					Once()
 				queryOptionsMock.
