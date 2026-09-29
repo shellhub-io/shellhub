@@ -81,9 +81,9 @@ export interface ShotManifest {
 }
 
 /** The viewport a shot is taken at unless it asks for another. */
-export const DEFAULT_VIEWPORT: ShotViewport = { width: 1440, height: 900 };
+const DEFAULT_VIEWPORT: ShotViewport = { width: 1440, height: 900 };
 /** The edition assumed when a shot does not name one. */
-export const DEFAULT_EDITION: ShotEdition = "ce";
+const DEFAULT_EDITION: ShotEdition = "ce";
 
 type Capture = Omit<ManifestShot, "usedBy">;
 

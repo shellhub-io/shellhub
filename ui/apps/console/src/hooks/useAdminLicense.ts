@@ -8,8 +8,6 @@ import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 import { isCloud } from "../env";
 
-export { getLicenseQueryKey };
-
 type LicenseData = GetLicenseResponse | null;
 
 /**

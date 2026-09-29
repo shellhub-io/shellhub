@@ -11,7 +11,7 @@ export const USERNAME_MAX_LENGTH = 32;
  * The accepted username shape. Lowercase only: usernames are compared case-sensitively by the
  * server, so allowing capitals would let two accounts differ by case alone.
  */
-export const USERNAME_REGEX = /^[a-z0-9._@-]{3,32}$/;
+const USERNAME_REGEX = /^[a-z0-9._@-]{3,32}$/;
 /**
  * The username rule in words, shown as the field hint and reused as its error — one sentence, so
  * the requirement and the complaint cannot disagree.
@@ -22,7 +22,7 @@ export const USERNAME_HINT =
 /**
  * Shortest accepted password.
  */
-export const PASSWORD_MIN_LENGTH = 5;
+const PASSWORD_MIN_LENGTH = 5;
 /**
  * Longest accepted password.
  */
@@ -102,7 +102,7 @@ export const NAMESPACE_NAME_MAX_LENGTH = 30;
  * The accepted namespace-name shape. A namespace name appears in an SSHID and in a hostname, so
  * it is restricted to what is legal there — and cannot begin or end with a hyphen.
  */
-export const NAMESPACE_NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+const NAMESPACE_NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 /**
  * The namespace-name rule as one sentence, for a field hint.
  */

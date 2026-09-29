@@ -52,7 +52,6 @@ vi.mock("@/utils/vault-migrate", () => ({
   migrateLocalToServer: vi.fn(),
   migrateServerToLocal: vi.fn(),
   adoptServerVault: vi.fn(),
-  localVaultExists: vi.fn(() => false),
 }));
 
 function renderSection() {

@@ -5,8 +5,6 @@ import {
   type VaultScope,
 } from "@/utils/vault-backend-factory";
 
-export { localVaultExists } from "@/utils/vault-backend-local";
-
 /** Whether a vault already exists on the server for the current user. */
 export async function serverVaultExists(scope?: VaultScope): Promise<boolean> {
   const server = new ServerVaultBackend(scope);
