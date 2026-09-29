@@ -290,6 +290,8 @@ paths:
     $ref: paths/api@billing@evaluate.yaml
   /api/billing/portal:
     $ref: paths/api@billing@portal.yaml
+  /api/webhook-billing:
+    $ref: paths/api@webhook-billing.yaml
   /api/user/saml/auth:
     $ref: paths/api@user@saml@auth.yaml
   /api/user/saml/reauth:

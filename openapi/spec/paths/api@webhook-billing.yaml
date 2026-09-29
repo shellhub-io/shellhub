@@ -1,0 +1,35 @@
+post:
+  operationId: stripeWebhook
+  summary: Receive a Stripe webhook event
+  description: |
+    Receive a billing event from Stripe and apply it to the namespace it belongs to. The event
+    must carry a valid `Stripe-Signature`. An event the server does not handle, or one it
+    abandons for missing data, is answered with 200 so Stripe stops retrying it; a 400 asks
+    Stripe to retry.
+  security: []
+  tags:
+    - cloud
+    - billing
+  parameters:
+    - name: Stripe-Signature
+      in: header
+      required: true
+      description: Signature Stripe computes over the payload with the endpoint's signing secret.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          description: A Stripe event object.
+  responses:
+    '200':
+      description: |
+        The event was applied, ignored, or abandoned for missing data. An applied or ignored
+        event has no body; an abandoned one carries a JSON `message` with the reason.
+    '400':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/schemas/billingError.yaml
