@@ -209,3 +209,26 @@ describe("BillingSection — status badge", () => {
     expect(await screen.findByText(badge)).toBeInTheDocument();
   });
 });
+
+describe("BillingSection — plan", () => {
+  it.each([
+    ["inactive", "Inactive", "Free", "Free plan, up to 3 devices."],
+    ["canceled", "Canceled", "Free", "Free plan, up to 3 devices."],
+    ["active", "Active", "Premium", "ShellHub Cloud Premium, unlimited devices."],
+    ["past_due", "Past due", "Premium", "ShellHub Cloud Premium, unlimited devices."],
+    ["unpaid", "Unpaid", "Premium", "ShellHub Cloud Premium, suspended."],
+    ["paused", "Paused", "Premium", "ShellHub Cloud Premium, suspended."],
+    ["incomplete", "Incomplete", "Premium", "ShellHub Cloud Premium, suspended."],
+    ["incomplete_expired", "Expired", "Premium", "ShellHub Cloud Premium, suspended."],
+  ] as const)(
+    "status %s shows the %s badge with the %s plan",
+    async (status, badge, chip, description) => {
+      if (status === "inactive") setInactive();
+      else setStatus(status);
+      renderSection();
+      expect(await screen.findByText(badge)).toBeInTheDocument();
+      expect(screen.getByText(description)).toBeInTheDocument();
+      expect(screen.getByText(chip, { exact: true })).toBeInTheDocument();
+    },
+  );
+});
