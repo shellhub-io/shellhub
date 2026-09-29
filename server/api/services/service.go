@@ -58,20 +58,6 @@ type Service interface {
 	FirewallService
 	LicenseService
 	BillingService
-
-	// Store returns the underlying store instance.
-	//
-	// IMPORTANT: Extensions should use Store() ONLY for:
-	// 1. Creating their own service layers that need database access
-	// 2. Querying data not exposed by core Service methods
-	//
-	// Extensions MUST NOT:
-	// 1. Modify core data (devices, users, namespaces) directly via Store()
-	// 2. Bypass core business logic or validation rules
-	// 3. Create transactions that span both core and extension operations
-	//
-	// Violating these rules may cause data inconsistency or break core functionality.
-	Store() store.Store
 }
 
 // Option configures the service at construction. Most supply a capability the community build
@@ -153,10 +139,4 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 	}
 
 	return service
-}
-
-// Store returns the underlying store instance.
-// This allows route extensions (enterprise/cloud) to access the same database connection.
-func (s *APIService) Store() store.Store {
-	return s.store
 }

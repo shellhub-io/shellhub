@@ -33,7 +33,6 @@ import (
 // device tokens and the recovery flows around them.
 type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
-	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 
 	// AuthDevice authenticates a device, creating it if it doesn't exist. Returns a JWT token and device metadata for successful authentication.
@@ -843,21 +842,6 @@ func (s *service) PublicKey() *rsa.PublicKey {
 // AuthCacheToken returns an erro when it could not cache the token.
 func (s *service) AuthCacheToken(ctx context.Context, tenant, id, token string) error {
 	return s.cache.Set(ctx, "token_"+tenant+id, token, time.Hour*72)
-}
-
-// AuthIsCacheToken checks if the user's namespace token is cached.
-//
-// It receives a context, used to "control" the request flow, the namespace's tenant, user's ID.
-//
-// AuthIsCacheToken returns a boolean to indicate if the token is cached and an error when it could not get the token.
-func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error) {
-	var data string
-
-	if err := s.cache.Get(ctx, "token_"+tenant+id, &data); err != nil {
-		return false, err
-	}
-
-	return data != "", nil
 }
 
 // AuthUncacheToken uncaches the user's namespace token.

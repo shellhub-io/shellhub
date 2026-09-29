@@ -526,78 +526,6 @@ func (_c *MockService_AuthInstanceAPIKey_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
-// AuthIsCacheToken provides a mock function for the type MockService
-func (_mock *MockService) AuthIsCacheToken(ctx context.Context, tenant string, id string) (bool, error) {
-	ret := _mock.Called(ctx, tenant, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AuthIsCacheToken")
-	}
-
-	var r0 bool
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
-		return returnFunc(ctx, tenant, id)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
-		r0 = returnFunc(ctx, tenant, id)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, tenant, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockService_AuthIsCacheToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthIsCacheToken'
-type MockService_AuthIsCacheToken_Call struct {
-	*mock.Call
-}
-
-// AuthIsCacheToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tenant string
-//   - id string
-func (_e *MockService_Expecter) AuthIsCacheToken(ctx any, tenant any, id any) *MockService_AuthIsCacheToken_Call {
-	return &MockService_AuthIsCacheToken_Call{Call: _e.mock.On("AuthIsCacheToken", ctx, tenant, id)}
-}
-
-func (_c *MockService_AuthIsCacheToken_Call) Run(run func(ctx context.Context, tenant string, id string)) *MockService_AuthIsCacheToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_AuthIsCacheToken_Call) Return(b bool, err error) *MockService_AuthIsCacheToken_Call {
-	_c.Call.Return(b, err)
-	return _c
-}
-
-func (_c *MockService_AuthIsCacheToken_Call) RunAndReturn(run func(ctx context.Context, tenant string, id string) (bool, error)) *MockService_AuthIsCacheToken_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AuthLocalUser provides a mock function for the type MockService
 func (_mock *MockService) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
 	ret := _mock.Called(ctx, req, sourceIP)
@@ -6848,52 +6776,6 @@ func (_c *MockService_Setup_Call) Return(userAuthResponse *models.UserAuthRespon
 }
 
 func (_c *MockService_Setup_Call) RunAndReturn(run func(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)) *MockService_Setup_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Store provides a mock function for the type MockService
-func (_mock *MockService) Store() store.Store {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Store")
-	}
-
-	var r0 store.Store
-	if returnFunc, ok := ret.Get(0).(func() store.Store); ok {
-		r0 = returnFunc()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.Store)
-		}
-	}
-	return r0
-}
-
-// MockService_Store_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Store'
-type MockService_Store_Call struct {
-	*mock.Call
-}
-
-// Store is a helper method to define mock.On call
-func (_e *MockService_Expecter) Store() *MockService_Store_Call {
-	return &MockService_Store_Call{Call: _e.mock.On("Store")}
-}
-
-func (_c *MockService_Store_Call) Run(run func()) *MockService_Store_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockService_Store_Call) Return(store1 store.Store) *MockService_Store_Call {
-	_c.Call.Return(store1)
-	return _c
-}
-
-func (_c *MockService_Store_Call) RunAndReturn(run func() store.Store) *MockService_Store_Call {
 	_c.Call.Return(run)
 	return _c
 }

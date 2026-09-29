@@ -37,12 +37,6 @@ type SSHKeysService interface {
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
 }
 
-// Request is the template context for a key's username rule, so that a rule can be written
-// in terms of the namespace it is evaluated in.
-type Request struct {
-	Namespace string
-}
-
 func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	if len(key.Filter.TagIDs) > 0 {
 		sc, err := BoundTo(key.TenantID)
