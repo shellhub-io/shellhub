@@ -75,7 +75,6 @@ var (
 	ErrNoContentChange                 = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)
-	ErrUnauthorized                    = errors.New("unauthorized", ErrLayer, ErrCodeInvalid)
 	ErrForbidden                       = errors.New("forbidden", ErrLayer, ErrCodeNotFound)
 	ErrUserNotFound                    = errors.New("user not found", ErrLayer, ErrCodeNotFound)
 	ErrUserInvalid                     = errors.New("user invalid", ErrLayer, ErrCodeInvalid)

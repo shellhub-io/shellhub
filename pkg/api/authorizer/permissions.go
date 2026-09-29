@@ -49,7 +49,6 @@ const (
 	BillingRemovePaymentMethod
 	BillingCancelSubscription
 	BillingCreateSubscription
-	BillingGetPaymentMethod
 	BillingGetSubscription
 
 	APIKeyCreate

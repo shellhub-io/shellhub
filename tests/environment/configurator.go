@@ -2,8 +2,6 @@ package environment
 
 import (
 	"context"
-	"maps"
-	"sync"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -15,7 +13,6 @@ import (
 type DockerComposeConfigurator struct {
 	cfg Config
 	t   *testing.T
-	mu  *sync.Mutex
 }
 
 // New creates a new [DockerComposeConfigurator]. By default, it reads from the .env file, but
@@ -31,60 +28,8 @@ func New(t *testing.T) *DockerComposeConfigurator {
 			SSHPort:  GetFreePort(t),
 			Network:  "shellhub_network_" + uuid.Generate(),
 		},
-		t:  t,
-		mu: new(sync.Mutex),
+		t: t,
 	}
-}
-
-// WithEnv sets an environment variable with the specified key and value.
-func (dcc *DockerComposeConfigurator) WithEnv(key, val string) *DockerComposeConfigurator {
-	if dcc.cfg.Envs == nil {
-		dcc.cfg.Envs = make(map[string]string)
-	}
-
-	dcc.cfg.Envs[key] = val
-
-	return dcc
-}
-
-// WithEnvs sets multiple environment variables.
-func (dcc *DockerComposeConfigurator) WithEnvs(envs map[string]string) *DockerComposeConfigurator {
-	for k, v := range envs {
-		dcc.WithEnv(k, v)
-	}
-
-	return dcc
-}
-
-// Clone clones a [DockerComposeConfigurator] instance, automatically assigning random ports
-// and network to available services. The new instance will use the provided testing.T.
-//
-// It returns a pointer to the newly cloned struct, calling assert.FailNow if an error
-// arises.
-func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigurator {
-	t.Helper()
-
-	cloned := &DockerComposeConfigurator{
-		cfg: Config{
-			Edition:  dcc.cfg.Edition,
-			CloudDir: dcc.cfg.CloudDir,
-		},
-		t:  t,
-		mu: dcc.mu,
-	}
-
-	if dcc.cfg.Envs != nil {
-		cloned.cfg.Envs = make(map[string]string)
-		maps.Copy(cloned.cfg.Envs, dcc.cfg.Envs)
-	}
-
-	dcc.mu.Lock()
-	cloned.cfg.HTTPPort = GetFreePort(t)
-	cloned.cfg.SSHPort = GetFreePort(t)
-	cloned.cfg.Network = "shellhub_network_" + uuid.Generate()
-	dcc.mu.Unlock()
-
-	return cloned
 }
 
 // Up initiates the ShellHub instance, blocking until all services are in the running or

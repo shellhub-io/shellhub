@@ -10,20 +10,10 @@
 //
 //	func TestSomething(t *testing.T) {
 //	    ctx := context.Background()
-//	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
+//	    cfg := environment.New(t)
 //
 //	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
-//	}
-//
-// To avoid boilerplate between test cases, a clone of a configurator can be made; a clone
-// has the same data as the original configurator but is an isolated pointer.
-//
-//	func TestSomething(t *testing.T) {
-//	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
-//	    cloneA := cfg.Clone(t)
-//	    cloneB := cloneA.Clone(t)
-//	    // Both `cloneA` and `cloneB` have a "SHELLHUB_ENVIRONMENT" env
 //	}
 //
 // The running instance provides helper methods to facilitate docker-compose manipulation
@@ -31,7 +21,7 @@
 //
 //	func TestSomething(t *testing.T) {
 //	    ctx := context.Background()
-//	    cfg := environment.New(t).WithEnv("SHELLHUB_ENVIRONMENT", "development")
+//	    cfg := environment.New(t)
 //
 //	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)

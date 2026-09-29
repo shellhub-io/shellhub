@@ -140,8 +140,3 @@ func (t *TunnelV1) Handle(protocol string, handler echo.HandlerFunc) {
 func (t *TunnelV1) Listen(ctx context.Context, listener net.Listener) error {
 	return t.srv.Serve(listener)
 }
-
-// Close stops serving and drops the connections still open.
-func (t *TunnelV1) Close() error {
-	return t.srv.Close()
-}
