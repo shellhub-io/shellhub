@@ -186,39 +186,3 @@ export function sshIdentityEndOfLife(
 
   return { kind: "never", value: "never", tone: "quiet" };
 }
-
-/**
- * The status chip for an identity — its label and how loudly to show it.
- */
-export interface IdentityStatus {
-  label: string;
-  tone: IdentityStatusTone;
-  title?: string;
-}
-
-const STATUS_LABEL: Record<IdentityEndOfLife["kind"], string | null> = {
-  consumed: "Consumed",
-  expired: "Expired",
-  "single-use": "Single-use",
-  expires: "Expires",
-  never: null,
-};
-
-/**
- * The one status chip for a key's lifecycle, for screens that show it as a
- * badge rather than in a column of its own. A durable key yields null.
- */
-export function sshIdentityStatus(
-  identity: Lifecycle,
-  now: number = Date.now(),
-): IdentityStatus | null {
-  const end = sshIdentityEndOfLife(identity, now);
-  const label = STATUS_LABEL[end.kind];
-  if (!label) return null;
-
-  return {
-    label: end.kind === "expires" ? `${label} ${end.value}` : label,
-    tone: end.tone,
-    title: end.title,
-  };
-}

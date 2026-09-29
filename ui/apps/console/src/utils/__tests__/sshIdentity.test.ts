@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  sshIdentityStatus,
   sshIdentityEndOfLife,
   identityLifecyclePayload,
   sshIdentitySource,
@@ -11,58 +10,6 @@ import {
 const NOW = Date.UTC(2026, 0, 10);
 const past = new Date(Date.UTC(2026, 0, 1)).toISOString();
 const future = new Date(Date.UTC(2026, 0, 20)).toISOString();
-
-describe("sshIdentityStatus", () => {
-  it("returns null for a durable human identity", () => {
-    expect(
-      sshIdentityStatus(
-        { expires_at: null, consumed_at: null, single_use: false },
-        NOW,
-      ),
-    ).toBeNull();
-  });
-
-  it("marks a consumed key dead, even when also single-use", () => {
-    expect(
-      sshIdentityStatus(
-        { expires_at: future, consumed_at: past, single_use: true },
-        NOW,
-      ),
-    ).toMatchObject({ label: "Consumed", tone: "dead" });
-  });
-
-  it("marks an expired key dead", () => {
-    expect(
-      sshIdentityStatus(
-        { expires_at: past, consumed_at: null, single_use: false },
-        NOW,
-      ),
-    ).toMatchObject({ label: "Expired", tone: "dead" });
-  });
-
-  it("prefers single-use over an active TTL for an armed key", () => {
-    expect(
-      sshIdentityStatus(
-        { expires_at: future, consumed_at: null, single_use: true },
-        NOW,
-      ),
-    ).toMatchObject({ label: "Single-use", tone: "armed" });
-  });
-
-  it("names the deadline itself, not the distance to it", () => {
-    const status = sshIdentityStatus({ expires_at: future, single_use: false }, NOW);
-    expect(status?.label).toBe("Expires Jan 20, 2026");
-    expect(status?.title).toBe("Jan 20, 2026, 00:00");
-  });
-
-  it("colours the expiry only once the deadline is close", () => {
-    const soon = new Date(Date.UTC(2026, 0, 15)).toISOString();
-    const faraway = new Date(Date.UTC(2027, 0, 1)).toISOString();
-
-    expect(sshIdentityStatus({ expires_at: soon, single_use: false }, NOW)?.tone).toBe("armed");
-    expect(sshIdentityStatus({ expires_at: faraway, single_use: false }, NOW)?.tone).toBe("quiet");
-  });
-});
 
 describe("identityLifecyclePayload", () => {
   it("omits expires_in when the selection is never (-1)", () => {
