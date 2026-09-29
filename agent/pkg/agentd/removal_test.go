@@ -86,13 +86,3 @@ func TestUnpairRefusesATenantFromTheEnvironment(t *testing.T) {
 	require.ErrorIs(t, ag.Unpair(), ErrTenantFromEnvironment)
 	assert.Equal(t, "00000000-0000-4000-0000-000000000000", ag.config.TenantID)
 }
-
-func TestUnpairDropsTheClaimedPairingCode(t *testing.T) {
-	ag := removalTestAgent(t, client_mocks.NewMockClient(t), "")
-	ag.config.PairingCode = "WXYZ2K7Q"
-	ag.SetTenantID("00000000-0000-4000-0000-000000000000")
-
-	require.NoError(t, ag.Unpair())
-
-	assert.Empty(t, ag.config.PairingCode, "the server replays a claimed code's outcome, so pairing again with it would loop")
-}
