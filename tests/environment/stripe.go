@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,7 +20,7 @@ var (
 var stripeKeyNames = []string{"STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "SHELLHUB_STRIPE_PUBLISHABLE_KEY"}
 
 func stripeEnvs(ctx context.Context, cloudDir string) (map[string]string, error) {
-	envs, err := stripeKeys("../.env.override")
+	envs, err := stripeKeys(envOverridePath)
 	if err != nil {
 		return nil, err
 	}
@@ -43,23 +41,15 @@ func stripeEnvs(ctx context.Context, cloudDir string) (map[string]string, error)
 }
 
 func stripeKeys(overridePath string) (map[string]string, error) {
-	override, err := godotenv.Read(overridePath)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return nil, fmt.Errorf("reading the Stripe keys from %s: %w", overridePath, err)
+	keys, err := shellOrOverride(overridePath, stripeKeyNames...)
+	if err != nil {
+		return nil, err
 	}
 
-	keys := make(map[string]string, len(stripeKeyNames))
 	for _, name := range stripeKeyNames {
-		value := os.Getenv(name)
-		if value == "" {
-			value = override[name]
-		}
-
-		if value == "" {
+		if keys[name] == "" {
 			return nil, fmt.Errorf("the cloud edition bills against Stripe test mode: set %s in the shell or %s", name, overridePath)
 		}
-
-		keys[name] = value
 	}
 
 	return keys, nil
