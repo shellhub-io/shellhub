@@ -16,6 +16,12 @@ describe("InfoItem", () => {
       expect(screen.getByRole("definition")).toHaveTextContent("abc-123");
     });
 
+    it("names the value by its label", () => {
+      renderInfoItem(<InfoItem label="UID" value="abc-123" />);
+
+      expect(screen.getByLabelText("UID")).toHaveTextContent("abc-123");
+    });
+
     it("renders a CopyButton when copyable is true and value is truthy", () => {
       renderInfoItem(<InfoItem label="UID" value="abc-123" copyable />);
 
