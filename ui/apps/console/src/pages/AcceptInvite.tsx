@@ -1,14 +1,9 @@
 import { ComponentType, SVGProps, useEffect, useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
-  EnvelopeOpenIcon,
-  ExclamationTriangleIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ArrowRightIcon,
-  UserCircleIcon,
-  ClockIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
@@ -22,9 +17,9 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import ScreenIntro from "@/components/layout/ScreenIntro";
+import AuthActions from "@/components/auth/AuthActions";
 
 type Branch =
   | "loading"
@@ -174,24 +169,16 @@ export default function AcceptInvite() {
 
   const messages: Partial<Record<Branch, InvitationMessageProps>> = {
     "missing-params": {
-      tone: "error",
-      icon: XCircleIcon,
       title: "Invalid Invitation",
       description:
         "This invitation link is missing its code. Please use the link from the original email.",
-      action: { label: "Back to Login", to: "/login" },
     },
     error: {
-      tone: "error",
-      icon: ExclamationTriangleIcon,
       title: "Invitation Unavailable",
       description:
         "This invitation is invalid or has expired. Please ask the sender for a new one.",
-      action: { label: "Back to Login", to: "/login" },
     },
     "wrong-user": {
-      tone: "warning",
-      icon: UserCircleIcon,
       title: "Different Account Signed In",
       description: (
         <>
@@ -207,8 +194,6 @@ export default function AcceptInvite() {
       action: { label: "Sign Out", onClick: handleSignOut },
     },
     "sign-up": {
-      tone: "primary",
-      icon: EnvelopeOpenIcon,
       title: "You've been invited",
       descriptionId: "invite-email-hint",
       description: (
@@ -269,16 +254,11 @@ export default function AcceptInvite() {
       ),
     },
     "pending-approval": {
-      tone: "warning",
-      icon: ClockIcon,
       title: "Waiting for Approval",
       description:
         "Your account was created and is waiting for an administrator to approve it. You'll be able to sign in once it's approved.",
-      action: { label: "Back to Login", to: "/login" },
     },
     joined: {
-      tone: "success",
-      icon: CheckCircleIcon,
       title: "You're in",
       description: (
         <>
@@ -311,8 +291,6 @@ export default function AcceptInvite() {
       ),
     },
     accept: {
-      tone: "primary",
-      icon: EnvelopeOpenIcon,
       title: "Namespace Invitation",
       description:
         "Accepting this invitation will add you to the namespace. You will be automatically switched to it after accepting.",
@@ -328,20 +306,18 @@ export default function AcceptInvite() {
 
   return (
     <>
-      <LoginLayoutCard>
-        {branch === "loading" && (
-          <div
-            className="flex flex-col items-center gap-3 py-6"
-            role="status"
-            aria-live="polite"
-          >
-            <Spinner size="2xl" />
-            <p className="text-sm text-text-muted">Checking invitation...</p>
-          </div>
-        )}
+      {branch === "loading" && (
+        <div
+          className="flex items-center gap-3 text-sm text-text-muted"
+          role="status"
+          aria-live="polite"
+        >
+          <Spinner />
+          Checking invitation...
+        </div>
+      )}
 
-        {message && <InvitationMessage {...message} />}
-      </LoginLayoutCard>
+      {message && <InvitationMessage {...message} />}
 
       <ConfirmDialog
         open={showConfirm}
@@ -370,38 +346,14 @@ function ErrorCallout({ message }: { message: string | null }) {
   );
 }
 
-type Tone = "error" | "warning" | "primary" | "success";
-
-const toneStyles: Record<Tone, { ring: string; iconColor: string }> = {
-  error: {
-    ring: "bg-accent-red/10 border-accent-red/20",
-    iconColor: "text-accent-red",
-  },
-  warning: {
-    ring: "bg-accent-yellow/10 border-accent-yellow/20",
-    iconColor: "text-accent-yellow",
-  },
-  primary: {
-    ring: "bg-primary/10 border-primary/20",
-    iconColor: "text-primary",
-  },
-  success: {
-    ring: "bg-accent-green/10 border-accent-green/20",
-    iconColor: "text-accent-green",
-  },
-};
-
 interface InvitationActionProps {
   label: string;
-  to?: string;
-  onClick?: () => void;
+  onClick: () => void;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   loading?: boolean;
 }
 
 interface InvitationMessageProps {
-  tone: Tone;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
   title: string;
   description: React.ReactNode;
   descriptionId?: string;
@@ -410,46 +362,32 @@ interface InvitationMessageProps {
 }
 
 function InvitationMessage({
-  tone,
-  icon: Icon,
   title,
   description,
   descriptionId,
   action,
   children,
 }: InvitationMessageProps) {
-  const { ring, iconColor } = toneStyles[tone];
+  const backToSignIn = [{ label: "Back to sign in", to: "/login" }];
 
   return (
     <div>
-      <div className="text-center">
-        <div
-          className={cn(
-            "inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5",
-            ring,
-          )}
-        >
-          <Icon className={cn("w-7 h-7", iconColor)} strokeWidth={1.5} />
-        </div>
-        <h1 className="text-lg font-semibold text-text-primary mb-3">
-          {title}
-        </h1>
-        <p
-          id={descriptionId}
-          className="text-sm text-text-secondary leading-relaxed mb-6"
-        >
-          {description}
-        </p>
-      </div>
+      <ScreenIntro
+        eyebrow="Invitation"
+        title={title}
+        lead={<span id={descriptionId}>{description}</span>}
+      />
       {children}
-      {action && <InvitationAction {...action} />}
+      <AuthActions
+        primary={action && <InvitationAction {...action} />}
+        links={action ? undefined : backToSignIn}
+      />
     </div>
   );
 }
 
 function InvitationAction({
   label,
-  to,
   onClick,
   icon: ActionIcon,
   loading,
@@ -459,16 +397,14 @@ function InvitationAction({
     : { iconRight: <ArrowRightIcon className="w-4 h-4" strokeWidth={2} /> };
 
   return (
-    <div className="text-center">
-      {to ? (
-        <Button as={Link} to={to} loading={loading} {...iconProps}>
-          {label}
-        </Button>
-      ) : (
-        <Button onClick={onClick} loading={loading} {...iconProps}>
-          {label}
-        </Button>
-      )}
-    </div>
+    <Button
+      onClick={onClick}
+      size="lg"
+      fullWidth
+      loading={loading}
+      {...iconProps}
+    >
+      {label}
+    </Button>
   );
 }

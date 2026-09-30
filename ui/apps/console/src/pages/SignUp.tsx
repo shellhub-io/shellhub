@@ -1,6 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { signUpResolver } from "./setup/signUpResolver";
 import type { SignUpFormValues } from "./setup/signUpResolver";
@@ -8,13 +7,14 @@ import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
+import AuthActions from "@/components/auth/AuthActions";
 import {
   FormInputField,
   FormPasswordField,
   FormCheckboxField,
 } from "@/components/common/fields/rhf";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 
 const SERVER_FIELD_MAP: Record<string, keyof SignUpFormValues> = {
   username: "username",
@@ -115,150 +115,130 @@ export default function SignUp() {
 
   return (
     <>
-      {/* Hero */}
-      <div className="text-center mb-10 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <UserPlusIcon
-              className="w-10 h-10 text-primary"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
+      <ScreenIntro
+        eyebrow="Account"
+        title="Create your account"
+        lead="A namespace is created with it, and your first device goes in there."
+      />
 
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Get Started
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Create your account
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Register to start managing your devices securely through ShellHub.
-        </p>
-      </div>
-
-      <div className="w-full max-w-md space-y-4">
+      <div className="flex flex-col gap-3 mb-6 empty:hidden">
         <PendingDeviceCallout />
-
-        {/* Form card */}
-        <LoginLayoutCard>
-          {signUpError && (
-            <Callout variant="error" className="mb-5">
-              {signUpError}
-            </Callout>
-          )}
-
-          <form
-            onSubmit={handleFormSubmit}
-            className="space-y-4"
-            aria-label="Create account"
-          >
-            <FormInputField<SignUpFormValues>
-              id="name"
-              label="Name"
-              name="name"
-              control={control}
-              placeholder="Your name"
-              autoComplete="name"
-              onValueChange={() => clearSignUpServerField("name")}
-            />
-
-            <FormInputField<SignUpFormValues>
-              id="username"
-              label="Username"
-              name="username"
-              control={control}
-              placeholder="username"
-              autoComplete="username"
-              onValueChange={() => clearSignUpServerField("username")}
-            />
-
-            <FormInputField<SignUpFormValues>
-              id="email"
-              label="Email"
-              name="email"
-              control={control}
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              onValueChange={() => clearSignUpServerField("email")}
-            />
-
-            <FormPasswordField<SignUpFormValues>
-              id="password"
-              label="Password"
-              name="password"
-              control={control}
-              placeholder="Min. 5 characters"
-              onValueChange={() => clearSignUpServerField("password")}
-            />
-
-            <FormPasswordField<SignUpFormValues>
-              id="confirmPassword"
-              label="Confirm Password"
-              name="confirmPassword"
-              control={control}
-              placeholder="Re-enter password"
-            />
-
-            {/* Privacy Policy checkbox (required) */}
-            <FormCheckboxField<SignUpFormValues>
-              id="signup-accept-privacy"
-              name="acceptPrivacyPolicy"
-              control={control}
-              required
-              label={
-                <>
-                  I agree to the{" "}
-                  <a
-                    href="https://www.shellhub.io/privacy-policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:text-primary/80 underline transition-colors"
-                  >
-                    Privacy Policy
-                  </a>
-                </>
-              }
-            />
-
-            {/* Marketing checkbox (optional) — not validated, kept as local state */}
-            <CheckboxField
-              id="signup-accept-marketing"
-              checked={acceptMarketing}
-              onChange={setAcceptMarketing}
-              label="I accept to receive news and updates from ShellHub via email."
-            />
-
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              type="submit"
-              className="px-4"
-              loading={signUpLoading}
-              disabled={
-                signUpLoading ||
-                !formState.isValid ||
-                signUpServerFields.length > 0
-              }
-            >
-              {signUpLoading ? "Creating account..." : "Create Account"}
-            </Button>
-          </form>
-        </LoginLayoutCard>
-
-        {/* Footer link */}
-        <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted animate-fade-in">
-          Already have an account?
-          <Link
-            to="/login"
-            className="text-primary hover:text-primary/80 font-medium transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
+        {signUpError && <Callout variant="error">{signUpError}</Callout>}
       </div>
+
+      <form
+        onSubmit={handleFormSubmit}
+        className="space-y-4"
+        aria-label="Create account"
+      >
+        <div className="space-y-4">
+          <FormInputField<SignUpFormValues>
+            id="name"
+            label="Name"
+            name="name"
+            control={control}
+            placeholder="Your name"
+            autoComplete="name"
+            onValueChange={() => clearSignUpServerField("name")}
+          />
+
+          <FormInputField<SignUpFormValues>
+            id="username"
+            label="Username"
+            name="username"
+            control={control}
+            placeholder="username"
+            autoComplete="username"
+            onValueChange={() => clearSignUpServerField("username")}
+          />
+        </div>
+
+        <FormInputField<SignUpFormValues>
+          id="email"
+          label="Email"
+          name="email"
+          control={control}
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          onValueChange={() => clearSignUpServerField("email")}
+        />
+
+        <div className="space-y-4">
+          <FormPasswordField<SignUpFormValues>
+            id="password"
+            label="Password"
+            name="password"
+            control={control}
+            placeholder="Min. 5 characters"
+            onValueChange={() => clearSignUpServerField("password")}
+          />
+
+          <FormPasswordField<SignUpFormValues>
+            id="confirmPassword"
+            label="Confirm Password"
+            name="confirmPassword"
+            control={control}
+            placeholder="Re-enter password"
+          />
+        </div>
+
+        <div className="space-y-2 pt-1">
+          <FormCheckboxField<SignUpFormValues>
+            id="signup-accept-privacy"
+            name="acceptPrivacyPolicy"
+            control={control}
+            required
+            labelSize="sm"
+            label={
+              <>
+                I agree to the{" "}
+                <a
+                  href="https://www.shellhub.io/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-primary underline decoration-border-light underline-offset-2 hover:decoration-text-secondary transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                .
+              </>
+            }
+          />
+
+          <CheckboxField
+            id="signup-accept-marketing"
+            checked={acceptMarketing}
+            onChange={setAcceptMarketing}
+            labelSize="sm"
+            label="Send me news and updates from ShellHub by email."
+          />
+        </div>
+
+        <div className="pt-1">
+          <AuthActions
+            primary={
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                type="submit"
+                loading={signUpLoading}
+                disabled={
+                  signUpLoading ||
+                  !formState.isValid ||
+                  signUpServerFields.length > 0
+                }
+              >
+                {signUpLoading ? "Creating account..." : "Create Account"}
+              </Button>
+            }
+            links={[
+              { label: "Already have an account? Sign in", to: "/login" },
+            ]}
+          />
+        </div>
+      </form>
     </>
   );
 }

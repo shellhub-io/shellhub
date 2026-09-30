@@ -18,6 +18,7 @@ type Props = CheckboxProps & {
   onChange: (checked: boolean) => void;
   hint?: string;
   error?: string;
+  labelSize?: "sm" | "md";
 };
 
 /**
@@ -35,6 +36,7 @@ export default function CheckboxField({
   error,
   required,
   title,
+  labelSize = "md",
   ...rest
 }: Props) {
   const errorId = `${id}-error`;
@@ -44,7 +46,15 @@ export default function CheckboxField({
 
   return (
     <div>
-      <label htmlFor={id} title={title} className={cn("flex gap-2.5", alignment, rest.disabled ? "cursor-not-allowed" : "cursor-pointer")}>
+      <label
+        htmlFor={id}
+        title={title}
+        className={cn(
+          "flex gap-2.5",
+          alignment,
+          rest.disabled ? "cursor-not-allowed" : "cursor-pointer",
+        )}
+      >
         <Checkbox
           {...rest}
           id={id}
@@ -55,8 +65,21 @@ export default function CheckboxField({
           aria-describedby={describedBy}
           className={cn("shrink-0", description && "mt-0.5")}
         />
-        <span className={cn(hideLabel ? "sr-only" : "min-w-0", rest.disabled && "opacity-dim")}>
-          <span className={cn("block text-sm text-text-primary", description && "font-medium")}>
+        <span
+          className={cn(
+            hideLabel ? "sr-only" : "min-w-0",
+            rest.disabled && "opacity-dim",
+          )}
+        >
+          <span
+            className={cn(
+              "block",
+              labelSize === "sm"
+                ? "text-xs text-text-secondary"
+                : "text-sm text-text-primary",
+              description && "font-medium",
+            )}
+          >
             {label}
           </span>
           {description && (

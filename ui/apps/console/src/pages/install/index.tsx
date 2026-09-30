@@ -1,16 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import {
-  ArrowTopRightOnSquareIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import {
-  Button,
-  ShellHubLogo,
-  WindowChrome,
-} from "@shellhub/design-system/primitives";
+import { WindowChrome } from "@shellhub/design-system/primitives";
 import CopyButton from "@/components/common/CopyButton";
+import ScreenIntro from "@/components/layout/ScreenIntro";
+import AuthActions from "@/components/auth/AuthActions";
 import { METHODS, PAIRING_METHODS, type Method } from "./methods";
 
 const DOCS_INSTALL_URL = "https://docs.shellhub.io/get-started/install";
@@ -51,19 +45,14 @@ export default function Install() {
   ].join(" ");
 
   return (
-    <div className="w-full max-w-2xl animate-slide-up">
-      <div className="text-center mb-8">
-        <ShellHubLogo className="h-7 mx-auto mb-6" />
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Install ShellHub
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Run one command on the machine you want to reach. Nothing listens on
-          it, and nothing is installed on your side.
-        </p>
-      </div>
+    <div>
+      <ScreenIntro
+        eyebrow="Install"
+        title="Install ShellHub"
+        lead="Run one command on the machine you want to reach. Nothing listens on it, and nothing is installed on your side."
+      />
 
-      <div className="bg-card/80 border border-border rounded-2xl backdrop-blur-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div
           role="tablist"
           aria-label="Installation method"
@@ -121,12 +110,12 @@ export default function Install() {
             <p className="text-xs text-text-secondary leading-relaxed">
               {pairs ? (
                 <>
-                  The agent prints a code and a link, and waits. Open the link —
+                  The agent prints a code and a link, and waits. Open the link,
                   or enter the code at{" "}
-                  <Link to="/accept-device" className="text-primary">
-                    accept-device
-                  </Link>{" "}
-                  — and the device joins the namespace you pick. The code lasts
+                  <span className="font-mono text-text-primary">
+                    /accept-device
+                  </span>
+                  , and the device joins the namespace you pick. The code lasts
                   ten minutes.
                 </>
               ) : (
@@ -139,35 +128,20 @@ export default function Install() {
           </Step>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 bg-surface/40 border-t border-border">
-          <p className="text-2xs text-text-muted">
-            Adding more than one? A provisioning key enrols a fleet unattended.
-          </p>
-          <Button
-            as="a"
-            variant="ghost"
-            size="sm"
-            href={DOCS_INSTALL_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            iconRight={
-              <ArrowTopRightOnSquareIcon
-                className="w-3.5 h-3.5"
-                strokeWidth={2}
-              />
-            }
-          >
-            Installation guide
-          </Button>
-        </div>
+        <p className="px-6 py-4 bg-surface/40 border-t border-border text-2xs text-text-muted">
+          Adding more than one? A provisioning key enrols a fleet unattended.
+        </p>
       </div>
 
-      <p className="text-center text-xs text-text-muted mt-6">
-        Already have a namespace?{" "}
-        <Link to="/login" className="text-primary">
-          Sign in
-        </Link>
-      </p>
+      <div className="mt-6">
+        <AuthActions
+          links={[
+            { label: "Have a code? Enter it", to: "/accept-device" },
+            { label: "Installation guide", href: DOCS_INSTALL_URL },
+            { label: "Already have a namespace? Sign in", to: "/login" },
+          ]}
+        />
+      </div>
     </div>
   );
 }

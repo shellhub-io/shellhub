@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CpuChipIcon,
@@ -28,6 +28,10 @@ import {
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import ScreenIntro from "@/components/layout/ScreenIntro";
+import SignInForm from "@/components/auth/SignInForm";
+import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
+import DeviceAccepted from "@/components/devices/DeviceAccepted";
 import {
   useNamespace,
   useNamespaces,
@@ -46,6 +50,7 @@ type DevicePreview = ResolveDeviceLoginCodeResponse;
 type Branch =
   | { kind: "loading" }
   | { kind: "missing-code" }
+  | { kind: "sign-in" }
   | { kind: "error" }
   | { kind: "switching" }
   | { kind: "ready"; device: DevicePreview }
@@ -61,31 +66,29 @@ type Branch =
       teamDevice: boolean;
     };
 
-const LINK_CLASS =
-  "text-xs text-text-muted hover:text-text-secondary transition-colors";
-
 /**
  * Enrols a device from a code, either as a page or inside a dialog. initialCode is what an
- * accept-device link arrives with, so the code does not have to be typed twice. frame wraps the
- * flow in the page's card, and is told when a step needs a wider one.
+ * accept-device link arrives with, so the code does not have to be typed twice. Signed out, it
+ * shows the code with a sign-in form and carries on in place once there is a session.
  */
 export default function AcceptDeviceFlow({
   initialCode = "",
   inDialog = false,
-  frame,
 }: {
   initialCode?: string;
   inDialog?: boolean;
-  frame?: (wide: boolean, content: ReactNode) => ReactNode;
 }) {
+  const navigate = useNavigate();
   const authTenant = useAuthStore((s) => s.tenant);
+  const signedIn = useAuthStore((s) => !!s.token);
+  const logout = useAuthStore((s) => s.logout);
 
   const [code, setCode] = useState(initialCode);
   const {
     device,
     isLoading: isResolving,
     isError,
-  } = useResolveDeviceCode(code);
+  } = useResolveDeviceCode(signedIn ? code : "");
 
   const acceptDevice = useAcceptDevice();
   const acceptPairing = useAcceptDevicePairing();
@@ -110,6 +113,7 @@ export default function AcceptDeviceFlow({
   const branch: Branch = (() => {
     if (actionBranch) return actionBranch;
     if (!code) return { kind: "missing-code" };
+    if (!signedIn) return { kind: "sign-in" };
     if (isResolving) return { kind: "loading" };
     if (isError) return { kind: "error" };
     if (!device) return { kind: "loading" };
@@ -175,7 +179,87 @@ export default function AcceptDeviceFlow({
     }
   };
 
-  const content = (
+  const dashboardExit: AuthLink[] = inDialog
+    ? []
+    : [{ label: "Go to dashboard", to: "/dashboard" }];
+  const codeExit: AuthLink[] = inDialog
+    ? [{ label: "Use a different code", onClick: () => setCode("") }]
+    : dashboardExit;
+  const align = inDialog ? "center" : "start";
+  const buttonSize = inDialog ? "md" : "lg";
+
+  const switchAccount = () => {
+    logout();
+    void navigate(
+      `/login?redirect=${encodeURIComponent(`/accept-device?code=${code}`)}`,
+    );
+  };
+
+  const viewPairedDevice = (uid: string, tenantId: string) =>
+    void switchNamespace.mutateAsync({
+      tenantId,
+      redirectTo: `/devices/${uid}`,
+    });
+
+  const accepted = ({
+    device,
+    namespace,
+    note,
+    onViewDevice,
+    viewing = false,
+  }: {
+    device: DevicePreview;
+    namespace?: string;
+    note?: string;
+    onViewDevice?: () => void;
+    viewing?: boolean;
+  }) =>
+    inDialog ? (
+      <ResultMessage
+        inDialog
+        tone="success"
+        icon={CheckCircleIcon}
+        title="Device Accepted"
+        description={
+          <>
+            <span className="font-mono text-text-primary">{device.name}</span>{" "}
+            {namespace ? (
+              <>
+                joined{" "}
+                <span className="text-text-primary font-medium">
+                  {namespace}
+                </span>
+                .
+              </>
+            ) : (
+              "is accepted."
+            )}{" "}
+            The agent will connect automatically. You can return to your
+            terminal.
+            {note && <> {note}</>}
+          </>
+        }
+        action={
+          onViewDevice && (
+            <ViewDeviceButton
+              size="md"
+              onClick={onViewDevice}
+              loading={viewing}
+            />
+          )
+        }
+      />
+    ) : (
+      <DeviceAccepted
+        device={device}
+        namespace={namespace}
+        note={note}
+        viewing={viewing}
+        onViewDevice={onViewDevice}
+      />
+    );
+
+  return (
     <>
       {branch.kind === "loading" && <StatusMessage label="Checking code..." />}
 
@@ -183,23 +267,44 @@ export default function AcceptDeviceFlow({
         <StatusMessage label="Switching namespace..." />
       )}
 
+      {branch.kind === "sign-in" && (
+        <div>
+          <FlowHeading
+            inDialog={inDialog}
+            icon={CpuChipIcon}
+            title="Sign in to accept this device"
+            description="It's waiting on the other side. Once you're signed in, you review it and pick the namespace it joins."
+          />
+
+          <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl overflow-hidden mb-6">
+            <SpecRow
+              label="code"
+              value={formatPairingCode(normalizePairingCode(code))}
+            />
+          </dl>
+
+          <SignInForm
+            redirect={`/accept-device?code=${encodeURIComponent(code)}`}
+            submitLabel="Sign in and continue"
+            onSignedIn={clearPendingDeviceCode}
+            links={codeExit}
+          />
+        </div>
+      )}
+
       {branch.kind === "missing-code" && (
-        <div className="motion-safe:animate-fade-in">
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center">
-              <CommandLineIcon
-                className="w-7 h-7 text-primary"
-                strokeWidth={1.5}
-              />
-            </div>
-            <h2 className="text-lg font-semibold text-text-primary">
-              Claim a device
-            </h2>
-            <p className="text-sm text-text-muted mt-1">
-              Enter the code your device is showing. Not showing one? Run{" "}
-              <CommandChip /> to generate it.
-            </p>
-          </div>
+        <div>
+          <FlowHeading
+            inDialog={inDialog}
+            icon={CommandLineIcon}
+            title="Claim a device"
+            description={
+              <>
+                Enter the code your device is showing. Not showing one? Run{" "}
+                <CommandChip /> to generate it.
+              </>
+            }
+          />
 
           <PairingCodeForm
             onSubmit={(c) => {
@@ -208,12 +313,18 @@ export default function AcceptDeviceFlow({
             }}
             submitLabel="Claim device"
           />
-          {!inDialog && <DashboardLink />}
+
+          {dashboardExit.length > 0 && (
+            <div className="mt-4">
+              <AuthActions links={dashboardExit} />
+            </div>
+          )}
         </div>
       )}
 
       {branch.kind === "error" && (
         <ResultMessage
+          inDialog={inDialog}
           tone="error"
           icon={XCircleIcon}
           title="Invalid or Expired Code"
@@ -224,25 +335,29 @@ export default function AcceptDeviceFlow({
             </>
           }
           action={
-            <div className="flex flex-col items-center gap-3">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => {
-                  setActionBranch(null);
-                  setCode("");
-                }}
-              >
-                Enter another code
-              </Button>
-              {!inDialog && <DashboardLink />}
-            </div>
+            <AuthActions
+              primary={
+                <Button
+                  size={buttonSize}
+                  fullWidth
+                  onClick={() => {
+                    setActionBranch(null);
+                    setCode("");
+                  }}
+                >
+                  Enter another code
+                </Button>
+              }
+              links={dashboardExit}
+              align={align}
+            />
           }
         />
       )}
 
       {branch.kind === "already-accepted" && (
         <ResultMessage
+          inDialog={inDialog}
           tone="success"
           icon={CheckCircleIcon}
           title="Device Already Accepted"
@@ -254,51 +369,48 @@ export default function AcceptDeviceFlow({
               is already accepted into this namespace.
             </>
           }
-          action={<ViewDeviceLink uid={branch.device.uid} />}
+          action={
+            <AuthActions
+              primary={
+                branch.device.uid && (
+                  <ViewDeviceButton
+                    size={buttonSize}
+                    to={`/devices/${branch.device.uid}`}
+                  />
+                )
+              }
+              links={dashboardExit}
+              align={align}
+            />
+          }
         />
       )}
 
-      {branch.kind === "success" && (
-        <ResultMessage
-          tone="success"
-          icon={CheckCircleIcon}
-          title="Device Accepted"
-          description={
-            <>
-              <span className="font-mono text-text-primary">
-                {branch.device.name}
-              </span>{" "}
-              joined{" "}
-              <span className="text-text-primary font-medium">
-                {branch.device.namespace}
-              </span>
-              . You can return to your terminal.
-            </>
-          }
-          action={<ViewDeviceLink uid={branch.device.uid} />}
-        />
-      )}
+      {branch.kind === "success" &&
+        accepted({
+          device: branch.device,
+          namespace: branch.device.namespace,
+          onViewDevice: branch.device.uid
+            ? () => void navigate(`/devices/${branch.device.uid}`)
+            : undefined,
+        })}
 
       {branch.kind === "ready" && (
-        <div className="text-center">
-          <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
-            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl motion-safe:animate-pulse-subtle" />
-            <CpuChipIcon
-              className="relative w-8 h-8 text-primary"
-              strokeWidth={1.25}
-            />
-          </div>
-
-          <h2 className="text-lg font-semibold text-text-primary mb-2">
-            Accept this device?
-          </h2>
-          <p className="text-sm text-text-secondary leading-relaxed mb-6">
-            A device is asking to join{" "}
-            <span className="text-text-primary font-medium">
-              {branch.device.namespace}
-            </span>
-            . Review its identity before accepting.
-          </p>
+        <div className={cn(inDialog && "text-center")}>
+          <FlowHeading
+            inDialog={inDialog}
+            icon={CpuChipIcon}
+            title="Accept this device?"
+            description={
+              <>
+                A device is asking to join{" "}
+                <span className="text-text-primary font-medium">
+                  {branch.device.namespace}
+                </span>
+                . Review its identity before accepting.
+              </>
+            }
+          />
 
           <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
             <SpecRow label="hostname" value={branch.device.name} />
@@ -311,56 +423,44 @@ export default function AcceptDeviceFlow({
               </dt>
               <dd>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-yellow/10 border border-accent-yellow/20 px-2.5 py-0.5 font-mono text-2xs text-accent-yellow">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow motion-safe:animate-pulse-subtle" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow" />
                   pending
                 </span>
               </dd>
             </div>
           </dl>
 
-          {actionError && (
-            <p
-              className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
-              role="alert"
-            >
-              {actionError}
-            </p>
-          )}
+          <ActionError message={actionError} />
 
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            loading={acceptDevice.isPending}
-            icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-            onClick={() => void handleAccept(branch.device)}
-          >
-            Accept device
-          </Button>
-
-          <CancelRow inDialog={inDialog} onReset={() => setCode("")} />
+          <AuthActions
+            primary={
+              <Button
+                variant="primary"
+                size={buttonSize}
+                fullWidth
+                loading={acceptDevice.isPending}
+                icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+                onClick={() => void handleAccept(branch.device)}
+              >
+                Accept device
+              </Button>
+            }
+            links={codeExit}
+            align={align}
+          />
         </div>
       )}
 
       {branch.kind === "pick-namespace" && (
-        <div className="text-center">
-          <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
-            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl motion-safe:animate-pulse-subtle" />
-            <CpuChipIcon
-              className="relative w-8 h-8 text-primary"
-              strokeWidth={1.25}
-            />
-          </div>
+        <div className={cn(inDialog && "text-center")}>
+          <FlowHeading
+            inDialog={inDialog}
+            icon={CpuChipIcon}
+            title="Accept this device?"
+            description="A device is asking to join one of your namespaces. Review its identity and choose where it belongs."
+          />
 
-          <h2 className="text-lg font-semibold text-text-primary mb-2">
-            Accept this device?
-          </h2>
-          <p className="text-sm text-text-secondary leading-relaxed mb-6">
-            A device is asking to join one of your namespaces. Review its
-            identity and choose where it belongs.
-          </p>
-
-          <div className="grid gap-6 text-left">
+          <div className="grid gap-6 text-left mb-6">
             <div>
               <dl className="text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-2">
                 <SpecRow
@@ -375,30 +475,23 @@ export default function AcceptDeviceFlow({
                 Check that the code matches the one your terminal shows.
               </p>
 
-              <AcceptingAs code={code} canSwitch={!inDialog} />
+              <AcceptingAs />
             </div>
 
-            <div>
-              <div className="mb-6">
-                <NamespacePicker
-                  value={selectedTenant}
-                  onChange={setSelectedTenant}
-                  preferredTenant={authTenant ?? ""}
-                />
-              </div>
+            <NamespacePicker
+              value={selectedTenant}
+              onChange={setSelectedTenant}
+              preferredTenant={authTenant ?? ""}
+            />
+          </div>
 
-              {actionError && (
-                <p
-                  className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
-                  role="alert"
-                >
-                  {actionError}
-                </p>
-              )}
+          <ActionError message={actionError} />
 
+          <AuthActions
+            primary={
               <Button
                 variant="primary"
-                size="md"
+                size={buttonSize}
                 fullWidth
                 loading={acceptPairing.isPending}
                 disabled={!selectedTenant}
@@ -407,90 +500,83 @@ export default function AcceptDeviceFlow({
               >
                 Accept device
               </Button>
-            </div>
-          </div>
-
-          <CancelRow inDialog={inDialog} onReset={() => setCode("")} />
+            }
+            links={
+              inDialog
+                ? codeExit
+                : [
+                    {
+                      label: "Not you? Switch account",
+                      onClick: switchAccount,
+                    },
+                    ...dashboardExit,
+                  ]
+            }
+            align={align}
+          />
         </div>
       )}
 
-      {branch.kind === "pairing-success" && (
-        <ResultMessage
-          tone="success"
-          icon={CheckCircleIcon}
-          title="Device Accepted"
-          description={
-            <>
-              <span className="font-mono text-text-primary">
-                {branch.device.name}
-              </span>{" "}
-              joined{" "}
-              <span className="text-text-primary font-medium">
-                {branch.namespace}
-              </span>
-              . The agent will connect automatically. You can return to your
-              terminal.
-              {branch.teamDevice && (
-                <>
-                  {" "}
-                  It took the place of a team device with the same MAC address,
-                  so it stays the team&apos;s rather than being tied to you.
-                </>
-              )}
-            </>
-          }
-          action={
-            branch.uid ? (
-              <Button
-                variant="successSoft"
-                size="md"
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-                onClick={() =>
-                  void switchNamespace.mutateAsync({
-                    tenantId: branch.tenantId,
-                    redirectTo: `/devices/${branch.uid}`,
-                  })
-                }
-              >
-                View device
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
+      {branch.kind === "pairing-success" &&
+        accepted({
+          device: branch.device,
+          namespace: branch.namespace,
+          note: branch.teamDevice
+            ? "It took the place of a team device with the same MAC address, so it stays the team's rather than being tied to you."
+            : undefined,
+          viewing: switchNamespace.isPending,
+          onViewDevice: branch.uid
+            ? () => viewPairedDevice(branch.uid, branch.tenantId)
+            : undefined,
+        })}
     </>
   );
-
-  return frame ? frame(branch.kind === "pick-namespace", content) : content;
 }
 
-function DashboardLink() {
+function ActionError({ message }: { message: string }) {
+  if (!message) return null;
   return (
-    <Link to="/dashboard" className={LINK_CLASS}>
-      Go to dashboard
-    </Link>
+    <p className="text-sm text-accent-red mb-4" role="alert">
+      {message}
+    </p>
   );
 }
 
-function CancelRow({
-  inDialog,
-  onReset,
-}: {
-  inDialog: boolean;
-  onReset: () => void;
-}) {
+function ViewDeviceButton({
+  size,
+  loading = false,
+  ...target
+}: { size: "md" | "lg"; loading?: boolean } & (
+  | { to: string }
+  | { onClick: () => void }
+)) {
+  const icon = <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />;
+
+  if ("to" in target) {
+    return (
+      <Button
+        as={Link}
+        to={target.to}
+        variant="successSoft"
+        size={size}
+        fullWidth={size === "lg"}
+        iconRight={icon}
+      >
+        View device
+      </Button>
+    );
+  }
+
   return (
-    <div className="text-center mt-4">
-      {inDialog ? (
-        <button type="button" onClick={onReset} className={LINK_CLASS}>
-          Use a different code
-        </button>
-      ) : (
-        <DashboardLink />
-      )}
-    </div>
+    <Button
+      variant="successSoft"
+      size={size}
+      loading={loading}
+      iconRight={icon}
+      onClick={target.onClick}
+    >
+      View device
+    </Button>
   );
 }
 
@@ -649,57 +735,29 @@ function StatusMessage({ label }: { label: string }) {
   );
 }
 
-function AcceptingAs({
-  code,
-  canSwitch,
-}: {
-  code: string;
-  canSwitch: boolean;
-}) {
+function AcceptingAs() {
   const name = useAuthStore((s) => s.name);
   const email = useAuthStore((s) => s.email);
-  const logout = useAuthStore((s) => s.logout);
-  const navigate = useNavigate();
-
-  const switchAccount = () => {
-    logout();
-    void navigate(
-      `/login?redirect=${encodeURIComponent(`/accept-device?code=${code}`)}`,
-    );
-  };
 
   return (
     <section
       aria-label="Accepting as"
       className="text-left rounded-xl border border-border bg-surface/60 p-4"
     >
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className={LABEL}>Accepting as</p>
-          <span className="flex items-center gap-2.5 min-w-0">
-            <InitialsAvatar label={name || email || ""} shape="circle" />
-            <span className="min-w-0">
-              <span className="block text-sm font-medium text-text-primary truncate">
-                {name || email}
-              </span>
-              {name && email && (
-                <span className="block text-xs text-text-muted truncate">
-                  {email}
-                </span>
-              )}
-            </span>
+      <p className={LABEL}>Accepting as</p>
+      <span className="flex items-center gap-2.5 min-w-0">
+        <InitialsAvatar label={name || email || ""} shape="circle" />
+        <span className="min-w-0">
+          <span className="block text-sm font-medium text-text-primary truncate">
+            {name || email}
           </span>
-        </div>
-        {canSwitch && (
-          <button
-            type="button"
-            onClick={switchAccount}
-            className="shrink-0 text-xs text-primary hover:underline"
-          >
-            Not you? Switch account
-          </button>
-        )}
-      </div>
+          {name && email && (
+            <span className="block text-xs text-text-muted truncate">
+              {email}
+            </span>
+          )}
+        </span>
+      </span>
       <p className="mt-3 pt-3 border-t border-border/70 text-xs text-text-muted leading-relaxed">
         You&apos;ll own this device. If you leave this namespace or lose
         permission to accept devices in it, the device is removed with you.
@@ -719,21 +777,6 @@ function SpecRow({ label, value }: { label: string; value?: string }) {
   );
 }
 
-function ViewDeviceLink({ uid }: { uid?: string }) {
-  if (!uid) return null;
-  return (
-    <Button
-      as={Link}
-      to={`/devices/${uid}`}
-      variant="successSoft"
-      size="md"
-      iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
-    >
-      View device
-    </Button>
-  );
-}
-
 const TONES = {
   error: {
     ring: "bg-accent-red/10 border-accent-red/20",
@@ -746,20 +789,31 @@ const TONES = {
 } as const;
 
 function ResultMessage({
+  inDialog,
   tone,
   icon: Icon,
   title,
   description,
   action,
 }: {
+  inDialog: boolean;
   tone: keyof typeof TONES;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
 }) {
+  if (!inDialog) {
+    return (
+      <div>
+        <ScreenIntro eyebrow="Pairing" title={title} lead={description} />
+        {action}
+      </div>
+    );
+  }
+
   return (
-    <div className="text-center motion-safe:animate-slide-up">
+    <div className="text-center">
       <div
         className={cn(
           "inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5",
@@ -773,6 +827,32 @@ function ResultMessage({
         {description}
       </p>
       {action}
+    </div>
+  );
+}
+
+function FlowHeading({
+  inDialog,
+  icon: Icon,
+  title,
+  description,
+}: {
+  inDialog: boolean;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  title: string;
+  description: React.ReactNode;
+}) {
+  if (!inDialog) {
+    return <ScreenIntro eyebrow="Pairing" title={title} lead={description} />;
+  }
+
+  return (
+    <div className="text-center mb-6">
+      <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+        <Icon className="w-7 h-7 text-primary" strokeWidth={1.5} />
+      </div>
+      <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+      <p className="text-sm text-text-muted mt-1">{description}</p>
     </div>
   );
 }

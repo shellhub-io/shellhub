@@ -1,18 +1,31 @@
 import { useEffect, useState } from "react";
-import {
-  CircleStackIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
-import AmbientBackground from "../components/common/AmbientBackground";
-import { ShellHubLogo, Spinner } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
+import { Callout, Spinner } from "@shellhub/design-system/primitives";
+import FramedShell from "@/components/layout/FramedShell";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 
+const COPY: Record<
+  Exclude<MigrationStatus, "unknown">,
+  { title: string; lead: string }
+> = {
+  completed: {
+    title: "Migration completed",
+    lead: "The database migration finished successfully. You can now update ShellHub to the next version to start using the new database.",
+  },
+  failed: {
+    title: "Migration failed",
+    lead: "Something went wrong during the database migration. Check the API logs for details.",
+  },
+  running: {
+    title: "Migration in progress",
+    lead: "ShellHub is migrating its database to a new format. This may take a while depending on the amount of data.",
+  },
+};
+
 /**
- * The account migration screen, served from its own entry point rather than the SPA, so it can
- * run against an account the main app would refuse to load.
+ * The screen shown while the server migrates its database, served from its own entry point
+ * rather than the SPA. It polls the migration status until it completes or fails.
  */
 export default function MigrationPage() {
   const [status, setStatus] = useState<MigrationStatus>("unknown");
@@ -48,97 +61,23 @@ export default function MigrationPage() {
     };
   }, []);
 
-  const iconContainerColor =
-    status === "completed"
-      ? "bg-accent-green/10 border-accent-green/20 shadow-accent-green/5"
-      : status === "failed"
-        ? "bg-accent-red/10 border-accent-red/20 shadow-accent-red/5"
-        : "bg-primary/10 border-primary/20 shadow-primary/5";
-
-  const subtitleColor =
-    status === "completed"
-      ? "text-accent-green/60"
-      : status === "failed"
-        ? "text-accent-red/60"
-        : "text-primary/60";
+  const { title, lead } = COPY[status === "unknown" ? "running" : status];
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-background overflow-hidden">
-      <AmbientBackground variant={status === "failed" ? "error" : "default"} />
-
-      <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <ShellHubLogo className="h-8 mb-10 opacity-50" />
-
-        <div className="animate-float mb-6">
-          <div
-            className={cn("w-20 h-20 rounded-2xl border flex items-center justify-center shadow-lg", iconContainerColor)}
-          >
-            {status === "completed" ? (
-              <CheckCircleIcon
-                className="w-10 h-10 text-accent-green/60"
-                strokeWidth={1.2}
-              />
-            ) : status === "failed" ? (
-              <ExclamationTriangleIcon
-                className="w-10 h-10 text-accent-red/60"
-                strokeWidth={1.2}
-              />
-            ) : (
-              <CircleStackIcon
-                className="w-10 h-10 text-primary/60"
-                strokeWidth={1.2}
-              />
-            )}
-          </div>
+    <FramedShell>
+      <ScreenIntro eyebrow="Database migration" title={title} lead={lead} />
+      {status === "completed" && (
+        <Callout variant="success">The database is ready.</Callout>
+      )}
+      {status === "failed" && (
+        <Callout variant="error">The migration did not complete.</Callout>
+      )}
+      {(status === "running" || status === "unknown") && (
+        <div className="flex items-center gap-2.5 text-xs font-mono text-text-secondary">
+          <Spinner size="xs" />
+          Migrating data…
         </div>
-
-        <p
-          className={cn("text-2xs font-mono font-semibold uppercase tracking-wide mb-2", subtitleColor)}
-        >
-          Database Migration
-        </p>
-
-        {status === "completed" ? (
-          <>
-            <h1 className="text-2xl font-bold text-text-primary mb-3">
-              Migration completed
-            </h1>
-            <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-              The database migration finished successfully. You can now update
-              ShellHub to the next version to start using the new database.
-            </p>
-          </>
-        ) : status === "failed" ? (
-          <>
-            <h1 className="text-2xl font-bold text-text-primary mb-3">
-              Migration failed
-            </h1>
-            <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-              Something went wrong during the database migration. Check the API
-              logs for details.
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 className="text-2xl font-bold text-text-primary mb-3">
-              Migration in progress
-            </h1>
-            <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-              ShellHub is migrating its database to a new format. This may take
-              a while depending on the amount of data.
-            </p>
-          </>
-        )}
-
-        {(status === "running" || status === "unknown") && (
-          <div className="flex items-center gap-2.5 bg-card/80 border border-border rounded-lg px-4 py-2.5 backdrop-blur-sm">
-            <Spinner size="xs" />
-            <span className="text-xs font-mono text-text-secondary">
-              Migrating data…
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </FramedShell>
   );
 }

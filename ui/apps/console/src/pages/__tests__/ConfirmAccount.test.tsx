@@ -40,9 +40,11 @@ describe("ConfirmAccount", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders a back-to-login link", () => {
+    it("renders a link back to sign in", () => {
       renderConfirmAccount("admin");
-      expect(screen.getByRole("link", { name: /login/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /back to sign in/i }),
+      ).toHaveAttribute("href", "/login");
     });
 
     it("redirects to /login when no username is provided", () => {

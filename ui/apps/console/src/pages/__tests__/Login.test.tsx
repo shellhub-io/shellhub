@@ -455,6 +455,47 @@ describe("Login", () => {
     });
   });
 
+  describe("ways out", () => {
+    function setLocalAuth(local: boolean) {
+      server.use(
+        http.get("*/info", () =>
+          HttpResponse.json(
+            mockInfo({ authentication: { local, saml: true } }),
+          ),
+        ),
+      );
+    }
+
+    beforeEach(() => {
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+    });
+
+    it("offers password recovery next to sign-up when the form is shown", async () => {
+      setLocalAuth(true);
+
+      renderLogin();
+
+      expect(
+        await screen.findByRole("link", { name: /forgot password/i }),
+      ).toHaveAttribute("href", "/forgot-password");
+      expect(screen.getByRole("link", { name: /sign up/i })).toHaveAttribute(
+        "href",
+        "/sign-up",
+      );
+    });
+
+    it("offers no password recovery when SSO is the only way in", async () => {
+      setLocalAuth(false);
+
+      renderLogin();
+
+      await screen.findByRole("button", { name: /login with sso/i });
+      expect(
+        screen.queryByRole("link", { name: /forgot password/i }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe("pending device code", () => {
     it("redirects to /accept-device when a pending code exists and no explicit redirect", async () => {
       setPendingDeviceCode("WXYZ2K7Q");

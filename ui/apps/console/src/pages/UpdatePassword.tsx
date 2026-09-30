@@ -1,16 +1,13 @@
 import { useState, FormEvent } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import {
-  ExclamationCircleIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
 import { useForm } from "react-hook-form";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { updateRecoverPassword } from "@/client";
 import { updatePasswordResolver } from "./setup/updatePasswordResolver";
 import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
 import { FormPasswordField } from "@/components/common/fields/rhf";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 
 /**
  * Sets a new password from a reset link. The token is in the query string and works once.
@@ -57,111 +54,74 @@ export default function UpdatePassword() {
     void handleSubmit(onSubmit)(e);
   };
 
+  const backToSignIn = [{ label: "Back to sign in", to: "/login" }];
+
   if (!uid || !token) {
     return (
-      <LoginLayoutCard className="text-center">
-        <ExclamationCircleIcon
-          className="w-10 h-10 text-accent-red mx-auto mb-4"
-          strokeWidth={1.5}
+      <>
+        <ScreenIntro
+          eyebrow="Password recovery"
+          title="Invalid reset link"
+          lead="This password reset link is invalid or has expired."
         />
-        <p className="text-sm font-semibold text-text-primary mb-2">
-          Invalid reset link
-        </p>
-        <p className="text-xs text-text-muted mb-6">
-          This password reset link is invalid or has expired.
-        </p>
-        <Link
-          to="/forgot-password"
-          className="text-xs text-primary hover:text-primary-400 transition-colors"
-        >
-          Request a new reset link
-        </Link>
-      </LoginLayoutCard>
+        <AuthActions
+          primary={
+            <Button as={Link} to="/forgot-password" size="lg" fullWidth>
+              Request a new reset link
+            </Button>
+          }
+          links={backToSignIn}
+        />
+      </>
     );
   }
 
   return (
     <>
-      {/* Hero */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <LockClosedIcon
-              className="w-10 h-10 text-primary"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
+      <ScreenIntro
+        eyebrow="Password recovery"
+        title="Reset your password"
+        lead="Choose a new password for your account."
+      />
 
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Password Recovery
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Reset your password
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Choose a new password for your account.
-        </p>
-      </div>
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        {error && <Callout variant="error">{error}</Callout>}
 
-      {/* Card */}
-      <LoginLayoutCard>
-        <form onSubmit={handleFormSubmit} className="space-y-5">
-          {error && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
+        <FormPasswordField<UpdatePasswordFormValues>
+          id="password"
+          label="New Password"
+          name="password"
+          control={control}
+          placeholder="••••••••"
+          hint="5–32 characters"
+          required
+        />
+
+        <FormPasswordField<UpdatePasswordFormValues>
+          id="confirmPassword"
+          label="Confirm Password"
+          name="confirmPassword"
+          control={control}
+          placeholder="••••••••"
+          required
+        />
+
+        <AuthActions
+          primary={
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              type="submit"
+              loading={loading}
+              disabled={loading || !formState.isValid}
             >
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                strokeWidth={2}
-              />
-              {error}
-            </div>
-          )}
-
-          <FormPasswordField<UpdatePasswordFormValues>
-            id="password"
-            label="New Password"
-            name="password"
-            control={control}
-            placeholder="••••••••"
-            hint="5–32 characters"
-            required
-          />
-
-          <FormPasswordField<UpdatePasswordFormValues>
-            id="confirmPassword"
-            label="Confirm Password"
-            name="confirmPassword"
-            control={control}
-            placeholder="••••••••"
-            required
-          />
-
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            type="submit"
-            className="px-4"
-            loading={loading}
-            disabled={loading || !formState.isValid}
-          >
-            {loading ? "Updating..." : "Update Password"}
-          </Button>
-        </form>
-      </LoginLayoutCard>
-
-      {/* Back to login */}
-      <div className="mt-8 animate-fade-in">
-        <Link
-          to="/login"
-          className="text-xs text-text-muted hover:text-text-secondary transition-colors"
-        >
-          &larr; Back to login
-        </Link>
-      </div>
+              {loading ? "Updating..." : "Update Password"}
+            </Button>
+          }
+          links={backToSignIn}
+        />
+      </form>
     </>
   );
 }

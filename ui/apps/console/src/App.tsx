@@ -10,7 +10,7 @@ const MfaRecover = lazy(() => import("./pages/MfaRecover"));
 const MfaResetRequest = lazy(() => import("./pages/MfaResetRequest"));
 const MfaResetVerify = lazy(() => import("./pages/MfaResetVerify"));
 const MfaResetComplete = lazy(() => import("./pages/MfaResetComplete"));
-import LoginLayout from "./components/layout/LoginLayout";
+import AuthLayout from "./components/layout/AuthLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
@@ -129,7 +129,7 @@ export default function App() {
         <Route element={<ConnectivityGuard />}>
           <Route element={<SetupGuard />}>
             <Route path="/setup" element={<Setup />} />
-            <Route element={<LoginLayout />}>
+            <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/mfa-login" element={<MfaLogin />} />
               <Route path="/mfa-recover" element={<MfaRecover />} />
@@ -144,10 +144,6 @@ export default function App() {
                   element={<ValidationAccount />}
                 />
               </Route>
-              <Route path="/accept-device" element={<AcceptDevice />} />
-              {/* Public: the install command needs no account to be useful, and the
-                  docs link straight at it. */}
-              <Route path="/install" element={<Install />} />
               {isCloud() && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -156,6 +152,10 @@ export default function App() {
               )}
               {/* Public accept-invite landing; every edition uses the invitation flow. */}
               <Route path="/accept-invite" element={<AcceptInvite />} />
+            </Route>
+            <Route element={<AuthLayout width="2xl" />}>
+              <Route path="/accept-device" element={<AcceptDevice />} />
+              <Route path="/install" element={<Install />} />
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route path="/profile/*" element={<LegacyProfileRedirect />} />

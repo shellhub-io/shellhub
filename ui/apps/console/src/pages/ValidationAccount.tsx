@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
-import { useSignUpStore } from "../stores/signUpStore";
-import { Spinner } from "@shellhub/design-system/primitives";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Callout, Spinner } from "@shellhub/design-system/primitives";
+import { useSignUpStore } from "@/stores/signUpStore";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 
 /**
  * Completes an email verification from its link. An expired or reused link is reported
@@ -41,74 +41,38 @@ export default function ValidationAccount() {
   }, [validationStatus, navigate]);
 
   return (
-    <LoginLayoutCard className="text-center">
-      <h1 className="text-lg font-semibold text-text-primary mb-5">
-        Account Verification
-      </h1>
+    <>
+      <ScreenIntro
+        eyebrow="Account"
+        title="Account Verification"
+        lead="The link in your email confirms the address and activates the account."
+      />
 
-      <div
-        className="min-h-32 flex flex-col items-center justify-center"
-        role="status"
-        aria-live="polite"
-      >
+      <div className="mb-6" role="status" aria-live="polite">
         {validationStatus === "processing" || validationStatus === "idle" ? (
-          <>
-            <Spinner size="2xl" className="mb-4" />
-            <p className="text-sm text-text-secondary">
-              Processing your account activation...
-            </p>
-          </>
+          <div className="flex items-center gap-3 text-sm text-text-secondary">
+            <Spinner />
+            Processing your account activation...
+          </div>
         ) : validationStatus === "success" ? (
-          <>
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-4">
-              <CheckCircleIcon
-                className="w-7 h-7 text-accent-green"
-                strokeWidth={1.5}
-              />
-            </div>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              Congratulations! Your account has been activated successfully.
-              Redirecting to login...
-            </p>
-          </>
+          <Callout variant="success">
+            Congratulations! Your account has been activated successfully.
+            Redirecting to login...
+          </Callout>
         ) : validationStatus === "failed-token" ? (
-          <>
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-red/10 border border-accent-red/20 mb-4">
-              <XCircleIcon
-                className="w-7 h-7 text-accent-red"
-                strokeWidth={1.5}
-              />
-            </div>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              Your account activation token has expired. Go to the login page
-              and log in to receive another email with the activation link.
-            </p>
-          </>
+          <Callout variant="error">
+            Your account activation token has expired. Go to the login page and
+            log in to receive another email with the activation link.
+          </Callout>
         ) : (
-          <>
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-red/10 border border-accent-red/20 mb-4">
-              <XCircleIcon
-                className="w-7 h-7 text-accent-red"
-                strokeWidth={1.5}
-              />
-            </div>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              There was a problem activating your account. Go to the login page
-              and log in to receive another email with the activation link.
-            </p>
-          </>
+          <Callout variant="error">
+            There was a problem activating your account. Go to the login page
+            and log in to receive another email with the activation link.
+          </Callout>
         )}
       </div>
 
-      <p className="text-xs text-text-muted mt-6">
-        Back to{" "}
-        <Link
-          to="/login"
-          className="text-primary hover:text-primary/80 font-medium transition-colors"
-        >
-          Login
-        </Link>
-      </p>
-    </LoginLayoutCard>
+      <AuthActions links={[{ label: "Back to sign in", to: "/login" }]} />
+    </>
   );
 }

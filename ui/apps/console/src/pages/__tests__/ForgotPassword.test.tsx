@@ -88,7 +88,7 @@ describe("ForgotPassword", () => {
       await user.type(screen.getByLabelText(/username or email/i), "alice");
       await user.click(screen.getByRole("button", { name: /reset password/i }));
 
-      expect(await screen.findByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("status")).toBeInTheDocument();
       expect(screen.getByText(/check your inbox/i)).toBeInTheDocument();
     });
 
@@ -104,7 +104,7 @@ describe("ForgotPassword", () => {
       await user.type(screen.getByLabelText(/username or email/i), "alice");
       await user.click(screen.getByRole("button", { name: /reset password/i }));
 
-      expect(await screen.findByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("status")).toBeInTheDocument();
       expect(screen.getByText(/check your inbox/i)).toBeInTheDocument();
     });
   });

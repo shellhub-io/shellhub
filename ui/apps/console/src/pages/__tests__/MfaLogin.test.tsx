@@ -98,8 +98,9 @@ describe("MfaLogin", () => {
   it("has link to recovery page", () => {
     renderMfaLogin();
 
-    const recoveryLink = screen.getByText(/Lost your TOTP password/i);
-    expect(recoveryLink).toHaveAttribute("href", "/mfa-recover");
+    expect(
+      screen.getByRole("link", { name: /use a recovery code/i }),
+    ).toHaveAttribute("href", "/mfa-recover");
   });
 
   it.each([

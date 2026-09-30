@@ -1,77 +1,20 @@
-import { useState, useEffect, FormEvent } from "react";
-import { useForm } from "react-hook-form";
-import { isSdkError } from "../api/errors";
+import { useState, useEffect } from "react";
 import {
   useNavigate,
   Navigate,
-  Link,
   useLocation,
   useSearchParams,
 } from "react-router-dom";
-import {
-  LockClosedIcon,
-  ArrowRightEndOnRectangleIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { isCloud, isEnterpriseOrCloud } from "../env";
-import { getSafeRedirect, resolvePostLoginRedirect } from "@/utils/navigation";
+import { getSafeRedirect } from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
-import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import AuthActions from "@/components/auth/AuthActions";
+import SignInForm from "@/components/auth/SignInForm";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 import { getInfo, getSamlAuthUrl } from "../client";
-import {
-  FormInputField,
-  FormPasswordField,
-} from "@/components/common/fields/rhf";
-import { loginResolver } from "./setup/loginResolver";
-import type { LoginFormValues } from "./setup/loginResolver";
-
-interface CountdownState {
-  display: string;
-  expired: boolean;
-  epoch: number | null;
-}
-
-function useLoginCountdown(lockoutEndEpoch: number | null) {
-  const [state, setState] = useState<CountdownState>({
-    display: "",
-    expired: false,
-    epoch: null,
-  });
-
-  useEffect(() => {
-    if (lockoutEndEpoch === null) return;
-
-    const interval = setInterval(() => {
-      const diff = lockoutEndEpoch - Date.now() / 1000;
-      if (diff <= 0) {
-        clearInterval(interval);
-        setState({ display: "", expired: true, epoch: lockoutEndEpoch });
-      } else if (diff < 60) {
-        const s = Math.floor(diff);
-        setState({
-          display: `${s} ${s === 1 ? "second" : "seconds"}`,
-          expired: false,
-          epoch: lockoutEndEpoch,
-        });
-      } else {
-        const m = Math.floor(diff / 60);
-        setState({
-          display: `${m} ${m === 1 ? "minute" : "minutes"}`,
-          expired: false,
-          epoch: lockoutEndEpoch,
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [lockoutEndEpoch]);
-
-  if (state.epoch !== lockoutEndEpoch) return { display: "", expired: false };
-
-  return { display: state.display, expired: state.expired };
-}
 
 /**
  * The sign-in page. What it offers depends on the edition — SSO and sign-up exist only above
@@ -94,6 +37,7 @@ export default function Login() {
     saml?: boolean;
   } | null>(null);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (notice) {
@@ -107,19 +51,8 @@ export default function Login() {
       .catch(() => setAuthentication(null));
   }, []);
 
-  const [error, setError] = useState<string | null>(null);
-  const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
-  const { login, loading } = useAuthStore();
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
-  const { display: countdownDisplay, expired: lockoutExpired } =
-    useLoginCountdown(lockoutEndEpoch);
-
-  const { control, handleSubmit, formState } = useForm<LoginFormValues>({
-    resolver: loginResolver,
-    mode: "onTouched",
-    defaultValues: { username: "", password: "" },
-  });
 
   useEffect(() => {
     if (!queryToken) return;
@@ -146,65 +79,6 @@ export default function Login() {
     }
   };
 
-  const onSubmit = async (values: LoginFormValues) => {
-    setError(null);
-    setLockoutEndEpoch(null);
-    try {
-      await login(values.username, values.password);
-
-      const state = useAuthStore.getState();
-      const params = new URLSearchParams(location.search);
-      const redirect = getSafeRedirect(params);
-
-      if (state.mfaToken) {
-        const mfaPath =
-          redirect !== "/dashboard"
-            ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
-            : "/mfa-login";
-        void navigate(mfaPath);
-      } else {
-        void navigate(resolvePostLoginRedirect(params));
-      }
-    } catch (err) {
-      if (!isSdkError(err)) {
-        setError("Something went wrong. Please try again later.");
-        return;
-      }
-
-      switch (err.status) {
-        case 401:
-          setError(
-            "Invalid login credentials. Your password is incorrect or this account doesn't exist.",
-          );
-          break;
-        case 403:
-          void navigate(
-            `/confirm-account?username=${encodeURIComponent(values.username)}`,
-          );
-          break;
-        case 423:
-          setError(
-            "Your account is waiting for an administrator to approve it. You'll be able to sign in once it's approved.",
-          );
-          break;
-        case 429: {
-          const epoch = Number(err.headers.get("x-account-lockout"));
-          setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
-          setError(
-            "Too many failed login attempts. Please wait before trying again.",
-          );
-          break;
-        }
-        default:
-          setError("Something went wrong on our end. Please try again later.");
-      }
-    }
-  };
-
-  const handleFormSubmit = (e: FormEvent) => {
-    void handleSubmit(onSubmit)(e);
-  };
-
   const showLocalForm =
     !isEnterpriseOrCloudEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseOrCloudEdition && authentication?.local === false;
@@ -223,37 +97,14 @@ export default function Login() {
 
   return (
     <>
-      {/* Hero */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <LockClosedIcon
-              className="w-10 h-10 text-primary"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
+      <ScreenIntro
+        eyebrow="Sign in"
+        title="Sign in to ShellHub"
+        lead="Access your devices, sessions, and security rules from a single dashboard."
+      />
 
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Welcome Back
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Sign in to ShellHub
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Access your devices, sessions, and security rules from a single
-          dashboard.
-        </p>
-      </div>
-
-      {/* Alerts — rendered outside the form so they are visible in SSO-only mode too */}
-      <div className="w-full max-w-md flex flex-col gap-3 mb-4 empty:hidden">
+      <div className="flex flex-col gap-3 mb-6 empty:hidden">
         <PendingDeviceCallout />
-        {lockoutExpired && (
-          <Callout variant="success">
-            Your timeout has finished. Please try to log back in.
-          </Callout>
-        )}
         {notice && <Callout variant="success">{notice}</Callout>}
         {missingAssertions && (
           <Callout variant="error">
@@ -261,79 +112,11 @@ export default function Login() {
             mappings. Please contact your administrator.
           </Callout>
         )}
-        {error && !lockoutExpired && (
-          <Callout variant="error">
-            <span>
-              <span>{error}</span>
-              {countdownDisplay ? (
-                <span className="font-semibold"> ({countdownDisplay})</span>
-              ) : null}
-            </span>
-          </Callout>
-        )}
+        {error && <Callout variant="error">{error}</Callout>}
       </div>
 
-      {/* Form card — only shown once we know local auth is enabled */}
-      {showLocalForm && (
-        <LoginLayoutCard>
-          <form onSubmit={handleFormSubmit} className="space-y-5">
-            <FormInputField<LoginFormValues>
-              id="username"
-              label="Username"
-              name="username"
-              control={control}
-              placeholder="username"
-              autoComplete="username"
-            />
-
-            <FormPasswordField<LoginFormValues>
-              id="password"
-              label="Password"
-              name="password"
-              control={control}
-              placeholder="password"
-              autoComplete="current-password"
-            />
-
-            {isCloudEdition && (
-              <div className="flex justify-end">
-                <Link
-                  to="/forgot-password"
-                  className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            )}
-
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              type="submit"
-              className="px-4"
-              loading={loading}
-              disabled={!formState.isValid || loading}
-            >
-              {loading ? "Authenticating..." : "Sign In"}
-            </Button>
-          </form>
-        </LoginLayoutCard>
-      )}
-
-      {/* SSO login */}
       {isEnterpriseOrCloudEdition && authentication?.saml && (
-        <div className="w-full max-w-md animate-slide-up">
-          {!ssoOnly && (
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-2xs font-mono text-text-muted uppercase tracking-label">
-                or
-              </span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-          )}
-
+        <div>
           <Button
             variant={ssoOnly ? "primary" : "secondary"}
             fullWidth
@@ -345,11 +128,37 @@ export default function Login() {
           >
             Login with SSO
           </Button>
+
+          {!ssoOnly && (
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-2xs font-mono text-text-muted uppercase tracking-label">
+                or
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Footer links */}
-      <AuthFooterLinks />
+      {showLocalForm && (
+        <SignInForm
+          redirect={getSafeRedirect(new URLSearchParams(location.search))}
+        />
+      )}
+
+      {isCloudEdition && (
+        <div className="mt-4">
+          <AuthActions
+            links={[
+              ...(showLocalForm
+                ? [{ label: "Forgot password?", to: "/forgot-password" }]
+                : []),
+              { label: "Don't have an account? Sign up", to: "/sign-up" },
+            ]}
+          />
+        </div>
+      )}
     </>
   );
 }

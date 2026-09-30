@@ -63,7 +63,14 @@ export function getSafeRedirect(
  * link the user originally followed still completes.
  */
 export function resolvePostLoginRedirect(params: URLSearchParams): string {
-  const redirect = getSafeRedirect(params);
+  return landingAfterSignIn(getSafeRedirect(params));
+}
+
+/**
+ * Where an already validated redirect lands once the sign-in succeeded. It consumes the pending
+ * device code, so call it only after the session exists, never while rendering.
+ */
+export function landingAfterSignIn(redirect: string): string {
   if (redirect === "/dashboard") {
     const pendingCode = consumePendingDeviceCode();
     if (pendingCode) {
