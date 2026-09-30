@@ -1,6 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
 import { type ProvisioningKey } from "@/client";
-import { formatDateShort } from "@/utils/date";
+import { formatDateShort, formatRelative } from "@/utils/date";
+import { modeInfo, PAIRING_INFO } from "./constants";
 
 /**
  * The auto-managed system keys: every namespace has two, discriminated by `type` — `legacy` (devices
@@ -312,4 +313,73 @@ export function getExpiryInfo(
     differenceInCalendarDays(expiry, new Date()) <= 7 ? "warning" : "normal";
 
   return { label, tone };
+}
+
+/**
+ * Whether a key can go on an install command: a custom key a device can still register with.
+ */
+export function isInstallable(key: ProvisioningKey): boolean {
+  return !isSystemKey(key) && !getKeyBlockers(key).inert;
+}
+
+/**
+ * The path of a key's page, which lives under the Fleet tab. It takes the key's id (its digest)
+ * rather than the key, so a device that only knows the id it registered with can link there.
+ */
+export function provisioningKeyActivityPath(id: string): string {
+  return `/devices/add/fleet/${encodeURIComponent(id)}/activity`;
+}
+
+/**
+ * A link to a key's page carrying the key in router state, so the page renders it before the key
+ * list has loaded.
+ */
+export function provisioningKeyLink(key: ProvisioningKey) {
+  return {
+    to: provisioningKeyActivityPath(key.id),
+    state: { name: provisioningKeyDisplayName(key), key },
+  };
+}
+
+/**
+ * How a key's mode reads anywhere it is named, the pairing code included.
+ */
+export function keyModeInfo(key: ProvisioningKey) {
+  return isPairingKey(key) ? PAIRING_INFO : modeInfo(key.mode);
+}
+
+/**
+ * When a key expires, as a lowercase phrase: "never expires", "expires Oct 24, 2099" or
+ * "expired Jan 1, 2020".
+ */
+export function expiryPhrase(key: ProvisioningKey): string {
+  if (!key.expires_at) return "never expires";
+  const { label } = getExpiryInfo(key.expires_at);
+  return getKeyBlockers(key).expired ? `expired ${label}` : `expires ${label}`;
+}
+
+/**
+ * How an ephemeral key's devices leave, as a lowercase phrase, or undefined for a key that keeps
+ * them.
+ */
+export function ephemeralPhrase(key: ProvisioningKey): string | undefined {
+  return key.ephemeral
+    ? `removed after ${key.ephemeral_timeout ?? 10}m offline`
+    : undefined;
+}
+
+/**
+ * When a key last registered a device, as a lowercase phrase.
+ */
+export function lastUsedPhrase(key: ProvisioningKey): string {
+  return key.last_used_at
+    ? `last used ${formatRelative(key.last_used_at)}`
+    : "never used";
+}
+
+/**
+ * A count as the key screens print it, grouped by thousands so a fleet-sized number stays legible.
+ */
+export function formatCount(n: number): string {
+  return n.toLocaleString("en-US");
 }

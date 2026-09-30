@@ -48,10 +48,7 @@ export interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string | undefined;
 
-  sectionOf?: (row: T) => string;
-  sectionLabel?: (section: string) => string;
-
-  trailingEmptyState?: ReactNode;
+  sectionOf?: (row: T) => string | undefined;
 
   expandedRowKey?: string | null;
   renderExpandedRow?: (row: T) => ReactNode;
@@ -128,8 +125,6 @@ export default function DataTable<T>({
   onRowClick,
   rowClassName,
   sectionOf,
-  sectionLabel,
-  trailingEmptyState,
   expandedRowKey,
   renderExpandedRow,
   hideHeader = false,
@@ -230,7 +225,7 @@ export default function DataTable<T>({
                           colSpan={columns.length}
                           className="px-4 pt-2 pb-2 font-mono text-2xs uppercase tracking-label text-text-muted/70"
                         >
-                          {sectionLabel?.(section) ?? section}
+                          {section}
                         </td>
                       </tr>
                     )}
@@ -272,13 +267,6 @@ export default function DataTable<T>({
                   </Fragment>
                 );
               })}
-              {trailingEmptyState && (
-                <tr>
-                  <td colSpan={columns.length} className="p-0">
-                    {trailingEmptyState}
-                  </td>
-                </tr>
-              )}
             </>
           )}
         </tbody>

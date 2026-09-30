@@ -23,6 +23,7 @@ import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { isSubscriptionBlocked } from "@/utils/billing";
+import { capitalize } from "@/utils/string";
 import DialogHeader from "@/components/common/DialogHeader";
 
 const OPERATION: Record<
@@ -55,10 +56,6 @@ const OPERATION: Record<
     ),
   },
 };
-
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 /**
  * The confirmation for an accept, reject or remove. It takes the action rather than a flag, so

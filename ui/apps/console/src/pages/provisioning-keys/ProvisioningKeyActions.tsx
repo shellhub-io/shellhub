@@ -6,7 +6,7 @@ import RevokeProvisioningKeyDialog from "./RevokeProvisioningKeyDialog";
 import { useToggleProvisioningKey } from "./useToggleProvisioningKey";
 
 /**
- * The actions on a provisioning key row, and the dialogs behind them.
+ * The actions on a provisioning key, and the dialogs behind them.
  */
 export default function ProvisioningKeyActions({
   provisioningKey,

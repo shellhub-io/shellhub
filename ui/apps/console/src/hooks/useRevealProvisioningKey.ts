@@ -2,11 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { provisioningKeyRevealOptions } from "../client";
 
 /**
- * Reveal a provisioning key's plaintext on demand. The secret is never preloaded for
- * the list rows, and not even fetched when the dialog opens: the query only
- * fires once a key is targeted (`name` set) AND the user opts in (`enabled`), so
- * the plaintext is decrypted only on an explicit click. The result is dropped
- * from cache as soon as the dialog closes so the decrypted value doesn't linger.
+ * A provisioning key's plaintext, fetched on demand. Nothing loads with the key list: the query
+ * fires only once a key is named and the caller opts in with enabled, so the secret is decrypted
+ * for an open install command or an explicit Show, and dropped from cache as soon as nothing
+ * reads it.
  */
 export function useRevealProvisioningKey(name: string | null, enabled = true) {
   const result = useQuery({

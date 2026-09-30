@@ -1,13 +1,10 @@
 import { useId, useState } from "react";
-import {
-  FingerPrintIcon,
-} from "@heroicons/react/24/outline";
+import { KeyIcon } from "@heroicons/react/24/outline";
 import { Button, Card } from "@shellhub/design-system/primitives";
 import { type ProvisioningKeyEvent } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import { LABEL } from "@/utils/styles";
-import KeyValueChip from "./KeyValueChip";
 import DialogHeader from "@/components/common/DialogHeader";
 
 /**
@@ -30,17 +27,15 @@ export default function EventPublicKey({
 
   return (
     <>
-      <KeyValueChip
-        label="Key"
-        value={
-          <span className="block max-w-[170px] truncate">
-            {event.fingerprint}
-          </span>
-        }
+      <button
+        type="button"
         onClick={() => setOpen(true)}
         title="View device key"
-        ariaLabel="View device key"
-      />
+        aria-label="View device key"
+        className="inline-flex items-center gap-1 min-w-0 text-2xs font-mono text-text-muted/80 hover:text-text-secondary hover:underline"
+      >
+        <span className="max-w-[170px] truncate">{event.fingerprint}</span>
+      </button>
 
       <BaseDialog
         open={open}
@@ -50,7 +45,7 @@ export default function EventPublicKey({
         aria-describedby={`${titleId}-description`}
       >
         <DialogHeader
-          icon={<FingerPrintIcon />}
+          icon={<KeyIcon />}
           title={event.hostname || "Device key"}
           description="The device's own identity key, presented when it registered. It's not a secret and is safe to share."
           titleId={titleId}

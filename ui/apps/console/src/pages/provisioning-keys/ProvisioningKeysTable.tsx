@@ -1,76 +1,80 @@
-import { useNavigate } from "react-router-dom";
+import { type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  NoSymbolIcon,
-  PauseCircleIcon,
+  ChevronRightIcon,
   PlusIcon,
-  QrCodeIcon,
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { type ProvisioningKey } from "@/client";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import { capitalize } from "@/utils/string";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import ProvisioningKeyActionsMenu from "./ProvisioningKeyActionsMenu";
 import StatusChip, { DeprecatedBadge } from "./StatusChip";
 import UsageMeter from "./UsageMeter";
-import { modeInfo } from "./constants";
 import {
-  getExpiryInfo,
+  ephemeralPhrase,
+  expiryPhrase,
   getKeyBlockers,
-  provisioningKeyDisplayName,
+  isInstallable,
   isPairingKey,
   isSystemKey,
+  keyModeInfo,
+  provisioningKeyDisplayName,
+  provisioningKeyLink,
 } from "./helpers";
 
 function KeyCell({
   provisioningKey: key,
+  selected,
 }: {
   provisioningKey: ProvisioningKey;
+  selected: boolean;
 }) {
   const { revoked, disabled, expired, inert, quiet } = getKeyBlockers(key);
   const system = isSystemKey(key);
-  const mode = isPairingKey(key)
-    ? { icon: QrCodeIcon, label: "Accepted by the code the agent prints" }
-    : modeInfo(key.mode);
+  const mode = keyModeInfo(key);
   const state = revoked
-    ? { icon: NoSymbolIcon, label: "Revoked" }
+    ? "Revoked"
     : disabled
-      ? { icon: PauseCircleIcon, label: "Disabled" }
-      : mode;
-  const Icon = state.icon;
-  const expiry = getExpiryInfo(key.expires_at);
+      ? "Disabled"
+      : isPairingKey(key)
+        ? capitalize(mode.outcome)
+        : mode.label;
 
   const facts = [
-    state.label,
-    key.expires_at &&
-      (expired ? `expired ${expiry.label}` : `expires ${expiry.label}`),
-    key.ephemeral && `removed after ${key.ephemeral_timeout ?? 10}m offline`,
+    state,
+    key.expires_at && expiryPhrase(key),
+    ephemeralPhrase(key),
   ].filter(Boolean);
 
   return (
     <div className="flex items-center gap-3 min-w-0">
       <span
+        title={inert ? "Not accepting devices" : "Accepting devices"}
         className={cn(
-          "grid place-items-center w-8 h-8 rounded-lg shrink-0",
-          inert
-            ? "bg-text-muted/10 text-text-muted"
-            : "bg-primary/10 text-primary",
+          "w-2 h-2 rounded-full shrink-0",
+          inert ? "bg-text-muted/40" : "bg-accent-green",
         )}
-        title={mode.label}
-      >
-        <Icon className="w-4 h-4" strokeWidth={1.8} />
-      </span>
+      />
       <div className="min-w-0">
         <div className="flex items-center gap-2 min-w-0">
-          <span
+          <Link
+            {...provisioningKeyLink(key)}
+            onClick={(e) => e.stopPropagation()}
             className={cn(
-              "text-sm font-medium truncate",
-              inert ? "text-text-muted" : "text-text-primary",
+              "text-sm font-medium truncate hover:text-primary hover:underline",
+              inert
+                ? "text-text-muted"
+                : selected
+                  ? "text-primary"
+                  : "text-text-primary",
             )}
           >
             {provisioningKeyDisplayName(key)}
-          </span>
+          </Link>
           {system && !isPairingKey(key) && <DeprecatedBadge />}
           {key.tags?.map((tag) => (
             <StatusChip key={tag} label={tag} tone="primary" mono />
@@ -91,7 +95,7 @@ function KeyCell({
 
 function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="px-4 py-6">
+    <div>
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border-light px-5 py-9 text-center">
         <TicketIcon className="w-8 h-8 text-text-muted" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-text-primary">
@@ -107,7 +111,7 @@ function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
             onClick={onCreate}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            Create Provisioning Key
+            Create provisioning key
           </Button>
         </RestrictedAction>
       </div>
@@ -117,11 +121,17 @@ function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
 
 /**
  * The provisioning key list: each key on one line with its mode, expiry and tags folded under
- * its name, then its usage and the row actions. Inert keys (revoked/expired/overused) grey their
- * icon and meter so a live key's colour is never confused with a dead one's.
+ * its name, then its usage and the row actions. A dot before the name says whether the key still
+ * lets devices in: green while it does, grey once it is revoked, disabled, expired or used up.
+ * Custom keys come first and the built-in ones after them. Clicking an installable key's row
+ * calls onSelect, and the key named by selectedName has renderInstall open beneath it; the name
+ * opens the key's page.
  */
 export default function ProvisioningKeysTable({
   data,
+  selectedName,
+  onSelect,
+  renderInstall,
   page,
   totalPages,
   totalCount,
@@ -136,6 +146,9 @@ export default function ProvisioningKeysTable({
   page: number;
   totalPages: number;
   totalCount: number;
+  selectedName: string | undefined;
+  onSelect: (key: ProvisioningKey) => void;
+  renderInstall: (key: ProvisioningKey) => ReactNode;
   noCustomKeys: boolean;
   onPageChange: (page: number) => void;
   onCreate: () => void;
@@ -144,27 +157,33 @@ export default function ProvisioningKeysTable({
   onRevoke: (key: ProvisioningKey) => void;
 }) {
   const navigate = useNavigate();
+  const openActivity = (key: ProvisioningKey) => {
+    const { to, state } = provisioningKeyLink(key);
+    void navigate(to, { state });
+  };
 
   const columns: Column<ProvisioningKey>[] = [
     {
       key: "name",
       header: "Key",
-      render: (key) => <KeyCell provisioningKey={key} />,
+      render: (key) => (
+        <KeyCell provisioningKey={key} selected={key.name === selectedName} />
+      ),
     },
     {
       key: "usage",
       header: "Usage",
       headerClassName: "w-40",
-      render: (key) => <UsageMeter provisioningKey={key} muted />,
+      render: (key) => <UsageMeter provisioningKey={key} muted linkWaiting />,
     },
     {
       key: "actions",
       header: "",
-      headerClassName: "w-12",
+      headerClassName: "w-20",
       render: (key) => (
         <div
           role="presentation"
-          className="flex justify-end"
+          className="flex items-center justify-end gap-1"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
@@ -173,45 +192,56 @@ export default function ProvisioningKeysTable({
             onEdit={onEdit}
             onToggleDisabled={onToggleDisabled}
             onRevoke={onRevoke}
+            onActivity={openActivity}
+          />
+          <ChevronRightIcon
+            aria-hidden="true"
+            className={cn(
+              "w-4 h-4 shrink-0 text-text-muted transition-transform",
+              !isInstallable(key) && "invisible",
+              key.name === selectedName && "rotate-90 text-primary",
+            )}
+            strokeWidth={2}
           />
         </div>
       ),
     },
   ];
 
+  const ordered = [
+    ...data.filter((key) => !isSystemKey(key)),
+    ...data.filter(isSystemKey),
+  ];
+  const paged = totalPages > 1;
+
   return (
-    <DataTable
-      label="Provisioning keys"
-      columns={columns}
-      data={data}
-      rowKey={(key) => key.name}
-      sectionOf={(key) => (isSystemKey(key) ? "system" : "user")}
-      sectionLabel={(section) =>
-        section === "system" ? "Built-in" : "Custom keys"
-      }
-      trailingEmptyState={
-        noCustomKeys ? <CustomKeysEmpty onCreate={onCreate} /> : undefined
-      }
-      rowClassName={(key) => {
-        const base = "[&>td]:py-3.5";
-        return key.revoked ? `${base} opacity-55` : base;
-      }}
-      onRowClick={(key) => {
-        void navigate(
-          `/settings/provisioning-keys/${encodeURIComponent(key.id)}/activity`,
-          {
-            state: {
-              name: provisioningKeyDisplayName(key),
-              key,
-            },
-          },
-        );
-      }}
-      page={page}
-      totalPages={totalPages}
-      totalCount={totalCount}
-      itemLabel="key"
-      onPageChange={onPageChange}
-    />
+    <div className="space-y-4">
+      {noCustomKeys && <CustomKeysEmpty onCreate={onCreate} />}
+      <DataTable
+        label="Provisioning keys"
+        columns={columns}
+        data={ordered}
+        rowKey={(key) => key.name}
+        sectionOf={(key) => (isSystemKey(key) ? "Built-in" : undefined)}
+        expandedRowKey={selectedName ?? null}
+        renderExpandedRow={renderInstall}
+        rowClassName={(key) =>
+          cn(
+            "[&>td]:py-3.5",
+            key.revoked && "opacity-55",
+            !isInstallable(key) && "cursor-default",
+            key.name === selectedName && "bg-primary/[0.06]",
+          )
+        }
+        onRowClick={(key) => {
+          if (isInstallable(key)) onSelect(key);
+        }}
+        page={paged ? page : undefined}
+        totalPages={paged ? totalPages : undefined}
+        totalCount={paged ? totalCount : undefined}
+        itemLabel="key"
+        onPageChange={paged ? onPageChange : undefined}
+      />
+    </div>
   );
 }

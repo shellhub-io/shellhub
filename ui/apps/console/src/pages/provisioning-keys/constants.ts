@@ -1,43 +1,33 @@
-import { type ComponentType, type SVGProps } from "react";
-import {
-  ArrowsRightLeftIcon,
-  CheckBadgeIcon,
-  HandRaisedIcon,
-  ListBulletIcon,
-} from "@heroicons/react/24/outline";
-
-type IconType = ComponentType<SVGProps<SVGSVGElement>>;
-
 /**
  * What each enrolment mode is called and what it does, in one place, so the selector, the key
  * list and a key's page describe a mode identically.
  */
 export const MODE_INFO: Record<
   string,
-  { label: string; icon: IconType; description: string }
+  { label: string; description: string; outcome: string }
 > = {
   automatic: {
     label: "Automatic",
-    icon: CheckBadgeIcon,
     description: "Accept every device that registers with this key.",
+    outcome: "accepted the moment it connects",
   },
   manual: {
     label: "Manual",
-    icon: HandRaisedIcon,
     description:
       "Leave registered devices pending for you to review and accept.",
+    outcome: "left pending for you to accept",
   },
   webhook: {
     label: "Webhook",
-    icon: ArrowsRightLeftIcon,
     description:
       "Ask your endpoint at registration whether to accept, reject, or leave the device pending.",
+    outcome: "decided by your integrator",
   },
   allowlist: {
     label: "Identity allowlist",
-    icon: ListBulletIcon,
     description:
       "Accept a device only when the identity it reports is on the list below; reject the rest.",
+    outcome: "accepted if the identity it reports is allowed",
   },
 };
 
@@ -48,3 +38,13 @@ export const MODE_INFO: Record<
 export function modeInfo(mode: string) {
   return MODE_INFO[mode] ?? MODE_INFO.automatic;
 }
+
+/**
+ * The pairing code described the way a mode is. It is no mode a key can be given, so it stays out
+ * of MODE_INFO and the mode picker built from it.
+ */
+export const PAIRING_INFO = {
+  label: "Pairing code",
+  description: "Accept each device by the code its agent prints.",
+  outcome: "accepted by the code its agent prints",
+};

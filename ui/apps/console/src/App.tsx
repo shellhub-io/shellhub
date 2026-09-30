@@ -38,11 +38,12 @@ const PublicKeys = lazy(() => import("./pages/public-keys"));
 const AccessPolicies = lazy(() => import("./pages/access-policies"));
 const SSHIdentities = lazy(() => import("./pages/ssh-identities"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
-const AddDevice = lazy(() => import("./pages/AddDevice"));
+const AddDevice = lazy(() => import("./pages/add-device"));
+const AddInteractive = lazy(() => import("./pages/add-device/Interactive"));
+const AddFleet = lazy(() => import("./pages/add-device/Fleet"));
 const Install = lazy(() => import("./pages/install"));
 const SSHApproval = lazy(() => import("./pages/SSHApproval"));
 const Team = lazy(() => import("./pages/team"));
-const ProvisioningKeys = lazy(() => import("./pages/provisioning-keys"));
 const ProvisioningKeyHistory = lazy(
   () => import("./pages/provisioning-keys/ProvisioningKeyHistoryPage"),
 );
@@ -237,7 +238,14 @@ export default function App() {
                   />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/devices" element={<Devices />} />
-                  <Route path="/devices/add" element={<AddDevice />} />
+                  <Route path="/devices/add" element={<AddDevice />}>
+                    <Route index element={<AddInteractive />} />
+                    <Route path="fleet" element={<AddFleet />} />
+                  </Route>
+                  <Route
+                    path="/devices/add/fleet/:id/activity"
+                    element={<ProvisioningKeyHistory />}
+                  />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
                   <Route path="/containers" element={<Containers />} />
                   <Route
@@ -299,17 +307,9 @@ export default function App() {
                     />
                   )}
                   <Route path="/team" element={<Team />} />
-                  <Route
-                    path="/settings/provisioning-keys/:id/activity"
-                    element={<ProvisioningKeyHistory />}
-                  />
                   <Route path="/settings" element={<SettingsLayout />}>
                     <Route path="general" element={<GeneralSettings />} />
                     <Route path="ssh" element={<SshSettings />} />
-                    <Route
-                      path="provisioning-keys"
-                      element={<ProvisioningKeys />}
-                    />
                     {isCloud() && (
                       <Route path="billing" element={<BillingSettings />} />
                     )}

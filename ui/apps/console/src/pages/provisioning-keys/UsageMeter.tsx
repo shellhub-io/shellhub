@@ -1,106 +1,15 @@
+import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { type ProvisioningKey } from "@/client";
 import {
+  formatCount,
   getKeyBlockers,
   getUsageInfo,
   getWaitingInfo,
+  lastUsedPhrase,
+  provisioningKeyLink,
   type UsageInfo,
 } from "./helpers";
-
-const SIZE = 22;
-const STROKE = 3;
-const RADIUS = (SIZE - STROKE) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-function Arc({
-  from,
-  to,
-  className,
-}: {
-  from: number;
-  to: number;
-  className: string;
-}) {
-  const length = Math.max(0, to - from) * CIRCUMFERENCE;
-  if (length === 0) return null;
-  return (
-    <circle
-      cx={SIZE / 2}
-      cy={SIZE / 2}
-      r={RADIUS}
-      fill="none"
-      strokeWidth={STROKE}
-      strokeLinecap="round"
-      strokeDasharray={`${length} ${CIRCUMFERENCE}`}
-      strokeDashoffset={-from * CIRCUMFERENCE}
-      className={cn("transition-all duration-500", className)}
-    />
-  );
-}
-
-function Ring({
-  usage,
-  waiting,
-  dimmed,
-  reached,
-  oversubscribed,
-}: {
-  usage: UsageInfo;
-  waiting: number;
-  dimmed: boolean;
-  reached: boolean;
-  oversubscribed: boolean;
-}) {
-  if (usage.kind === "unlimited") {
-    return (
-      <span
-        aria-hidden="true"
-        style={{ width: SIZE, height: SIZE }}
-        className="grid place-items-center shrink-0 rounded-full border-2 border-dashed border-border text-[11px] leading-none text-text-muted"
-      >
-        ∞
-      </span>
-    );
-  }
-
-  const used = Math.min(1, usage.ratio);
-  const claimed = Math.min(1, used + waiting / usage.limit);
-
-  return (
-    <svg
-      aria-hidden="true"
-      width={SIZE}
-      height={SIZE}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
-      className="shrink-0 -rotate-90"
-    >
-      <circle
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
-        fill="none"
-        strokeWidth={STROKE}
-        className="stroke-border"
-      />
-      <Arc
-        from={used}
-        to={claimed}
-        className={oversubscribed ? "stroke-accent-red" : "stroke-primary/35"}
-      />
-      <Arc
-        from={0}
-        to={used}
-        className={
-          reached
-            ? "stroke-accent-yellow"
-            : dimmed
-              ? "stroke-text-muted/40"
-              : "stroke-primary"
-        }
-      />
-    </svg>
-  );
-}
 
 function detail(
   usage: UsageInfo,
@@ -110,70 +19,124 @@ function detail(
 ) {
   if (waiting > 0) {
     return beyondLimit > 0
-      ? `${waiting} waiting · ${beyondLimit} over`
-      : `${waiting} waiting`;
+      ? `${formatCount(waiting)} waiting · ${formatCount(beyondLimit)} over`
+      : `${formatCount(waiting)} waiting`;
   }
   if (closed) return "not enrolling";
-  if (usage.kind === "unlimited") return "no limit";
-  const left = Math.max(0, usage.limit - usage.used);
-  return left === 0 ? "limit reached" : `${left} left`;
+  if (usage.kind === "unlimited") return undefined;
+  return usage.used >= usage.limit ? "limit reached" : undefined;
 }
 
 /**
- * How much of a provisioning key's quota is spent, drawn as a ring the way a quota usually is,
- * with the count beside it. Devices still awaiting a decision claim a lighter part of the ring,
- * red once they would push the key past its limit. An unlimited key has nothing to fill, so it
- * shows its count and says there is no limit.
+ * A key's uses against its allowance, "3 of 10 devices" or "3 of unlimited devices", with the
+ * count itself carrying the weight. large sets the count as a page's headline number; muted
+ * softens it for a dense list.
  */
-export default function UsageMeter({
+export function UsageCount({
   provisioningKey,
   muted,
+  large,
 }: {
   provisioningKey: ProvisioningKey;
   muted?: boolean;
+  large?: boolean;
 }) {
   const usage = getUsageInfo(provisioningKey);
-  const { inert, overused, expired, quiet } = getKeyBlockers(provisioningKey);
+  return (
+    <div
+      className={cn(
+        "text-text-muted whitespace-nowrap",
+        large ? "text-sm" : "text-xs",
+      )}
+    >
+      <span
+        className={cn(
+          muted ? "text-text-secondary" : "text-text-primary",
+          large
+            ? "mr-1.5 text-2xl font-semibold tracking-tight"
+            : "font-medium",
+        )}
+      >
+        {formatCount(usage.used)}
+      </span>
+      {usage.kind === "unlimited"
+        ? " of unlimited devices"
+        : ` of ${formatCount(usage.limit)} devices`}
+    </div>
+  );
+}
+
+/**
+ * What a key's count leaves out, or nothing when the count says it all: devices waiting for a
+ * decision (red once accepting them would pass the limit), a spent limit, or a key that stopped
+ * enrolling. linkWaiting turns the waiting count into a link to the key's page.
+ */
+export function UsageDetail({
+  provisioningKey,
+  linkWaiting,
+  className,
+}: {
+  provisioningKey: ProvisioningKey;
+  linkWaiting?: boolean;
+  className?: string;
+}) {
+  const usage = getUsageInfo(provisioningKey);
+  const { overused, expired, quiet } = getKeyBlockers(provisioningKey);
   const reached = overused && !quiet;
   const { waiting, beyondLimit, oversubscribed } =
     getWaitingInfo(provisioningKey);
   const text = detail(usage, waiting, beyondLimit, quiet || expired);
+  if (!text) return null;
 
   return (
-    <div
-      className="flex items-center gap-2.5 min-w-[7.5rem]"
+    <span
+      className={cn(
+        oversubscribed
+          ? "text-accent-red"
+          : reached || waiting > 0
+            ? "text-accent-yellow"
+            : "text-text-muted",
+        className,
+      )}
       title={reached ? "Limit reached" : undefined}
     >
-      <Ring
-        usage={usage}
-        waiting={waiting}
-        dimmed={inert}
-        reached={reached}
-        oversubscribed={oversubscribed}
-      />
-      <div className="min-w-0 leading-tight">
-        <div
-          className={cn(
-            "text-xs font-mono",
-            muted ? "text-text-secondary" : "text-text-primary",
-          )}
-        >
-          {usage.kind === "unlimited"
-            ? `${usage.used} used`
-            : `${usage.used} / ${usage.limit}`}
-        </div>
-        <div
-          className={cn(
-            "mt-0.5 text-2xs",
-            oversubscribed
-              ? "text-accent-red"
-              : reached
-                ? "text-accent-yellow"
-                : "text-text-muted",
-          )}
+      {linkWaiting && waiting > 0 ? (
+        <Link
+          {...provisioningKeyLink(provisioningKey)}
+          onClick={(e) => e.stopPropagation()}
+          className="underline decoration-dotted underline-offset-2 hover:text-primary"
         >
           {text}
-        </div>
+        </Link>
+      ) : (
+        text
+      )}
+    </span>
+  );
+}
+
+/**
+ * A key's usage in a list cell: the count, what it leaves out, and when the key was last used.
+ */
+export default function UsageMeter({
+  provisioningKey,
+  muted,
+  linkWaiting,
+}: {
+  provisioningKey: ProvisioningKey;
+  muted?: boolean;
+  linkWaiting?: boolean;
+}) {
+  return (
+    <div className="min-w-[7.5rem] leading-tight">
+      <UsageCount provisioningKey={provisioningKey} muted={muted} />
+      <UsageDetail
+        provisioningKey={provisioningKey}
+        linkWaiting={linkWaiting}
+        className="mt-0.5 block text-2xs"
+      />
+      <div className="mt-0.5 text-2xs text-text-muted whitespace-nowrap">
+        {lastUsedPhrase(provisioningKey)}
       </div>
     </div>
   );
