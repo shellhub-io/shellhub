@@ -110,7 +110,7 @@ jobs:
         run: |
           for file in \
             "$GITHUB_WORKSPACE/claude/CLAUDE.md" \
-            "$GITHUB_WORKSPACE/claude/shellhub/CLAUDE.md" \
+            "$GITHUB_WORKSPACE/claude/.claude/repos/shellhub/CLAUDE.md" \
             "$GITHUB_WORKSPACE/claude/.claude/rules/code-style.md" \
             "$GITHUB_WORKSPACE/claude/.claude/skills/code-review/SKILL.md"; do
             if [[ ! -f "$file" ]]; then
@@ -131,4 +131,4 @@ jobs:
           trigger_phrase: "@claude"
           claude_args: |
             --add-dir ${{ github.workspace }}/claude
-            --add-dir ${{ github.workspace }}/claude/shellhub
+            --add-dir ${{ github.workspace }}/claude/.claude/repos/shellhub
