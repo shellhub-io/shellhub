@@ -10,6 +10,7 @@ export interface TerminalThemeColors {
   cursor?: string;
   cursorAccent?: string;
   selectionBackground?: string;
+  selectionForeground?: string;
   black?: string;
   red?: string;
   green?: string;
@@ -74,13 +75,12 @@ export function ansiColor(
 }
 
 /**
- * A named terminal colour scheme. preview holds the two colours the picker swatch needs, so the
- * list can be drawn without applying a theme.
+ * A named terminal colour scheme. dark says which side of the console's own theme it sits on, so
+ * chrome drawn around the terminal can pick a border that shows against it.
  */
 export interface TerminalTheme {
   name: string;
   dark: boolean;
-  preview: { background: string; foreground: string };
   colors: TerminalThemeColors;
 }
 
@@ -88,7 +88,6 @@ interface ThemeMetadata {
   name: string;
   file: string;
   dark: boolean;
-  preview: { background: string; foreground: string };
 }
 
 /**
@@ -141,29 +140,28 @@ const STORAGE_KEYS = {
 const FALLBACK_THEME: TerminalTheme = {
   name: "ShellHub Dark",
   dark: true,
-  preview: { background: "#18191B", foreground: "#667ACC" },
   colors: {
-    background: "#18191B",
-    foreground: "#E1E4EA",
-    cursor: "#667ACC",
-    cursorAccent: "#18191B",
-    selectionBackground: "#667ACC40",
-    black: "#1E2127",
-    red: "#ca6169",
-    green: "#82a568",
-    yellow: "#bf8c5d",
-    blue: "#56a2e1",
-    magenta: "#b07cc8",
-    cyan: "#4e9aa3",
-    white: "#E1E4EA",
-    brightBlack: "#5C6070",
-    brightRed: "#d9787f",
-    brightGreen: "#99ba82",
-    brightYellow: "#d4a676",
-    brightBlue: "#72b6ed",
-    brightMagenta: "#c495d6",
-    brightCyan: "#68b2ba",
-    brightWhite: "#f0ede8",
+    background: "#22263A",
+    foreground: "#C3CBEE",
+    cursor: "#7F93F0",
+    cursorAccent: "#22263A",
+    selectionBackground: "#667ACC66",
+    black: "#2F3449",
+    red: "#F7768E",
+    green: "#9ECE6A",
+    yellow: "#E0AF68",
+    blue: "#7F93F0",
+    magenta: "#BB9AF7",
+    cyan: "#7DCFFF",
+    white: "#C3CBEE",
+    brightBlack: "#5A628A",
+    brightRed: "#FF8FA3",
+    brightGreen: "#B5E48C",
+    brightYellow: "#F0C27E",
+    brightBlue: "#9DAFFF",
+    brightMagenta: "#D1B5FF",
+    brightCyan: "#A0DFFF",
+    brightWhite: "#FFFFFF",
   },
 };
 
@@ -172,14 +170,6 @@ async function fetchJson<T>(url: string): Promise<T> {
   if (!response.ok)
     throw new Error(`Failed to fetch ${url}: ${response.status}`);
   return (await response.json()) as T;
-}
-
-function normalizeColors(raw: Record<string, string>): TerminalThemeColors {
-  const { selection, ...rest } = raw;
-  return {
-    ...rest,
-    selectionBackground: selection || rest.selectionBackground,
-  } as TerminalThemeColors;
 }
 
 interface TerminalThemeState {
@@ -233,15 +223,10 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
         const results = await Promise.all(
           metadata.map(async (meta) => {
             try {
-              const raw = await fetchJson<Record<string, string>>(
+              const colors = await fetchJson<TerminalThemeColors>(
                 `/xterm-themes/${meta.file}`,
               );
-              return {
-                name: meta.name,
-                dark: meta.dark,
-                preview: meta.preview,
-                colors: normalizeColors(raw),
-              };
+              return { name: meta.name, dark: meta.dark, colors };
             } catch {
               return null;
             }
@@ -249,11 +234,17 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
         );
 
         const themes = results.filter(Boolean) as TerminalTheme[];
+        const saved = get().themeName;
         const current =
-          themes.find((t) => t.name === get().themeName) ||
-          themes[0] ||
-          FALLBACK_THEME;
-        set({ themes, theme: current, loaded: true });
+          themes.find((t) => t.name === saved) || themes[0] || FALLBACK_THEME;
+        const listed = metadata.some((meta) => meta.name === saved);
+        if (!listed) localStorage.setItem(STORAGE_KEYS.theme, current.name);
+        set({
+          themes,
+          theme: current,
+          themeName: listed ? saved : current.name,
+          loaded: true,
+        });
       } catch {
         set({ loaded: true });
       }
