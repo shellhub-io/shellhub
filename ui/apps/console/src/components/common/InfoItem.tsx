@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import CopyButton from "@/components/common/CopyButton";
 import { LABEL_BASE } from "@/utils/styles";
@@ -24,12 +24,15 @@ export default function InfoItem({
   truncate,
   children,
 }: InfoItemProps) {
+  const labelId = useId();
   const display = truncate && value ? value.slice(0, truncate) : value;
 
   return (
     <div>
-      <dt className={LABEL_BASE}>{label}</dt>
-      <dd className="flex items-center gap-1 mt-0.5">
+      <dt id={labelId} className={LABEL_BASE}>
+        {label}
+      </dt>
+      <dd aria-labelledby={labelId} className="flex items-center gap-1 mt-0.5">
         {children ?? (
           <>
             <span
