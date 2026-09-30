@@ -21,7 +21,11 @@ function serverAdmin(...args: string[]) {
   return composeExec("server", ["/server", "admin", ...args]);
 }
 
-function sql(query: string, vars: Record<string, string>) {
+function sql(
+  query: string,
+  vars: Record<string, string>,
+  flags: string[] = [],
+) {
   return composeExec(
     "postgres",
     [
@@ -29,6 +33,7 @@ function sql(query: string, vars: Record<string, string>) {
       "-c",
       'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 "$@"',
       "psql",
+      ...flags,
       ...Object.entries(vars).flatMap(([name, value]) => [
         "-v",
         `${name}=${value}`,
@@ -45,13 +50,20 @@ export const buildShortId = () => randomUUID().slice(0, 8);
 export const buildRandomEmail = (prefix: string) =>
   `${prefix}-${buildShortId()}@e2e.test`;
 
-export function createUser(prefix: string) {
+export function createUser(prefix: string, { admin = false } = {}) {
   const id = buildShortId();
   const user = {
     username: `e2e-${prefix}-${id}`,
     email: `${prefix}-${id}@e2e.test`,
   };
-  serverAdmin("user", "create", user.username, password, user.email);
+  serverAdmin(
+    "user",
+    "create",
+    user.username,
+    password,
+    user.email,
+    ...(admin ? ["--admin"] : []),
+  );
   return user;
 }
 
@@ -77,4 +89,14 @@ export function expireInvitation(tenant: string) {
       `expected to expire 1 invitation in ${tenant}, got "${out}"`,
     );
   }
+}
+
+export function readUserInvitationStatus(email: string) {
+  const status = sql(
+    "SELECT status FROM user_invitations WHERE email = :'email';",
+    { email },
+    ["-tA"],
+  );
+  if (!status) throw new Error(`expected a user invitation for ${email}`);
+  return status;
 }
