@@ -14,7 +14,7 @@ INSTALL_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/install.sh"
 # Utilities install.sh needs to do its work. Deliberately excludes everything
 # whose presence a branch keys off: docker, podman, snap, systemctl, sudo,
 # wslinfo, find, xdg-open, curl, wget.
-INSTALL_TEST_REAL_BINS="sh sed grep awk tr wc cat head tail cut mktemp chmod mkdir rm cp mv ln gzip sleep uname tee env dirname basename"
+INSTALL_TEST_REAL_BINS="sh sed grep awk tr wc cat head tail cut mktemp chmod mkdir rm cp mv ln gzip sleep uname tee env dirname basename date"
 
 # Build the curated PATH once per file, then a per-test stub dir on top.
 setup_install_env() {

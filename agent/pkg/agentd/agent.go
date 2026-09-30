@@ -57,7 +57,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -95,7 +97,11 @@ type Config struct {
 	// It is optional: when empty (and no tenant was persisted from a previous
 	// pairing), the agent boots into pairing mode and waits for a user to
 	// accept it into a namespace, learning the tenant from the server.
-	TenantID string `env:"TENANT_ID"`
+	TenantID string `env:"TENANT_ID" validate:"omitempty,uuid"`
+
+	// TenantOrigin records where TenantID came from. It is not read from the environment;
+	// [LoadConfigFromEnv] and [Agent.SetTenantID] set it as they resolve the tenant.
+	TenantOrigin TenantOrigin
 
 	// ProvisioningKey is a reusable provisioning key handed to the agent at install time (minted from the
 	// console's Provisioning Keys page). The key is namespace-scoped, so it enrolls the device on its own:
@@ -150,8 +156,6 @@ type Config struct {
 	// embedding program (where /proc/self/exe is not the agent binary) must set this to point
 	// at a binary/subcommand that runs the SFTP server.
 	SFTPServerCommand func() *exec.Cmd
-
-	pairedTenant bool
 }
 
 // HasNamespaceCredential reports whether the configuration carries something naming the namespace
@@ -161,31 +165,76 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.ProvisioningKey != ""
 }
 
+func (c *Config) usesProvisioningKey() bool {
+	return c.TenantID == "" && c.ProvisioningKey != ""
+}
+
+func (c *Config) credential() string {
+	if c.usesProvisioningKey() {
+		return "the provisioning key"
+	}
+
+	if c.TenantID == "" {
+		return "no namespace credential"
+	}
+
+	switch c.TenantOrigin {
+	case TenantFromEnvironment:
+		return fmt.Sprintf("the tenant %s from %sTENANT_ID", c.TenantID, envPrefix)
+	case TenantFromFile:
+		return fmt.Sprintf("the tenant %s persisted at %s", c.TenantID, TenantFilePath(c.PrivateKey))
+	case TenantFromPairing:
+		return fmt.Sprintf("the tenant %s learned from pairing", c.TenantID)
+	default:
+		return "the tenant " + c.TenantID
+	}
+}
+
+// CredentialFields returns the log fields that name the tenant a device enrolls with: tenant_id and
+// tenant_origin, plus tenant_file when the tenant was read from the persisted file. The agent's
+// client logs them on every retry, so a line about the same refusal uses the same names.
+func (c *Config) CredentialFields() log.Fields {
+	fields := log.Fields{
+		"tenant_id":     c.TenantID,
+		"tenant_origin": c.TenantOrigin,
+	}
+
+	if c.TenantOrigin == TenantFromFile {
+		fields["tenant_file"] = TenantFilePath(c.PrivateKey)
+	}
+
+	return fields
+}
+
 // LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
 // variables, falling back to the .env file next to the binary when one is present.
 //
-// The second return value carries the environment as parsed, for callers that log it.
+// A tenant persisted by a previous pairing is adopted before validation, so a malformed tenant is
+// refused whether it came from the environment or from the file, rather than being carried into an
+// authorization the server can only reject.
+//
+// The second return value carries the fields that failed validation, for callers that log them. A
+// persisted tenant that fails is keyed by its file's path rather than by TenantID, because the file
+// is what the operator has to fix.
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
-	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+	cfg, err := envs.ParseWithPrefix[Config](envPrefix)
 	if err != nil {
 		log.Error("failed to parse the configuration")
 
 		return nil, nil, err
 	}
 
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
-		return nil, fields, err
+	if cfg.TenantID != "" {
+		cfg.TenantOrigin = TenantFromEnvironment
 	}
 
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
 			cfg.TenantID = persisted
-			cfg.pairedTenant = true
+			cfg.TenantOrigin = TenantFromFile
 		case cfg.TenantID != persisted:
 			log.WithFields(log.Fields{
 				"env_tenant":       cfg.TenantID,
@@ -194,7 +243,78 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		}
 	}
 
+	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+		if rule, invalid := fields["TenantID"]; invalid && cfg.TenantOrigin == TenantFromFile {
+			delete(fields, "TenantID")
+			fields[TenantFilePath(cfg.PrivateKey)] = rule
+		}
+
+		return nil, fields, err
+	}
+
 	return cfg, nil, nil
+}
+
+const envPrefix = "SHELLHUB_"
+
+// FatalInvalidConfig reports every invalid setting in fields by the environment variable an
+// operator sets, then exits the process. T is the configuration the fields came from. It does not
+// return.
+func FatalInvalidConfig[T any](fields map[string]any, err error) {
+	for _, message := range InvalidConfigMessages[T](fields) {
+		log.Error(message)
+	}
+
+	log.WithError(err).Fatal("Failed to load the configuration from the environment variables")
+}
+
+// InvalidConfigMessages turns the field map a configuration loader such as [LoadConfigFromEnv]
+// returns into one message per invalid setting, naming the environment variable an operator sets
+// rather than the struct field the validator reported. T is the configuration the map came from,
+// read for its env tags; a field it does not carry is named as it stands. No value is ever
+// included, because some settings are credentials and a log line is not where those belong.
+func InvalidConfigMessages[T any](fields map[string]any) []string {
+	if len(fields) == 0 {
+		return nil
+	}
+
+	structure := reflect.TypeFor[T]()
+	messages := make([]string, 0, len(fields))
+
+	for field, rule := range fields {
+		messages = append(messages, configEnvName(structure, field)+" "+requirementOf(rule))
+	}
+
+	sort.Strings(messages)
+
+	return messages
+}
+
+func configEnvName(structure reflect.Type, field string) string {
+	structField, ok := structure.FieldByName(field)
+	if !ok {
+		return field
+	}
+
+	name, _, _ := strings.Cut(structField.Tag.Get("env"), ",")
+	if name == "" {
+		return field
+	}
+
+	return envPrefix + name
+}
+
+func requirementOf(rule any) string {
+	switch rule {
+	case "required":
+		return "is required"
+	case "uuid":
+		return "must be a UUID"
+	case "min", "max":
+		return "is out of range"
+	default:
+		return fmt.Sprintf("is invalid (%v)", rule)
+	}
 }
 
 // Agent is a device's connection to a ShellHub server: it authenticates, keeps the device
@@ -217,6 +337,7 @@ type Agent struct {
 	listener   atomic.Pointer[net.Listener]
 	logger     *log.Entry
 	authMu     sync.Mutex
+	tenantMu   sync.RWMutex
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -307,7 +428,11 @@ func (a *Agent) Initialize() error {
 func (a *Agent) Setup() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
+	a.cli, err = client.NewClient(
+		a.config.ServerAddress,
+		client.WithVersion(a.config.Version),
+		client.WithLogFields(a.CredentialFields),
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -351,12 +476,18 @@ func (a *Agent) Authorize() error {
 			return err
 		}
 
-		return errors.Wrap(err, "failed to authorize device")
+		if a.config.ProvisioningKey != "" && errors.Is(err, client.ErrBadRequest) {
+			return errors.Wrap(err, "the server did not accept the device, most likely because of the provisioning key")
+		}
+
+		return errors.Wrap(err, "failed to authorize device with "+a.config.credential())
 	}
 
+	a.tenantMu.Lock()
 	if a.config.TenantID == "" {
 		a.config.TenantID = a.authData.TenantID
 	}
+	a.tenantMu.Unlock()
 
 	a.closed.Store(false)
 
@@ -374,18 +505,33 @@ func (a *Agent) Authorize() error {
 	return nil
 }
 
-// SetTenantID injects the tenant learned from a pairing so the agent can be
-// authorized. The tenant is the pairing's, so [Agent.Unpair] may forget it.
+// CredentialFields returns [Config.CredentialFields] read under the lock that pairing and removal
+// take to change the tenant, so it is safe to call from any goroutine.
+func (a *Agent) CredentialFields() log.Fields {
+	a.tenantMu.RLock()
+	defer a.tenantMu.RUnlock()
+
+	return a.config.CredentialFields()
+}
+
+// SetTenantID injects the tenant learned from a pairing so the agent can be authorized, and
+// attributes it to that pairing so [Agent.Unpair] may forget it.
 func (a *Agent) SetTenantID(tenant string) {
+	a.tenantMu.Lock()
+	defer a.tenantMu.Unlock()
+
 	a.config.TenantID = tenant
-	a.config.pairedTenant = true
+	a.config.TenantOrigin = TenantFromPairing
 }
 
 // Unpair forgets the tenant a pairing gave the agent, deleting the file that persisted it, so the
 // agent can pair again. It returns [ErrTenantFromEnvironment] and changes nothing when the tenant
 // was configured instead, because the agent would only learn it again on its next start.
 func (a *Agent) Unpair() error {
-	if !a.config.pairedTenant {
+	a.tenantMu.Lock()
+	defer a.tenantMu.Unlock()
+
+	if a.config.TenantOrigin != TenantFromFile && a.config.TenantOrigin != TenantFromPairing {
 		return ErrTenantFromEnvironment
 	}
 
@@ -394,7 +540,7 @@ func (a *Agent) Unpair() error {
 	}
 
 	a.config.TenantID = ""
-	a.config.pairedTenant = false
+	a.config.TenantOrigin = TenantFromNowhere
 
 	return nil
 }
@@ -491,10 +637,14 @@ func (a *Agent) probeServerInfo() error {
 var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
 
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
+	a.tenantMu.RLock()
+	tenant := a.config.TenantID
+	a.tenantMu.RUnlock()
+
 	auth := &models.DeviceAuth{
 		Hostname:        a.config.PreferredHostname,
 		Identity:        a.Identity,
-		TenantID:        a.config.TenantID,
+		TenantID:        tenant,
 		PublicKey:       string(keygen.EncodePublicKeyToPem(a.pubKey)),
 		ProvisioningKey: a.config.ProvisioningKey,
 	}

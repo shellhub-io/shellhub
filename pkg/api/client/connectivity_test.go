@@ -243,3 +243,72 @@ func TestTheServerAnswerIsBoundedBeforeItReachesTheLog(t *testing.T) {
 	assert.Less(t, len(reported.Error()), len(page))
 	assert.Contains(t, reported.Error(), "502")
 }
+
+func TestAPersistentRefusalKeepsBeingReported(t *testing.T) {
+	backend, hook := logtest.NewNullLogger()
+	backend.SetLevel(logrus.DebugLevel)
+
+	cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries(), WithLogger(backend))
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	attempts := 0
+	accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+	mock.RegisterResponder("POST", "/api/devices/auth", func(r *http.Request) (*http.Response, error) {
+		attempts++
+		if attempts > 25 {
+			return accepted(r)
+		}
+
+		return mock.NewStringResponse(http.StatusNotFound, `{"message":"namespace not found"}`), nil
+	})
+
+	_, err = cli.AuthDevice(authRequest())
+	require.NoError(t, err)
+
+	surfaced := 0
+	for _, entry := range hook.AllEntries() {
+		if entry.Level == logrus.WarnLevel && strings.Contains(entry.Message, "Cannot authorize the device") {
+			surfaced++
+		}
+	}
+
+	assert.Greater(t, surfaced, 1, "a refusal that keeps repeating must not decay to silence")
+}
+
+func TestRefusalsCarryTheFieldsTheCallerNamesAtTheTimeTheyAreLogged(t *testing.T) {
+	backend, hook := logtest.NewNullLogger()
+
+	named := "no namespace credential"
+
+	cli, err := NewClient("https://www.cloud.shellhub.io/",
+		withImmediateRetries(),
+		WithLogger(backend),
+		WithLogFields(func() logrus.Fields { return logrus.Fields{"credential": named} }),
+	)
+	require.NoError(t, err)
+
+	client, ok := cli.(*client)
+	require.True(t, ok)
+
+	mock.ActivateNonDefault(client.http.GetClient())
+	defer mock.DeactivateAndReset()
+
+	accepted, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{Name: "83-18-77-25-78-0d"})
+	mock.RegisterResponder("POST", "/api/devices/auth",
+		mock.NewStringResponder(http.StatusNotFound, `{"message":"namespace not found"}`).Then(accepted))
+
+	named = "the tenant 00000000-0000-4000-0000-000000000000 persisted at /etc/shellhub.key.tenant"
+
+	_, err = cli.AuthDevice(authRequest())
+	require.NoError(t, err)
+
+	require.NotEmpty(t, hook.AllEntries())
+	assert.Equal(t, "Cannot authorize the device, retrying until the server accepts it", hook.AllEntries()[0].Message)
+	assert.Equal(t, named, hook.AllEntries()[0].Data["credential"])
+}

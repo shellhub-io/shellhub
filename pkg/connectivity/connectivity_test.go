@@ -71,6 +71,21 @@ func TestRefused(t *testing.T) {
 			attempt:     9,
 			expected:    logrus.DebugLevel,
 		},
+		{
+			description: "stays at debug through the end of the window",
+			attempt:     10,
+			expected:    logrus.DebugLevel,
+		},
+		{
+			description: "surfaces again when the window turns over",
+			attempt:     11,
+			expected:    logrus.WarnLevel,
+		},
+		{
+			description: "keeps surfacing however long the refusal lasts",
+			attempt:     101,
+			expected:    logrus.WarnLevel,
+		},
 	}
 
 	for _, test := range tests {

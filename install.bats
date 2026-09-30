@@ -33,6 +33,11 @@ skip_enrollment_wait() {
     stub_bin sleep 'exit 0'
 }
 
+stub_agent_log() {
+    cat > "$BATS_TEST_TMPDIR/agent.log"
+    stub_bin agent-log "cat '$BATS_TEST_TMPDIR/agent.log'"
+}
+
 with_tenant() {
     export TENANT_ID="00000000-0000-4000-a000-000000000000"
 }
@@ -141,6 +146,45 @@ enter_wsl() {
     [ "$output" = "none — enroll with 'shellhub-agent login'" ]
 }
 
+@test "enrollment_summary reports a tenant a previous enrollment left behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+
+    call_install enrollment_summary
+
+    [ "$output" = "tenant 00000000-0000-4000-0000-000000000000 (persisted by a previous enrollment)" ]
+}
+
+@test "enrollment_summary reports a persisted tenant ahead of a provisioning key" {
+    export PROVISIONING_KEY=key-1
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+
+    call_install enrollment_summary
+
+    [ "$output" = "tenant 00000000-0000-4000-0000-000000000000 (persisted by a previous enrollment)" ]
+}
+
+@test "persisted_tenant escalates to read a tenant file only root can read" {
+    as_non_root
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    chmod 000 "$PRIVATE_KEY.tenant"
+
+    call_install persisted_tenant
+
+    assert_called "sudo head -n 1 $PRIVATE_KEY.tenant"
+}
+
+@test "persisted_tenant reads the tenant file a container install names under /host" {
+    export PRIVATE_KEY="/host$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+
+    call_install persisted_tenant
+
+    [ "$output" = "00000000-0000-4000-0000-000000000000" ]
+}
+
 @test "enroll_agent_interactively runs the login flow when no credential names a namespace" {
     stub_bin shellhub-agent
 
@@ -191,6 +235,30 @@ enter_wsl() {
     assert_output_contains "provisioning key's namespace"
 }
 
+@test "enroll_agent_interactively skips the login flow for a persisted tenant" {
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+    export PRIVATE_KEY="$AGENT_KEY"
+    stub_bin shellhub-agent
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
+
+    [ "$status" -eq 0 ]
+    refute_called "shellhub-agent"
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
+}
+
+@test "enroll_agent_interactively reports a persisted tenant ahead of a provisioning key" {
+    export PROVISIONING_KEY=key-1
+    export PRIVATE_KEY="$AGENT_KEY"
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
+    refute_output_contains "provisioning key's namespace"
+}
+
 @test "enroll_agent_interactively skips the login flow for a tenant" {
     with_tenant
     stub_bin shellhub-agent
@@ -200,6 +268,174 @@ enter_wsl() {
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
     assert_output_contains "appear as pending in the console"
+}
+
+@test "observe_enrollment reports an agent that enrolled" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\""'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "is listening for connections"
+}
+
+@test "refusal_reason prints only the reason a log line carries" {
+    call_install refusal_reason 'time="now" level=warning msg="Cannot authorize the device" attempt=1 error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}" server_address="http://localhost:80"'
+
+    [ "$status" -eq 0 ]
+    [ "$output" = 'the server answered 404 Not Found: {"message":"namespace not found"}' ]
+}
+
+@test "refusal_reason falls back to the line when it carries no reason" {
+    call_install refusal_reason 'level=warning msg="Cannot authorize the device"'
+
+    [ "$status" -eq 0 ]
+    [ "$output" = 'level=warning msg="Cannot authorize the device"' ]
+}
+
+@test "observe_enrollment reports the server's refusal" {
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}" server_address="http://localhost:80"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    assert_output_contains "The server refused this device"
+    assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
+}
+
+@test "observe_enrollment keeps the agent's own bookkeeping out of what it reports" {
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found" server_address="http://localhost:80"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    assert_output_contains "the server answered 404 Not Found"
+    refute_output_contains "level=fatal"
+    refute_output_contains "server_address"
+}
+
+@test "observe_enrollment reports the settings an agent refused its own configuration over" {
+    stub_agent_log <<'LOG'
+time="now" level=error msg="SHELLHUB_TENANT_ID must be a UUID"
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="validation failed"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "refused its own configuration"
+    assert_output_contains "SHELLHUB_TENANT_ID must be a UUID"
+    refute_output_contains "has not enrolled yet"
+}
+
+@test "observe_enrollment names the host path of a persisted tenant the agent refused" {
+    stub_agent_log <<'LOG'
+time="now" level=error msg="/host/etc/shellhub.key.tenant must be a UUID"
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="invalid structure"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "   /etc/shellhub.key.tenant must be a UUID"
+    refute_output_contains "invalid structure"
+}
+
+@test "observe_enrollment names each refused setting once across agent restarts" {
+    stub_agent_log <<'LOG'
+time="now" level=error msg="SHELLHUB_TENANT_ID must be a UUID"
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="invalid structure"
+time="now" level=error msg="SHELLHUB_TENANT_ID must be a UUID"
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="invalid structure"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    [ "$(echo "$output" | grep -c 'SHELLHUB_TENANT_ID must be a UUID')" -eq 1 ]
+}
+
+@test "observe_enrollment falls back to the error when a refused configuration names no setting" {
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to load the configuration from the environment variables" error="missing required value: SERVER_ADDRESS"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "missing required value: SERVER_ADDRESS"
+    refute_output_contains "has not enrolled yet"
+}
+
+@test "observe_enrollment reports an agent still retrying when the window closes" {
+    stub_agent_log <<'LOG'
+time="now" level=warning msg="Cannot authorize the device, retrying until the server accepts it" attempt=1 error="the server answered 404 Not Found: {\"message\":\"namespace not found\"}"
+LOG
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The server is still refusing this device"
+    assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
+    refute_output_contains "level=warning"
+}
+
+@test "observe_enrollment names the command to inspect an agent that says nothing" {
+    stub_bin agent-log
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "agent-log"
+}
+
+@test "observe_enrollment does not claim an outcome for a runtime it cannot read" {
+    call_install observe_enrollment ""
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "does not expose"
+}
+
+@test "enroll_agent_interactively observes the outcome of a provisioning key enrollment" {
+    export PROVISIONING_KEY=key-1
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "provisioning key's namespace"
+    assert_output_contains "404 Not Found"
+}
+
+@test "enroll_agent_interactively does not claim an outcome it cannot observe" {
+    export PROVISIONING_KEY=key-1
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
+
+    assert_output_contains "provisioning key's namespace"
+    assert_output_contains "does not expose"
+}
+
+@test "enroll_agent_interactively observes the outcome of a persisted tenant enrollment" {
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+    export PRIVATE_KEY="$AGENT_KEY"
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
+    assert_output_contains "404 Not Found"
+}
+
+@test "enroll_agent_interactively observes the outcome of a tenant enrollment" {
+    with_tenant
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "appear as pending in the console"
+    assert_output_contains "404 Not Found"
 }
 
 @test "docker_install runs the container with unless-stopped so it survives a reboot" {
@@ -594,6 +830,18 @@ enter_wsl() {
     [ -x "$INSTALL_DIR/shellhub-agent" ]
 }
 
+@test "standalone_install reads only the journal of the service it started" {
+    with_tenant
+    fake_agent_binary
+    stub_bin date 'echo 1700000000'
+    stub_bin journalctl
+
+    call_install standalone_install
+
+    [ "$status" -eq 0 ]
+    assert_called "journalctl -u shellhub-agent --no-pager -n 50 --since @1700000000"
+}
+
 @test "standalone_install escalates when it is not already root" {
     with_tenant
     as_non_root
@@ -618,7 +866,7 @@ enter_wsl() {
 }
 
 @test "docker_uninstall removes the container and the wrapper" {
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper docker
 
     call_install docker_uninstall
@@ -629,7 +877,7 @@ enter_wsl() {
 }
 
 @test "docker_uninstall escalates when it is not already root" {
-    stub_bin docker
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper docker
     as_non_root
 
@@ -641,7 +889,7 @@ enter_wsl() {
 }
 
 @test "podman_uninstall removes the container and the wrapper" {
-    stub_bin podman
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper podman
 
     call_install podman_uninstall
@@ -652,7 +900,7 @@ enter_wsl() {
 }
 
 @test "podman_uninstall escalates when it is not already root" {
-    stub_bin podman
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
     call_install install_agent_wrapper podman
     as_non_root
 
@@ -664,12 +912,129 @@ enter_wsl() {
 }
 
 @test "docker_uninstall reports a container that was already gone" {
-    stub_bin docker 'echo "docker $*" >> "$CALLS"; exit 1'
+    stub_bin docker
 
     call_install docker_uninstall
 
     [ "$status" -eq 0 ]
     assert_output_contains "not found (may already be removed)"
+    refute_called "docker rm -f"
+}
+
+@test "docker_uninstall aborts when the container cannot be removed" {
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; [ "$1" != rm ]'
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to remove container 'shellhub'"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall aborts when the container cannot be removed" {
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; [ "$1" != rm ]'
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to remove container 'shellhub'"
+    refute_output_contains "uninstalled"
+}
+
+@test "docker_uninstall aborts when it cannot list containers" {
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" != ps ]'
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to look up container 'shellhub'"
+    refute_output_contains "not found"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall aborts when it cannot list containers" {
+    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" != ps ]'
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to look up container 'shellhub'"
+    refute_output_contains "not found"
+    refute_output_contains "uninstalled"
+}
+
+@test "podman_uninstall reports a container that was already gone" {
+    stub_bin podman
+
+    call_install podman_uninstall
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "not found (may already be removed)"
+    refute_called "podman rm -f"
+}
+
+@test "uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
+}
+
+@test "uninstall names the tenant file a container install left behind under /host" {
+    export PRIVATE_KEY="/host$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    assert_output_contains "$BATS_TEST_TMPDIR/shellhub.key.tenant"
+    [[ "$output" != *"/host$BATS_TEST_TMPDIR"* ]]
+}
+
+@test "podman_uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    stub_bin podman
+
+    call_install podman_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
+}
+
+@test "standalone_uninstall names the tenant file it leaves behind" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    echo "00000000-0000-4000-0000-000000000000" > "$PRIVATE_KEY.tenant"
+    fake_agent_binary
+    cp "$AGENT_BINARY" "$INSTALL_DIR/shellhub-agent"
+
+    call_install standalone_uninstall
+
+    assert_output_contains "$PRIVATE_KEY.tenant"
+}
+
+@test "uninstall names a tenant file it cannot read a tenant from" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    : > "$PRIVATE_KEY.tenant"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "remembered in $PRIVATE_KEY.tenant"
+}
+
+@test "uninstall stays quiet about a tenant file that is not there" {
+    export PRIVATE_KEY="$BATS_TEST_TMPDIR/shellhub.key"
+    stub_bin docker
+
+    call_install docker_uninstall
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "ShellHub agent uninstalled."
+    refute_output_contains ".tenant"
 }
 
 @test "standalone_uninstall reports a missing binary" {
@@ -677,6 +1042,15 @@ enter_wsl() {
 
     [ "$status" -eq 1 ]
     assert_output_contains "ShellHub agent binary not found"
+}
+
+@test "standalone_uninstall looks in the default install dir when the environment names none" {
+    unset INSTALL_DIR
+
+    call_install standalone_uninstall
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "/usr/local/bin/shellhub-agent"
 }
 
 @test "standalone_uninstall stops the service and removes the binary" {
@@ -880,14 +1254,50 @@ enter_wsl() {
     assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
 }
 
-@test "uninstall dispatches to the detected method" {
+@test "the installer reports a tenant a previous enrollment left behind" {
+    echo "00000000-0000-4000-0000-000000000000" > "$AGENT_KEY.tenant"
     stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "Enrollment: tenant 00000000-0000-4000-0000-000000000000 (persisted by a previous enrollment)"
+}
+
+@test "the installer prefers a tenant given to this run over the persisted one" {
+    with_tenant
+    echo "00000000-0000-4000-0000-000000000000" > "$AGENT_KEY.tenant"
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
+    refute_output_contains "remembered at"
+}
+
+@test "uninstall dispatches to the detected method" {
+    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = ps ] && echo deadbeef; exit 0'
 
     run_install uninstall
 
     [ "$status" -eq 0 ]
     assert_output_contains "Uninstalling ShellHub using docker method"
     assert_called "docker rm -f shellhub"
+}
+
+@test "uninstall does no installer work before removing the agent" {
+    stub_bin docker
+    stub_bin curl 'echo "curl $*" >> "$CALLS"'
+    stub_bin wget 'echo "wget $*" >> "$CALLS"'
+
+    run_install uninstall
+
+    [ "$status" -eq 0 ]
+    refute_called "curl"
+    refute_called "wget"
+    [[ "$output" != *"Detected settings"* ]]
+    [[ "$output" != *"ShellHub Agent Installer"* ]]
 }
 
 @test "uninstall is refused for install methods that do not support it" {

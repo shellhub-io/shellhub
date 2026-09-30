@@ -78,6 +78,20 @@ func TestUnpairForgetsAPairedTenant(t *testing.T) {
 	assert.False(t, ag.config.HasNamespaceCredential(), "the agent goes back to pairing")
 	_, err := os.Stat(tenantFile)
 	assert.True(t, os.IsNotExist(err), "the persisted tenant is gone")
+	assert.Equal(t, TenantFromNowhere, ag.config.TenantOrigin, "a forgotten tenant has no origin left to report")
+}
+
+func TestUnpairForgetsATenantAdoptedFromTheFile(t *testing.T) {
+	ag := removalTestAgent(t, client_mocks.NewMockClient(t), "00000000-0000-4000-0000-000000000000")
+	ag.config.TenantOrigin = TenantFromFile
+	tenantFile := TenantFilePath(ag.config.PrivateKey)
+	require.NoError(t, PersistTenant(tenantFile, "00000000-0000-4000-0000-000000000000"))
+
+	require.NoError(t, ag.Unpair())
+
+	assert.False(t, ag.config.HasNamespaceCredential(), "a tenant a previous pairing persisted is the agent's to forget")
+	_, err := os.Stat(tenantFile)
+	assert.True(t, os.IsNotExist(err), "the persisted tenant is gone")
 }
 
 func TestUnpairRefusesATenantFromTheEnvironment(t *testing.T) {
@@ -85,4 +99,25 @@ func TestUnpairRefusesATenantFromTheEnvironment(t *testing.T) {
 
 	require.ErrorIs(t, ag.Unpair(), ErrTenantFromEnvironment)
 	assert.Equal(t, "00000000-0000-4000-0000-000000000000", ag.config.TenantID)
+}
+
+func TestTheTenantCanBeReadWhilePairingSetsIt(t *testing.T) {
+	ag := removalTestAgent(t, client_mocks.NewMockClient(t), "")
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+
+		for range 100 {
+			ag.CredentialFields()
+			_, _ = ag.buildDeviceAuth()
+		}
+	}()
+
+	for range 100 {
+		ag.SetTenantID("00000000-0000-4000-0000-000000000000")
+		require.NoError(t, ag.Unpair())
+	}
+
+	<-done
 }
