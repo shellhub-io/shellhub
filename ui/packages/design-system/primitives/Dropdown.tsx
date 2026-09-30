@@ -403,10 +403,14 @@ function Item({
   );
 }
 
+function Separator() {
+  return <div role="separator" className="my-1 h-px bg-border" />;
+}
+
 /**
- * Dropdown and its parts as one compound component: Dropdown.Trigger, .Anchor, .Input, .Panel
- * and .Item. The parts read the open state from the root through context, so they only work
- * inside one.
+ * Dropdown and its parts as one compound component: Dropdown.Trigger, .Anchor, .Input, .Panel,
+ * .Item and .Separator, a rule between groups of items that keyboard navigation skips. The parts
+ * read the open state from the root through context, so they only work inside one.
  */
 export const Dropdown = Object.assign(DropdownRoot, {
   Trigger,
@@ -414,4 +418,5 @@ export const Dropdown = Object.assign(DropdownRoot, {
   Input,
   Panel,
   Item,
+  Separator,
 });
