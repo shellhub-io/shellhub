@@ -76,16 +76,14 @@ export function RoleBadge({ role }: { role: string }) {
  * assigned, so owner is not among them.
  */
 export function RoleSelector({
-  label = "Role",
   value,
   onChange,
 }: {
-  label?: string;
   value: AssignableRole;
   onChange: (v: AssignableRole) => void;
 }) {
   return (
-    <RadioGroupField label={label} value={value} onChange={onChange}>
+    <RadioGroupField label="Role" value={value} onChange={onChange}>
       {ROLES.map((role) => {
         const meta = ROLE_META[role];
         const { icon: Icon } = meta;
@@ -107,14 +105,10 @@ export function RoleSelector({
 export function FormRoleSelector<T extends FieldValues>({
   control,
   name,
-  label,
 }: {
   control: Control<T>;
   name: Path<T>;
-  label?: string;
 }) {
   const { field } = useController({ name, control });
-  return (
-    <RoleSelector label={label} value={field.value} onChange={field.onChange} />
-  );
+  return <RoleSelector value={field.value} onChange={field.onChange} />;
 }

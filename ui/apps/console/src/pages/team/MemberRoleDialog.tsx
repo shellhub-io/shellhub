@@ -75,7 +75,7 @@ export default function MemberRoleDialog({
         }
       }}
     >
-      <RoleSelector label="Role" value={next} onChange={setNext} />
+      <RoleSelector value={next} onChange={setNext} />
       {devicesLeave && (
         <DepartingDevices
           memberId={memberId}
