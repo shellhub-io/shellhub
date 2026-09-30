@@ -9,11 +9,8 @@ interface DrawerProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  subtitle?: ReactNode;
-  icon?: ReactNode;
   width?: "sm" | "md";
   children: ReactNode;
-  footer?: ReactNode;
   bodyClassName?: string;
 }
 
@@ -31,11 +28,8 @@ export default function Drawer({
   open,
   onClose,
   title,
-  subtitle,
-  icon,
   width = "md",
   children,
-  footer,
   bodyClassName,
 }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -68,24 +62,12 @@ export default function Drawer({
         )}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-2.5">
-            {icon && (
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                {icon}
-              </div>
-            )}
-            <div>
-              <h2
-                id={headingId}
-                className="text-base font-semibold text-text-primary"
-              >
-                {title}
-              </h2>
-              {subtitle && (
-                <p className="text-2xs text-text-muted mt-0.5">{subtitle}</p>
-              )}
-            </div>
-          </div>
+          <h2
+            id={headingId}
+            className="text-base font-semibold text-text-primary"
+          >
+            {title}
+          </h2>
           <IconButton
             variant="ghost"
             aria-label="Close"
@@ -98,11 +80,6 @@ export default function Drawer({
         <div className={bodyClassName ?? "flex-1 overflow-y-auto px-6 py-5"}>
           {children}
         </div>
-        {footer && (
-          <div className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-end gap-2">
-            {footer}
-          </div>
-        )}
       </div>
     </>
   );

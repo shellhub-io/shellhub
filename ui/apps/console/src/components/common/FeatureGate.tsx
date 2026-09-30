@@ -5,15 +5,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { isEnterpriseOrCloud } from "@/env";
 import { Button } from "@shellhub/design-system/primitives";
-import EmptyState, {
-  type EmptyStateFeature,
-} from "@/components/common/EmptyState";
+import EmptyState from "@/components/common/EmptyState";
 
 interface FeatureGateProps {
   children: ReactNode;
   feature: string;
   description: string;
-  highlights?: EmptyStateFeature[];
 }
 
 /**
@@ -24,7 +21,6 @@ export default function FeatureGate({
   children,
   feature,
   description,
-  highlights,
 }: FeatureGateProps) {
   if (isEnterpriseOrCloud()) {
     return <>{children}</>;
@@ -37,7 +33,6 @@ export default function FeatureGate({
       overline="Premium Feature"
       title={feature}
       description={description}
-      features={highlights}
       footnote="Available on ShellHub Cloud and Enterprise editions."
     >
       <Button

@@ -16,8 +16,6 @@ interface FormModalProps<T extends FieldValues> {
   onClose: () => void;
   title: string;
   submitLabel: string;
-  submittingLabel?: string;
-  cancelLabel?: string;
   submitIcon?: ReactNode;
   requireDirty?: boolean;
   submitDisabled?: boolean;
@@ -25,7 +23,6 @@ interface FormModalProps<T extends FieldValues> {
   icon: ReactNode;
   size?: ModalProps["size"];
   bodyClassName?: string;
-  footerExtra?: ReactNode;
   footerStart?: ReactNode;
   children: ReactNode;
 }
@@ -45,8 +42,6 @@ export default function FormModal<T extends FieldValues>({
   onClose,
   title,
   submitLabel,
-  submittingLabel = "Saving...",
-  cancelLabel = "Cancel",
   submitIcon,
   requireDirty = false,
   submitDisabled = false,
@@ -54,7 +49,6 @@ export default function FormModal<T extends FieldValues>({
   icon,
   size,
   bodyClassName,
-  footerExtra,
   footerStart,
   children,
 }: FormModalProps<T>) {
@@ -85,9 +79,8 @@ export default function FormModal<T extends FieldValues>({
         footerStart={footerStart}
         footer={
           <>
-            {footerExtra}
             <Button variant="ghost" onClick={requestClose}>
-              {cancelLabel}
+              Cancel
             </Button>
             <Button
               variant="primary"
@@ -96,7 +89,7 @@ export default function FormModal<T extends FieldValues>({
               loading={isSubmitting}
               icon={submitIcon}
             >
-              {isSubmitting ? submittingLabel : submitLabel}
+              {isSubmitting ? "Saving..." : submitLabel}
             </Button>
           </>
         }
