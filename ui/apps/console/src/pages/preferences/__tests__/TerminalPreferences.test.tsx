@@ -12,12 +12,7 @@ import TerminalPreferences from "../TerminalPreferences";
 function terminalTheme(name: string, dark: boolean): TerminalTheme {
   const background = dark ? "#101010" : "#f8f8f8";
   const foreground = dark ? "#e0e0e0" : "#202020";
-  return {
-    name,
-    dark,
-    preview: { background, foreground },
-    colors: { background, foreground },
-  };
+  return { name, dark, colors: { background, foreground } };
 }
 
 function renderTerminal() {
