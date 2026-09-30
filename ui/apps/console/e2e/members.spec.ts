@@ -1,23 +1,40 @@
-import { type Browser, type Page, expect, test } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import {
+  type Browser,
+  type Locator,
+  type Page,
+  expect,
+  test,
+} from "@playwright/test";
+import { generateKeyPairSync, randomBytes } from "node:crypto";
 import {
   getNamespaceMembershipInvitationList,
   acceptInvite,
+  acceptDevicePairing,
   apiKeyCreate,
+  createDevicePairing,
+  getDevices,
   listAccessPolicies,
   listNamespaceMembers,
 } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
-import { isCommunity, isEnterprise } from "./env";
-import { signIn, dismissWizard, directMembershipReason } from "./helpers";
+import { isCloud, isCommunity, isEnterprise } from "./env";
+import {
+  createTeam,
+  createTeamWithMember,
+  signIn,
+  signInAndOpen,
+  dismissWizard,
+  directMembershipReason,
+  signUpFromInvite,
+} from "./helpers";
 import {
   password,
   buildShortId,
   buildRandomEmail,
   createUser,
-  createNamespace,
   addMember,
   expireInvitation,
+  readUserInvitationStatus,
 } from "./seed";
 import {
   type Endpoint,
@@ -26,26 +43,6 @@ import {
   invite,
   loginAs,
 } from "./api";
-
-async function createTeam() {
-  const owner = createUser("owner");
-  const namespace = `e2e-team-${buildShortId()}`;
-  const tenant = randomUUID();
-  createNamespace(owner.username, namespace, tenant);
-  const { token } = await loginAs(owner.username, password);
-  return { owner: { ...owner, token }, namespace, tenant };
-}
-
-async function createTeamWithMember(role: AssignableRole) {
-  const team = await createTeam();
-  const member = createUser("member");
-  addMember(member.username, team.namespace, role);
-  const { token, tenant } = await loginAs(member.username, password);
-  if (tenant !== team.tenant) {
-    throw new Error(`${member.username} did not land in ${team.namespace}`);
-  }
-  return { ...team, member: { ...member, token } };
-}
 
 async function createTeamWithMemberKey() {
   const team = await createTeamWithMember("administrator");
@@ -69,8 +66,8 @@ async function expectMemberStatus(
 
 const listMembers =
   (tenant: string): Endpoint =>
-    (opts) =>
-      listNamespaceMembers({ ...opts, path: { tenant } });
+  (opts) =>
+    listNamespaceMembers({ ...opts, path: { tenant } });
 
 async function rejoinAndExpectKeyRevoked({
   member,
@@ -92,13 +89,6 @@ async function expectInvitationPage(
   await page.close();
 }
 
-async function signInAndOpen(page: Page, username: string, path: string) {
-  await signIn(page, username, password);
-  await expect(page).toHaveURL(/\/dashboard$/);
-  await dismissWizard(page);
-  await page.goto(path);
-}
-
 function findRow(page: Page, text: string) {
   return page.getByRole("row").filter({ hasText: text });
 }
@@ -110,7 +100,65 @@ async function confirmDialog(page: Page, dialog: string, button: string) {
     .click();
 }
 
+const pendingApprovalReason =
+  "only enterprise holds the invitee of a non-admin for an instance admin's approval";
+
 test.describe("invitations", () => {
+  test("signing up through an invitation consumes the user invitation", async ({
+    page,
+    browser,
+  }) => {
+    test.skip(isEnterprise, pendingApprovalReason);
+    const { owner, tenant } = await createTeam();
+    const email = buildRandomEmail("invitee");
+    const { link } = await invite(owner.token, tenant, email);
+    expect(readUserInvitationStatus(email)).toBe("pending");
+
+    await signUpFromInvite(page, link, `e2e-invitee-${buildShortId()}`);
+
+    await expect(page.getByRole("heading", { name: "You're in" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expectInvitationPage(browser, link, "Invitation Unavailable");
+    expect(readUserInvitationStatus(email)).toBe("accepted");
+  });
+
+  test("a non-admin's invitee signs in only after an instance admin approves", async ({
+    page,
+    browser,
+  }) => {
+    test.skip(!isEnterprise, pendingApprovalReason);
+    const { owner, tenant } = await createTeam();
+    const email = buildRandomEmail("invitee");
+    const username = `e2e-invitee-${buildShortId()}`;
+    const { link } = await invite(owner.token, tenant, email);
+
+    await signUpFromInvite(page, link, username);
+    await expect(
+      page.getByRole("heading", { name: "Waiting for Approval" }),
+    ).toBeVisible({ timeout: 15000 });
+    expect(readUserInvitationStatus(email)).toBe("accepted");
+    await expectInvitationPage(browser, link, "Invitation Unavailable");
+    await signIn(page, username, password);
+    await expect(
+      page.getByText("Your account is waiting for an administrator"),
+    ).toBeVisible();
+
+    const { owner: admin } = await createTeam({ admin: true });
+    await signInAndOpen(page, admin.username, "/admin/users");
+    await page.getByLabel("Search users by username").fill(username);
+    const row = findRow(page, email);
+    await expect(row).toContainText("Awaiting Approval");
+    await row
+      .getByRole("button", { name: `Approve account for ${email}` })
+      .click();
+    await confirmDialog(page, "Approve account", "Approve account");
+    await expect(row).toContainText("Confirmed");
+
+    const { tenant: joined } = await loginAs(username, password);
+    expect(joined).toBe(tenant);
+  });
+
   test("a used invitation link stops working", async ({ browser }) => {
     test.skip(isEnterprise, directMembershipReason);
     const { owner, tenant } = await createTeam();
@@ -174,19 +222,55 @@ test.describe("invitations", () => {
   });
 });
 
+async function keepAsTeamDevices(dialog: Locator, names: string[]) {
+  for (const name of names) {
+    const keep = dialog.getByRole("checkbox", {
+      name: `Keep ${name} as a team device`,
+    });
+    await keep.press("Space");
+    await expect(keep).toBeChecked();
+  }
+}
+
 async function changeRole(
   page: Page,
   owner: { username: string },
   member: { email: string },
   role: AssignableRole,
+  keep: string[] = [],
 ) {
   await signInAndOpen(page, owner.username, "/team");
   const row = findRow(page, member.email);
   await row.getByRole("button", { name: "Edit role" }).click();
   const drawer = page.getByRole("dialog", { name: "Edit Role" });
   await drawer.getByRole("radio", { name: role }).press("Space");
+  await keepAsTeamDevices(drawer, keep);
   await drawer.getByRole("button", { name: "Save role" }).click();
   await expect(row).toContainText(role);
+}
+
+async function removeMember(
+  page: Page,
+  owner: { username: string },
+  member: { email: string },
+  keep: string[] = [],
+) {
+  await signInAndOpen(page, owner.username, "/team");
+  const row = findRow(page, member.email);
+  await row.getByRole("button", { name: "Remove member" }).click();
+  await keepAsTeamDevices(
+    page.getByRole("dialog", { name: "Remove Member" }),
+    keep,
+  );
+  await confirmDialog(page, "Remove Member", "Remove");
+  await expect(row).toHaveCount(0);
+}
+
+async function leaveNamespace(page: Page, member: { username: string }) {
+  await signInAndOpen(page, member.username, "/settings");
+  await page.getByRole("button", { name: "Leave", exact: true }).click();
+  await confirmDialog(page, "Leave Namespace", "Leave");
+  await expect(page).toHaveURL(/\/login$/);
 }
 
 test.describe("roles", () => {
@@ -222,11 +306,7 @@ test.describe("losing membership", () => {
     const { owner, member, tenant } = team;
     await expectMemberStatus(listMembers(tenant), member, 200);
 
-    await signInAndOpen(page, owner.username, "/team");
-    const row = findRow(page, member.email);
-    await row.getByRole("button", { name: "Remove member" }).click();
-    await confirmDialog(page, "Remove Member", "Remove");
-    await expect(row).toHaveCount(0);
+    await removeMember(page, owner, member);
 
     await expectMemberStatus(listMembers(tenant), member, 401);
     await rejoinAndExpectKeyRevoked(team);
@@ -239,10 +319,7 @@ test.describe("losing membership", () => {
     const { owner, member, tenant } = team;
     await expectMemberStatus(listMembers(tenant), member, 200);
 
-    await signInAndOpen(page, member.username, "/settings");
-    await page.getByRole("button", { name: "Leave", exact: true }).click();
-    await confirmDialog(page, "Leave Namespace", "Leave");
-    await expect(page).toHaveURL(/\/login$/);
+    await leaveNamespace(page, member);
 
     await expectMemberStatus(listMembers(tenant), member, 401);
 
@@ -277,5 +354,139 @@ test.describe("namespace switching", () => {
     await dismissWizard(page);
 
     await expect(activeTab).toHaveText(new RegExp(`${otherTeam.namespace}$`));
+  });
+});
+
+function buildPairingRequest() {
+  const { publicKey } = generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: "spki", format: "pem" },
+  });
+  return {
+    hostname: `e2e-device-${buildShortId()}`,
+    identity: {
+      mac: [0x02, ...randomBytes(5)]
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join(":"),
+    },
+    info: {
+      id: "debian",
+      pretty_name: "Debian GNU/Linux 12",
+      version: "12",
+      arch: "x86_64",
+      platform: "native" as const,
+    },
+    public_key: publicKey,
+  };
+}
+
+async function requestPairing() {
+  const body = buildPairingRequest();
+  const { data } = await createDevicePairing({
+    ...buildRequestContext(),
+    body,
+  });
+  if (!data.code) {
+    throw new Error(`expected a pairing code for ${body.hostname}`);
+  }
+  return { code: data.code, name: body.hostname };
+}
+
+async function pairDevice(
+  member: { token: string },
+  tenant: string,
+): Promise<string> {
+  const { code, name } = await requestPairing();
+  const { data } = await acceptDevicePairing({
+    ...buildRequestContext({ token: member.token }),
+    path: { code },
+    body: { tenant_id: tenant },
+  });
+  if (!data.uid) throw new Error(`expected ${name} to join ${tenant}`);
+  return name;
+}
+
+async function readAcceptedDevices(owner: { token: string }) {
+  const { data } = await getDevices({
+    ...buildRequestContext({ token: owner.token }),
+    query: { status: "accepted" },
+  });
+  return data.map(({ name, owner_id }) => ({ name, owner_id }));
+}
+
+test.describe("paired devices", () => {
+  test("accepting a pairing makes the accepting member the owner", async ({
+    page,
+  }) => {
+    const { owner, member, namespace } = await createTeamWithMember("operator");
+    const { code, name } = await requestPairing();
+
+    await signInAndOpen(page, member.username, `/accept-device?code=${code}`);
+    await page.getByRole("button", { name: "Accept device" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Device accepted" }),
+    ).toBeVisible();
+    await expect(page.getByText(`It's in ${namespace} now`)).toBeVisible();
+    await page.getByRole("button", { name: "View device" }).click();
+
+    await expect(page.getByRole("heading", { name })).toBeVisible();
+    await expect(page.getByLabel("Paired by", { exact: true })).toContainText(
+      member.email,
+    );
+    expect(await readAcceptedDevices(owner)).toStrictEqual([
+      { name, owner_id: member.id },
+    ]);
+  });
+
+  test("demoting to observer keeps the ticked device for the team and removes the rest", async ({
+    page,
+  }) => {
+    const { owner, member, tenant } = await createTeamWithMember("operator");
+    const kept = await pairDevice(member, tenant);
+    await pairDevice(member, tenant);
+
+    await changeRole(page, owner, member, "observer", [kept]);
+
+    expect(await readAcceptedDevices(owner)).toStrictEqual([
+      { name: kept, owner_id: undefined },
+    ]);
+  });
+
+  test("removing a member keeps the ticked device for the team and removes the rest", async ({
+    page,
+  }) => {
+    const { owner, member, tenant } = await createTeamWithMember("operator");
+    const kept = await pairDevice(member, tenant);
+    await pairDevice(member, tenant);
+
+    await removeMember(page, owner, member, [kept]);
+
+    expect(await readAcceptedDevices(owner)).toStrictEqual([
+      { name: kept, owner_id: undefined },
+    ]);
+  });
+
+  test("leaving removes the member's paired devices", async ({ page }) => {
+    const { owner, member, tenant } = await createTeamWithMember("operator");
+    await pairDevice(member, tenant);
+
+    await leaveNamespace(page, member);
+
+    expect(await readAcceptedDevices(owner)).toStrictEqual([]);
+  });
+
+  test("deleting the account removes the member's paired devices", async ({
+    page,
+  }) => {
+    test.skip(!isCloud, "only the cloud deletes an account from the console");
+    const { owner, member, tenant } = await createTeamWithMember("operator");
+    await pairDevice(member, tenant);
+
+    await signInAndOpen(page, member.username, "/account/danger-zone");
+    await page.getByRole("button", { name: "Delete account" }).click();
+    await confirmDialog(page, "Delete account", "Delete account");
+    await expect(page).toHaveURL(/\/login$/);
+
+    expect(await readAcceptedDevices(owner)).toStrictEqual([]);
   });
 });
