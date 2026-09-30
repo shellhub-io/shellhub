@@ -12,3 +12,7 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    volumes:
+      - ${SHELLHUB_LICENSE_FILE}:/etc/shellhub/license.dat:ro
+    environment:
+      - ADMIN_API_LICENSE_FILE=/etc/shellhub/license.dat

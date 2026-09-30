@@ -56,7 +56,10 @@ type Stack struct {
 // healthy. The first Up per edition in a process builds the images; later Ups reuse them. A cloud
 // stack bills through Stripe test mode: Up returns an error naming the first of STRIPE_SECRET_KEY,
 // STRIPE_PRICE_ID and SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and
-// .env.override, and an error when Stripe returns no webhook secret for the key.
+// .env.override, and an error when Stripe returns no webhook secret for the key. An enterprise or
+// cloud stack loads the license at SHELLHUB_LICENSE_FILE: Up returns an error when neither the
+// shell nor .env.override sets it, or when the file does not exist. A relative path resolves
+// against the repository root.
 func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	if cfg.CloudDir == "" {
 		cfg.CloudDir = "../../cloud"
@@ -70,6 +73,13 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	editionEnvs, err := cfg.Edition.envs(cfg.CloudDir)
 	if err != nil {
 		return nil, err
+	}
+
+	var licenseVars map[string]string
+	if cfg.Edition != EditionCommunity {
+		if licenseVars, err = licenseEnvs(envOverridePath); err != nil {
+			return nil, err
+		}
 	}
 
 	var billingEnvs map[string]string
@@ -101,7 +111,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		cfg.Name = uuid.Generate()
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, billingEnvs, map[string]string{
+	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 		"SHELLHUB_NETWORK":   cfg.Network,
