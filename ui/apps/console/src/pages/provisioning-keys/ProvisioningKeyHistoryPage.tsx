@@ -325,7 +325,7 @@ export default function ProvisioningKeyHistoryPage() {
         </div>
       </div>
 
-      <div className="mb-10 ml-16 pb-8 border-b border-border">
+      <div className="mb-10 sm:ml-16 pb-8 border-b border-border">
         <UsageSummary
           provisioningKey={key}
           detailsOpen={detailsOpen}
@@ -333,7 +333,7 @@ export default function ProvisioningKeyHistoryPage() {
         />
       </div>
 
-      <div className="ml-16">
+      <div className="sm:ml-16">
         <ProvisioningKeyTimeline id={id} />
       </div>
     </div>
