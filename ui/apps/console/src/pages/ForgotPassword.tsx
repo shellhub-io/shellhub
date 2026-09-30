@@ -1,19 +1,15 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import {
-  EnvelopeIcon,
-  CheckCircleIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
+import { EnvelopeIcon } from "@heroicons/react/24/outline";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { recoverPassword } from "../client";
 import FormInputField from "@/components/common/fields/rhf/FormInputField";
 import {
   forgotPasswordResolver,
   type ForgotPasswordFormValues,
 } from "./setup/forgotPasswordResolver";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 import { ignoreFailure } from "@/utils/failure";
 
 const silenceToPreventAccountEnumeration = ignoreFailure;
@@ -45,94 +41,60 @@ export default function ForgotPassword() {
     setSent(true);
   };
 
+  const backToSignIn = [{ label: "Back to sign in", to: "/login" }];
+
   return (
     <>
-      {/* Hero */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <LockClosedIcon
-              className="w-10 h-10 text-primary"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
+      <ScreenIntro
+        eyebrow="Password recovery"
+        title="Forgot your password?"
+        lead="Enter your username or email address and we'll send you a link to reset your password."
+      />
 
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Password Recovery
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Forgot your password?
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Enter your username or email address and we&apos;ll send you a link to
-          reset your password.
-        </p>
-      </div>
-
-      {/* Card */}
-      <LoginLayoutCard>
-        {sent ? (
-          <div
-            role="alert"
-            className="flex flex-col items-center text-center gap-4"
-          >
-            <div className="w-12 h-12 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-              <CheckCircleIcon
-                className="w-6 h-6 text-accent-green"
-                strokeWidth={1.5}
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary mb-1">
-                Check your inbox
-              </p>
-              <p className="text-xs text-text-muted leading-relaxed">
-                An email with password reset instructions has been sent to your
-                registered email address.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <form
-            onSubmit={(e) => void handleSubmit(onSubmit)(e)}
-            className="space-y-5"
-          >
-            <FormInputField<ForgotPasswordFormValues>
-              name="account"
-              control={control}
-              id="account"
-              label="Username or email address"
-              placeholder="username or email"
-              autoComplete="username"
-              required
-            />
-
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              type="submit"
-              className="px-4"
-              loading={loading}
-              disabled={loading || !formState.isValid}
-              icon={<EnvelopeIcon className="w-4 h-4" strokeWidth={2} />}
-            >
-              {loading ? "Sending..." : "Reset Password"}
-            </Button>
-          </form>
-        )}
-      </LoginLayoutCard>
-
-      {/* Back to login */}
-      <div className="mt-8 animate-fade-in">
-        <Link
-          to="/login"
-          className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+      {sent ? (
+        <>
+          <Callout variant="success" className="mb-6">
+            <span>
+              <span className="font-semibold">Check your inbox.</span> An email
+              with password reset instructions has been sent to your registered
+              email address.
+            </span>
+          </Callout>
+          <AuthActions links={backToSignIn} />
+        </>
+      ) : (
+        <form
+          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+          className="space-y-6"
         >
-          &larr; Back to login
-        </Link>
-      </div>
+          <FormInputField<ForgotPasswordFormValues>
+            name="account"
+            control={control}
+            id="account"
+            label="Username or email address"
+            placeholder="username or email"
+            autoComplete="username"
+            required
+          />
+
+          <AuthActions
+            primary={
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                type="submit"
+                loading={loading}
+                disabled={loading || !formState.isValid}
+                icon={<EnvelopeIcon className="w-4 h-4" strokeWidth={2} />}
+              >
+                {loading ? "Sending..." : "Reset Password"}
+              </Button>
+            }
+            links={backToSignIn}
+          />
+        </form>
+      )}
     </>
   );
 }

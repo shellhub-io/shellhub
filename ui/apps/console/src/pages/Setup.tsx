@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  ExclamationCircleIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { setup } from "@/client";
 import { getConfig, isCommunity } from "@/env";
@@ -217,15 +214,7 @@ export default function Setup() {
               the namespace is where your devices live.
             </p>
 
-            {error && (
-              <div className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-                <ExclamationCircleIcon
-                  className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                  strokeWidth={2}
-                />
-                {error}
-              </div>
-            )}
+            {error && <Callout variant="error">{error}</Callout>}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInputField<SetupFormValues>

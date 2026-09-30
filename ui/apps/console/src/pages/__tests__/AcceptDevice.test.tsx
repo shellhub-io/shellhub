@@ -6,6 +6,8 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import {
   PENDING_DEVICE_CODE_KEY,
   hasPendingDeviceCode,
@@ -37,7 +39,7 @@ function setResolveCode(device: ReturnType<typeof mockDevice>) {
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
-  useAuthStore.setState({ tenant: "tenant1" });
+  seedAuthStore({ tenant: "tenant1" });
   server.use(
     http.get("*/api/devices/login-code/:code", () =>
       HttpResponse.json(mockDevice()),
@@ -56,6 +58,9 @@ beforeEach(() => {
     ),
     http.get("*/api/namespaces", () =>
       jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
+    ),
+    http.get("*/api/namespaces/:tenant", ({ params }) =>
+      HttpResponse.json(mockNamespace({ tenant_id: String(params.tenant) })),
     ),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: "jwt-token", role: "owner" }),
@@ -287,15 +292,24 @@ describe("AcceptDeviceFlow standalone", () => {
       ),
       http.post("*/api/devices/pairing/:code/accept", async ({ request }) => {
         tenant = ((await request.json()) as { tenant_id: string }).tenant_id;
-        return HttpResponse.json({ uid: "u", tenant_id: "t2", namespace: "other-ns", owner_id: "user-1" });
+        return HttpResponse.json({
+          uid: "u",
+          tenant_id: "t2",
+          namespace: "other-ns",
+          owner_id: "user-1",
+        });
       }),
     );
     setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow();
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Namespace: my-ns" }));
-    await user.click(await screen.findByRole("menuitemradio", { name: /other-ns/ }));
+    await user.click(
+      await screen.findByRole("button", { name: "Namespace: my-ns" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitemradio", { name: /other-ns/ }),
+    );
     await user.click(screen.getByRole("button", { name: /accept device/i }));
 
     await screen.findByRole("heading", { name: /device accepted/i });
@@ -413,5 +427,75 @@ describe("AcceptDeviceFlow dialog mode", () => {
     );
 
     expect(await screen.findByText("Claim a device")).toBeInTheDocument();
+  });
+});
+
+describe("AcceptDeviceFlow signed out", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ token: null, tenant: null });
+    server.use(
+      http.post("*/api/login", () =>
+        HttpResponse.json(mockUserAuth({ tenant: "tenant1" })),
+      ),
+    );
+  });
+
+  it("asks to sign in while showing the code to check", () => {
+    renderFlow({ initialCode: "WXYZ2K7Q" });
+
+    expect(
+      screen.getByRole("heading", { name: /sign in to accept this device/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("WXYZ-2K7Q")).toBeInTheDocument();
+  });
+
+  it("continues to the device review in place once signed in", async () => {
+    const user = userEvent.setup();
+    setPendingDeviceCode("WXYZ2K7Q");
+    renderFlow({ initialCode: "WXYZ2K7Q" });
+
+    await user.type(screen.getByLabelText(/username/i), "admin");
+    await user.type(screen.getByLabelText(/^password$/i), "secret");
+    await user.click(
+      screen.getByRole("button", { name: /sign in and continue/i }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("dev1")).toBeInTheDocument();
+    expect(hasPendingDeviceCode()).toBe(false);
+  });
+
+  it("asks for the second factor in place and continues to the device", async () => {
+    server.use(
+      http.post("*/api/login", () =>
+        HttpResponse.json(mockUserAuth(), {
+          status: 401,
+          headers: { "x-mfa-token": "mfa-temp" },
+        }),
+      ),
+      http.post("*/api/user/mfa/auth", () =>
+        HttpResponse.json(mockUserAuth({ tenant: "tenant1" })),
+      ),
+    );
+    const user = userEvent.setup();
+    renderFlow({ initialCode: "WXYZ2K7Q" });
+
+    await user.type(screen.getByLabelText(/username/i), "admin");
+    await user.type(screen.getByLabelText(/^password$/i), "secret");
+    await user.click(
+      screen.getByRole("button", { name: /sign in and continue/i }),
+    );
+    for (const [i, cell] of (await screen.findAllByRole("textbox")).entries()) {
+      await user.type(cell, String(i + 1));
+    }
+    await user.click(
+      screen.getByRole("button", { name: /sign in and continue/i }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
   });
 });

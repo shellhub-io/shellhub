@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
-import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 import { succeeded } from "@/utils/failure";
 
 /**
@@ -44,79 +43,44 @@ export default function MfaResetRequest() {
 
   return (
     <>
-      {/* Hero Section */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <EnvelopeIcon
-              className="w-10 h-10 text-primary"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Email Recovery
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Reset MFA via Email
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          We'll send verification codes to both email addresses registered for{" "}
-          <span className="font-semibold text-text-primary">{identifier}</span>.
-        </p>
-      </div>
-
-      {/* Form */}
-      <LoginLayoutCard>
-        <form
-          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
-          className="space-y-5"
-        >
-          {error && <Callout variant="error">{error}</Callout>}
-
-          <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-            <p className="text-xs text-text-muted text-center">
-              Verification codes will be sent to the email addresses registered
-              for:
-            </p>
-            <p className="text-sm font-mono font-semibold text-primary text-center mt-2">
+      <ScreenIntro
+        eyebrow="Two-factor"
+        title="Reset MFA via Email"
+        lead={
+          <>
+            We&apos;ll send verification codes to both email addresses
+            registered for{" "}
+            <span className="font-semibold text-text-primary">
               {identifier}
-            </p>
-          </div>
+            </span>
+            . You&apos;ll receive two separate emails, and both codes are
+            required to complete the reset.
+          </>
+        }
+      />
 
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            type="submit"
-            className="px-4"
-            loading={loading}
-            disabled={loading}
-          >
-            {loading ? "Sending..." : "Send Verification Codes"}
-          </Button>
+      <form
+        onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+        className="space-y-6"
+      >
+        {error && <Callout variant="error">{error}</Callout>}
 
-          <div className="text-center pt-2">
-            <Link
-              to="/mfa-recover"
-              className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
+        <AuthActions
+          primary={
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              type="submit"
+              loading={loading}
+              disabled={loading}
             >
-              ← Back to recovery
-            </Link>
-          </div>
-        </form>
-      </LoginLayoutCard>
-
-      {/* Info Note */}
-      <div className="w-full max-w-md mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in">
-        <p className="text-2xs text-text-muted leading-relaxed">
-          <span className="font-semibold text-primary">Note:</span> You'll
-          receive two separate emails with verification codes. Both codes are
-          required to complete the reset process.
-        </p>
-      </div>
-
-      <AuthFooterLinks />
+              {loading ? "Sending..." : "Send Verification Codes"}
+            </Button>
+          }
+          links={[{ label: "Back to recovery", to: "/mfa-recover" }]}
+        />
+      </form>
     </>
   );
 }

@@ -1,13 +1,14 @@
 import { useState, FormEvent, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { KeyIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { useAuthStore } from "../stores/authStore";
-import { recoveryDisableMfa } from "../client";
-import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
-import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { useAuthStore } from "@/stores/authStore";
+import { recoveryDisableMfa } from "@/client";
+import MfaRecoveryTimeoutModal from "@/components/mfa/MfaRecoveryTimeoutModal";
+import { landingAfterSignIn } from "@/utils/navigation";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
+import { FormInputField } from "@/components/common/fields/rhf";
 import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
 import type { MfaRecoverFormValues } from "./setup/mfaRecoverResolver";
 
@@ -31,7 +32,7 @@ export default function MfaRecover() {
   const identifier = user || username;
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
-  const { register, handleSubmit, reset, resetField, formState } =
+  const { control, handleSubmit, reset, resetField, formState } =
     useForm<MfaRecoverFormValues>({
       resolver: mfaRecoverResolver,
       mode: "onTouched",
@@ -70,104 +71,68 @@ export default function MfaRecover() {
     await recoveryDisableMfa({ throwOnError: true });
     updateMfaStatus(false);
     setShowTimeoutModal(false);
-    void navigate("/dashboard");
+    void navigate(landingAfterSignIn("/dashboard"));
   };
 
   const handleCloseModal = () => {
     setShowTimeoutModal(false);
     useAuthStore.setState({ mfaRecoveryExpiry: null });
-    void navigate("/dashboard");
+    void navigate(landingAfterSignIn("/dashboard"));
   };
 
   return (
     <>
-      {/* Hero */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="animate-float mb-6 inline-block">
-          <div className="w-20 h-20 rounded-2xl bg-accent-yellow/15 border border-accent-yellow/25 flex items-center justify-center shadow-lg shadow-accent-yellow/10">
-            <KeyIcon
-              className="w-10 h-10 text-accent-yellow"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
+      <ScreenIntro
+        eyebrow="Two-factor"
+        title="Recover Your Account"
+        lead={
+          <>
+            Enter one of your recovery codes for{" "}
+            <span className="font-semibold text-text-primary">
+              {identifier}
+            </span>
+            . Each code works once. After using one, you have a 10-minute window
+            to disable MFA if you no longer have your authenticator.
+          </>
+        }
+      />
 
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-accent-yellow/80 mb-2">
-          Account Recovery
-        </p>
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Recover Your Account
-        </h1>
-        <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Enter one of your recovery codes for{" "}
-          <span className="font-semibold text-text-primary">{identifier}</span>.
-        </p>
-      </div>
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        {error && <Callout variant="error">{error}</Callout>}
 
-      {/* Form card */}
-      <LoginLayoutCard>
-        <form onSubmit={handleFormSubmit} className="space-y-5">
-          {error && <Callout variant="error">{error}</Callout>}
+        <FormInputField<MfaRecoverFormValues>
+          id="recovery-code"
+          label="Recovery Code"
+          name="recoveryCode"
+          control={control}
+          variant="mono"
+          placeholder="Enter recovery code"
+          hint="You received 6 recovery codes when you enabled MFA."
+        />
 
-          <div>
-            <label
-              htmlFor="recovery-code"
-              className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
+        <AuthActions
+          primary={
+            <Button
+              variant="warning"
+              size="lg"
+              fullWidth
+              type="submit"
+              loading={loading}
+              disabled={loading || !formState.isValid}
             >
-              Recovery Code
-            </label>
-            <input
-              id="recovery-code"
-              type="text"
-              {...register("recoveryCode")}
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
-              placeholder="Enter recovery code"
-            />
-            <p className="text-2xs text-text-muted mt-2">
-              You received 6 recovery codes when you enabled MFA.
-            </p>
-          </div>
+              {loading ? "Recovering..." : "Recover Account"}
+            </Button>
+          }
+          links={[
+            { label: "Back to verification", to: "/mfa-login" },
+            {
+              label: "Lost the codes? Reset by email",
+              to: "/mfa-reset-request",
+            },
+          ]}
+        />
+      </form>
 
-          <Button
-            variant="warning"
-            fullWidth
-            type="submit"
-            loading={loading}
-            disabled={loading || !formState.isValid}
-          >
-            {loading ? "Recovering..." : "Recover Account"}
-          </Button>
-
-          <div className="text-center pt-2 space-y-2">
-            <Link
-              to="/mfa-login"
-              className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
-            >
-              ← Back to verification
-            </Link>
-            <Link
-              to="/mfa-reset-request"
-              className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
-            >
-              Lost recovery codes? Request email reset
-            </Link>
-          </div>
-        </form>
-      </LoginLayoutCard>
-
-      {/* Warning note */}
-      <div className="w-full max-w-md mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in">
-        <p className="text-2xs text-text-muted leading-relaxed">
-          <span className="font-semibold text-accent-yellow">Note:</span> After
-          using a recovery code, you'll have a 10-minute window to disable MFA
-          if you no longer have access to your authenticator device.
-        </p>
-      </div>
-
-      {/* Footer links */}
-      <AuthFooterLinks />
-
-      {/* Timeout Modal */}
       {showTimeoutModal && mfaRecoveryExpiry && (
         <MfaRecoveryTimeoutModal
           open={showTimeoutModal}

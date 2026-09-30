@@ -1,21 +1,16 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import {
-  ExclamationTriangleIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
 import { isPreferencesPath } from "@/utils/preferencesRoute";
 import NamespaceTrail from "@/components/firstRun/NamespaceTrail";
-import AmbientBackground from "./AmbientBackground";
-import {
-  Button,
-  ShellHubLogo,
-  Spinner,
-} from "@shellhub/design-system/primitives";
+import FramedShell from "@/components/layout/FramedShell";
+import ScreenIntro from "@/components/layout/ScreenIntro";
+import AuthActions from "@/components/auth/AuthActions";
 
 function FetchErrorPage({
   error,
@@ -25,44 +20,27 @@ function FetchErrorPage({
   onRetry: () => void;
 }) {
   return (
-    <div
-      className="relative min-h-screen flex flex-col items-center justify-center bg-background overflow-hidden"
-      role="alert"
-    >
-      <AmbientBackground variant="error" />
-
-      {/* Content */}
-      <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <ShellHubLogo className="h-8 mb-10 opacity-50" />
-
-        <div className="animate-float mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shadow-lg shadow-accent-red/5">
-            <ExclamationTriangleIcon
-              className="w-10 h-10 text-accent-red/60"
-              strokeWidth={1.2}
-            />
-          </div>
-        </div>
-
-        <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-accent-red/60 mb-2">
-          Something went wrong
-        </p>
-        <h1 className="text-2xl font-bold text-text-primary mb-3">
-          Could not load namespaces
-        </h1>
-        <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-          {error}. This is likely temporary — check your connection or try
-          again.
-        </p>
-
-        <Button
-          icon={<ArrowPathIcon className="w-4 h-4" strokeWidth={2} />}
-          onClick={onRetry}
-        >
-          Try again
-        </Button>
+    <FramedShell>
+      <div role="alert">
+        <ScreenIntro
+          eyebrow="Something went wrong"
+          title="Could not load namespaces"
+          lead={`${error}. This is likely temporary. Check your connection or try again.`}
+        />
       </div>
-    </div>
+      <AuthActions
+        primary={
+          <Button
+            size="lg"
+            fullWidth
+            icon={<ArrowPathIcon className="w-4 h-4" strokeWidth={2} />}
+            onClick={onRetry}
+          >
+            Try again
+          </Button>
+        }
+      />
+    </FramedShell>
   );
 }
 

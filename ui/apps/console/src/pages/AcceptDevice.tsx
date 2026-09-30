@@ -1,7 +1,7 @@
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 import { setPendingDeviceCode } from "@/utils/navigation";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 /**
  * The page an accept-device link lands on. The code comes from the query string, so the flow
@@ -11,16 +11,9 @@ export default function AcceptDevice() {
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code") ?? "";
 
-  if (code) setPendingDeviceCode(code);
+  useEffect(() => {
+    if (code) setPendingDeviceCode(code);
+  }, [code]);
 
-  return (
-    <AcceptDeviceFlow
-      initialCode={code}
-      frame={(wide, content) => (
-        <LoginLayoutCard className={wide ? "max-w-xl" : undefined}>
-          {content}
-        </LoginLayoutCard>
-      )}
-    />
-  );
+  return <AcceptDeviceFlow initialCode={code} />;
 }

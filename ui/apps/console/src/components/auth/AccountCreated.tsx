@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
-import { Button } from "@shellhub/design-system/primitives";
-import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { Button, Callout } from "@shellhub/design-system/primitives";
+import AuthActions from "@/components/auth/AuthActions";
+import ScreenIntro from "@/components/layout/ScreenIntro";
 
 /**
  * The screen after sign-up: what was sent, where, and how to have it sent again.
@@ -34,30 +35,30 @@ export default function AccountCreated() {
   };
 
   return (
-    <LoginLayoutCard className="text-center">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-5">
-        <CheckCircleIcon
-          className="w-7 h-7 text-accent-green"
-          strokeWidth={1.5}
-        />
-      </div>
+    <>
+      <ScreenIntro
+        eyebrow="Account"
+        title="Account Creation Successful"
+        lead="Thank you for registering an account on ShellHub."
+      />
 
-      <h2 className="text-lg font-semibold text-text-primary mb-3">
-        Account Creation Successful
-      </h2>
+      <Callout variant="success" className="mb-6">
+        You will be redirected in 5 seconds. If you weren&apos;t redirected, use
+        the button below.
+      </Callout>
 
-      <p className="text-sm text-text-secondary leading-relaxed mb-6">
-        Thank you for registering an account on ShellHub. You will be redirected
-        in 5 seconds. If you weren&apos;t redirected, please click the button
-        below.
-      </p>
-
-      <Button
-        iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
-        onClick={handleRedirect}
-      >
-        Redirect
-      </Button>
-    </LoginLayoutCard>
+      <AuthActions
+        primary={
+          <Button
+            size="lg"
+            fullWidth
+            iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
+            onClick={handleRedirect}
+          >
+            Redirect
+          </Button>
+        }
+      />
+    </>
   );
 }

@@ -54,7 +54,7 @@ async function fillValidForm(
   await user.click(screen.getByLabelText(/privacy policy/i));
 
   if (acceptMarketing) {
-    await user.click(screen.getByLabelText(/receive news and updates/i));
+    await user.click(screen.getByLabelText(/news and updates/i));
   }
 }
 
