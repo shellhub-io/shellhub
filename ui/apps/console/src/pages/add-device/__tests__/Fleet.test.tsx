@@ -1,18 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-import { http } from "msw";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockProvisioningKey } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import ProvisioningKeys from "../index";
+import { fullText } from "@/tests/fullText";
+import Fleet from "../Fleet";
 
 function renderPage() {
-  return render(<ProvisioningKeys />, {
-    wrapper: createTestWrapper({
-      initialEntries: ["/settings/provisioning-keys"],
-    }),
-  });
+  return render(
+    <ClipboardProvider>
+      <Fleet />
+    </ClipboardProvider>,
+    {
+      wrapper: createTestWrapper({
+        initialEntries: ["/devices/add/fleet"],
+      }),
+    },
+  );
 }
 
 async function keyRow(name: string) {
@@ -23,6 +31,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
   server.use(
+    http.get("*/api/namespaces/provisioning-key/:key/reveal", ({ params }) =>
+      HttpResponse.json({ key: `secret-of-${String(params.key)}` }),
+    ),
     http.get("*/api/namespaces/provisioning-key", () =>
       jsonWithTotal([
         mockProvisioningKey({
@@ -75,7 +86,67 @@ beforeEach(() => {
   );
 });
 
-describe("Provisioning keys", () => {
+describe("Fleet", () => {
+  it("opens no install command until a key is picked", async () => {
+    renderPage();
+    await keyRow("fleet-key");
+
+    expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
+  });
+
+  it("puts the key picked in the list on the install command", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("row", { name: /auto-key/ }));
+
+    expect(
+      await screen.findByText(/PROVISIONING_KEY=secret-of-auto-key/),
+    ).toBeInTheDocument();
+  });
+
+  it("folds the install command on a second click", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const row = await screen.findByRole("row", { name: /auto-key/ });
+
+    await user.click(row);
+    await screen.findByText(/PROVISIONING_KEY=secret-of-auto-key/);
+    await user.click(row);
+
+    expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
+  });
+
+  it("tells a role that cannot read keys why there is no command", async () => {
+    const user = userEvent.setup();
+    let reveals = 0;
+    server.use(
+      http.get("*/api/namespaces/provisioning-key/:key/reveal", () => {
+        reveals += 1;
+        return HttpResponse.json({ key: "unused" });
+      }),
+    );
+    seedAuthStore({ role: "operator" });
+    renderPage();
+
+    await user.click(await screen.findByRole("row", { name: /auto-key/ }));
+
+    expect(
+      await screen.findByText(/Your role cannot read this key/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
+    expect(reveals).toBe(0);
+  });
+
+  it("keeps a revoked key off the install command", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("row", { name: /old-key/ }));
+
+    expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
+  });
+
   it("says how many devices a key has waiting for a decision", async () => {
     renderPage();
 
@@ -96,7 +167,7 @@ describe("Provisioning keys", () => {
     renderPage();
 
     expect(
-      (await keyRow("fleet-key")).getByText("0 used"),
+      (await keyRow("fleet-key")).getByText(fullText("0 of unlimited devices")),
     ).toBeInTheDocument();
   });
 
@@ -104,7 +175,7 @@ describe("Provisioning keys", () => {
     renderPage();
 
     const row = await keyRow("edge-fleet");
-    expect(row.getByText("3 / 4")).toBeInTheDocument();
+    expect(row.getByText(fullText("3 of 4 devices"))).toBeInTheDocument();
     expect(row.getByText(/2 over/)).toBeInTheDocument();
   });
 

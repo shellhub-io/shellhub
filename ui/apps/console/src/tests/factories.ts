@@ -6,6 +6,7 @@ import type {
   GetLicenseResponse,
   GetStatusDevicesResponse,
   ProvisioningKey,
+  ProvisioningKeyEvent,
   MembershipInvitation,
   Namespace,
   PublicKeyResponse,
@@ -397,6 +398,27 @@ export function mockProvisioningKey(
     disabled: false,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+/**
+ * Builds one registration in a provisioning key's history for a test: a device's first, current
+ * registration on a fixed day in the past, so a case names only what it is about.
+ */
+export function mockProvisioningKeyEvent(
+  overrides: Partial<ProvisioningKeyEvent> = {},
+): ProvisioningKeyEvent {
+  return {
+    id: "event-1",
+    provisioning_key_id: "key-digest-1",
+    tenant_id: "tenant-456",
+    device_uid: "device-1",
+    hostname: "edge-01",
+    ephemeral: false,
+    re_registration: false,
+    timestamp: "2024-03-05T10:00:00Z",
+    is_current: true,
     ...overrides,
   };
 }

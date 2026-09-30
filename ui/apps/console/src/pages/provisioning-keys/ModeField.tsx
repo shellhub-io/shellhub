@@ -17,7 +17,8 @@ import {
  * How a provisioning key enrols a device: automatically, waiting for approval, by calling out to a
  * webhook, or only for devices on an allowlist.
  */
-export type ProvisioningKeyMode = "automatic" | "manual" | "webhook" | "allowlist";
+export type ProvisioningKeyMode =
+  "automatic" | "manual" | "webhook" | "allowlist";
 
 const OPTIONS = (
   ["automatic", "manual", "webhook", "allowlist"] as ProvisioningKeyMode[]
@@ -162,8 +163,8 @@ function WebhookPanel({
 }
 
 /**
- * Picks a provisioning key's enrolment mode. The options are built from the shared MODE_INFO, so the
- * icon, label and description here are the same ones the list's Enrollment cell shows.
+ * Picks a provisioning key's enrolment mode. The options are built from the shared MODE_INFO, so
+ * each mode reads here as it does in the key list and on the key's page.
  */
 export default function ModeField({
   idPrefix,
@@ -222,7 +223,6 @@ export default function ModeField({
         className="space-y-2"
       >
         {OPTIONS.map((option, index) => {
-          const Icon = option.icon;
           const selected = option.value === mode;
           return (
             <div
@@ -245,12 +245,6 @@ export default function ModeField({
                 onKeyDown={(e) => onRadioKeyDown(e, index)}
                 className="flex w-full items-start gap-3 px-3.5 py-3 text-left"
               >
-                <Icon
-                  className={`mt-0.5 h-5 w-5 shrink-0 ${
-                    selected ? "text-primary" : "text-text-secondary"
-                  }`}
-                  strokeWidth={1.8}
-                />
                 <div className="min-w-0 flex-1">
                   <span
                     className={`block text-xs font-medium ${

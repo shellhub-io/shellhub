@@ -24,6 +24,7 @@ import { useNamespace } from "../hooks/useNamespaces";
 import { useProvisioningKeys } from "../hooks/useProvisioningKeys";
 import {
   enrollmentSourceName,
+  provisioningKeyActivityPath,
   resolveEnrollmentSource,
 } from "@/pages/provisioning-keys/helpers";
 import { useAuthStore } from "../stores/authStore";
@@ -307,7 +308,7 @@ export default function DeviceDetails() {
           registeredVia={
             enrollment && device.provisioning_key_id ? (
               <Link
-                to={`/settings/provisioning-keys/${encodeURIComponent(device.provisioning_key_id)}/activity`}
+                to={provisioningKeyActivityPath(device.provisioning_key_id)}
                 className="text-sm font-medium text-text-primary hover:text-primary hover:underline"
               >
                 {enrollmentSourceName(enrollment)}

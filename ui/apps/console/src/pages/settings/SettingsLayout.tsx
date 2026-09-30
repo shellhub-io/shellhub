@@ -2,7 +2,6 @@ import {
   Cog6ToothIcon,
   CommandLineIcon,
   CreditCardIcon,
-  TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Navigate, useLocation } from "react-router-dom";
 import SectionedLayout from "@/components/settings/SectionedLayout";
@@ -19,7 +18,6 @@ export default function SettingsLayout() {
   const sections = [
     { to: "general", label: "General", icon: Cog6ToothIcon },
     { to: "ssh", label: "SSH", icon: CommandLineIcon },
-    { to: "provisioning-keys", label: "Provisioning keys", icon: TicketIcon },
     ...(isCloud()
       ? [{ to: "billing", label: "Billing", icon: CreditCardIcon }]
       : []),
@@ -35,7 +33,7 @@ export default function SettingsLayout() {
       icon={<Cog6ToothIcon className="w-6 h-6" />}
       overline={sectionTitle}
       title="Settings"
-      description="How this namespace is named, reached over SSH, provisioned and billed"
+      description="How this namespace is named, reached over SSH and billed"
       sections={sections}
     />
   );

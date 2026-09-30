@@ -29,8 +29,8 @@ const OFFERED: Method[] = [
  * The public install page: the command to put an agent on a machine, with no account needed to
  * read it.
  *
- * It is deliberately the one-device path. A fleet needs a provisioning key, which needs a namespace
- * to create it in, so that half of Add Device only makes sense signed in.
+ * It is deliberately the Interactive path. A fleet needs a provisioning key, which needs a
+ * namespace to create it in, so that half of Add Device only makes sense signed in.
  */
 export default function Install() {
   const [method, setMethod] = useState<Method>("auto");
