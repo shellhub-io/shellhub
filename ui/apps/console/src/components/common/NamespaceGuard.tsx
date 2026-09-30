@@ -9,23 +9,13 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
 import { isPreferencesPath } from "@/utils/preferencesRoute";
+import NamespaceTrail from "@/components/firstRun/NamespaceTrail";
 import AmbientBackground from "./AmbientBackground";
-import CreateNamespace from "./CreateNamespace";
-import UserMenu from "../layout/UserMenu";
 import {
   Button,
   ShellHubLogo,
   Spinner,
 } from "@shellhub/design-system/primitives";
-
-function MinimalHeader() {
-  return (
-    <header className="h-14 bg-surface border-b border-border px-5 flex items-center justify-between shrink-0">
-      <ShellHubLogo className="h-6" />
-      <UserMenu />
-    </header>
-  );
-}
 
 function FetchErrorPage({
   error,
@@ -119,14 +109,7 @@ export default function NamespaceGuard() {
     !isAccountPath(pathname) &&
     !isPreferencesPath(pathname)
   ) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <MinimalHeader />
-        <main className="flex-1 flex">
-          <CreateNamespace />
-        </main>
-      </div>
-    );
+    return <NamespaceTrail />;
   }
 
   return <Outlet />;

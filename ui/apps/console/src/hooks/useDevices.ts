@@ -49,12 +49,17 @@ interface UseDevicesParams {
   search?: string;
   filterTags?: string[];
   enabled?: boolean;
+  refetchInterval?:
+    | number
+    | false
+    | ((page?: PaginatedResult<GeneratedDevice>) => number | false);
   sortBy?: string;
   orderBy?: "asc" | "desc";
 }
 
 /**
- * A page of the namespace's devices, filtered by status, search and tags.
+ * A page of the namespace's devices, filtered by status, search and tags. refetchInterval keeps it
+ * polling, and as a function it gets the latest page and returns false to stop.
  */
 export function useDevices({
   page = 1,
@@ -63,6 +68,7 @@ export function useDevices({
   search = "",
   filterTags = [],
   enabled = true,
+  refetchInterval = false,
   sortBy = "last_seen",
   orderBy = "desc",
 }: UseDevicesParams = {}) {
@@ -79,6 +85,10 @@ export function useDevices({
     queryKey: getDevicesQueryKey(options),
     queryFn: paginatedQueryFn(getDevicesSdk, options),
     enabled,
+    refetchInterval:
+      typeof refetchInterval === "function"
+        ? (query) => refetchInterval(query.state.data)
+        : refetchInterval,
   });
 
   const devices = useMemo(

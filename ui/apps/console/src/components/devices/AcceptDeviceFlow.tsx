@@ -34,6 +34,7 @@ import {
   type Namespace,
 } from "@/hooks/useNamespaces";
 import { getInitials } from "@/utils/string";
+import { formatPairingCode, normalizePairingCode } from "@/utils/pairingCode";
 import PairingCodeForm from "@/components/common/PairingCodeForm";
 import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -362,7 +363,10 @@ export default function AcceptDeviceFlow({
           <div className="grid gap-6 text-left">
             <div>
               <dl className="text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-2">
-                <SpecRow label="code" value={formatPairingCode(code)} />
+                <SpecRow
+                  label="code"
+                  value={formatPairingCode(normalizePairingCode(code))}
+                />
                 <SpecRow label="hostname" value={branch.device.name} />
                 <SpecRow label="os" value={branch.device.info?.pretty_name} />
                 <SpecRow label="mac" value={branch.device.identity?.mac} />
@@ -643,13 +647,6 @@ function StatusMessage({ label }: { label: string }) {
       <p className="text-sm text-text-muted">{label}</p>
     </div>
   );
-}
-
-function formatPairingCode(code: string) {
-  const normalized = code.replace(/[^0-9A-Za-z]/g, "").toUpperCase();
-  return normalized.length === 8
-    ? `${normalized.slice(0, 4)}-${normalized.slice(4)}`
-    : normalized;
 }
 
 function AcceptingAs({

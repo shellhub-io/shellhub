@@ -1,30 +1,38 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { isSdkError } from "../api/errors";
 import { useNavigate } from "react-router-dom";
 import {
-  CheckIcon,
   ExclamationCircleIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { setup } from "../client";
-import { getConfig, isCommunity } from "../env";
+import { Button } from "@shellhub/design-system/primitives";
+import { isSdkError } from "@/api/errors";
+import { setup } from "@/client";
+import { getConfig, isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
-import { suggestNamespace } from "./setup/validate";
 import {
   FormInputField,
   FormPasswordField,
 } from "@/components/common/fields/rhf";
-import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
+import FirstRunLayout from "@/components/firstRun/FirstRunLayout";
+import {
+  SETUP_STEP_TITLES,
+  Trail,
+  TrailStep,
+  UpcomingDeviceSteps,
+} from "@/components/firstRun/Trail";
+import { firstRunEntryState } from "@/components/firstRun/entry";
+import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
+import { suggestNamespace } from "./setup/validate";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
 
 /**
- * First-run setup for a fresh instance: create the first account, which becomes its admin. It
- * signs that account straight in, since there is nobody yet to sign in as.
+ * First-run setup for a fresh instance, as the opening steps of the first-run trail: the optional
+ * survey on community, then the first account, which becomes the instance's admin, with its
+ * namespace. It signs that account straight in, since there is nobody yet to sign in as, and hands
+ * over to the dashboard, where the trail goes on to the first device.
  */
 export default function Setup() {
   const navigate = useNavigate();
@@ -38,7 +46,6 @@ export default function Setup() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [surveyCompleted, setSurveyCompleted] = useState(false);
 
   const { control, handleSubmit, formState, setValue } =
@@ -103,16 +110,6 @@ export default function Setup() {
     return () => window.removeEventListener("message", handleMessage);
   }, [showOnboarding, handleMessage]);
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(
-        () => void navigate("/", { replace: true }),
-        3000,
-      );
-      return () => clearTimeout(timer);
-    }
-  }, [success, navigate]);
-
   const onSubmit = async (values: SetupFormValues) => {
     setLoading(true);
     setError("");
@@ -143,7 +140,10 @@ export default function Setup() {
     try {
       if (!token) throw new Error("no session issued");
       await loginWithToken(token);
-      setSuccess(true);
+      void navigate("/dashboard", {
+        replace: true,
+        state: firstRunEntryState(showOnboarding),
+      });
     } catch {
       void navigate("/login", {
         replace: true,
@@ -158,120 +158,76 @@ export default function Setup() {
     void handleSubmit(onSubmit)(e);
   };
 
-  const totalSteps = showOnboarding ? 2 : 1;
-  const displayStep = step === STEP_ONBOARDING ? 1 : totalSteps;
-
-  if (success) {
-    return (
-      <div className="w-full max-w-sm mx-auto animate-fade-in">
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
-            <div className="flex justify-center mb-5">
-              <ShellHubLogo className="h-7" />
-            </div>
-            <p className="text-center text-2xs font-mono text-text-muted tracking-wider uppercase">
-              Initial Setup
-            </p>
-          </div>
-
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent-green/10 mb-4">
-              <CheckIcon
-                className="w-6 h-6 text-accent-green"
-                strokeWidth={2}
-              />
-            </div>
-            <h3 className="text-sm font-semibold text-text-primary mb-2">
-              Instance ready
-            </h3>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Taking you to your instance...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const surveyState = step === STEP_ONBOARDING ? "active" : "done";
+  const accountStep = showOnboarding ? 2 : 1;
 
   return (
-    <div
-      className={cn(
-        "w-full mx-auto animate-fade-in",
-        step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm",
-      )}
+    <FirstRunLayout
+      eyebrow="Welcome to ShellHub"
+      signedIn={false}
+      inConsole={false}
     >
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
-          <div className="flex justify-center mb-5">
-            <ShellHubLogo className="h-7" />
-          </div>
-          <h1 className="text-center text-sm font-semibold text-text-primary mb-1">
-            Welcome to ShellHub
-          </h1>
-          <p className="text-center text-2xs font-mono text-text-muted tracking-wider uppercase">
-            Initial Setup
-          </p>
-
-          {showOnboarding && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              {Array.from({ length: totalSteps }, (_, i) => (
-                <StepIndicator key={i} index={i} current={displayStep} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="p-8">
-          {error && (
-            <div className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down mb-5">
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                strokeWidth={2}
-              />
-              {error}
-            </div>
-          )}
-
-          {step === STEP_ONBOARDING && (
-            <div className="space-y-5">
-              <p className="text-xs text-text-secondary leading-relaxed text-center">
-                Help us improve ShellHub by sharing your feedback
+      <Trail>
+        {showOnboarding && (
+          <TrailStep
+            number={1}
+            title={SETUP_STEP_TITLES.survey}
+            state={surveyState}
+            summary={surveyCompleted ? "Thanks" : "Skipped"}
+          >
+            <div className="space-y-4">
+              <p className="text-xs text-text-secondary">
+                Help us improve ShellHub by sharing your feedback.
               </p>
-
-              <div className="relative h-[60dvh] overflow-auto rounded-md border border-border">
+              <div className="relative h-[60dvh] overflow-auto rounded-lg border border-border">
                 <iframe
                   src={onboardingUrl}
                   title="Onboarding survey"
                   className="absolute inset-0 w-full h-full border-0"
                 />
               </div>
-
-              <Button
-                fullWidth
-                disabled={!surveyCompleted}
-                onClick={() => setStep(STEP_ACCOUNT)}
-              >
-                Continue
-              </Button>
-
-              {import.meta.env.DEV && (
-                <button
-                  type="button"
+              <div className="flex items-center justify-end gap-3">
+                {import.meta.env.DEV && (
+                  <button
+                    type="button"
+                    onClick={() => setStep(STEP_ACCOUNT)}
+                    className="text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
+                  >
+                    Skip survey (dev only)
+                  </button>
+                )}
+                <Button
+                  disabled={!surveyCompleted}
                   onClick={() => setStep(STEP_ACCOUNT)}
-                  className="w-full text-center text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
                 >
-                  Skip survey (dev only)
-                </button>
-              )}
+                  Continue
+                </Button>
+              </div>
             </div>
-          )}
+          </TrailStep>
+        )}
+        <TrailStep
+          number={accountStep}
+          title={SETUP_STEP_TITLES.account}
+          state={step === STEP_ACCOUNT ? "active" : "upcoming"}
+        >
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <p className="text-xs text-text-secondary leading-relaxed">
+              This instance has no users yet. You become its administrator, and
+              the namespace is where your devices live.
+            </p>
 
-          {step === STEP_ACCOUNT && (
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <p className="text-xs text-text-secondary leading-relaxed mb-1">
-                Set up your ShellHub instance.
-              </p>
+            {error && (
+              <div className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
+                <ExclamationCircleIcon
+                  className="w-3.5 h-3.5 shrink-0 mt-0.5"
+                  strokeWidth={2}
+                />
+                {error}
+              </div>
+            )}
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInputField<SetupFormValues>
                 id="name"
                 label="Name"
@@ -289,44 +245,46 @@ export default function Setup() {
                 placeholder="username"
                 maxLength={32}
               />
+            </div>
 
-              <FormInputField<SetupFormValues>
-                id="email"
-                label="Email"
-                name="email"
-                control={control}
-                type="email"
-                placeholder="you@example.com"
-              />
+            <FormInputField<SetupFormValues>
+              id="email"
+              label="Email"
+              name="email"
+              control={control}
+              type="email"
+              placeholder="you@example.com"
+            />
 
-              <FormInputField<SetupFormValues>
-                id="namespace"
-                label="Namespace"
-                name="namespace"
-                control={control}
-                variant="mono"
-                maxLength={30}
-                readOnly={!namespaceEdited}
-                error={!namespaceEdited && !namespaceValue ? "" : undefined}
-                hint={
-                  import.meta.env.DEV
-                    ? 'Keeping "dev" binds the well-known dev tenant; any other name generates a fresh one.'
-                    : undefined
-                }
-                labelAdornment={
-                  !namespaceEdited && (
-                    <button
-                      type="button"
-                      onClick={() => setNamespaceEdited(true)}
-                      className="inline-flex items-center gap-1 text-2xs font-medium text-primary hover:text-primary-300 transition-colors"
-                    >
-                      <PencilSquareIcon className="w-3 h-3" strokeWidth={2} />
-                      Edit
-                    </button>
-                  )
-                }
-              />
+            <FormInputField<SetupFormValues>
+              id="namespace"
+              label="Namespace"
+              name="namespace"
+              control={control}
+              variant="mono"
+              maxLength={30}
+              readOnly={!namespaceEdited}
+              error={!namespaceEdited && !namespaceValue ? "" : undefined}
+              hint={
+                import.meta.env.DEV
+                  ? 'Keeping "dev" binds the well-known dev tenant; any other name generates a fresh one.'
+                  : undefined
+              }
+              labelAdornment={
+                !namespaceEdited && (
+                  <button
+                    type="button"
+                    onClick={() => setNamespaceEdited(true)}
+                    className="inline-flex items-center gap-1 text-2xs font-medium text-primary hover:text-primary-300 transition-colors"
+                  >
+                    <PencilSquareIcon className="w-3 h-3" strokeWidth={2} />
+                    Edit
+                  </button>
+                )
+              }
+            />
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormPasswordField<SetupFormValues>
                 id="password"
                 label="Password"
@@ -342,57 +300,29 @@ export default function Setup() {
                 control={control}
                 placeholder="Re-enter password"
               />
+            </div>
 
-              <div className="flex gap-3 pt-1">
-                {showOnboarding && (
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={() => setStep(STEP_ONBOARDING)}
-                  >
-                    Back
-                  </Button>
-                )}
+            <div className="flex items-center justify-end gap-3 pt-1">
+              {showOnboarding && (
                 <Button
-                  type="submit"
-                  loading={loading}
-                  disabled={disableCreateAccountButton}
-                  className={showOnboarding ? "flex-[2]" : "w-full"}
+                  variant="secondary"
+                  onClick={() => setStep(STEP_ONBOARDING)}
                 >
-                  {loading ? "Setting up..." : "Complete setup"}
+                  Back
                 </Button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-
-      <p className="text-center text-2xs font-mono text-text-muted/40 mt-6">
-        ShellHub &mdash; Secure Remote Access
-      </p>
-    </div>
-  );
-}
-
-function StepIndicator({ index, current }: { index: number; current: number }) {
-  const stepNum = index + 1;
-  return (
-    <>
-      {index > 0 && <div className="w-6 h-px bg-border" />}
-      <StepDot active={current === stepNum} label={String(stepNum)} />
-    </>
-  );
-}
-
-function StepDot({ active, label }: { active: boolean; label: string }) {
-  return (
-    <div
-      className={cn(
-        "w-5 h-5 rounded-full flex items-center justify-center text-3xs font-mono font-bold transition-colors",
-        active ? "bg-primary text-white" : "bg-border text-text-muted",
-      )}
-    >
-      {label}
-    </div>
+              )}
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={disableCreateAccountButton}
+              >
+                {loading ? "Setting up..." : "Create and continue"}
+              </Button>
+            </div>
+          </form>
+        </TrailStep>
+        <UpcomingDeviceSteps start={accountStep + 1} />
+      </Trail>
+    </FirstRunLayout>
   );
 }

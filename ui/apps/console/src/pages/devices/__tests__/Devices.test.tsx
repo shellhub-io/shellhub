@@ -5,7 +5,7 @@ import React from "react";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockDevice, mockNamespace } from "@/tests/factories";
+import { mockDevice, mockNamespace, mockStats } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import Devices from "../index";
 
@@ -104,6 +104,8 @@ beforeEach(() => {
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(mockNamespace()),
     ),
+    http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+    http.get("*/api/stats", () => HttpResponse.json(mockStats())),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: "jwt-token", role: "owner" }),
     ),
@@ -159,5 +161,44 @@ describe("Devices list", () => {
     });
     expect(lastDevicesUrl?.searchParams.get("order_by")).toBe("asc");
     expect(lastDevicesUrl?.searchParams.get("page")).toBe("1");
+  });
+});
+
+describe("Devices empty state", () => {
+  it("offers to continue the first-run setup to a member who can accept devices", async () => {
+    seedAuthStore({ role: "owner" });
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: /continue setup/i }),
+    ).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("leaves the setup link out when the user has several namespaces", async () => {
+    seedAuthStore({ role: "owner" });
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([
+          mockNamespace({ tenant_id: "a" }),
+          mockNamespace({ tenant_id: "b" }),
+        ]),
+      ),
+    );
+    renderPage();
+
+    expect(await screen.findByText(/no devices found/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /continue setup/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("leaves the setup link out for a member who cannot accept devices", async () => {
+    seedAuthStore({ role: "observer" });
+    renderPage();
+
+    expect(await screen.findByText(/no devices found/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /continue setup/i }),
+    ).not.toBeInTheDocument();
   });
 });

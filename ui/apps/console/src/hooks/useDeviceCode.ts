@@ -10,14 +10,21 @@ import { useInvalidateByIds } from "./useInvalidateQueries";
  * code is single-use, so a second attempt would fail and a cached answer would be wrong.
  */
 export function useResolveDeviceCode(code: string) {
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     ...resolveDeviceLoginCodeOptions({ path: { code } }),
     enabled: !!code,
     retry: false,
     staleTime: Infinity,
   });
 
-  return { device: data ?? null, isLoading, isError, error };
+  return {
+    device: data ?? null,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
 }
 
 /**
