@@ -91,6 +91,18 @@ export function expireInvitation(tenant: string) {
   }
 }
 
+const mfaSecret = "JBSWY3DPEHPK3PXP";
+
+export function enableMFA(username: string) {
+  const out = sql(
+    "UPDATE users SET mfa_enabled = true, mfa_secret = :'secret' WHERE username = :'username';",
+    { username, secret: mfaSecret },
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(`expected to enable MFA for ${username}, got "${out}"`);
+  }
+}
+
 export function readUserInvitationStatus(email: string) {
   const status = sql(
     "SELECT status FROM user_invitations WHERE email = :'email';",

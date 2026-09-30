@@ -1,14 +1,23 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { adminUser, isEnterprise } from "./env";
+import { listNamespaceMembers, removeNamespaceMember } from "@/client";
+import { adminUser, isCommunity, isEnterprise } from "./env";
 import {
   signIn,
   fillLoginForm,
   dismissWizard,
   directMembershipReason,
+  signUpFromInvite,
+  createTeamWithMember,
 } from "./helpers";
-import { password, buildShortId, createUser, createNamespace } from "./seed";
-import { invite, loginAs } from "./api";
+import {
+  password,
+  buildShortId,
+  createUser,
+  createNamespace,
+  enableMFA,
+} from "./seed";
+import { buildRequestContext, expectStatus, invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
   test("signs in with valid credentials", async ({ page }) => {
@@ -41,12 +50,72 @@ test.describe("authentication", () => {
   });
 });
 
+test.describe("MFA", () => {
+  test.skip(isCommunity, "MFA exists only in enterprise and cloud");
+
+  test("an MFA-enabled account continues to the code prompt", async ({
+    page,
+  }) => {
+    const user = createUser("mfa");
+    createNamespace(user.username, `ns-mfa-${buildShortId()}`, randomUUID());
+    enableMFA(user.username);
+
+    await page.goto("/login");
+    const login = page.waitForResponse((r) => r.url().endsWith("/api/login"));
+    await fillLoginForm(page, user.username, password);
+
+    await expect(page).toHaveURL(/\/mfa-login$/);
+    await expect(
+      page.getByRole("heading", { name: "Two-Factor Authentication" }),
+    ).toBeVisible();
+    const response = await login;
+    expect(response.status()).toBe(401);
+    expect(response.headers()["x-mfa-token"]).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
+  });
+});
+
+test.describe("session ended on the server", () => {
+  test("a removed member is logged out on the next request", async ({
+    page,
+  }) => {
+    const { owner, member, tenant } = await createTeamWithMember("observer");
+    await signIn(page, member.username, password);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await dismissWizard(page);
+
+    await removeNamespaceMember({
+      ...buildRequestContext({ token: owner.token }),
+      path: { tenant, uid: member.id },
+    });
+    const requestRejected = page.waitForResponse(
+      (r) => r.url().includes("/api/") && r.status() === 401,
+    );
+    await page.getByRole("link", { name: "Devices", exact: true }).click();
+
+    await requestRejected;
+    await expect(page).toHaveURL(/\/login$/);
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login$/);
+    await expectStatus(
+      (opts) => listNamespaceMembers({ ...opts, path: { tenant } }),
+      { token: member.token },
+      401,
+    );
+  });
+});
+
 test.describe("account lockout", () => {
   test("locks out after 3 failed attempts, then recovers", async ({ page }) => {
     test.setTimeout(120_000);
 
     const user = createUser("lockout");
-    createNamespace(user.username, `ns-lockout-${buildShortId()}`, randomUUID());
+    createNamespace(
+      user.username,
+      `ns-lockout-${buildShortId()}`,
+      randomUUID(),
+    );
 
     await page.goto("/login");
     for (let i = 0; i < 3; i++) {
@@ -83,7 +152,11 @@ test.describe("accept invitation", () => {
 
   async function inviteUser() {
     const user = createUser("invitee");
-    createNamespace(user.username, `ns-invitee-${buildShortId()}`, randomUUID());
+    createNamespace(
+      user.username,
+      `ns-invitee-${buildShortId()}`,
+      randomUUID(),
+    );
 
     const { link } = await invite(adminToken, adminTenant, user.email);
 
@@ -134,18 +207,8 @@ test.describe("accept invitation", () => {
       adminTenant,
       `e2e-signup-${id}@e2e.test`,
     );
-    await page.goto(link);
 
-    await expect(page.getByRole("heading", { name: /invited/i })).toBeVisible({
-      timeout: 10000,
-    });
-
-    await page.getByLabel("Name", { exact: true }).fill("E2E Signup");
-    await page.getByLabel("Username", { exact: true }).fill(`e2e-signup-${id}`);
-    await page.getByLabel("Password", { exact: true }).fill(password);
-    await page.getByLabel("Confirm password").fill(password);
-
-    await page.getByRole("button", { name: "Join Namespace" }).click();
+    await signUpFromInvite(page, link, `e2e-signup-${id}`);
 
     await expect(page.getByText(/you.re in/i)).toBeVisible({ timeout: 15000 });
   });
