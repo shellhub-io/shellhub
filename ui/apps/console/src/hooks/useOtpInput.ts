@@ -2,9 +2,15 @@ import { useState, useRef, KeyboardEvent } from "react";
 
 /**
  * Drives a segmented code field: one character per box, focus following the caret, and a paste
- * spread across the boxes. alphanumeric is for recovery codes, which are not digits.
+ * spread across the boxes. alphanumeric is for recovery codes, which are not digits. readPaste,
+ * when given, turns pasted text into the code before it is spread, for a field that accepts the
+ * code wrapped in something else, such as a link.
  */
-export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
+export function useOtpInput(
+  length: number = 6,
+  alphanumeric: boolean = false,
+  readPaste?: (text: string) => string,
+) {
   const [code, setCode] = useState<string[]>(Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -44,7 +50,8 @@ export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const rawData = e.clipboardData.getData("text");
+    const text = e.clipboardData.getData("text");
+    const rawData = readPaste ? readPaste(text) : text;
     const pastedData = alphanumeric
       ? rawData.replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
       : rawData.replace(/\D/g, "");

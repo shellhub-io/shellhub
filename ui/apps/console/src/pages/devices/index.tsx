@@ -5,6 +5,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
@@ -74,6 +75,10 @@ export default function Devices() {
     params.search.trim(),
     SEARCH_DEBOUNCE_MS,
   );
+  const firstRunOpen =
+    useFirstRunEligible() === true &&
+    !debouncedSearch &&
+    params.tags.length === 0;
 
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
@@ -352,6 +357,14 @@ export default function Devices() {
                 ? `No devices matching "${debouncedSearch}"`
                 : "No devices found"}
             </p>
+            {firstRunOpen && (
+              <Link
+                to="/dashboard"
+                className="inline-block mt-3 text-xs font-medium text-primary hover:text-primary-400 transition-colors"
+              >
+                Continue setup
+              </Link>
+            )}
           </div>
         }
       />

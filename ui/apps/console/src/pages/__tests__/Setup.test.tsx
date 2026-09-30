@@ -132,7 +132,9 @@ describe("Setup", () => {
       const user = userEvent.setup();
       renderSetup();
 
-      const submit = screen.getByRole("button", { name: /complete setup/i });
+      const submit = screen.getByRole("button", {
+        name: /create and continue/i,
+      });
       expect(submit).toBeDisabled();
 
       await fillValidForm(user);
@@ -142,39 +144,35 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
-    it("shows the success screen and logs in with the returned token", async () => {
+    it("signs in with the returned token and continues on the dashboard trail", async () => {
       const user = userEvent.setup();
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
-
-      expect(await screen.findByText(/instance ready/i)).toBeInTheDocument();
-      await waitFor(() =>
-        expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token"),
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
       );
-    });
-
-    it("redirects to the app after 3 seconds on success", async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
-
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      renderSetup();
-
-      await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
-
-      await screen.findByText(/instance ready/i);
-
-      vi.advanceTimersByTime(3000);
 
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("/", {
+        expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
           replace: true,
+          state: { firstRun: { fromSetup: true, survey: false } },
         }),
       );
+      expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token");
+    });
 
-      vi.useRealTimers();
+    it("lays out what comes after setup as the rest of the trail", () => {
+      renderSetup();
+
+      expect(
+        screen.getByRole("heading", { name: /get your first shell/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/create your account and namespace/i),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/install the agent/i)).toBeInTheDocument();
+      expect(screen.getByText(/open a shell on it/i)).toBeInTheDocument();
     });
 
     it("routes to login with a notice when auto-login fails after setup", async () => {
@@ -183,7 +181,9 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
+      );
 
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith("/login", {
@@ -202,7 +202,9 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
+      );
 
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith("/login", {
@@ -223,7 +225,9 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
+      );
 
       expect(
         await screen.findByText(/setup has already been completed/i),
@@ -238,7 +242,9 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
+      );
 
       expect(await screen.findByText(/an error occurred/i)).toBeInTheDocument();
     });
@@ -274,6 +280,32 @@ describe("Setup", () => {
       );
 
       expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
+    });
+
+    it("tells the dashboard the survey is behind the user", async () => {
+      const user = userEvent.setup();
+      renderSetup();
+
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: "formbricksSurveyCompleted",
+          origin: "https://onboarding.example.com",
+        }),
+      );
+      await user.click(
+        await screen.findByRole("button", { name: /continue/i }),
+      );
+      await fillValidForm(user);
+      await user.click(
+        screen.getByRole("button", { name: /create and continue/i }),
+      );
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
+          replace: true,
+          state: { firstRun: { fromSetup: true, survey: true } },
+        }),
+      );
     });
 
     it("shows a Back button on the account step that returns to onboarding", async () => {

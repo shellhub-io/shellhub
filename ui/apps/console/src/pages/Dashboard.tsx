@@ -7,28 +7,21 @@ import {
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useStats } from "@/hooks/useStats";
-import { hasAnyDevices } from "@/utils/stats";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
-import WelcomeScreen from "@/components/common/WelcomeScreen";
 import CopyButton from "@/components/common/CopyButton";
 import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
 import { Card } from "@shellhub/design-system/primitives";
 
 /**
- * The namespace dashboard: device counts, recent sessions, and the first-run wizard for a
- * namespace with nothing in it yet.
+ * The namespace dashboard: device counts and recent sessions.
  */
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const { stats, isLoading: statsLoading, error: statsError } = useStats();
+  const { stats, isLoading: statsLoading } = useStats();
 
   if (statsLoading) return null;
-
-  if (!statsError && stats && !hasAnyDevices(stats) && currentNamespace) {
-    return <WelcomeScreen namespaceName={currentNamespace.name} />;
-  }
 
   return (
     <div>

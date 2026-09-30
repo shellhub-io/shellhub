@@ -14,6 +14,7 @@ import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
+import FirstRunGate from "./components/firstRun/FirstRunGate";
 import LegacyAccessGuard from "./components/common/LegacyAccessGuard";
 import IdentityAccessGuard from "./components/common/IdentityAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
@@ -127,6 +128,7 @@ export default function App() {
         <Route path="/sso-reauth" element={<SsoReauthComplete />} />
         <Route element={<ConnectivityGuard />}>
           <Route element={<SetupGuard />}>
+            <Route path="/setup" element={<Setup />} />
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/mfa-login" element={<MfaLogin />} />
@@ -134,7 +136,6 @@ export default function App() {
               <Route path="/mfa-reset-request" element={<MfaResetRequest />} />
               <Route path="/mfa-reset-verify" element={<MfaResetVerify />} />
               <Route path="/reset-mfa" element={<MfaResetComplete />} />
-              <Route path="/setup" element={<Setup />} />
               <Route element={<SignUpGuard />}>
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-account" element={<ConfirmAccount />} />
@@ -163,184 +164,195 @@ export default function App() {
                 element={<Navigate to="/preferences/appearance" replace />}
               />
               <Route element={<NamespaceGuard />}>
-                <Route element={<AppLayout />}>
-                  <Route
-                    path={ADMIN_UNAUTHORIZED_PATH}
-                    element={<AdminUnauthorized />}
-                  />
-                  <Route element={<AdminRoute />}>
+                <Route element={<FirstRunGate />}>
+                  <Route element={<AppLayout />}>
                     <Route
-                      path="/admin/license"
-                      element={
-                        isCloud() ? (
-                          <Navigate to="/admin/dashboard" replace />
-                        ) : (
-                          <AdminLicense />
-                        )
-                      }
+                      path={ADMIN_UNAUTHORIZED_PATH}
+                      element={<AdminUnauthorized />}
                     />
-                    <Route element={<LicenseGuard />}>
+                    <Route element={<AdminRoute />}>
                       <Route
-                        path="/admin"
-                        element={<Navigate to="/admin/dashboard" replace />}
+                        path="/admin/license"
+                        element={
+                          isCloud() ? (
+                            <Navigate to="/admin/dashboard" replace />
+                          ) : (
+                            <AdminLicense />
+                          )
+                        }
                       />
+                      <Route element={<LicenseGuard />}>
+                        <Route
+                          path="/admin"
+                          element={<Navigate to="/admin/dashboard" replace />}
+                        />
+                        <Route
+                          path="/admin/dashboard"
+                          element={<AdminDashboard />}
+                        />
+                        <Route path="/admin/users" element={<AdminUsers />} />
+                        <Route
+                          path="/admin/users/:id"
+                          element={<AdminUserDetails />}
+                        />
+                        <Route
+                          path="/admin/namespaces"
+                          element={<AdminNamespaces />}
+                        />
+                        <Route
+                          path="/admin/namespaces/:id"
+                          element={<AdminNamespaceDetails />}
+                        />
+                        <Route
+                          path="/admin/devices"
+                          element={<AdminDevices />}
+                        />
+                        <Route
+                          path="/admin/devices/:uid"
+                          element={<AdminDeviceDetails />}
+                        />
+                        <Route
+                          path="/admin/firewall-rules"
+                          element={<AdminFirewallRules />}
+                        />
+                        <Route
+                          path="/admin/firewall-rules/:id"
+                          element={<AdminFirewallRuleDetails />}
+                        />
+                        <Route
+                          path="/admin/sessions"
+                          element={<AdminSessions />}
+                        />
+                        <Route
+                          path="/admin/sessions/:uid"
+                          element={<AdminSessionDetails />}
+                        />
+                        <Route
+                          path="/admin/instance-api-keys"
+                          element={<AdminInstanceApiKeys />}
+                        />
+                        <Route
+                          path="/admin/settings/authentication"
+                          element={<AdminAuthentication />}
+                        />
+                      </Route>
+                    </Route>
+                    <Route
+                      path="/"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/devices" element={<Devices />} />
+                    <Route path="/devices/add" element={<AddDevice />}>
+                      <Route index element={<AddInteractive />} />
+                      <Route path="fleet" element={<AddFleet />} />
+                    </Route>
+                    <Route
+                      path="/devices/add/fleet/:id/activity"
+                      element={<ProvisioningKeyHistory />}
+                    />
+                    <Route path="/devices/:uid" element={<DeviceDetails />} />
+                    <Route path="/containers" element={<Containers />} />
+                    <Route
+                      path="/containers/:uid"
+                      element={<ContainerDetails />}
+                    />
+                    <Route path="/sessions" element={<Sessions />} />
+                    <Route path="/sessions/:uid" element={<SessionDetails />} />
+                    <Route element={<IdentityAccessGuard />}>
                       <Route
-                        path="/admin/dashboard"
-                        element={<AdminDashboard />}
-                      />
-                      <Route path="/admin/users" element={<AdminUsers />} />
-                      <Route
-                        path="/admin/users/:id"
-                        element={<AdminUserDetails />}
-                      />
-                      <Route
-                        path="/admin/namespaces"
-                        element={<AdminNamespaces />}
-                      />
-                      <Route
-                        path="/admin/namespaces/:id"
-                        element={<AdminNamespaceDetails />}
-                      />
-                      <Route path="/admin/devices" element={<AdminDevices />} />
-                      <Route
-                        path="/admin/devices/:uid"
-                        element={<AdminDeviceDetails />}
-                      />
-                      <Route
-                        path="/admin/firewall-rules"
-                        element={<AdminFirewallRules />}
-                      />
-                      <Route
-                        path="/admin/firewall-rules/:id"
-                        element={<AdminFirewallRuleDetails />}
-                      />
-                      <Route
-                        path="/admin/sessions"
-                        element={<AdminSessions />}
-                      />
-                      <Route
-                        path="/admin/sessions/:uid"
-                        element={<AdminSessionDetails />}
-                      />
-                      <Route
-                        path="/admin/instance-api-keys"
-                        element={<AdminInstanceApiKeys />}
-                      />
-                      <Route
-                        path="/admin/settings/authentication"
-                        element={<AdminAuthentication />}
+                        path="/access-policies"
+                        element={<AccessPolicies />}
                       />
                     </Route>
-                  </Route>
-                  <Route
-                    path="/"
-                    element={<Navigate to="/dashboard" replace />}
-                  />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/devices" element={<Devices />} />
-                  <Route path="/devices/add" element={<AddDevice />}>
-                    <Route index element={<AddInteractive />} />
-                    <Route path="fleet" element={<AddFleet />} />
-                  </Route>
-                  <Route
-                    path="/devices/add/fleet/:id/activity"
-                    element={<ProvisioningKeyHistory />}
-                  />
-                  <Route path="/devices/:uid" element={<DeviceDetails />} />
-                  <Route path="/containers" element={<Containers />} />
-                  <Route
-                    path="/containers/:uid"
-                    element={<ContainerDetails />}
-                  />
-                  <Route path="/sessions" element={<Sessions />} />
-                  <Route path="/sessions/:uid" element={<SessionDetails />} />
-                  <Route element={<IdentityAccessGuard />}>
-                    <Route
-                      path="/access-policies"
-                      element={<AccessPolicies />}
-                    />
-                  </Route>
-                  {/* The two approvals a native login can wait on. Both write to
+                    {/* The two approvals a native login can wait on. Both write to
                       the identity — one creates it, the other refreshes its
                       re-auth window — so both open over the identity list. */}
-                  <Route path="/ssh-identities" element={<SSHIdentities />}>
-                    <Route
-                      path="new/:code"
-                      element={<SSHApproval flow="new" />}
-                    />
-                    <Route
-                      path="confirm/:code"
-                      element={<SSHApproval flow="confirm" />}
-                    />
-                  </Route>
-                  {/* Legacy key ACL, vault, and firewall are bypassed in
+                    <Route path="/ssh-identities" element={<SSHIdentities />}>
+                      <Route
+                        path="new/:code"
+                        element={<SSHApproval flow="new" />}
+                      />
+                      <Route
+                        path="confirm/:code"
+                        element={<SSHApproval flow="confirm" />}
+                      />
+                    </Route>
+                    {/* Legacy key ACL, vault, and firewall are bypassed in
                       identity mode; redirect them to Access Policies there. */}
-                  <Route element={<LegacyAccessGuard />}>
-                    <Route
-                      path="/sshkeys/public-keys"
-                      element={<PublicKeys />}
-                    />
-                    <Route path="/secure-vault" element={<SecureVault />} />
-                    <Route
-                      path="/firewall-rules"
-                      element={
-                        <FeatureGate
-                          feature="Firewall Rules"
-                          description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
-                        >
-                          <FirewallRules />
-                        </FeatureGate>
-                      }
-                    />
-                  </Route>
-                  {getConfig().webEndpoints && (
-                    <Route
-                      path="/web-endpoints"
-                      element={
-                        <FeatureGate
-                          feature="Web Endpoints"
-                          description="Tunnel HTTP traffic to services running on your devices through unique URLs."
-                        >
-                          <WebEndpoints />
-                        </FeatureGate>
-                      }
-                    />
-                  )}
-                  <Route path="/team" element={<Team />} />
-                  <Route path="/settings" element={<SettingsLayout />}>
-                    <Route path="general" element={<GeneralSettings />} />
-                    <Route path="ssh" element={<SshSettings />} />
-                    {isCloud() && (
-                      <Route path="billing" element={<BillingSettings />} />
+                    <Route element={<LegacyAccessGuard />}>
+                      <Route
+                        path="/sshkeys/public-keys"
+                        element={<PublicKeys />}
+                      />
+                      <Route path="/secure-vault" element={<SecureVault />} />
+                      <Route
+                        path="/firewall-rules"
+                        element={
+                          <FeatureGate
+                            feature="Firewall Rules"
+                            description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+                          >
+                            <FirewallRules />
+                          </FeatureGate>
+                        }
+                      />
+                    </Route>
+                    {getConfig().webEndpoints && (
+                      <Route
+                        path="/web-endpoints"
+                        element={
+                          <FeatureGate
+                            feature="Web Endpoints"
+                            description="Tunnel HTTP traffic to services running on your devices through unique URLs."
+                          >
+                            <WebEndpoints />
+                          </FeatureGate>
+                        }
+                      />
                     )}
-                    <Route
-                      path="banner"
-                      element={<Navigate to="../ssh" replace />}
-                    />
-                  </Route>
-                  <Route path="/preferences" element={<PreferencesLayout />}>
-                    <Route
-                      path="appearance"
-                      element={<AppearancePreferences />}
-                    />
-                    <Route path="terminal" element={<TerminalPreferences />} />
-                    <Route
-                      path="recordings"
-                      element={<RecordingsPreferences />}
-                    />
-                    <Route
-                      path="browser-identity"
-                      element={<BrowserIdentityPreferences />}
-                    />
-                    <Route
-                      path="recent-devices"
-                      element={<RecentDevicesPreferences />}
-                    />
-                  </Route>
-                  <Route path="/account" element={<AccountLayout />}>
-                    <Route path="profile" element={<AccountProfile />} />
-                    <Route path="security" element={<AccountSecurity />} />
-                    <Route path="danger-zone" element={<AccountDangerZone />} />
+                    <Route path="/team" element={<Team />} />
+                    <Route path="/settings" element={<SettingsLayout />}>
+                      <Route path="general" element={<GeneralSettings />} />
+                      <Route path="ssh" element={<SshSettings />} />
+                      {isCloud() && (
+                        <Route path="billing" element={<BillingSettings />} />
+                      )}
+                      <Route
+                        path="banner"
+                        element={<Navigate to="../ssh" replace />}
+                      />
+                    </Route>
+                    <Route path="/preferences" element={<PreferencesLayout />}>
+                      <Route
+                        path="appearance"
+                        element={<AppearancePreferences />}
+                      />
+                      <Route
+                        path="terminal"
+                        element={<TerminalPreferences />}
+                      />
+                      <Route
+                        path="recordings"
+                        element={<RecordingsPreferences />}
+                      />
+                      <Route
+                        path="browser-identity"
+                        element={<BrowserIdentityPreferences />}
+                      />
+                      <Route
+                        path="recent-devices"
+                        element={<RecentDevicesPreferences />}
+                      />
+                    </Route>
+                    <Route path="/account" element={<AccountLayout />}>
+                      <Route path="profile" element={<AccountProfile />} />
+                      <Route path="security" element={<AccountSecurity />} />
+                      <Route
+                        path="danger-zone"
+                        element={<AccountDangerZone />}
+                      />
+                    </Route>
                   </Route>
                 </Route>
               </Route>

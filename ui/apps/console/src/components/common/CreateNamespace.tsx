@@ -1,23 +1,10 @@
-import { useState, useEffect } from "react";
-import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { useNamespaceArrival } from "@/hooks/useNamespaceArrival";
 import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
-import { getNamespaces } from "@/client";
-import { isEnterpriseOrCloud } from "@/env";
-import {
-  CommandLineIcon,
-  SparklesIcon,
-  BookOpenIcon,
-} from "@heroicons/react/24/outline";
-import AmbientBackground from "./AmbientBackground";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 import CopyButton from "@/components/common/CopyButton";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { NAMESPACE_NAME_MIN_LENGTH } from "@/utils/validation";
-import {
-  Button,
-  GithubIcon,
-  Spinner,
-} from "@shellhub/design-system/primitives";
-import { nullOnFailure } from "@/utils/failure";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 
 /**
  * The namespace name form. Validates as the user types against the same rules the server holds,
@@ -64,35 +51,17 @@ function CopyBlock({ command }: { command: string }) {
 
 /**
  * What community edition shows instead of the form: creating a namespace there is a server-side
- * step, so this explains it and then switches into the namespace once it exists.
+ * step, so this explains it and then offers to switch into the namespace once it exists, or
+ * switches in by itself with `autoEnter`.
  */
-export function CommunityInstructions() {
-  const switchNs = useSwitchNamespace();
-  const [ready, setReady] = useState(false);
-  const [tenantId, setTenantId] = useState<string | null>(null);
+export function CommunityInstructions({
+  autoEnter = false,
+}: {
+  autoEnter?: boolean;
+}) {
+  const { ready, enter, pending, failed } = useNamespaceArrival({ autoEnter });
 
   const addCmd = "./bin/cli member add <username> <namespace> <role>";
-
-  useEffect(() => {
-    const check = async () => {
-      const result = await getNamespaces({
-        query: { page: 1, per_page: 1 },
-        throwOnError: true,
-      }).catch(nullOnFailure);
-
-      const first = result?.data[0];
-      if (first) {
-        setReady(true);
-        setTenantId(first.tenant_id);
-      }
-    };
-    const interval = setInterval(() => void check(), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleContinue = () => {
-    if (tenantId) void switchNs.mutateAsync({ tenantId });
-  };
 
   return (
     <div className="w-full space-y-5">
@@ -113,8 +82,16 @@ export function CommunityInstructions() {
         </p>
       </div>
 
-      <Button fullWidth disabled={!ready} onClick={handleContinue}>
-        {ready ? (
+      {failed && (
+        <p role="alert" className="text-xs text-accent-red">
+          You were added, but getting into the namespace failed.
+        </p>
+      )}
+
+      <Button fullWidth disabled={!ready || pending} onClick={enter}>
+        {failed ? (
+          "Try again"
+        ) : ready ? (
           "You're in! Go to dashboard"
         ) : (
           <>
@@ -139,82 +116,6 @@ export function CommunityInstructions() {
           </a>{" "}
           let you create and manage namespaces directly from the UI.
         </p>
-      </div>
-    </div>
-  );
-}
-
-/**
- * The create-namespace screen, which is the form on the paid editions and the instructions on
- * community — the two are different enough that neither is a variant of the other.
- */
-export default function CreateNamespace() {
-  const canCreate = isEnterpriseOrCloud();
-
-  return (
-    <div className="relative w-full min-h-0 flex-1 flex overflow-auto">
-      <AmbientBackground />
-
-      <div
-        data-testid="create-namespace"
-        className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col"
-      >
-        {/* Hero */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="animate-float mb-6 inline-block">
-            <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-              <CommandLineIcon
-                className="w-10 h-10 text-primary"
-                strokeWidth={1.2}
-              />
-            </div>
-          </div>
-
-          <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-            Welcome to ShellHub
-          </p>
-          <h1 className="text-3xl font-bold text-text-primary mb-3">
-            Set up your namespace
-          </h1>
-          <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-            You need a namespace to continue. A namespace groups your devices,
-            team members, sessions, and security rules — all in one place.
-          </p>
-        </div>
-
-        {/* Form / CLI card */}
-        <div
-          className="w-full max-w-xl mx-auto bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-          style={{ animationDelay: "200ms" }}
-        >
-          {canCreate ? <NamespaceCreateForm /> : <CommunityInstructions />}
-        </div>
-
-        {/* Footer links */}
-        <div
-          className="flex items-center justify-center gap-6 mt-10 animate-fade-in"
-          style={{ animationDelay: "800ms" }}
-        >
-          <a
-            href="https://docs.shellhub.io/self-hosted/administration"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
-          >
-            <BookOpenIcon className="w-3.5 h-3.5" />
-            Documentation
-          </a>
-          <span className="w-px h-3 bg-border" />
-          <a
-            href="https://github.com/shellhub-io/shellhub"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
-          >
-            <GithubIcon className="w-3.5 h-3.5" />
-            Community
-          </a>
-        </div>
       </div>
     </div>
   );

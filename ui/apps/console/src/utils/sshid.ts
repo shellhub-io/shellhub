@@ -27,6 +27,11 @@ export function parseSshid(
 }
 
 /**
+ * The port an SSH client assumes when none is given.
+ */
+export const DEFAULT_SSH_PORT = 22;
+
+/**
  * The login a connection uses when the user leaves it empty.
  */
 export const DEFAULT_LOGIN = "root";
@@ -43,4 +48,25 @@ export function sshUrl(sshid: string, login: string): string | null {
     ? `${parts.namespace}.${parts.device}`
     : parts.device;
   return `ssh://${encodeURIComponent(`${login}@${target}`)}@${parts.host}`;
+}
+
+/**
+ * The port option an `ssh` command needs for the endpoint, with its trailing space, or nothing
+ * when the port is the default one.
+ */
+export function sshPortFlag(endpoint: { port: number }): string {
+  return endpoint.port === DEFAULT_SSH_PORT ? "" : `-p ${endpoint.port} `;
+}
+
+/**
+ * The `ssh` command that opens a shell as login on a device, leaving the port out when it is the
+ * default one.
+ */
+export function sshCommand(
+  login: string,
+  namespace: string,
+  device: string,
+  endpoint: { host: string; port: number },
+): string {
+  return `ssh ${sshPortFlag(endpoint)}${login}@${namespace}.${device}@${endpoint.host}`;
 }
