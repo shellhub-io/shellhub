@@ -21,7 +21,9 @@ import type { AssignableRole } from "@/pages/team/helpers";
 import { isCloud, isCommunity, isEnterprise } from "./env";
 import {
   createTeam,
+  consoleAccountDeletionReason,
   createTeamWithMember,
+  deleteOwnAccount,
   signIn,
   signInAndOpen,
   dismissWizard,
@@ -500,14 +502,11 @@ test.describe("paired devices", () => {
   test("deleting the account removes the member's paired devices", async ({
     page,
   }) => {
-    test.skip(!isCloud, "only the cloud deletes an account from the console");
+    test.skip(!isCloud, consoleAccountDeletionReason);
     const { owner, member, tenant } = await createTeamWithMember("operator");
     const removed = await pairDevice(member, tenant);
 
-    await signInAndOpen(page, member.username, "/account/danger-zone");
-    await page.getByRole("button", { name: "Delete account" }).click();
-    await confirmDialog(page, "Delete account", "Delete account");
-    await expect(page).toHaveURL(/\/login$/);
+    await deleteOwnAccount(page, member.username);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([]);
     expect(await authenticateAgent(removed)).toBe(401);
