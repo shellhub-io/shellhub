@@ -74,7 +74,13 @@ deleting the namespace and billing — are the ones you want to keep to the owne
 ## API keys carry roles too
 
 An API key is created with a role, and it must be **equal to or less than the role of whoever
-created it**. An operator cannot mint an administrator key.
+creates it**. An operator cannot mint an administrator key. Changing a key's role later takes the
+same authority from whoever edits it.
+
+A key never acts as an owner. The highest role it acts with is administrator, so an owner's key is
+an administrator key. A key keeps its role when its creator's role changes, except that demoting
+the creator to observer deletes their keys. A key stops working when its creator leaves the
+namespace.
 
 See [API keys](/api#creating-a-key).
 

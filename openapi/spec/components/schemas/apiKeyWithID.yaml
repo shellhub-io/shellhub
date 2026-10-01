@@ -25,8 +25,8 @@ properties:
     type: string
     description: |
       The role of the key. It serves as a "level" indicating which endpoints the key can
-      access.
-    example: owner
+      access. A key acts at most as `administrator`.
+    example: administrator
   name:
     type: string
     description: |
