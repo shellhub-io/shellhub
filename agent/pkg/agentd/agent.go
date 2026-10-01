@@ -414,13 +414,15 @@ func (a *Agent) generatePrivateKey() error {
 		return err
 	}
 
-	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
-		if err := keygen.GeneratePrivateKey(keyPath); err != nil {
-			return err
-		}
+	err = keygen.EnsurePrivateKey(keyPath)
+	if errors.Is(err, keygen.ErrKeyPermissions) {
+		log.WithError(err).WithField("path", keyPath).
+			Warnf("the private key is not restricted to its owner; run: chmod 600 %s", keyPath)
+
+		return nil
 	}
 
-	return nil
+	return err
 }
 
 func (a *Agent) readPublicKey() error {

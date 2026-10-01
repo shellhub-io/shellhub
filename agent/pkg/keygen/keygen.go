@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -17,6 +18,9 @@ var (
 
 	// ErrPathTraversal is returned when a filename escapes the declared base directory.
 	ErrPathTraversal = errors.New("path escapes base directory")
+
+	// ErrKeyPermissions is returned when an existing private key cannot be restricted to its owner.
+	ErrKeyPermissions = errors.New("cannot restrict private key permissions")
 )
 
 // GeneratePrivateKey writes a new 2048-bit RSA key to filename in PEM form, creating the
@@ -36,7 +40,7 @@ func GeneratePrivateKey(filename string) error {
 		return err
 	}
 
-	f, err := os.Create(filename) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
 	if err != nil {
 		return err
 	}
@@ -54,6 +58,29 @@ func GeneratePrivateKey(filename string) error {
 	}
 
 	return f.Sync()
+}
+
+// EnsurePrivateKey makes sure filename holds a private key readable only by its owner. A missing
+// key is generated; an existing one keeps its content and loses any group or other permission. It
+// reports [ErrKeyPermissions] when an existing key cannot be restricted, so the caller can keep
+// running with the key as it is.
+func EnsurePrivateKey(filename string) error {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return GeneratePrivateKey(filename)
+	} else if err != nil {
+		return err
+	}
+
+	if info.Mode().Perm()&0o077 == 0 {
+		return nil
+	}
+
+	if err := os.Chmod(filename, 0o600); err != nil {
+		return fmt.Errorf("%w: %w", ErrKeyPermissions, err)
+	}
+
+	return nil
 }
 
 // ReadPublicKey loads a PEM-encoded private key from filename and returns its public half.
