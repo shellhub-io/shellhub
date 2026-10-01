@@ -177,6 +177,13 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
+			description:  "the generic service forbidden error yields 403 and its message",
+			err:          services.ErrForbidden,
+			wantStatus:   http.StatusForbidden,
+			wantBody:     responses.Error{Message: "forbidden"},
+			wantReported: false,
+		},
+		{
 			description:  "a service locked error yields 423 and its message",
 			err:          services.ErrUserAwaitingApproval,
 			wantStatus:   http.StatusLocked,
