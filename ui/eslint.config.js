@@ -12,7 +12,7 @@ import reactPlugin from "eslint-plugin-react";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 
 export default defineConfig([
-  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "**/src/client"]),
+  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "**/src/client", "**/e2e/tmp"]),
   js.configs.recommended,
   {
     extends: [...tseslint.configs.recommendedTypeChecked],
