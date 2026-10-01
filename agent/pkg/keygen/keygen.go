@@ -24,7 +24,8 @@ var (
 )
 
 // GeneratePrivateKey writes a new 2048-bit RSA key to filename in PEM form, creating the
-// directory if needed. The file is written readable only by its owner.
+// directory if needed. A file it creates is readable only by its owner; an existing file is
+// overwritten and keeps its mode, so use [EnsurePrivateKey] to restrict one.
 func GeneratePrivateKey(filename string) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
