@@ -56,6 +56,12 @@ func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption
 	}
 }
 
+func NewAgentContainerWithHostname(hostname string) NewAgentContainerOption {
+	return func(envs map[string]string) {
+		envs["SHELLHUB_PREFERRED_HOSTNAME"] = hostname
+	}
+}
+
 // NewAgentContainerWithProvisioningKey drops the tenant id, so the device proves the key alone
 // resolved the namespace.
 func NewAgentContainerWithProvisioningKey(key string) NewAgentContainerOption {
@@ -1820,19 +1826,10 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 
 	agent := startAgent(t, ctx, compose, opts...)
 
-	devices := []models.Device{}
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).SetResult(&devices).
-			Get("/api/devices?status=pending")
-		assert.Equal(tt, 200, resp.StatusCode())
-		assert.NoError(tt, err)
-
-		assert.Len(tt, devices, 1)
-	}, 30*time.Second, 1*time.Second)
+	pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
 
 	resp, err := compose.R(ctx).
-		Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
+		Patch(fmt.Sprintf("/api/devices/%s/accept", pending.UID))
 	require.Equal(t, 200, resp.StatusCode())
 	require.NoError(t, err)
 
@@ -1841,7 +1838,7 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		resp, err := compose.R(ctx).
 			SetResult(&device).
-			Get("/api/devices/" + devices[0].UID)
+			Get("/api/devices/" + pending.UID)
 		assert.Equal(tt, 200, resp.StatusCode())
 		assert.NoError(tt, err)
 

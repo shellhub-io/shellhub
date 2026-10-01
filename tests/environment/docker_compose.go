@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"crypto/rsa"
 	"io"
 	"testing"
 	"time"
@@ -54,6 +55,16 @@ func (dc *DockerCompose) Env(key string) string {
 // SSHAddress is the host address the gateway's SSH port is published on.
 func (dc *DockerCompose) SSHAddress() string {
 	return dc.stack.SSHAddress()
+}
+
+// APIPublicKey returns the key the server verifies tokens with, failing t if it cannot be read.
+func (dc *DockerCompose) APIPublicKey(t *testing.T) *rsa.PublicKey {
+	t.Helper()
+
+	key, err := dc.stack.APIPublicKey(t.Context())
+	require.NoError(t, err)
+
+	return key
 }
 
 // Service retrieves the specified service.
@@ -232,9 +243,10 @@ func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPo
 	require.Equal(t, 200, resp.StatusCode())
 }
 
-// AwaitDeviceWithStatus waits until exactly one device in the namespace has the given status. The
-// status is a server-side filter, so a device that lands in another one leaves the list empty.
-func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.DeviceStatus) {
+// AwaitDeviceWithStatus waits until exactly one device in the namespace has the given status and
+// returns it. The status is a server-side filter, so a device that lands in another one leaves the
+// list empty.
+func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.DeviceStatus) models.Device {
 	t.Helper()
 
 	devices := []models.Device{}
@@ -245,6 +257,8 @@ func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.Devic
 		assert.Equal(tt, 200, resp.StatusCode())
 		assert.Len(tt, devices, 1)
 	}, 30*time.Second, 1*time.Second)
+
+	return devices[0]
 }
 
 // EnrollIdentity enrolls data, an authorized-keys line, as an SSH identity named name for the user

@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 )
 
 const (
@@ -73,15 +74,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 		agent := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(unissuedProvisioningKey))
 
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			state, err := agent.State(ctx)
-			if !assert.NoError(tt, err) {
-				return
-			}
-
-			assert.False(tt, state.Running, "the agent should give up on a key the server refuses")
-			assert.NotZero(tt, state.ExitCode, "the agent should report the refusal as a failure")
-		}, 30*time.Second, 1*time.Second)
+		awaitAgentRefused(t, ctx, agent)
 
 		devices := []models.Device{}
 
@@ -89,6 +82,35 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 200, resp.StatusCode())
 		assert.Empty(t, devices)
+	})
+
+	t.Run("a key that has used up its enrollments enrolls nothing more", func(t *testing.T) {
+		ctx := context.Background()
+		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+
+		key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
+			Name:       "single-use",
+			Mode:       string(models.ProvisioningKeyModeAutomatic),
+			UsageLimit: 1,
+		})
+
+		first := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(key.Key))
+
+		enrolled := compose.AwaitDeviceWithStatus(t, models.DeviceStatusAccepted)
+		compose.AwaitProvisioningKeyUses(t, "single-use", 1)
+		require.NoError(t, first.Stop(ctx, nil))
+
+		second := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(key.Key))
+
+		awaitAgentRefused(t, ctx, second)
+
+		devices := []models.Device{}
+
+		resp, err := compose.R(ctx).SetResult(&devices).Get("/api/devices")
+		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode())
+		require.Len(t, devices, 1)
+		assert.Equal(t, enrolled.UID, devices[0].UID)
 	})
 
 	t.Run("a pending device whose enrollment was re-evaluated is still listed", func(t *testing.T) {
@@ -124,4 +146,18 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 			}
 		}, 30*time.Second, 1*time.Second)
 	})
+}
+
+func awaitAgentRefused(t *testing.T, ctx context.Context, agent testcontainers.Container) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		state, err := agent.State(ctx)
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		assert.False(tt, state.Running, "the agent should give up on a key the server refuses")
+		assert.NotZero(tt, state.ExitCode, "the agent should report the refusal as a failure")
+	}, 30*time.Second, 1*time.Second)
 }
