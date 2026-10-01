@@ -99,9 +99,13 @@ func NewSFTPServer(mode command.SFTPServerMode) {
 		return
 	}
 
-	if err := server.Serve(); !errors.Is(err, io.EOF) {
-		fmt.Fprintln(os.Stderr, err)
-	}
+	reportServeError(os.Stderr, server.Serve())
 
 	_ = server.Close()
+}
+
+func reportServeError(w io.Writer, err error) {
+	if err != nil && !errors.Is(err, io.EOF) {
+		_, _ = fmt.Fprintln(w, err)
+	}
 }
