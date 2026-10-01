@@ -199,6 +199,9 @@ describe("MfaEnableModal", () => {
       await waitFor(() => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
+      expect(
+        screen.getByRole("img", { name: "MFA QR code" }),
+      ).toBeInTheDocument();
       expect(screen.getByDisplayValue(mockMfaData.secret)).toBeInTheDocument();
     });
 

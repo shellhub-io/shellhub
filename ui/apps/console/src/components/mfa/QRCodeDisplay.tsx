@@ -23,5 +23,12 @@ export function QRCodeDisplay({ data, size = 200 }: QRCodeDisplayProps) {
     }
   }, [data, size]);
 
-  return <canvas ref={canvasRef} className="mx-auto rounded-lg" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      role="img"
+      aria-label="MFA QR code"
+      className="mx-auto rounded-lg"
+    />
+  );
 }
