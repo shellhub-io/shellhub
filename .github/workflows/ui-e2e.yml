@@ -31,12 +31,29 @@ jobs:
         with:
           path: shellhub
 
+      - name: Skip billing e2e on Dependabot without Stripe test keys
+        id: stripe
+        if: matrix.edition == 'cloud' && github.actor == 'dependabot[bot]'
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
+          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+        run: |
+          if [ -n "$STRIPE_SECRET_KEY" ] && [ -n "$STRIPE_PRICE_ID" ] && [ -n "$SHELLHUB_STRIPE_PUBLISHABLE_KEY" ]; then
+            exit 0
+          fi
+          message="Skipping the cloud e2e: billing e2e needs STRIPE_TEST_SECRET_KEY, STRIPE_TEST_PRICE_ID and STRIPE_TEST_PUBLISHABLE_KEY in the Dependabot secret store."
+          echo "::notice title=Cloud e2e skipped::$message"
+          echo "$message" >> "$GITHUB_STEP_SUMMARY"
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: filter
         if: >-
-          matrix.edition == 'community'
+          steps.stripe.outputs.skip != 'true'
+          && (matrix.edition == 'community'
           || github.event_name != 'pull_request'
-          || github.event.pull_request.head.repo.full_name == github.repository
+          || github.event.pull_request.head.repo.full_name == github.repository)
         with:
           working-directory: shellhub
           filters: |
