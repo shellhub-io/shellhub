@@ -19,19 +19,26 @@ case "${1:-test}" in
     ;;
   test)
     shift
+    playwright_args=()
+    for arg; do
+      case $arg in
+        --edition=*) edition=${arg#*=} ;;
+        *) playwright_args+=("$arg") ;;
+      esac
+    done
     [ -n "${CI:-}" ] && trap 'stack down --name "$name"' EXIT
-    env=$(stack up --edition "$edition" --name "$name" "$@") || exit $?
+    env=$(stack up --edition "$edition" --name "$name") || exit $?
     eval "$(echo "$env" | grep '^export ')"
     cd "$REPO_ROOT/ui/apps/console"
     status=0
-    npx playwright test || status=$?
+    npx playwright test ${playwright_args[@]+"${playwright_args[@]}"} || status=$?
     if [ -z "${CI:-}" ]; then
       echo "stack '$name' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: npm run e2e:down -w @shellhub/console" >&2
     fi
     exit "$status"
     ;;
   *)
-    echo "Usage: $0 {up|down|test} [stack flags]" >&2
+    echo "Usage: $0 {up [stack flags]|down|test [--edition=<edition>] [playwright args]}" >&2
     exit 1
     ;;
 esac
