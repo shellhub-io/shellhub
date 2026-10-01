@@ -506,11 +506,25 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 		}).Trace("closing error to session ends")
 	}()
 
-	if err = cmd.Wait(); err != nil {
-		log.WithError(err).WithFields(log.Fields{
+	waitErr := cmd.Wait()
+	if waitErr != nil {
+		log.WithError(waitErr).WithFields(log.Fields{
 			"user": session.Context().User(),
 		}).Error("Failed to wait command")
+	}
 
+	code := 1
+	if cmd.ProcessState != nil {
+		code = cmd.ProcessState.ExitCode()
+	}
+
+	if err := session.Exit(code); err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"user": session.Context().User(),
+		}).Warn("Failed to send the exit status")
+	}
+
+	if waitErr != nil {
 		return errors.New("failed to wait command")
 	}
 
