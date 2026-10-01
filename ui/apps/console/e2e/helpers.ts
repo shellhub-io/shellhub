@@ -13,6 +13,11 @@ import { loginAs } from "./api";
 export const directMembershipReason =
   "enterprise adds existing users directly, without an invitation link";
 
+export const emailDeliveryReason = "only the cloud sends email";
+
+export const consoleAccountDeletionReason =
+  "only the cloud deletes an account from the console";
+
 export async function createTeam({ admin = false } = {}) {
   const owner = createUser("owner", { admin });
   const namespace = `e2e-team-${buildShortId()}`;
@@ -86,4 +91,14 @@ export async function signUpFromInvite(
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByLabel("Confirm password").fill(password);
   await page.getByRole("button", { name: "Join Namespace" }).click();
+}
+
+export async function deleteOwnAccount(page: Page, username: string) {
+  await signInAndOpen(page, username, "/account/danger-zone");
+  await page.getByRole("button", { name: "Delete account" }).click();
+  await page
+    .getByRole("dialog", { name: "Delete account" })
+    .getByRole("button", { name: "Delete account" })
+    .click();
+  await expect(page).toHaveURL(/\/login$/);
 }

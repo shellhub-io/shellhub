@@ -1,0 +1,197 @@
+import { type Page, expect, test } from "@playwright/test";
+import { login, registerUser } from "@/client";
+import { isCloud } from "./env";
+import {
+  consoleAccountDeletionReason,
+  createTeam,
+  createTeamWithMember,
+  deleteOwnAccount,
+  emailDeliveryReason,
+  fillLoginForm,
+  signInAndOpen,
+} from "./helpers";
+import {
+  buildShortId,
+  createUser,
+  password,
+  readUserInvitationStatus,
+} from "./seed";
+import { buildRequestContext, invite } from "./api";
+import { readEmailLink } from "./mail";
+
+const openSignUpReason = "only the cloud has open sign-up";
+
+const newPassword = `${password}-new`;
+
+function buildAccount() {
+  const id = buildShortId();
+  return { username: `e2e-signup-${id}`, email: `signup-${id}@e2e.test` };
+}
+
+async function expectLoginStatus(
+  username: string,
+  attemptedPassword: string,
+  status: number,
+) {
+  const { response } = await login({
+    ...buildRequestContext(),
+    throwOnError: false,
+    body: { username, password: attemptedPassword },
+  });
+  expect(response?.status, `signing in as ${username}`).toBe(status);
+}
+
+async function registerAccount() {
+  const account = buildAccount();
+  await registerUser({
+    ...buildRequestContext(),
+    body: { ...account, name: "E2E Signup", password, email_marketing: false },
+  });
+  return account;
+}
+
+async function signUp(
+  page: Page,
+  { username, email }: { username: string; email: string },
+) {
+  await page.goto("/sign-up");
+  await page.getByLabel("Name", { exact: true }).fill("E2E Signup");
+  await page.getByLabel("Username", { exact: true }).fill(username);
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByLabel("Confirm Password", { exact: true }).fill(password);
+  const privacy = page.getByRole("checkbox", {
+    name: "I agree to the Privacy Policy.",
+  });
+  await privacy.press("Space");
+  await expect(privacy).toBeChecked();
+  await page.getByRole("button", { name: "Create Account" }).click();
+  await expect(page).toHaveURL(/\/confirm-account\?username=/);
+  await expect(
+    page.getByRole("heading", { name: "Account Activation Required" }),
+  ).toBeVisible();
+}
+
+test.describe("registration", () => {
+  test.skip(!isCloud, openSignUpReason);
+
+  test("signing up leaves the account unconfirmed", async ({ page }) => {
+    const account = buildAccount();
+
+    await signUp(page, account);
+
+    await expectLoginStatus(account.username, password, 403);
+  });
+
+  test("signing up with an invited email completes the user invitation", async ({
+    page,
+  }) => {
+    const { owner, tenant } = await createTeam();
+    const account = buildAccount();
+    await invite(owner.token, tenant, account.email);
+
+    await signUp(page, account);
+
+    expect(readUserInvitationStatus(account.email)).toBe("accepted");
+  });
+});
+
+test.describe("email confirmation", () => {
+  test.skip(!isCloud, emailDeliveryReason);
+
+  test("the emailed link activates the account", async ({ page }) => {
+    const account = await registerAccount();
+    const link = await readEmailLink(account.email, "/validation-account");
+
+    await page.goto(link);
+
+    await expect(
+      page.getByText("Your account has been activated successfully"),
+    ).toBeVisible();
+    await expectLoginStatus(account.username, password, 200);
+  });
+
+  test("a resent email replaces the first link", async ({ page }) => {
+    const account = await registerAccount();
+    const firstLink = await readEmailLink(account.email, "/validation-account");
+    const readNewestLink = () =>
+      readEmailLink(account.email, "/validation-account");
+
+    await page.goto(
+      `/confirm-account?username=${encodeURIComponent(account.username)}`,
+    );
+    await page.getByRole("button", { name: "Resend Email" }).click();
+    await expect(
+      page.getByText("Confirmation email sent successfully."),
+    ).toBeVisible();
+    await expect.poll(readNewestLink).not.toBe(firstLink);
+
+    await page.goto(firstLink);
+    await expect(
+      page.getByText("Your account activation token has expired"),
+    ).toBeVisible();
+    await page.goto(await readNewestLink());
+    await expect(
+      page.getByText("Your account has been activated successfully"),
+    ).toBeVisible();
+    await expectLoginStatus(account.username, password, 200);
+  });
+});
+
+test.describe("password", () => {
+  test("changing the password replaces the old one", async ({ page }) => {
+    const user = createUser("password");
+
+    await signInAndOpen(page, user.username, "/account/security");
+    await page
+      .getByRole("button", { name: "Change Password", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Change password" });
+    await dialog.getByLabel("Current Password").fill(password);
+    await dialog.getByLabel("New Password", { exact: true }).fill(newPassword);
+    await dialog.getByLabel("Confirm New Password").fill(newPassword);
+    await dialog.getByRole("button", { name: "Change password" }).click();
+    await expect(
+      dialog.getByText("Password changed successfully."),
+    ).toBeVisible();
+
+    await expectLoginStatus(user.username, newPassword, 200);
+    await expectLoginStatus(user.username, password, 401);
+  });
+
+  test("the emailed reset link sets a new password", async ({ page }) => {
+    test.skip(!isCloud, emailDeliveryReason);
+    const user = createUser("forgot");
+
+    await page.goto("/login");
+    await page.getByRole("link", { name: "Forgot password?" }).click();
+    await page.getByLabel("Username or email address").fill(user.username);
+    await page.getByRole("button", { name: "Reset Password" }).click();
+    await expect(page.getByText("Check your inbox.")).toBeVisible();
+
+    await page.goto(await readEmailLink(user.email, "/update-password"));
+    await page.getByLabel("New Password").fill(newPassword);
+    await page.getByLabel("Confirm Password").fill(newPassword);
+    await page.getByRole("button", { name: "Update Password" }).click();
+    await expect(
+      page.getByText("Password updated successfully. Please sign in."),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/login$/);
+
+    await fillLoginForm(page, user.username, newPassword);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expectLoginStatus(user.username, password, 401);
+  });
+});
+
+test.describe("account deletion", () => {
+  test.skip(!isCloud, consoleAccountDeletionReason);
+
+  test("deleting the account removes the user", async ({ page }) => {
+    const { member } = await createTeamWithMember("operator");
+
+    await deleteOwnAccount(page, member.username);
+
+    await expectLoginStatus(member.username, password, 401);
+  });
+});

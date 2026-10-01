@@ -5,6 +5,7 @@ import { isCloud, isCommunity } from "./env";
 import {
   createTeam,
   dismissWizard,
+  emailDeliveryReason,
   fillLoginForm,
   signIn,
   signInAndOpen,
@@ -16,8 +17,8 @@ import {
   countRecoveryCodes,
   mfaSecret,
   password,
-  composeLogs,
 } from "./seed";
+import { findEmailLink, readLatestEmail } from "./mail";
 import { buildRequestContext } from "./api";
 
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -113,23 +114,11 @@ async function setRecoveryEmail(token: string, recoveryEmail: string) {
 }
 
 async function readResetEmail(email: string) {
-  const findLine = () =>
-    composeLogs("server")
-      .split("\n")
-      .reverse()
-      .find((l) => l.includes("[mail/dummy]") && l.includes(`to=${email}`));
-  await expect
-    .poll(findLine, { message: `MFA reset email to ${email}` })
-    .toBeTruthy();
-  const line = findLine() ?? "";
+  const line = await readLatestEmail(email);
   const code = line.match(/following code\.(?:\\n|\s)*([A-Z2-7]{5})\b/)?.[1];
-  const link = line.match(/https?:\/\/[^\s"\\)]+\/reset-mfa\?id=[\w-]+/)?.[0];
-  if (!code || !link) {
-    throw new Error(
-      `expected a code and link in the email to ${email}: ${line}`,
-    );
-  }
-  return { code, link };
+  if (!code)
+    throw new Error(`expected a code in the email to ${email}: ${line}`);
+  return { code, link: findEmailLink(line, "/reset-mfa") };
 }
 
 async function readResetCodes(user: MFAUser) {
@@ -184,10 +173,9 @@ async function requestReset(user: MFAUser) {
     body: { identifier: user.username },
   });
   const { link, ...codes } = await readResetCodes(user);
-  const url = new URL(link);
-  const userId = url.searchParams.get("id");
-  if (!userId) throw new Error(`expected a user id in ${link}`);
-  return { codes, userId, path: url.pathname + url.search };
+  const userId = link.params.get("id");
+  if (!userId) throw new Error(`expected a user id in ${link.path}`);
+  return { codes, userId, path: link.path };
 }
 
 async function openDisableMFA(page: Page, username: string) {
@@ -415,7 +403,7 @@ test.describe("MFA", () => {
   });
 
   test.describe("email reset", () => {
-    test.skip(!isCloud, "only cloud sends email");
+    test.skip(!isCloud, emailDeliveryReason);
 
     test("disables MFA from the profile with both emailed codes", async ({
       page,
