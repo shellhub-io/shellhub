@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/server"
 	"github.com/shellhub-io/shellhub/agent/server/modes/connector"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host"
+	log "github.com/sirupsen/logrus"
 )
 
 // Info identifies the operating system, or the container image, the agent runs on.
@@ -56,11 +57,12 @@ func (m *HostMode) Serve(agent *Agent) {
 	agent.server.SetDeviceName(agent.authData.Name)
 }
 
-// GetInfo reports the host's distribution, read from its os-release file.
+// GetInfo reports the host's distribution, read from its os-release file. It never returns an
+// error: an os-release file it cannot read is logged and the generic Linux identity reported.
 func (m *HostMode) GetInfo() (*Info, error) {
 	osrelease, err := sysinfo.GetOSRelease()
 	if err != nil {
-		return nil, err
+		log.WithError(err).Warn("failed to read the os-release file, reporting a generic Linux distribution")
 	}
 
 	return &Info{

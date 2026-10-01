@@ -1,11 +1,15 @@
 package agentd
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
+	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
 	client_mocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
@@ -338,6 +342,53 @@ func TestAgent_GetInfo(t *testing.T) {
 
 			assert.Equal(t, test.expected.info, info)
 			assert.ErrorIs(t, err, test.expected.err)
+		})
+	}
+}
+
+func TestAgent_loadDeviceInfo_BrokenOSRelease(t *testing.T) {
+	tests := []struct {
+		description string
+		setup       func(t *testing.T, path string)
+		expected    *models.DeviceInfo
+	}{
+		{
+			description: "skips a malformed line and keeps the rest",
+			setup: func(t *testing.T, path string) {
+				t.Helper()
+
+				require.NoError(t, os.WriteFile(path, []byte("ID=debian\nPRETTY_NAME=\"Debian GNU/Linux 12\n"), 0o600))
+			},
+			expected: &models.DeviceInfo{ID: "debian", PrettyName: "Linux", Version: "latest", Platform: "native", Arch: runtime.GOARCH},
+		},
+		{
+			description: "reports a generic Linux when the file cannot be read",
+			setup: func(t *testing.T, path string) {
+				t.Helper()
+
+				require.NoError(t, os.Mkdir(path, 0o750))
+			},
+			expected: &models.DeviceInfo{ID: "linux", PrettyName: "Linux", Version: "latest", Platform: "native", Arch: runtime.GOARCH},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			root := t.TempDir()
+			require.NoError(t, os.Mkdir(filepath.Join(root, "etc"), 0o750))
+			test.setup(t, filepath.Join(root, "etc", "os-release"))
+
+			previous := sysinfo.OSReleaseRoot
+			sysinfo.OSReleaseRoot = root
+			t.Cleanup(func() { sysinfo.OSReleaseRoot = previous })
+
+			agent := &Agent{
+				mode:   new(HostMode),
+				config: &Config{Version: "latest", Platform: "native"},
+			}
+
+			require.NoError(t, agent.loadDeviceInfo())
+			assert.Equal(t, test.expected, agent.Info)
 		})
 	}
 }
