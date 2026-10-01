@@ -32,7 +32,6 @@ func TestWebReauthVerify(t *testing.T) {
 		description  string
 		req          *requests.WebReauthVerify
 		requireMocks func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
-		expectedErr  bool
 		wantErr      error
 	}{
 		{
@@ -47,7 +46,6 @@ func TestWebReauthVerify(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("SSHIdentityTouchReauth", mock.Anything, tenantID, fingerprint).Return(nil).Once()
 			},
-			expectedErr: false,
 		},
 		{
 			description: "rejects a wrong password without stamping",
@@ -56,8 +54,7 @@ func TestWebReauthVerify(t *testing.T) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
 				hashMock.On("CompareWith", "wrong", hash).Return(false).Once()
 			},
-			expectedErr: true,
-			wantErr:     ErrUserPasswordNotMatch,
+			wantErr: ErrUserPasswordNotMatch,
 		},
 		{
 			description: "fails when the user does not exist",
@@ -65,7 +62,7 @@ func TestWebReauthVerify(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(nil, store.ErrNoDocuments).Once()
 			},
-			expectedErr: true,
+			wantErr: ErrUserNotFound,
 		},
 		{
 			description: "rejects a fingerprint owned by another member",
@@ -76,8 +73,7 @@ func TestWebReauthVerify(t *testing.T) {
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{PrincipalID: otherUserID, Fingerprint: fingerprint}, nil).Once()
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHIdentityNotFound,
+			wantErr: ErrSSHIdentityNotFound,
 		},
 		{
 			description: "rejects a fingerprint with no identity",
@@ -88,8 +84,7 @@ func TestWebReauthVerify(t *testing.T) {
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHIdentityNotFound,
+			wantErr: ErrSSHIdentityNotFound,
 		},
 		{
 			description: "rejects a caller with no tenant as not owning the key",
@@ -98,8 +93,7 @@ func TestWebReauthVerify(t *testing.T) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
 				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHIdentityNotFound,
+			wantErr: ErrSSHIdentityNotFound,
 		},
 	}
 
@@ -114,13 +108,9 @@ func TestWebReauthVerify(t *testing.T) {
 			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache))
 
 			_, err := service.WebReauthVerify(ctx, tc.req)
-			if tc.expectedErr {
-				require.Error(t, err)
-			} else {
+			if tc.wantErr == nil {
 				require.NoError(t, err)
-			}
-
-			if tc.wantErr != nil {
+			} else {
 				require.ErrorIs(t, err, tc.wantErr)
 			}
 
@@ -155,7 +145,6 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 		approvalErr  error
 		claimed      bool
 		expectDecide bool
-		expectedErr  bool
 		wantErr      error
 	}{
 		{
@@ -163,7 +152,6 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			approval:     reauthApproval,
 			claimed:      true,
 			expectDecide: true,
-			expectedErr:  false,
 		},
 		{
 			description: "refuses an approval for a different key",
@@ -171,8 +159,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Code: code, TenantID: tenantID, Kind: models.SSHApprovalReauth,
 				Fingerprint: "SHA256:someone-else", State: models.SSHApprovalPending,
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHApprovalCodeNotFound,
+			wantErr: ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description: "refuses an identity approval",
@@ -180,8 +167,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Code: code, TenantID: tenantID, Kind: models.SSHApprovalIdentity,
 				Fingerprint: fingerprint, State: models.SSHApprovalPending,
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHApprovalCodeNotFound,
+			wantErr: ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description: "refuses an approval from another namespace",
@@ -189,21 +175,18 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Code: code, TenantID: "00000000-0000-4000-0000-000000000001", Kind: models.SSHApprovalReauth,
 				Fingerprint: fingerprint, State: models.SSHApprovalPending,
 			},
-			expectedErr: true,
-			wantErr:     ErrSSHApprovalCodeNotFound,
+			wantErr: ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description:  "fails when the login was already decided",
 			approval:     reauthApproval,
 			claimed:      false,
 			expectDecide: true,
-			expectedErr:  true,
 			wantErr:      ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description: "fails when the code is unknown or expired",
 			approvalErr: store.ErrNoDocuments,
-			expectedErr: true,
 			wantErr:     ErrSSHApprovalCodeNotFound,
 		},
 	}
@@ -234,13 +217,9 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				ApprovalCode: code,
 			})
 
-			if tc.expectedErr {
-				require.Error(t, err)
-			} else {
+			if tc.wantErr == nil {
 				require.NoError(t, err)
-			}
-
-			if tc.wantErr != nil {
+			} else {
 				require.ErrorIs(t, err, tc.wantErr)
 			}
 
