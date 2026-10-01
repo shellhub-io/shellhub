@@ -4,7 +4,9 @@ package host
 
 import (
 	"errors"
+	"fmt"
 	"net"
+	"os/exec"
 	"sync/atomic"
 	"testing"
 
@@ -230,4 +232,46 @@ func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	require.NoError(t, retErr, "Exec() must return nil for a succeeding command")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called")
 	assert.Equal(t, int32(0), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 0 for /bin/true")
+}
+
+func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
+	cases := []struct {
+		name        string
+		code        int32
+		requireErrs require.ErrorAssertionFunc
+	}{
+		{name: "sftp server exits cleanly", code: 0, requireErrs: require.NoError},
+		{name: "sftp server fails", code: 3, requireErrs: require.Error},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			osauthMock := &osauthMocks.MockBackend{}
+			osauth.DefaultBackend = osauthMock
+
+			osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(&osauth.User{
+				UID:      0,
+				GID:      0,
+				Username: "root",
+				Shell:    "/bin/sh",
+				HomeDir:  "/root",
+			}, nil)
+
+			deviceName := "test-device"
+			s := NewSessioner(&deviceName, func() *exec.Cmd {
+				return exec.CommandContext(t.Context(), "/bin/sh", "-c", fmt.Sprintf("exit %d", tc.code)) //nolint:gosec // the exit code comes from the test table
+			})
+
+			sess := newFakeSession("session-sftp", "root")
+
+			testCtx, ok := sess.ctx.(*testSSHContext)
+			require.True(t, ok)
+			testCtx.SetValue(gliderssh.ContextKeyConn, &gossh.ServerConn{Conn: &fakeGosshConn{}})
+
+			tc.requireErrs(t, s.SFTP(sess))
+
+			assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called")
+			assert.Equal(t, tc.code, atomic.LoadInt32(&sess.exitCode))
+		})
+	}
 }
