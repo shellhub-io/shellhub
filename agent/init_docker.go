@@ -30,5 +30,5 @@ func init() {
 		AgentPlatform = "docker"
 	}
 
-	sysinfo.DefaultOSReleaseFilename = "/host/etc/os-release"
+	sysinfo.OSReleaseRoot = "/host"
 }
