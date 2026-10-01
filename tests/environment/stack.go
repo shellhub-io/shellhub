@@ -2,6 +2,10 @@ package environment
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -303,6 +307,40 @@ func (s *Stack) NewNamespace(ctx context.Context, owner, name, tenant, sshAccess
 // NewMember adds a user to a namespace with the given role via the server's admin CLI.
 func (s *Stack) NewMember(ctx context.Context, username, namespace, role string) error {
 	return s.Admin(ctx, "namespace", "member", "add", username, namespace, role)
+}
+
+// APIPublicKey returns the key the server verifies tokens with, read from the server container, so
+// it is the key the running server holds whatever directory the caller runs from. It returns an
+// error when the file is missing or does not hold a PEM-encoded RSA public key.
+func (s *Stack) APIPublicKey(ctx context.Context) (*rsa.PublicKey, error) {
+	reader, err := s.Service(ServiceServer).CopyFileFromContainer(ctx, "/run/secrets/api_public_key")
+	if err != nil {
+		return nil, err
+	}
+
+	defer reader.Close() //nolint:errcheck // the key is already read; close is best-effort
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.New("the API public key is not PEM-encoded")
+	}
+
+	key, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	public, ok := key.(*rsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("the API public key is a %T, not an RSA key", key)
+	}
+
+	return public, nil
 }
 
 // AwaitAPI polls GET /api/info until the server returns 200 or the context is cancelled.
