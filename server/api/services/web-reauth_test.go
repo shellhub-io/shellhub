@@ -33,6 +33,7 @@ func TestWebReauthVerify(t *testing.T) {
 		req          *requests.WebReauthVerify
 		requireMocks func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expectedErr  bool
+		wantErr      error
 	}{
 		{
 			description: "refreshes the identity's re-auth window on a correct password",
@@ -56,6 +57,7 @@ func TestWebReauthVerify(t *testing.T) {
 				hashMock.On("CompareWith", "wrong", hash).Return(false).Once()
 			},
 			expectedErr: true,
+			wantErr:     ErrUserPasswordNotMatch,
 		},
 		{
 			description: "fails when the user does not exist",
@@ -75,6 +77,29 @@ func TestWebReauthVerify(t *testing.T) {
 					Return(&models.SSHIdentity{PrincipalID: otherUserID, Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedErr: true,
+			wantErr:     ErrSSHIdentityNotFound,
+		},
+		{
+			description: "rejects a fingerprint with no identity",
+			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
+			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
+				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+					Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedErr: true,
+			wantErr:     ErrSSHIdentityNotFound,
+		},
+		{
+			description: "rejects a caller with no tenant as not owning the key",
+			req:         &requests.WebReauthVerify{UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
+			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
+				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
+			},
+			expectedErr: true,
+			wantErr:     ErrSSHIdentityNotFound,
 		},
 	}
 
@@ -93,6 +118,10 @@ func TestWebReauthVerify(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
+			}
+
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
 			}
 
 			storeMock.AssertExpectations(t)
@@ -127,6 +156,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 		claimed      bool
 		expectDecide bool
 		expectedErr  bool
+		wantErr      error
 	}{
 		{
 			description:  "releases the login the step-up was for",
@@ -142,6 +172,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Fingerprint: "SHA256:someone-else", State: models.SSHApprovalPending,
 			},
 			expectedErr: true,
+			wantErr:     ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description: "refuses an identity approval",
@@ -150,6 +181,16 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Fingerprint: fingerprint, State: models.SSHApprovalPending,
 			},
 			expectedErr: true,
+			wantErr:     ErrSSHApprovalCodeNotFound,
+		},
+		{
+			description: "refuses an approval from another namespace",
+			approval: &models.SSHApproval{
+				Code: code, TenantID: "00000000-0000-4000-0000-000000000001", Kind: models.SSHApprovalReauth,
+				Fingerprint: fingerprint, State: models.SSHApprovalPending,
+			},
+			expectedErr: true,
+			wantErr:     ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description:  "fails when the login was already decided",
@@ -157,11 +198,13 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			claimed:      false,
 			expectDecide: true,
 			expectedErr:  true,
+			wantErr:      ErrSSHApprovalCodeNotFound,
 		},
 		{
 			description: "fails when the code is unknown or expired",
 			approvalErr: store.ErrNoDocuments,
 			expectedErr: true,
+			wantErr:     ErrSSHApprovalCodeNotFound,
 		},
 	}
 
@@ -195,6 +238,10 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
+			}
+
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
 			}
 
 			storeMock.AssertExpectations(t)

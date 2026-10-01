@@ -44,15 +44,20 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 // key resolves to their own account, which is stricter than the membership the
 // approval routes check. So no separate permission gate is needed here — and a
 // login can only be released by the person whose key it is.
+//
+// It returns [ErrSSHIdentityNotFound] when the key is not one of the caller's
+// identities, and [ErrSSHApprovalCodeNotFound] when the approval code is not a
+// pending re-auth approval for that key in the caller's tenant. Neither is a
+// forbidden error, so a 403 from the step-up only ever means a failed factor.
 func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify) (string, error) {
 	sc, err := scope.NewBounded(req.TenantID)
 	if err != nil {
-		return "", NewErrForbidden(ErrForbidden, err)
+		return "", NewErrSSHIdentityNotFound(req.Fingerprint, err)
 	}
 
 	identity, err := st.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, req.Fingerprint)
 	if err != nil || identity.PrincipalID != req.UserID {
-		return "", NewErrForbidden(ErrForbidden, nil)
+		return "", NewErrSSHIdentityNotFound(req.Fingerprint, err)
 	}
 
 	var confirmationCode string
@@ -94,7 +99,7 @@ func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebRe
 		approval.TenantID != req.TenantID ||
 		approval.Fingerprint != req.Fingerprint
 	if mismatched {
-		return "", NewErrForbidden(ErrForbidden, nil)
+		return "", NewErrSSHApprovalCodeNotFound(req.ApprovalCode, nil)
 	}
 
 	confirmationCode, err := pairingcode.New(pairingcode.DeviceCodeLength)
