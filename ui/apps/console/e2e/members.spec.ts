@@ -278,7 +278,7 @@ async function leaveNamespace(page: Page, member: { username: string }) {
 }
 
 test.describe("roles", () => {
-  test("a role change applies to the member's existing token and API keys", async ({
+  test("demoting an administrator to operator restricts their token but not their API keys", async ({
     page,
   }) => {
     const { owner, member } = await createTeamWithMemberKey();
@@ -286,7 +286,8 @@ test.describe("roles", () => {
 
     await changeRole(page, owner, member, "operator");
 
-    await expectMemberStatus(listAccessPolicies, member, 403);
+    await expectStatus(listAccessPolicies, { token: member.token }, 403);
+    await expectStatus(listAccessPolicies, { apiKey: member.apiKey }, 200);
   });
 
   test("demoting to observer revokes the member's API keys", async ({

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -29,13 +30,15 @@ var APIKeySortFields = query.NewFieldSet(
 // plaintext is returned once, at creation, and only its hash is kept.
 type APIKeyService interface {
 	// CreateAPIKey creates a new API key for the specified namespace. The key's plaintext is a UUID the
-	// server generates; the optional req.OptRole must be less or equal than the user's role when provided.
-	// Only the plaintext's SHA256 digest is stored. It returns the generated plaintext, which is the only
-	// time it is readable, and an error, if any.
+	// server generates. The optional req.OptRole must be one the user has authority over, which never
+	// includes owner, or it returns ErrRoleForbidden; left out, the key takes the user's role, lowered to
+	// administrator for an owner. Only the plaintext's SHA256 digest is stored. It returns the generated
+	// plaintext, which is the only time it is readable, and an error, if any.
 	CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (res *responses.CreateAPIKey, err error)
 
-	// ListAPIKeys retrieves a list of API keys within the specified tenant ID. It returns the list of API keys, the
-	// total count of documents in the database, and an error, if any.
+	// ListAPIKeys retrieves a list of API keys within the specified tenant ID, each with the role it authenticates
+	// with, so a key stored as owner is listed as administrator. It returns the list of API keys, the total count of
+	// documents in the database, and an error, if any.
 	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int, err error)
 
 	// UpdateAPIKey updates an API key with the provided tenant ID and name, dropping the key's cached
@@ -73,11 +76,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, NewErrBadRequest(errors.New("experid date to APIKey is invalid"))
 	}
 
-	if req.OptRole != "" {
-		if !req.Role.HasAuthority(req.OptRole) {
-			return nil, NewErrRoleForbidden()
-		}
-
+	switch {
+	case req.OptRole == "":
+		req.Role = apiKeyRoleLimit(req.Role)
+	case !req.Role.HasAuthority(req.OptRole):
+		return nil, NewErrRoleForbidden()
+	default:
 		req.Role = req.OptRole
 	}
 
@@ -122,12 +126,21 @@ func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]
 		return nil, 0, err
 	}
 
-	return s.store.APIKeyList(
+	apiKeys, count, err := s.store.APIKeyList(
 		ctx,
 		sc,
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
 	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range apiKeys {
+		apiKeys[i].Role = apiKeyRoleLimit(apiKeys[i].Role)
+	}
+
+	return apiKeys, count, nil
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
@@ -191,4 +204,12 @@ func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) 
 	}
 
 	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.Digest))
+}
+
+func apiKeyRoleLimit(role authorizer.Role) authorizer.Role {
+	if authorizer.RoleAdministrator.HasAuthority(role) {
+		return role
+	}
+
+	return authorizer.RoleAdministrator
 }

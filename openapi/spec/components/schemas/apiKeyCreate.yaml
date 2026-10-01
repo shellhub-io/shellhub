@@ -23,9 +23,10 @@ properties:
     type: string
     description: |
       The role of the key. It serves as a "level" indicating which endpoints
-      the key can access. It must be less or equal than the user's role. Leave
-      it blank to use the user's role.
-    example: owner
+      the key can access. It must be less or equal than the user's role, and
+      it is never `owner`. Leave it blank to use the user's role, or
+      `administrator` for an owner.
+    example: administrator
 required:
   - name
   - expires_at

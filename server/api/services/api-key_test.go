@@ -9,6 +9,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -225,7 +226,7 @@ func TestCreateAPIKey(t *testing.T) {
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "owner",
+						Role:      "administrator",
 						ExpiresIn: -1,
 					}).
 					Return("", errors.New("error")).
@@ -237,7 +238,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds",
+			description: "gives an owner who leaves the role out an administrator key",
 			req: &requests.CreateAPIKey{
 				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -284,7 +285,7 @@ func TestCreateAPIKey(t *testing.T) {
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "owner",
+						Role:      "administrator",
 						ExpiresIn: -1,
 					}).
 					Return(hashedKey, nil).
@@ -297,7 +298,7 @@ func TestCreateAPIKey(t *testing.T) {
 						Name:      "dev",
 						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "owner",
+						Role:      "administrator",
 						ExpiresIn: -1,
 					}, nil).
 					Once()
@@ -309,7 +310,86 @@ func TestCreateAPIKey(t *testing.T) {
 					Name:      "dev",
 					CreatedBy: "000000000000000000000000",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Role:      "owner",
+					Role:      "administrator",
+					ExpiresIn: -1,
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "gives an operator who leaves the role out an operator key",
+			req: &requests.CreateAPIKey{
+				UserID:    "000000000000000000000000",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Role:      "operator",
+				Name:      "dev",
+				ExpiresAt: -1,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(
+						&models.Namespace{
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: "operator",
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
+					Once()
+
+				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
+				hashedKey := hex.EncodeToString(keySum[:])
+
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyCreate", ctx, &models.APIKey{
+						Digest:    hashedKey,
+						Name:      "dev",
+						CreatedBy: "000000000000000000000000",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "operator",
+						ExpiresIn: -1,
+					}).
+					Return(hashedKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyDigestResolver, hashedKey).
+					Return(&models.APIKey{
+						ID:        surrogateID,
+						Digest:    hashedKey,
+						Name:      "dev",
+						CreatedBy: "000000000000000000000000",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "operator",
+						ExpiresIn: -1,
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				res: &responses.CreateAPIKey{
+					ID:        surrogateID,
+					Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
+					Name:      "dev",
+					CreatedBy: "000000000000000000000000",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Role:      "operator",
 					ExpiresIn: -1,
 				},
 				err: nil,
@@ -418,6 +498,43 @@ func TestListAPIKey(t *testing.T) {
 					},
 				},
 				count: 1,
+				err:   nil,
+			},
+		},
+		{
+			description: "lists a key stored as owner with the administrator role it authenticates with",
+			req: &requests.ListAPIKey{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "expires_in", Order: query.OrderAsc},
+			},
+			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
+					Return(
+						[]models.APIKey{
+							{Name: "legacy", Role: authorizer.RoleOwner},
+							{Name: "dev", Role: authorizer.RoleOperator},
+						},
+						2,
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				apiKeys: []models.APIKey{
+					{Name: "legacy", Role: authorizer.RoleAdministrator},
+					{Name: "dev", Role: authorizer.RoleOperator},
+				},
+				count: 2,
 				err:   nil,
 			},
 		},
@@ -676,6 +793,46 @@ func TestUpdateAPIKey(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds raising a key above the role of its creator",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "dev",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{
+						{ID: "000000000000000000000000", Role: "owner"},
+						{ID: "creator-id", Role: "operator"},
+					}}, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(&models.APIKey{
+						Digest:    "existing-id",
+						Name:      "dev",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "observer",
+						CreatedBy: "creator-id",
+					}, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, &models.APIKey{
+						Digest:    "existing-id",
+						Name:      "dev",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "administrator",
+						CreatedBy: "creator-id",
+					}).
 					Return(nil).
 					Once()
 			},
