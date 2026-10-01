@@ -6,9 +6,11 @@ post:
     and release the login the gateway is holding open.
 
     A `reauth` approval is not confirmable here. Releasing one means proving a
-    factor, which happens on the web terminal re-auth endpoint, so accepting a
-    bare confirm would be a way to skip the factor. Unknown, expired,
-    already-decided and `reauth` codes all return 404.
+    factor, which happens on the web terminal re-auth endpoint. Accepting a bare
+    confirm would skip the factor, so a `reauth` code returns 403, as does a
+    caller whose role cannot approve logins or add SSH keys. Unknown, expired
+    and already-decided codes, and codes from a namespace you are not a member
+    of, return 404.
   tags:
     - community
     - ssh-identities
@@ -59,6 +61,8 @@ post:
                 example: WXYZ2K7Q
     '401':
       $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
     '500':
