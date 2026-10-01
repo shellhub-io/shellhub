@@ -22,7 +22,7 @@ import (
 const (
 	otherNamespaceName = "otherspace"
 	otherNamespace     = "00000000-0000-4000-0000-000000000001"
-	lastSeenQuietPolls = 10
+	lastSeenQuietPolls = 15
 	tunnelPingTimeout  = 60 * time.Second
 )
 
@@ -175,25 +175,27 @@ func awaitSettledLastSeen(t *testing.T, compose *environment.DockerCompose, uid 
 
 	unchanged := 0
 
-	require.Eventually(t, func() bool {
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		current := models.Device{}
 
 		resp, err := compose.R(t.Context()).SetResult(&current).Get("/api/devices/" + uid)
-		if err != nil || resp.StatusCode() != http.StatusOK {
-			return false
+		if !assert.NoError(tt, err) {
+			return
 		}
 
-		if !current.LastSeen.Equal(settled) {
+		if !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
+			return
+		}
+
+		if current.LastSeen.Equal(settled) {
+			unchanged++
+		} else {
 			settled = current.LastSeen
 			unchanged = 0
-
-			return false
 		}
 
-		unchanged++
-
-		return unchanged >= lastSeenQuietPolls
-	}, 30*time.Second, 1*time.Second)
+		assert.GreaterOrEqual(tt, unchanged, lastSeenQuietPolls, "last_seen still moving: %s", settled)
+	}, 60*time.Second, 1*time.Second)
 
 	return settled
 }
