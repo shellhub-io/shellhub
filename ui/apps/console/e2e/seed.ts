@@ -1,20 +1,32 @@
-import { execFileSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import {
+  type ExecFileSyncOptionsWithStringEncoding,
+  execFileSync,
+} from "node:child_process";
+import { createHash, randomUUID } from "node:crypto";
 import type { AssignableRole } from "@/pages/team/helpers";
 
 const stackName = `shellhub-e2e-${process.env.E2E_STACK_NAME || "default"}`;
 
+function compose(
+  args: string[],
+  options: Omit<ExecFileSyncOptionsWithStringEncoding, "encoding"> = {},
+) {
+  return execFileSync("docker", ["compose", "-p", stackName, ...args], {
+    stdio: ["pipe", "pipe", "pipe"],
+    timeout: 30_000,
+    ...options,
+    encoding: "utf-8",
+  });
+}
+
 export function composeExec(service: string, args: string[], input?: string) {
-  return execFileSync(
-    "docker",
-    ["compose", "-p", stackName, "exec", "-T", service, ...args],
-    {
-      input,
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 30_000,
-    },
-  ).trim();
+  return compose(["exec", "-T", service, ...args], { input }).trim();
+}
+
+export function composeLogs(service: string) {
+  return compose(["logs", "--no-log-prefix", service], {
+    maxBuffer: 64 * 1024 * 1024,
+  });
 }
 
 function serverAdmin(...args: string[]) {
@@ -91,16 +103,40 @@ export function expireInvitation(tenant: string) {
   }
 }
 
-const mfaSecret = "JBSWY3DPEHPK3PXP";
+export const mfaSecret = "JBSWY3DPEHPK3PXP";
 
-export function enableMFA(username: string) {
+const hashRecoveryCode = (code: string) =>
+  createHash("sha256").update(code).digest("hex");
+
+export function enableMFA(
+  username: string,
+  { recoveryEmail = "", recoveryCodes = [] as string[] } = {},
+) {
   const out = sql(
-    "UPDATE users SET mfa_enabled = true, mfa_secret = :'secret' WHERE username = :'username';",
-    { username, secret: mfaSecret },
+    `UPDATE users SET mfa_enabled = true, mfa_secret = :'secret',
+       security_email = NULLIF(:'recovery_email', ''),
+       mfa_recovery_codes = string_to_array(NULLIF(:'codes', ''), ',')
+     WHERE username = :'username';`,
+    {
+      username,
+      secret: mfaSecret,
+      recovery_email: recoveryEmail,
+      codes: recoveryCodes.map(hashRecoveryCode).join(","),
+    },
   );
   if (out !== "UPDATE 1") {
     throw new Error(`expected to enable MFA for ${username}, got "${out}"`);
   }
+}
+
+export function countRecoveryCodes(username: string) {
+  const count = sql(
+    "SELECT coalesce(cardinality(mfa_recovery_codes), 0) FROM users WHERE username = :'username';",
+    { username },
+    ["-tA"],
+  );
+  if (!count) throw new Error(`expected a user named ${username}`);
+  return Number(count);
 }
 
 export function readUserInvitationStatus(email: string) {

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { listNamespaceMembers, removeNamespaceMember } from "@/client";
-import { adminUser, isCommunity, isEnterprise } from "./env";
+import { adminUser, isEnterprise } from "./env";
 import {
   signIn,
   fillLoginForm,
@@ -10,13 +10,7 @@ import {
   signUpFromInvite,
   createTeamWithMember,
 } from "./helpers";
-import {
-  password,
-  buildShortId,
-  createUser,
-  createNamespace,
-  enableMFA,
-} from "./seed";
+import { password, buildShortId, createUser, createNamespace } from "./seed";
 import { buildRequestContext, expectStatus, invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
@@ -47,32 +41,6 @@ test.describe("authentication", () => {
 
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login$/);
-  });
-});
-
-test.describe("MFA", () => {
-  test.skip(isCommunity, "MFA exists only in enterprise and cloud");
-
-  test("an MFA-enabled account continues to the code prompt", async ({
-    page,
-  }) => {
-    const user = createUser("mfa");
-    createNamespace(user.username, `ns-mfa-${buildShortId()}`, randomUUID());
-    enableMFA(user.username);
-
-    await page.goto("/login");
-    const login = page.waitForResponse((r) => r.url().endsWith("/api/login"));
-    await fillLoginForm(page, user.username, password);
-
-    await expect(page).toHaveURL(/\/mfa-login$/);
-    await expect(
-      page.getByRole("heading", { name: "Two-Factor Authentication" }),
-    ).toBeVisible();
-    const response = await login;
-    expect(response.status()).toBe(401);
-    expect(response.headers()["x-mfa-token"]).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    );
   });
 });
 
