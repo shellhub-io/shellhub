@@ -4,7 +4,8 @@ post:
   description: |
     Reject a pending SSH login approval. The gateway refuses the held login once
     the approval is rejected, and nothing is written to the identity. Unknown,
-    expired or already-decided codes return 404.
+    expired or already-decided codes, and codes from a namespace you are not a
+    member of, return 404. A caller whose role cannot approve logins gets 403.
   tags:
     - community
     - ssh-identities
@@ -23,6 +24,8 @@ post:
       description: Success to reject the SSH login approval.
     '401':
       $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
     '500':
