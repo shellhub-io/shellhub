@@ -26,7 +26,6 @@ const errorHandlerRenderingEveryRefusal = "api/pkg/echo/handlers/errors.go"
 
 var refusalsAwaitingTheRouteShapes = map[string]int{
 	"api/routes/api-key.go":          1,
-	"api/routes/device.go":           3,
 	"api/routes/provisioning-key.go": 2,
 	"api/routes/invitation.go":       6,
 	"api/routes/nsadm.go":            2,

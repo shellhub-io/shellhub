@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"crypto/rsa"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/labstack/echo/v5"
@@ -78,6 +80,13 @@ func (a *Authenticator) AllowAnonymous(method, path string) {
 // check that only asks for a tenant.
 func (a *Authenticator) AllowDevice(method, path string) {
 	a.devices.add(method, path)
+}
+
+// AnonymousRoutes returns the anonymous allowlist as "METHOD path" keys. The route-table tests hold
+// every route's anonymity claim against it, in this repository and in the ones that extend its
+// router.
+func (a *Authenticator) AnonymousRoutes() []string {
+	return slices.Collect(maps.Keys(a.anonymous))
 }
 
 // UnregisteredRoutes returns the "METHOD path" entries of both allowlists that

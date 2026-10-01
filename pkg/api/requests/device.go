@@ -10,6 +10,11 @@ import (
 type DeviceList struct {
 	TenantID     string              `header:"X-Tenant-ID"`
 	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`
+
+	// Connector asks for connector devices only. It is the caller's intent, not a filter: the
+	// service decides how to express it, and the default excludes them.
+	Connector bool `query:"connector"`
+
 	query.Paginator
 	query.Sorter
 	query.Filters
