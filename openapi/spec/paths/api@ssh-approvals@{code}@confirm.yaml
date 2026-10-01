@@ -8,9 +8,10 @@ post:
     A `reauth` approval is not confirmable here. Releasing one means proving a
     factor, which happens on the web terminal re-auth endpoint. Accepting a bare
     confirm would skip the factor, so a `reauth` code returns 403, as does a
-    caller whose role cannot approve logins or add SSH keys. Unknown, expired
-    and already-decided codes, and codes from a namespace you are not a member
-    of, return 404.
+    caller whose role cannot approve logins or add SSH keys. Both are checked
+    before the approval's state, so they apply to an already-decided code too.
+    Otherwise unknown, expired and already-decided codes, and codes from a
+    namespace you are not a member of, return 404.
   tags:
     - community
     - ssh-identities
