@@ -14,6 +14,11 @@ post:
 
     The key must belong to the caller: owning the identity is the authorization
     for releasing its login.
+
+    A wrong password or code returns 403. A key that is not one of the caller's
+    identities returns 404, as does an approval code that is unknown, expired,
+    already used, or not a re-auth approval for this key in the caller's
+    namespace.
   tags:
     - community
     - ssh-identities
@@ -74,5 +79,7 @@ post:
       $ref: ../components/responses/401.yaml
     '403':
       $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
