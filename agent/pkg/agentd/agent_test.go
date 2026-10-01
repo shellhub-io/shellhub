@@ -444,12 +444,7 @@ func TestAgent_probeServerInfo(t *testing.T) {
 	}
 }
 
-// TestAgent_generatePrivateKey_PathContainment verifies that the production
-// generatePrivateKey method rejects PrivateKey paths that contain raw ".."
-// traversal sequences.  The raw path is what an operator would supply via
-// the PRIVATE_KEY environment variable, so filepath.Join is intentionally
-// NOT used here — it would silently clean the traversal before the test runs.
-func TestAgent_generatePrivateKey_PathContainment(t *testing.T) {
+func TestAgent_ensurePrivateKey_PathContainment(t *testing.T) {
 	t.Parallel()
 
 	baseDir := t.TempDir()
@@ -476,7 +471,7 @@ func TestAgent_generatePrivateKey_PathContainment(t *testing.T) {
 			t.Parallel()
 
 			a := &Agent{config: &Config{PrivateKey: tt.privateKey}}
-			err := a.generatePrivateKey()
+			err := a.ensurePrivateKey()
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)

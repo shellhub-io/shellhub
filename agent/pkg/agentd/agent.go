@@ -320,8 +320,8 @@ func (a *Agent) Setup() error {
 		return errors.Wrap(err, "failed to load device info")
 	}
 
-	if err := a.generatePrivateKey(); err != nil {
-		return errors.Wrap(err, "failed to generate private key")
+	if err := a.ensurePrivateKey(); err != nil {
+		return errors.Wrap(err, "failed to ensure private key")
 	}
 
 	if err := a.readPublicKey(); err != nil {
@@ -408,7 +408,7 @@ func cleanKeyPath(raw string) (string, error) {
 	return cleaned, nil
 }
 
-func (a *Agent) generatePrivateKey() error {
+func (a *Agent) ensurePrivateKey() error {
 	keyPath, err := cleanKeyPath(a.config.PrivateKey)
 	if err != nil {
 		return err
