@@ -11,6 +11,7 @@ import {
   acceptInvite,
   acceptDevicePairing,
   apiKeyCreate,
+  authDevice,
   createDevicePairing,
   getDevices,
   listAccessPolicies,
@@ -389,21 +390,34 @@ async function requestPairing() {
   if (!data.code) {
     throw new Error(`expected a pairing code for ${body.hostname}`);
   }
-  return { code: data.code, name: body.hostname };
+  return { code: data.code, name: body.hostname, body };
 }
+
+type PairedDevice = ReturnType<typeof buildPairingRequest> & {
+  tenant_id: string;
+};
 
 async function pairDevice(
   member: { token: string },
   tenant: string,
-): Promise<string> {
-  const { code, name } = await requestPairing();
+): Promise<PairedDevice> {
+  const { code, name, body } = await requestPairing();
   const { data } = await acceptDevicePairing({
     ...buildRequestContext({ token: member.token }),
     path: { code },
     body: { tenant_id: tenant },
   });
   if (!data.uid) throw new Error(`expected ${name} to join ${tenant}`);
-  return name;
+  return { ...body, tenant_id: tenant };
+}
+
+async function authenticateAgent(device: PairedDevice) {
+  const { response } = await authDevice({
+    ...buildRequestContext(),
+    throwOnError: false,
+    body: device,
+  });
+  return response?.status;
 }
 
 async function readAcceptedDevices(owner: { token: string }) {
@@ -422,6 +436,9 @@ test.describe("paired devices", () => {
     const { code, name } = await requestPairing();
 
     await signInAndOpen(page, member.username, `/accept-device?code=${code}`);
+    await expect(
+      page.getByRole("region", { name: "Accepting as" }),
+    ).toContainText(member.email);
     await page.getByRole("button", { name: "Accept device" }).click();
     await expect(
       page.getByRole("heading", { name: "Device accepted" }),
@@ -443,13 +460,15 @@ test.describe("paired devices", () => {
   }) => {
     const { owner, member, tenant } = await createTeamWithMember("operator");
     const kept = await pairDevice(member, tenant);
-    await pairDevice(member, tenant);
+    const removed = await pairDevice(member, tenant);
 
-    await changeRole(page, owner, member, "observer", [kept]);
+    await changeRole(page, owner, member, "observer", [kept.hostname]);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([
-      { name: kept, owner_id: undefined },
+      { name: kept.hostname, owner_id: undefined },
     ]);
+    expect(await authenticateAgent(kept)).toBe(200);
+    expect(await authenticateAgent(removed)).toBe(401);
   });
 
   test("removing a member keeps the ticked device for the team and removes the rest", async ({
@@ -457,22 +476,25 @@ test.describe("paired devices", () => {
   }) => {
     const { owner, member, tenant } = await createTeamWithMember("operator");
     const kept = await pairDevice(member, tenant);
-    await pairDevice(member, tenant);
+    const removed = await pairDevice(member, tenant);
 
-    await removeMember(page, owner, member, [kept]);
+    await removeMember(page, owner, member, [kept.hostname]);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([
-      { name: kept, owner_id: undefined },
+      { name: kept.hostname, owner_id: undefined },
     ]);
+    expect(await authenticateAgent(kept)).toBe(200);
+    expect(await authenticateAgent(removed)).toBe(401);
   });
 
   test("leaving removes the member's paired devices", async ({ page }) => {
     const { owner, member, tenant } = await createTeamWithMember("operator");
-    await pairDevice(member, tenant);
+    const removed = await pairDevice(member, tenant);
 
     await leaveNamespace(page, member);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([]);
+    expect(await authenticateAgent(removed)).toBe(401);
   });
 
   test("deleting the account removes the member's paired devices", async ({
@@ -480,7 +502,7 @@ test.describe("paired devices", () => {
   }) => {
     test.skip(!isCloud, "only the cloud deletes an account from the console");
     const { owner, member, tenant } = await createTeamWithMember("operator");
-    await pairDevice(member, tenant);
+    const removed = await pairDevice(member, tenant);
 
     await signInAndOpen(page, member.username, "/account/danger-zone");
     await page.getByRole("button", { name: "Delete account" }).click();
@@ -488,5 +510,6 @@ test.describe("paired devices", () => {
     await expect(page).toHaveURL(/\/login$/);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([]);
+    expect(await authenticateAgent(removed)).toBe(401);
   });
 });
