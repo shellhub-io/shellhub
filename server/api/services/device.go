@@ -77,13 +77,17 @@ type DeviceService interface {
 
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 
-	// RenameDevice renames the specified device.
-	// This method is deprecated, use [DeviceService#UpdateDevice] instead.
+	// RenameDevice stores name, lowercased, as the name of the device uid in the namespace tenant. A
+	// name that differs only in case is left as it is. It returns ErrDeviceNotFound when the
+	// namespace has no device uid and ErrDeviceDuplicated when another accepted device in the
+	// namespace holds the name. This method is deprecated, use [DeviceService#UpdateDevice] instead.
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, uid models.UID) error
 
+	// UpdateDevice renames the device the way RenameDevice does, and leaves it alone when req.Name
+	// is empty.
 	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 	// UpdateDeviceStatus updates a device's status. Devices that are already accepted cannot change their status.
 	//
@@ -291,8 +295,27 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
+	return s.renameDevice(ctx, sc, device, name)
+}
+
+func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *models.Device, name string) error {
+	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(name)}
+	conflictsTarget.Distinct(device)
+	_, has, err := s.store.DeviceConflicts(ctx, sc, conflictsTarget)
+	if err != nil {
+		return err
+	}
+
+	if has {
+		return NewErrDeviceDuplicated(name, nil)
+	}
+
 	device.Name = strings.ToLower(name)
 	if err := s.store.DeviceUpdate(ctx, device); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return NewErrDeviceDuplicated(name, err)
+		}
+
 		return err
 	}
 
@@ -513,19 +536,7 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return nil
 	}
 
-	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(req.Name)}
-	conflictsTarget.Distinct(device)
-	if _, has, err := s.store.DeviceConflicts(ctx, sc, conflictsTarget); err != nil || has {
-		return NewErrDeviceDuplicated(req.Name, err)
-	}
-
-	device.Name = strings.ToLower(req.Name)
-
-	if err := s.store.DeviceUpdate(ctx, device); err != nil {
-		return err
-	}
-
-	return nil
+	return s.renameDevice(ctx, sc, device, req.Name)
 }
 
 const maxCustomFieldsPerDevice = 20

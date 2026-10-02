@@ -1113,6 +1113,66 @@ func TestRenameDevice(t *testing.T) {
 			expected: nil,
 		},
 		{
+			name:          "fails when another accepted device holds the name",
+			uid:           models.UID("uid"),
+			deviceNewName: "NewName",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{"name"}, true, nil).
+					Once()
+			},
+			expected: NewErrDeviceDuplicated("NewName", nil),
+		},
+		{
+			name:          "fails with the store error when the conflict lookup fails",
+			uid:           models.UID("uid"),
+			deviceNewName: "newname",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return(nil, false, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: errors.New("error", "", 0),
+		},
+		{
+			name:          "fails when the store finds the name taken on update",
+			uid:           models.UID("uid"),
+			deviceNewName: "newname",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				updatedDevice := &models.Device{UID: "uid", Name: "newname", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, updatedDevice).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: NewErrDeviceDuplicated("newname", store.ErrDuplicate),
+		},
+		{
 			name:          "fails when device update fails",
 			uid:           models.UID("uid"),
 			deviceNewName: "newname",
@@ -1124,6 +1184,10 @@ func TestRenameDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
 					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
@@ -1143,6 +1207,10 @@ func TestRenameDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
 					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
 					Once()
 
 				expectedDevice := *device
@@ -1166,6 +1234,10 @@ func TestRenameDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
 					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
 					Once()
 
 				expectedDevice := *device
@@ -2518,6 +2590,63 @@ func TestDeviceUpdate(t *testing.T) {
 					Once()
 			},
 			expected: NewErrDeviceDuplicated("name", nil),
+		},
+		{
+			description: "fails with the store error when the conflict lookup fails",
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "newname",
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "oldname",
+					DisconnectedAt: &now,
+				}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return(nil, false, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: errors.New("error", "", 0),
+		},
+		{
+			description: "fails when the store finds the name taken on update",
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "newname",
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "oldname",
+					DisconnectedAt: &now,
+				}
+				updatedDevice := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "newname",
+					DisconnectedAt: &now,
+				}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, updatedDevice).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: NewErrDeviceDuplicated("newname", store.ErrDuplicate),
 		},
 		{
 			description: "success when updating the device name to same name (case insensitive)",
