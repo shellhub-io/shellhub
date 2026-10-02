@@ -35,11 +35,7 @@ func TestDeviceOwnerMigration(t *testing.T) {
 		VALUES (?, ?, now(), now(), 'owner'), (?, ?, now(), now(), 'operator')
 	`, ownerID, tenant, memberID, tenant)
 
-	execSQL(t, ctx, db, `
-		INSERT INTO devices (id, namespace_id, name, mac, public_key, status, custom_fields,
-		                     remote_addr, ephemeral, ephemeral_timeout, created_at, updated_at, last_seen)
-		VALUES (?, ?, 'dev', '00:00:00:00:00:01', '', 'accepted', '{}', '10.0.0.1', false, 0, now(), now(), now())
-	`, deviceID, tenant)
+	seedDevice(t, ctx, db, deviceID, tenant, "dev", "00:00:00:00:00:01", "accepted", fixtureTime)
 
 	require.NoError(t, provider.ApplyNext(ctx), "041 must apply cleanly over release-shaped data")
 

@@ -46,6 +46,16 @@ func seedNamespace(t *testing.T, ctx context.Context, db *bun.DB, id, name, owne
 	`, id, createdAt, createdAt, name, ownerID)
 }
 
+func seedDevice(t *testing.T, ctx context.Context, db *bun.DB, id, tenant, name, mac, status string, createdAt time.Time) {
+	t.Helper()
+
+	execSQL(t, ctx, db, `
+		INSERT INTO devices (id, namespace_id, name, mac, public_key, status, custom_fields,
+		                     remote_addr, ephemeral, ephemeral_timeout, created_at, updated_at, last_seen)
+		VALUES (?, ?, ?, ?, '', ?, '{}', '10.0.0.1', false, 0, ?, ?, ?)
+	`, id, tenant, name, mac, status, createdAt, createdAt, createdAt)
+}
+
 // TestMigration004Dedup verifies that the dedup step (a) of migration 004 renames
 // duplicate namespace rows non-destructively, keeping the oldest (by created_at,
 // ties broken by id ASC) unchanged and renaming every other duplicate so that all

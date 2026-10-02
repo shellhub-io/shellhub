@@ -27,11 +27,7 @@ func TestDropSessionTermMigration(t *testing.T) {
 	seedUser(t, ctx, db, ownerID, "owner")
 	seedNamespace(t, ctx, db, tenant, "ns", ownerID, fixtureTime)
 
-	execSQL(t, ctx, db, `
-		INSERT INTO devices (id, namespace_id, name, mac, public_key, status, custom_fields,
-		                     remote_addr, ephemeral, ephemeral_timeout, created_at, updated_at, last_seen)
-		VALUES (?, ?, 'dev', '00:00:00:00:00:01', '', 'accepted', '{}', '10.0.0.1', false, 0, now(), now(), now())
-	`, deviceID, tenant)
+	seedDevice(t, ctx, db, deviceID, tenant, "dev", "00:00:00:00:00:01", "accepted", fixtureTime)
 
 	session := func(id, term string) {
 		t.Helper()

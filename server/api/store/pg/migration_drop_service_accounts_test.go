@@ -83,11 +83,7 @@ func TestDropServiceAccountsMigration(t *testing.T) {
 		VALUES (gen_random_uuid(), ?, ?, ?, 'service', 'pending', now(), now() + interval '7 days', 1, now(), now())
 	`, tenant, botID, ownerID)
 
-	execSQL(t, ctx, db, `
-		INSERT INTO devices (id, namespace_id, name, mac, public_key, status, custom_fields,
-		                     remote_addr, ephemeral, ephemeral_timeout, created_at, updated_at, last_seen)
-		VALUES (?, ?, 'dev', '00:00:00:00:00:01', '', 'accepted', '{}', '10.0.0.1', false, 0, now(), now(), now())
-	`, deviceI, tenant)
+	seedDevice(t, ctx, db, deviceI, tenant, "dev", "00:00:00:00:00:01", "accepted", fixtureTime)
 	execSQL(t, ctx, db, `
 		INSERT INTO sessions (id, namespace_id, device_id, username, ip_address, user_id,
 		                      started_at, seen_at, created_at, updated_at)
