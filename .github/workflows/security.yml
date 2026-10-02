@@ -6,7 +6,7 @@ on:
 
   pull_request:
     branches: [master]
-    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/go.mod'
       - '**/go.sum'
@@ -21,7 +21,7 @@ on:
 
 concurrency:
   group: security-${{ github.ref }}
-  cancel-in-progress: ${{ (github.event.action != 'edited' && github.event.action != 'assigned') || github.event.changes.base != null }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
