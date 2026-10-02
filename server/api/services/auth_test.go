@@ -2314,6 +2314,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 }
 
 func TestCreateUserToken(t *testing.T) {
+	clockMock.On("Now").Return(now)
+
 	storeMock := mocks.NewMockStore(t)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
@@ -2634,6 +2636,8 @@ const (
 )
 
 func TestAuthAPIKey(t *testing.T) {
+	clockMock.On("Now").Return(now)
+
 	type Expected struct {
 		apiKey *models.APIKey
 		err    error
@@ -2930,6 +2934,8 @@ func (f *fakeAPIKeyCache) Delete(_ context.Context, key string) error {
 
 func newAPIKeyAuthFixture(t *testing.T, cache storecache.Cache) (*mocks.MockStore, *APIService) {
 	t.Helper()
+
+	clockMock.On("Now").Return(now)
 
 	storeMock := mocks.NewMockStore(t)
 
