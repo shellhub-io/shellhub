@@ -34,17 +34,13 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  server.use(
-    http.get("*/admin/api/stats", () => HttpResponse.json(fullStats)),
-  );
+  server.use(http.get("*/admin/api/stats", () => HttpResponse.json(fullStats)));
 });
 
 describe("AdminDashboard", () => {
   describe("loading state", () => {
     it("renders spinner with role='status'", () => {
-      server.use(
-        http.get("*/admin/api/stats", () => new Promise(() => {})),
-      );
+      server.use(http.get("*/admin/api/stats", () => new Promise(() => {})));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
