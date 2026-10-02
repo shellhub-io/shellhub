@@ -162,6 +162,17 @@ func TestDeviceAuthAgent(t *testing.T) {
 		pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
 		assert.Equal(t, device.UID, pending.UID)
 	})
+
+	t.Run("a removed device's running agent re-registers as pending without a restart", func(t *testing.T) {
+		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+
+		_, device := startAcceptedAgent(t, t.Context(), compose)
+
+		compose.DeleteDevice(t, device.UID)
+
+		pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
+		assert.Equal(t, device.UID, pending.UID)
+	})
 }
 
 func awaitSettledLastSeen(t *testing.T, compose *environment.DockerCompose, uid string) time.Time {
