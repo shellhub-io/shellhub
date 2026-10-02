@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { useAuthStore } from "@/stores/authStore";
 import RecentSessionsTable from "../RecentSessionsTable";
 import type { Device, Session } from "@/client";
 
@@ -44,8 +43,8 @@ function mockSessionsHandler(sessions: Session[] = [], total?: number) {
   return () => jsonWithTotal(sessions, total);
 }
 
-function renderTable(isAdmin = false) {
-  return render(<RecentSessionsTable isAdmin={isAdmin} />, {
+function renderTable() {
+  return render(<RecentSessionsTable />, {
     wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
 }
@@ -53,42 +52,34 @@ function renderTable(isAdmin = false) {
 describe("RecentSessionsTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({ isAdmin: true });
-    server.use(
-      http.get("*/api/sessions", mockSessionsHandler()),
-      http.get("*/admin/api/sessions", mockSessionsHandler()),
-    );
+    server.use(http.get("*/api/sessions", mockSessionsHandler()));
   });
 
-  it.each([
-    [false, "*/api/sessions", ""],
-    [true, "*/admin/api/sessions", "/admin"],
-  ] as const)(
-    "isAdmin=%s links View all, the row and the device chip under '%s'",
-    async (isAdmin, endpoint, prefix) => {
-      const user = userEvent.setup();
-      server.use(
-        http.get(endpoint, () => jsonWithTotal([makeSession({ uid: "s-1" })])),
-      );
-      renderTable(isAdmin);
+  it("links View all, the row and the device chip", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("*/api/sessions", () =>
+        jsonWithTotal([makeSession({ uid: "s-1" })]),
+      ),
+    );
+    renderTable();
 
-      await waitFor(() => {
-        expect(screen.getByText("root")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText("root")).toBeInTheDocument();
+    });
 
-      expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
-        "href",
-        `${prefix}/sessions`,
-      );
-      expect(screen.getByText("my-device").closest("a")).toHaveAttribute(
-        "href",
-        `${prefix}/devices/device-1`,
-      );
+    expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
+      "href",
+      "/sessions",
+    );
+    expect(screen.getByText("my-device").closest("a")).toHaveAttribute(
+      "href",
+      "/devices/device-1",
+    );
 
-      await user.click(screen.getByText("root"));
-      expect(mockNavigate).toHaveBeenCalledWith(`${prefix}/sessions/s-1`);
-    },
-  );
+    await user.click(screen.getByText("root"));
+    expect(mockNavigate).toHaveBeenCalledWith("/sessions/s-1");
+  });
 
   it("shows loading message while fetching", () => {
     server.use(http.get("*/api/sessions", () => new Promise(() => {})));

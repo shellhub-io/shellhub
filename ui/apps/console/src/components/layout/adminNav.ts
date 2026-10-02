@@ -1,9 +1,6 @@
 import {
   HomeIcon,
   UsersIcon,
-  CpuChipIcon,
-  CommandLineIcon,
-  ShieldCheckIcon,
   ServerStackIcon,
   KeyIcon,
   LockClosedIcon,
@@ -63,18 +60,6 @@ function buildFullSections(): AdminNavSection[] {
       items: [
         { to: "/admin/users", label: "Users", icon: UsersIcon },
         { to: "/admin/namespaces", label: "Namespaces", icon: ServerStackIcon },
-      ],
-    },
-    {
-      title: "Resources",
-      items: [
-        { to: "/admin/devices", label: "Devices", icon: CpuChipIcon },
-        { to: "/admin/sessions", label: "Sessions", icon: CommandLineIcon },
-        {
-          to: "/admin/firewall-rules",
-          label: "Firewall Rules",
-          icon: ShieldCheckIcon,
-        },
       ],
     },
     { title: "Instance", items: instance },

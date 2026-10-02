@@ -127,7 +127,7 @@ describe("AdminNavBar", () => {
         "page",
       );
       expect(
-        screen.getByRole("menuitem", { name: "Devices" }),
+        screen.getByRole("menuitem", { name: "Namespaces" }),
       ).not.toHaveAttribute("aria-current");
     });
 
@@ -138,10 +138,10 @@ describe("AdminNavBar", () => {
       await user.click(
         await screen.findByRole("button", { name: "Admin page: Users" }),
       );
-      await user.click(screen.getByRole("menuitem", { name: "Devices" }));
+      await user.click(screen.getByRole("menuitem", { name: "Namespaces" }));
 
       expect(screen.getByLabelText("Current page")).toHaveTextContent(
-        "/admin/devices",
+        "/admin/namespaces",
       );
     });
   });
