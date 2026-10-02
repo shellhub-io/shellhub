@@ -2,14 +2,22 @@ name: Security
 
 on:
   push:
-    branches: [master]
+    tags: [v*]
 
   pull_request:
     branches: [master]
     types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+    paths:
+      - '**/go.mod'
+      - '**/go.sum'
+      - '**/Dockerfile'
+      - '.trivyignore'
+      - '.github/workflows/security.yml'
 
   schedule:
-    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+    - cron: '0 6 * * *'
+
+  workflow_dispatch:
 
 concurrency:
   group: security-${{ github.ref }}
