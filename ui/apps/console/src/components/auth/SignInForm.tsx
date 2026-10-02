@@ -1,9 +1,10 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
+import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
 import { landingAfterSignIn } from "@/utils/navigation";
 import {
   FormInputField,
@@ -13,52 +14,6 @@ import { loginResolver } from "@/pages/setup/loginResolver";
 import MfaCodeForm from "@/components/mfa/MfaCodeForm";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
 import type { LoginFormValues } from "@/pages/setup/loginResolver";
-
-interface CountdownState {
-  display: string;
-  expired: boolean;
-  epoch: number | null;
-}
-
-function useLoginCountdown(lockoutEndEpoch: number | null) {
-  const [state, setState] = useState<CountdownState>({
-    display: "",
-    expired: false,
-    epoch: null,
-  });
-
-  useEffect(() => {
-    if (lockoutEndEpoch === null) return;
-
-    const interval = setInterval(() => {
-      const diff = lockoutEndEpoch - Date.now() / 1000;
-      if (diff <= 0) {
-        clearInterval(interval);
-        setState({ display: "", expired: true, epoch: lockoutEndEpoch });
-      } else if (diff < 60) {
-        const s = Math.floor(diff);
-        setState({
-          display: `${s} ${s === 1 ? "second" : "seconds"}`,
-          expired: false,
-          epoch: lockoutEndEpoch,
-        });
-      } else {
-        const m = Math.floor(diff / 60);
-        setState({
-          display: `${m} ${m === 1 ? "minute" : "minutes"}`,
-          expired: false,
-          epoch: lockoutEndEpoch,
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [lockoutEndEpoch]);
-
-  if (state.epoch !== lockoutEndEpoch) return { display: "", expired: false };
-
-  return { display: state.display, expired: state.expired };
-}
 
 interface SignInFormProps {
   redirect: string;
@@ -88,7 +43,7 @@ export default function SignInForm({
   const [secondFactor, setSecondFactor] = useState(false);
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { display: countdownDisplay, expired: lockoutExpired } =
-    useLoginCountdown(lockoutEndEpoch);
+    useLockoutCountdown(lockoutEndEpoch);
 
   const { control, handleSubmit, formState } = useForm<LoginFormValues>({
     resolver: loginResolver,

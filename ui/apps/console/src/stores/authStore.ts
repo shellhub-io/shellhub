@@ -11,6 +11,7 @@ import {
   type UserOrigin,
 } from "../client";
 import { queryClient } from "../api/queryClient";
+import { isSdkError } from "../api/errors";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
 import { useTerminalStore } from "./terminalStore";
@@ -235,7 +236,14 @@ export const useAuthStore = create<AuthState>()(
             mfaEnabled: true,
             loading: false,
           });
-        } catch {
+        } catch (err) {
+          if (isSdkError(err) && err.status === 429) {
+            set({
+              loading: false,
+              error: "Too many failed attempts. Please wait before trying again.",
+            });
+            throw err;
+          }
           set({ loading: false, error: "Invalid verification code" });
           throw new Error("Invalid verification code");
         }
