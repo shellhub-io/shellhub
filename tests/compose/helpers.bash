@@ -8,7 +8,7 @@
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
-unset EXTRA_COMPOSE_FILE DOCKER_HOST SHELLHUB_DEV_DOCKER_SOCKET
+unset EXTRA_COMPOSE_FILE DOCKER_HOST SHELLHUB_DEV_DOCKER_SOCKET ROOTLESSKIT COMPOSE_FILE COMPOSE_ENV_FILES
 
 # Usage: capture_with VAR1=value VAR2=value ...
 capture_with() {
@@ -25,7 +25,23 @@ case "$1" in
         [ -z "${STUB_DOCKER_INFO_FAILS:-}" ] || exit 1
         echo "[${STUB_DOCKER_SECURITY:-name=seccomp,profile=builtin name=cgroupns}]"
         ;;
-    *)
+    compose)
+        if [ "$2" = config ]; then
+            [ -n "${COMPOSE_FILE:-}" ] || exit 1
+            echo "services:"
+            echo "  gateway:"
+            echo "    ports:"
+            for port in ${STUB_PUBLISHED:-}; do
+                echo "      - mode: ingress"
+                case "$port" in
+                    *:*) echo "        host_ip: ${port%:*}" ;;
+                esac
+                echo "        target: 1"
+                echo "        published: \"${port##*:}\""
+                echo "        protocol: tcp"
+            done
+            exit 0
+        fi
         echo "COMPOSE_FILE=$COMPOSE_FILE"
         echo "COMPOSE_ENV_FILES=$COMPOSE_ENV_FILES"
         echo "COMPOSE_PROFILES=$COMPOSE_PROFILES"
@@ -45,6 +61,7 @@ EOF
         : > "$stub_dir/rootlesskit"
         chmod +x "$stub_dir"/*
     fi
+    [ -z "${STUB_NO_ROOTLESSKIT:-}" ] || export ROOTLESSKIT=
 
     local tmp
     tmp=$(mktemp -p "$BATS_TEST_TMPDIR")
