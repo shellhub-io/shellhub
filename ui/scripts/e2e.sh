@@ -1,13 +1,61 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
 name=${E2E_STACK_NAME:-default}
 edition=${E2E_EDITION:-community}
+runner=${E2E_RUNNER:-docker}
+
+case $runner in
+  host | docker) ;;
+  *)
+    echo "E2E_RUNNER must be host or docker, not '$runner'" >&2
+    exit 1
+    ;;
+esac
+
+compose_run() {
+  "$REPO_ROOT/bin/docker-compose" run --rm -T "$@"
+}
+
+require_tools_services() {
+  local services
+  services=$("$REPO_ROOT/bin/docker-compose" --profile tools config --services) || exit 1
+  grep -qx test <<<"$services" && return
+  echo "the docker runner needs the test and e2e services from docker-compose.dev.yml: set" \
+    "SHELLHUB_ENV=development in .env.override, or run with E2E_RUNNER=host" >&2
+  exit 1
+}
 
 stack() {
-  (cd "$REPO_ROOT/tests" && go run ./cmd/stack "$@")
+  if [ "$runner" = host ]; then
+    (cd "$REPO_ROOT/tests" && go run ./cmd/stack "$@")
+    return
+  fi
+
+  local run_args=(-w "$REPO_ROOT/tests")
+  local var
+  for var in SHELLHUB_LICENSE_FILE STRIPE_SECRET_KEY STRIPE_PRICE_ID SHELLHUB_STRIPE_PUBLISHABLE_KEY; do
+    run_args+=(-e "$var")
+  done
+  compose_run "${run_args[@]}" test go run ./cmd/stack "$@"
 }
+
+playwright() {
+  if [ "$runner" = host ]; then
+    (cd "$REPO_ROOT/ui/apps/console" && npx playwright test "$@")
+    return
+  fi
+
+  compose_run \
+    -e E2E_STACK_NAME="$name" -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
+    -e CI \
+    e2e npx playwright test "$@"
+}
+
+if [ "$runner" = docker ]; then
+  require_tools_services
+fi
 
 case "${1:-test}" in
   up)
@@ -29,11 +77,10 @@ case "${1:-test}" in
     [ -n "${CI:-}" ] && trap 'stack down --name "$name"' EXIT
     env=$(stack up --edition "$edition" --name "$name") || exit $?
     eval "$(echo "$env" | grep '^export ')"
-    cd "$REPO_ROOT/ui/apps/console"
     status=0
-    npx playwright test ${playwright_args[@]+"${playwright_args[@]}"} || status=$?
+    playwright ${playwright_args[@]+"${playwright_args[@]}"} || status=$?
     if [ -z "${CI:-}" ]; then
-      echo "stack '$name' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: npm run e2e:down -w @shellhub/console" >&2
+      echo "stack '$name' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: ui/scripts/e2e.sh down" >&2
     fi
     exit "$status"
     ;;
