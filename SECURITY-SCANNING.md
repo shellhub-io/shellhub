@@ -21,8 +21,9 @@ This document describes the security scanning infrastructure for ShellHub.
 
 **`security-gate` is the single frozen required-check name** registered in branch protection.
 Every security workflow (Security, Semgrep, CodeQL) exposes a terminal job named exactly
-`security-gate` that aggregates the results of its scan jobs.  A PR is not mergeable until
-all three `security-gate` jobs report success (or skipped).
+`security-gate` that aggregates the results of its scan jobs.  Semgrep's runs on every PR,
+Security's only on PRs that change a `go.mod`, `go.sum`, Dockerfile or `.trivyignore`, and
+CodeQL's only on the daily schedule and release tags.
 
 > **Do not rename `security-gate`.**  Renaming it silently removes the branch-protection
 > requirement and allows unreviewed code to merge.
@@ -33,10 +34,10 @@ all three `security-gate` jobs report success (or skipped).
 
 | Workflow file | Tool | What it scans | Runs on |
 |---|---|---|---|
-| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
-| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `gateway`, `ui`, `agent`) | PR + push to master + weekly |
-| `.github/workflows/semgrep.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + push to master + weekly |
-| `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
+| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PRs changing dependencies or Dockerfiles + tags + daily |
+| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `gateway`, `ui`, `agent`) | PRs changing dependencies or Dockerfiles + tags + daily |
+| `.github/workflows/semgrep.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + tags + daily |
+| `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | Tags + daily |
 | `.github/workflows/build-agent.yml` | **Trivy (image, amd64)** | Agent image CVEs as part of the agent build pipeline | Push to master + tags |
 
 All workflows upload SARIF reports to the GitHub Security tab (skipped on fork PRs because
@@ -148,7 +149,7 @@ The agent image is a multi-arch build (`linux/amd64`, `linux/arm64/v8`, `linux/a
 (`.github/workflows/build-agent.yml`).
 
 **Residual risk:** architecture-specific CVEs for `arm` and `386` variants are **not
-blocked by CI**.  They are surfaced by the weekly scheduled scan
+blocked by CI**.  They are surfaced by the daily scheduled scan
 (`.github/workflows/security.yml` `trivy-image` matrix includes `agent`) and tracked
 manually.  If a CVE affects a non-amd64 variant only, add it to `.trivyignore` with an
 explicit `owner` and architectural scope note.
@@ -163,8 +164,9 @@ explicit `owner` and architectural scope note.
   themselves still run and `security-gate` still blocks — only the SARIF upload is skipped.
 
 - **Dependabot PRs** are treated as first-party PRs (Dependabot has write access to the
-  repo).  All scans run normally.  Because Dependabot bumps one dependency at a time the
-  blast radius of a failing scan is narrow and easy to triage.
+  repo).  A dependency bump changes a `go.mod` or `go.sum`, so govulncheck and Trivy run on
+  it alongside Semgrep; CodeQL picks it up in the next daily scan.  Because Dependabot bumps
+  one dependency at a time the blast radius of a failing scan is narrow and easy to triage.
 
 ---
 
@@ -191,7 +193,8 @@ branch or workflow:
 4. **Admin marks `security-gate` required + Require review from Code Owners** — in the
    GitHub repository settings → Branches → Branch protection rules for `master`:
    - Under "Require status checks to pass before merging", add **`security-gate`** (the
-     exact frozen name) from each of the three workflows (Security, Semgrep, CodeQL).
+     exact frozen name). Semgrep reports it on every PR; Security adds its own on PRs that
+     touch dependencies or Dockerfiles.
    - Enable **"Require review from Code Owners"** so that changes to `.trivyignore`
      and `.semgrepignore` always go through `@shellhub-io/team-lead`.
 

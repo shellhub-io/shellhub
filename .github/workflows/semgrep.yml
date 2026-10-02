@@ -2,14 +2,16 @@ name: Semgrep
 
 on:
   push:
-    branches: [master]
+    tags: [v*]
 
   pull_request:
     branches: [master]
     types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
 
   schedule:
-    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+    - cron: '0 6 * * *'
+
+  workflow_dispatch:
 
 concurrency:
   group: semgrep-${{ github.ref }}
@@ -53,7 +55,7 @@ jobs:
             --output semgrep.sarif \
             .
 
-      - name: Run Semgrep (push / schedule — full scan)
+      - name: Run Semgrep (tag / schedule — full scan)
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           semgrep scan \
@@ -72,8 +74,8 @@ jobs:
           category: semgrep
 
       # Pull requests block on findings they introduce (the scan above is
-      # already limited to the baseline diff). The full scan on master and the
-      # weekly cron report only: they re-report a pre-existing backlog that no
+      # already limited to the baseline diff). The full scans on tags and the
+      # daily cron report only: they re-report a pre-existing backlog that no
       # single change is accountable for, and failing on it just keeps master
       # permanently red. The backlog stays visible as code scanning alerts.
       - name: Evaluate findings
