@@ -25,6 +25,29 @@ func newDialerWith(t *testing.T, key string, tunnel any) *Dialer {
 	return d
 }
 
+func yamuxPair(t *testing.T) (*yamux.Session, *yamux.Session) {
+	t.Helper()
+
+	server, agent := net.Pipe()
+
+	t.Cleanup(func() {
+		_ = server.Close()
+		_ = agent.Close()
+	})
+
+	session, err := yamux.Client(server, nil)
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = session.Close() })
+
+	peer, err := yamux.Server(agent, nil)
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = peer.Close() })
+
+	return session, peer
+}
+
 // TestDialToRejectsAnUnnameableDevice covers the mode that is a programming error rather than
 // a device state: without both halves there is no tunnel key to look up.
 func TestDialToRejectsAnUnnameableDevice(t *testing.T) {
@@ -87,22 +110,7 @@ func TestDialToReportsATunnelThatCannotCarryAStream(t *testing.T) {
 // TestDialToReportsAnAgentThatDoesNotAnswer covers the other half of unreachable: the stream
 // opens and the agent never completes the bootstrap on it.
 func TestDialToReportsAnAgentThatDoesNotAnswer(t *testing.T) {
-	server, agent := net.Pipe()
-
-	t.Cleanup(func() {
-		_ = server.Close()
-		_ = agent.Close()
-	})
-
-	session, err := yamux.Client(server, nil)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = session.Close() })
-
-	peer, err := yamux.Server(agent, nil)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = peer.Close() })
+	session, peer := yamuxPair(t)
 
 	go func() {
 		if stream, err := peer.Accept(); err == nil {
@@ -120,6 +128,30 @@ func TestDialToReportsAnAgentThatDoesNotAnswer(t *testing.T) {
 	conn, err := d.DialTo(ctx, "tenant", "device", SSHOpenTarget{SessionID: "session"})
 
 	require.ErrorIs(t, err, ErrUnreachable)
+	assert.Nil(t, conn)
+}
+
+func TestDialToCarriesTheAgentsRefusal(t *testing.T) {
+	session, peer := yamuxPair(t)
+
+	go func() {
+		if stream, err := peer.Accept(); err == nil {
+			answerHTTPProxy(stream, `{"error":"connection refused"}`)
+		}
+	}()
+
+	d := newDialerWith(t, NewKey("tenant", "device"), session)
+
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer cancel()
+
+	conn, err := d.DialTo(ctx, "tenant", "device", HTTPProxyTarget{Host: "127.0.0.1", Port: 8080})
+
+	require.ErrorIs(t, err, ErrUnreachable)
+
+	refused, ok := errors.AsType[*ProxyRefusedError](err)
+	require.True(t, ok)
+	assert.Equal(t, "connection refused", refused.Reason)
 	assert.Nil(t, conn)
 }
 

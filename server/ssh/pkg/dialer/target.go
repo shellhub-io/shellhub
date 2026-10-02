@@ -75,6 +75,16 @@ func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version Tran
 	return conn, nil
 }
 
+// ProxyRefusedError is what HTTPProxyTarget returns when the agent answers the proxy handshake
+// with a failure instead of "ok". Reason is the agent's own explanation, such as the target
+// address not being found on the device or the dial to it failing; it is empty when the agent
+// sent none.
+type ProxyRefusedError struct{ Reason string }
+
+func (e *ProxyRefusedError) Error() string {
+	return "http proxy negotiation failed: " + e.Reason
+}
+
 // HTTPProxyTarget prepares a connection for proxying HTTP traffic to a
 // device web endpoint. After preparation the caller should write the
 // final HTTP request (with rewritten Host + URL) directly to the
@@ -124,7 +134,7 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 			return nil, err
 		}
 		if result["status"] != "ok" {
-			return nil, fmt.Errorf("http proxy negotiation failed: %s", result["message"])
+			return nil, &ProxyRefusedError{Reason: result["error"]}
 		}
 
 		return withBuffered(conn, io.MultiReader(decoder.Buffered(), conn)), nil
