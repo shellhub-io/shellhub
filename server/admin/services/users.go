@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -28,7 +29,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	system, err := s.store.SystemGet(ctx)
 	if err != nil {
-		return nil, ErrSystemGet
+		return nil, fmt.Errorf("%w: %w", ErrSystemGet, err)
 	}
 
 	user := &models.User{
@@ -66,7 +67,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	system.Setup = true
 	if err := s.store.SystemSet(ctx, system); err != nil {
-		return nil, ErrSystemSet
+		return nil, fmt.Errorf("%w: %w", ErrSystemSet, err)
 	}
 
 	return user, nil

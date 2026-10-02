@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNamespaceCreate(t *testing.T) {
@@ -25,6 +26,7 @@ func TestNamespaceCreate(t *testing.T) {
 	}
 	mock := new(mocks.MockStore)
 	ctx := context.TODO()
+	errStoreDown := errors.New("connection refused")
 
 	mockClock := new(clockmock.MockClock)
 	mockClock.On("Now").Return(clock.Now())
@@ -39,6 +41,7 @@ func TestNamespaceCreate(t *testing.T) {
 		typeNamespace string
 		requiredMocks func()
 		expected      Expected
+		cause         error
 	}{
 		{
 			description:   "fails when could not find a user",
@@ -128,9 +131,10 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error")).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("", errStoreDown).Once()
 			},
 			expected: Expected{nil, ErrCreateNewNamespace},
+			cause:    errStoreDown,
 		},
 		{
 			description:   "succeeds in creating a namespace when user and namespace data are valid - Community",
@@ -430,7 +434,11 @@ func TestNamespaceCreate(t *testing.T) {
 
 			s := NewService(store.Store(mock))
 			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant, Type: tc.typeNamespace})
-			assert.Equal(t, tc.expected, Expected{ns, err})
+			assert.Equal(t, tc.expected.namespace, ns)
+			require.ErrorIs(t, err, tc.expected.err)
+			if tc.cause != nil {
+				require.ErrorIs(t, err, tc.cause)
+			}
 
 			mock.AssertExpectations(t)
 		})

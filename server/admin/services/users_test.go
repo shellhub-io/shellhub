@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	testifymock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserCreate(t *testing.T) {
@@ -30,6 +31,7 @@ func TestUserCreate(t *testing.T) {
 	hash.Backend = hashMock
 	ctx := context.TODO()
 	now := clock.Now()
+	errStoreDown := errors.New("connection refused")
 
 	mockClock := new(clockmock.MockClock)
 	clock.DefaultBackend = mockClock
@@ -42,6 +44,7 @@ func TestUserCreate(t *testing.T) {
 		password      string
 		email         string
 		expected      Expected
+		cause         error
 	}{
 		{
 			description: "fails when the password is invalid",
@@ -67,9 +70,10 @@ func TestUserCreate(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				mock.On("SystemGet", ctx).Return(nil, errors.New("error")).Once()
+				mock.On("SystemGet", ctx).Return(nil, errStoreDown).Once()
 			},
 			expected: Expected{nil, ErrSystemGet},
+			cause:    errStoreDown,
 		},
 		{
 			description: "fails when the instance cannot be marked as set up",
@@ -104,9 +108,10 @@ func TestUserCreate(t *testing.T) {
 
 				mock.On("SystemGet", ctx).Return(&models.System{Setup: false}, nil).Once()
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
-				mock.On("SystemSet", ctx, &models.System{Setup: true}).Return(errors.New("error")).Once()
+				mock.On("SystemSet", ctx, &models.System{Setup: true}).Return(errStoreDown).Once()
 			},
 			expected: Expected{nil, ErrSystemSet},
+			cause:    errStoreDown,
 		},
 		{
 			description: "fails creates a user",
@@ -396,7 +401,11 @@ func TestUserCreate(t *testing.T) {
 			service := NewService(store.Store(mock))
 			user, err := service.UserCreate(ctx, &inputs.UserCreate{Username: tc.username, Password: tc.password, Email: tc.email})
 
-			assert.Equal(t, tc.expected, Expected{user, err})
+			assert.Equal(t, tc.expected.user, user)
+			require.ErrorIs(t, err, tc.expected.err)
+			if tc.cause != nil {
+				require.ErrorIs(t, err, tc.cause)
+			}
 		})
 	}
 

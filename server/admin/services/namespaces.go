@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -74,7 +75,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		case errors.Is(err, store.ErrDuplicate):
 			return nil, ErrDuplicateNamespace
 		default:
-			return nil, ErrCreateNewNamespace
+			return nil, fmt.Errorf("%w: %w", ErrCreateNewNamespace, err)
 		}
 	}
 

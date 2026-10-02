@@ -4,13 +4,13 @@ import (
 	"errors"
 )
 
-// Failures the admin services report. They are matched by the CLI to choose an exit status,
-// so they are compared by identity and must not be replaced with wrapped equivalents.
+// Failures the admin services report. ErrSystemGet, ErrSystemSet and ErrCreateNewNamespace wrap
+// the store error that caused them, so match them with errors.Is.
 var (
 	ErrCreateNewUser               = errors.New("failed to create a new user")
 	ErrCreateNewNamespace          = errors.New("failed to create a new namespace")
 	ErrSystemGet                   = errors.New("failed to read the instance setup state")
-	ErrSystemSet                   = errors.New("user created, but failed to mark the instance as set up")
+	ErrSystemSet                   = errors.New("user created, but the instance is still marked as not set up and its web setup page remains open")
 	ErrDuplicateNamespace          = errors.New("namespace already exists")
 	ErrNamespaceSingle             = errors.New("this instance does not support multi-tenancy")
 	ErrNamespaceInstanceProtected  = errors.New("this namespace is bound to the instance and cannot be removed")
