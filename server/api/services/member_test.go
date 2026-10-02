@@ -1166,7 +1166,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 }
 
 func TestService_LeaveNamespace(t *testing.T) {
-	clockMock.On("Now").Return(now)
+	pinTestClock(t, now)
 
 	type Expected struct {
 		res *models.UserAuthResponse
