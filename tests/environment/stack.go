@@ -319,6 +319,12 @@ func (s *Stack) NewMember(ctx context.Context, username, namespace, role string)
 	return s.Admin(ctx, "namespace", "member", "add", username, namespace, role)
 }
 
+// RemoveMember removes a user from a namespace via the server's admin CLI, a process apart from the
+// server that holds the tunnels of the devices the user paired.
+func (s *Stack) RemoveMember(ctx context.Context, username, namespace string) error {
+	return s.Admin(ctx, "namespace", "member", "remove", username, namespace)
+}
+
 // DeleteNamespace deletes the namespace named name via the server's admin CLI, a process apart
 // from the server that holds the namespace's tunnels.
 func (s *Stack) DeleteNamespace(ctx context.Context, name string) error {

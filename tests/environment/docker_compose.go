@@ -106,6 +106,14 @@ func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role strin
 	require.NoError(t, dc.stack.NewMember(t.Context(), username, namespace, role))
 }
 
+// RemoveMember removes username from namespace through the server's "admin namespace member remove"
+// command, failing t immediately if it fails.
+func (dc *DockerCompose) RemoveMember(t *testing.T, username, namespace string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.RemoveMember(t.Context(), username, namespace))
+}
+
 // DeleteNamespace deletes the namespace named name through the server's "admin namespace delete"
 // command, failing t immediately if it fails.
 func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -139,4 +140,33 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 			}, tunnelPingTimeout, time.Second)
 		})
 	}
+}
+
+// TestDeleteNamespaceRefusesItsAPIKeys uses a key once, so the server caches it, then deletes the
+// key's namespace. Deleting the namespace evicts nothing from that cache.
+func TestDeleteNamespaceRefusesItsAPIKeys(t *testing.T) {
+	compose := environment.New(t).Up(t.Context())
+	t.Cleanup(compose.Down)
+
+	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
+
+	key := compose.CreateAPIKey(t, &requests.CreateAPIKey{
+		Name:      "automation",
+		ExpiresAt: -1,
+		OptRole:   authorizer.RoleAdministrator,
+	})
+
+	resp, err := compose.Anonymous(t.Context()).SetHeader("X-API-Key", key.Key).Get("/api/devices")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	resp, err = compose.R(t.Context()).Delete("/api/namespaces/" + ShellHubNamespace)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	resp, err = compose.Anonymous(t.Context()).SetHeader("X-API-Key", key.Key).Get("/api/devices")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
 }

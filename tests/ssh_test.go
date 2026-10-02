@@ -71,6 +71,14 @@ func NewAgentContainerWithProvisioningKey(key string) NewAgentContainerOption {
 	}
 }
 
+// NewAgentContainerUnpaired drops the tenant id, so the agent asks for a pairing code and joins the
+// namespace of whoever accepts it.
+func NewAgentContainerUnpaired() NewAgentContainerOption {
+	return func(envs map[string]string) {
+		delete(envs, "SHELLHUB_TENANT_ID")
+	}
+}
+
 func envOr(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
