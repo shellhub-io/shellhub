@@ -74,6 +74,22 @@ func (c *redisCache) SetNX(ctx context.Context, key string, value any, ttl time.
 	return c.client.SetNX(ctx, key, value, ttl).Result()
 }
 
+var compareAndDeleteScript = redis.NewScript(`
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+	return redis.call("DEL", KEYS[1])
+end
+return 0
+`)
+
+func (c *redisCache) CompareAndDelete(ctx context.Context, key, value string) (bool, error) {
+	deleted, err := compareAndDeleteScript.Run(ctx, c.client, []string{key}, value).Int()
+	if err != nil {
+		return false, err
+	}
+
+	return deleted == 1, nil
+}
+
 // Delete deletes cached value by given key.
 func (c *redisCache) Delete(ctx context.Context, key string) error {
 	if err := c.cache.Get(ctx, key, nil); errors.Is(err, rediscache.ErrCacheMiss) {

@@ -31,6 +31,10 @@ func (*nullCache) Delete(_ context.Context, _ string) error {
 	return nil
 }
 
+func (*nullCache) CompareAndDelete(_ context.Context, _, _ string) (bool, error) {
+	return true, nil
+}
+
 func (*nullCache) HasAccountLockout(_ context.Context, _, _ string) (int64, int, error) {
 	return 0, 0, nil
 }

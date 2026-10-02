@@ -39,6 +39,11 @@ type Cache interface {
 	// exactly once under concurrent requests, which Get+Set cannot do race-free.
 	SetNX(ctx context.Context, key string, value any, ttl time.Duration) (bool, error)
 
+	// CompareAndDelete atomically deletes key only while it still holds value, and reports whether
+	// it did. It releases a reservation taken with SetNX under a value unique to its owner, so an
+	// owner whose reservation expired cannot delete the one another caller took after it.
+	CompareAndDelete(ctx context.Context, key, value string) (bool, error)
+
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp
 	// in seconds representing the end of the lockout while clock.Now() is before it, or 0
