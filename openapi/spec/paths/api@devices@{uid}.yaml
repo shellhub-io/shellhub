@@ -46,8 +46,10 @@ delete:
       $ref: ../components/responses/500.yaml
 put:
   operationId: updateDevice
-  summary: Update a device
-  description: Update a device.
+  summary: Rename a device
+  description: |
+    Change a device's name. The name is part of the SSHID clients connect by, so a
+    rename changes the address of every future connection to this device.
   tags:
     - community
     - devices
@@ -62,11 +64,9 @@ put:
           properties:
             name:
               $ref: ../components/schemas/deviceName.yaml
-            public_url:
-              $ref: ../components/schemas/devicePublicURL.yaml
   responses:
     '200':
-      description: Success to update device's data.
+      description: Success to rename the device.
     '400':
       $ref: ../components/responses/400.yaml
     '401':
@@ -82,9 +82,8 @@ put:
 patch:
   operationId: renameDevice
   summary: Rename a device
-  description: |
-    Change a device's name. The name is part of the SSHID clients connect by, so a
-    rename changes the address of every future connection to this device.
+  description: '**Deprecated**: Use `PUT /api/devices/{uid}` instead.'
+  deprecated: true
   tags:
     - community
     - devices
