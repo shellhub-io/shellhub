@@ -70,11 +70,13 @@ client.interceptors.response.use((response) => {
     if (mfaToken) {
       useAuthStore.getState().setMfaToken(mfaToken);
     } else {
-      const isLoginRequest = response.url.includes("/api/login");
+      const isSignInStep =
+        response.url.includes("/api/login") ||
+        response.url.includes("/api/user/mfa/auth");
       const isTokenLogin = new URLSearchParams(window.location.search).has(
         "token",
       );
-      if (!isLoginRequest && !isTokenLogin) {
+      if (!isSignInStep && !isTokenLogin) {
         useAuthStore.getState().logout();
         window.location.href = "/login";
       }
