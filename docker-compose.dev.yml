@@ -94,6 +94,22 @@ services:
       - TESTCONTAINERS_RYUK_DISABLED=true
       - TESTCONTAINERS_HOST_OVERRIDE=localhost
       - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}
+  e2e:
+    image: shellhub-e2e:${E2E_PLAYWRIGHT_VERSION:-latest}
+    build:
+      context: ui
+      dockerfile: e2e.Dockerfile
+      args:
+        - PLAYWRIGHT_VERSION=${E2E_PLAYWRIGHT_VERSION:-}
+    profiles:
+      - tools
+    network_mode: host
+    working_dir: ${SHELLHUB_WORKSPACE}/shellhub/ui/apps/console
+    volumes:
+      - ${SHELLHUB_WORKSPACE}:${SHELLHUB_WORKSPACE}
+      - ${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+    environment:
+      - NPM_CONFIG_UPDATE_NOTIFIER=false
 
 volumes:
   tools-cache:

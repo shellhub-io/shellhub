@@ -134,6 +134,11 @@ if [ -n "$EXTRA_COMPOSE_FILE" ]; then
 fi
 export COMPOSE_FILE
 
+installed_playwright_version() {
+    sed -n '/"node_modules\/@playwright\/test": {/{n;s/.*"version": "\([^"]*\)".*/\1/p;}' ui/package-lock.json 2>/dev/null
+}
+
 export SHELLHUB_WORKSPACE="${SHELLHUB_WORKSPACE:-$(cd .. && pwd -P)}"
+export E2E_PLAYWRIGHT_VERSION="${E2E_PLAYWRIGHT_VERSION:-$(installed_playwright_version)}"
 
 exec docker compose "$@"

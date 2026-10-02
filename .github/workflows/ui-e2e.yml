@@ -178,6 +178,7 @@ jobs:
         timeout-minutes: 60
         env:
           E2E_EDITION: ${{ matrix.edition }}
+          E2E_RUNNER: host
           STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
           STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
           SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}
