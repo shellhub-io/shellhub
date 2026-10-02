@@ -19,11 +19,11 @@ func NewKey(tenant, uid string) string {
 	return strings.Join([]string{tenant, uid}, ":")
 }
 
-// Heartbeater records that a device's tunnel is still alive. Beats are frequent
-// and individually worthless, so implementations are expected to batch them and
+// Heartbeater records that the tunnel a device holds in a tenant is still alive. Beats are
+// frequent and individually worthless, so implementations are expected to batch them and
 // to never block the caller.
 type Heartbeater interface {
-	Submit(uid string)
+	Submit(tenantID, uid string)
 }
 
 // DeviceStatuser records that a device's tunnel is gone.
@@ -88,7 +88,7 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 			return
 		}
 
-		heartbeater.Submit(parts[1])
+		heartbeater.Submit(parts[0], parts[1])
 	}
 
 	return &Dialer{Manager: m}

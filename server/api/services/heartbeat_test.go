@@ -41,14 +41,14 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
 		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, now).
-		Return(int64(2), nil).
+		Return([]string{}, nil).
 		Once()
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	h.Submit("device-a")
-	h.Submit("device-b")
-	h.Submit("device-a")
+	h.Submit("tenant", "device-a")
+	h.Submit("tenant", "device-b")
+	h.Submit("tenant", "device-a")
 
 	require.NoError(t, h.Shutdown(context.Background()))
 
@@ -64,33 +64,57 @@ func TestDeviceHeartbeater_usesTheEarliestBeatInTheBatch(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
 		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, earliest).
-		Return(int64(2), nil).
+		Return([]string{}, nil).
 		Once()
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	h.Submit("device-a")
-	h.Submit("device-b")
+	h.Submit("tenant", "device-a")
+	h.Submit("tenant", "device-b")
 
 	require.NoError(t, h.Shutdown(context.Background()))
 
 	storeMock.AssertExpectations(t)
 }
 
-func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
+func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 	fixedClock(t, now)
+	removed := recordDeviceRemovals(t)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []string{"device-a"}, now).
-		Return(int64(0), errors.New("error")).
+		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, now).
+		Return([]string{"device-b"}, nil).
 		Once()
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	h.Submit("device-a")
+	h.Submit("tenant-a", "device-a")
+	h.Submit("tenant-b", "device-b")
 
 	require.NoError(t, h.Shutdown(context.Background()))
+
+	assert.Equal(t, []removedDevice{{tenantID: "tenant-b", uid: "device-b"}}, *removed)
+	storeMock.AssertExpectations(t)
+}
+
+func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
+	fixedClock(t, now)
+	removed := recordDeviceRemovals(t)
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.
+		On("DeviceHeartbeat", mock.Anything, []string{"device-a"}, now).
+		Return(nil, errors.New("error")).
+		Once()
+
+	h := NewDeviceHeartbeater(storeMock)
+
+	h.Submit("tenant", "device-a")
+
+	require.NoError(t, h.Shutdown(context.Background()))
+
+	assert.Empty(t, *removed)
 
 	storeMock.AssertExpectations(t)
 }
@@ -100,7 +124,7 @@ func TestDeviceHeartbeater_ignoresEmptyUID(t *testing.T) {
 
 	h := NewDeviceHeartbeater(storeMock)
 
-	h.Submit("")
+	h.Submit("tenant", "")
 
 	require.NoError(t, h.Shutdown(context.Background()))
 }
@@ -111,7 +135,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
 		On("DeviceHeartbeat", mock.Anything, mock.Anything, mock.Anything).
-		Return(int64(0), nil).
+		Return([]string{}, nil).
 		Maybe()
 
 	h := NewDeviceHeartbeater(storeMock)
@@ -121,7 +145,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 		defer close(done)
 
 		for range deviceHeartbeatQueueSize * 2 {
-			h.Submit("device-a")
+			h.Submit("tenant", "device-a")
 		}
 	}()
 

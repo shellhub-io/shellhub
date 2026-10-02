@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"maps"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -23,8 +24,9 @@ const (
 )
 
 type deviceHeartbeat struct {
-	uid string
-	at  time.Time
+	tenantID string
+	uid      string
+	at       time.Time
 }
 
 // DeviceHeartbeater coalesces the keep-alive signals the SSH tunnels emit into
@@ -39,6 +41,10 @@ type deviceHeartbeat struct {
 // goroutine, and stalling it would stall the tunnel it is reporting on. A full
 // queue drops the beat instead, which costs nothing — the next one arrives well
 // within the online threshold.
+//
+// A beat for a device that was deleted or removed fires the device-removed hooks,
+// which close its tunnel. That is how a tunnel learns of a removal made by another
+// process or replica, which no hook in this one saw.
 type DeviceHeartbeater struct {
 	store   store.Store
 	queue   chan deviceHeartbeat
@@ -62,14 +68,14 @@ func NewDeviceHeartbeater(s store.Store) *DeviceHeartbeater {
 	return h
 }
 
-// Submit records that the device's tunnel is still alive. It never blocks.
-func (h *DeviceHeartbeater) Submit(uid string) {
+// Submit records that the tunnel the device holds in tenantID is still alive. It never blocks.
+func (h *DeviceHeartbeater) Submit(tenantID, uid string) {
 	if uid == "" {
 		return
 	}
 
 	select {
-	case h.queue <- deviceHeartbeat{uid: uid, at: clock.Now()}:
+	case h.queue <- deviceHeartbeat{tenantID: tenantID, uid: uid, at: clock.Now()}:
 	default:
 		if dropped := h.dropped.Add(1); dropped%1000 == 1 {
 			log.WithField("dropped", dropped).
@@ -134,15 +140,17 @@ func (h *DeviceHeartbeater) drain(batch *deviceHeartbeatBatch) {
 }
 
 func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
-	uids, seenAt := batch.take()
-	if len(uids) == 0 {
+	tenantByUID, seenAt := batch.take()
+	if len(tenantByUID) == 0 {
 		return
 	}
+
+	uids := slices.Sorted(maps.Keys(tenantByUID))
 
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
-	modified, err := h.store.DeviceHeartbeat(ctx, uids, seenAt)
+	gone, err := h.store.DeviceHeartbeat(ctx, uids, seenAt)
 	if err != nil {
 		log.WithError(err).
 			WithField("devices", len(uids)).
@@ -151,47 +159,47 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 		return
 	}
 
-	log.WithFields(log.Fields{"devices": len(uids), "modified": modified}).
+	log.WithFields(log.Fields{"devices": len(uids), "gone": len(gone)}).
 		Debug("wrote the device heartbeat batch")
+
+	for _, uid := range gone {
+		log.WithFields(log.Fields{"tenant_id": tenantByUID[uid], "device_uid": uid}).
+			Info("a device holding a tunnel was deleted or removed; closing its tunnel")
+
+		fireDeviceRemoved(ctx, tenantByUID[uid], uid)
+	}
 }
 
 type deviceHeartbeatBatch struct {
-	uids   map[string]struct{}
-	oldest time.Time
+	tenantByUID map[string]string
+	oldest      time.Time
 }
 
 func newDeviceHeartbeatBatch() *deviceHeartbeatBatch {
-	return &deviceHeartbeatBatch{uids: make(map[string]struct{})}
+	return &deviceHeartbeatBatch{tenantByUID: make(map[string]string)}
 }
 
 func (b *deviceHeartbeatBatch) add(beat deviceHeartbeat) {
-	if len(b.uids) == 0 || beat.at.Before(b.oldest) {
+	if len(b.tenantByUID) == 0 || beat.at.Before(b.oldest) {
 		b.oldest = beat.at
 	}
 
-	b.uids[beat.uid] = struct{}{}
+	b.tenantByUID[beat.uid] = beat.tenantID
 }
 
 func (b *deviceHeartbeatBatch) len() int {
-	return len(b.uids)
+	return len(b.tenantByUID)
 }
 
-func (b *deviceHeartbeatBatch) take() ([]string, time.Time) {
-	if len(b.uids) == 0 {
+func (b *deviceHeartbeatBatch) take() (map[string]string, time.Time) {
+	if len(b.tenantByUID) == 0 {
 		return nil, time.Time{}
 	}
 
-	uids := make([]string, 0, len(b.uids))
-	for uid := range b.uids {
-		uids = append(uids, uid)
-	}
+	tenantByUID, seenAt := b.tenantByUID, b.oldest
 
-	slices.Sort(uids)
-
-	seenAt := b.oldest
-
-	b.uids = make(map[string]struct{})
+	b.tenantByUID = make(map[string]string)
 	b.oldest = time.Time{}
 
-	return uids, seenAt
+	return tenantByUID, seenAt
 }

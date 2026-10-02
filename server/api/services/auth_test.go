@@ -300,7 +300,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceHeartbeat", ctx, []string{uid}, now).
-					Return(int64(1), nil).
+					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -353,7 +353,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceHeartbeat", ctx, []string{uid}, now).
-					Return(int64(1), nil).
+					Return([]string{}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
@@ -414,7 +414,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceHeartbeat", ctx, []string{uid}, now).
-					Return(int64(1), nil).
+					Return([]string{}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
@@ -516,7 +516,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceHeartbeat", ctx, []string{uid}, now).
-					Return(int64(1), nil).
+					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -584,7 +584,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceHeartbeat", ctx, []string{uid}, now).
-					Return(int64(1), nil).
+					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -3202,7 +3202,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Once()
 		storeMock.
 			On("DeviceHeartbeat", ctx, []string{uid}, now).
-			Return(int64(1), nil).
+			Return([]string{}, nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
@@ -3257,7 +3257,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Once()
 		storeMock.
 			On("DeviceHeartbeat", ctx, []string{uid}, now).
-			Return(int64(1), nil).
+			Return([]string{}, nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).

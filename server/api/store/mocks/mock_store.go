@@ -1657,22 +1657,24 @@ func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // DeviceHeartbeat provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (int64, error) {
+func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) ([]string, error) {
 	ret := _mock.Called(ctx, uids, lastSeen)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceHeartbeat")
 	}
 
-	var r0 int64
+	var r0 []string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) (int64, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) ([]string, error)); ok {
 		return returnFunc(ctx, uids, lastSeen)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) int64); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) []string); ok {
 		r0 = returnFunc(ctx, uids, lastSeen)
 	} else {
-		r0 = ret.Get(0).(int64)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, []string, time.Time) error); ok {
 		r1 = returnFunc(ctx, uids, lastSeen)
@@ -1718,12 +1720,12 @@ func (_c *MockStore_DeviceHeartbeat_Call) Run(run func(ctx context.Context, uids
 	return _c
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) Return(modifiedCount int64, err error) *MockStore_DeviceHeartbeat_Call {
-	_c.Call.Return(modifiedCount, err)
+func (_c *MockStore_DeviceHeartbeat_Call) Return(gone []string, err error) *MockStore_DeviceHeartbeat_Call {
+	_c.Call.Return(gone, err)
 	return _c
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, uids []string, lastSeen time.Time) (int64, error)) *MockStore_DeviceHeartbeat_Call {
+func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, uids []string, lastSeen time.Time) ([]string, error)) *MockStore_DeviceHeartbeat_Call {
 	_c.Call.Return(run)
 	return _c
 }

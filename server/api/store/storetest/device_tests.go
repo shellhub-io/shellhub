@@ -674,33 +674,84 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	t.Run("succeeds when no devices match", func(t *testing.T) {
+	t.Run("reports every device as gone when none match", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		s.CreateDevice(t, WithDeviceName("device-1"))
 		s.CreateDevice(t, WithDeviceName("device-2"))
 
-		modifiedCount, err := st.DeviceHeartbeat(ctx,
+		gone, err := st.DeviceHeartbeat(ctx,
 			[]string{"nonexistent1", "nonexistent2"},
 			clock.Now(),
 		)
 		require.NoError(t, err)
-		assert.Equal(t, int64(0), modifiedCount)
+		assert.Equal(t, []string{"nonexistent1", "nonexistent2"}, gone)
 	})
 
-	t.Run("succeeds when devices match", func(t *testing.T) {
+	t.Run("reports none gone when every device matches", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
 
 		newTime := clock.Now()
-		modifiedCount, err := st.DeviceHeartbeat(ctx,
+		gone, err := st.DeviceHeartbeat(ctx,
 			[]string{string(uid1), string(uid2)},
 			newTime,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), modifiedCount)
+		assert.Empty(t, gone)
+
+		for _, uid := range []models.UID{uid1, uid2} {
+			device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+			require.NoError(t, err)
+			assert.WithinDuration(t, newTime, device.LastSeen, time.Second)
+		}
+	})
+
+	t.Run("reports a device deleted with its namespace as gone", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		kept := s.CreateDevice(t, WithDeviceName("device-1"))
+
+		other := s.CreateNamespace(t)
+		deleted := s.CreateDevice(t, WithDeviceName("device-2"), WithTenantID(other))
+
+		namespace, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, other)
+		require.NoError(t, err)
+		require.NoError(t, st.NamespaceDelete(ctx, namespace))
+
+		gone, err := st.DeviceHeartbeat(ctx,
+			[]string{string(kept), string(deleted)},
+			clock.Now(),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, []string{string(deleted)}, gone)
+	})
+
+	t.Run("reports a removed device as gone and leaves its last_seen alone", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		lastSeen := clock.Now().UTC().Add(-time.Hour).Truncate(time.Second)
+		removedAt := lastSeen
+		kept := s.CreateDevice(t, WithDeviceName("device-1"))
+		removed := s.CreateDevice(t,
+			WithDeviceName("device-2"),
+			WithDeviceStatus(models.DeviceStatusRemoved),
+			WithDeviceRemovedAt(&removedAt),
+			WithDeviceLastSeen(lastSeen),
+		)
+
+		gone, err := st.DeviceHeartbeat(ctx,
+			[]string{string(kept), string(removed)},
+			clock.Now(),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, []string{string(removed)}, gone)
+
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(removed))
+		require.NoError(t, err)
+		assert.WithinDuration(t, lastSeen, device.LastSeen, time.Second)
 	})
 }
 
