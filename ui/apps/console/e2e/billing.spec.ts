@@ -1,6 +1,6 @@
 import { type Page, expect, test as base } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { getCustomer, getNamespace } from "@/client";
+import { getCustomer, getNamespace, getNamespaces } from "@/client";
 import { isCloud } from "./env";
 import { signIn, dismissWizard } from "./helpers";
 import {
@@ -20,6 +20,8 @@ type Owner = {
   email: string;
   token: string;
   tenant: string;
+  namespace: string;
+  customer?: string;
 };
 
 function stripeCli(...args: string[]) {
@@ -61,18 +63,30 @@ async function readNamespace(owner: Owner) {
   return data;
 }
 
+async function readSubscriptionStatus(owner: Owner) {
+  return (await readNamespace(owner)).billing?.subscription?.status;
+}
+
+async function readTenants(owner: Owner) {
+  const { token } = await loginAs(owner.username, password);
+  const { data } = await getNamespaces(buildRequestContext({ token }));
+  return data.map((namespace) => namespace.tenant_id);
+}
+
 const test = base.extend<{ owner: Owner }>({
   // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from this destructuring, and owner has none
   owner: async ({}, provide) => {
     const user = createUser("billing");
     const tenant = randomUUID();
-    createNamespace(user.username, `e2e-billing-${buildShortId()}`, tenant);
+    const namespace = `e2e-billing-${buildShortId()}`;
+    createNamespace(user.username, namespace, tenant);
     const { token } = await loginAs(user.username, password);
-    const owner = { ...user, token, tenant };
+    const owner: Owner = { ...user, token, tenant, namespace };
 
     await provide(owner);
 
-    const customer = (await readNamespace(owner)).billing?.customer_id;
+    const customer =
+      owner.customer ?? (await readNamespace(owner)).billing?.customer_id;
     if (customer) deleteStripeCustomer(customer);
   },
 });
@@ -139,6 +153,24 @@ async function subscribeWithNewCard(page: Page) {
   await confirmSubscribe(page);
 }
 
+async function readSubscription(owner: Owner) {
+  const { billing } = await readNamespace(owner);
+  if (!billing?.customer_id || !billing.subscription?.id) {
+    throw new Error("expected a subscription after subscribing");
+  }
+  return { customer: billing.customer_id, id: billing.subscription.id };
+}
+
+async function submitNamespaceDeletion(page: Page, owner: Owner) {
+  await page.getByRole("button", { name: "Delete namespace" }).click();
+  const dialog = page.getByRole("dialog", { name: "Delete namespace" });
+  await dialog
+    .getByLabel(`Type "${owner.namespace}" to confirm`)
+    .fill(owner.namespace);
+  await dialog.getByRole("button", { name: "Delete namespace" }).click();
+  return dialog;
+}
+
 test.describe("Billing", () => {
   test.skip(!isCloud, "billing only exists in the cloud edition");
 
@@ -202,18 +234,12 @@ test.describe("Billing", () => {
     test.setTimeout(60_000);
     await openBilling(page, owner);
     await subscribeWithNewCard(page);
-    const subscription = (await readNamespace(owner)).billing?.subscription?.id;
-    if (!subscription) {
-      throw new Error("expected a subscription after subscribing");
-    }
+    const subscription = await readSubscription(owner);
 
-    cancelStripeSubscription(subscription);
+    cancelStripeSubscription(subscription.id);
 
     await expect
-      .poll(
-        async () => (await readNamespace(owner)).billing?.subscription?.status,
-        { timeout: 30_000 },
-      )
+      .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
       .toBe("canceled");
     await page.reload();
     await expect(planGroup(page).getByText("Canceled")).toBeVisible();
@@ -221,8 +247,34 @@ test.describe("Billing", () => {
     await openSubscribe(page);
     await confirmSubscribe(page);
 
-    expect((await readNamespace(owner)).billing?.subscription?.status).toBe(
-      "active",
-    );
+    expect(await readSubscriptionStatus(owner)).toBe("active");
+  });
+
+  test("a namespace with an active subscription is deleted only once it is canceled", async ({
+    page,
+    owner,
+  }) => {
+    test.setTimeout(60_000);
+    await openBilling(page, owner);
+    await subscribeWithNewCard(page);
+    const subscription = await readSubscription(owner);
+    owner.customer = subscription.customer;
+    await page.goto("/settings/general");
+
+    const dialog = await submitNamespaceDeletion(page, owner);
+
+    await expect(
+      dialog.getByText("Couldn't delete the namespace."),
+    ).toBeVisible();
+    expect(await readTenants(owner)).toEqual([owner.tenant]);
+
+    cancelStripeSubscription(subscription.id);
+    await expect
+      .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
+      .toBe("canceled");
+    await page.reload();
+    await submitNamespaceDeletion(page, owner);
+
+    await expect.poll(() => readTenants(owner)).toEqual([]);
   });
 });
