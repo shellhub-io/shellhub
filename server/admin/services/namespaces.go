@@ -68,11 +68,14 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, ns); err != nil {
-		if errors.Is(err, store.ErrNamespaceSingle) {
+		switch {
+		case errors.Is(err, store.ErrNamespaceSingle):
 			return nil, ErrNamespaceSingle
+		case errors.Is(err, store.ErrDuplicate):
+			return nil, ErrDuplicateNamespace
+		default:
+			return nil, ErrCreateNewNamespace
 		}
-
-		return nil, ErrDuplicateNamespace
 	}
 
 	return ns, nil
