@@ -3,6 +3,7 @@ import {
   execFileSync,
 } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
+import type { NamespaceSettings } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
 
 const stackName = `shellhub-e2e-${process.env.E2E_STACK_NAME || "default"}`;
@@ -79,8 +80,24 @@ export function createUser(prefix: string, { admin = false } = {}) {
   return user;
 }
 
-export function createNamespace(owner: string, name: string, tenant: string) {
-  serverAdmin("namespace", "create", name, owner, tenant);
+export type NamespaceOptions = {
+  sshAccessMode?: NamespaceSettings["ssh_access_mode"];
+};
+
+export function createNamespace(
+  owner: string,
+  name: string,
+  tenant: string,
+  { sshAccessMode }: NamespaceOptions = {},
+) {
+  serverAdmin(
+    "namespace",
+    "create",
+    name,
+    owner,
+    tenant,
+    ...(sshAccessMode ? [`--ssh-access-mode=${sshAccessMode}`] : []),
+  );
 }
 
 export function addMember(

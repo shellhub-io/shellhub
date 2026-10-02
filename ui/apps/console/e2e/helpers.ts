@@ -7,6 +7,7 @@ import {
   createUser,
   createNamespace,
   addMember,
+  type NamespaceOptions,
 } from "./seed";
 import { loginAs } from "./api";
 
@@ -18,17 +19,23 @@ export const emailDeliveryReason = "only the cloud sends email";
 export const consoleAccountDeletionReason =
   "only the cloud deletes an account from the console";
 
-export async function createTeam({ admin = false } = {}) {
+export async function createTeam({
+  admin = false,
+  sshAccessMode,
+}: { admin?: boolean } & NamespaceOptions = {}) {
   const owner = createUser("owner", { admin });
   const namespace = `e2e-team-${buildShortId()}`;
   const tenant = randomUUID();
-  createNamespace(owner.username, namespace, tenant);
+  createNamespace(owner.username, namespace, tenant, { sshAccessMode });
   const { token } = await loginAs(owner.username, password);
   return { owner: { ...owner, token }, namespace, tenant };
 }
 
-export async function createTeamWithMember(role: AssignableRole) {
-  const team = await createTeam();
+export async function createTeamWithMember(
+  role: AssignableRole,
+  options: NamespaceOptions = {},
+) {
+  const team = await createTeam(options);
   const member = createUser("member");
   addMember(member.username, team.namespace, role);
   const { token, tenant, id } = await loginAs(member.username, password);
