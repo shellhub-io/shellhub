@@ -136,9 +136,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 		settled := awaitSettledLastSeen(t, compose, device.UID)
 
 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			current := models.Device{}
-
-			resp, err := compose.R(t.Context()).SetResult(&current).Get("/api/devices/" + device.UID)
+			current, resp, err := compose.GetDevice(t.Context(), device.UID)
 			if !assert.NoError(tt, err) {
 				return
 			}
@@ -154,9 +152,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 		agent, device := startAcceptedAgent(t, t.Context(), compose)
 		require.NoError(t, agent.Stop(t.Context(), nil))
 
-		resp, err := compose.R(t.Context()).Delete("/api/devices/" + device.UID)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		compose.DeleteDevice(t, device.UID)
 
 		removed := compose.AwaitDeviceWithStatus(t, models.DeviceStatusRemoved)
 		require.Equal(t, device.UID, removed.UID)
@@ -176,9 +172,7 @@ func awaitSettledLastSeen(t *testing.T, compose *environment.DockerCompose, uid 
 	unchanged := 0
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		current := models.Device{}
-
-		resp, err := compose.R(t.Context()).SetResult(&current).Get("/api/devices/" + uid)
+		current, resp, err := compose.GetDevice(t.Context(), uid)
 		if !assert.NoError(tt, err) {
 			return
 		}

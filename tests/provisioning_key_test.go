@@ -76,12 +76,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 		awaitAgentRefused(t, ctx, agent)
 
-		devices := []models.Device{}
-
-		resp, err := compose.R(ctx).SetResult(&devices).Get("/api/devices")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode())
-		assert.Empty(t, devices)
+		assert.Empty(t, compose.ListDevices(t, models.DeviceStatusEmpty))
 	})
 
 	t.Run("a key that has used up its enrollments enrolls nothing more", func(t *testing.T) {
@@ -104,11 +99,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 		awaitAgentRefused(t, ctx, second)
 
-		devices := []models.Device{}
-
-		resp, err := compose.R(ctx).SetResult(&devices).Get("/api/devices")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode())
+		devices := compose.ListDevices(t, models.DeviceStatusEmpty)
 		require.Len(t, devices, 1)
 		assert.Equal(t, enrolled.UID, devices[0].UID)
 	})
