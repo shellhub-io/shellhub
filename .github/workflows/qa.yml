@@ -60,20 +60,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Restore Docker image cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: /tmp/docker-cache
-          key: docker-${{ runner.os }}
-
-      - name: Load cached Docker images
-        run: |
-          if [ -d /tmp/docker-cache ]; then
-            for f in /tmp/docker-cache/*.tar; do
-              docker load -i "$f"
-            done
-          fi
-
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: filter
         with:
@@ -142,17 +128,6 @@ jobs:
         if: matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go build -v ${{ matrix.extra_args }} ./...
-
-      - name: Save Docker images to cache
-        if: always()
-        run: |
-          mkdir -p /tmp/docker-cache
-          docker images --format '{{.Repository}}:{{.Tag}}' | \
-            grep -v '<none>' | while read img; do
-              name=$(echo "$img" | tr '/:' '_')
-              docker save -o "/tmp/docker-cache/${name}.tar" "$img" 2>/dev/null || true
-            done
-
 
   mocks:
     name: generated mocks
