@@ -5,8 +5,9 @@ import {
 import { createHash, randomUUID } from "node:crypto";
 import type { NamespaceSettings } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
+import { requireEnv } from "./env";
 
-const stackName = `shellhub-e2e-${process.env.E2E_STACK_NAME || "default"}`;
+const stackName = requireEnv("E2E_COMPOSE_PROJECT");
 
 function compose(
   args: string[],

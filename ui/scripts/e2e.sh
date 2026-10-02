@@ -48,7 +48,7 @@ playwright() {
   fi
 
   compose_run \
-    -e E2E_STACK_NAME="$name" -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
+    -e E2E_COMPOSE_PROJECT -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
     -e CI \
     e2e npx playwright test "$@"
 }
