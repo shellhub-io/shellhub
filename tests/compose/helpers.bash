@@ -8,11 +8,8 @@
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
-unset EXTRA_COMPOSE_FILE
+unset EXTRA_COMPOSE_FILE DOCKER_HOST SHELLHUB_DEV_DOCKER_SOCKET
 
-# Run the wrapper with the given override variables written to a tmpfile,
-# while replacing `docker` in PATH with a stub that just echoes the env
-# the wrapper exported.
 # Usage: capture_with VAR1=value VAR2=value ...
 capture_with() {
     local stub_dir="$BATS_TEST_TMPDIR/stub"
@@ -20,11 +17,33 @@ capture_with() {
         mkdir -p "$stub_dir"
         cat > "$stub_dir/docker" <<'EOF'
 #!/bin/sh
-echo "COMPOSE_FILE=$COMPOSE_FILE"
-echo "COMPOSE_ENV_FILES=$COMPOSE_ENV_FILES"
-echo "COMPOSE_PROFILES=$COMPOSE_PROFILES"
+case "$1" in
+    context)
+        echo "${STUB_DOCKER_ENDPOINT:-unix:///var/run/docker.sock}"
+        ;;
+    info)
+        [ -z "${STUB_DOCKER_INFO_FAILS:-}" ] || exit 1
+        echo "[${STUB_DOCKER_SECURITY:-name=seccomp,profile=builtin name=cgroupns}]"
+        ;;
+    *)
+        echo "COMPOSE_FILE=$COMPOSE_FILE"
+        echo "COMPOSE_ENV_FILES=$COMPOSE_ENV_FILES"
+        echo "COMPOSE_PROFILES=$COMPOSE_PROFILES"
+        echo "SHELLHUB_DEV_DOCKER_SOCKET=$SHELLHUB_DEV_DOCKER_SOCKET"
+        ;;
+esac
 EOF
-        chmod +x "$stub_dir/docker"
+        cat > "$stub_dir/getcap" <<'EOF'
+#!/bin/sh
+[ -z "${STUB_NO_GETCAP:-}" ] || exit 127
+[ -z "${STUB_GETCAP:-}" ] || echo "$1 $STUB_GETCAP"
+EOF
+        cat > "$stub_dir/sysctl" <<'EOF'
+#!/bin/sh
+echo "${STUB_SYSCTL_UNPRIVILEGED_PORT_START:-1024}"
+EOF
+        : > "$stub_dir/rootlesskit"
+        chmod +x "$stub_dir"/*
     fi
 
     local tmp
