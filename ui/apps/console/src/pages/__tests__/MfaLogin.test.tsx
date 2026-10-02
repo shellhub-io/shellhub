@@ -150,7 +150,7 @@ describe("MfaLogin", () => {
         screen.queryByText("Invalid verification code"),
       ).not.toBeInTheDocument();
       await passSeconds(1);
-      expect(screen.getByText(/seconds/i)).toBeInTheDocument();
+      expect(screen.getByText(/\(2[89] seconds\)/)).toBeInTheDocument();
       expect(useAuthStore.getState().mfaToken).toBe("temp-mfa-token");
     });
 
@@ -163,7 +163,9 @@ describe("MfaLogin", () => {
 
       await screen.findByText(/too many failed attempts/i);
       await passSeconds(3);
-      expect(screen.getByText(/your timeout has finished/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/your timeout has finished/i),
+      ).toBeInTheDocument();
     });
 
     it("shows the lockout without a countdown when the deadline header is missing", async () => {
@@ -178,6 +180,7 @@ describe("MfaLogin", () => {
       expect(
         screen.queryByText(/your timeout has finished/i),
       ).not.toBeInTheDocument();
+      expect(screen.queryByText(/seconds|minutes/i)).not.toBeInTheDocument();
     });
   });
 

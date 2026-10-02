@@ -7,6 +7,17 @@ interface CountdownState {
 }
 
 /**
+ * Reads the end of an account lockout from a 429 response's `X-Account-Lockout` header, as the Unix
+ * timestamp in seconds that {@link useLockoutCountdown} takes. A missing, zero or malformed header
+ * gives `null`, so the form shows the lockout without a countdown rather than one that already ended.
+ */
+export function lockoutEndFrom(headers: Headers): number | null {
+  const epoch = Number(headers.get("x-account-lockout"));
+
+  return epoch > 0 ? epoch : null;
+}
+
+/**
  * Counts down to the end of an account lockout, given as the Unix timestamp in seconds that the
  * `X-Account-Lockout` header carries. `display` is the time left in whole minutes or seconds, empty
  * until the first tick. `expired` turns true once the lockout ends, and both reset when a new
