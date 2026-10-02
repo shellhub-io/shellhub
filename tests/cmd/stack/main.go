@@ -19,6 +19,7 @@ const (
 	adminPassword  = "e2e-password"
 	adminEmail     = "admin@e2e.test"
 	adminNamespace = "e2e"
+	projectPrefix  = "shellhub-e2e-"
 )
 
 type stateFile struct {
@@ -65,6 +66,7 @@ func printExports(w io.Writer, s *stateFile) error {
 	for _, line := range []string{
 		"E2E_BASE_URL=" + baseURL,
 		"E2E_EDITION=" + s.Edition,
+		"E2E_COMPOSE_PROJECT=" + s.Name,
 		"E2E_ADMIN_USER=" + adminUsername,
 		"E2E_ADMIN_PASSWORD=" + adminPassword,
 		"E2E_ADMIN_NAMESPACE=" + adminNamespace,
@@ -99,7 +101,7 @@ func teardown(ctx context.Context, cmd *cobra.Command, name string) error {
 	if err != nil {
 		cmd.PrintErrf("No state file for %q, cleaning up orphans...\n", name)
 
-		orphan, err := environment.Attach(ctx, "shellhub-e2e-"+name, []string{"../docker-compose.yml"}, nil)
+		orphan, err := environment.Attach(ctx, projectPrefix+name, []string{"../docker-compose.yml"}, nil)
 		if err != nil {
 			cmd.PrintErrf("Could not attach to orphans: %v\n", err)
 
@@ -189,7 +191,7 @@ func main() {
 				return fmt.Errorf("bundling OpenAPI schema: %w", err)
 			}
 
-			projectName := "shellhub-e2e-" + name
+			projectName := projectPrefix + name
 
 			if err := teardown(ctx, cmd, name); err != nil {
 				return err
