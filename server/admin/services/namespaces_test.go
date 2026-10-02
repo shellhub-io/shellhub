@@ -88,9 +88,49 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error")).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("", store.ErrDuplicate).Once()
 			},
 			expected: Expected{nil, ErrDuplicateNamespace},
+		},
+		{
+			description:   "fails without claiming a duplicate when the store fails for another reason",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "",
+			requiredMocks: func() {
+				envstest.SetEdition(t, envs.Community)
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "507f191e810c19729de860ea",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypeTeam,
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
+					},
+					MaxDevices: MaxNumberDevicesUnlimited,
+					CreatedAt:  now,
+				}
+				mock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrCreateNewNamespace},
 		},
 		{
 			description:   "succeeds in creating a namespace when user and namespace data are valid - Community",
