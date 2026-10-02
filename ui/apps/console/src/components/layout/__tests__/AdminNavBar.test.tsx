@@ -49,16 +49,17 @@ describe("AdminNavBar", () => {
       expect(
         await screen.findByRole("link", { name: "Namespaces" }),
       ).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Authentication" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Authentication" }),
+      ).toBeInTheDocument();
     });
 
     it("marks the page being viewed", async () => {
       renderBar(false);
 
-      expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute(
-        "aria-current",
-        "page",
-      );
+      expect(
+        await screen.findByRole("link", { name: "Users" }),
+      ).toHaveAttribute("aria-current", "page");
     });
 
     it("leaves License out on cloud, which has no license", async () => {

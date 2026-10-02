@@ -43,7 +43,10 @@ export default function StatCard(props: StatCardProps) {
       </p>
 
       <p
-        className={cn("text-4xl font-mono font-bold mb-5 tabular-nums", accent ?? "text-text-primary")}
+        className={cn(
+          "text-4xl font-mono font-bold mb-5 tabular-nums",
+          accent ?? "text-text-primary",
+        )}
       >
         {value}
       </p>

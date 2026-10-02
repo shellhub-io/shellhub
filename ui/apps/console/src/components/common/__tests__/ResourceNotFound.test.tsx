@@ -1,18 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { CpuChipIcon, ShieldExclamationIcon } from "@heroicons/react/24/outline";
+import {
+  CpuChipIcon,
+  ShieldExclamationIcon,
+} from "@heroicons/react/24/outline";
 import ResourceNotFound from "../ResourceNotFound";
 
-function renderNotFound(props: {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  resource: string;
-  backTo: string;
-} = {
-  icon: CpuChipIcon,
-  resource: "Device",
-  backTo: "/devices",
-}) {
+function renderNotFound(
+  props: {
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    resource: string;
+    backTo: string;
+  } = {
+    icon: CpuChipIcon,
+    resource: "Device",
+    backTo: "/devices",
+  },
+) {
   return render(
     <MemoryRouter>
       <ResourceNotFound {...props} />
