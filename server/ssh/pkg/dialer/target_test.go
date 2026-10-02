@@ -33,24 +33,26 @@ func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
 	return client, agent
 }
 
+func answerHTTPProxy(agent net.Conn, reply string) {
+	mux := multistream.NewMultistreamMuxer[string]()
+	mux.AddHandler(ProtoHTTPProxy, nil)
+
+	if _, _, err := mux.Negotiate(agent); err != nil {
+		return
+	}
+
+	headers := map[string]string{}
+	if err := json.NewDecoder(agent).Decode(&headers); err != nil {
+		return
+	}
+
+	agent.Write([]byte(reply)) //nolint:errcheck // a lost reply fails the test through prepare's decode
+}
+
 func TestHTTPProxyTargetKeepsGreetingSentWithTheReply(t *testing.T) {
 	client, agent := pipeWithDeadline(t)
 
-	go func() {
-		mux := multistream.NewMultistreamMuxer[string]()
-		mux.AddHandler(ProtoHTTPProxy, nil)
-
-		if _, _, err := mux.Negotiate(agent); err != nil {
-			return
-		}
-
-		headers := map[string]string{}
-		if err := json.NewDecoder(agent).Decode(&headers); err != nil {
-			return
-		}
-
-		agent.Write([]byte(`{"status":"ok"}` + greeting)) //nolint:errcheck
-	}()
+	go answerHTTPProxy(agent, `{"status":"ok"}`+greeting)
 
 	conn, err := HTTPProxyTarget{Host: "127.0.0.1", Port: 5432}.
 		prepare(context.Background(), client, TransportVersion2)
@@ -81,4 +83,17 @@ func TestHTTPProxyTargetV1KeepsGreetingSentWithTheReply(t *testing.T) {
 	_, err = io.ReadFull(conn, buf)
 	require.NoError(t, err)
 	assert.Equal(t, greeting, string(buf))
+}
+
+func TestHTTPProxyTargetReportsTheAgentsReason(t *testing.T) {
+	client, agent := pipeWithDeadline(t)
+
+	go answerHTTPProxy(agent, `{"error":"address not found on the device"}`)
+
+	_, err := HTTPProxyTarget{Host: "127.0.0.1", Port: 5432}.
+		prepare(context.Background(), client, TransportVersion2)
+
+	var refused *ProxyRefusedError
+	require.ErrorAs(t, err, &refused)
+	assert.Equal(t, "address not found on the device", refused.Reason)
 }
