@@ -86,9 +86,9 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	require.NoError(t, err)
 
 	heartbeat := clock.Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
-	modified, err := st.DeviceHeartbeat(ctx, []string{string(uid)}, heartbeat)
+	gone, err := st.DeviceHeartbeat(ctx, []string{string(uid)}, heartbeat)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), modified)
+	require.Empty(t, gone)
 
 	snapshot.Name = "device-renamed"
 	require.NoError(t, st.DeviceUpdate(ctx, snapshot))

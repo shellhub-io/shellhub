@@ -236,22 +236,37 @@ func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) erro
 }
 
 // DeviceHeartbeat implements [store.DeviceStore].
-func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) (int64, error) {
+func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) ([]string, error) {
 	db := pg.GetConnection(ctx)
 
 	unnestExpr, unnestIDs := deviceExprUnnestIDs(ids)
-	r, err := db.NewUpdate().
+
+	updated := []string{}
+	if err := db.NewUpdate().
 		Model((*entity.Device)(nil)).
 		Set("last_seen = ?", lastSeen).
 		Set("disconnected_at = NULL").
 		TableExpr(unnestExpr, unnestIDs).
 		Where("device.id = _data.id").
-		Exec(ctx)
-	if err != nil {
-		return 0, fromSQLError(err)
+		Where("device.status <> ?", models.DeviceStatusRemoved).
+		Returning("device.id").
+		Scan(ctx, &updated); err != nil {
+		return nil, fromSQLError(err)
 	}
 
-	return r.RowsAffected()
+	found := make(map[string]struct{}, len(updated))
+	for _, id := range updated {
+		found[id] = struct{}{}
+	}
+
+	gone := []string{}
+	for _, id := range ids {
+		if _, ok := found[id]; !ok {
+			gone = append(gone, id)
+		}
+	}
+
+	return gone, nil
 }
 
 // DeviceOffline implements [store.DeviceStore].
