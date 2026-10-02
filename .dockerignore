@@ -11,3 +11,7 @@
 # checkout, so leaving them in makes local builds differ from CI's.
 ui/apps/console/public/config.json
 **/node_modules
+agent/shellhub.key
+api_private_key
+api_public_key
+ssh_private_key
