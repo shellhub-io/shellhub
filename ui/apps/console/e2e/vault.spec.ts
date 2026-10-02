@@ -269,6 +269,22 @@ test.describe("Secure vault", () => {
     await expect(keyEntry(page, key)).toBeVisible();
   });
 
+  test("switching namespace locks the vault", async ({ page }) => {
+    test.skip(isCommunity, singleNamespaceReason);
+
+    const { owner, namespace, other } = await createTeamWithOwnerInAnother({
+      sshAccessMode: "legacy",
+    });
+    await signInAndOpen(page, owner.username, "/secure-vault");
+    await setUpVault(page);
+
+    await switchNamespace(page, other.namespace);
+    await switchNamespace(page, namespace);
+
+    await page.getByRole("link", { name: "Secure Vault" }).click();
+    await expect(lockedState(page)).toBeVisible();
+  });
+
   test.describe("storage", () => {
     test.skip(isCommunity, serverStorageReason);
 
