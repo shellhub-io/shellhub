@@ -10,10 +10,31 @@ import type {
   PublicKeyResponse,
   Session,
   Tag,
+  UserAdminResponse,
   UserAuth,
   Webendpoint,
 } from "@/client";
 import type { RecordingMeta } from "@/utils/recordings";
+
+/**
+ * Builds a user as the admin API returns it for a test: confirmed, not an admin and not awaiting
+ * approval, so a case names only what it is about.
+ */
+export function mockAdminUser(
+  overrides: Partial<UserAdminResponse> = {},
+): UserAdminResponse {
+  return {
+    id: "user-id-1",
+    name: "Alice Smith",
+    email: "alice@example.com",
+    username: "alice",
+    status: "confirmed",
+    admin: false,
+    created_at: "2024-01-01T00:00:00Z",
+    last_login: "2024-06-01T00:00:00Z",
+    ...overrides,
+  };
+}
 
 /**
  * Builds a signed-in user for a test. Every field has a value, so a case names only what it is about

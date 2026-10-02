@@ -30,13 +30,13 @@ function renderRoute() {
           path="/admin/license"
           element={
             isCloud() ? (
-              <Navigate to="/admin/dashboard" replace />
+              <Navigate to="/admin/instance" replace />
             ) : (
               <AdminLicense />
             )
           }
         />
-        <Route path="/admin/dashboard" element={<LocationDisplay />} />
+        <Route path="/admin/instance" element={<LocationDisplay />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -52,11 +52,11 @@ describe("AdminLicenseRoute — /admin/license element", () => {
       mockedGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
     });
 
-    it("redirects to /admin/dashboard in cloud mode", () => {
+    it("redirects to /admin/instance in cloud mode", () => {
       renderRoute();
 
       expect(screen.getByTestId("pathname")).toHaveTextContent(
-        "/admin/dashboard",
+        "/admin/instance",
       );
     });
   });

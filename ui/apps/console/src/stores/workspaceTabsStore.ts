@@ -59,7 +59,7 @@ export function preferencesTab(path = PREFERENCES_PATH): WorkspaceTab {
  * The admin console's tab, landing on path when activated. ensure keeps an open tab's own path,
  * so path only decides where a tab not yet open lands.
  */
-export function adminTab(path = "/admin/dashboard"): WorkspaceTab {
+export function adminTab(path = "/admin/instance"): WorkspaceTab {
   return { id: ADMIN_TAB_ID, kind: "admin", name: "Admin Console", path };
 }
 

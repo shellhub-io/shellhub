@@ -86,3 +86,23 @@ export function getLicenseAlertConfig(license: LicenseFlags | null): AlertConfig
   }
   return null;
 }
+
+/**
+ * How many devices are accepted against the licensed limit. A negative limit is the licence's
+ * sentinel for no limit. Approaching starts at 90% of the limit, and over includes reaching it
+ * exactly, because the next accept is the one refused.
+ */
+export type DeviceCapacity =
+  | { state: "unlimited"; used: number }
+  | { state: "ok" | "approaching" | "over"; used: number; limit: number };
+
+/**
+ * Classifies accepted devices against the licensed limit. A limit of zero is over at once, since
+ * no device can be accepted under it.
+ */
+export function deviceCapacity(limit: number, used: number): DeviceCapacity {
+  if (limit < 0) return { state: "unlimited", used };
+  if (used >= limit) return { state: "over", used, limit };
+  if (used / limit >= 0.9) return { state: "approaching", used, limit };
+  return { state: "ok", used, limit };
+}

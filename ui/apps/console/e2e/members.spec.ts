@@ -150,13 +150,15 @@ test.describe("invitations", () => {
 
     const { owner: admin } = await createTeam({ admin: true });
     await signInAndOpen(page, admin.username, "/admin/users");
-    await page.getByLabel("Search users by username").fill(username);
+    await page
+      .getByLabel("Search users by name, username or email")
+      .fill(username);
     const row = findRow(page, email);
     await expect(row).toContainText("Awaiting Approval");
     await row
       .getByRole("button", { name: `Approve account for ${email}` })
       .click();
-    await confirmDialog(page, "Approve account", "Approve account");
+    await confirmDialog(page, "Approve user", "Approve");
     await expect(row).toContainText("Confirmed");
 
     const { tenant: joined } = await loginAs(username, password);

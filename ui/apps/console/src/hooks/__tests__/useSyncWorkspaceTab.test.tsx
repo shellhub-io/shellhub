@@ -29,7 +29,7 @@ beforeEach(() => {
 
 describe("useSyncWorkspaceTab", () => {
   it("opens the admin console's tab on its pages", () => {
-    syncAt("/admin/dashboard");
+    syncAt("/admin/instance");
 
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
       "admin",

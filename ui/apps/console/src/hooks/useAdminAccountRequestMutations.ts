@@ -8,7 +8,11 @@ import { useInvalidateByIds } from "./useInvalidateQueries";
  * for them afterwards from the members list.
  */
 export function useApproveAccountRequest() {
-  const invalidate = useInvalidateByIds("getUsers", "getUser");
+  const invalidate = useInvalidateByIds(
+    "getUsers",
+    "getUser",
+    "getNamespaceAdmin",
+  );
   return useMutation({
     ...approveUserMutation(),
     onSuccess: invalidate,

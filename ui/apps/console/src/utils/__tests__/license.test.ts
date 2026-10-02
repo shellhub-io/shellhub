@@ -6,7 +6,28 @@ import {
   getDisplayFeatures,
   validateLicenseFile,
   getLicenseAlertConfig,
+  deviceCapacity,
 } from "../license";
+
+describe("deviceCapacity", () => {
+  it.each([
+    { limit: -1, used: 50, expected: { state: "unlimited", used: 50 } },
+    { limit: 10, used: 8, expected: { state: "ok", used: 8, limit: 10 } },
+    {
+      limit: 10,
+      used: 9,
+      expected: { state: "approaching", used: 9, limit: 10 },
+    },
+    { limit: 10, used: 10, expected: { state: "over", used: 10, limit: 10 } },
+    { limit: 10, used: 12, expected: { state: "over", used: 12, limit: 10 } },
+    { limit: 0, used: 0, expected: { state: "over", used: 0, limit: 0 } },
+  ])(
+    "classifies $used of $limit as $expected.state",
+    ({ limit, used, expected }) => {
+      expect(deviceCapacity(limit, used)).toEqual(expected);
+    },
+  );
+});
 
 describe("formatLicenseTimestamp", () => {
   it('returns "Now" for -1', () => {

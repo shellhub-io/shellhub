@@ -8,10 +8,10 @@ import {
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 /**
- * Creates a user as an admin, refreshing the user list.
+ * Creates a user as an admin, refreshing the user list and the instance counts.
  */
 export function useCreateUser() {
-  const invalidate = useInvalidateByIds("getUsers");
+  const invalidate = useInvalidateByIds("getUsers", "getStats");
   return useMutation({
     ...createUserAdminMutation(),
     onSuccess: invalidate,
@@ -30,10 +30,18 @@ export function useUpdateUser() {
 }
 
 /**
- * Deletes a user as an admin, refreshing the list and the user's own query.
+ * Deletes a user as an admin, along with the namespaces they own, refreshing the user and
+ * namespace lists, the user's own query, the instance counts and
+ * the namespace details that listed them as a member.
  */
 export function useDeleteUser() {
-  const invalidate = useInvalidateByIds("getUsers", "getUser");
+  const invalidate = useInvalidateByIds(
+    "getUsers",
+    "getUser",
+    "getStats",
+    "getNamespaceAdmin",
+    "getNamespacesAdmin",
+  );
   return useMutation({
     ...adminDeleteUserMutation(),
     onSuccess: invalidate,

@@ -86,7 +86,7 @@ const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
-const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminInstance = lazy(() => import("./pages/admin/Instance"));
 const AdminLicense = lazy(() => import("./pages/admin/License"));
 const AdminUnauthorized = lazy(() => import("./pages/admin/Unauthorized"));
 const AdminUsers = lazy(() => import("./pages/admin/users"));
@@ -165,7 +165,7 @@ export default function App() {
                         path="/admin/license"
                         element={
                           isCloud() ? (
-                            <Navigate to="/admin/dashboard" replace />
+                            <Navigate to="/admin/instance" replace />
                           ) : (
                             <AdminLicense />
                           )
@@ -174,11 +174,11 @@ export default function App() {
                       <Route element={<LicenseGuard />}>
                         <Route
                           path="/admin"
-                          element={<Navigate to="/admin/dashboard" replace />}
+                          element={<Navigate to="/admin/instance" replace />}
                         />
                         <Route
-                          path="/admin/dashboard"
-                          element={<AdminDashboard />}
+                          path="/admin/instance"
+                          element={<AdminInstance />}
                         />
                         <Route path="/admin/users" element={<AdminUsers />} />
                         <Route
