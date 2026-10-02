@@ -214,17 +214,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err = environment.agent.Start(ctx)
 				require.NoError(t, err)
 
-				model := models.Device{}
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					resp, err := environment.services.R(ctx).
-						SetResult(&model).
-						Get("/api/devices/" + device.UID)
-					assert.Equal(tt, 200, resp.StatusCode())
-					assert.NoError(tt, err)
-
-					assert.True(tt, model.Online)
-				}, 30*time.Second, 1*time.Second)
+				environment.services.AwaitDeviceOnline(t, device.UID)
 			},
 		},
 		{
@@ -243,17 +233,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err = environment.agent.Start(ctx)
 				require.NoError(t, err)
 
-				model := models.Device{}
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					resp, err := environment.services.R(ctx).
-						SetResult(&model).
-						Get("/api/devices/" + device.UID)
-					assert.Equal(tt, 200, resp.StatusCode())
-					assert.NoError(tt, err)
-
-					assert.True(tt, model.Online)
-				}, 30*time.Second, 1*time.Second)
+				environment.services.AwaitDeviceOnline(t, device.UID)
 			},
 		},
 		{
@@ -1828,22 +1808,9 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 
 	pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
 
-	resp, err := compose.R(ctx).
-		Patch(fmt.Sprintf("/api/devices/%s/accept", pending.UID))
-	require.Equal(t, 200, resp.StatusCode())
-	require.NoError(t, err)
+	compose.UpdateDeviceStatus(t, pending.UID, environment.DeviceActionAccept)
 
-	device := models.Device{}
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).
-			SetResult(&device).
-			Get("/api/devices/" + pending.UID)
-		assert.Equal(tt, 200, resp.StatusCode())
-		assert.NoError(tt, err)
-
-		assert.True(tt, device.Online)
-	}, 30*time.Second, 1*time.Second)
+	device := compose.AwaitDeviceOnline(t, pending.UID)
 
 	return agent, &device
 }

@@ -261,6 +261,92 @@ func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.Devic
 	return devices[0]
 }
 
+// DeviceStatusAction is the last path segment of PATCH /api/devices/:uid/:status, naming the status
+// change the request asks for.
+type DeviceStatusAction string
+
+// The status changes the route takes.
+const (
+	DeviceActionAccept  DeviceStatusAction = "accept"
+	DeviceActionReject  DeviceStatusAction = "reject"
+	DeviceActionPending DeviceStatusAction = "pending"
+)
+
+// GetDevice reads the device uid. It returns the error only for a request that never got an
+// answer and leaves the status code to the caller, so it serves a check that expects 404 as well
+// as a poll inside EventuallyWithT, where failing t would stop the wrong goroutine.
+func (dc *DockerCompose) GetDevice(ctx context.Context, uid string) (*models.Device, *resty.Response, error) {
+	device := new(models.Device)
+
+	resp, err := dc.R(ctx).SetResult(device).Get("/api/devices/" + uid)
+
+	return device, resp, err
+}
+
+// AwaitDeviceOnline waits until the device uid reports itself online and returns it as last read.
+// It fails t when the device is not online within 30 seconds.
+func (dc *DockerCompose) AwaitDeviceOnline(t *testing.T, uid string) models.Device {
+	t.Helper()
+
+	var device *models.Device
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		current, resp, err := dc.GetDevice(t.Context(), uid)
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		assert.Equal(tt, 200, resp.StatusCode(), resp.String())
+		assert.True(tt, current.Online)
+
+		device = current
+	}, 30*time.Second, 1*time.Second)
+
+	return *device
+}
+
+// ListDevices returns the namespace's devices with the given status, every status when it is
+// [models.DeviceStatusEmpty]. It reads a single page of the maximum size, so a namespace holding
+// more devices than that is listed only in part.
+func (dc *DockerCompose) ListDevices(t *testing.T, status models.DeviceStatus) []models.Device {
+	t.Helper()
+
+	devices := []models.Device{}
+
+	resp, err := dc.R(t.Context()).
+		SetQueryParams(map[string]string{"status": string(status), "per_page": "100"}).
+		SetResult(&devices).
+		Get("/api/devices")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+	return devices
+}
+
+// PatchDeviceStatus asks for action on the device uid and returns the answer whatever its status
+// code. It returns the error only for a request that never got an answer.
+func (dc *DockerCompose) PatchDeviceStatus(ctx context.Context, uid string, action DeviceStatusAction) (*resty.Response, error) {
+	return dc.R(ctx).Patch("/api/devices/" + uid + "/" + string(action))
+}
+
+// UpdateDeviceStatus applies action to the device uid and fails t unless the server answers 200.
+func (dc *DockerCompose) UpdateDeviceStatus(t *testing.T, uid string, action DeviceStatusAction) {
+	t.Helper()
+
+	resp, err := dc.PatchDeviceStatus(t.Context(), uid, action)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+}
+
+// DeleteDevice removes the device uid and fails t unless the server answers 200.
+func (dc *DockerCompose) DeleteDevice(t *testing.T, uid string) {
+	t.Helper()
+
+	resp, err := dc.R(t.Context()).Delete("/api/devices/" + uid)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+}
+
 // EnrollIdentity enrolls data, an authorized-keys line, as an SSH identity named name for the user
 // the client is authenticated as.
 func (dc *DockerCompose) EnrollIdentity(t *testing.T, name, data string) {
