@@ -3,7 +3,7 @@ import { adminNavSectionTitle } from "../adminNav";
 
 describe("adminNavSectionTitle", () => {
   it.each([
-    ["/admin/dashboard", undefined],
+    ["/admin/instance", undefined],
     ["/admin/users", "Accounts"],
     ["/admin/namespaces", "Accounts"],
     ["/admin/settings/authentication", "Instance"],

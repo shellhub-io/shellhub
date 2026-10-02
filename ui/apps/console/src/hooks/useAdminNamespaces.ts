@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import {
   getNamespacesAdmin as getNamespacesAdminSdk,
   getNamespacesAdminQueryKey,
@@ -56,6 +56,7 @@ export function useAdminNamespaces({
     totalCount: result.data?.totalCount ?? 0,
     isLoading: result.isLoading,
     error: result.error,
+    isError: result.isError,
     refetch: result.refetch,
   };
 }
@@ -73,5 +74,39 @@ export function useAdminNamespace(tenantId: string) {
     retry: (count, err) =>
       isSdkError(err) && err.status === 401 ? false : count < 1,
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * The namespaces each user awaiting approval was added to, by user id, read from the details of
+ * up to scanLimit namespaces. A user added to a namespace beyond that is missing from the map.
+ */
+export function useAwaitingMemberNamespaces(scanLimit: number) {
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const { namespaces } = useAdminNamespaces({ perPage: scanLimit });
+
+  return useQueries({
+    queries: namespaces.map((namespace) => ({
+      ...getNamespaceAdminOptions({ path: { tenant: namespace.tenant_id } }),
+      enabled: isAdmin,
+      staleTime: 5 * 60 * 1000,
+      retry: (count: number, err: unknown) =>
+        isSdkError(err) && err.status === 401 ? false : count < 1,
+      refetchOnWindowFocus: false,
+    })),
+    combine: (results) => {
+      const joiningByUser = new Map<string, string[]>();
+      for (const { data } of results) {
+        if (!data) continue;
+        for (const member of data.members) {
+          if (!member.id || !member.awaiting_approval) continue;
+          joiningByUser.set(member.id, [
+            ...(joiningByUser.get(member.id) ?? []),
+            data.name,
+          ]);
+        }
+      }
+      return joiningByUser;
+    },
   });
 }

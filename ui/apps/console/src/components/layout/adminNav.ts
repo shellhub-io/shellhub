@@ -2,6 +2,7 @@ import {
   HomeIcon,
   UsersIcon,
   ServerStackIcon,
+  ServerIcon,
   KeyIcon,
   LockClosedIcon,
   DocumentCheckIcon,
@@ -53,7 +54,7 @@ function buildFullSections(): AdminNavSection[] {
 
   return [
     {
-      items: [{ to: "/admin/dashboard", label: "Dashboard", icon: HomeIcon }],
+      items: [{ to: "/admin/instance", label: "Instance", icon: ServerIcon }],
     },
     {
       title: "Accounts",

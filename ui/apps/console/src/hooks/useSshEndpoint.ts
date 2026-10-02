@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { getInfoOptions } from "@/client";
+import { useServerInfo } from "@/hooks/useServerInfo";
 
 import { DEFAULT_SSH_PORT } from "@/utils/sshid";
 
@@ -9,8 +8,7 @@ import { DEFAULT_SSH_PORT } from "@/utils/sshid";
  * endpoint.
  */
 export function useSshEndpoint(): { host: string; port: number } {
-  const { data } = useQuery(getInfoOptions());
-  const endpoint = data?.endpoints?.ssh ?? "";
+  const endpoint = useServerInfo().sshEndpoint ?? "";
   const colon = endpoint.lastIndexOf(":");
   const host =
     (colon < 0 ? endpoint : endpoint.slice(0, colon)) ||

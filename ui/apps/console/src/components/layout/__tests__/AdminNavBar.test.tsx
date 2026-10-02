@@ -86,7 +86,7 @@ describe("AdminNavBar", () => {
         await screen.findByRole("link", { name: "License" }),
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole("link", { name: "Dashboard" }),
+        screen.queryByRole("link", { name: "Instance" }),
       ).not.toBeInTheDocument();
     });
 

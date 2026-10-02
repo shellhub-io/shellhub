@@ -106,7 +106,7 @@ describe("AppLayout", () => {
         viewport.desktop = desktop;
         seedAuthStore({ isAdmin: true });
         mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-        renderLayout("/admin/dashboard");
+        renderLayout("/admin/instance");
 
         const menus = await screen.findAllByRole("button", {
           name: /account menu for/i,
@@ -121,9 +121,9 @@ describe("AppLayout", () => {
     it("gives way to the admin bar across the top on admin routes", async () => {
       seedAuthStore({ isAdmin: true });
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      renderLayout("/admin/dashboard");
+      renderLayout("/admin/instance");
       expect(
-        await screen.findByRole("link", { name: "Dashboard" }),
+        await screen.findByRole("link", { name: "Instance" }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole("navigation", { name: "Main navigation" }),
@@ -258,7 +258,7 @@ describe("AppLayout", () => {
       const user = userEvent.setup();
       seedAuthStore({ isAdmin: true });
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      renderLayout("/admin/dashboard");
+      renderLayout("/admin/instance");
 
       const adminTab = await screen.findByRole("tab", {
         name: /admin console/i,

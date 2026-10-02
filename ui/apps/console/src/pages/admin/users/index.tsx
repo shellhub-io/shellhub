@@ -7,23 +7,29 @@ import {
   TrashIcon,
   CheckIcon,
   ArrowRightStartOnRectangleIcon,
-  CheckBadgeIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminUsers } from "@/hooks/useAdminUsers";
-import { useApproveAccountRequest } from "@/hooks/useAdminAccountRequestMutations";
+import FilterTabs, { type FilterTab } from "@/components/common/FilterTabs";
+import { isEnterprise } from "@/env";
+import {
+  useAdminUsers,
+  usersSearchScope,
+  type AdminUserSubset,
+} from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import type { ListParamConstraints } from "@/hooks/paginatedListParams";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import ConfirmDialog from "@/components/common/ConfirmDialog";
 import SearchField from "@/components/common/fields/SearchField";
 import UserStatusChip from "./UserStatusChip";
 import CreateUserModal from "./CreateUserModal";
 import EditUserModal from "./EditUserModal";
 import DeleteUserDialog from "./DeleteUserDialog";
+import ApproveAccountDialog from "./ApproveAccountDialog";
+import RejectAccountDialog from "./RejectAccountDialog";
 import {
   Badge,
   Button,
@@ -32,18 +38,30 @@ import {
 } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE, pageCount } from "@/utils/pagination";
-import ObjectName from "@/components/common/ObjectName";
 
 const SEARCH_DEBOUNCE_MS = 300;
+
+const subsetTabs: FilterTab<AdminUserSubset>[] = [
+  { label: "All", value: "" },
+  { label: "Awaiting approval", value: "awaiting_approval" },
+  { label: "Admins", value: "admin" },
+  { label: "Unconfirmed", value: "not_confirmed" },
+];
+
+const CONSTRAINTS: ListParamConstraints<AdminUsersParams> = {
+  subset: subsetTabs.map((tab) => tab.value),
+};
 
 type AdminUsersParams = {
   page: number;
   search: string;
+  subset: AdminUserSubset;
 };
 
 const DEFAULTS: AdminUsersParams = {
   page: 1,
   search: "",
+  subset: "",
 };
 
 /**
@@ -51,8 +69,11 @@ const DEFAULTS: AdminUsersParams = {
  */
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const { params, setPage, setSearch } =
-    usePaginatedListState<AdminUsersParams>({ defaults: DEFAULTS });
+  const { params, setPage, setSearch, setFilter } =
+    usePaginatedListState<AdminUsersParams>({
+      defaults: DEFAULTS,
+      constraints: CONSTRAINTS,
+    });
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<UserAdminResponse | null>(null);
@@ -62,18 +83,28 @@ export default function AdminUsers() {
   const [approveTarget, setApproveTarget] = useState<UserAdminResponse | null>(
     null,
   );
-  const [approveError, setApproveError] = useState("");
+  const [rejectTarget, setRejectTarget] = useState<UserAdminResponse | null>(
+    null,
+  );
   const {
     loginAs,
     loadingId: loginAsId,
     errorId: loginAsError,
   } = useLoginAsUser();
-  const approve = useApproveAccountRequest();
+
+  const tabs = subsetTabs.filter(
+    (tab) => tab.value !== "awaiting_approval" || isEnterprise(),
+  );
+  const subset = tabs.some((tab) => tab.value === params.subset)
+    ? params.subset
+    : "";
+  const searchScope = usersSearchScope(subset);
 
   const { users, totalCount, isLoading, error } = useAdminUsers({
     page: params.page,
     perPage: PER_PAGE,
     search: debouncedSearch,
+    subset,
   });
 
   const totalPages = pageCount(totalCount);
@@ -174,10 +205,15 @@ export default function AdminUsers() {
           <IconButton
             variant="danger"
             title={user.awaiting_approval ? "Reject account" : "Delete user"}
-            aria-label={`${user.awaiting_approval ? "Reject" : "Delete"} ${user.name}`}
+            aria-label={
+              user.awaiting_approval
+                ? `Reject account for ${user.email}`
+                : `Delete ${user.name}`
+            }
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
-              setDeleteTarget(user);
+              if (user.awaiting_approval) setRejectTarget(user);
+              else setDeleteTarget(user);
             }}
           >
             <TrashIcon className="w-4 h-4" />
@@ -203,13 +239,21 @@ export default function AdminUsers() {
         </Button>
       </PageHeader>
 
-      <SearchField
-        className="mb-5"
-        value={params.search}
-        onChange={setSearch}
-        placeholder="Search by username..."
-        aria-label="Search users by username"
-      />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+        <FilterTabs
+          tabs={tabs}
+          value={subset}
+          onChange={(next) => setFilter("subset", next)}
+          label="Filter users"
+        />
+
+        <SearchField
+          value={params.search}
+          onChange={setSearch}
+          placeholder={`Search by ${searchScope}...`}
+          aria-label={`Search users by ${searchScope}`}
+        />
+      </div>
 
       {error && (
         <Callout variant="error" className="mb-4">
@@ -261,33 +305,16 @@ export default function AdminUsers() {
         user={deleteTarget}
       />
 
-      <ConfirmDialog
+      <ApproveAccountDialog
         open={!!approveTarget}
-        onClose={() => {
-          setApproveError("");
-          setApproveTarget(null);
-        }}
-        onConfirm={async () => {
-          if (!approveTarget) return;
-          setApproveError("");
-          try {
-            await approve.mutateAsync({ path: { id: approveTarget.id } });
-            setApproveTarget(null);
-          } catch {
-            setApproveError("Failed to approve the account. Please try again.");
-          }
-        }}
-        icon={<CheckBadgeIcon />}
-        title="Approve account"
-        description={
-          <>
-            <ObjectName>{approveTarget?.email}</ObjectName> can sign in once they
-            finish activating the account.
-          </>
-        }
-        errorMessage={approveError || null}
-        confirmLabel="Approve account"
-        variant="primary"
+        onClose={() => setApproveTarget(null)}
+        user={approveTarget}
+      />
+
+      <RejectAccountDialog
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        user={rejectTarget}
       />
     </div>
   );

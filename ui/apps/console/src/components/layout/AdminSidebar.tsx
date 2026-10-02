@@ -14,7 +14,7 @@ export default function AdminSidebar({ expanded }: { expanded: boolean }) {
       expanded={expanded}
       covered
       onNavigate={minimizeAll}
-      logoHref="/admin/dashboard"
+      logoHref="/admin/instance"
     />
   );
 }

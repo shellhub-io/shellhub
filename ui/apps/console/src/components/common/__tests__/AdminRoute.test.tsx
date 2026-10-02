@@ -10,10 +10,10 @@ beforeEach(() => {
 
 function renderAdminRoute() {
   return render(
-    <MemoryRouter initialEntries={["/admin/dashboard"]}>
+    <MemoryRouter initialEntries={["/admin/instance"]}>
       <Routes>
         <Route element={<AdminRoute />}>
-          <Route path="/admin/dashboard" element={<div>admin content</div>} />
+          <Route path="/admin/instance" element={<div>admin content</div>} />
         </Route>
         <Route
           path="/admin/unauthorized"

@@ -38,11 +38,11 @@ function makeLicense(
 
 function renderGuard(Wrapper?: ComponentType<{ children: ReactNode }>) {
   const ui = (
-    <MemoryRouter initialEntries={["/admin/dashboard"]}>
+    <MemoryRouter initialEntries={["/admin/instance"]}>
       <Routes>
         <Route element={<LicenseGuard />}>
           <Route
-            path="/admin/dashboard"
+            path="/admin/instance"
             element={<div>protected content</div>}
           />
         </Route>

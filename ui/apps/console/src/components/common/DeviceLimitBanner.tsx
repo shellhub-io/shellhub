@@ -1,48 +1,17 @@
 import NoticeBanner from "@/components/common/NoticeBanner";
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useDeviceCapacity } from "@/hooks/useDeviceCapacity";
 
 /**
  * Warns when the namespace is at or near its licensed device limit, before an enrolment starts
  * failing rather than after.
  */
 export default function DeviceLimitBanner() {
-  const {
-    data: license,
-    isLoading: licenseLoading,
-    isError: licenseError,
-  } = useAdminLicense();
-  const {
-    stats,
-    isLoading: statsLoading,
-    isError: statsError,
-  } = useAdminStats();
+  const { capacity, isLoading, isError } = useDeviceCapacity();
 
-  const cap = license?.features.devices;
-  const registered = stats?.registered_devices;
+  const over = capacity?.state === "over";
+  const approaching = capacity?.state === "approaching";
 
-  const over =
-    typeof cap === "number" &&
-    cap >= 0 &&
-    typeof registered === "number" &&
-    Number.isFinite(registered) &&
-    registered >= cap;
-
-  const approaching =
-    typeof cap === "number" &&
-    cap > 0 &&
-    !over &&
-    typeof registered === "number" &&
-    Number.isFinite(registered) &&
-    registered / cap >= 0.9;
-
-  const visible =
-    !licenseLoading &&
-    !licenseError &&
-    !statsLoading &&
-    !statsError &&
-    license != null &&
-    (over || approaching);
+  const visible = !isLoading && !isError && (over || approaching);
 
   const severity = over ? "error" : "warning";
 
