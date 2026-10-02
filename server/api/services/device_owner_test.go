@@ -7,8 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -34,17 +32,6 @@ func recordDeviceRemovals(t *testing.T) *[]removedDevice {
 	})
 
 	return removed
-}
-
-func pinTestClock(t *testing.T, at time.Time) {
-	t.Helper()
-
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(at).Maybe()
-
-	prev := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prev })
-	clock.DefaultBackend = clk
 }
 
 func TestDeleteDeviceEndsTheDevice(t *testing.T) {

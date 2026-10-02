@@ -42,3 +42,14 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	os.Exit(code)
 }
+
+func pinTestClock(t *testing.T, at time.Time) {
+	t.Helper()
+
+	clk := clockmocks.NewMockClock(t)
+	clk.On("Now").Return(at).Maybe()
+
+	prev := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prev })
+	clock.DefaultBackend = clk
+}
