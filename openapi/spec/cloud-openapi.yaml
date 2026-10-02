@@ -56,6 +56,8 @@ tags:
     description: User-scoped namespace security settings.
   - name: cloud
     description: Routes provided by ShellHub Cloud API.
+  - name: vault
+    description: Routes related to the user's encrypted SSH key vault.
   - name: mfa
     description: Routes related to MFA
   - name: instance-api-keys
@@ -89,6 +91,14 @@ paths:
     $ref: paths/api@firewall@rules.yaml
   /api/firewall/rules/{id}:
     $ref: paths/api@firewall@rules@{id}.yaml
+  /api/vault:
+    $ref: paths/api@vault.yaml
+  /api/vault/meta:
+    $ref: paths/api@vault@meta.yaml
+  /api/vault/data:
+    $ref: paths/api@vault@data.yaml
+  /api/vault/settings:
+    $ref: paths/api@vault@settings.yaml
   /api/user/resend_email:
     $ref: paths/api@user@resend_email.yaml
   /api/user/{uid}/update_password:
