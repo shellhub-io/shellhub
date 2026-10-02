@@ -18,9 +18,34 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: changes
+    if: ${{ github.event_name != 'workflow_dispatch' && github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: filter
+        with:
+          filters: |
+            e2e:
+              - 'ui/**'
+              - 'tests/**'
+              - 'openapi/**'
+              - 'docker-compose*.yml'
+              - '.github/workflows/ui-e2e.yml'
+
   e2e:
     name: e2e (${{ matrix.edition }})
-    if: ${{ github.event.pull_request.draft == false }}
+    needs: changes
+    if: ${{ !failure() && !cancelled() && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
 
@@ -35,24 +60,17 @@ jobs:
         with:
           path: shellhub
 
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
+      - name: Decide whether this edition can run
+        id: edition
         if: >-
           matrix.edition == 'community'
           || github.event_name != 'pull_request'
           || github.event.pull_request.head.repo.full_name == github.repository
-        with:
-          working-directory: shellhub
-          filters: |
-            e2e:
-              - 'ui/**'
-              - 'tests/**'
-              - 'openapi/**'
-              - 'docker-compose*.yml'
+        run: echo "runs=true" >> "$GITHUB_OUTPUT"
 
       - name: Generate cloud repo token
         id: cloud-token
-        if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
+        if: steps.edition.outputs.runs == 'true' && matrix.edition != 'community'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
@@ -63,7 +81,7 @@ jobs:
 
       - name: Determine cloud branch
         id: cloud-branch
-        if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
+        if: steps.edition.outputs.runs == 'true' && matrix.edition != 'community'
         env:
           GH_TOKEN: ${{ steps.cloud-token.outputs.token }}
           HEAD_REF: ${{ github.head_ref }}
@@ -75,7 +93,7 @@ jobs:
           fi
 
       - name: Check out cloud source
-        if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
+        if: steps.edition.outputs.runs == 'true' && matrix.edition != 'community'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/cloud
@@ -86,13 +104,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.20.0"
 
       - name: Restore node modules
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         id: node-modules
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
@@ -100,19 +118,19 @@ jobs:
           key: ${{ runner.OS }}-ui-${{ hashFiles('shellhub/ui/package-lock.json') }}
 
       - name: Install Node dependencies
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         working-directory: shellhub/ui
         run: npm install
 
       - name: Generate OpenAPI client
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         working-directory: shellhub/ui
         run: |
           npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
 
       - name: Restore Playwright browser
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         id: playwright-browser
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
@@ -120,33 +138,33 @@ jobs:
           key: ${{ runner.OS }}-playwright-${{ hashFiles('shellhub/ui/package-lock.json') }}
 
       - name: Install Playwright browser
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         working-directory: shellhub/ui
         run: npm run e2e:browsers -w @shellhub/console
 
       - name: Save node modules
-        if: steps.filter.outputs.e2e == 'true' && steps.node-modules.outputs.cache-hit != 'true'
+        if: steps.edition.outputs.runs == 'true' && steps.node-modules.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: shellhub/ui/node_modules
           key: ${{ steps.node-modules.outputs.cache-primary-key }}
 
       - name: Save Playwright browser
-        if: steps.filter.outputs.e2e == 'true' && steps.playwright-browser.outputs.cache-hit != 'true'
+        if: steps.edition.outputs.runs == 'true' && steps.playwright-browser.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ steps.playwright-browser.outputs.cache-primary-key }}
 
       - name: Set up Go
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: shellhub/tests/go.mod
           cache-dependency-path: shellhub/tests/go.sum
 
       - name: Write the enterprise license
-        if: steps.filter.outputs.e2e == 'true' && matrix.edition != 'community'
+        if: steps.edition.outputs.runs == 'true' && matrix.edition != 'community'
         env:
           LICENSE: ${{ secrets.TEST_LICENSE }}
         run: |
@@ -155,7 +173,7 @@ jobs:
           echo "SHELLHUB_LICENSE_FILE=$RUNNER_TEMP/license.dat" >> "$GITHUB_ENV"
 
       - name: Run E2E tests
-        if: steps.filter.outputs.e2e == 'true'
+        if: steps.edition.outputs.runs == 'true'
         working-directory: shellhub/ui
         timeout-minutes: 60
         env:

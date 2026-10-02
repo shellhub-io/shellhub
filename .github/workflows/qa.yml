@@ -13,9 +13,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: changes
+    if: ${{ github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      go: ${{ steps.filter.outputs.go }}
+      agent: ${{ steps.filter.outputs.agent }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: filter
+        with:
+          filters: |
+            go:
+              - 'go.mod'
+              - 'go.sum'
+              - '.golangci.yaml'
+              - '.mockery.yaml'
+              - 'server/**'
+              - 'agent/**'
+              - 'pkg/**'
+              - 'gateway/**'
+              - 'tests/**'
+              - 'openapi/**'
+              - 'devscripts/prepare-release'
+              - 'docker-compose*.yml'
+              - '.github/workflows/qa.yml'
+            agent:
+              - 'go.mod'
+              - 'go.sum'
+              - 'agent/**'
+              - 'pkg/**'
+              - '.github/workflows/qa.yml'
+
   validate:
     name: validate (${{ matrix.project }}${{ matrix.database && format(' - {0}', matrix.database) || '' }})
-    if: ${{ github.event.pull_request.draft == false }}
+    needs: changes
+    if: ${{ needs.changes.outputs.go == 'true' }}
 
     strategy:
       fail-fast: false
@@ -60,22 +100,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
-        with:
-          # inline YAML or path to separate file (e.g.: .github/filters.yaml)
-          filters: |
-            go:
-              - 'server/**'
-              - 'agent/**'
-              - 'pkg/**'
-              - 'gateway/**'
-              - 'tests/**'
-              - 'openapi/**'
-              - 'docker-compose*.yml'
-
       - name: Set up Go 1.x [Go]
-        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
@@ -83,12 +108,10 @@ jobs:
         id: go
 
       - name: Get Go dependencies [Go]
-        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go mod download
 
       - name: Ensure Go dependencies are complete [Go]
-        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: |
           ../devscripts/prepare-release
@@ -99,10 +122,8 @@ jobs:
 
       - name: Code format [Go]
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-        if: github.event.pull_request.draft == false
 
       - name: Code linting [Go]
-        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           working-directory: ${{ matrix.project }}
@@ -111,27 +132,27 @@ jobs:
           verify: false
 
       - name: Set SHELLHUB_DATABASE for integration tests
-        if: matrix.project == 'tests' && matrix.database != '' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: matrix.project == 'tests' && matrix.database != ''
         run: |
           # Update .env file with the correct database backend
           sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=${{ matrix.database }}/' .env
           echo "Running integration tests with database: ${{ matrix.database }}"
 
       - name: Unit test [Go]
-        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go test ${{ matrix.extra_args }} ${{ matrix.race_args }} -timeout ${{ matrix.test_timeout || '25m' }} ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
       - name: Go build [Go]
-        if: matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: matrix.project != 'tests'
         working-directory: ${{ matrix.project }}
         run: go build -v ${{ matrix.extra_args }} ./...
 
   mocks:
     name: generated mocks
-    if: ${{ github.event.pull_request.draft == false }}
+    needs: changes
+    if: ${{ needs.changes.outputs.go == 'true' }}
 
     runs-on: ubuntu-latest
 
@@ -166,7 +187,8 @@ jobs:
 
   cross-compile:
     name: cross-compile (${{ matrix.goos }})
-    if: ${{ github.event.pull_request.draft == false }}
+    needs: changes
+    if: ${{ needs.changes.outputs.agent == 'true' }}
 
     strategy:
       fail-fast: false
@@ -182,22 +204,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
-        with:
-          filters: |
-            go:
-              - 'agent/**'
-              - 'pkg/**'
-
       - name: Set up Go 1.x [Go]
-        if: steps.filter.outputs.go == 'true'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
 
       - name: Get Go dependencies [Go]
-        if: steps.filter.outputs.go == 'true'
         working-directory: agent
         run: go mod download
 
@@ -205,7 +217,6 @@ jobs:
       # It is what catches a build tag drifting out of sync with the interface it
       # implements, which is how the FreeBSD backend went unbuildable unnoticed.
       - name: Go build [Go]
-        if: steps.filter.outputs.go == 'true'
         working-directory: agent
         env:
           GOOS: ${{ matrix.goos }}
@@ -213,9 +224,20 @@ jobs:
         run: go build -v ./...
 
       - name: Go vet [Go]
-        if: steps.filter.outputs.go == 'true'
         working-directory: agent
         env:
           GOOS: ${{ matrix.goos }}
           CGO_ENABLED: 0
         run: go vet ./...
+
+  qa:
+    name: qa
+    needs: [changes, validate, mocks, cross-compile]
+    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail when a QA job failed or was cancelled
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
