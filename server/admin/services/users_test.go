@@ -57,6 +57,58 @@ func TestUserCreate(t *testing.T) {
 			expected: Expected{nil, ErrUserPasswordInvalid},
 		},
 		{
+			description: "fails without creating the user when the setup state cannot be read",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "secret",
+			requiredMocks: func() {
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
+				mock.On("SystemGet", ctx).Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrSystemGet},
+		},
+		{
+			description: "fails when the instance cannot be marked as set up",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "secret",
+			requiredMocks: func() {
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
+				user := &models.User{
+					Origin: models.UserOriginLocal,
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					Status:        models.UserStatusConfirmed,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+					Admin: true,
+				}
+
+				mock.On("SystemGet", ctx).Return(&models.System{Setup: false}, nil).Once()
+				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
+				mock.On("SystemSet", ctx, &models.System{Setup: true}).Return(errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrSystemSet},
+		},
+		{
 			description: "fails creates a user",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
