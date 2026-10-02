@@ -97,3 +97,103 @@ load helpers
     out=$(capture_with SHELLHUB_POSTGRES_EXTERNAL=false)
     [[ "$out" == *"docker-compose.postgres.yml"* ]]
 }
+
+@test "docker socket: a rootful daemon leaves the variable unset" {
+    export STUB_DOCKER_ENDPOINT=unix:///home/dev/.docker/run/docker.sock
+    out=$(capture_with SHELLHUB_ENV=development)
+    grep -qx 'SHELLHUB_DEV_DOCKER_SOCKET=' <<< "$out"
+}
+
+@test "docker socket: a rootless daemon resolves to the context's socket" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_DOCKER_ENDPOINT=unix:///run/user/1000/docker.sock
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=2222)
+    [[ "$out" == *"SHELLHUB_DEV_DOCKER_SOCKET=/run/user/1000/docker.sock"* ]]
+}
+
+@test "docker socket: DOCKER_HOST with a unix socket wins over the context" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_DOCKER_ENDPOINT=unix:///run/user/1000/docker.sock
+    out=$(DOCKER_HOST=unix:///tmp/other.sock capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=2222)
+    [[ "$out" == *"SHELLHUB_DEV_DOCKER_SOCKET=/tmp/other.sock"* ]]
+}
+
+@test "docker socket: DOCKER_HOST with tcp leaves the variable unset" {
+    export STUB_DOCKER_SECURITY="name=rootless"
+    out=$(DOCKER_HOST=tcp://10.0.0.1:2375 capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=2222)
+    grep -qx 'SHELLHUB_DEV_DOCKER_SOCKET=' <<< "$out"
+}
+
+@test "docker socket: not resolved outside development" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_DOCKER_ENDPOINT=unix:///run/user/1000/docker.sock
+    out=$(capture_with)
+    grep -qx 'SHELLHUB_DEV_DOCKER_SOCKET=' <<< "$out"
+}
+
+@test "rootless guard: a privileged port without the capability aborts and names setcap" {
+    export STUB_DOCKER_SECURITY="name=rootless name=seccomp,profile=builtin"
+    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"setcap cap_net_bind_service=ep"* ]]
+}
+
+@test "rootless guard: the ssh port counts too" {
+    export STUB_DOCKER_SECURITY="name=rootless"
+    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=22
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"port 22"* ]]
+}
+
+@test "rootless guard: the ssh port keeps its bind address out of the comparison" {
+    export STUB_DOCKER_SECURITY="name=rootless"
+    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=127.0.0.1:22
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"port 22"* ]]
+}
+
+@test "rootless guard: a missing getcap warns and lets the stack start" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_NO_GETCAP=1
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    [[ "$out" == *"getcap not found"* ]]
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: the capability on rootlesskit lets a privileged port through" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_GETCAP="cap_net_bind_service=ep"
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: a sysctl that frees the port lets it through" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=0
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80 SHELLHUB_SSH_PORT=22)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: a sysctl above 1024 makes a higher port privileged too" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=2048
+    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=1500 SHELLHUB_SSH_PORT=2222
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"port 1500"* ]]
+}
+
+@test "rootless guard: unprivileged ports pass" {
+    export STUB_DOCKER_SECURITY="name=rootless"
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=2222)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: a rootful daemon ignores privileged ports" {
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: only in development" {
+    export STUB_DOCKER_SECURITY="name=rootless"
+    out=$(capture_with SHELLHUB_HTTP_PORT=80)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}
+
+@test "rootless guard: a failing docker info skips the guard" {
+    export STUB_DOCKER_INFO_FAILS=1
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    [[ "$out" == *"COMPOSE_FILE="* ]]
+}

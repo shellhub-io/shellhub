@@ -49,6 +49,50 @@ SHELLHUB_POSTGRES_EXTERNAL=$(env_var SHELLHUB_POSTGRES_EXTERNAL false)
 SHELLHUB_BILLING=$(env_var SHELLHUB_BILLING "")
 EXTRA_COMPOSE_FILE=${EXTRA_COMPOSE_FILE:-$(env_var EXTRA_COMPOSE_FILE "")}
 
+sbin_path="$PATH:/usr/sbin:/sbin"
+
+daemon_is_rootless() {
+    docker info --format '{{.SecurityOptions}}' 2>/dev/null | grep -q 'name=rootless'
+}
+
+daemon_socket() {
+    docker_host=${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}' 2>/dev/null || true)}
+    case "$docker_host" in
+        unix://*) echo "${docker_host#unix://}" ;;
+    esac
+}
+
+rootlesskit_capabilities() {
+    rootlesskit=$(command -v rootlesskit 2>/dev/null || true)
+    PATH="$sbin_path" getcap "$rootlesskit" 2>/dev/null
+}
+
+lowest_published_port() {
+    http_port=$(env_var SHELLHUB_HTTP_PORT 80)
+    ssh_port=$(env_var SHELLHUB_SSH_PORT 22)
+    ssh_port=${ssh_port##*:}
+    [ "$ssh_port" -lt "$http_port" ] && echo "$ssh_port" || echo "$http_port"
+}
+
+if [ "$SHELLHUB_ENV" = "development" ] && daemon_is_rootless; then
+    socket=$(daemon_socket)
+    [ -z "$socket" ] || export SHELLHUB_DEV_DOCKER_SOCKET="$socket"
+
+    port=$(lowest_published_port)
+    unprivileged_start=$(PATH="$sbin_path" sysctl -n net.ipv4.ip_unprivileged_port_start 2>/dev/null || echo 1024)
+    if [ "$port" -lt "$unprivileged_start" ]; then
+        capabilities=$(rootlesskit_capabilities) && getcap_status=0 || getcap_status=$?
+        if [ "$getcap_status" -eq 127 ]; then
+            echo "⚠️ WARNING: getcap not found, cannot tell whether rootless Docker may publish port $port." >&2
+        elif ! echo "$capabilities" | grep -q 'cap_net_bind_service'; then
+            echo "🚫 ERROR: rootless Docker cannot publish port $port. Either grant rootlesskit the capability:" >&2
+            echo "    sudo setcap cap_net_bind_service=ep \"\$(command -v rootlesskit)\" && systemctl --user restart docker" >&2
+            echo "  or set SHELLHUB_HTTP_PORT and SHELLHUB_SSH_PORT to $unprivileged_start or above in .env.override." >&2
+            exit 1
+        fi
+    fi
+fi
+
 # COMPOSE_ENV_FILES — last file wins. Order chosen so that:
 #   - CE defaults are the base
 #   - enterprise defaults augment when edition is enterprise or cloud

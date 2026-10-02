@@ -13,13 +13,14 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
       - ./tests:/go/src/github.com/shellhub-io/shellhub/tests
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
       - ./.mockery.yaml:/go/src/github.com/shellhub-io/shellhub/.mockery.yaml
       - ./go.sum:/go/src/github.com/shellhub-io/shellhub/go.sum
       - ./install.sh:/go/src/github.com/shellhub-io/shellhub/install.sh
     environment:
       - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
+      - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
