@@ -1,7 +1,7 @@
 services:
   server:
     image: server:${SHELLHUB_DEV_IMAGE_TAG:-latest}
-    build:
+    build: &server-development-build
       context: .
       dockerfile: server/Dockerfile
       target: development
@@ -73,3 +73,28 @@ services:
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
     networks:
       - shellhub
+  test:
+    image: server:${SHELLHUB_DEV_IMAGE_TAG:-latest}
+    build: *server-development-build
+    profiles:
+      - tools
+    entrypoint: []
+    network_mode: host
+    working_dir: ${SHELLHUB_WORKSPACE}/shellhub
+    volumes:
+      - ${SHELLHUB_WORKSPACE}:${SHELLHUB_WORKSPACE}
+      - ${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - tools-cache:/cache
+      - ${SHELLHUB_LICENSE_FILE:-/dev/null}:${SHELLHUB_LICENSE_FILE:-/run/no-license}:ro
+    environment:
+      - GOCACHE=/cache/go-build
+      - GOMODCACHE=/cache/go-mod
+      - GOFLAGS=-buildvcs=false
+      - npm_config_cache=/cache/npm
+      - TESTCONTAINERS_RYUK_DISABLED=true
+      - TESTCONTAINERS_HOST_OVERRIDE=localhost
+      - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}
+
+volumes:
+  tools-cache:
+    name: shellhub-tools-cache
