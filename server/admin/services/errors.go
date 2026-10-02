@@ -8,6 +8,8 @@ import (
 // so they are compared by identity and must not be replaced with wrapped equivalents.
 var (
 	ErrCreateNewUser               = errors.New("failed to create a new user")
+	ErrSystemGet                   = errors.New("failed to read the instance setup state")
+	ErrSystemSet                   = errors.New("user created, but failed to mark the instance as set up")
 	ErrDuplicateNamespace          = errors.New("namespace already exists")
 	ErrNamespaceSingle             = errors.New("this instance does not support multi-tenancy")
 	ErrNamespaceInstanceProtected  = errors.New("this namespace is bound to the instance and cannot be removed")

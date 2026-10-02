@@ -28,7 +28,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	system, err := s.store.SystemGet(ctx)
 	if err != nil {
-		system = &models.System{Setup: true}
+		return nil, ErrSystemGet
 	}
 
 	user := &models.User{
@@ -65,7 +65,9 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	}
 
 	system.Setup = true
-	_ = s.store.SystemSet(ctx, system)
+	if err := s.store.SystemSet(ctx, system); err != nil {
+		return nil, ErrSystemSet
+	}
 
 	return user, nil
 }
