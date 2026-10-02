@@ -6,7 +6,7 @@ import {
   listNamespaceMembers,
 } from "@/client";
 import { isCommunity } from "./env";
-import { createTeam, signInAndOpen } from "./helpers";
+import { createTeam, findRow, signInAndOpen } from "./helpers";
 import { buildShortId } from "./seed";
 import { buildRequestContext, expectStatus } from "./api";
 
@@ -34,7 +34,7 @@ async function generateKey(
   const key = await plaintext.textContent();
   if (!key) throw new Error(`expected the plaintext of ${name}`);
   await generate.getByRole("button", { name: "Done" }).click();
-  await expect(page.getByRole("row").filter({ hasText: name })).toBeVisible();
+  await expect(findRow(page, name)).toBeVisible();
   return { name, key };
 }
 

@@ -48,6 +48,19 @@ export async function createTeamWithMember(
   return { ...team, member: { ...member, token, id } };
 }
 
+export async function createTeamWithOwnerInAnother(
+  options: NamespaceOptions = {},
+) {
+  const team = await createTeam(options);
+  const other = await createTeam(options);
+  addMember(team.owner.username, other.namespace, "administrator");
+  return { ...team, other };
+}
+
+export function findRow(page: Page, text: string) {
+  return page.getByRole("row").filter({ hasText: text });
+}
+
 export async function fillLoginForm(
   page: Page,
   username: string,

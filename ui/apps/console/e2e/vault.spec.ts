@@ -3,6 +3,7 @@ import { generateKeyPairSync } from "node:crypto";
 import { getVault } from "@/client";
 import { isCommunity } from "./env";
 import {
+  createTeamWithOwnerInAnother,
   createTeam,
   createTeamWithMember,
   signInAndOpen,
@@ -10,7 +11,7 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
-import { addMember, buildShortId } from "./seed";
+import { buildShortId } from "./seed";
 import { expectStatus } from "./api";
 
 const masterPassword = "vault-master-password";
@@ -250,9 +251,9 @@ test.describe("Secure vault", () => {
   test("each namespace has its own vault", async ({ page }) => {
     test.skip(isCommunity, singleNamespaceReason);
 
-    const { owner, namespace } = await createTeam({ sshAccessMode: "legacy" });
-    const other = await createTeam({ sshAccessMode: "legacy" });
-    addMember(owner.username, other.namespace, "administrator");
+    const { owner, namespace, other } = await createTeamWithOwnerInAnother({
+      sshAccessMode: "legacy",
+    });
 
     await signInAndOpen(page, owner.username, "/secure-vault");
     await setUpVault(page);

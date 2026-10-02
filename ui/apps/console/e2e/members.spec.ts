@@ -10,7 +10,6 @@ import {
   getNamespaceMembershipInvitationList,
   acceptInvite,
   acceptDevicePairing,
-  apiKeyCreate,
   authDevice,
   createDevicePairing,
   getDevices,
@@ -24,6 +23,7 @@ import {
   consoleAccountDeletionReason,
   createTeamWithMember,
   deleteOwnAccount,
+  findRow,
   signIn,
   signInAndOpen,
   directMembershipReason,
@@ -43,6 +43,7 @@ import {
 import {
   type Endpoint,
   buildRequestContext,
+  createApiKey,
   expectStatus,
   invite,
   loginAs,
@@ -50,11 +51,8 @@ import {
 
 async function createTeamWithMemberKey() {
   const team = await createTeamWithMember("administrator");
-  const { data } = await apiKeyCreate({
-    ...buildRequestContext({ token: team.member.token }),
-    body: { name: `e2e-${buildShortId()}`, expires_at: -1 },
-  });
-  return { ...team, member: { ...team.member, apiKey: data.key } };
+  const { key } = await createApiKey(team.member.token);
+  return { ...team, member: { ...team.member, apiKey: key } };
 }
 
 type MemberWithKey = { token: string; apiKey: string };
@@ -91,10 +89,6 @@ async function expectInvitationPage(
   await page.goto(link);
   await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   await page.close();
-}
-
-function findRow(page: Page, text: string) {
-  return page.getByRole("row").filter({ hasText: text });
 }
 
 async function confirmDialog(page: Page, dialog: string, button: string) {

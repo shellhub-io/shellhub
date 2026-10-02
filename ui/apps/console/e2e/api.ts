@@ -1,7 +1,8 @@
 import { expect } from "@playwright/test";
-import { generateInvitationLink, login } from "@/client";
+import { apiKeyCreate, generateInvitationLink, login } from "@/client";
 import { createClient } from "@/client/client";
 import { requireEnv } from "./env";
+import { buildShortId } from "./seed";
 
 type Credential = { token: string } | { apiKey: string };
 
@@ -63,4 +64,13 @@ export async function invite(token: string, tenant: string, email: string) {
   });
   if (!data.link) throw new Error(`expected an invitation link for ${email}`);
   return { email, link: data.link };
+}
+
+export async function createApiKey(token: string) {
+  const name = `e2e-key-${buildShortId()}`;
+  const { data } = await apiKeyCreate({
+    ...buildRequestContext({ token }),
+    body: { name, expires_at: -1 },
+  });
+  return { name, key: data.key };
 }
