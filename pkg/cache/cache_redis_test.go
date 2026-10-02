@@ -66,3 +66,40 @@ func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
 	require.NoError(t, c.Get(ctx, "account-lockout=10.0.0.1:user", &storedDeadline))
 	assert.Equal(t, "1700000060", storedDeadline)
 }
+
+func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
+	ctx := context.Background()
+
+	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, redisContainer.Terminate(ctx))
+	})
+
+	uri, err := redisContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	c, err := cache.NewRedisCache(uri, 0)
+	require.NoError(t, err)
+
+	taken, err := c.SetNX(ctx, "guard", "owner", time.Minute)
+	require.NoError(t, err)
+	require.True(t, taken)
+
+	deleted, err := c.CompareAndDelete(ctx, "guard", "someone-else")
+	require.NoError(t, err)
+	assert.False(t, deleted)
+
+	taken, err = c.SetNX(ctx, "guard", "intruder", time.Minute)
+	require.NoError(t, err)
+	assert.False(t, taken)
+
+	deleted, err = c.CompareAndDelete(ctx, "guard", "owner")
+	require.NoError(t, err)
+	assert.True(t, deleted)
+
+	taken, err = c.SetNX(ctx, "guard", "next", time.Minute)
+	require.NoError(t, err)
+	assert.True(t, taken)
+}
