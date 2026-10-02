@@ -116,7 +116,11 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 			return nil, NewErrUserDelete(err)
 		}
 
-		return nil, NewErrNamespaceDuplicated(err)
+		if errors.Is(err, store.ErrDuplicate) {
+			return nil, NewErrNamespaceDuplicated(err)
+		}
+
+		return nil, NewErrNamespaceCreateStore(err)
 	}
 
 	system.Setup = true
