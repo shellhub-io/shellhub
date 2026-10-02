@@ -3,13 +3,23 @@ name: Notify Cloud
 on:
   pull_request_target:
     branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'server/**'
+      - 'pkg/**'
+      - '**.go'
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/notify-cloud.yml'
 
 jobs:
   dispatch:
     name: Dispatch enterprise validation to cloud
 
     # A repository_dispatch run is not covered by the fork-approval gate.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && !github.event.pull_request.draft
 
     runs-on: ubuntu-24.04
 
