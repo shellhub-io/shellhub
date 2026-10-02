@@ -9,6 +9,7 @@ import {
   directMembershipReason,
   signUpFromInvite,
   createTeamWithMember,
+  signOut,
 } from "./helpers";
 import { password, buildShortId, createUser, createNamespace } from "./seed";
 import { buildRequestContext, expectStatus, invite, loginAs } from "./api";
@@ -32,12 +33,7 @@ test.describe("authentication", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await dismissWizard(page);
-    await page
-      .getByRole("button", { name: `Account menu for ${adminUser.username}` })
-      .click();
-    await page.getByRole("button", { name: "Logout" }).click();
-
-    await expect(page).toHaveURL(/\/login$/);
+    await signOut(page, adminUser.username);
 
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login$/);

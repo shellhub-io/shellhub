@@ -26,9 +26,10 @@ import {
   deleteOwnAccount,
   signIn,
   signInAndOpen,
-  dismissWizard,
   directMembershipReason,
   signUpFromInvite,
+  singleNamespaceReason,
+  switchNamespace,
 } from "./helpers";
 import {
   password,
@@ -337,7 +338,7 @@ test.describe("losing membership", () => {
 });
 
 test.describe("namespace switching", () => {
-  test.skip(isCommunity, "community binds the instance to a single namespace");
+  test.skip(isCommunity, singleNamespaceReason);
 
   test("a member of two teams switches between them", async ({ page }) => {
     const { namespace, member } = await createTeamWithMember("observer");
@@ -348,15 +349,7 @@ test.describe("namespace switching", () => {
     const activeTab = page.getByRole("tab", { selected: true });
     await expect(activeTab).toHaveText(new RegExp(`${namespace}$`));
 
-    await page
-      .getByRole("button", { name: "Open a device, session or namespace" })
-      .click();
-    const palette = page.getByRole("dialog", { name: "Command palette" });
-    await palette.getByRole("combobox").fill(otherTeam.namespace);
-    await palette.getByRole("option", { name: otherTeam.namespace }).click();
-    await dismissWizard(page);
-
-    await expect(activeTab).toHaveText(new RegExp(`${otherTeam.namespace}$`));
+    await switchNamespace(page, otherTeam.namespace);
   });
 });
 

@@ -14,6 +14,9 @@ import { loginAs } from "./api";
 export const directMembershipReason =
   "enterprise adds existing users directly, without an invitation link";
 
+export const singleNamespaceReason =
+  "community binds the instance to a single namespace";
+
 export const emailDeliveryReason = "only the cloud sends email";
 
 export const consoleAccountDeletionReason =
@@ -82,6 +85,27 @@ export async function dismissWizard(page: Page) {
     await close.click();
     await close.waitFor({ state: "hidden" });
   }
+}
+
+export async function signOut(page: Page, username: string) {
+  await page
+    .getByRole("button", { name: `Account menu for ${username}` })
+    .click();
+  await page.getByRole("button", { name: "Logout" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+}
+
+export async function switchNamespace(page: Page, namespace: string) {
+  await page
+    .getByRole("button", { name: "Open a device, session or namespace" })
+    .click();
+  const palette = page.getByRole("dialog", { name: "Command palette" });
+  await palette.getByRole("combobox").fill(namespace);
+  await palette.getByRole("option", { name: namespace }).click();
+  await dismissWizard(page);
+  await expect(page.getByRole("tab", { selected: true })).toHaveText(
+    new RegExp(`${namespace}$`),
+  );
 }
 
 export async function signUpFromInvite(
