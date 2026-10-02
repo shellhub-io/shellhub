@@ -42,7 +42,7 @@ export default function MfaCodeForm({
     } catch (err) {
       if (isSdkError(err) && err.status === 429) {
         const epoch = Number(err.headers.get("x-account-lockout"));
-        setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
+        setLockoutEndEpoch(epoch > 0 ? epoch : null);
       }
       otp.reset();
     }

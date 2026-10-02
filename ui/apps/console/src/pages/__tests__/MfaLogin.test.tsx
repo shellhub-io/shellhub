@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -37,31 +43,30 @@ function submitCode() {
   fireEvent.click(screen.getByRole("button", { name: /verify/i }));
 }
 
-const realLoginWithMfa = useAuthStore.getState().loginWithMfa;
+function respondToCode(status: number, headers: Record<string, string> = {}) {
+  server.use(
+    http.post("*/api/user/mfa/auth", () =>
+      HttpResponse.json({}, { status, headers }),
+    ),
+  );
+}
+
+async function passSeconds(seconds: number) {
+  for (let i = 0; i < seconds; i++) {
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+  }
+}
 
 function lockOutMfa(secondsLeft: number) {
   const epoch = Math.floor(Date.now() / 1000) + secondsLeft;
-  server.use(
-    http.post("*/api/user/mfa/auth", () =>
-      HttpResponse.json(
-        {},
-        { status: 429, headers: { "x-account-lockout": String(epoch) } },
-      ),
-    ),
-  );
-  useAuthStore.setState({ loginWithMfa: realLoginWithMfa });
+  respondToCode(429, { "x-account-lockout": String(epoch) });
 }
 
 describe("MfaLogin", () => {
   beforeEach(() => {
     localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
-    useAuthStore.setState({
-      token: null,
-      mfaToken: "temp-mfa-token",
-      loading: false,
-      error: null,
-      loginWithMfa: vi.fn(),
-    });
+    useAuthStore.setState(useAuthStore.getInitialState(), true);
+    useAuthStore.setState({ mfaToken: "temp-mfa-token" });
   });
 
   it("renders MFA login form when mfaToken exists", () => {
@@ -112,7 +117,27 @@ describe("MfaLogin", () => {
     });
   });
 
+  it("keeps the user on the code step, with the token, after a wrong code", async () => {
+    respondToCode(401);
+
+    renderMfaLogin();
+    fillCode(6, "9");
+    submitCode();
+
+    await screen.findByText("Invalid verification code");
+    expect(useAuthStore.getState().mfaToken).toBe("temp-mfa-token");
+    expect(screen.queryByText("Login Page")).not.toBeInTheDocument();
+  });
+
   describe("lockout", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("shows the lockout and its remaining time instead of a wrong-code message", async () => {
       lockOutMfa(30);
 
@@ -124,10 +149,8 @@ describe("MfaLogin", () => {
       expect(
         screen.queryByText("Invalid verification code"),
       ).not.toBeInTheDocument();
-      await waitFor(
-        () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
-        { timeout: 2000 },
-      );
+      await passSeconds(1);
+      expect(screen.getByText(/seconds/i)).toBeInTheDocument();
       expect(useAuthStore.getState().mfaToken).toBe("temp-mfa-token");
     });
 
@@ -139,13 +162,22 @@ describe("MfaLogin", () => {
       submitCode();
 
       await screen.findByText(/too many failed attempts/i);
-      await waitFor(
-        () =>
-          expect(
-            screen.getByText(/your timeout has finished/i),
-          ).toBeInTheDocument(),
-        { timeout: 4000 },
-      );
+      await passSeconds(3);
+      expect(screen.getByText(/your timeout has finished/i)).toBeInTheDocument();
+    });
+
+    it("shows the lockout without a countdown when the deadline header is missing", async () => {
+      respondToCode(429);
+
+      renderMfaLogin();
+      fillCode();
+      submitCode();
+
+      await screen.findByText(/too many failed attempts/i);
+      await passSeconds(3);
+      expect(
+        screen.queryByText(/your timeout has finished/i),
+      ).not.toBeInTheDocument();
     });
   });
 
