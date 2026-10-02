@@ -79,6 +79,7 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
+          cache-dependency-path: ${{ matrix.project == 'pkg' && 'go.sum' || format('{0}/go.sum', matrix.project) }}
         id: go
 
       - name: Get Go dependencies [Go]
@@ -107,7 +108,6 @@ jobs:
           working-directory: ${{ matrix.project }}
           version: v2.14.0
           args: --timeout 2m ${{ matrix.lint_args }} ./...
-          skip-cache: true
           verify: false
 
       - name: Set SHELLHUB_DATABASE for integration tests
