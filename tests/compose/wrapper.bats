@@ -129,71 +129,99 @@ load helpers
 }
 
 @test "rootless guard: a privileged port without the capability aborts and names setcap" {
-    export STUB_DOCKER_SECURITY="name=rootless name=seccomp,profile=builtin"
-    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80
+    export STUB_DOCKER_SECURITY="name=rootless name=seccomp,profile=builtin" STUB_PUBLISHED="80 2222"
+    run capture_with SHELLHUB_ENV=development
     [ "$status" -ne 0 ]
     [[ "$output" == *"setcap cap_net_bind_service=ep"* ]]
 }
 
-@test "rootless guard: the ssh port counts too" {
-    export STUB_DOCKER_SECURITY="name=rootless"
-    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=22
+@test "rootless guard: the lowest published port counts, not the first listed" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="8080 22"
+    run capture_with SHELLHUB_ENV=development
     [ "$status" -ne 0 ]
     [[ "$output" == *"port 22"* ]]
 }
 
-@test "rootless guard: the ssh port keeps its bind address out of the comparison" {
-    export STUB_DOCKER_SECURITY="name=rootless"
-    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=127.0.0.1:22
+@test "rootless guard: a port bound to an address still counts" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="8080 127.0.0.1:22"
+    run capture_with SHELLHUB_ENV=development
     [ "$status" -ne 0 ]
     [[ "$output" == *"port 22"* ]]
+}
+
+@test "rootless guard: the advice names every port variable" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="443"
+    run capture_with SHELLHUB_ENV=development
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"SHELLHUB_HTTP_PORT, SHELLHUB_HTTPS_PORT and SHELLHUB_SSH_PORT"* ]]
 }
 
 @test "rootless guard: a missing getcap warns and lets the stack start" {
-    export STUB_DOCKER_SECURITY="name=rootless" STUB_NO_GETCAP=1
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
-    [[ "$out" == *"getcap not found"* ]]
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_NO_GETCAP=1 STUB_PUBLISHED="80"
+    out=$(capture_with SHELLHUB_ENV=development)
+    [[ "$out" == *"getcap or rootlesskit not found"* ]]
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: the capability on rootlesskit lets a privileged port through" {
-    export STUB_DOCKER_SECURITY="name=rootless" STUB_GETCAP="cap_net_bind_service=ep"
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_GETCAP="cap_net_bind_service=ep" STUB_PUBLISHED="80"
+    out=$(capture_with SHELLHUB_ENV=development)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: a sysctl that frees the port lets it through" {
-    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=0
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80 SHELLHUB_SSH_PORT=22)
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=0 STUB_PUBLISHED="80 22"
+    out=$(capture_with SHELLHUB_ENV=development)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: a sysctl above 1024 makes a higher port privileged too" {
-    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=2048
-    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=1500 SHELLHUB_SSH_PORT=2222
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_SYSCTL_UNPRIVILEGED_PORT_START=2048 STUB_PUBLISHED="1500 2222"
+    run capture_with SHELLHUB_ENV=development
     [ "$status" -ne 0 ]
     [[ "$output" == *"port 1500"* ]]
 }
 
+@test "rootless guard: a privileged port the stack does not publish is ignored" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="2210"
+    run capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"cannot publish"* ]]
+}
+
+@test "rootless guard: a stack that publishes nothing passes" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED=""
+    run capture_with SHELLHUB_ENV=development
+    [ "$status" -eq 0 ]
+}
+
+@test "rootless guard: a rootlesskit off PATH warns instead of aborting" {
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_NO_ROOTLESSKIT=1 STUB_PUBLISHED="80"
+    run capture_with SHELLHUB_ENV=development
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"getcap or rootlesskit not found"* ]]
+}
+
 @test "rootless guard: unprivileged ports pass" {
-    export STUB_DOCKER_SECURITY="name=rootless"
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=8080 SHELLHUB_SSH_PORT=2222)
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="8080 2222"
+    out=$(capture_with SHELLHUB_ENV=development)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: a rootful daemon ignores privileged ports" {
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    export STUB_PUBLISHED="80"
+    out=$(capture_with SHELLHUB_ENV=development)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: only in development" {
-    export STUB_DOCKER_SECURITY="name=rootless"
-    out=$(capture_with SHELLHUB_HTTP_PORT=80)
+    export STUB_DOCKER_SECURITY="name=rootless" STUB_PUBLISHED="80"
+    out=$(capture_with)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
 
 @test "rootless guard: a failing docker info skips the guard" {
-    export STUB_DOCKER_INFO_FAILS=1
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_HTTP_PORT=80)
+    export STUB_DOCKER_INFO_FAILS=1 STUB_PUBLISHED="80"
+    out=$(capture_with SHELLHUB_ENV=development)
     [[ "$out" == *"COMPOSE_FILE="* ]]
 }
