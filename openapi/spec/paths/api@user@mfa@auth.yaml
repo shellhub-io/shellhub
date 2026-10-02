@@ -6,8 +6,9 @@ post:
     which generates an `X-MFA-Token` indicating that the user has already authenticated with a password.
 
     The token logs in once only. An unknown, expired or already used token answers `401`, the same
-    as a wrong code. Wrong codes count toward the same account lockout as wrong passwords: check the
-    `X-Account-Lockout` header, which is 0 when there is no active lockout.
+    as a wrong code. Wrong codes count toward an account lockout of their own, which a correct
+    password does not clear: check the `X-Account-Lockout` header, which is 0 when there is no
+    active lockout.
   tags:
     - cloud
     - mfa
