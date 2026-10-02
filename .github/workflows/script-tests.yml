@@ -12,10 +12,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  is-latest-tag:
-    name: is-latest-tag
+  changes:
+    name: changes
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
+
+    outputs:
+      is-latest-tag: ${{ steps.filter.outputs.is-latest-tag }}
+      gen-config: ${{ steps.filter.outputs.gen-config }}
 
     steps:
       - name: Check out code
@@ -25,43 +29,46 @@ jobs:
         id: filter
         with:
           filters: |
-            scripts:
+            is-latest-tag:
               - '.github/scripts/is-latest-tag.sh'
               - '.github/actions/is-latest-tag/**'
               - 'tests/is-latest-tag_test.sh'
               - '.github/workflows/script-tests.yml'
-
-      - name: Run is-latest-tag tests
-        if: steps.filter.outputs.scripts == 'true'
-        run: bash tests/is-latest-tag_test.sh
-
-  gen-config:
-    name: gen-config
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
-        with:
-          filters: |
-            scripts:
+            gen-config:
               - 'ui/scripts/gen-config.sh'
               - 'tests/ui/**'
               - 'ui/Dockerfile'
               - '.github/workflows/script-tests.yml'
 
+  is-latest-tag:
+    name: is-latest-tag
+    needs: changes
+    if: needs.changes.outputs.is-latest-tag == 'true'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run is-latest-tag tests
+        run: bash tests/is-latest-tag_test.sh
+
+  gen-config:
+    name: gen-config
+    needs: changes
+    if: needs.changes.outputs.gen-config == 'true'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - name: Install bats
-        if: steps.filter.outputs.scripts == 'true'
         uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
         with:
           bats-version: 1.14.0
 
       - name: Run gen-config tests
-        if: steps.filter.outputs.scripts == 'true'
         run: bats tests/ui/gen-config.bats
 
       # The runner has GNU sed/tr, but gen-config.sh escapes JSON with the
@@ -69,7 +76,6 @@ jobs:
       # and the octal tr ranges all behave differently. Read the image out of
       # the Dockerfile so an alpine bump is covered by the same guard.
       - name: Run gen-config tests on busybox
-        if: steps.filter.outputs.scripts == 'true'
         run: |
           image=$(sed -n 's/^FROM \(alpine:[^[:space:]]*\) AS production$/\1/p' ui/Dockerfile)
           if [ -z "$image" ]; then

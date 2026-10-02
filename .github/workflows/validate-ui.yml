@@ -13,30 +13,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: validate (${{ matrix.app }})
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - app: console
-            workspace: "@shellhub/console"
-          - app: docs
-            workspace: "@shellhub/docs"
-          - app: website
-            workspace: "@shellhub/website"
-          - app: design-system
-            workspace: "@shellhub/design-system"
+  changes:
+    name: changes
+    if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
+
+    outputs:
+      apps: ${{ steps.apps.outputs.changes }}
+      ui: ${{ steps.ui.outputs.ui }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
+        id: apps
         with:
           filters: |
             console:
@@ -46,6 +38,7 @@ jobs:
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
               - 'openapi/spec/**'
+              - '.github/workflows/validate-ui.yml'
             docs:
               - 'ui/apps/docs/**'
               - 'ui/packages/**'
@@ -53,68 +46,96 @@ jobs:
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
               - 'ui/scripts/install-vale.sh'
+              - '.github/workflows/validate-ui.yml'
             website:
               - 'ui/apps/website/**'
               - 'ui/packages/**'
               - 'ui/package.json'
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
+              - '.github/workflows/validate-ui.yml'
             design-system:
               - 'ui/packages/design-system/**'
+              - '.github/workflows/validate-ui.yml'
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: ui
+        with:
+          filters: |
+            ui:
+              - 'ui/**'
+              - 'openapi/spec/**'
+              - '.github/workflows/validate-ui.yml'
+
+  validate:
+    name: validate (${{ matrix.app }})
+    needs: changes
+    if: ${{ needs.changes.outputs.apps != '[]' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+
+    runs-on: ubuntu-latest
+
+    env:
+      WORKSPACE: "@shellhub/${{ matrix.app }}"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Node.js [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.20.0"
 
       - name: Cache node modules [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
 
       - name: Install Node Dependencies [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
         working-directory: ui
         run: npm install
 
       - name: Generate OpenAPI client [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app == 'console'
+        if: matrix.app == 'console'
         working-directory: ui
         run: |
           npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
-          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w ${{ matrix.workspace }}
+          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w "$WORKSPACE"
 
       - name: Astro sync [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app == 'docs'
+        if: matrix.app == 'docs'
         working-directory: ui
         run: npm run sync -w @shellhub/docs
 
       - name: Unit test [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
         working-directory: ui
-        run: npm run test -w ${{ matrix.workspace }}
+        run: npm run test -w "$WORKSPACE"
 
       - name: Install Vale [docs]
-        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app == 'docs'
+        if: matrix.app == 'docs'
         run: |
           ./ui/scripts/install-vale.sh "$RUNNER_TEMP/bin"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Code linting [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
         working-directory: ui
-        run: npm run lint -w ${{ matrix.workspace }}
+        run: npm run lint -w "$WORKSPACE"
 
       - name: Build [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app != 'design-system'
+        if: matrix.app != 'design-system'
         working-directory: ui
-        run: npm run build -w ${{ matrix.workspace }}
+        run: npm run build -w "$WORKSPACE"
 
   unused:
     name: unused files, exports and dependencies
+    needs: changes
+    if: ${{ needs.changes.outputs.ui == 'true' }}
 
     runs-on: ubuntu-latest
 
@@ -122,40 +143,39 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
-        with:
-          filters: |
-            ui:
-              - 'ui/**'
-              - 'openapi/spec/**'
-
       - name: Set up Node.JS 24.13.0
-        if: steps.filter.outputs.ui == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.13.0"
 
       - name: Cache node modules
-        if: steps.filter.outputs.ui == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
 
       - name: Install Node Dependencies
-        if: steps.filter.outputs.ui == 'true'
         working-directory: ui
         run: npm install
 
       - name: Generate OpenAPI client
-        if: steps.filter.outputs.ui == 'true'
         working-directory: ui
         run: |
           npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
 
       - name: knip
-        if: steps.filter.outputs.ui == 'true'
         working-directory: ui
         run: npm run knip
+
+  ui:
+    name: ui
+    needs: [changes, validate, unused]
+    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail when a UI job failed or was cancelled
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
