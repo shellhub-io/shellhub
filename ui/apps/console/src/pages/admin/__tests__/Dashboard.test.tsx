@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -6,12 +6,6 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import AdminDashboard from "../Dashboard";
-
-vi.mock("@/components/sessions/RecentSessionsTable", () => ({
-  default: ({ isAdmin }: { isAdmin?: boolean }) => (
-    <div data-testid="recent-sessions-table" data-admin={isAdmin} />
-  ),
-}));
 
 const fullStats = {
   registered_users: 42,
@@ -32,7 +26,6 @@ function renderPage() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
   server.use(http.get("*/admin/api/stats", () => HttpResponse.json(fullStats)));
 });
@@ -63,7 +56,7 @@ describe("AdminDashboard", () => {
     });
   });
 
-  describe("success state — all fields present, sessions present", () => {
+  describe("success state, all fields present", () => {
     it("renders correct numeric values for each stat", async () => {
       renderPage();
       await waitFor(() => {
@@ -76,22 +69,25 @@ describe("AdminDashboard", () => {
       expect(screen.getByText("3")).toBeInTheDocument();
     });
 
-    it.each([
-      [/view all users/i, "/admin/users"],
-      [/view all sessions/i, "/admin/sessions"],
-      [/devices/i, "/admin/devices"],
-    ])("links matching %s point to %s", async (name, href) => {
+    it("links the users count to the users page", async () => {
       renderPage();
       await waitFor(() => {
-        expect(screen.getAllByRole("link", { name }).length).toBeGreaterThan(0);
+        expect(
+          screen.getByRole("link", { name: /view all users/i }),
+        ).toHaveAttribute("href", "/admin/users");
       });
-      screen.getAllByRole("link", { name }).forEach((link) => {
-        expect(link).toHaveAttribute("href", href);
-      });
+    });
+
+    it("links neither the device nor the session counts", async () => {
+      renderPage();
+      await screen.findByText("Registered Devices");
+      expect(
+        screen.queryByRole("link", { name: /devices|sessions/i }),
+      ).not.toBeInTheDocument();
     });
   });
 
-  describe("success state — partial stats response", () => {
+  describe("success state, partial stats response", () => {
     it("renders 0 for each missing stat field", async () => {
       server.use(
         http.get("*/admin/api/stats", () =>

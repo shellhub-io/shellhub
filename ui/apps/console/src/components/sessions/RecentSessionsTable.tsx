@@ -5,7 +5,6 @@ import { Callout, Card } from "@shellhub/design-system/primitives";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import { useSessions } from "@/hooks/useSessions";
-import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatRelative } from "@/utils/date";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import SessionLogin from "@/components/sessions/SessionLogin";
@@ -14,14 +13,11 @@ import type { Session } from "@/client";
 import { apiErrorMessage } from "@/api/errors";
 
 /**
- * The five most recent sessions, for a dashboard. isAdmin switches it to the instance-wide list,
- * which is the only difference between the two dashboards' tables.
+ * The five most recent sessions, for the dashboard.
  */
-export default function RecentSessionsTable({ isAdmin = false }) {
-  const sessionsHook = isAdmin ? useAdminSessions : useSessions;
-  const { sessions, isLoading, error } = sessionsHook({ page: 1, perPage: 5 });
+export default function RecentSessionsTable() {
+  const { sessions, isLoading, error } = useSessions({ page: 1, perPage: 5 });
   const navigate = useNavigate();
-  const prefix = isAdmin ? "/admin" : "";
 
   const columns: Column<Session>[] = [
     {
@@ -60,7 +56,6 @@ export default function RecentSessionsTable({ isAdmin = false }) {
             name={s.device.name ?? (s.device_uid ?? "").substring(0, 8)}
             online={s.device.online}
             osId={s.device.info?.id}
-            isAdmin={isAdmin}
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -98,7 +93,7 @@ export default function RecentSessionsTable({ isAdmin = false }) {
           Recent Sessions
         </p>
         <Link
-          to={`${prefix}/sessions`}
+          to="/sessions"
           className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
         >
           View all &rarr;
@@ -116,7 +111,7 @@ export default function RecentSessionsTable({ isAdmin = false }) {
           noWrapper
           isLoading={isLoading}
           loadingMessage="Loading sessions..."
-          onRowClick={(s) => void navigate(`${prefix}/sessions/${s.uid}`)}
+          onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}
           rowClassName={(s) =>
             !s.authenticated
               ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"

@@ -44,12 +44,12 @@ describe("ResourceNotFound", () => {
     renderNotFound({
       icon: ShieldExclamationIcon,
       resource: "Firewall rule",
-      backTo: "/admin/firewall-rules",
+      backTo: "/firewall-rules",
     });
 
     expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Back to firewall rules" }),
-    ).toHaveAttribute("href", "/admin/firewall-rules");
+    ).toHaveAttribute("href", "/firewall-rules");
   });
 });

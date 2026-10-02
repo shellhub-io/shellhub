@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   UsersIcon,
   CpuChipIcon,
@@ -10,13 +9,12 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import PageHeader from "@/components/common/PageHeader";
-import StatCard from "@/components/common/StatCard";
-import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
+import StatCard, { type StatCardProps } from "@/components/common/StatCard";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import PageLoader from "@/components/common/PageLoader";
 
 /**
- * The admin dashboard: instance-wide counts and recent sessions across every namespace.
+ * The admin dashboard: instance-wide counts of users, devices and sessions.
  */
 export default function AdminDashboard() {
   const {
@@ -47,58 +45,40 @@ export default function AdminDashboard() {
 
   const stats = statsData ?? {};
 
-  const statCards: Array<{
-    value: number;
-    icon: ReactNode;
-    title: string;
-    linkLabel: string;
-    linkTo: string;
-    accent?: string;
-  }> = [
+  const statCards: StatCardProps[] = [
     {
       value: stats.registered_users ?? 0,
       icon: <UsersIcon className="w-7 h-7" />,
       title: "Registered Users",
-      linkLabel: "View all Users",
-      linkTo: "/admin/users",
+      action: { label: "View all Users", to: "/admin/users" },
     },
     {
       value: stats.registered_devices ?? 0,
       icon: <CpuChipIcon className="w-7 h-7" />,
       title: "Registered Devices",
-      linkLabel: "View all Devices",
-      linkTo: "/admin/devices",
     },
     {
       value: stats.online_devices ?? 0,
       icon: <SignalIcon className="w-7 h-7" />,
       title: "Online Devices",
-      linkLabel: "View Online Devices",
-      linkTo: "/admin/devices",
       accent: "text-accent-green",
     },
     {
       value: stats.pending_devices ?? 0,
       icon: <ClockIcon className="w-7 h-7" />,
       title: "Pending Devices",
-      linkLabel: "View Pending Devices",
-      linkTo: "/admin/devices",
       accent: "text-accent-yellow",
     },
     {
       value: stats.rejected_devices ?? 0,
       icon: <XCircleIcon className="w-7 h-7" />,
       title: "Rejected Devices",
-      linkLabel: "View Rejected Devices",
-      linkTo: "/admin/devices",
       accent: "text-accent-red",
     },
     {
       value: stats.active_sessions ?? 0,
       icon: <CommandLineIcon className="w-7 h-7" />,
       title: "Active Sessions",
-      linkLabel: "View all Sessions",
-      linkTo: "/admin/sessions",
     },
   ];
 
@@ -116,26 +96,17 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {statCards.map((card, i) => (
           <div
             key={card.title}
             className="animate-slide-up"
             style={{ animationDelay: `${i * 80}ms` }}
           >
-            <StatCard
-              icon={card.icon}
-              title={card.title}
-              value={card.value}
-              linkLabel={card.linkLabel}
-              linkTo={card.linkTo}
-              accent={card.accent}
-            />
+            <StatCard {...card} />
           </div>
         ))}
       </div>
-
-      <RecentSessionsTable isAdmin />
     </div>
   );
 }

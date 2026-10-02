@@ -12,7 +12,6 @@ interface DeviceChipBaseProps {
 interface DeviceChipLinkProps extends DeviceChipBaseProps {
   uid: string;
   disableLink?: false;
-  isAdmin?: boolean;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -69,7 +68,7 @@ export default function DeviceChip(props: DeviceChipProps) {
 
   return (
     <Link
-      to={`${props.isAdmin ? "/admin" : ""}/devices/${props.uid}`}
+      to={`/devices/${props.uid}`}
       onClick={props.onClick}
       className={cn(
         BASE,

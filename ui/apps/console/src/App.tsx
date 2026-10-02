@@ -87,8 +87,6 @@ const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
-const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
-const AdminSessionDetails = lazy(() => import("./pages/admin/SessionDetails"));
 const AdminLicense = lazy(() => import("./pages/admin/License"));
 const AdminUnauthorized = lazy(() => import("./pages/admin/Unauthorized"));
 const AdminUsers = lazy(() => import("./pages/admin/users"));
@@ -97,16 +95,8 @@ const AdminNamespaces = lazy(() => import("./pages/admin/namespaces"));
 const AdminNamespaceDetails = lazy(
   () => import("./pages/admin/namespaces/NamespaceDetails"),
 );
-const AdminDevices = lazy(() => import("./pages/admin/devices"));
-const AdminDeviceDetails = lazy(
-  () => import("./pages/admin/devices/AdminDeviceDetails"),
-);
 const AdminInstanceApiKeys = lazy(
   () => import("./pages/admin/instance-api-keys/InstanceApiKeys"),
-);
-const AdminFirewallRules = lazy(() => import("./pages/admin/firewall-rules"));
-const AdminFirewallRuleDetails = lazy(
-  () => import("./pages/admin/firewall-rules/AdminFirewallRuleDetails"),
 );
 
 const AdminAuthentication = lazy(
@@ -202,30 +192,6 @@ export default function App() {
                         <Route
                           path="/admin/namespaces/:id"
                           element={<AdminNamespaceDetails />}
-                        />
-                        <Route
-                          path="/admin/devices"
-                          element={<AdminDevices />}
-                        />
-                        <Route
-                          path="/admin/devices/:uid"
-                          element={<AdminDeviceDetails />}
-                        />
-                        <Route
-                          path="/admin/firewall-rules"
-                          element={<AdminFirewallRules />}
-                        />
-                        <Route
-                          path="/admin/firewall-rules/:id"
-                          element={<AdminFirewallRuleDetails />}
-                        />
-                        <Route
-                          path="/admin/sessions"
-                          element={<AdminSessions />}
-                        />
-                        <Route
-                          path="/admin/sessions/:uid"
-                          element={<AdminSessionDetails />}
                         />
                         <Route
                           path="/admin/instance-api-keys"

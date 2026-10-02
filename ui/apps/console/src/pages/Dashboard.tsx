@@ -55,8 +55,7 @@ export default function Dashboard() {
             icon={<CheckCircleIcon className="w-7 h-7" />}
             title="Accepted Devices"
             value={stats?.registered_devices ?? "--"}
-            linkLabel="View all devices"
-            linkTo="/devices"
+            action={{ label: "View all devices", to: "/devices" }}
           />
         </div>
         <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
@@ -64,8 +63,7 @@ export default function Dashboard() {
             icon={<SignalIcon className="w-7 h-7" />}
             title="Online Devices"
             value={stats?.online_devices ?? "--"}
-            linkLabel="View all devices"
-            linkTo="/devices"
+            action={{ label: "View all devices", to: "/devices" }}
             accent="text-accent-green"
           />
         </div>
@@ -74,8 +72,7 @@ export default function Dashboard() {
             icon={<ClockIcon className="w-7 h-7" />}
             title="Pending Devices"
             value={stats?.pending_devices ?? "--"}
-            linkLabel="Review pending"
-            linkTo="/devices/add/fleet"
+            action={{ label: "Review pending", to: "/devices/add/fleet" }}
             accent="text-accent-yellow"
           />
         </div>
