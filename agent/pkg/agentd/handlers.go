@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/netip"
 	"sync"
+	"syscall"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/labstack/echo/v5"
@@ -24,6 +25,33 @@ const (
 	// HandleHTTPProxyV2 is the protocol used to open a new HTTP proxy connection.
 	HandleHTTPProxyV2 = "/http/proxy/1.0.0"
 )
+
+// Reasons the HTTP proxy sends the server when it cannot reach its target. They are fixed so the
+// raw dial error, which can carry an internal address, never leaves the device.
+var (
+	ErrProxyConnectionRefused  = errors.New("connection refused")
+	ErrProxyConnectionTimedOut = errors.New("connection timed out")
+	ErrProxyHostUnreachable    = errors.New("host unreachable")
+	ErrProxyHostNotFound       = errors.New("host not found")
+	ErrProxyDial               = errors.New("failed to dial to the address and port")
+)
+
+func dialFailure(err error) error {
+	var dnsErr *net.DNSError
+
+	switch {
+	case errors.Is(err, syscall.ECONNREFUSED):
+		return ErrProxyConnectionRefused
+	case errors.Is(err, syscall.ETIMEDOUT):
+		return ErrProxyConnectionTimedOut
+	case errors.Is(err, syscall.EHOSTUNREACH), errors.Is(err, syscall.ENETUNREACH):
+		return ErrProxyHostUnreachable
+	case errors.As(err, &dnsErr) && dnsErr.IsNotFound:
+		return ErrProxyHostNotFound
+	default:
+		return ErrProxyDial
+	}
+}
 
 func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	const ProxyHandlerNetwork = "tcp"
@@ -109,15 +137,13 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			host = target
 		}
 
-		ErrFailedDialToAddressAndPort := errors.New("failed to dial to the address and port")
-
 		logger.Trace("proxy handler connecting to the address")
 
 		in, err := new(net.Dialer).DialContext(ctx, ProxyHandlerNetwork, net.JoinHostPort(host, port))
 		if err != nil {
 			logger.WithError(err).Error("proxy handler failed to dial to the address")
 
-			return ctx.Error(ErrFailedDialToAddressAndPort)
+			return ctx.Error(dialFailure(err))
 		}
 
 		defer in.Close() //nolint:errcheck
