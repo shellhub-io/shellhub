@@ -6,9 +6,10 @@ post:
     which generates an `X-MFA-Token` indicating that the user has already authenticated with a password.
 
     The token logs in once only. An unknown, expired or already used token answers `401`, the same
-    as a wrong code. Wrong codes count toward an account lockout of their own, which a correct
-    password does not clear: check the `X-Account-Lockout` header, which is 0 when there is no
-    active lockout.
+    as a wrong code, and so does a code sent while another code for the same user is still being
+    checked. A token whose user no longer exists answers `404`. Wrong codes count toward an account
+    lockout of their own, which a correct password does not clear: check the `X-Account-Lockout`
+    header, which is 0 when there is no active lockout.
   tags:
     - cloud
     - mfa
@@ -22,6 +23,12 @@ post:
   responses:
     '200':
       description: Success to authenticate.
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 0
       content:
         application/json:
           schema:
