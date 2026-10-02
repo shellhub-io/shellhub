@@ -319,6 +319,12 @@ func (s *Stack) NewMember(ctx context.Context, username, namespace, role string)
 	return s.Admin(ctx, "namespace", "member", "add", username, namespace, role)
 }
 
+// DeleteNamespace deletes the namespace named name via the server's admin CLI, a process apart
+// from the server that holds the namespace's tunnels.
+func (s *Stack) DeleteNamespace(ctx context.Context, name string) error {
+	return s.Admin(ctx, "namespace", "delete", name)
+}
+
 // APIPublicKey returns the key the server verifies tokens with, read from the server container, so
 // it is the key the running server holds whatever directory the caller runs from. It returns an
 // error when the file is missing or does not hold a PEM-encoded RSA public key.

@@ -106,6 +106,14 @@ func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role strin
 	require.NoError(t, dc.stack.NewMember(t.Context(), username, namespace, role))
 }
 
+// DeleteNamespace deletes the namespace named name through the server's "admin namespace delete"
+// command, failing t immediately if it fails.
+func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.DeleteNamespace(t.Context(), name))
+}
+
 // LogSource is anything whose logs a test can read, such as a compose service or a container the
 // test started itself.
 type LogSource interface {
