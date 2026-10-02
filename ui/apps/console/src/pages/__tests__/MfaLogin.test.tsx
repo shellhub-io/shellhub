@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import {
   PENDING_DEVICE_CODE_KEY,
@@ -33,6 +35,21 @@ function fillCode(digits = 6, digitValue?: string) {
 
 function submitCode() {
   fireEvent.click(screen.getByRole("button", { name: /verify/i }));
+}
+
+const realLoginWithMfa = useAuthStore.getState().loginWithMfa;
+
+function lockOutMfa(secondsLeft: number) {
+  const epoch = Math.floor(Date.now() / 1000) + secondsLeft;
+  server.use(
+    http.post("*/api/user/mfa/auth", () =>
+      HttpResponse.json(
+        {},
+        { status: 429, headers: { "x-account-lockout": String(epoch) } },
+      ),
+    ),
+  );
+  useAuthStore.setState({ loginWithMfa: realLoginWithMfa });
 }
 
 describe("MfaLogin", () => {
@@ -92,6 +109,43 @@ describe("MfaLogin", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Invalid verification code")).toBeInTheDocument();
+    });
+  });
+
+  describe("lockout", () => {
+    it("shows the lockout and its remaining time instead of a wrong-code message", async () => {
+      lockOutMfa(30);
+
+      renderMfaLogin();
+      fillCode();
+      submitCode();
+
+      await screen.findByText(/too many failed attempts/i);
+      expect(
+        screen.queryByText("Invalid verification code"),
+      ).not.toBeInTheDocument();
+      await waitFor(
+        () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
+        { timeout: 2000 },
+      );
+      expect(useAuthStore.getState().mfaToken).toBe("temp-mfa-token");
+    });
+
+    it("tells the user to try again once the lockout ends", async () => {
+      lockOutMfa(1);
+
+      renderMfaLogin();
+      fillCode();
+      submitCode();
+
+      await screen.findByText(/too many failed attempts/i);
+      await waitFor(
+        () =>
+          expect(
+            screen.getByText(/your timeout has finished/i),
+          ).toBeInTheDocument(),
+        { timeout: 4000 },
+      );
     });
   });
 
