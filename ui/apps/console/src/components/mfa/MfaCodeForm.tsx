@@ -2,7 +2,10 @@ import { useState, type FormEvent } from "react";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
+import {
+  lockoutEndFrom,
+  useLockoutCountdown,
+} from "@/hooks/useLockoutCountdown";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import OtpCells from "@/components/mfa/OtpCells";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
@@ -41,8 +44,7 @@ export default function MfaCodeForm({
       onVerified();
     } catch (err) {
       if (isSdkError(err) && err.status === 429) {
-        const epoch = Number(err.headers.get("x-account-lockout"));
-        setLockoutEndEpoch(epoch > 0 ? epoch : null);
+        setLockoutEndEpoch(lockoutEndFrom(err.headers));
       }
       otp.reset();
     }

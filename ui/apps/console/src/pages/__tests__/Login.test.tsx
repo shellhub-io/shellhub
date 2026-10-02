@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -306,6 +306,21 @@ describe("Login", () => {
       expect(
         screen.queryByText(/too many failed login attempts/i),
       ).not.toBeInTheDocument();
+    });
+
+    it("shows the lockout without a countdown when the deadline header is missing", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      setLoginError(429);
+
+      renderLogin();
+      await fillAndSubmit();
+
+      await screen.findByText(/too many failed login attempts/i);
+      await act(() => vi.advanceTimersByTimeAsync(3000));
+      expect(
+        screen.queryByText(/your timeout has finished/i),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/seconds|minutes/i)).not.toBeInTheDocument();
     });
   });
 

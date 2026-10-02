@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
+import {
+  lockoutEndFrom,
+  useLockoutCountdown,
+} from "@/hooks/useLockoutCountdown";
 import { landingAfterSignIn } from "@/utils/navigation";
 import {
   FormInputField,
@@ -98,8 +101,7 @@ export default function SignInForm({
           );
           break;
         case 429: {
-          const epoch = Number(err.headers.get("x-account-lockout"));
-          setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
+          setLockoutEndEpoch(lockoutEndFrom(err.headers));
           setError(
             "Too many failed login attempts. Please wait before trying again.",
           );
