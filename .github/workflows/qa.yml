@@ -68,7 +68,7 @@ jobs:
           - project: server
             extra_args: ""
             lint_args: ""
-            race_args: "-race"
+            race_args: "-race -shuffle=on"
             test_timeout: "40m"
           - project: gateway
             extra_args: ""
