@@ -8,6 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -15,6 +17,9 @@ import (
 )
 
 func TestUpdateUser(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	type Expected struct {
 		err error
 	}
@@ -505,6 +510,9 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdatePasswordUser(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	mock := mocks.NewMockStore(t)
 
 	ctx := context.Background()

@@ -8,6 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -17,6 +19,9 @@ import (
 )
 
 func TestWebReauthVerify(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	ctx := context.TODO()
 
 	const (
