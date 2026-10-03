@@ -10,6 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -18,6 +20,9 @@ import (
 )
 
 func TestService_RegisterUser(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 

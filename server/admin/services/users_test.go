@@ -27,7 +27,7 @@ func TestUserCreate(t *testing.T) {
 
 	mock := new(mocks.MockStore)
 	hashMock := &hashmock.MockHasher{}
-	hash.Backend = hashMock
+	hash.Set(t, hashMock)
 	ctx := context.TODO()
 	now := clock.Now()
 	errStoreDown := errors.New("connection refused")
@@ -544,7 +544,7 @@ func TestUserDelete(t *testing.T) {
 func TestUserResetPassword(t *testing.T) {
 	mock := new(mocks.MockStore)
 	hashMock := &hashmock.MockHasher{}
-	hash.Backend = hashMock
+	hash.Set(t, hashMock)
 
 	ctx := context.TODO()
 

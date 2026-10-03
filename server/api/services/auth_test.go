@@ -19,6 +19,8 @@ import (
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -1128,6 +1130,9 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestService_AuthLocalUser(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	mock := mocks.NewMockStore(t)
 	cacheMock := mockcache.NewMockCache(t)
 

@@ -13,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -22,6 +24,9 @@ import (
 )
 
 func TestSetup(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+
 	storeMock := mocks.NewMockStore(t)
 
 	tenant := "00000000-0000-4000-0000-000000000000"
