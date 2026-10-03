@@ -380,8 +380,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			directMembershipEnabled = tc.directMembership
-			t.Cleanup(func() { directMembershipEnabled = false })
+			override(t, &directMembershipEnabled, tc.directMembership)
 
 			freezeClockAndUUID(t, now)
 			tc.requiredMocks()

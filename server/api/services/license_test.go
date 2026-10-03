@@ -11,6 +11,8 @@ import (
 )
 
 func TestLicenseEvaluator(t *testing.T) {
+	override(t, &licenseEvaluatorFactory, nil)
+
 	t.Run("factory is nil before registration", func(t *testing.T) {
 		licenseEvaluatorFactory = nil
 
