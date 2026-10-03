@@ -9,10 +9,13 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/token"
+	"go/types"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -486,10 +489,21 @@ func unusedDeclarations(ctx context.Context, dir string, repos []repository, wor
 
 	declared := map[string]finding{}
 	used := map[string]bool{}
+	usedBeyondMembers := map[string]bool{}
+	memberTypeRefs := map[string]bool{}
+	enumTypeOf := map[string]string{}
+	membersOf := map[string][]string{}
+	interfacesAt := map[string][]*types.Interface{}
+	var mocks []types.Type
 
 	packages.Visit(pkgs, nil, func(pkg *packages.Package) {
 		for _, file := range pkg.Syntax {
-			repo, rel, ok := relate(repos, pkg.Fset.File(file.Pos()).Name())
+			filename := pkg.Fset.File(file.Pos()).Name()
+			if strings.Contains(filename, "/mocks/") {
+				mocks = append(mocks, declaredTypes(pkg, file)...)
+			}
+
+			repo, rel, ok := relate(repos, filename)
 			if !ok || skipped(rel) || ast.IsGenerated(file) {
 				continue
 			}
@@ -505,6 +519,15 @@ func unusedDeclarations(ctx context.Context, dir string, repos []repository, wor
 					switch spec := spec.(type) {
 					case *ast.ValueSpec:
 						names = spec.Names
+						if gen.Tok == token.CONST && spec.Type != nil {
+							ast.Inspect(spec.Type, func(n ast.Node) bool {
+								if ident, ok := n.(*ast.Ident); ok {
+									memberTypeRefs[pkg.Fset.Position(ident.Pos()).String()] = true
+								}
+
+								return true
+							})
+						}
 					case *ast.TypeSpec:
 						names = []*ast.Ident{spec.Name}
 					}
@@ -516,28 +539,91 @@ func unusedDeclarations(ctx context.Context, dir string, repos []repository, wor
 
 						pos := pkg.Fset.Position(name.Pos())
 						declared[pos.String()] = finding{repo: repo.name, path: rel, line: pos.Line, symbol: name.Name, kind: gen.Tok.String()}
+
+						switch obj := pkg.TypesInfo.Defs[name].(type) {
+						case *types.Const:
+							if named, ok := obj.Type().(*types.Named); ok && named.Obj().Pkg() == obj.Pkg() {
+								typePos := pkg.Fset.Position(named.Obj().Pos()).String()
+								enumTypeOf[pos.String()] = typePos
+								membersOf[typePos] = append(membersOf[typePos], pos.String())
+							}
+						case *types.TypeName:
+							if iface, ok := obj.Type().Underlying().(*types.Interface); ok && iface.NumMethods() > 0 {
+								interfacesAt[pos.String()] = append(interfacesAt[pos.String()], iface)
+							}
+						}
 					}
 				}
 			}
 		}
 
 		for ident, obj := range pkg.TypesInfo.Uses {
-			if !obj.Pos().IsValid() || strings.Contains(pkg.Fset.Position(ident.Pos()).Filename, "/mocks/") {
+			at := pkg.Fset.Position(ident.Pos())
+			if !obj.Pos().IsValid() || strings.Contains(at.Filename, "/mocks/") {
 				continue
 			}
 
-			used[pkg.Fset.Position(obj.Pos()).String()] = true
+			target := pkg.Fset.Position(obj.Pos()).String()
+			used[target] = true
+			if !memberTypeRefs[at.String()] {
+				usedBeyondMembers[target] = true
+			}
 		}
 	})
 
+	live := func(pos string) bool {
+		if used[pos] {
+			return true
+		}
+
+		if typePos, ok := enumTypeOf[pos]; ok {
+			if usedBeyondMembers[typePos] || slices.ContainsFunc(membersOf[typePos], func(member string) bool { return used[member] }) {
+				return true
+			}
+		}
+
+		for _, iface := range interfacesAt[pos] {
+			for _, mock := range mocks {
+				if types.Implements(mock, iface) || types.Implements(types.NewPointer(mock), iface) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
 	var found []finding
 	for pos, f := range declared {
-		if !used[pos] {
+		if !live(pos) {
 			found = append(found, f)
 		}
 	}
 
 	return found, nil
+}
+
+func declaredTypes(pkg *packages.Package, file *ast.File) []types.Type {
+	var declared []types.Type
+	for _, decl := range file.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.TYPE {
+			continue
+		}
+
+		for _, spec := range gen.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+
+			if obj, ok := pkg.TypesInfo.Defs[typeSpec.Name].(*types.TypeName); ok {
+				declared = append(declared, obj.Type())
+			}
+		}
+	}
+
+	return declared
 }
 
 func readAllowlist(repo repository, allowed map[string]string) error {
