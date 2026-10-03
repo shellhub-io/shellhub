@@ -252,3 +252,71 @@ func TestMainCheckout(t *testing.T) {
 		})
 	}
 }
+
+func TestUnusedDeclarations(t *testing.T) {
+	root := t.TempDir()
+	files := map[string]string{
+		"go.mod": "module github.com/shellhub-io/fixture\n\ngo 1.22\n",
+		"status/status.go": `package status
+
+type Status string
+
+const (
+	Active   Status = "active"
+	Canceled Status = "canceled"
+)
+
+func Parse(s string) Status { return Status(s) }
+`,
+		"phase/phase.go": `package phase
+
+type Phase string
+
+const (
+	PhaseOpen Phase = "open"
+	PhaseVoid Phase = "void"
+)
+
+func IsOpen(s string) bool { return s == string(PhaseOpen) }
+`,
+		"kind/kind.go": `package kind
+
+type Kind int
+
+const (
+	KindA Kind = iota
+	KindB
+)
+`,
+		"backend/backend.go": `package backend
+
+type Backend interface{ Call() }
+
+type Orphan interface{ Run() }
+`,
+		"backend/mocks/mock_backend.go": `package mocks
+
+type MockBackend struct{}
+
+func (MockBackend) Call() {}
+`,
+	}
+	for name, content := range files {
+		require.NoError(t, os.MkdirAll(filepath.Join(root, filepath.Dir(name)), 0o750))
+		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte(content), 0o600))
+	}
+
+	found, err := unusedDeclarations(t.Context(), root, []repository{{name: "shellhub", root: root}}, "off", "")
+	require.NoError(t, err)
+
+	var symbols []string
+	for _, f := range found {
+		symbols = append(symbols, f.path+" "+f.symbol)
+	}
+
+	assert.ElementsMatch(t, []string{
+		"kind/kind.go KindA",
+		"kind/kind.go KindB",
+		"backend/backend.go Orphan",
+	}, symbols, "an enum member is live while its type or a sibling is used, and a mocked interface is live")
+}
