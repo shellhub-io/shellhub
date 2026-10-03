@@ -7,8 +7,10 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
@@ -16,15 +18,7 @@ func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
 	t.Setenv("API_MAXIMUM_ACCOUNT_LOCKOUT", "60")
 	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		require.NoError(t, redisContainer.Terminate(ctx))
-	})
-
-	uri, err := redisContainer.ConnectionString(ctx)
-	require.NoError(t, err)
+	uri := startValkey(t)
 
 	c, err := cache.NewRedisCache(uri, 0)
 	require.NoError(t, err)
@@ -58,15 +52,7 @@ func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
 func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		require.NoError(t, redisContainer.Terminate(ctx))
-	})
-
-	uri, err := redisContainer.ConnectionString(ctx)
-	require.NoError(t, err)
+	uri := startValkey(t)
 
 	c, err := cache.NewRedisCache(uri, 0)
 	require.NoError(t, err)
@@ -90,4 +76,22 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 	taken, err = c.SetNX(ctx, "guard", "next", time.Minute)
 	require.NoError(t, err)
 	assert.True(t, taken)
+}
+
+func startValkey(t *testing.T) string {
+	t.Helper()
+
+	valkey, err := testport.Run(t.Context(), "6379/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*redis.RedisContainer, error) {
+		return redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine", bind)
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, valkey.Terminate(context.WithoutCancel(t.Context())))
+	})
+
+	uri, err := valkey.ConnectionString(t.Context())
+	require.NoError(t, err)
+
+	return uri
 }

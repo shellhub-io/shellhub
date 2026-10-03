@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -16,14 +17,18 @@ type Server struct {
 
 // Up starts a new Postgres container. Use [Server.ConnectionString] to access the connection string.
 func (srv *Server) Up(ctx context.Context) error {
-	opts := []testcontainers.ContainerCustomizer{
-		postgres.WithDatabase("test"),
-		postgres.WithUsername("postgres"),
-		postgres.WithPassword("postgres"),
-		testcontainers.WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(60 * time.Second)),
-	}
-
-	container, err := postgres.Run(ctx, "postgres:18.0", opts...)
+	container, err := testport.Run(ctx, "5432/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, error) {
+		return postgres.Run(ctx, "postgres:18.0",
+			postgres.WithDatabase("test"),
+			postgres.WithUsername("postgres"),
+			postgres.WithPassword("postgres"),
+			testcontainers.WithWaitStrategy(
+				wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(60*time.Second),
+				wait.ForListeningPort("5432/tcp").WithStartupTimeout(60*time.Second),
+			),
+			bind,
+		)
+	})
 	if err != nil {
 		return err
 	}
@@ -38,8 +43,8 @@ func (srv *Server) Down(ctx context.Context) error {
 	return srv.container.Terminate(ctx)
 }
 
-// ConnectionString returns the DSN for the container, whose host port is assigned at start
-// and so cannot be known before it is running.
+// ConnectionString returns the DSN for the container, reading the host port [Server.Up] bound
+// 5432 to back from the running container.
 func (srv *Server) ConnectionString(ctx context.Context) (string, error) {
 	host, err := srv.container.Host(ctx)
 	if err != nil {

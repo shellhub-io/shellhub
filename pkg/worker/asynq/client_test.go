@@ -7,8 +7,10 @@ import (
 	"time"
 
 	asynqlib "github.com/hibiken/asynq"
+	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
@@ -16,15 +18,7 @@ func TestClient(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		require.NoError(t, redisContainer.Terminate(ctx))
-	})
-
-	redisConnStr, err := redisContainer.ConnectionString(ctx)
-	require.NoError(t, err)
+	redisConnStr := startValkey(t)
 
 	addr, err := asynqlib.ParseRedisURI(redisConnStr)
 	require.NoError(t, err)
@@ -59,4 +53,22 @@ func TestClient(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatal("the task was never handled")
 	}
+}
+
+func startValkey(t *testing.T) string {
+	t.Helper()
+
+	valkey, err := testport.Run(t.Context(), "6379/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*redis.RedisContainer, error) {
+		return redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine", bind)
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, valkey.Terminate(context.WithoutCancel(t.Context())))
+	})
+
+	uri, err := valkey.ConnectionString(t.Context())
+	require.NoError(t, err)
+
+	return uri
 }
