@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -201,13 +200,7 @@ const testHash = "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN
 
 func setToday(t *testing.T, days int64) {
 	t.Helper()
-
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(time.Unix(days*secondsPerDay+12*60*60, 0).UTC()).Maybe()
-
-	previous := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	t.Cleanup(func() { clock.DefaultBackend = previous })
+	clock.Freeze(t, time.Unix(days*secondsPerDay+12*60*60, 0).UTC())
 }
 
 func TestAuthUserFromShadowAging(t *testing.T) {

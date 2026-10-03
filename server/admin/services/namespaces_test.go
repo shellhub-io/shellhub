@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,10 +27,8 @@ func TestNamespaceCreate(t *testing.T) {
 	ctx := context.TODO()
 	errStoreDown := errors.New("connection refused")
 
-	mockClock := new(clockmock.MockClock)
-	mockClock.On("Now").Return(clock.Now())
-	clock.DefaultBackend = mockClock
 	now := clock.Now()
+	clock.Freeze(t, now)
 
 	cases := []struct {
 		description   string
@@ -452,12 +449,9 @@ func TestNamespaceAddMember(t *testing.T) {
 	}
 
 	mock := new(mocks.MockStore)
-	mockClock := new(clockmock.MockClock)
-	mockClock.On("Now").Return(clock.Now())
-	clock.DefaultBackend = mockClock
-
 	ctx := context.TODO()
 	now := clock.Now()
+	clock.Freeze(t, now)
 
 	cases := []struct {
 		description   string

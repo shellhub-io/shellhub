@@ -248,7 +248,7 @@ func TestListPublicKeys(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	clockMock.On("Now").Return(now).Twice()
+	clock.Freeze(t, now)
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -335,7 +335,7 @@ func TestGetPublicKeys(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	clockMock.On("Now").Return(now).Twice()
+	clock.Freeze(t, now)
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -649,7 +649,7 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	clockMock.On("Now").Return(now).Twice()
+	clock.Freeze(t, now)
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -755,7 +755,7 @@ func TestCreatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 

@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -32,7 +33,7 @@ func TestCreateSSHApproval(t *testing.T) {
 	cacheMock := new(cachemock.MockCache)
 	storeMock := new(storemock.MockStore)
 
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	storeMock.
 		On("SSHApprovalCreate", mock.Anything, mock.MatchedBy(func(approval *models.SSHApproval) bool {
@@ -111,7 +112,7 @@ func TestGetSSHApprovalStatus(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			storeMock := new(storemock.MockStore)
-			clockMock.On("Now").Return(now)
+			clock.Freeze(tt, now)
 			tc.requiredMocks(storeMock)
 
 			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
@@ -235,7 +236,7 @@ func TestGetSSHApproval(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			storeMock := new(storemock.MockStore)
-			clockMock.On("Now").Return(now)
+			clock.Freeze(tt, now)
 			tc.requiredMocks(storeMock)
 
 			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
@@ -382,7 +383,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			storeMock := new(storemock.MockStore)
-			clockMock.On("Now").Return(now)
+			clock.Freeze(tt, now)
 			tc.requiredMocks(storeMock)
 
 			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
@@ -405,7 +406,7 @@ func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
 	}
 
 	storeMock := new(storemock.MockStore)
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	storeMock.
 		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
@@ -443,7 +444,7 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 	queryOptionsMock := new(storemock.MockQueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	storeMock.
 		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
@@ -505,7 +506,7 @@ func TestRejectSSHApproval(t *testing.T) {
 
 	storeMock := new(storemock.MockStore)
 
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	storeMock.
 		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -447,7 +448,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 	})
 
 	t.Run("computes the expiry the request asked for", func(t *testing.T) {
-		clockMock.On("Now").Return(now).Twice()
+		clock.Freeze(t, now)
 
 		storeMock := new(storemock.MockStore)
 		queryOptionsMock := new(storemock.MockQueryOptions)
@@ -628,7 +629,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
-		clockMock.On("Now").Return(now)
+		clock.Freeze(t, now)
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		days := 30

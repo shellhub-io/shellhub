@@ -10,12 +10,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -25,21 +23,11 @@ import (
 func TestSetup(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
 
-	clockMock := clockmock.NewMockClock(t)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
-
 	tenant := "00000000-0000-4000-0000-000000000000"
-
-	uuidMock := uuidmock.NewMockUUID(t)
-	prevUUIDBackend := uuid.DefaultBackend
-	t.Cleanup(func() { uuid.DefaultBackend = prevUUIDBackend })
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return(tenant)
+	uuid.Fix(t, tenant)
 
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	envMock.On("Get", "SHELLHUB_ENV").Return("")
 	envMock.On("Get", "SHELLHUB_EDITION").Return("")

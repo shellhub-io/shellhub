@@ -5,18 +5,12 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNeedsReauth(t *testing.T) {
 	now := time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
-
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	ptr := func(v int) *int { return &v }
 	at := func(d time.Duration) *time.Time {

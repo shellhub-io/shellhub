@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -848,11 +847,7 @@ func TestResolveDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -1374,11 +1369,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestOfflineDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 
@@ -1442,11 +1433,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	t.Cleanup(func() { deviceMergeHooks = savedHooks })
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -2145,11 +2132,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	t.Cleanup(func() { deviceMergeHooks = savedHooks })
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -2469,11 +2452,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	t.Cleanup(func() { deviceMergeHooks = savedHooks })
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
-	clock.DefaultBackend = clockMock
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)

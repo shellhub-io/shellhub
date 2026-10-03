@@ -16,10 +16,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/mock"
@@ -30,14 +28,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	defer func() { clock.DefaultBackend = prevClock }()
-	clockMock.On("Now").Return(now).Maybe()
-
-	prevUUID := uuid.DefaultBackend
-	defer func() { uuid.DefaultBackend = prevUUID }()
+	clock.Freeze(t, now)
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
@@ -92,9 +83,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
@@ -139,9 +128,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{"name"}, true, nil).Once()
 			},
@@ -153,9 +140,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
@@ -173,9 +158,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
@@ -196,9 +179,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
@@ -219,9 +200,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return(generated).Once()
+				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
@@ -294,11 +273,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	defer func() { clock.DefaultBackend = prevClock }()
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 	namespace := &models.Namespace{Name: "namespace", TenantID: tenant}

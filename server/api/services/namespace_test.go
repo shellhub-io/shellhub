@@ -11,12 +11,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -490,21 +488,11 @@ func TestGetNamespace(t *testing.T) {
 func TestCreateNamespace(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("ProvisioningKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
-	clockMock := clockmock.NewMockClock(t)
-
-	prevClockBackend := clock.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClockBackend
-	})
-	clock.DefaultBackend = clockMock
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	ctx := context.TODO()
-
-	uuidMock := uuidmocks.NewMockUUID(t)
-	uuid.DefaultBackend = uuidMock
 
 	type Expected struct {
 		ns  *models.Namespace
@@ -853,10 +841,7 @@ func TestCreateNamespace(t *testing.T) {
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
 					Once()
-				uuidMock.
-					On("Generate").
-					Return("4de9253f-4a2a-49e7-a748-26e7a009bd2e").
-					Once()
+				uuid.Fix(t, "4de9253f-4a2a-49e7-a748-26e7a009bd2e")
 				storeMock.
 					On(
 						"NamespaceCreate",

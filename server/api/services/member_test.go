@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -200,7 +201,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
-			mockClockNow(t, now)
+			freezeClockAndUUID(t, now)
 			tc.requiredMocks(ctx)
 			ns, err := s.AddNamespaceMember(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{ns, err})
@@ -1166,7 +1167,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 }
 
 func TestService_LeaveNamespace(t *testing.T) {
-	pinTestClock(t, now)
+	clock.Freeze(t, now)
 
 	type Expected struct {
 		res *models.UserAuthResponse
@@ -1482,7 +1483,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	mockClockNow(t, now)
+	freezeClockAndUUID(t, now)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1523,7 +1524,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	mockClockNow(t, now)
+	freezeClockAndUUID(t, now)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1590,7 +1591,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	mockClockNow(t, now)
+	freezeClockAndUUID(t, now)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",

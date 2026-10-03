@@ -17,7 +17,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/mock"
@@ -33,9 +32,6 @@ func TestCreateAPIKey(t *testing.T) {
 	const surrogateID = "c629572a-b643-4301-90fe-4572b00d007e"
 
 	storeMock := storemock.NewMockStore(t)
-
-	prevUUID := uuid.DefaultBackend
-	defer func() { uuid.DefaultBackend = prevUUID }()
 
 	cases := []struct {
 		description   string
@@ -157,13 +153,7 @@ func TestCreateAPIKey(t *testing.T) {
 						nil,
 					).
 					Once()
-
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])
@@ -205,13 +195,7 @@ func TestCreateAPIKey(t *testing.T) {
 						nil,
 					).
 					Once()
-
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])
@@ -264,13 +248,7 @@ func TestCreateAPIKey(t *testing.T) {
 						nil,
 					).
 					Once()
-
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])
@@ -343,13 +321,7 @@ func TestCreateAPIKey(t *testing.T) {
 						nil,
 					).
 					Once()
-
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])

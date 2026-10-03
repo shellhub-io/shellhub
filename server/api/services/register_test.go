@@ -179,7 +179,7 @@ func TestService_RegisterUser(t *testing.T) {
 				nonAdminProvisioningEnabled = false
 			})
 
-			mockClockNow(t, now)
+			freezeClockAndUUID(t, now)
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 

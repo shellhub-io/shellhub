@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -36,7 +37,7 @@ func recordDeviceRemovals(t *testing.T) *[]removedDevice {
 
 func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 	at := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	pinTestClock(t, at)
+	clock.Freeze(t, at)
 
 	ctx := context.Background()
 	sc := scope.MustBounded("tenant")

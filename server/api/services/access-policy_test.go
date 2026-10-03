@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -1150,7 +1151,7 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 		Return(namespace, nil).Once()
 	storeMock.On("APIKeyList", ctx, mock.Anything).Return(apiKeys, len(apiKeys), nil).Maybe()
 	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, len(stored), nil).Once()
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -1359,7 +1360,7 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 	})
 
 	t.Run("is refused once the key expires", func(t *testing.T) {
-		clockMock.On("Now").Return(now).Twice()
+		clock.Freeze(t, now)
 
 		expired := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: now.Add(-time.Hour).Unix()}
 		service := newService(t, nil, expired, nil)
