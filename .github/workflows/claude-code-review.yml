@@ -166,6 +166,19 @@ jobs:
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Generate issue token
+        id: issue-token
+        if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.is_admin == 'true'
+        continue-on-error: true
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: shellhub,team
+          permission-issues: read
+          permission-pull-requests: read
+
       - name: Determine cloud branch
         id: cloud-branch
         if: steps.gate.outputs.proceed == 'true'
@@ -214,6 +227,7 @@ jobs:
           sibling-ref: ${{ steps.cloud-branch.outputs.ref }}
           sibling-path: cloud
           app-token: ${{ steps.app-token.outputs.token }}
+          issue-token: ${{ steps.issue-token.outputs.token }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           anthropic-base-url: ${{ secrets.ANTHROPIC_BASE_URL }}
