@@ -90,14 +90,14 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	}
 
 	if cfg.HTTPPort == "" {
-		cfg.HTTPPort, err = freePort()
+		cfg.HTTPPort, err = freePort(ctx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if cfg.SSHPort == "" {
-		cfg.SSHPort, err = freePort()
+		cfg.SSHPort, err = freePort(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -138,17 +138,17 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		stackImages.Unlock()
 	}
 
-	tcDc, err := compose.NewDockerComposeWith(
-		compose.StackIdentifier(cfg.Name),
-		compose.WithStackFiles(files...),
-		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
-	)
+	tcDc, err := newComposeStack(cfg.Name, files)
 	if err != nil {
 		return nil, err
 	}
 
+	down := func(err error) error {
+		return errors.Join(err, removeStack(context.WithoutCancel(ctx), tcDc))
+	}
+
 	if err := tcDc.WithEnv(merged).Up(ctx, compose.Wait(true)); err != nil {
-		return nil, err
+		return nil, down(err)
 	}
 
 	if needsBuild {
@@ -159,7 +159,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	for _, svc := range []Service{ServiceGateway, ServiceServer} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err != nil {
-			return nil, err
+			return nil, down(err)
 		}
 
 		services[svc] = c
@@ -173,6 +173,18 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		anonymous: newClient(cfg.HTTPPort),
 		dc:        tcDc,
 	}, nil
+}
+
+func newComposeStack(name string, files []string) (*compose.DockerCompose, error) {
+	if err := pinDockerHost(); err != nil {
+		return nil, err
+	}
+
+	return compose.NewDockerComposeWith(
+		compose.StackIdentifier(name),
+		compose.WithStackFiles(files...),
+		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
+	)
 }
 
 func newClient(port string) *resty.Client {
@@ -200,11 +212,7 @@ func mergeEnvs(files []string, layers ...map[string]string) (map[string]string, 
 // Attach reconnects to an existing compose project by name without starting it. It is used
 // to tear down a stack from a different process than the one that brought it up.
 func Attach(ctx context.Context, name string, files []string, envs map[string]string) (*Stack, error) {
-	tcDc, err := compose.NewDockerComposeWith(
-		compose.StackIdentifier(name),
-		compose.WithStackFiles(files...),
-		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
-	)
+	tcDc, err := newComposeStack(name, files)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +243,11 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 
 // Down removes the stack's containers, networks and volumes but keeps images.
 func (s *Stack) Down(ctx context.Context) error {
-	return s.dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
+	return removeStack(ctx, s.dc)
+}
+
+func removeStack(ctx context.Context, dc compose.ComposeStack) error {
+	return dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
 }
 
 // Files returns a copy of the compose file list used to start the stack.
@@ -243,10 +255,6 @@ func (s *Stack) Files() []string { return slices.Clone(s.files) }
 
 // Envs returns a copy of the environment the stack was started with.
 func (s *Stack) Envs() map[string]string { return maps.Clone(s.envs) }
-
-// Env returns a single environment variable from the stack's compose environment.
-// It looks up only the variables the stack was started with, not the host's env.
-func (s *Stack) Env(key string) string { return s.envs[key] }
 
 // HTTPPort returns the host port the gateway publishes HTTP on.
 func (s *Stack) HTTPPort() string { return s.envs["SHELLHUB_HTTP_PORT"] }

@@ -47,11 +47,6 @@ func (dc *DockerCompose) Anonymous(ctx context.Context) *resty.Request {
 	return dc.stack.Anonymous(ctx)
 }
 
-// Env retrieves a environment variable with the specified key.
-func (dc *DockerCompose) Env(key string) string {
-	return dc.stack.Env(key)
-}
-
 // SSHAddress is the host address the gateway's SSH port is published on.
 func (dc *DockerCompose) SSHAddress() string {
 	return dc.stack.SSHAddress()

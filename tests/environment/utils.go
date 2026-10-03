@@ -1,10 +1,15 @@
 package environment
 
 import (
-	"errors"
+	"context"
+	"crypto/rand"
+	"fmt"
+	"math/big"
 	"net"
+	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,42 +24,75 @@ const (
 	ServiceServer  Service = "server"
 )
 
+const (
+	lowestRandomPort       = 10000
+	defaultEphemeralStart  = 32768
+	ephemeralPortRangePath = "/proc/sys/net/ipv4/ip_local_port_range"
+)
+
 var freePortController []string
 
-func freePort() (string, error) {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+func ephemeralPortStart() int {
+	data, err := os.ReadFile(ephemeralPortRangePath)
 	if err != nil {
-		return "", err
+		return defaultEphemeralStart
 	}
 
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return "", err
+	fields := strings.Fields(string(data))
+	if len(fields) == 0 {
+		return defaultEphemeralStart
 	}
 
-	defer l.Close() //nolint:errcheck // port already read; close is best-effort
-
-	tcpAddr, ok := l.Addr().(*net.TCPAddr)
-	if !ok {
-		return "", errors.New("listener address is not TCP")
+	start, err := strconv.Atoi(fields[0])
+	if err != nil || start <= lowestRandomPort {
+		return defaultEphemeralStart
 	}
 
-	port := strconv.Itoa(tcpAddr.Port)
-	if slices.Contains(freePortController, port) {
-		return freePort()
-	}
-
-	freePortController = append(freePortController, port)
-
-	return port, nil
+	return start
 }
 
-// GetFreePort returns a randomly available TCP port. It can be used to avoid
-// network conflicts in Docker Compose.
+func freePort(ctx context.Context) (string, error) {
+	limit := ephemeralPortStart()
+	span := big.NewInt(int64(limit - lowestRandomPort))
+
+	for range limit - lowestRandomPort {
+		offset, err := rand.Int(rand.Reader, span)
+		if err != nil {
+			return "", err
+		}
+
+		port := strconv.Itoa(lowestRandomPort + int(offset.Int64()))
+		if slices.Contains(freePortController, port) {
+			continue
+		}
+
+		l, err := new(net.ListenConfig).Listen(ctx, "tcp", net.JoinHostPort("127.0.0.1", port))
+		if err == nil {
+			l.Close() //nolint:errcheck // the probe listener is discarded; a failed close changes nothing
+		}
+
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+
+		if err != nil {
+			continue
+		}
+
+		freePortController = append(freePortController, port)
+
+		return port, nil
+	}
+
+	return "", fmt.Errorf("no free port between %d and %d", lowestRandomPort, limit)
+}
+
+// GetFreePort returns a random TCP port free on 127.0.0.1, below the kernel's ephemeral range so
+// that rootless Docker under pasta, which forwards only non-ephemeral ports, can publish it.
 func GetFreePort(t *testing.T) string {
 	t.Helper()
 
-	port, err := freePort()
+	port, err := freePort(t.Context())
 	require.NoError(t, err)
 
 	return port

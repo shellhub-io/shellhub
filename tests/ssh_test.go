@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/bramvdbogaerde/go-scp"
+	"github.com/moby/moby/api/types/container"
 	"github.com/pkg/sftp"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -95,9 +96,9 @@ func agentBuildLog() io.Writer {
 	return io.Discard
 }
 
-func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
-		"SHELLHUB_SERVER_ADDRESS":     "http://localhost:" + port,
+		"SHELLHUB_SERVER_ADDRESS":     "http://localhost",
 		"SHELLHUB_TENANT_ID":          "00000000-0000-4000-0000-000000000000",
 		"SHELLHUB_PRIVATE_KEY":        "/tmp/shellhub.key",
 		"SHELLHUB_LOG_FORMAT":         "json",
@@ -112,8 +113,10 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Env:         envs,
-			NetworkMode: "host",
+			Env: envs,
+			HostConfigModifier: func(hc *container.HostConfig) {
+				hc.NetworkMode = container.NetworkMode("container:" + gatewayID)
+			},
 			FromDockerfile: testcontainers.FromDockerfile{
 				Repo:           envOr("SHELLHUB_E2E_AGENT_IMAGE", "agent"),
 				Tag:            "test",
@@ -738,37 +741,12 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					OriginPort uint32
 				}
 
-				port := environment.GetFreePort(t)
-
-				listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", ":"+port)
-				require.NoError(t, err)
-
-				wg := new(sync.WaitGroup)
-
-				wg.Go(func() {
-					conn, err := listener.Accept()
-					require.NoError(t, err)
-
-					buffer := make([]byte, 1024)
-
-					read, err := conn.Read(buffer)
-					require.NoError(t, err)
-
-					require.Equal(t, 4, read)
-					require.Equal(t, "test", string(buffer[:4]))
-
-					_ = conn.Close()
-				})
-
-				dest, err := strconv.Atoi(port)
-				require.NoError(t, err)
-
 				orig, err := strconv.Atoi(environment.GetFreePort(t))
 				require.NoError(t, err)
 
 				data := Data{
-					DestAddr:   "0.0.0.0",
-					DestPort:   uint32(dest), //nolint:gosec
+					DestAddr:   "127.0.0.1",
+					DestPort:   80,
 					OriginAddr: "127.0.0.1",
 					OriginPort: uint32(orig), //nolint:gosec
 				}
@@ -776,12 +754,12 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				ch, _, err := conn.OpenChannel("direct-tcpip", ssh.Marshal(data))
 				require.NoError(t, err)
 
-				wrote, err := ch.Write([]byte("test"))
+				_, err = ch.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 				require.NoError(t, err)
 
-				require.Equal(t, 4, wrote)
-
-				wg.Wait()
+				status, err := bufio.NewReader(ch).ReadString('\n')
+				require.NoError(t, err)
+				require.True(t, strings.HasPrefix(status, "HTTP/1."), status)
 
 				_ = ch.Close()
 				_ = conn.Close()
@@ -1796,7 +1774,7 @@ func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) 
 func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) testcontainers.Container {
 	t.Helper()
 
-	agent, err := NewAgentContainer(ctx, compose.Env("SHELLHUB_HTTP_PORT"), opts...)
+	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), opts...)
 	require.NoError(t, err)
 
 	require.NoError(t, agent.Start(ctx))
