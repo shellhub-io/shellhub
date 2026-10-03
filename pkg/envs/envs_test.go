@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
+	"github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -450,4 +451,37 @@ func TestParse_with_required(t *testing.T) {
 			assert.ErrorIs(t, err, tt.expected.Error)
 		})
 	}
+}
+
+func backendReturning(t *testing.T, key, value string) *mocks.MockBackend {
+	t.Helper()
+
+	backend := mocks.NewMockBackend(t)
+	backend.On("Get", key).Return(value)
+
+	return backend
+}
+
+func TestSet(t *testing.T) {
+	t.Setenv("SHELLHUB_ENVS_SET_TEST", "process")
+
+	t.Run("serves Get from the backend until the test ends", func(t *testing.T) {
+		envs.Set(t, backendReturning(t, "SHELLHUB_ENVS_SET_TEST", "backend"))
+
+		assert.Equal(t, "backend", envs.Get("SHELLHUB_ENVS_SET_TEST"))
+	})
+
+	assert.Equal(t, "process", envs.Get("SHELLHUB_ENVS_SET_TEST"))
+}
+
+func TestSetNested(t *testing.T) {
+	envs.Set(t, backendReturning(t, "SHELLHUB_ENVS_SET_TEST", "outer"))
+
+	t.Run("an inner Set gives back the outer one", func(t *testing.T) {
+		envs.Set(t, backendReturning(t, "SHELLHUB_ENVS_SET_TEST", "inner"))
+
+		assert.Equal(t, "inner", envs.Get("SHELLHUB_ENVS_SET_TEST"))
+	})
+
+	assert.Equal(t, "outer", envs.Get("SHELLHUB_ENVS_SET_TEST"))
 }

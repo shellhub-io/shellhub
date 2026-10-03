@@ -66,3 +66,29 @@ func TestCompare(t *testing.T) {
 		})
 	}
 }
+
+type fixedHasher string
+
+func (f fixedHasher) Do(string) (string, error) {
+	return string(f), nil
+}
+
+func (f fixedHasher) CompareWith(_ string, hash string) bool {
+	return hash == string(f)
+}
+
+func TestSet(t *testing.T) {
+	Set(t, fixedHasher("outer"))
+
+	t.Run("serves Do from the hasher until the test ends", func(t *testing.T) {
+		Set(t, fixedHasher("inner"))
+
+		hashed, err := Do("secret")
+		require.NoError(t, err)
+		assert.Equal(t, "inner", hashed)
+	})
+
+	hashed, err := Do("secret")
+	require.NoError(t, err)
+	assert.Equal(t, "outer", hashed)
+}
