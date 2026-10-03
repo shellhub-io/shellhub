@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -99,7 +100,7 @@ func TestWebReauthVerify(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			clockMock.On("Now").Return(now)
+			clock.Freeze(t, now)
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -193,7 +194,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			clockMock.On("Now").Return(now)
+			clock.Freeze(t, now)
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -243,7 +244,7 @@ func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
 		code        = "WXYZ2K7Q"
 	)
 
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 	storeMock := new(storemock.MockStore)
 	queryOptionsMock := new(storemock.MockQueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()

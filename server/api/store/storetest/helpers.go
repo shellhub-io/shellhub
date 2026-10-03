@@ -242,9 +242,7 @@ func pinClock(t *testing.T, at time.Time) *fixedClock {
 	t.Helper()
 
 	clk := &fixedClock{now: at}
-	prev := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prev })
-	clock.DefaultBackend = clk
+	clock.Set(t, clk)
 
 	return clk
 }

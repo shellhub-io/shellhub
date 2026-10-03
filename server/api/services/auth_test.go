@@ -18,11 +18,9 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -34,20 +32,10 @@ func TestAuthDevice(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
-	clockMock := clockmock.NewMockClock(t)
-	uuidMock := uuidmock.NewMockUUID(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
+	clock.Freeze(t, now)
+	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	toUID := func(tenantID, hostname, mac, publicKey string) string {
 		auth := models.DeviceAuth{
@@ -1568,11 +1556,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
 					Once()
-				uuidMock := uuidmock.NewMockUUID(t)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("00000000-0000-4000-0000-000000000000")
+				uuid.Fix(t, "00000000-0000-4000-0000-000000000000")
 				cacheMock.
 					On("Set", ctx, "mfa-token={00000000-0000-4000-0000-000000000000}", "65fdd16b5f62f93184ec8a39", 30*time.Minute).
 					Return(nil).
@@ -1667,10 +1651,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				mock.
 					On("UserUpdate", ctx, updatedUser).
@@ -1786,10 +1767,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -1888,10 +1866,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2017,10 +1992,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2148,10 +2120,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2247,10 +2216,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-
-				clockMock := clockmock.NewMockClock(t)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2314,7 +2280,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 }
 
 func TestCreateUserToken(t *testing.T) {
-	pinTestClock(t, now)
+	clock.Freeze(t, now)
 
 	storeMock := mocks.NewMockStore(t)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
@@ -2636,7 +2602,7 @@ const (
 )
 
 func TestAuthAPIKey(t *testing.T) {
-	pinTestClock(t, now)
+	clock.Freeze(t, now)
 
 	type Expected struct {
 		apiKey *models.APIKey
@@ -2935,7 +2901,7 @@ func (f *fakeAPIKeyCache) Delete(_ context.Context, key string) error {
 func newAPIKeyAuthFixture(t *testing.T, cache storecache.Cache) (*mocks.MockStore, *APIService) {
 	t.Helper()
 
-	pinTestClock(t, now)
+	clock.Freeze(t, now)
 
 	storeMock := mocks.NewMockStore(t)
 
@@ -3104,21 +3070,8 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 // the previously stored address untouched on reconnect, while a valid IP refreshes it.
 func TestAuthDevice_RemoteAddr(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(now)
-	clock.DefaultBackend = clockMock
-
-	uuidMock := uuidmock.NewMockUUID(t)
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
-	uuid.DefaultBackend = uuidMock
+	clock.Freeze(t, now)
+	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	toUID := func(tenantID, hostname, mac, publicKey string) string {
 		auth := models.DeviceAuth{

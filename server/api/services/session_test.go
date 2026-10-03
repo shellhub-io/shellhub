@@ -13,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -540,11 +539,7 @@ func TestKeepAliveSession(t *testing.T) {
 	ctx := context.TODO()
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	cases := []struct {
 		name          string

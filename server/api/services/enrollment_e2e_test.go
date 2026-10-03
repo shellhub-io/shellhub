@@ -21,7 +21,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
 	"github.com/stretchr/testify/mock"
@@ -49,11 +48,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	st := provider.Store()
 
-	fixed := now
-	localClock := clockmock.NewMockClock(t)
-	localClock.On("Now").Return(fixed).Maybe()
-	prevClock := clock.DefaultBackend
-	clock.DefaultBackend = localClock
+	clock.Freeze(t, now)
 
 	localEnv := envmock.NewMockBackend(t)
 	localEnv.On("Get", "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
@@ -61,14 +56,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	prevEnv := envs.DefaultBackend
 	envs.DefaultBackend = localEnv
 
-	prevUUID := uuid.DefaultBackend
-	uuid.DefaultBackend = realUUIDBackend
-
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		envs.DefaultBackend = prevEnv
-		uuid.DefaultBackend = prevUUID
-	})
+	t.Cleanup(func() { envs.DefaultBackend = prevEnv })
 
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,
@@ -474,7 +462,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	cur := base
 	clk := clockmock.NewMockClock(t)
 	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.DefaultBackend = clk
+	clock.Set(t, clk)
 
 	decision := "defer"
 	hits := 0
@@ -529,7 +517,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	cur := base
 	clk := clockmock.NewMockClock(t)
 	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.DefaultBackend = clk
+	clock.Set(t, clk)
 
 	decision := "defer"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -629,7 +617,7 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	cur := base
 	clk := clockmock.NewMockClock(t)
 	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.DefaultBackend = clk
+	clock.Set(t, clk)
 
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:70", plaintextFor(0x70))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
@@ -673,7 +661,7 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	cur := base
 	clk := clockmock.NewMockClock(t)
 	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.DefaultBackend = clk
+	clock.Set(t, clk)
 
 	accept := func(uid string) {
 		require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{

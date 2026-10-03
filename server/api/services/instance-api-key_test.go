@@ -12,9 +12,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/mock"
@@ -108,11 +108,9 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 					Return(&models.User{ID: "user-1", Admin: true}, nil).
 					Once()
 
-				uuidMock := new(uuidmock.MockUUID)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyCreate", ctx, &models.InstanceAPIKey{
 						ID:        instanceKeyDigest(models.InstanceAPIKeyPrefix + "cdfd3cb0-c44e-4e54-b931-6d57713ad159"),
@@ -141,11 +139,9 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 					Return(&models.User{ID: "user-1", Admin: true}, nil).
 					Once()
 
-				uuidMock := new(uuidmock.MockUUID)
-				uuid.DefaultBackend = uuidMock
-				uuidMock.On("Generate").Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyCreate", ctx, &models.InstanceAPIKey{
 						ID:        instanceKeyDigest(models.InstanceAPIKeyPrefix + "cdfd3cb0-c44e-4e54-b931-6d57713ad159"),
@@ -179,8 +175,6 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 			require.Equal(t, tc.expected, Expected{res, err})
 		})
 	}
-
-	uuid.DefaultBackend = realUUIDBackend
 	storeMock.AssertExpectations(t)
 }
 
@@ -219,7 +213,7 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "fails when the key has expired",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{
@@ -239,7 +233,7 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "fails when the creator is no longer an instance administrator",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{
@@ -263,7 +257,7 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "succeeds when the key is valid and its creator is still an administrator",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clockMock.On("Now").Return(now)
+				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{

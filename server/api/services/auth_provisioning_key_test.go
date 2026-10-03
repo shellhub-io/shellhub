@@ -15,10 +15,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	testifymock "github.com/stretchr/testify/mock"
@@ -34,20 +32,10 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 	queryOptionsMock := mocks.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
-	clockMock := clockmock.NewMockClock(t)
-	uuidMock := uuidmock.NewMockUUID(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
+	clock.Freeze(t, now)
+	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
@@ -233,20 +221,10 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 	queryOptionsMock := mocks.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
-	clockMock := clockmock.NewMockClock(t)
-	uuidMock := uuidmock.NewMockUUID(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
+	clock.Freeze(t, now)
+	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 

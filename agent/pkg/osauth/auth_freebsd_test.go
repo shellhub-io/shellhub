@@ -8,29 +8,17 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 const testHash = "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN."
-
-func setNow(t *testing.T, seconds int64) {
-	t.Helper()
-
-	clockMock := clockmock.NewMockClock(t)
-	clockMock.On("Now").Return(time.Unix(seconds, 0)).Maybe()
-
-	previous := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	t.Cleanup(func() { clock.DefaultBackend = previous })
-}
 
 func masterPasswdLine(username, change, expire string) string {
 	return username + ":" + testHash + ":1001:1001::" + change + ":" + expire + ":User:/home/user:/bin/sh\n"
 }
 
 func TestAuthUserFromShadowExpiry(t *testing.T) {
-	setNow(t, 1800000000)
+	clock.Freeze(t, time.Unix(1800000000, 0))
 
 	tests := []struct {
 		name   string
@@ -74,7 +62,7 @@ func TestAuthUserFromShadowExpiry(t *testing.T) {
 }
 
 func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
-	setNow(t, 1800000000)
+	clock.Freeze(t, time.Unix(1800000000, 0))
 
 	masterPasswd := masterPasswdLine("bad", "0", "never") + masterPasswdLine("good", "0", "0")
 
@@ -84,7 +72,7 @@ func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
 }
 
 func TestAccountExpiredFromShadow(t *testing.T) {
-	setNow(t, 1800000000)
+	clock.Freeze(t, time.Unix(1800000000, 0))
 
 	masterPasswd := masterPasswdLine("expired", "0", "1800000000") +
 		masterPasswdLine("changed", "1700000000", "0") +

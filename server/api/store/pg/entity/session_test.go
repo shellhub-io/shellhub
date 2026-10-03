@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,11 +12,6 @@ import (
 
 func TestSessionFromModel(t *testing.T) {
 	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
-
-	clockMock := clockmock.NewMockClock(t)
-	oldClock := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	t.Cleanup(func() { clock.DefaultBackend = oldClock })
 
 	tests := []struct {
 		name  string
@@ -73,7 +67,7 @@ func TestSessionFromModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clockMock.On("Now").Return(now).Once()
+			clock.Freeze(t, now)
 			result := SessionFromModel(tt.model)
 			tt.check(t, result)
 		})
@@ -171,11 +165,6 @@ func TestSessionToModel(t *testing.T) {
 func TestActiveSessionFromModel(t *testing.T) {
 	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
-	clockMock := clockmock.NewMockClock(t)
-	oldClock := clock.DefaultBackend
-	clock.DefaultBackend = clockMock
-	t.Cleanup(func() { clock.DefaultBackend = oldClock })
-
 	tests := []struct {
 		name  string
 		model *models.ActiveSession
@@ -212,7 +201,7 @@ func TestActiveSessionFromModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clockMock.On("Now").Return(now).Once()
+			clock.Freeze(t, now)
 			result := ActiveSessionFromModel(tt.model)
 			tt.check(t, result)
 		})

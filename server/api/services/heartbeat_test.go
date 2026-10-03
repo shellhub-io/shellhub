@@ -18,10 +18,7 @@ func fixedClock(t *testing.T, instants ...time.Time) {
 	t.Helper()
 
 	clockMock := clockmock.NewMockClock(t)
-
-	prev := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prev })
-	clock.DefaultBackend = clockMock
+	clock.Set(t, clockMock)
 
 	i := 0
 	clockMock.On("Now").Return(func() time.Time {

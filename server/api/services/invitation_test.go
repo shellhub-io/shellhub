@@ -12,11 +12,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -25,20 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func mockClockNow(t *testing.T, now time.Time) {
+func freezeClockAndUUID(t *testing.T, now time.Time) {
 	t.Helper()
-
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now).Maybe()
-
-	uuidMock := uuidmock.NewMockUUID(t)
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() { uuid.DefaultBackend = prevUUID })
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-4000-0000-000000000000").Maybe()
+	clock.Freeze(t, now)
+	uuid.Fix(t, "00000000-0000-4000-0000-000000000000")
 }
 
 func TestService_ResolveInvitation(t *testing.T) {
@@ -235,7 +223,7 @@ func TestService_AcceptInvite(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			mockClockNow(t, now)
+			freezeClockAndUUID(t, now)
 			tc.requiredMocks()
 
 			err := s.AcceptInvite(ctx, req)
@@ -395,7 +383,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			directMembershipEnabled = tc.directMembership
 			t.Cleanup(func() { directMembershipEnabled = false })
 
-			mockClockNow(t, now)
+			freezeClockAndUUID(t, now)
 			tc.requiredMocks()
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
@@ -693,7 +681,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			mockClockNow(t, now)
+			freezeClockAndUUID(t, now)
 			tc.requiredMocks()
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())

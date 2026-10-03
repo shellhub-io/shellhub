@@ -11,6 +11,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -65,7 +66,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 	envs.DefaultBackend = env
 	t.Cleanup(func() { envs.DefaultBackend = prevEnv })
 
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())

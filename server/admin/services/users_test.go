@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -33,9 +32,7 @@ func TestUserCreate(t *testing.T) {
 	now := clock.Now()
 	errStoreDown := errors.New("connection refused")
 
-	mockClock := new(clockmock.MockClock)
-	clock.DefaultBackend = mockClock
-	mockClock.On("Now").Return(now)
+	clock.Freeze(t, now)
 
 	cases := []struct {
 		description   string

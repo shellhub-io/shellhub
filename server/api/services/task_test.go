@@ -11,7 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -24,14 +23,9 @@ func TestService_DeviceCleanup(t *testing.T) {
 	ctx := context.Background()
 
 	storeMock := storemock.NewMockStore(t)
-	clockMock := clockmock.NewMockClock(t)
-
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -438,12 +432,7 @@ func TestService_SessionCleanup(t *testing.T) {
 	cutoff := now.Add(-retention)
 
 	storeMock := storemock.NewMockStore(t)
-	clockMock := clockmock.NewMockClock(t)
-
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	expired := func(n int) []store.ExpiredSession {
 		batch := make([]store.ExpiredSession, n)
@@ -711,12 +700,7 @@ func (m *mockSessionRecordingPruner) DeleteRecordings(ctx context.Context, uids 
 func TestService_ActiveSessionCleanup(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
-
-	clockMock := clockmock.NewMockClock(t)
-	prevClock := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prevClock })
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now).Maybe()
+	clock.Freeze(t, now)
 
 	cases := []struct {
 		description    string

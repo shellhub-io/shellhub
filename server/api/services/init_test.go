@@ -8,48 +8,30 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
 const testIssuer = "http://localhost"
 
 var (
-	privateKey      *rsa.PrivateKey
-	publicKey       *rsa.PublicKey
-	envMock         *env_mocks.MockBackend
-	clockMock       *clockmocks.MockClock
-	hashMock        *hashmock.MockHasher
-	now             time.Time
-	realUUIDBackend uuid.UUID
+	privateKey *rsa.PrivateKey
+	publicKey  *rsa.PublicKey
+	envMock    *env_mocks.MockBackend
+	hashMock   *hashmock.MockHasher
+	now        time.Time
 )
 
 func TestMain(m *testing.M) {
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
 	publicKey = &privateKey.PublicKey
 	now = clock.Now()
-	realUUIDBackend = uuid.DefaultBackend
-	clockMock = &clockmocks.MockClock{}
 	envMock = &env_mocks.MockBackend{}
-	clock.DefaultBackend = clockMock
 	envs.DefaultBackend = envMock
 	hashMock = &hashmock.MockHasher{}
 	hash.Backend = hashMock
 	code := m.Run()
 	os.Exit(code)
-}
-
-func pinTestClock(t *testing.T, at time.Time) {
-	t.Helper()
-
-	clk := clockmocks.NewMockClock(t)
-	clk.On("Now").Return(at).Maybe()
-
-	prev := clock.DefaultBackend
-	t.Cleanup(func() { clock.DefaultBackend = prev })
-	clock.DefaultBackend = clk
 }
