@@ -11,8 +11,7 @@ import (
 )
 
 func TestFireNamespaceDelete(t *testing.T) {
-	saved := namespaceDeleteHooks
-	t.Cleanup(func() { namespaceDeleteHooks = saved })
+	override(t, &namespaceDeleteHooks, nil)
 
 	ctx := context.Background()
 	ns := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}

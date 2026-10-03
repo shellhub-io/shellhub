@@ -11,8 +11,7 @@ import (
 )
 
 func TestOnMembershipInvited(t *testing.T) {
-	original := membershipInvitedHooks
-	t.Cleanup(func() { membershipInvitedHooks = original })
+	override(t, &membershipInvitedHooks, nil)
 
 	t.Run("panics on nil hook", func(t *testing.T) {
 		assert.Panics(t, func() { OnMembershipInvited(nil) })
@@ -37,8 +36,7 @@ func TestOnMembershipInvited(t *testing.T) {
 }
 
 func TestFireMembershipInvited(t *testing.T) {
-	original := membershipInvitedHooks
-	t.Cleanup(func() { membershipInvitedHooks = original })
+	override(t, &membershipInvitedHooks, nil)
 
 	notification := &models.MembershipInvitationNotification{
 		Signature:      "ABCDEF123456",

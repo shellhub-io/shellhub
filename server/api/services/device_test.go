@@ -1428,9 +1428,7 @@ func TestOfflineDevice(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus(t *testing.T) {
-	savedHooks := deviceMergeHooks
-	deviceMergeHooks = nil
-	t.Cleanup(func() { deviceMergeHooks = savedHooks })
+	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clock.Freeze(t, now)
@@ -2127,9 +2125,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
-	savedHooks := deviceMergeHooks
-	deviceMergeHooks = nil
-	t.Cleanup(func() { deviceMergeHooks = savedHooks })
+	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clock.Freeze(t, now)
@@ -2447,9 +2443,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	envstest.SetEdition(t, envs.Community)
 
-	savedHooks := deviceMergeHooks
-	deviceMergeHooks = nil
-	t.Cleanup(func() { deviceMergeHooks = savedHooks })
+	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clock.Freeze(t, now)

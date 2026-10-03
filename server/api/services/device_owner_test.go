@@ -23,11 +23,9 @@ type removedDevice struct {
 func recordDeviceRemovals(t *testing.T) *[]removedDevice {
 	t.Helper()
 
-	saved := deviceRemovedHooks
-	t.Cleanup(func() { deviceRemovedHooks = saved })
+	override(t, &deviceRemovedHooks, nil)
 
 	removed := &[]removedDevice{}
-	deviceRemovedHooks = nil
 	OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
 		*removed = append(*removed, removedDevice{tenantID: tenantID, uid: uid})
 	})

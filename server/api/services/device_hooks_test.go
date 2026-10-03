@@ -11,8 +11,7 @@ import (
 )
 
 func TestFireDeviceMerge(t *testing.T) {
-	saved := deviceMergeHooks
-	t.Cleanup(func() { deviceMergeHooks = saved })
+	override(t, &deviceMergeHooks, nil)
 
 	ctx := context.Background()
 	oldDev := &models.Device{UID: "old-uid"}
