@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -16,24 +17,21 @@ import (
 func TestMain_smoke(t *testing.T) {
 	ctx := context.Background()
 
-	req := testcontainers.ContainerRequest{
-		FromDockerfile: testcontainers.FromDockerfile{
-			Context:    "..",
-			Dockerfile: "gateway/Dockerfile",
-			Repo:       "gateway",
-			Tag:        "smoke",
-		},
-		ExposedPorts: []string{"80/tcp"},
-		Env: map[string]string{
-			"SHELLHUB_DOMAIN": "localhost",
-		},
-		WaitingFor: wait.ForListeningPort("80/tcp").
-			WithStartupTimeout(60 * time.Second),
-	}
-
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
+	container, err := testport.Run(ctx, "80/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*testcontainers.DockerContainer, error) {
+		return testcontainers.Run(ctx, "",
+			testcontainers.WithDockerfile(testcontainers.FromDockerfile{
+				Context:    "..",
+				Dockerfile: "gateway/Dockerfile",
+				Repo:       "gateway",
+				Tag:        "smoke",
+			}),
+			testcontainers.WithExposedPorts("80/tcp"),
+			testcontainers.WithEnv(map[string]string{
+				"SHELLHUB_DOMAIN": "localhost",
+			}),
+			testcontainers.WithWaitStrategy(wait.ForListeningPort("80/tcp").WithStartupTimeout(60*time.Second)),
+			bind,
+		)
 	})
 	require.NoError(t, err)
 

@@ -18,6 +18,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	tc "github.com/testcontainers/testcontainers-go"
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
@@ -90,14 +91,14 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	}
 
 	if cfg.HTTPPort == "" {
-		cfg.HTTPPort, err = freePort(ctx)
+		cfg.HTTPPort, err = testport.Free(ctx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if cfg.SSHPort == "" {
-		cfg.SSHPort, err = freePort(ctx)
+		cfg.SSHPort, err = testport.Free(ctx)
 		if err != nil {
 			return nil, err
 		}

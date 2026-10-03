@@ -8,25 +8,16 @@ import (
 	asynqlib "github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
 func TestServer(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
-	require.NoError(t, err)
-
-	redisConnStr, err := redisContainer.ConnectionString(ctx)
-	require.NoError(t, err)
+	redisConnStr := startValkey(t)
 
 	srv := asynq.NewServer(redisConnStr)
 
-	t.Cleanup(func() {
-		srv.Shutdown()
-		require.NoError(t, redisContainer.Terminate(ctx))
-	})
+	t.Cleanup(srv.Shutdown)
 
 	taskCalled := make(chan string, 1)
 	srv.HandleTask("queue:task", func(_ context.Context, payload []byte) error {
