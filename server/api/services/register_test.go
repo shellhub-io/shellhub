@@ -177,12 +177,8 @@ func TestService_RegisterUser(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			openSignupEnabled = tc.openSignup
-			nonAdminProvisioningEnabled = tc.nonAdminProvisioning
-			t.Cleanup(func() {
-				openSignupEnabled = false
-				nonAdminProvisioningEnabled = false
-			})
+			override(t, &openSignupEnabled, tc.openSignup)
+			override(t, &nonAdminProvisioningEnabled, tc.nonAdminProvisioning)
 
 			freezeClockAndUUID(t, now)
 			storeMock := storemock.NewMockStore(t)

@@ -18,9 +18,8 @@ import (
 // It exercises licenseEvaluatorOption, the helper extracted from Setup() so the logic is
 // testable without a live database or Redis connection.
 func TestLicenseEvaluatorWiring(t *testing.T) {
-	t.Cleanup(func() {
-		services.RegisterLicenseEvaluator(nil)
-	})
+	original := services.LicenseEvaluatorFactory()
+	t.Cleanup(func() { services.RegisterLicenseEvaluator(original) })
 
 	t.Run("no factory registered: returns empty option slice", func(t *testing.T) {
 		services.RegisterLicenseEvaluator(nil)

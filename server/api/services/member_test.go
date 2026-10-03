@@ -1577,8 +1577,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	override(t, &membershipInvitedHooks, nil)
 
-	directMembershipEnabled = true
-	t.Cleanup(func() { directMembershipEnabled = false })
+	override(t, &directMembershipEnabled, true)
 
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
