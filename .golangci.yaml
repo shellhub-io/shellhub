@@ -103,9 +103,9 @@ linters:
         - pattern: ^time\.Now$
           msg: use clock.Now() so a test can control it. If this is an elapsed-time
             measurement or a deadline, keep time.Now and add //nolint:forbidigo saying which.
-        - pattern: ^(clock|uuid)\.DefaultBackend$
+        - pattern: ^(clock|uuid|osauth)\.DefaultBackend$
           msg: a swapped backend outlives the test that set it. Use clock.Freeze, clock.Set,
-            uuid.Fix or uuid.Set, which put the previous one back when the test ends.
+            uuid.Fix, uuid.Set or osauth.Set, which put the previous one back when the test ends.
         - pattern: ^envs\.DefaultBackend$
           msg: read a variable with envs.Get. A swapped backend outlives the test that set it,
             so swap it with envs.Set or envstest.SetEdition, which put the previous one back.
