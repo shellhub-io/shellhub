@@ -7,13 +7,16 @@ import {
   password,
   buildShortId,
   composeExec,
+  composeLogs,
   createUser,
   createNamespace,
+  setBillingCustomer,
 } from "./seed";
 import { buildRequestContext, loginAs } from "./api";
 
 const ACCEPTED_CARD = "4242424242424242";
 const DECLINED_CARD = "4000000000000002";
+const FREE_PLAN_MAX_DEVICES = 3;
 
 type Owner = {
   username: string;
@@ -22,9 +25,16 @@ type Owner = {
   tenant: string;
   namespace: string;
   customer?: string;
+  testClock?: string;
 };
 
-function stripeCli(...args: string[]) {
+type StripeObject = {
+  id: string;
+  deleted?: boolean;
+  status?: string;
+};
+
+function stripeCli<T = StripeObject>(...args: string[]): T {
   const output = composeExec("stripe-cli", ["stripe", ...args, "--confirm"]);
   const json = output.indexOf("{");
   if (json === -1) {
@@ -32,11 +42,7 @@ function stripeCli(...args: string[]) {
       `expected JSON from stripe ${args.join(" ")}, got: ${output}`,
     );
   }
-  return JSON.parse(output.slice(json)) as {
-    id: string;
-    deleted?: boolean;
-    status?: string;
-  };
+  return JSON.parse(output.slice(json)) as T;
 }
 
 function deleteStripeCustomer(id: string) {
@@ -54,6 +60,101 @@ function cancelStripeSubscription(id: string) {
     );
   }
 }
+
+function createTestClockCustomer(owner: Owner) {
+  const clock = stripeCli(
+    "test_helpers",
+    "test_clocks",
+    "create",
+    "-d",
+    `frozen_time=${Math.floor(Date.now() / 1000)}`,
+  );
+  owner.testClock = clock.id;
+  const customer = stripeCli(
+    "customers",
+    "create",
+    "-d",
+    `test_clock=${clock.id}`,
+    "-d",
+    `email=${owner.email}`,
+    "-d",
+    `metadata[tenant_id]=${owner.tenant}`,
+  );
+  setBillingCustomer(owner.tenant, customer.id);
+  return { clock: clock.id, customer: customer.id };
+}
+
+function scheduleStripeCancellationAtPeriodEnd(id: string) {
+  const subscription = stripeCli<StripeObject & { cancel_at: number | null }>(
+    "subscriptions",
+    "update",
+    id,
+    "-d",
+    "cancel_at_period_end=true",
+  );
+  if (!subscription.cancel_at) {
+    throw new Error(`expected Stripe to schedule the end of ${id}`);
+  }
+  return subscription.cancel_at;
+}
+
+function advanceTestClock(id: string, to: number) {
+  stripeCli(
+    "test_helpers",
+    "test_clocks",
+    "advance",
+    id,
+    "-d",
+    `frozen_time=${to}`,
+  );
+}
+
+function finalizeDraftInvoice(subscription: string) {
+  const [draft] = stripeCli<{ data: StripeObject[] }>(
+    "invoices",
+    "list",
+    "-d",
+    `subscription=${subscription}`,
+    "-d",
+    "status=draft",
+  ).data;
+  if (!draft) {
+    throw new Error(`expected a draft final invoice for ${subscription}`);
+  }
+  stripeCli("invoices", "finalize_invoice", draft.id);
+}
+
+function readTestClockStatus(id: string) {
+  return stripeCli("test_helpers", "test_clocks", "retrieve", id).status;
+}
+
+function deleteTestClock(id: string) {
+  const clock = stripeCli("test_helpers", "test_clocks", "delete", id);
+  if (!clock.deleted) {
+    throw new Error(`expected Stripe to delete test clock ${id}`);
+  }
+}
+
+function listActiveSubscriptions(customer: string) {
+  return stripeCli<{ data: StripeObject[] }>(
+    "subscriptions",
+    "list",
+    "-d",
+    `customer=${customer}`,
+    "-d",
+    "status=active",
+  ).data;
+}
+
+const hasAbandonedFinalInvoice = (subscription: string) =>
+  composeLogs("server")
+    .split("\n")
+    .some(
+      (line) =>
+        line.includes(
+          "subscription was canceled for a reason other than a failed payment",
+        ) && line.includes(subscription),
+    );
 
 async function readNamespace(owner: Owner) {
   const { data } = await getNamespace({
@@ -75,7 +176,7 @@ async function readTenants(owner: Owner) {
 
 const test = base.extend<{ owner: Owner }>({
   // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from this destructuring, and owner has none
-  owner: async ({}, provide) => {
+  owner: async ({}, provide, testInfo) => {
     const user = createUser("billing");
     const tenant = randomUUID();
     const namespace = `e2e-billing-${buildShortId()}`;
@@ -84,6 +185,31 @@ const test = base.extend<{ owner: Owner }>({
     const owner: Owner = { ...user, token, tenant, namespace };
 
     await provide(owner);
+
+    if (testInfo.status !== testInfo.expectedStatus) {
+      await testInfo.attach("stripe-cli-events.log", {
+        body: composeLogs("stripe-cli")
+          .split("\n")
+          .filter((line) => line.includes("-->") || line.includes("<--"))
+          .join("\n"),
+        contentType: "text/plain",
+      });
+      await testInfo.attach("server-billing.log", {
+        body: composeLogs("server")
+          .split("\n")
+          .filter(
+            (line) =>
+              line.includes("webhook-billing") || line.includes(owner.tenant),
+          )
+          .join("\n"),
+        contentType: "text/plain",
+      });
+    }
+
+    if (owner.testClock) {
+      deleteTestClock(owner.testClock);
+      return;
+    }
 
     const customer =
       owner.customer ?? (await readNamespace(owner)).billing?.customer_id;
@@ -276,5 +402,44 @@ test.describe("Billing", () => {
     await submitNamespaceDeletion(page, owner);
 
     await expect.poll(() => readTenants(owner)).toEqual([]);
+  });
+
+  test("cancelling at the end of the period is not undone when the final invoice is paid", async ({
+    page,
+    owner,
+  }) => {
+    test.setTimeout(360_000);
+    const { clock, customer } = createTestClockCustomer(owner);
+    await openBilling(page, owner);
+    await subscribeWithNewCard(page);
+    const subscription = await readSubscription(owner);
+
+    const periodEnd = scheduleStripeCancellationAtPeriodEnd(subscription.id);
+    await expect
+      .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
+      .toBe("to_cancel_at_end_of_period");
+
+    advanceTestClock(clock, periodEnd + 60);
+    await expect
+      .poll(() => readTestClockStatus(clock), {
+        timeout: 180_000,
+        intervals: [2_000],
+      })
+      .toBe("ready");
+    await expect
+      .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
+      .toBe("canceled");
+    finalizeDraftInvoice(subscription.id);
+    await expect
+      .poll(() => hasAbandonedFinalInvoice(subscription.id), {
+        timeout: 30_000,
+        message: "the server to abandon the final invoice's invoice.paid",
+      })
+      .toBe(true);
+
+    const namespace = await readNamespace(owner);
+    expect(namespace.billing?.subscription?.status).toBe("canceled");
+    expect(namespace.max_devices).toBe(FREE_PLAN_MAX_DEVICES);
+    expect(listActiveSubscriptions(customer)).toEqual([]);
   });
 });
