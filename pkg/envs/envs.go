@@ -34,6 +34,12 @@ func init() {
 	DefaultBackend = &envBackend{}
 }
 
+// Get returns the value of key from the package's backend, or "" when it is unset. Use it rather
+// than os.Getenv, so a test can control what the environment holds.
+func Get(key string) string {
+	return DefaultBackend.Get(key)
+}
+
 // ResolveEdition reads SHELLHUB_EDITION, normalizes it (trim + lowercase) and
 // defaults to Community when empty. It returns an error for any unrecognized
 // value so entrypoints can validate the edition once at startup and fail fast

@@ -14,12 +14,12 @@ func UseEnvs() {
 // SetLogLevel applies the level named by the environment: trace in development, and otherwise
 // whatever SHELLHUB_LOG_LEVEL asks for, falling back to info.
 func SetLogLevel() {
-	if envs.DefaultBackend.Get("SHELLHUB_ENV") == "development" {
+	if envs.Get("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.TraceLevel)
 		logrus.Info("SHELLHUB_LOG_LEVEL set to TRACE due SHELLHUB_ENV in development")
 	}
 
-	if level := envs.DefaultBackend.Get("SHELLHUB_LOG_LEVEL"); level != "" {
+	if level := envs.Get("SHELLHUB_LOG_LEVEL"); level != "" {
 		l, err := logrus.ParseLevel(level)
 		if err != nil {
 			logrus.SetLevel(logrus.InfoLevel)
@@ -47,7 +47,7 @@ const (
 // TODO: "set" on the name doesn't make sense, as it isn't receiving nothing to set. In my view, "use" could be a better
 // naming, as it will "use" the environmental variable.
 func SetLogFormat() {
-	if format := envs.DefaultBackend.Get("SHELLHUB_LOG_FORMAT"); format != "" {
+	if format := envs.Get("SHELLHUB_LOG_FORMAT"); format != "" {
 		switch LogFormat(format) {
 		case LogFormatJSON:
 			logrus.SetFormatter(new(logrus.JSONFormatter))

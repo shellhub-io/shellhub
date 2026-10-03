@@ -34,7 +34,7 @@ func enrollmentWebhookClient() *http.Client {
 
 	var v4, v6 []netip.Prefix
 
-	for raw := range strings.SplitSeq(envs.DefaultBackend.Get(enrollmentWebhookAllowedCIDRsEnv), ",") {
+	for raw := range strings.SplitSeq(envs.Get(enrollmentWebhookAllowedCIDRsEnv), ",") {
 		raw = strings.TrimSpace(raw)
 		if raw == "" {
 			continue
