@@ -119,7 +119,7 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 // + return err — BEFORE launching any goroutine or reaching cmd.ProcessState.ExitCode().
 func TestHeredoc_StartFailure(t *testing.T) {
 	osauthMock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = osauthMock
+	osauth.Set(t, osauthMock)
 
 	fakeUser := &osauth.User{
 		UID:      0,
@@ -197,7 +197,7 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 // containers, etc.).
 func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	osauthMock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = osauthMock
+	osauth.Set(t, osauthMock)
 
 	fakeUser := &osauth.User{
 		UID:      0,
@@ -247,7 +247,7 @@ func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			osauthMock := &osauthMocks.MockBackend{}
-			osauth.DefaultBackend = osauthMock
+			osauth.Set(t, osauthMock)
 
 			osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(&osauth.User{
 				UID:      0,

@@ -106,7 +106,7 @@ func newStubContext() gliderssh.Context {
 // acceptClientEnv-filtered variables — not raw session.Environ() — to the command.
 func TestGenerateShellCmdFiltersClientEnv(t *testing.T) {
 	mock := osauthMocks.NewMockBackend(t)
-	osauth.DefaultBackend = mock
+	osauth.Set(t, mock)
 
 	mock.On("LookupUser", "testuser").Return(&osauth.User{
 		Username: "testuser",
@@ -173,7 +173,7 @@ func containsEnvEntry(envs []string, e string) bool {
 // they look like legitimate KEY=value pairs.
 func TestGenerateShellCmdExcludesForbiddenVarsPresentInCmdEnv(t *testing.T) {
 	mock := osauthMocks.NewMockBackend(t)
-	osauth.DefaultBackend = mock
+	osauth.Set(t, mock)
 
 	mock.On("LookupUser", "testuser").Return(&osauth.User{
 		Username: "testuser",

@@ -28,7 +28,7 @@ func TestPublicKey(t *testing.T) {
 	key, _ := gossh.NewPublicKey(&privKey.PublicKey)
 
 	osauthMock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = osauthMock
+	osauth.Set(t, osauthMock)
 
 	tests := []struct {
 		ctx           gliderssh.Context
@@ -249,7 +249,7 @@ func TestPublicKey(t *testing.T) {
 
 func TestPassword(t *testing.T) {
 	mock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = mock
+	osauth.Set(t, mock)
 
 	tests := []struct {
 		ctx           gliderssh.Context
