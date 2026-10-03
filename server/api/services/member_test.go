@@ -216,9 +216,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	cacheMock := cachemock.NewMockCache(t)
 
-	prevEnvsBackend := envs.DefaultBackend
-	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
-	envs.DefaultBackend = envMock
+	envs.Set(t, envMock)
 
 	cases := []struct {
 		description   string
@@ -685,9 +683,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 	envMock := envmock.NewMockBackend(t)
 	storeMock := storemock.NewMockStore(t)
 
-	prevEnvsBackend := envs.DefaultBackend
-	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
-	envs.DefaultBackend = envMock
+	envs.Set(t, envMock)
 
 	cases := []struct {
 		description   string
