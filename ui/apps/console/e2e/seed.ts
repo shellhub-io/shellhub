@@ -166,3 +166,15 @@ export function readUserInvitationStatus(email: string) {
   if (!status) throw new Error(`expected a user invitation for ${email}`);
   return status;
 }
+
+export function setBillingCustomer(tenant: string, customer: string) {
+  const out = sql(
+    "UPDATE namespaces SET billing = jsonb_build_object('customer_id', :'customer') WHERE id = :'tenant';",
+    { tenant, customer },
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(
+      `expected to set the billing customer of ${tenant}, got "${out}"`,
+    );
+  }
+}
