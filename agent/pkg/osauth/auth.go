@@ -29,8 +29,8 @@ var (
 	DefaultPasswdFilename = "/etc/passwd"
 )
 
-// DefaultBackend is the [Backend] used by the package-level helpers. Tests replace it to
-// avoid reading the host's real account files.
+// DefaultBackend is the [Backend] used by the package-level helpers. Tests swap it with Set, which
+// puts the previous one back when the test ends, to avoid reading the host's real account files.
 var DefaultBackend Backend
 
 type backend struct{}

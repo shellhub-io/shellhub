@@ -27,7 +27,8 @@ type Backend interface {
 	Process(prefix string, spec any) error
 }
 
-// DefaultBackend define the backend to be used to get environment variables.
+// DefaultBackend is the backend Get, the edition helpers and Parse read from. Read through Get, and
+// swap it in a test with Set, which puts the previous one back when the test ends.
 var DefaultBackend Backend
 
 func init() {
@@ -38,6 +39,16 @@ func init() {
 // than os.Getenv, so a test can control what the environment holds.
 func Get(key string) string {
 	return DefaultBackend.Get(key)
+}
+
+// Set serves Get, the edition helpers and Parse from b until t and its subtests finish, then puts
+// back the backend it replaced. Calls nest: an inner Set gives back the outer one when its test
+// ends. The backend is process-global, so a test that calls Set must not run in parallel with one
+// that reads the environment.
+func Set(t interface{ Cleanup(func()) }, b Backend) {
+	previous := DefaultBackend
+	t.Cleanup(func() { DefaultBackend = previous })
+	DefaultBackend = b
 }
 
 // ResolveEdition reads SHELLHUB_EDITION, normalizes it (trim + lowercase) and
