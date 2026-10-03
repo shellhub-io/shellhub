@@ -1517,9 +1517,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 // fully-populated notification assembled from the resolved invitee, the created invitation, and the
 // request — the whole reason the worker no longer needs to reload anything.
 func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
-	original := membershipInvitedHooks
-	t.Cleanup(func() { membershipInvitedHooks = original })
-	membershipInvitedHooks = nil
+	override(t, &membershipInvitedHooks, nil)
 
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
@@ -1581,9 +1579,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 // short-circuit: an existing account is added straight to the namespace, no invitation is created,
 // and no delivery hook fires.
 func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
-	original := membershipInvitedHooks
-	t.Cleanup(func() { membershipInvitedHooks = original })
-	membershipInvitedHooks = nil
+	override(t, &membershipInvitedHooks, nil)
 
 	directMembershipEnabled = true
 	t.Cleanup(func() { directMembershipEnabled = false })
