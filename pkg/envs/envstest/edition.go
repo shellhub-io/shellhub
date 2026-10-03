@@ -18,7 +18,7 @@ func (m *mapBackend) Process(string, any) error {
 	return nil
 }
 
-// SetEdition swaps envs.DefaultBackend with a simple map backend that returns
+// SetEdition swaps the env backend for a simple map backend that returns
 // the given edition for SHELLHUB_EDITION, and restores the original on cleanup.
 func SetEdition(t *testing.T, edition envs.Edition) {
 	t.Helper()
@@ -32,10 +32,7 @@ func SetEdition(t *testing.T, edition envs.Edition) {
 func SetRawEdition(t *testing.T, raw string) {
 	t.Helper()
 
-	prev := envs.DefaultBackend
-	t.Cleanup(func() { envs.DefaultBackend = prev })
-
-	envs.DefaultBackend = &mapBackend{values: map[string]string{
+	envs.Set(t, &mapBackend{values: map[string]string{
 		"SHELLHUB_EDITION": raw,
-	}}
+	}})
 }

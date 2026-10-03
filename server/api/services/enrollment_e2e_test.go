@@ -53,10 +53,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	localEnv := envmock.NewMockBackend(t)
 	localEnv.On("Get", "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
 	localEnv.On("Get", mock.Anything).Return("").Maybe() // community edition: not cloud, not enterprise
-	prevEnv := envs.DefaultBackend
-	envs.DefaultBackend = localEnv
-
-	t.Cleanup(func() { envs.DefaultBackend = prevEnv })
+	envs.Set(t, localEnv)
 
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,

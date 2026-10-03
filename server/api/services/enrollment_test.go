@@ -59,12 +59,10 @@ func TestEvaluateEnrollment(t *testing.T) {
 }
 
 func TestEvaluateEnrollmentWebhook(t *testing.T) {
-	prevEnv := envs.DefaultBackend
 	env := envmock.NewMockBackend(t)
 	env.On("Get", enrollmentWebhookAllowedCIDRsEnv).Return("127.0.0.0/8,::1/128").Maybe()
 	env.On("Get", mock.Anything).Return("").Maybe()
-	envs.DefaultBackend = env
-	t.Cleanup(func() { envs.DefaultBackend = prevEnv })
+	envs.Set(t, env)
 
 	clock.Freeze(t, now)
 
@@ -163,19 +161,17 @@ func TestEnrollmentWebhookClientSSRF(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	withEnv := func(allowedCIDRs string) func() {
+	withEnv := func(t *testing.T, allowedCIDRs string) {
+		t.Helper()
+
 		env := envmock.NewMockBackend(t)
 		env.On("Get", enrollmentWebhookAllowedCIDRsEnv).Return(allowedCIDRs).Maybe()
 		env.On("Get", mock.Anything).Return("").Maybe()
-
-		prev := envs.DefaultBackend
-		envs.DefaultBackend = env
-
-		return func() { envs.DefaultBackend = prev }
+		envs.Set(t, env)
 	}
 
 	t.Run("blocks a loopback webhook target by default", func(t *testing.T) {
-		defer withEnv("")()
+		withEnv(t, "")
 
 		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
 		_, err := enrollmentWebhookClient().Get(srv.URL)
@@ -183,7 +179,7 @@ func TestEnrollmentWebhookClientSSRF(t *testing.T) {
 	})
 
 	t.Run("allows a target the operator explicitly permits", func(t *testing.T) {
-		defer withEnv("127.0.0.0/8,::1/128")()
+		withEnv(t, "127.0.0.0/8,::1/128")
 
 		//nolint:noctx // exercising the dial path in a test
 		resp, err := enrollmentWebhookClient().Get(srv.URL)

@@ -40,7 +40,7 @@ func ExampleNewAgent() {
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	envMock := new(env_mocks.MockBackend)
-	envs.DefaultBackend = envMock
+	envs.Set(t, envMock)
 
 	type expected struct {
 		cfg    *Config
