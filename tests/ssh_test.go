@@ -741,7 +741,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					OriginPort uint32
 				}
 
-				orig, err := strconv.Atoi(environment.GetFreePort(t))
+				orig, err := strconv.Atoi(environment.ReservePort(t))
 				require.NoError(t, err)
 
 				data := Data{
