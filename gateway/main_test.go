@@ -17,22 +17,20 @@ import (
 func TestMain_smoke(t *testing.T) {
 	ctx := context.Background()
 
-	container, err := testport.Run(ctx, "80/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*testcontainers.DockerContainer, error) {
-		return testcontainers.Run(ctx, "",
-			testcontainers.WithDockerfile(testcontainers.FromDockerfile{
-				Context:    "..",
-				Dockerfile: "gateway/Dockerfile",
-				Repo:       "gateway",
-				Tag:        "smoke",
-			}),
-			testcontainers.WithExposedPorts("80/tcp"),
-			testcontainers.WithEnv(map[string]string{
-				"SHELLHUB_DOMAIN": "localhost",
-			}),
-			testcontainers.WithWaitStrategy(wait.ForListeningPort("80/tcp").WithStartupTimeout(60*time.Second)),
-			bind,
-		)
-	})
+	container, err := testcontainers.Run(ctx, "",
+		testcontainers.WithDockerfile(testcontainers.FromDockerfile{
+			Context:    "..",
+			Dockerfile: "gateway/Dockerfile",
+			Repo:       "gateway",
+			Tag:        "smoke",
+		}),
+		testcontainers.WithExposedPorts("80/tcp"),
+		testcontainers.WithEnv(map[string]string{
+			"SHELLHUB_DOMAIN": "localhost",
+		}),
+		testcontainers.WithWaitStrategy(wait.ForListeningPort("80/tcp").WithStartupTimeout(60*time.Second)),
+		testport.Bind("80/tcp"),
+	)
 	require.NoError(t, err)
 
 	defer func() {

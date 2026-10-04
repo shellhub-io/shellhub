@@ -17,18 +17,16 @@ type Server struct {
 
 // Up starts a new Postgres container. Use [Server.ConnectionString] to access the connection string.
 func (srv *Server) Up(ctx context.Context) error {
-	container, err := testport.Run(ctx, "5432/tcp", func(ctx context.Context, bind testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, error) {
-		return postgres.Run(ctx, "postgres:18.0",
-			postgres.WithDatabase("test"),
-			postgres.WithUsername("postgres"),
-			postgres.WithPassword("postgres"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(60*time.Second),
-				wait.ForListeningPort("5432/tcp").WithStartupTimeout(60*time.Second),
-			),
-			bind,
-		)
-	})
+	container, err := postgres.Run(ctx, "postgres:18.0",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("postgres"),
+		postgres.WithPassword("postgres"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(60*time.Second),
+			wait.ForListeningPort("5432/tcp").WithStartupTimeout(60*time.Second),
+		),
+		testport.Bind("5432/tcp"),
+	)
 	if err != nil {
 		return err
 	}

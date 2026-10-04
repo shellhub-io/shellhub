@@ -16,13 +16,14 @@ const (
 	ServiceServer  Service = "server"
 )
 
-// GetFreePort returns a port from [testport.Free], free on 127.0.0.1 and below the kernel's
-// ephemeral range, and fails t when there is none.
-func GetFreePort(t *testing.T) string {
+// ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.
+func ReservePort(t *testing.T) string {
 	t.Helper()
 
-	port, err := testport.Free(t.Context())
+	r, err := testport.Reserve()
 	require.NoError(t, err)
 
-	return port
+	t.Cleanup(func() { require.NoError(t, r.Release()) })
+
+	return r.Port()
 }

@@ -90,18 +90,19 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		}
 	}
 
-	if cfg.HTTPPort == "" {
-		cfg.HTTPPort, err = testport.Free(ctx)
-		if err != nil {
-			return nil, err
+	for _, port := range []*string{&cfg.HTTPPort, &cfg.SSHPort} {
+		if *port != "" {
+			continue
 		}
-	}
 
-	if cfg.SSHPort == "" {
-		cfg.SSHPort, err = testport.Free(ctx)
+		r, err := testport.Reserve()
 		if err != nil {
 			return nil, err
 		}
+
+		defer r.Release() //nolint:errcheck // the stack holds the port once compose binds it; a failed close changes nothing
+
+		*port = r.Port()
 	}
 
 	if cfg.Network == "" {

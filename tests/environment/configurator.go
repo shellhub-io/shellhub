@@ -24,8 +24,8 @@ func New(t *testing.T) *DockerComposeConfigurator {
 	return &DockerComposeConfigurator{
 		cfg: Config{
 			Edition:  EditionCommunity,
-			HTTPPort: GetFreePort(t),
-			SSHPort:  GetFreePort(t),
+			HTTPPort: ReservePort(t),
+			SSHPort:  ReservePort(t),
 			Network:  "shellhub_network_" + uuid.Generate(),
 		},
 		t: t,
