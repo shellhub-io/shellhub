@@ -5,8 +5,8 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { setup } from "@/client";
-import { getConfig, isCommunity } from "@/env";
-import { useOnboardingSurvey } from "@/hooks/useOnboardingSurvey";
+import { isCommunity } from "@/env";
+import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import { useAuthStore } from "@/stores/authStore";
 import {
   FormInputField,
@@ -20,13 +20,9 @@ import {
   UpcomingDeviceSteps,
 } from "@/components/firstRun/Trail";
 import { firstRunEntryState } from "@/components/firstRun/entry";
+import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
 import { suggestNamespace } from "./setup/validate";
-import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
-import {
-  emptyAnswers,
-  type SurveyAnswers,
-} from "@/components/firstRun/survey/onboardingSurvey";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -39,24 +35,15 @@ const STEP_ACCOUNT = 2;
  */
 export default function Setup() {
   const navigate = useNavigate();
-  const config = getConfig();
   const loginWithToken = useAuthStore((state) => state.loginWithToken);
 
-  const surveyBaseUrl = isCommunity() ? config.onboardingUrl : "";
-  const surveyQuery = useOnboardingSurvey(surveyBaseUrl);
-  const survey = surveyQuery.data ?? null;
-  const showOnboarding =
-    surveyBaseUrl !== "" && (surveyQuery.isPending || survey !== null);
+  const surveyStep = useOnboardingSurveyStep({ enabled: isCommunity() });
+  const showOnboarding = surveyStep.visible;
 
   const [chosenStep, setStep] = useState(STEP_ONBOARDING);
   const step = showOnboarding ? chosenStep : STEP_ACCOUNT;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [surveyCompleted, setSurveyCompleted] = useState(false);
-  const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers | null>(
-    null,
-  );
-  const [surveyResponseId, setSurveyResponseId] = useState<string | null>(null);
 
   const { control, handleSubmit, formState, setValue } =
     useForm<SetupFormValues>({
@@ -149,29 +136,16 @@ export default function Setup() {
             number={1}
             title={SETUP_STEP_TITLES.survey}
             state={surveyState}
-            summary={surveyCompleted ? "Thanks" : "Skipped"}
+            summary={surveyStep.responseId ? "Thanks" : "Skipped"}
           >
-            {survey ? (
-              <OnboardingStep
-                survey={survey}
-                baseUrl={surveyBaseUrl}
-                hidden={{
-                  instance_type: config.edition,
-                  instance_domain: window.location.hostname,
-                }}
-                initialAnswers={surveyAnswers ?? emptyAnswers(survey)}
-                responseId={surveyResponseId}
-                onDone={(answers, responseId) => {
-                  setSurveyAnswers(answers);
-                  setSurveyResponseId(responseId);
-                  setSurveyCompleted(true);
-                  setStep(STEP_ACCOUNT);
-                }}
-                onSkip={() => setStep(STEP_ACCOUNT)}
-              />
-            ) : (
-              <p className="text-xs text-text-muted">Loading survey...</p>
-            )}
+            <OnboardingStep
+              {...surveyStep.stepProps}
+              onDone={(answers, responseId) => {
+                surveyStep.record(answers, responseId);
+                setStep(STEP_ACCOUNT);
+              }}
+              onSkip={() => setStep(STEP_ACCOUNT)}
+            />
           </TrailStep>
         )}
         <TrailStep

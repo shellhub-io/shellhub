@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button } from "@shellhub/design-system/primitives";
-import { getConfig, isCloud, isCommunity } from "@/env";
+import { isCloud, isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserInfo } from "@/hooks/useUserInfo";
-import { useOnboardingSurvey } from "@/hooks/useOnboardingSurvey";
+import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import {
   CommunityInstructions,
   NamespaceCreateForm,
@@ -17,34 +17,22 @@ import {
 } from "./Trail";
 import AskAdministrator from "./AskAdministrator";
 import OnboardingStep from "./survey/OnboardingStep";
-import { emptyAnswers } from "./survey/onboardingSurvey";
-import {
-  mergeAnswers,
-  readSavedSurvey,
-  writeSavedSurvey,
-  type SavedSurvey,
-} from "./survey/savedSurvey";
 
 const STEP_SURVEY = 1;
 const STEP_NAMESPACE = 2;
 
 function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
-  const config = getConfig();
-  const userId = useAuthStore((s) => s.userId) ?? "";
+  const userId = useAuthStore((s) => s.userId);
   const name = useAuthStore((s) => s.name);
   const email = useAuthStore((s) => s.email);
 
-  const surveyBaseUrl = isCloud() ? config.onboardingUrl : "";
-  const surveyQuery = useOnboardingSurvey(surveyBaseUrl);
-  const survey = surveyQuery.data ?? null;
-  const showSurvey =
-    surveyBaseUrl !== "" && (surveyQuery.isPending || survey !== null);
+  const surveyStep = useOnboardingSurveyStep({ enabled: isCloud(), userId });
+  const showSurvey = surveyStep.visible;
 
-  const [saved, setSaved] = useState<SavedSurvey | null>(() =>
-    readSavedSurvey(userId),
-  );
-  const [chosenStep, setStep] = useState(saved ? STEP_NAMESPACE : STEP_SURVEY);
-  const step = showSurvey ? chosenStep : STEP_NAMESPACE;
+  const [chosenStep, setStep] = useState<number | null>(null);
+  const step = showSurvey
+    ? (chosenStep ?? (surveyStep.responseId ? STEP_NAMESPACE : STEP_SURVEY))
+    : STEP_NAMESPACE;
   const namespaceStep = showSurvey ? 2 : 1;
 
   return (
@@ -55,33 +43,17 @@ function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
             number={1}
             title={SETUP_STEP_TITLES.survey}
             state={step === STEP_SURVEY ? "active" : "done"}
-            summary={saved ? "Thanks" : "Skipped"}
+            summary={surveyStep.responseId ? "Thanks" : "Skipped"}
           >
-            {survey ? (
-              <OnboardingStep
-                survey={survey}
-                baseUrl={surveyBaseUrl}
-                hidden={{
-                  instance_type: config.edition,
-                  instance_domain: window.location.hostname,
-                }}
-                initialAnswers={
-                  saved
-                    ? mergeAnswers(emptyAnswers(survey), saved.answers)
-                    : emptyAnswers(survey, { name, email })
-                }
-                responseId={saved?.responseId ?? null}
-                onDone={(answers, responseId) => {
-                  const next = { responseId, answers };
-                  writeSavedSurvey(userId, next);
-                  setSaved(next);
-                  setStep(STEP_NAMESPACE);
-                }}
-                onSkip={() => setStep(STEP_NAMESPACE)}
-              />
-            ) : (
-              <p className="text-xs text-text-muted">Loading survey...</p>
-            )}
+            <OnboardingStep
+              {...surveyStep.stepProps}
+              known={{ name, email }}
+              onDone={(answers, responseId) => {
+                surveyStep.record(answers, responseId);
+                setStep(STEP_NAMESPACE);
+              }}
+              onSkip={() => setStep(STEP_NAMESPACE)}
+            />
           </TrailStep>
         )}
         <TrailStep

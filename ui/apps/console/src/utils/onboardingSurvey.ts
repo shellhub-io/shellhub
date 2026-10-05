@@ -7,10 +7,7 @@ import { z } from "zod";
  */
 export const ONBOARDING_TRIGGER = "shellhub-setup-onboarding";
 
-/**
- * The contact fields in the order Formbricks stores a contactInfo answer.
- */
-export const CONTACT_FIELDS = [
+const CONTACT_FIELDS = [
   "firstName",
   "lastName",
   "email",
@@ -18,15 +15,9 @@ export const CONTACT_FIELDS = [
   "company",
 ] as const;
 
-/**
- * One of the contact fields a contactInfo question can ask for.
- */
-export type ContactField = (typeof CONTACT_FIELDS)[number];
+type ContactField = (typeof CONTACT_FIELDS)[number];
 
-/**
- * One option of a single-choice question, with the label shown and sent as the answer.
- */
-export interface SurveyChoice {
+interface SurveyChoice {
   id: string;
   label: string;
 }
@@ -39,7 +30,8 @@ interface QuestionBase {
 }
 
 /**
- * A question setup knows how to render: contact details, a single choice, or a consent box.
+ * A question reduced to what the console renders. These three kinds are the whole set:
+ * findOnboardingSurvey returns null for a survey holding any other Formbricks question type.
  */
 export type SurveyQuestion =
   | (QuestionBase & {
@@ -59,18 +51,30 @@ export interface OnboardingSurvey {
   questions: SurveyQuestion[];
 }
 
+const answersSchema = z.object({
+  anonymous: z.boolean(),
+  choices: z.record(z.string()),
+  other: z.record(z.string()),
+  contact: z.record(
+    z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string(),
+        phone: z.string(),
+        company: z.string(),
+      })
+      .partial(),
+  ),
+  consent: z.record(z.boolean()),
+});
+
 /**
- * The answers as the setup form holds them: a choice by its id, the free text typed for an
+ * The answers as the survey form holds them: a choice by its id, the free text typed for an
  * "other" choice, contact fields by name, consent as a checkbox, and whether the user answers
  * anonymously, which withholds contact and consent whatever they hold.
  */
-export interface SurveyAnswers {
-  anonymous: boolean;
-  choices: Record<string, string>;
-  other: Record<string, string>;
-  contact: Record<string, Partial<Record<ContactField, string>>>;
-  consent: Record<string, boolean>;
-}
+export type SurveyAnswers = z.infer<typeof answersSchema>;
 
 const OTHER_CHOICE_ID = "other";
 
@@ -146,12 +150,7 @@ function plainText(html: string | undefined): string {
   return (doc.body.textContent ?? "").trim();
 }
 
-/**
- * Orders the choices the way the survey asks: "all" shuffles every choice, "exceptLast" keeps the
- * last one (usually "Other") in place. Answers drift toward whatever is listed first, and a
- * shuffle spreads that bias across the choices instead of piling it on one.
- */
-export function orderChoices(
+function orderChoices(
   choices: SurveyChoice[],
   shuffle: string | undefined,
   random: () => number = Math.random,
@@ -249,7 +248,8 @@ export function findOnboardingSurvey(
 }
 
 /**
- * What an account already tells us about its owner, to start the contact fields from.
+ * What an account already tells us about its owner, to start the contact fields from. Either may
+ * be null when the account does not say.
  */
 export interface KnownContact {
   name: string | null;
@@ -289,13 +289,19 @@ export function emptyAnswers(
   };
 
   for (const q of survey.questions) {
-    if (q.kind === "choice") {
-      answers.choices[q.id] = "";
-      answers.other[q.id] = "";
-    } else if (q.kind === "contact") {
-      answers.contact[q.id] = contactValues(q.fields, known);
-    } else {
-      answers.consent[q.id] = false;
+    switch (q.kind) {
+      case "choice":
+        answers.choices[q.id] = "";
+        answers.other[q.id] = "";
+        break;
+      case "contact":
+        answers.contact[q.id] = contactValues(q.fields, known);
+        break;
+      case "consent":
+        answers.consent[q.id] = false;
+        break;
+      default:
+        q satisfies never;
     }
   }
 
@@ -312,32 +318,54 @@ export function isOtherChoice(choice: SurveyChoice): boolean {
 /**
  * The response data Formbricks stores: a choice by its label (or the typed text for "other"),
  * contact info as the five-field array, consent as "accepted", and the hidden fields the survey
- * declares. Unanswered optional questions are left out. Contact details are sent whether or not
- * consent is given: consent decides whether we may reach out, not whether we keep what was typed.
- * An anonymous answer leaves out both.
+ * declares. Contact details are sent whether or not consent is given: consent decides whether we
+ * may reach out, not whether we keep what was typed. An anonymous answer withholds both.
+ *
+ * A new response leaves out what was not answered or withheld. An update (`update: true`) sends
+ * every question, blank where there is nothing to send, because Formbricks merges an update into
+ * the stored data: a key left out would keep the earlier pass's value, so ticking "anonymous" on a
+ * second pass would not take back the contact details sent on the first.
  */
 export function responseData(
   survey: OnboardingSurvey,
   answers: SurveyAnswers,
   hidden: Record<string, string>,
+  { update = false }: { update?: boolean } = {},
 ): Record<string, string | string[]> {
   const data: Record<string, string | string[]> = {};
+  const blank = (id: string, value: string | string[]) => {
+    if (update) data[id] = value;
+  };
 
   for (const q of survey.questions) {
-    if (q.kind === "choice") {
-      const choice = q.choices.find((c) => c.id === answers.choices[q.id]);
-      if (!choice) continue;
-      data[q.id] = isOtherChoice(choice)
-        ? answers.other[q.id]?.trim() || choice.label
-        : choice.label;
-    } else if (answers.anonymous) {
-      continue;
-    } else if (q.kind === "contact") {
-      const values = answers.contact[q.id] ?? {};
-      const row = CONTACT_FIELDS.map((name) => values[name]?.trim() ?? "");
-      if (row.some((v) => v !== "")) data[q.id] = row;
-    } else if (answers.consent[q.id]) {
-      data[q.id] = "accepted";
+    switch (q.kind) {
+      case "choice": {
+        const choice = q.choices.find((c) => c.id === answers.choices[q.id]);
+        if (!choice) {
+          blank(q.id, "");
+          break;
+        }
+        data[q.id] = isOtherChoice(choice)
+          ? answers.other[q.id]?.trim() || choice.label
+          : choice.label;
+        break;
+      }
+      case "contact": {
+        const values = answers.anonymous ? {} : (answers.contact[q.id] ?? {});
+        const row = CONTACT_FIELDS.map((name) => values[name]?.trim() ?? "");
+        if (row.some((v) => v !== "")) data[q.id] = row;
+        else blank(q.id, row);
+        break;
+      }
+      case "consent":
+        if (!answers.anonymous && answers.consent[q.id]) {
+          data[q.id] = "accepted";
+        } else {
+          blank(q.id, "");
+        }
+        break;
+      default:
+        q satisfies never;
     }
   }
 
@@ -348,44 +376,51 @@ export function responseData(
   return data;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailSchema = z.string().email();
 
 /**
- * Checks the answers against what the survey requires: a pick for every required choice, the
- * required contact fields, a well-formed email when one is given, a ticked box for required
- * consent. Returns error messages keyed by form path.
+ * The form schema for a survey's answers: the answer shape, refined with what this survey
+ * requires. A required choice needs a pick, a required contact field a value, a given email must
+ * be well formed, and required consent must be ticked. Contact and consent are not checked when
+ * the user answers anonymously, since they are not sent.
  */
-export function validateAnswers(
-  survey: OnboardingSurvey,
-  answers: SurveyAnswers,
-): Record<string, string> {
-  const errors: Record<string, string> = {};
+export function surveyAnswersSchema(survey: OnboardingSurvey) {
+  return answersSchema.superRefine((answers, ctx) => {
+    const fail = (path: string[], message: string) =>
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path, message });
 
-  for (const q of survey.questions) {
-    if (q.kind === "choice") {
-      if (q.required && !answers.choices[q.id]) {
-        errors[`choices.${q.id}`] = "Pick one";
-      }
-    } else if (answers.anonymous) {
-      continue;
-    } else if (q.kind === "contact") {
-      const values = answers.contact[q.id] ?? {};
-      for (const field of q.fields) {
-        const value = values[field.name]?.trim() ?? "";
-        if (field.required && value === "") {
-          errors[`contact.${q.id}.${field.name}`] = "Required";
-        } else if (
-          field.name === "email" &&
-          value !== "" &&
-          !EMAIL_PATTERN.test(value)
-        ) {
-          errors[`contact.${q.id}.${field.name}`] = "Enter a valid email";
+    for (const q of survey.questions) {
+      switch (q.kind) {
+        case "choice":
+          if (q.required && !answers.choices[q.id]) {
+            fail(["choices", q.id], "Pick one");
+          }
+          break;
+        case "contact": {
+          if (answers.anonymous) break;
+          const values = answers.contact[q.id] ?? {};
+          for (const field of q.fields) {
+            const value = values[field.name]?.trim() ?? "";
+            if (field.required && value === "") {
+              fail(["contact", q.id, field.name], "Required");
+            } else if (
+              field.name === "email" &&
+              value !== "" &&
+              !emailSchema.safeParse(value).success
+            ) {
+              fail(["contact", q.id, field.name], "Enter a valid email");
+            }
+          }
+          break;
         }
+        case "consent":
+          if (!answers.anonymous && q.required && !answers.consent[q.id]) {
+            fail(["consent", q.id], "Required");
+          }
+          break;
+        default:
+          q satisfies never;
       }
-    } else if (q.required && !answers.consent[q.id]) {
-      errors[`consent.${q.id}`] = "Required";
     }
-  }
-
-  return errors;
+  });
 }
