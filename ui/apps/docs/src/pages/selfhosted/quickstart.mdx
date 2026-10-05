@@ -92,10 +92,10 @@ The stack comes up with no users. The first one is created in the browser:
 You are signed in. On Community that namespace is **the** namespace — Community is
 single-namespace, and the server refuses to create another. See [Editions](/about/editions).
 
-<Callout variant="warning" title="On Community the first step is a survey, and it needs the internet">
-Setup opens with a short onboarding survey loaded from an external form service, and
-**Continue** stays disabled until the survey is completed. On a host with no outbound access the
-page never gets past it. Leave `SHELLHUB_ONBOARDING_URL=` empty in `.env.override` to skip it.
+<Callout variant="info" title="On Community the first step is a short survey">
+Setup opens with a short onboarding survey loaded from an external form service. When the
+browser cannot reach it, setup skips the survey and goes straight to the account. Leave
+`SHELLHUB_ONBOARDING_URL=` empty in `.env.override` to turn it off.
 </Callout>
 
 <Callout variant="info">
