@@ -90,6 +90,10 @@ export default function TerminalManager() {
         return (
           <div
             key={s.id}
+            role="region"
+            aria-label={`Terminal for ${s.deviceName}`}
+            aria-hidden={!isVisible}
+            inert={!isVisible}
             className={cn(
               "absolute inset-0 z-terminal flex flex-col bg-background",
               "transition-[opacity,transform] duration-200 ease-out",
