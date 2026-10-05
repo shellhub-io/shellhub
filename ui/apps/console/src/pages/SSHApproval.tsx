@@ -431,8 +431,7 @@ function ReauthFactor({
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       const message = event.data as
-        | { type?: string; confirmationCode?: string }
-        | undefined;
+        { type?: string; confirmationCode?: string } | undefined;
       if (message?.type === "sso-reauth-ok") {
         onDone(message.confirmationCode ?? "");
       } else if (message?.type === "sso-reauth-error") {
@@ -748,9 +747,12 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
       <div className="font-mono text-2xs uppercase tracking-wider text-text-muted mb-2">
         {label}
       </div>
-      <div className="font-mono text-2xl tracking-[0.3em] text-primary select-all">
+      <output
+        aria-label={label}
+        className="block font-mono text-2xl tracking-[0.3em] text-primary select-all"
+      >
         {groupCode(code)}
-      </div>
+      </output>
     </div>
   );
 }

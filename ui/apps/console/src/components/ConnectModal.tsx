@@ -615,7 +615,7 @@ export default function ConnectModal({
               {state.authMethod === "password" && (
                 <PasswordField
                   id="connect-password"
-                  label="Password"
+                  label="Device password"
                   autoComplete="current-password"
                   value={state.password}
                   onChange={(v) => dispatch({ type: "setPassword", value: v })}
