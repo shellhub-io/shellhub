@@ -13,7 +13,6 @@ import {
   aria-label="Diagram of an SSH session path: the SSH client connects to the Gateway, which routes to the SSH Service, which reaches the Agent over its reverse tunnel, and the Agent execs a shell on the device."
 >
   <div class="flow-pipeline">
-    <!-- SSH Client -->
     <div class="flow-step">
       <div class="flow-node">
         <CommandLineIcon className="flow-icon" />
@@ -21,14 +20,12 @@ import {
       <span class="flow-label">SSH Client</span>
     </div>
 
-    <!-- Arrow -->
     <div class="flow-connector">
       <div class="flow-line"></div>
       <span class="flow-conn-label">SSH</span>
       <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <!-- Gateway -->
     <div class="flow-step">
       <div class="flow-node flow-node--accent">
         <GlobeAltIcon className="flow-icon" />
@@ -36,14 +33,12 @@ import {
       <span class="flow-label">Gateway</span>
     </div>
 
-    <!-- Arrow -->
     <div class="flow-connector">
       <div class="flow-line"></div>
       <span class="flow-conn-label">route</span>
       <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <!-- SSH Service -->
     <div class="flow-step">
       <div class="flow-node flow-node--accent">
         <LockClosedIcon className="flow-icon" />
@@ -51,14 +46,12 @@ import {
       <span class="flow-label">SSH Service</span>
     </div>
 
-    <!-- Arrow -->
     <div class="flow-connector">
       <div class="flow-line flow-line--dashed"></div>
       <span class="flow-conn-label">reverse tunnel</span>
       <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <!-- Agent -->
     <div class="flow-step">
       <div class="flow-node flow-node--accent">
         <CpuChipIcon className="flow-icon" />
@@ -66,14 +59,12 @@ import {
       <span class="flow-label">Agent</span>
     </div>
 
-    <!-- Arrow -->
     <div class="flow-connector">
       <div class="flow-line flow-line--green"></div>
       <span class="flow-conn-label">exec</span>
       <svg class="flow-chevron flow-chevron--green" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <!-- Shell -->
     <div class="flow-step">
       <div class="flow-node flow-node--green">
         <CommandLineIcon className="flow-icon" />

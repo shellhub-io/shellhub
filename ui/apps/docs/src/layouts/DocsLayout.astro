@@ -80,10 +80,8 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
       </div>
     </header>
 
-    <!-- Mobile nav drawer backdrop -->
     <div id="docs-drawer-backdrop" class="docs-drawer-backdrop"></div>
 
-    <!-- Body: Sidebar + Content + TOC -->
     <div class="relative max-w-7xl mx-auto grid grid-cols-12 gap-8 px-8">
       <div class="grid-bg grid-bg-fade absolute inset-0 pointer-events-none"></div>
 
@@ -139,9 +137,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
                   return (
                     <li>
                       {item.href ? (
-                        /* Two controls rather than one: the heading goes to its own page and the
-                           chevron opens what is under it. A link wrapping a button, or a button
-                           wrapping a link, is one control that has to guess which was meant. */
                         <div class="group/grp flex items-center justify-between w-full pl-3 -ml-px border-l-2 border-transparent" data-group-row={groupId} aria-expanded={hasActivePage ? "true" : "false"}>
                           <a
                             href={item.href}
@@ -208,13 +203,11 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         </nav>
       </aside>
 
-      <!-- Content Area -->
       <main class="col-span-12 md:col-span-9 xl:col-span-7 min-w-0 pt-10 pb-20 animate-slide-up" id="docs-scroll">
         <article class="prose">
           <slot />
         </article>
 
-        <!-- Prev / Next -->
         <nav class="flex justify-between mt-14 pt-7 border-t border-border gap-4">
           {prevPage ? (
             <a href={prevPage.href} class="flex flex-col gap-1.5 px-5 py-4 border border-border rounded-xl no-underline transition-all hover:border-primary-300 hover:bg-primary-50">
@@ -231,7 +224,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         </nav>
       </main>
 
-      <!-- Right TOC -->
       <aside class="col-span-2 sticky top-14 self-start h-[calc(100vh-56px)] overflow-y-auto pt-10 pb-10 hidden xl:block" id="docs-toc">
         <p class="font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-3.5 pl-3">
           On this page
@@ -243,7 +235,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
     <CommandPalette />
 
     <script>
-      // Sidebar scroll persistence (desktop only — skip when the drawer is hidden off-canvas)
       const sidebarEl = document.getElementById("docs-sidebar");
       if (sidebarEl) {
         if (window.innerWidth >= 768) {
@@ -267,7 +258,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         });
       }
 
-      // Sidebar collapsible sections
       document.querySelectorAll("[data-section]").forEach(btn => {
         const sectionId = btn.getAttribute("data-section");
         const items = document.querySelector(`[data-section-items="${sectionId}"]`);
@@ -280,14 +270,11 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         });
       });
 
-      // Sidebar collapsible groups
       document.querySelectorAll("[data-group]").forEach(btn => {
         const groupId = btn.getAttribute("data-group");
         const items = document.querySelector(`[data-group-items="${groupId}"]`);
         if (!items) return;
 
-        // The chevron rotates off an ancestor's aria-expanded, which is the button itself for a
-        // heading that only opens, and the row around it for one that is also a link.
         const row = document.querySelector(`[data-group-row="${groupId}"]`);
 
         function toggle(collapsed) {
@@ -302,7 +289,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         });
       });
 
-      // Right TOC with scroll spy
       (function buildToc() {
         const prose = document.querySelector(".prose");
         const tocLinks = document.getElementById("docs-toc-links");
@@ -335,7 +321,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
     </script>
 
     <script>
-      // Mobile navigation drawer
       const navToggle = document.getElementById("nav-toggle");
       const drawerSidebar = document.getElementById("docs-sidebar");
       const drawerBackdrop = document.getElementById("docs-drawer-backdrop");
@@ -381,7 +366,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
     </script>
 
     <script>
-      // Code block copy button
       if (navigator.clipboard) {
         document.querySelectorAll(".prose pre:not([data-replay] pre)").forEach((pre) => {
           try {
@@ -436,16 +420,12 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
 
             wrapper.appendChild(btn);
           } catch (_e) {
-            // DOM error on this block — skip it, continue with remaining blocks
           }
         });
       }
     </script>
 
     <script>
-      // Any screenshot in the prose enlarges: a console table at page width is
-      // readable only so far, and the reader should not have to open the image
-      // in a tab of its own.
       function zoomDialog() {
         const existing = document.querySelector("dialog.shot-zoom");
         if (existing) return existing;
@@ -457,8 +437,6 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
           '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" ' +
           'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
           "</button><img alt=\"\">";
-        // Any click closes: the image fills the dialog, so anything else would
-        // leave the obvious target inert.
         created.addEventListener("click", () => created.close());
         document.body.append(created);
 
