@@ -45,9 +45,7 @@ export function SupportedPlatforms() {
           subtitleClassName="max-w-xl"
         />
 
-        {/* Bento Grid — 12-col for precise control */}
         <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 auto-rows-auto">
-          {/* Docker — featured (5 cols, 2 rows) */}
           <Reveal className="col-span-2 lg:col-span-5 lg:row-span-2">
             <div className="h-full bg-card border border-border rounded-xl p-6 lg:p-7 hover:border-[#1D63ED]/30 transition-all duration-300 group relative overflow-hidden">
               <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-[#1D63ED]/[0.04] rounded-full blur-2xl pointer-events-none" />
@@ -77,7 +75,6 @@ export function SupportedPlatforms() {
             </div>
           </Reveal>
 
-          {/* Snap — wider card (4 cols) */}
           <Reveal delay={0.04} className="col-span-1 lg:col-span-4">
             <div className="h-full bg-card border border-border rounded-xl p-5 hover:border-accent-green/30 transition-all duration-300">
               <div className="flex items-start gap-3">
@@ -95,7 +92,6 @@ export function SupportedPlatforms() {
             </div>
           </Reveal>
 
-          {/* Podman (3 cols) */}
           <Reveal delay={0.08} className="col-span-1 lg:col-span-3">
             <div className="h-full bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all duration-300">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20 text-primary mb-3">
@@ -108,7 +104,6 @@ export function SupportedPlatforms() {
             </div>
           </Reveal>
 
-          {/* Standalone (4 cols) */}
           <Reveal delay={0.12} className="col-span-1 lg:col-span-4">
             <div className="h-full bg-card border border-border rounded-xl p-5 hover:border-accent-yellow/30 transition-all duration-300">
               <div className="flex items-start gap-3">
@@ -126,7 +121,6 @@ export function SupportedPlatforms() {
             </div>
           </Reveal>
 
-          {/* WSL (3 cols) */}
           <Reveal delay={0.16} className="col-span-1 lg:col-span-3">
             <div className="h-full bg-card border border-border rounded-xl p-5 hover:border-accent-cyan/30 transition-all duration-300">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan mb-3">
@@ -139,7 +133,6 @@ export function SupportedPlatforms() {
             </div>
           </Reveal>
 
-          {/* ─── Embedded row — full width, horizontal strip ─── */}
           <Reveal delay={0.2} className="col-span-2 lg:col-span-12">
             <div className="grid grid-cols-3 gap-3">
               {[

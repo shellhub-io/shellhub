@@ -180,7 +180,6 @@ const scenarios = [
 export default function EdgeComputing() {
   return (
     <SiteLayout>
-      {/* ───── Hero ───── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="blue" />
@@ -215,7 +214,6 @@ export default function EdgeComputing() {
         </div>
       </section>
 
-      {/* ───── Edge Network Map ───── */}
       <Section>
         <SectionHeader
           eyebrow="Network Topology"
@@ -226,7 +224,6 @@ export default function EdgeComputing() {
         <Reveal delay={0.1}>
           <ShimmerCard className="bg-card border border-border rounded-2xl overflow-hidden">
             <div className="relative p-8 md:p-12">
-              {/* Background grid pattern */}
               <div
                 className="absolute inset-0 opacity-[0.03]"
                 style={{
@@ -240,7 +237,6 @@ export default function EdgeComputing() {
                 className="w-full max-w-3xl mx-auto relative"
                 style={{ minHeight: 320 }}
               >
-                {/* Connection lines from center to each location */}
                 {edgeLocations.map((loc, i) => (
                   <line
                     key={`line-${i}`}
@@ -255,7 +251,6 @@ export default function EdgeComputing() {
                   />
                 ))}
 
-                {/* Central ShellHub Cloud node */}
                 <g>
                   <circle
                     cx="50"
@@ -283,7 +278,6 @@ export default function EdgeComputing() {
                     strokeWidth="0.1"
                     opacity="0.2"
                   />
-                  {/* Cloud icon */}
                   <path
                     d="M46.5 49.5a2.5 2.5 0 0 1 2.5-3 3 3 0 0 1 5.5-1 2 2 0 0 1 .5 4h-7.5z"
                     fill="none"
@@ -305,10 +299,8 @@ export default function EdgeComputing() {
                   </text>
                 </g>
 
-                {/* Edge location nodes */}
                 {edgeLocations.map((loc, i) => (
                   <g key={`node-${i}`}>
-                    {/* Outer glow */}
                     <circle
                       cx={loc.x}
                       cy={loc.y}
@@ -317,7 +309,6 @@ export default function EdgeComputing() {
                       stroke={`${loc.color}30`}
                       strokeWidth="0.2"
                     />
-                    {/* Server icon body */}
                     <rect
                       x={loc.x - 2}
                       y={loc.y - 2}
@@ -328,7 +319,6 @@ export default function EdgeComputing() {
                       stroke={loc.color}
                       strokeWidth="0.3"
                     />
-                    {/* Server lines */}
                     <line
                       x1={loc.x - 1}
                       y1={loc.y - 0.5}
@@ -347,7 +337,6 @@ export default function EdgeComputing() {
                       strokeWidth="0.2"
                       opacity="0.5"
                     />
-                    {/* Green status dot */}
                     <circle
                       cx={loc.x + 1.2}
                       cy={loc.y - 1.2}
@@ -362,7 +351,6 @@ export default function EdgeComputing() {
                         repeatCount="indefinite"
                       />
                     </circle>
-                    {/* Label */}
                     <text
                       x={loc.x}
                       y={loc.y + 5.5}
@@ -388,7 +376,6 @@ export default function EdgeComputing() {
                 ))}
               </svg>
 
-              {/* Legend */}
               <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
                 {edgeLocations.map((loc) => (
                   <div key={loc.city} className="flex items-center gap-2">
@@ -429,7 +416,6 @@ export default function EdgeComputing() {
         </div>
       </Section>
 
-      {/* ───── Key Features ───── */}
       <Section>
         <SectionHeader
           eyebrow="Features"
@@ -437,7 +423,6 @@ export default function EdgeComputing() {
           subtitle="ShellHub eliminates the complexity of edge access with NAT traversal, browser-based terminals, and fleet-wide management."
         />
 
-        {/* Big highlighted card: Instant Remote Access */}
         <Reveal>
           <ShimmerCard className="mb-4">
             <HighlightCard color="primary" className="p-8">
@@ -465,7 +450,6 @@ export default function EdgeComputing() {
                   </p>
                 </div>
 
-                {/* Terminal mockup */}
                 <WindowChrome variant="terminal" bodyClassName="space-y-1">
                   <div>
                     <span style={{ color: C.green }}>user@ops-laptop</span>
@@ -529,7 +513,6 @@ export default function EdgeComputing() {
           </ShimmerCard>
         </Reveal>
 
-        {/* 2-column: Web Terminal + SCP/SFTP */}
         <div className="grid md:grid-cols-2 gap-4 mb-4">
           <InfoCard
             icon={ComputerDesktopIcon}
@@ -620,7 +603,6 @@ export default function EdgeComputing() {
           </InfoCard>
         </div>
 
-        {/* 3 smaller cards: Tags, RBAC, Audit */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <InfoCard
             icon={TagIcon}
@@ -743,7 +725,6 @@ export default function EdgeComputing() {
         </div>
       </Section>
 
-      {/* ───── Use Case Scenarios ───── */}
       <Section>
         <SectionHeader
           eyebrow="Real-World Scenarios"

@@ -5,9 +5,6 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 type FooterApp = "website" | "docs";
 
-// The two sites are served from their own hosts, and in development those are .localhost names
-// the gateway routes. Which is which is the app's business, not this package's: it is rendered
-// by two different bundlers and has no environment of its own to read.
 const columnsFor = (websiteUrl: string, docsUrl: string) => [
   {
     title: "Product",

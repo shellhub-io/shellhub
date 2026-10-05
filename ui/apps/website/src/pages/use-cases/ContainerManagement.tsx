@@ -149,7 +149,6 @@ function ArchitectureDiagram() {
       className="w-full"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background grid */}
       <defs>
         <pattern
           id="cm-grid"
@@ -180,7 +179,6 @@ function ArchitectureDiagram() {
       <rect width="900" height="320" fill={C.card} rx="12" />
       <rect width="900" height="320" fill="url(#cm-grid)" rx="12" />
 
-      {/* ── User ── */}
       <rect
         x="30"
         y="115"
@@ -227,7 +225,6 @@ function ArchitectureDiagram() {
         ssh user@ns.ctr@server
       </text>
 
-      {/* Arrow 1 */}
       <line
         x1="160"
         y1="160"
@@ -243,7 +240,6 @@ function ArchitectureDiagram() {
         opacity="0.7"
       />
 
-      {/* ── ShellHub Gateway ── */}
       <rect
         x="260"
         y="105"
@@ -308,7 +304,6 @@ function ArchitectureDiagram() {
         session recording
       </text>
 
-      {/* Arrow 2 */}
       <line
         x1="420"
         y1="160"
@@ -320,7 +315,6 @@ function ArchitectureDiagram() {
       />
       <polygon points="510,155 520,160 510,165" fill={C.cyan} opacity="0.7" />
 
-      {/* ── Docker Host ── */}
       <rect
         x="520"
         y="40"
@@ -343,7 +337,6 @@ function ArchitectureDiagram() {
         Docker Host
       </text>
 
-      {/* Agent badge inside Docker Host */}
       <rect
         x="610"
         y="80"
@@ -380,7 +373,6 @@ function ArchitectureDiagram() {
         ShellHub Agent
       </text>
 
-      {/* ── Containers ── */}
       {[
         { y: 125, name: "api-server", color: C.green },
         { y: 185, name: "worker-01", color: C.cyan },
@@ -451,7 +443,6 @@ function ArchitectureDiagram() {
           >
             running
           </text>
-          {/* Arrow from agent to container */}
           <line
             x1="540"
             y1={ctr.y + 24}
@@ -473,7 +464,6 @@ function ArchitectureDiagram() {
 export default function ContainerManagement() {
   return (
     <SiteLayout>
-      {/* ═══════ Hero ═══════ */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
@@ -512,7 +502,6 @@ export default function ContainerManagement() {
         </div>
       </section>
 
-      {/* ═══════ Before / After ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="Before & After"
@@ -521,7 +510,6 @@ export default function ContainerManagement() {
         />
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Without ShellHub */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
               <Card hover className="p-8 flex flex-col h-full">
@@ -537,7 +525,6 @@ export default function ContainerManagement() {
                   </div>
                 </div>
 
-                {/* Fake terminal */}
                 <WindowChrome variant="terminal" size="sm" className="flex-1">
                   <div className="space-y-2">
                     <p>
@@ -588,7 +575,6 @@ export default function ContainerManagement() {
             </ShimmerCard>
           </Reveal>
 
-          {/* With ShellHub */}
           <Reveal delay={0.1}>
             <ShimmerCard className="h-full">
               <HighlightCard
@@ -610,7 +596,6 @@ export default function ContainerManagement() {
                     One command, fully recorded
                   </p>
 
-                  {/* Fake terminal */}
                   <WindowChrome
                     variant="terminal"
                     size="sm"
@@ -647,7 +632,6 @@ export default function ContainerManagement() {
                     </div>
                   </WindowChrome>
 
-                  {/* Status badges */}
                   <div className="flex flex-wrap gap-2 mt-4">
                     {[
                       { label: "Recorded", color: C.green },
@@ -675,7 +659,6 @@ export default function ContainerManagement() {
         </div>
       </Section>
 
-      {/* ═══════ Architecture Diagram ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="Architecture"
@@ -714,7 +697,6 @@ export default function ContainerManagement() {
         </div>
       </Section>
 
-      {/* ═══════ Key Features ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="Features"
@@ -722,12 +704,10 @@ export default function ContainerManagement() {
           subtitle="Everything you need to manage SSH access to containers at scale, from access control to session recording."
         />
 
-        {/* Big feature card: Per-Container Access Control */}
         <Reveal className="mb-6">
           <ShimmerCard>
             <HighlightCard color="primary">
               <div className="relative grid lg:grid-cols-2 gap-8 p-8">
-                {/* Left: description */}
                 <div className="flex flex-col justify-center">
                   <IconBadge color="primary" className="mb-4">
                     <UsersIcon
@@ -757,13 +737,11 @@ export default function ContainerManagement() {
                   </ul>
                 </div>
 
-                {/* Right: permissions table mockup */}
                 <WindowChrome
                   variant="browser"
                   path="/containers"
                   bodyClassName="font-sans"
                 >
-                  {/* Table header */}
                   <div className="grid grid-cols-4 gap-2 px-5 py-2.5 border-b border-border text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
                     <span>Container</span>
                     <span>User</span>
@@ -771,7 +749,6 @@ export default function ContainerManagement() {
                     <span>Access</span>
                   </div>
 
-                  {/* Table rows */}
                   {permRows.map((row, i) => (
                     <div
                       key={i}
@@ -827,7 +804,6 @@ export default function ContainerManagement() {
         </div>
       </Section>
 
-      {/* ═══════ How It Works ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="How It Works"
@@ -836,7 +812,6 @@ export default function ContainerManagement() {
         />
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Connecting line (visible on md+) */}
           <div className="hidden md:block absolute top-[52px] left-[16.66%] right-[16.66%] h-[1px] z-base">
             <div
               className="w-full h-full"
@@ -849,7 +824,6 @@ export default function ContainerManagement() {
           {steps.map((s, i) => (
             <Reveal key={i} delay={i * 0.08}>
               <div className="relative text-center">
-                {/* Step number circle */}
                 <div
                   className="relative z-raised w-[60px] h-[60px] rounded-full mx-auto mb-6 flex items-center justify-center border text-lg font-bold font-mono"
                   style={{

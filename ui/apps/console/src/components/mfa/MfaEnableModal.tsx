@@ -232,7 +232,6 @@ export default function MfaEnableModal({
       <div className="space-y-5">
         {error && <Callout variant="error">{error}</Callout>}
 
-        {/* Step 1: Recovery Email */}
         {step === 1 && (
           <div className="space-y-4">
             <div>
@@ -300,7 +299,6 @@ export default function MfaEnableModal({
           </div>
         )}
 
-        {/* Step 2: Save Recovery Codes */}
         {step === 2 && (
           <div className="space-y-4">
             <div>
@@ -372,7 +370,6 @@ export default function MfaEnableModal({
           </div>
         )}
 
-        {/* Step 3: QR Code + Verification */}
         {step === 3 && (
           <div className="space-y-4">
             <div>
@@ -451,7 +448,6 @@ export default function MfaEnableModal({
           </div>
         )}
 
-        {/* Step 4: Success */}
         {step === 4 && (
           <div className="text-center py-8 space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-green/15 border border-accent-green/25">

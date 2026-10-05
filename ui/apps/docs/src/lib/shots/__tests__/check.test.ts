@@ -44,8 +44,6 @@ describe("unreferencedImages", () => {
     ]);
   });
 
-  // Manual images are referenced by plain markdown, which no manifest knows
-  // about. Reading the built html is what lets one rule cover both directories.
   it("reports a manual image no page displays any more", () => {
     image("img/manual", "mfa-setup.png");
     image("img/manual", "public-keys.png");
@@ -64,8 +62,6 @@ describe("unreferencedImages", () => {
     expect(unreferencedImages(publicDir(), outDir())).toEqual([]);
   });
 
-  // Every image lives in one of the owned directories, so a build that wrote no
-  // html would otherwise propose deleting all of them at once.
   it("proposes nothing when there is no build to read", () => {
     image("img/shots", "device-list.png");
 

@@ -27,11 +27,6 @@ function setAccessMode(mode: "legacy" | "identity") {
   );
 }
 
-/**
- * Renders the mode the guard read, so a case can wait for the namespace to settle. Asserting on
- * the page alone passes on the first render, before the fetch answers, which hides a guard that
- * redirects on the wrong mode.
- */
 function ResolvedMode() {
   const { tenant } = useAuthStore();
   const { namespace } = useNamespace(tenant ?? "");

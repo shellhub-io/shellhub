@@ -32,7 +32,6 @@ export function StepPath({ onSelectSelfHosted }: StepPathProps) {
   return (
     <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Cloud card */}
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
             <HighlightCard color="primary" className="p-8 flex flex-col h-full">
@@ -80,7 +79,6 @@ export function StepPath({ onSelectSelfHosted }: StepPathProps) {
           </ShimmerCard>
         </Reveal>
 
-        {/* Self-hosted card */}
         <Reveal delay={0.1}>
           <ShimmerCard className="h-full">
             <div className="bg-card/60 border border-border rounded-xl p-8 flex flex-col h-full hover:border-border-light transition-colors duration-300">
@@ -122,7 +120,6 @@ export function StepPath({ onSelectSelfHosted }: StepPathProps) {
         </Reveal>
       </div>
 
-      {/* Enterprise card — full width below */}
       <Reveal delay={0.2}>
         <Card className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:border-primary/30 transition-colors duration-300">
           <IconBadge color="yellow">

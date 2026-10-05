@@ -350,7 +350,6 @@ export default function MfaDisableDialog({
             </>
           )}
 
-          {/* Actions */}
           {(mode !== "email-reset" || emailRequested) && (
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="secondary" onClick={onClose}>

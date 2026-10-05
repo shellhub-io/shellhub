@@ -113,8 +113,6 @@ export default function App() {
   return (
     <Suspense>
       <Routes>
-        {/* Bare popup landing for the SSO re-auth step-up: no layout, just relays
-            the outcome to its opener and closes. */}
         <Route path="/sso-reauth" element={<SsoReauthComplete />} />
         <Route element={<ConnectivityGuard />}>
           <Route element={<SetupGuard />}>
@@ -140,7 +138,6 @@ export default function App() {
                   <Route path="/update-password" element={<UpdatePassword />} />
                 </>
               )}
-              {/* Public accept-invite landing; every edition uses the invitation flow. */}
               <Route path="/accept-invite" element={<AcceptInvite />} />
             </Route>
             <Route element={<AuthLayout width="2xl" />}>
@@ -231,9 +228,6 @@ export default function App() {
                         element={<AccessPolicies />}
                       />
                     </Route>
-                    {/* The two approvals a native login can wait on. Both write to
-                      the identity — one creates it, the other refreshes its
-                      re-auth window — so both open over the identity list. */}
                     <Route path="/ssh-identities" element={<SSHIdentities />}>
                       <Route
                         path="new/:code"
@@ -244,8 +238,6 @@ export default function App() {
                         element={<SSHApproval flow="confirm" />}
                       />
                     </Route>
-                    {/* Legacy key ACL, vault, and firewall are bypassed in
-                      identity mode; redirect them to Access Policies there. */}
                     <Route element={<LegacyAccessGuard />}>
                       <Route
                         path="/sshkeys/public-keys"

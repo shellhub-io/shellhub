@@ -30,8 +30,6 @@ export default {
           600: "#5468b3",
           700: "#4a5c9e",
         },
-        // Semantic tokens are driven by CSS variables (see design-system/css/base.css)
-        // so the whole UI can flip between dark (default) and light themes.
         background: "rgb(var(--c-background) / <alpha-value>)",
         surface: "rgb(var(--c-surface) / <alpha-value>)",
         card: "rgb(var(--c-card) / <alpha-value>)",
@@ -47,7 +45,6 @@ export default {
           blue: "#56a2e1",
           cyan: "#4e9aa3",
         },
-        // Hover overlays flip from white-on-dark to black-on-light via --c-hover.
         "hover-subtle": "rgb(var(--c-hover) / 0.03)",
         "hover-medium": "rgb(var(--c-hover) / 0.05)",
         "hover-strong": "rgb(var(--c-hover) / 0.08)",

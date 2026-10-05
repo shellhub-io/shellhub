@@ -189,7 +189,6 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
 
   return (
     <div className="flex gap-3.5">
-      {/* Spine */}
       <div className="flex flex-col items-center shrink-0">
         <div
           className={cn(
@@ -211,7 +210,6 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
         )}
       </div>
 
-      {/* Content */}
       <div className={cn(isLast ? "pb-0" : "pb-4", "min-w-0")}>
         <p
           className={cn("text-sm font-mono font-medium leading-6", titleColor)}
@@ -313,10 +311,8 @@ export default function SessionDetails() {
         ]}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4">
-          {/* Session icon with status */}
           <div className="relative shrink-0">
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
               <CommandLineIcon className="w-7 h-7 text-primary" />
@@ -383,7 +379,6 @@ export default function SessionDetails() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {permissions.available && (
             <>
@@ -439,9 +434,7 @@ export default function SessionDetails() {
         </div>
       </div>
 
-      {/* Body */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Timeline */}
         <Card className="lg:col-span-2 p-5">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-5">
             <ClockIcon className="w-4 h-4 text-primary" />
@@ -456,9 +449,7 @@ export default function SessionDetails() {
           ))}
         </Card>
 
-        {/* Right column */}
         <div className="space-y-5">
-          {/* Session meta */}
           <Card className="p-5 space-y-4">
             <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
               <InformationCircleIcon className="w-4 h-4 text-primary" />
@@ -502,7 +493,6 @@ export default function SessionDetails() {
             </dl>
           </Card>
 
-          {/* Device */}
           {session.device?.uid && (
             <Card className="p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -548,7 +538,6 @@ export default function SessionDetails() {
         </div>
       </div>
 
-      {/* Delete Recording Dialog */}
       <DeleteRecordingDialog
         open={showDeleteLogs}
         onClose={() => setShowDeleteLogs(false)}
@@ -556,7 +545,6 @@ export default function SessionDetails() {
         recorded={session.recorded}
       />
 
-      {/* Close Session Dialog */}
       <ConfirmDialog
         open={showClose}
         onClose={() => {

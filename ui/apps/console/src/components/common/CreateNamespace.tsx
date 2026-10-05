@@ -69,7 +69,6 @@ export function CommunityInstructions({
         Ask the instance administrator to add you to the namespace.
       </p>
 
-      {/* Add to the instance namespace */}
       <div>
         <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
           Add a member to the namespace
@@ -101,7 +100,6 @@ export function CommunityInstructions({
         )}
       </Button>
 
-      {/* Upgrade tip */}
       <div className="flex items-start gap-2.5 bg-primary/5 border border-primary/10 rounded-lg p-3">
         <SparklesIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-2xs text-text-secondary leading-relaxed">

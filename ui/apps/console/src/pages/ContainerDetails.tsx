@@ -119,7 +119,6 @@ export default function ContainerDetails() {
         ]}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4">
           <div className="relative shrink-0">
@@ -175,7 +174,6 @@ export default function ContainerDetails() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {container.status === "accepted" && (
             <>
@@ -267,7 +265,6 @@ export default function ContainerDetails() {
         </div>
       </div>
 
-      {/* SSHID Banner */}
       {container.status === "accepted" && (
         <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
@@ -280,7 +277,6 @@ export default function ContainerDetails() {
         </Card>
       )}
 
-      {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <IdentityCard
           uid={container.uid}
@@ -319,7 +315,6 @@ export default function ContainerDetails() {
         />
       </div>
 
-      {/* Tags */}
       <Card className="p-5 mb-6">
         <TagsSection
           uid={container.uid}

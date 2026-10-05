@@ -112,7 +112,6 @@ export default function NamespaceDetails() {
         ]}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
@@ -146,9 +145,7 @@ export default function NamespaceDetails() {
         </div>
       </div>
 
-      {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Properties Card */}
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
@@ -177,7 +174,6 @@ export default function NamespaceDetails() {
           </dl>
         </Card>
 
-        {/* Settings Card */}
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <Cog6ToothIcon className="w-4 h-4 text-primary" />
@@ -228,7 +224,6 @@ export default function NamespaceDetails() {
         </Card>
       </div>
 
-      {/* Members Section */}
       <Card className="overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <h3 className="text-xs font-semibold text-text-primary">

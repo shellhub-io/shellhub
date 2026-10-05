@@ -59,23 +59,6 @@ export default function NoticeBanner({
       )}
     >
       <div className="overflow-hidden">
-        {/*
-         * The strip container is always mounted so the overflow-hidden clip
-         * layer has content to collapse into, producing the smooth
-         * grid-rows 1fr→0fr transition on hide. The live region (role +
-         * aria-live) is registered on this always-present element so the
-         * browser tracks it from the start.
-         *
-         * Children are conditionally rendered: screen readers fire live-region
-         * announcements on content insertion, NOT on aria-hidden removal. By
-         * mounting children only when visible=true, the text node is freshly
-         * inserted into the registered live region each time the banner
-         * becomes visible, which reliably triggers an AT announcement.
-         *
-         * aria-hidden + inert on the outer wrapper suppress AT access when
-         * the banner is not visible; focusable children are also absent from
-         * the DOM at that point.
-         */}
         <div
           role={role}
           aria-live={ariaLive}

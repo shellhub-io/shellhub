@@ -440,7 +440,6 @@ function EndpointModal({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {/* Device */}
         <div>
           <span className={LABEL}>Device</span>
           <DeviceSelector
@@ -450,7 +449,6 @@ function EndpointModal({
           />
         </div>
 
-        {/* Target */}
         <div>
           <span id="endpoint-target-label" className={LABEL}>
             Target
@@ -460,7 +458,6 @@ function EndpointModal({
             aria-labelledby="endpoint-target-label"
             className="space-y-2"
           >
-            {/* Localhost card */}
             <label
               className={cn(
                 "relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
@@ -541,7 +538,6 @@ function EndpointModal({
               )}
             </label>
 
-            {/* Local network card */}
             <label
               className={cn(
                 "relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
@@ -626,7 +622,6 @@ function EndpointModal({
           </div>
         </div>
 
-        {/* Expiration */}
         <div className="border border-border rounded-lg p-4">
           <TimeoutSelector
             value={ttl}
@@ -636,7 +631,6 @@ function EndpointModal({
           />
         </div>
 
-        {/* TLS Section */}
         <div className="border border-border rounded-lg p-4 space-y-3">
           <span className={LABEL}>TLS</span>
           <div className="flex items-center justify-between">
@@ -670,7 +664,6 @@ function EndpointModal({
             </div>
           )}
 
-          {/* Service hostname (Host override + SNI when TLS is on) */}
           <div className="pt-3 border-t border-border/50">
             <InputField
               id="endpoint-tls-domain"
@@ -693,7 +686,6 @@ function EndpointModal({
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="flex items-start gap-2 px-3 py-2.5 bg-accent-red/[0.08] border border-accent-red/20 rounded-lg">
             <ExclamationCircleIcon
@@ -729,7 +721,6 @@ function EndpointCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        {/* Left: icon + info */}
         <div className="flex items-start gap-3.5 min-w-0 flex-1">
           <div
             className={cn(
@@ -749,7 +740,6 @@ function EndpointCard({
               {endpoint.device?.name || endpoint.device_uid}
             </h3>
 
-            {/* URL */}
             <div className="mt-1">
               <a
                 href={fullUrl}
@@ -762,15 +752,12 @@ function EndpointCard({
               </a>
             </div>
 
-            {/* Badges row */}
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
-              {/* Host:Port */}
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-hover-medium text-text-muted text-2xs rounded font-mono">
                 <ServerStackIcon className="w-2.5 h-2.5" strokeWidth={2} />
                 {endpoint.host}:{endpoint.port}
               </span>
 
-              {/* TLS-to-device indicator */}
               {endpoint.tls?.enabled && (
                 <Badge
                   color="green"
@@ -781,7 +768,6 @@ function EndpointCard({
                 </Badge>
               )}
 
-              {/* Expired badge */}
               {expired && (
                 <Badge color="yellow">
                   <ExclamationCircleIcon
@@ -792,7 +778,6 @@ function EndpointCard({
                 </Badge>
               )}
 
-              {/* Expiration / Created */}
               <span className="text-2xs text-text-muted/60">
                 {never
                   ? "Never expires"
@@ -804,7 +789,6 @@ function EndpointCard({
           </div>
         </div>
 
-        {/* Right: delete action */}
         <div className="flex items-center shrink-0">
           <RestrictedAction action="webEndpoint:delete">
             <IconButton
@@ -893,7 +877,6 @@ function WebEndpointsContent() {
 
   return (
     <>
-      {/* Content */}
       {isLoading && webEndpoints.length === 0 && !isSearching ? (
         <PageLoader label="Loading web endpoints" />
       ) : isTrulyEmpty ? (
@@ -986,7 +969,6 @@ function WebEndpointsContent() {
             </div>
           ) : (
             <>
-              {/* Endpoint cards */}
               <ul
                 className="space-y-2 animate-fade-in list-none p-0"
                 aria-label="Web endpoints"
@@ -1007,10 +989,6 @@ function WebEndpointsContent() {
                 ))}
               </ul>
 
-              {/* Pagination — the shared component shows the count whenever
-                  there are endpoints and only renders Prev/Next on multiple
-                  pages; empty/no-results states are handled by the branches
-                  above, so it never renders a "0 endpoints" bar here. */}
               <Pagination
                 page={params.page}
                 totalPages={totalPages}
@@ -1025,7 +1003,6 @@ function WebEndpointsContent() {
 
       <EndpointModal open={modalOpen} onClose={closeModal} />
 
-      {/* Delete Dialog */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={closeDelete}

@@ -138,10 +138,8 @@ export default function DeviceDetails() {
         items={[{ label: "Devices", to: "/devices" }, { label: device.name }]}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4">
-          {/* Device icon with status */}
           <div className="relative shrink-0">
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
               <CpuChipIcon className="w-7 h-7 text-primary" />
@@ -193,7 +191,6 @@ export default function DeviceDetails() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {device.status === "accepted" && (
             <>
@@ -286,7 +283,6 @@ export default function DeviceDetails() {
         </div>
       </div>
 
-      {/* SSHID Banner */}
       {device.status === "accepted" && (
         <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
@@ -299,7 +295,6 @@ export default function DeviceDetails() {
         </Card>
       )}
 
-      {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <IdentityCard
           uid={device.uid}
@@ -364,7 +359,6 @@ export default function DeviceDetails() {
         />
       </div>
 
-      {/* Tags + Custom Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-5">
           <TagsSection

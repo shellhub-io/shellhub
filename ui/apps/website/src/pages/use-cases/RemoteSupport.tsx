@@ -161,7 +161,6 @@ const workflowSteps = [
 export default function RemoteSupport() {
   return (
     <SiteLayout>
-      {/* ── Hero ──────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="yellow" />
@@ -196,7 +195,6 @@ export default function RemoteSupport() {
         </div>
       </section>
 
-      {/* ── Session Recording Mockup ─────────────────────────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -249,11 +247,9 @@ export default function RemoteSupport() {
             </div>
           </div>
 
-          {/* Session player mockup */}
           <Reveal delay={0.1}>
             <ShimmerCard>
               <WindowChrome variant="terminal" title="Session Replay">
-                {/* Terminal area */}
                 <div className="bg-[#111214] rounded-lg border border-border p-4 font-mono text-2xs leading-relaxed mb-4">
                   <p className="text-accent-green">
                     john@prod-server-03:~$
@@ -298,7 +294,6 @@ export default function RemoteSupport() {
                   </p>
                 </div>
 
-                {/* Playback controls */}
                 <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
                   <button
                     type="button"
@@ -312,7 +307,6 @@ export default function RemoteSupport() {
                     />
                   </button>
 
-                  {/* Timeline */}
                   <div className="flex-1 relative">
                     <div className="h-1.5 bg-border rounded-full overflow-hidden">
                       <div
@@ -327,7 +321,6 @@ export default function RemoteSupport() {
                   </span>
                 </div>
 
-                {/* Metadata */}
                 <div className="mt-4 pt-4 border-t border-border">
                   <p className="text-2xs text-text-muted font-mono">
                     User:{" "}
@@ -348,14 +341,11 @@ export default function RemoteSupport() {
         </div>
       </Section>
 
-      {/* ── Audit Trail Mockup ───────────────────────────────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Audit log table mockup */}
           <Reveal delay={0.1} className="order-2 lg:order-1">
             <ShimmerCard>
               <WindowChrome variant="terminal" title="Audit Log">
-                {/* Table header */}
                 <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
                   <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
                     Time
@@ -374,7 +364,6 @@ export default function RemoteSupport() {
                   </span>
                 </div>
 
-                {/* Rows */}
                 <div className="space-y-1">
                   {auditRows.map((row, i) => (
                     <div
@@ -414,7 +403,6 @@ export default function RemoteSupport() {
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <span className="text-2xs text-text-muted">
                     Showing 4 of 1,247 entries
@@ -427,7 +415,6 @@ export default function RemoteSupport() {
             </ShimmerCard>
           </Reveal>
 
-          {/* Text */}
           <div className="order-1 lg:order-2">
             <SectionHeader
               align="left"
@@ -522,7 +509,6 @@ export default function RemoteSupport() {
         </div>
       </Section>
 
-      {/* ── Support Workflow ──────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Workflow"
@@ -531,7 +517,6 @@ export default function RemoteSupport() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          {/* Connecting arrows (desktop only) */}
           <div className="hidden md:block absolute top-1/2 left-[calc(33.33%-12px)] w-[calc(33.33%+24px)] -translate-y-1/2 pointer-events-none z-base">
             <svg
               className="w-full h-8"

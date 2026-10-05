@@ -26,7 +26,6 @@ export default function GettingStarted() {
         <GlowOrbs preset="section" tone="primary" />
 
         <div className="relative z-raised w-full max-w-4xl flex flex-col items-center">
-          {/* Progress indicator */}
           <div className="flex items-center gap-3 mb-12 animate-fade-in">
             {steps.map((step, i) => (
               <div key={step.label} className="flex items-center gap-3">
@@ -51,7 +50,6 @@ export default function GettingStarted() {
             ))}
           </div>
 
-          {/* Step title */}
           <div
             className="text-center mb-10 animate-fade-in"
             style={{ animationDelay: "100ms" }}
@@ -67,7 +65,6 @@ export default function GettingStarted() {
             </p>
           </div>
 
-          {/* Steps */}
           {currentStep === 0 && (
             <StepPath
               onSelectSelfHosted={() => setCurrentStep(1)}

@@ -27,7 +27,6 @@ export default function Team() {
         description="Manage namespace members, invitations, and API keys"
       />
 
-      {/* Tabs */}
       <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5 w-fit mb-6 animate-fade-in">
         {tabs.map((t) => (
           <button
@@ -46,7 +45,6 @@ export default function Team() {
         ))}
       </div>
 
-      {/* Tab content */}
       {tab === "members" && tenant && <MembersTab tenantId={tenant} />}
       {tab === "api-keys" && <ApiKeysTab />}
     </div>

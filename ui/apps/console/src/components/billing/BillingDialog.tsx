@@ -98,7 +98,6 @@ export default function BillingDialog({
         {`Step ${step} of ${TOTAL_STEPS}: ${STEPS[step - 1]}`}
       </span>
 
-      {/* Header: progress dots + close button */}
       <header className="flex items-center justify-between px-6 pt-5 pb-0 shrink-0">
         <div className="flex items-center gap-2" aria-hidden="true">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
@@ -130,7 +129,6 @@ export default function BillingDialog({
         )}
       </header>
 
-      {/* Thin progress bar */}
       <div
         role="progressbar"
         aria-valuenow={step}
@@ -145,7 +143,6 @@ export default function BillingDialog({
         />
       </div>
 
-      {/* Content */}
       <main className="flex-auto overflow-y-auto px-6 min-h-0">
         {step === 1 && <BillingLetter />}
         {step === 2 && (
@@ -167,7 +164,6 @@ export default function BillingDialog({
         </div>
       )}
 
-      {/* Footer */}
       <footer className="px-6 py-4 mt-4 border-t border-border shrink-0 flex items-center justify-between">
         {step > 1 && step < TOTAL_STEPS ? (
           <Button

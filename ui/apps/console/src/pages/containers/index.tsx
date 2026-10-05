@@ -385,7 +385,6 @@ export default function Containers() {
         </Button>
       </PageHeader>
 
-      {/* Filter bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
         <div
           className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
@@ -429,7 +428,6 @@ export default function Containers() {
         </div>
       </div>
 
-      {/* Active tag filters */}
       {params.tags.length > 0 && (
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
           <span className="text-2xs font-mono text-text-muted uppercase tracking-wider shrink-0">

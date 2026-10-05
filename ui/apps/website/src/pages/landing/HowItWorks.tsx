@@ -17,7 +17,6 @@ export function HowItWorks() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Card 1: Remote SSH Access */}
         <Reveal>
           <ShimmerCard>
             <Card className="p-6 lg:p-8 hover:border-primary/30 transition-all duration-300">
@@ -290,7 +289,6 @@ export function HowItWorks() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Card 2: Session Recording */}
         <Reveal delay={0.08}>
           <ShimmerCard>
             <Card className="p-6 lg:p-8 hover:border-accent-cyan/30 transition-all duration-300">
@@ -565,7 +563,6 @@ export function HowItWorks() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Card 3: Firewall Rules */}
         <Reveal delay={0.16}>
           <ShimmerCard>
             <Card className="p-6 lg:p-8 hover:border-accent-yellow/30 transition-all duration-300">
@@ -894,7 +891,6 @@ export function HowItWorks() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Card 4: Web Terminal */}
         <Reveal delay={0.24}>
           <ShimmerCard>
             <Card className="p-6 lg:p-8 hover:border-accent-green/30 transition-all duration-300">

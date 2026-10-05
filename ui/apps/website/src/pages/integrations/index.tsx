@@ -103,7 +103,6 @@ const sshFeatures = [
 export default function Integrations() {
   return (
     <SiteLayout>
-      {/* ─────────── Hero ─────────── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
@@ -138,10 +137,8 @@ export default function Integrations() {
         </div>
       </section>
 
-      {/* ─────────── Automation & IaC ─────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left copy */}
           <div>
             <SectionHeader
               align="left"
@@ -191,7 +188,6 @@ export default function Integrations() {
             </div>
           </div>
 
-          {/* Right terminal mockup */}
           <Reveal delay={0.1}>
             <ShimmerCard>
               <WindowChrome
@@ -268,7 +264,6 @@ export default function Integrations() {
         </div>
       </Section>
 
-      {/* ─────────── CI/CD Pipelines ─────────── */}
       <Section>
         <SectionHeader
           eyebrow="CI/CD Pipelines"
@@ -399,7 +394,6 @@ export default function Integrations() {
         </Reveal>
       </Section>
 
-      {/* ─────────── Development Tools ─────────── */}
       <Section>
         <SectionHeader
           eyebrow="Development Tools"
@@ -408,12 +402,10 @@ export default function Integrations() {
         />
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* VS Code Remote SSH */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
               <HighlightCard color="accent-blue" className="h-full">
                 <div className="flex flex-col h-full">
-                  {/* VS Code title bar */}
                   <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-[#1E1E2E]">
                     <div className="w-3 h-3 rounded-full bg-accent-red/60" />
                     <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
@@ -429,7 +421,6 @@ export default function Integrations() {
                   </div>
 
                   <div className="flex flex-1">
-                    {/* Sidebar */}
                     <div className="w-44 shrink-0 border-r border-border bg-surface/40 p-3">
                       <p className="text-2xs font-mono text-text-muted uppercase tracking-wider mb-2">
                         Explorer
@@ -508,7 +499,6 @@ export default function Integrations() {
                       </div>
                     </div>
 
-                    {/* Editor area */}
                     <div className="flex-1 p-4 font-mono text-2xs leading-[1.8]">
                       <div className="flex items-center gap-3 mb-3 border-b border-border pb-2">
                         <span className="px-2 py-0.5 text-2xs bg-accent-blue/10 text-accent-blue border-b-2 border-accent-blue rounded-t">
@@ -551,7 +541,6 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  {/* Status bar */}
                   <div className="flex items-center justify-between px-4 py-1.5 bg-accent-blue/10 border-t border-border text-2xs font-mono">
                     <div className="flex items-center gap-3">
                       <span className="text-accent-blue flex items-center gap-1">
@@ -567,12 +556,10 @@ export default function Integrations() {
             </ShimmerCard>
           </Reveal>
 
-          {/* Embedded Linux */}
           <Reveal delay={0.1}>
             <ShimmerCard className="h-full">
               <HighlightCard color="accent-yellow" className="h-full">
                 <div className="relative">
-                  {/* Header */}
                   <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-3 mb-3">
                       <IconBadge color="yellow">
@@ -595,7 +582,6 @@ export default function Integrations() {
                     </p>
                   </div>
 
-                  {/* Build config mockup */}
                   <div className="mx-4 mb-4">
                     <div className="bg-surface/60 border border-border rounded-lg overflow-hidden">
                       <div className="flex items-center gap-2 px-4 py-2 border-b border-border">
@@ -631,7 +617,6 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  {/* Buildroot config */}
                   <div className="mx-4 mb-5">
                     <div className="bg-surface/60 border border-border rounded-lg overflow-hidden">
                       <div className="flex items-center gap-2 px-4 py-2 border-b border-border">
@@ -664,10 +649,8 @@ export default function Integrations() {
         </div>
       </Section>
 
-      {/* ─────────── Docker & Containers ─────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: diagram */}
           <Reveal>
             <ShimmerCard>
               <Card className="p-8 overflow-hidden">
@@ -675,9 +658,7 @@ export default function Integrations() {
                   Connection Flow
                 </p>
 
-                {/* Diagram */}
                 <div className="flex flex-col items-center gap-0">
-                  {/* Developer */}
                   <div className="flex items-center gap-3 px-5 py-3 bg-surface border border-border rounded-lg w-full max-w-xs">
                     <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
                       <UserIcon
@@ -693,7 +674,6 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  {/* Arrow */}
                   <div className="flex flex-col items-center py-2">
                     <div className="w-px h-6 bg-primary/40" />
                     <ArrowDownIcon
@@ -702,7 +682,6 @@ export default function Integrations() {
                     />
                   </div>
 
-                  {/* ShellHub Cloud */}
                   <div className="flex items-center gap-3 px-5 py-3 bg-primary/[0.06] border border-primary/25 rounded-lg w-full max-w-xs">
                     <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
                       <CloudIcon
@@ -720,7 +699,6 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  {/* Arrow */}
                   <div className="flex flex-col items-center py-2">
                     <div className="w-px h-6 bg-accent-cyan/40" />
                     <ArrowDownIcon
@@ -729,7 +707,6 @@ export default function Integrations() {
                     />
                   </div>
 
-                  {/* Docker Host */}
                   <div className="w-full max-w-xs border border-border rounded-lg overflow-hidden">
                     <div className="px-4 py-2 bg-surface/60 border-b border-border flex items-center gap-2">
                       <CubeIcon
@@ -769,7 +746,6 @@ export default function Integrations() {
             </ShimmerCard>
           </Reveal>
 
-          {/* Right: copy */}
           <div>
             <SectionHeader
               align="left"
@@ -808,7 +784,6 @@ export default function Integrations() {
         </div>
       </Section>
 
-      {/* ─────────── API-First ─────────── */}
       <Section>
         <SectionHeader
           eyebrow="API-First"
@@ -819,7 +794,6 @@ export default function Integrations() {
         <Reveal delay={0.1}>
           <ShimmerCard className="max-w-4xl mx-auto">
             <Card className="overflow-hidden">
-              {/* API tabs */}
               <div className="flex items-center gap-1 px-5 py-3 border-b border-border bg-surface/60">
                 <Badge shape="pill" color="green">
                   GET
@@ -835,7 +809,6 @@ export default function Integrations() {
               </div>
 
               <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-                {/* Request */}
                 <div className="p-5">
                   <p className="text-2xs font-mono text-text-muted uppercase tracking-wider mb-3">
                     Request
@@ -879,7 +852,6 @@ export default function Integrations() {
                   </div>
                 </div>
 
-                {/* Response */}
                 <div className="p-5">
                   <p className="text-2xs font-mono text-text-muted uppercase tracking-wider mb-3">
                     Response
@@ -943,7 +915,6 @@ export default function Integrations() {
                 </div>
               </div>
 
-              {/* More endpoints */}
               <div className="px-5 py-3 border-t border-border bg-surface/40 flex flex-wrap gap-2">
                 {[
                   { method: "POST", path: "/api/sessions", color: C.yellow },
@@ -976,7 +947,6 @@ export default function Integrations() {
         </Reveal>
       </Section>
 
-      {/* ─────────── Standard SSH callout ─────────── */}
       <Section>
         <Reveal className="text-center mb-14">
           <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">

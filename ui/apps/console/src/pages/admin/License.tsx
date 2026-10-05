@@ -266,15 +266,7 @@ function LicenseUpload() {
       </h2>
       <div className="space-y-3">
         <div>
-          {/*
-           * Drop zone — a <div role="button"> that calls fileInputRef.current.click()
-           * programmatically. Avoids Chrome's label double-click behavior where
-           * clicking a <label htmlFor="file-input"> re-fires after the OS dialog
-           * closes, flashing the page and losing the selected file.
-           * The hidden <input> has tabIndex={-1} so keyboard focus stays on the div.
-           */}
           <div className="relative">
-            {/* Hidden file input — not focusable, triggered only programmatically */}
             <input
               id="license-file"
               ref={fileInputRef}
@@ -356,7 +348,6 @@ function LicenseUpload() {
               )}
             </div>
 
-            {/* Sibling of the drop zone — clicking it does NOT re-open the file picker */}
             {file && (
               <IconButton
                 size="sm"
@@ -369,7 +360,6 @@ function LicenseUpload() {
             )}
           </div>
 
-          {/* Persistent live region — always in DOM so SR catches text changes */}
           <div
             aria-live="polite"
             aria-atomic="true"
