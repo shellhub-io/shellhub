@@ -93,6 +93,7 @@ export default function TerminalInstance({
   useEffect(() => {
     let cancelled = false;
     let lastError = false;
+    let sessionUid: string | undefined;
     const {
       theme: initTheme,
       fontFamilyWithFallback: initFont,
@@ -218,6 +219,9 @@ export default function TerminalInstance({
               return;
             }
             recorderRef.current = recorder;
+            if (sessionUid) {
+              recorder.setSessionUid(sessionUid);
+            }
             recorder.start(cols, rows);
           } catch (err) {
             console.error("session recording: could not start", err);
@@ -292,6 +296,7 @@ export default function TerminalInstance({
               break;
             }
             case WS_KIND.SESSION: {
+              sessionUid = msg.data;
               recorderRef.current?.setSessionUid(msg.data);
               break;
             }
