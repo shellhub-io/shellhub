@@ -180,7 +180,7 @@ function codeCells() {
     .join("");
 }
 
-async function activeStepFind(text: string) {
+async function activeStepFind(text: string | RegExp) {
   await screen.findByRole("button", { name: /open terminal/i });
   return within(screen.getByRole("listitem", { current: "step" })).findByText(
     text,
@@ -536,6 +536,44 @@ describe("FirstRunGate shell step", () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it.each([
+    {
+      mode: "identity" as const,
+      legacyAllowed: false,
+      hint: /uses your ssh key\. the first time, it shows a link to approve it\./i,
+    },
+    {
+      mode: "legacy" as const,
+      legacyAllowed: true,
+      hint: /the device's own users and passwords apply\./i,
+    },
+  ])(
+    "tells how the ssh command signs in when the namespace is in $mode mode",
+    async ({ mode, legacyAllowed, hint }) => {
+      serveDashboard();
+      serveLinkedDevice("shellhub.local:22");
+      server.use(
+        http.get(`*/api/namespaces/${TENANT}`, () =>
+          HttpResponse.json(
+            mockNamespace({
+              tenant_id: TENANT,
+              name: "dev",
+              settings: {
+                session_record: false,
+                connection_announcement: "",
+                ssh_access_mode: mode,
+                ssh_legacy_allowed: legacyAllowed,
+              },
+            }),
+          ),
+        ),
+      );
+      renderAt("/dashboard");
+
+      expect(await activeStepFind(hint)).toBeInTheDocument();
+    },
+  );
 
   it("opens the terminal dialog on the paired device", async () => {
     serveDashboard();

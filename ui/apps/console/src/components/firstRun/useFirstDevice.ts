@@ -125,6 +125,7 @@ export function useFirstDevice() {
 
   return {
     namespace: namespace?.name ?? "",
+    signsInByKey: namespace?.settings?.ssh_access_mode === "identity",
     stage,
     code,
     submitCode,
