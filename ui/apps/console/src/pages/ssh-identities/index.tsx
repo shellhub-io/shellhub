@@ -307,9 +307,9 @@ export default function SSHIdentities() {
     },
   ];
 
-  if (!isLoading && identities.length === 0) {
-    return (
-      <>
+  return (
+    <>
+      {!isLoading && identities.length === 0 ? (
         <EmptyState
           icon={<FingerPrintIcon className="w-8 h-8" />}
           overline="Identity Access"
@@ -347,108 +347,96 @@ export default function SSHIdentities() {
             </Button>
           </RestrictedAction>
         </EmptyState>
-
-        <IdentityModal
-          open={modalOpen}
-          editIdentity={editTarget}
-          onClose={closeModal}
-        />
-
-        <Outlet />
-      </>
-    );
-  }
-
-  return (
-    <div>
-      <PageHeader
-        icon={<FingerPrintIcon className="w-6 h-6" />}
-        overline={sectionTitle}
-        title="SSH Identities"
-        description="Manage the SSH keys that are your identity under the identity access mode."
-      >
-        <RestrictedAction action="sshIdentity:add">
-          <Button
-            onClick={openNew}
-            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
+      ) : (
+        <div>
+          <PageHeader
+            icon={<FingerPrintIcon className="w-6 h-6" />}
+            overline={sectionTitle}
+            title="SSH Identities"
+            description="Manage the SSH keys that are your identity under the identity access mode."
           >
-            Add a key
-          </Button>
-        </RestrictedAction>
-      </PageHeader>
-
-      {othersCount > 0 && (
-        <div className="flex items-center gap-3 mb-5 animate-fade-in">
-          <div
-            className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
-            role="tablist"
-            aria-label="SSH identity owner filter"
-          >
-            {scopeTabs.map((tab) => (
-              <button
-                type="button"
-                key={tab.value}
-                role="tab"
-                aria-selected={scope === tab.value}
-                onClick={() => setScope(tab.value)}
-                className={cn(
-                  "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
-                  scope === tab.value
-                    ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent",
-                )}
+            <RestrictedAction action="sshIdentity:add">
+              <Button
+                onClick={openNew}
+                icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                Add a key
+              </Button>
+            </RestrictedAction>
+          </PageHeader>
+
+          {othersCount > 0 && (
+            <div className="flex items-center gap-3 mb-5 animate-fade-in">
+              <div
+                className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
+                role="tablist"
+                aria-label="SSH identity owner filter"
+              >
+                {scopeTabs.map((tab) => (
+                  <button
+                    type="button"
+                    key={tab.value}
+                    role="tab"
+                    aria-selected={scope === tab.value}
+                    onClick={() => setScope(tab.value)}
+                    className={cn(
+                      "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+                      scope === tab.value
+                        ? "bg-primary/15 text-primary border border-primary/25"
+                        : "text-text-muted hover:text-text-secondary border border-transparent",
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <DataTable
+            columns={columns}
+            data={shown}
+            rowKey={(i) => i.id}
+            isLoading={isLoading}
+            loadingMessage="Loading SSH identities..."
+            emptyMessage={
+              scope === "mine"
+                ? "You have no SSH identities in this namespace"
+                : "No SSH identities in this namespace"
+            }
+          />
+
+          <ConfirmDialog
+            open={!!deleteTarget}
+            onClose={closeDelete}
+            onConfirm={confirmDelete}
+            icon={<NoSymbolIcon />}
+            title="Revoke key"
+            description={
+              <>
+                <ObjectName>{deleteTarget?.name}</ObjectName> is revoked.{" "}
+                {
+                  sshIdentitySource(
+                    deleteTarget?.source,
+                    !!deleteTarget && isCurrentBrowser(deleteTarget),
+                  ).revokeConsequence
+                }
+              </>
+            }
+            confirmLabel="Revoke key"
+          >
+            {deleteError && (
+              <p className="text-xs text-accent-red">{deleteError}</p>
+            )}
+          </ConfirmDialog>
         </div>
       )}
-
-      <DataTable
-        columns={columns}
-        data={shown}
-        rowKey={(i) => i.id}
-        isLoading={isLoading}
-        loadingMessage="Loading SSH identities..."
-        emptyMessage={
-          scope === "mine"
-            ? "You have no SSH identities in this namespace"
-            : "No SSH identities in this namespace"
-        }
-      />
-
       <IdentityModal
         open={modalOpen}
         editIdentity={editTarget}
         onClose={closeModal}
       />
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
-        icon={<NoSymbolIcon />}
-        title="Revoke key"
-        description={
-          <>
-            <ObjectName>{deleteTarget?.name}</ObjectName> is revoked.{" "}
-            {
-              sshIdentitySource(
-                deleteTarget?.source,
-                !!deleteTarget && isCurrentBrowser(deleteTarget),
-              ).revokeConsequence
-            }
-          </>
-        }
-        confirmLabel="Revoke key"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
-        )}
-      </ConfirmDialog>
-
       <Outlet />
-    </div>
+    </>
   );
 }

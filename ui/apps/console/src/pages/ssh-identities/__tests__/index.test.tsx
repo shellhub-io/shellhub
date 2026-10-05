@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
-import { server } from "@/tests/msw";
+import { jsonWithTotal, server } from "@/tests/msw";
 import SSHIdentities from "../index";
+import SSHApproval from "@/pages/SSHApproval";
 import type { SshIdentity } from "@/client";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockSshApproval } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 
 vi.mock("../IdentityModal", () => ({ default: () => null }));
@@ -67,9 +69,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockBrowserKeyFingerprint.mockReturnValue(null);
   useAuthStore.setState({ userId: "user1" });
-  server.use(
-    http.get("*/api/ssh-identities", () => HttpResponse.json([])),
-  );
+  server.use(http.get("*/api/ssh-identities", () => HttpResponse.json([])));
 });
 
 describe("SSHIdentities", () => {
@@ -95,7 +95,9 @@ describe("SSHIdentities", () => {
 
     await screen.findByText("mine");
 
-    expect(screen.queryByRole("tab", { name: "Everyone" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Everyone" }),
+    ).not.toBeInTheDocument();
   });
 
   it("says where each key came from", async () => {
@@ -186,5 +188,40 @@ describe("SSHIdentities", () => {
     expect(screen.getByRole("dialog")).toHaveTextContent(
       /needs approval again/i,
     );
+  });
+
+  it("keeps the confirmation code on screen when the approved key is the first one", async () => {
+    const user = userEvent.setup();
+    let identities: SshIdentity[] = [];
+    server.use(
+      http.get("*/api/ssh-identities", () => HttpResponse.json(identities)),
+      http.get("*/api/namespaces", () => jsonWithTotal([])),
+      http.get("*/api/ssh-approvals/:code", () =>
+        HttpResponse.json(mockSshApproval({ fingerprint: FINGERPRINT })),
+      ),
+      http.post("*/api/ssh-approvals/:code/confirm", () => {
+        identities = [identity({ source: "approval" })];
+        return HttpResponse.json({ confirmation_code: "ABCD2345" });
+      }),
+    );
+    render(
+      <ClipboardProvider>
+        <Routes>
+          <Route path="/ssh-identities" element={<SSHIdentities />}>
+            <Route path="new/:code" element={<SSHApproval flow="new" />} />
+          </Route>
+        </Routes>
+      </ClipboardProvider>,
+      {
+        wrapper: createTestWrapper({
+          initialEntries: ["/ssh-identities/new/WXYZ2K7Q"],
+        }),
+      },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Add key" }));
+    expect(
+      await screen.findByRole("status", { name: "Confirmation code" }),
+    ).toHaveTextContent("ABCD 2345");
   });
 });
