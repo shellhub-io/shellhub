@@ -722,16 +722,8 @@ func deviceAuthCacheKey(uid string) string {
 	return "auth_device/" + uid
 }
 
-// apiKeyCacheTTL bounds how long AuthAPIKey serves a key from the cache when nothing revokes it first.
 const apiKeyCacheTTL = 2 * time.Minute
 
-// apiKeyCacheKey namespaces a cached API key authentication by its digest and by the invariant it was
-// resolved under. The digest is what every mutation of the key resolves, so an entry can be dropped
-// without holding the plaintext. The generation prefix makes an entry written before
-// api_keys_key_digest_unique existed unreadable rather than trusted: such an entry may have resolved a
-// colliding digest into either of two namespaces, and the cache is consulted ahead of the store, so the
-// ambiguity guard in APIKeyResolve would never see it. Changing the key is what stops a pre-upgrade
-// collision authenticating past the migration that revoked it.
 func apiKeyCacheKey(digest string) string {
 	return "api-key/unique-digest={" + digest + "}"
 }
