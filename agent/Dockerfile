@@ -1,18 +1,12 @@
-# Unified Dockerfile for ShellHub Agent
-# Default build: production multiarch
-# Development: use --target development
-
 ARG GOLANG_VERSION=1.26.7
 ARG ALPINE_VERSION=3.24
 
-# Base stage for both development and production
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.26}-alpine${ALPINE_VERSION:-3.24} AS base
 
 ARG GOPROXY
 ARG TARGETARCH
 ARG TARGETOS=linux
 
-# Install Go BUILD architecture dependencies
 RUN apk add --no-cache ca-certificates git
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
@@ -25,7 +19,6 @@ COPY ./agent/go.mod ./agent/go.sum ./
 
 RUN go mod download
 
-# Builder stage for production
 FROM base AS builder
 
 ARG SHELLHUB_VERSION=latest
@@ -43,14 +36,12 @@ RUN go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-# Cross-compile for target architecture
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
 FROM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
 
 RUN apk add --no-cache util-linux setpriv ca-certificates
 
-# development stage
 FROM base AS development
 
 ARG GOPROXY
@@ -65,8 +56,6 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
 RUN go mod download
 
-#RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
-
 ARG USERNAME
 ARG PASSWORD
 
@@ -78,26 +67,20 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-# DEFAULT STAGE: Production multiarch build (scratch-based)
 FROM scratch
 
 ARG TARGETARCH
 
-# Copy CA certificates from runtime-utils
 COPY --from=runtime-utils /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Copy required utilities from runtime-utils - NOT from builder
 COPY --from=runtime-utils /usr/bin/nsenter /usr/bin/
 COPY --from=runtime-utils /bin/setpriv /bin/
 
-# Copy shared libraries from runtime-utils
 COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
 COPY --from=runtime-utils /usr/lib/libeconf.so.* /usr/lib/
 
-# Copy musl loader from runtime-utils
 COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
 
-# Copy the agent binary
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
 
 ENTRYPOINT ["/bin/agent"]

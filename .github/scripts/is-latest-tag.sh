@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-#
-# Exits 0 when the given tag is the highest stable semver among all v* tags
-# in the repository. Exits 1 otherwise. Pre-release tags (containing a hyphen
-# after the version, e.g. v1.0.0-rc.1) are excluded from the candidate set
-# AND are never considered "latest" themselves.
-#
-# Usage: is-latest-tag.sh <tag>
-# Env:   GIT_DIR — override to test against a different repository.
 
 set -euo pipefail
 

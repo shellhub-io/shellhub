@@ -37,7 +37,6 @@ go() {
                 ;;
         esac
 
-        # Run golangci-lint on a running container
         docker-compose \
             -f docker-compose.yml -f docker-compose.dev.yml \
             exec $container golangci-lint run ./... $EXTRA_ARGS

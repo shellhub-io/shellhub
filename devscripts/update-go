@@ -2,7 +2,6 @@
 
 set -e
 
-# Print the usage when none arguments are provided.
 if [ "$#" -eq 0 ]; then
     cat <<EOF
 Updates the Go version of the project to <version>.

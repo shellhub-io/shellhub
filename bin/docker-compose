@@ -7,17 +7,12 @@ cd "$SCRIPT_DIR/.."
 env_override=${ENV_OVERRIDE:-./.env.override}
 cloud_dir=${CLOUD_DIR:-../cloud}
 
-# Peek EDITION first using only the shellhub-side files; the result
-# decides whether env_var() should also source cloud/.env. This mirrors
-# COMPOSE_ENV_FILES (which gates cloud/.env on edition != community) so the
-# wrapper's view of every other flag matches what containers will see.
 SHELLHUB_EDITION=$(
     . ./.env 2>/dev/null
     [ -f "$env_override" ] && . "$env_override"
     eval "printf '%s' \"\${SHELLHUB_EDITION:-community}\""
 )
 
-# Normalize: lowercase, trim whitespace.
 SHELLHUB_EDITION=$(printf '%s' "$SHELLHUB_EDITION" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
 
 case "$SHELLHUB_EDITION" in
@@ -28,8 +23,6 @@ case "$SHELLHUB_EDITION" in
         ;;
 esac
 
-# Read a single shellhub flag in a subshell, without polluting the wrapper's
-# env. Sources the same files Compose loads via COMPOSE_ENV_FILES.
 env_var() {
     var=$1; default=$2
     edition=$SHELLHUB_EDITION
@@ -81,13 +74,6 @@ if [ "$SHELLHUB_ENV" = "development" ] && daemon_is_rootless; then
     [ -z "$socket" ] || export SHELLHUB_DEV_DOCKER_SOCKET="$socket"
 fi
 
-# COMPOSE_ENV_FILES — last file wins. Order chosen so that:
-#   - CE defaults are the base
-#   - enterprise defaults augment when edition is enterprise or cloud
-#   - cloud defaults augment when cloud/ is loaded (gate: edition != community)
-#   - shellhub/.env.override is ALWAYS LAST: user customizations win over
-#     every preceding default. There is no cloud/.env.override anymore —
-#     dev customizations live in shellhub/.env.override only.
 COMPOSE_ENV_FILES="./.env"
 [ "$SHELLHUB_EDITION" != "community" ] && [ -f ./.env.enterprise ] \
     && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,./.env.enterprise"
@@ -103,15 +89,12 @@ COMPOSE_FILE="docker-compose.yml"
 [ "$SHELLHUB_EDITION" != "community" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f "$cloud_dir/docker-compose.enterprise.dev.yml" ] && COMPOSE_FILE="${COMPOSE_FILE}:$cloud_dir/docker-compose.enterprise.dev.yml"
 [ "$SHELLHUB_EDITION" = "cloud" ] && [ -f "$cloud_dir/docker-compose.yml" ] && COMPOSE_FILE="${COMPOSE_FILE}:$cloud_dir/docker-compose.yml"
 
-# Activate the profile matching the configured billing provider.
 [ -n "$SHELLHUB_BILLING" ] && export COMPOSE_PROFILES="$SHELLHUB_BILLING"
 
 [ "$SHELLHUB_DATABASE" = "postgres" ] \
     || echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to postgres." >&2
 [ "$SHELLHUB_POSTGRES_EXTERNAL" = "true" ] || COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
 
-# docker-compose.override.yml must come after the database overlays so user
-# customizations win (Compose applies later files with higher precedence).
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
 if [ -n "$EXTRA_COMPOSE_FILE" ]; then
     if [ ! -f "$EXTRA_COMPOSE_FILE" ]; then

@@ -24,15 +24,9 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
 COPY ./go.mod ./
 
-# As OpenAPI directory doens't depend on other modules in the repo, we don't need to copy go.sum.
-# COPY ./go.sum ./
-
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/openapi
 
 COPY ./openapi/go.mod ./
-
-# As OpenAPI directory doens't depend on other modules in the repo, we don't need to copy go.sum.
-# COPY ./openapi/go.sum ./
 
 RUN go mod download
 

@@ -13,6 +13,4 @@ fi
 TTY_FLAG=""
 [ ! -t 1 ] && TTY_FLAG="-T"
 
-# The admin commands live in the server binary. In production /server is the
-# built binary; in development it is a symlink to air's output.
 exec ./bin/docker-compose exec $TTY_FLAG server /server admin "$@"

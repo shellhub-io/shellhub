@@ -1,24 +1,10 @@
 # syntax=docker/dockerfile:1
-#
-# Build args:
-#   EDITION=community (default) | enterprise
-#   MJML_VERSION=4.10.1 (default)
-#
-# CE:  docker build --build-arg EDITION=community -f server/Dockerfile .
-# EE:  docker build --build-arg EDITION=enterprise \
-#        --build-context cloud-src=../cloud \
-#        -f server/Dockerfile .
-#
-# The main build context is always the shellhub repo root.
-# Cloud source is provided separately via --build-context (never in main context).
 
 ARG EDITION=community
 ARG MJML_VERSION=4.10.1
 
-# ── cloud-src: empty by default, overridden via --build-context for EE ────────
 FROM scratch AS cloud-src
 
-# ── base stage ────────────────────────────────────────────────────────────────
 FROM golang:1.26.8-alpine3.24 AS base
 
 ARG GOPROXY
@@ -36,7 +22,6 @@ COPY ./server/go.mod ./server/go.sum ./
 
 RUN go mod download
 
-# ── builder stage ─────────────────────────────────────────────────────────────
 FROM base AS builder
 
 ARG EDITION=community
@@ -68,7 +53,6 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
         go build -o /server .; \
     fi
 
-# ── development stage ─────────────────────────────────────────────────────────
 FROM base AS development
 
 ARG GOPROXY
@@ -92,7 +76,6 @@ COPY ./install.sh /templates/install.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-# ── production stage ──────────────────────────────────────────────────────────
 FROM alpine:3.24.2 AS production
 
 RUN apk add --no-cache curl openssh-client && \

@@ -1,22 +1,14 @@
 #!/usr/bin/env bats
-# Tests for ui/scripts/gen-config.sh.
 
 REPO_ROOT="$(cd "$(dirname "${BATS_TEST_FILENAME}")/../.." && pwd -P)"
 GEN_CONFIG="$REPO_ROOT/ui/scripts/gen-config.sh"
 
-# Run gen-config.sh with a pristine environment holding only the given
-# VAR=value pairs, then print the config.json it produced. The empty
-# environment is the point: it reproduces the container, which receives
-# nothing the deployment did not explicitly pass in.
-# Usage: gen_config VAR1=value VAR2=value ...
 gen_config() {
     local out="$BATS_TEST_TMPDIR/config.json"
     env -i PATH="$PATH" "$@" sh "$GEN_CONFIG" "$out" || return
     cat "$out"
 }
 
-# Skip when jq is absent. Assertions about the *shape* of the output need a
-# real parser; jq ships on the CI runner, so this only spares local devs.
 require_jq() {
     command -v jq >/dev/null || skip "jq not installed"
 }
@@ -27,10 +19,6 @@ require_jq() {
 }
 
 @test "every value reads a SHELLHUB_-prefixed variable" {
-    # Deployments only ever pass SHELLHUB_*, so an unprefixed reference is
-    # never satisfied and silently renders empty. Guards shellhub#6865.
-    # EDITION and OUTPUT are exempt because the script assigns them itself;
-    # nothing else belongs in that list.
     # shellcheck disable=SC2016 # matching a literal $, not expanding it
     unprefixed=$(grep -oE '\$\{?[A-Z_][A-Z0-9_]*' "$GEN_CONFIG" |
         sed -E 's/^\$\{?//' |
@@ -64,9 +52,6 @@ require_jq() {
     [ "$status" -ne 0 ]
     [ ! -f "$BATS_TEST_TMPDIR/config.json" ]
 }
-
-# Values arrive verbatim from the deployment's env, so the script has to treat
-# them as data rather than as JSON source text.
 
 @test "a quote in a value survives as data" {
     require_jq
@@ -106,9 +91,6 @@ require_jq() {
 }
 
 @test "a non-boolean flag aborts instead of injecting raw JSON" {
-    # Unquoted fields are the opening: a crafted value can append a second
-    # "edition" key that wins at parse time, silently overriding the guard
-    # above and promoting a community deployment to cloud.
     run env -i PATH="$PATH" SHELLHUB_EDITION=community \
         SHELLHUB_WEB_ENDPOINTS='false, "edition": "cloud"' \
         sh "$GEN_CONFIG" "$BATS_TEST_TMPDIR/config.json"

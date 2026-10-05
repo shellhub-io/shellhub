@@ -1,7 +1,4 @@
 #!/usr/bin/env bats
-# Tests for install.sh itself: its functions and its install-method detection.
-# The wrapper it generates is a separate artifact, covered by
-# shellhub-agent-wrapper.bats.
 
 load install.helpers
 
