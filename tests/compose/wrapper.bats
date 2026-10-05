@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# Wrapper decisions that don't require the cloud/ sibling repo.
 
 load helpers
 
@@ -59,10 +58,8 @@ load helpers
     echo "SHELLHUB_FROM=cloud" > "$CLOUD_DIR_OVERRIDE/.env"
     out=$(capture_with SHELLHUB_EDITION=enterprise)
     files=$(echo "$out" | grep '^COMPOSE_ENV_FILES=' | sed 's|.*=||')
-    # The last entry must be the override tmpfile (lives in BATS_TEST_TMPDIR).
     last=$(echo "$files" | awk -F',' '{print $NF}')
     [[ "$last" == "$BATS_TEST_TMPDIR/"* ]]
-    # And cloud/.env must appear earlier in the chain.
     [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
 }
 

@@ -1,4 +1,3 @@
-# base stage
 FROM golang:1.26.8-alpine3.24 AS base
 
 ARG GOPROXY
@@ -15,7 +14,6 @@ COPY ./gateway/go.mod ./gateway/go.sum ./
 
 RUN go mod download
 
-# builder stage
 FROM base AS builder
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
@@ -29,7 +27,6 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
 RUN go build
 
-# development stage
 FROM base AS development
 
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
@@ -45,16 +42,11 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-# production stage
 FROM alpine:3.24.2 AS production
 
 RUN apk add --no-cache ca-certificates libgcc && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
 
-# The account key and the certificates. Declared here rather than in the compose
-# file so the volume exists however the image is run: without it, every recreate
-# of the container asks the CA for everything again, and Let's Encrypt caps how
-# many times a week it will answer.
 VOLUME /data
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/gateway/gateway /gateway

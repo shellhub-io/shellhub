@@ -1,6 +1,4 @@
 #!/usr/bin/env bats
-# Wrapper decisions that depend on the cloud/ sibling repo being present.
-# Each test skips when ../cloud/ is absent so the file is safe to run anywhere.
 
 load helpers
 
@@ -57,9 +55,6 @@ load helpers
 
 @test "symmetric peek: a flag declared only in cloud/.env is visible to the wrapper" {
     make_cloud_stub
-    # Declare BILLING only in cloud/.env (not in the shellhub override).
-    # With symmetric peek, the wrapper must source cloud/.env and see the
-    # value, then export it as COMPOSE_PROFILES.
     printf 'SHELLHUB_BILLING=acme\n' > "$CLOUD_DIR_OVERRIDE/.env"
     out=$(capture_with SHELLHUB_EDITION=cloud)
     [[ "$out" == *"COMPOSE_PROFILES=acme"* ]]
@@ -76,9 +71,6 @@ load helpers
 @test "BILLING without cloud: profile exported but cloud overlay not loaded" {
     make_cloud_stub
     out=$(capture_with SHELLHUB_BILLING=acme)
-    # Profile is exported regardless of edition (orthogonal concerns).
     [[ "$out" == *"COMPOSE_PROFILES=acme"* ]]
-    # But cloud/docker-compose.yml is NOT included (edition is community), so any
-    # service declared with profiles: [acme] in cloud/ won't actually run.
     [[ "$out" != *"../cloud/docker-compose.yml"* ]]
 }

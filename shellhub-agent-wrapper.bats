@@ -1,9 +1,4 @@
 #!/usr/bin/env bats
-# Tests for the shellhub-agent wrapper that install.sh generates. The wrapper
-# is a separate artifact with its own runtime behaviour — it locates the agent
-# container and proxies commands into it — so install.sh appears here only in
-# setup_file, to produce the fixture. Coverage of the generation itself lives
-# in install.bats.
 
 load install.helpers
 
@@ -32,8 +27,6 @@ use_podman() {
     WRAPPER="$BATS_FILE_TMPDIR/podman/shellhub-agent"
 }
 
-# Stub the container runtime the wrapper drives.
-# Usage: stub_runtime <ps output> [exec output] [exec exit status]
 stub_runtime() {
     export STUB_CONTAINERS="${1-}" STUB_EXEC_OUTPUT="${2-}" STUB_EXEC_STATUS="${3:-0}"
 

@@ -2,8 +2,6 @@
 
 # Overridden variables from Go template: {{.Overrides}}
 
-# Connector mode and snap have no way to enroll without a tenant: neither reaches the pairing flow,
-# and snap does not accept a provisioning key.
 require_tenant() {
   [ -z "$TENANT_ID" ] && {
     echo "ERROR: TENANT_ID is required for this installation method."
@@ -11,10 +9,6 @@ require_tenant() {
   }
 }
 
-# Installs the shellhub-agent wrapper that proxies commands into the agent
-# container. The agent itself cannot open the host's browser from inside the
-# container, so for 'login' the wrapper scans the output for the accept-device
-# URL and opens it on the host; native (non-container) agents open it directly.
 install_agent_wrapper() {
   _RUNTIME="$1"
 
@@ -65,9 +59,6 @@ EOF
   echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
 }
 
-# Names the credential that will put this device in a namespace, in the same order
-# enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
-# is visible then, rather than only in the agent's log once it is already running.
 enrollment_summary() {
   if [ -n "$PROVISIONING_KEY" ]; then
     echo "provisioning key"
@@ -78,17 +69,6 @@ enrollment_summary() {
   fi
 }
 
-# Enrolls a freshly installed agent. Without a tenant the device does not belong
-# to any namespace yet, so we run the login flow in the foreground: it prints the
-# accept URL (opening the browser when possible) and waits until a user accepts
-# the device into a namespace — no second command, no pending list to dig
-# through. With a tenant (fleet install) the device shows up pending and is
-# accepted in the console as before.
-#
-# $1: command that runs the agent, invoked as "<cmd> login". For container
-#     methods this is the wrapper (which execs into the container); for native
-#     methods it is the agent binary itself, possibly prefixed with sudo.
-# $2: host-visible path of the agent key to wait for before pairing.
 enroll_agent_interactively() {
   _AGENT_CMD="$1"
   _WAIT_KEY="$2"
@@ -108,8 +88,6 @@ enroll_agent_interactively() {
     return 0
   fi
 
-  # Wait for the agent to generate its key so the login flow reuses it instead
-  # of racing the daemon to create one.
   _i=0
   while [ "$_i" -lt 30 ] && [ ! -f "$_WAIT_KEY" ]; do
     sleep 1
@@ -154,8 +132,6 @@ podman_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -229,8 +205,6 @@ podman_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "podman"
-    # The key path is under /host (the agent mounts the host root there); strip
-    # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
     enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
   fi
@@ -241,8 +215,6 @@ docker_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${PROVISIONING_KEY}" ] && ARGS="$ARGS -e SHELLHUB_PROVISIONING_KEY=$PROVISIONING_KEY"
-  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
-  # blank, which overrides a tenant it had persisted from an earlier enrollment.
   [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
@@ -293,7 +265,6 @@ docker_install() {
   LABEL_ARGS=""
   [ -z "$MODE" ] && LABEL_ARGS="--label shellhub.role=agent"
 
-  # Remove any existing container so the new one gets the shellhub.role=agent label.
   $SUDO docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
   $SUDO docker run -d \
@@ -317,8 +288,6 @@ docker_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "docker"
-    # The key path is under /host (the agent mounts the host root there); strip
-    # that prefix so the installer waits on the real host path.
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
     enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
   fi
@@ -327,9 +296,6 @@ docker_install() {
 snap_install() {
   require_tenant
 
-  # The snap package exposes no provisioning-key setting, so a key given here would be
-  # dropped and the device would enroll without one, landing in manual approval.
-  # Refuse instead of reporting an enrollment that will not happen.
   if [ -n "$PROVISIONING_KEY" ]; then
     echo "❌ ERROR: PROVISIONING_KEY is not supported by the snap install method."
     echo "Use the docker, podman or standalone method to enroll with a provisioning key."
@@ -420,9 +386,6 @@ standalone_install() {
 
   echo "✅ ShellHub agent installed and started."
 
-  # Native install: the binary is the command and opens the browser itself, so
-  # no wrapper is needed — enroll by invoking it directly. Reads the root-owned
-  # key, hence $SUDO.
   enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}"
 
   rm -rf "$TMP_DIR"
@@ -556,7 +519,6 @@ main() {
   INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
   TMP_DIR="${TMP_DIR:-$(mktemp -d -t shellhub-installer-XXXXXX)}"
 
-  # Auto detect arch if it has not already been set
   if [ -z "$BINARY_ARCH" ]; then
     case $(uname -m) in
     x86_64)
@@ -645,7 +607,6 @@ main() {
     INSTALL_METHOD="snap"
   fi
 
-  # Check if running on WSL
   if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
     echo "🔍 Detected WSL environment..."
 

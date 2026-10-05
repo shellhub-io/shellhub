@@ -1,22 +1,7 @@
-# Helpers for install.bats and shellhub-agent-wrapper.bats.
-#
-# Strategy: run install.sh (or the wrapper it emits) with a PATH holding only
-# a curated set of real utilities plus a directory of stubs that append their
-# own argv to $CALLS. Asserting on that log covers the decisions — which
-# container flags are passed, which env vars are mapped, when the script
-# aborts — without a container runtime, a systemd, or a network.
-#
-# A binary left out of both lists is genuinely absent, which is how the
-# "systemctl is missing" and "xdg-open is missing" branches are reached.
-
 INSTALL_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/install.sh"
 
-# Utilities install.sh needs to do its work. Deliberately excludes everything
-# whose presence a branch keys off: docker, podman, snap, systemctl, sudo,
-# wslinfo, find, xdg-open, curl, wget.
 INSTALL_TEST_REAL_BINS="sh sed grep awk tr wc cat head tail cut mktemp chmod mkdir rm cp mv ln gzip sleep uname tee env dirname basename"
 
-# Build the curated PATH once per file, then a per-test stub dir on top.
 setup_install_env() {
     REAL_BIN="$BATS_FILE_TMPDIR/real-bin"
 
@@ -37,10 +22,6 @@ setup_install_env() {
     export REAL_BIN STUB_DIR CALLS
 }
 
-# Put an executable named $1 on the stubbed PATH. Its body is $2, or a
-# default that just records the invocation. Bodies are POSIX sh and can use
-# $CALLS, "$@" and exit codes.
-# Usage: stub_bin docker 'echo "docker $*" >> "$CALLS"; exit 0'
 stub_bin() {
     local name="$1" body="${2-}"
 
@@ -55,16 +36,11 @@ stub_bin() {
     chmod +x "$STUB_DIR/$name"
 }
 
-# Source install.sh as a library in a fresh /bin/sh and call one of its
-# functions. Runs under the real POSIX shell rather than bats' bash, so the
-# functions are exercised the way a user's `curl | sh` runs them.
-# Usage: call_install check_podman_boot_restart
 call_install() {
     run env PATH="$STUB_DIR:$REAL_BIN" INSTALL_SH_LIB=1 \
         sh -c '. "$1"; shift; "$@"' sh "$INSTALL_SH" "$@"
 }
 
-# Run install.sh end to end, exercising the detection flow in main().
 run_install() {
     run env PATH="$STUB_DIR:$REAL_BIN" "$INSTALL_SH" "$@"
 }
