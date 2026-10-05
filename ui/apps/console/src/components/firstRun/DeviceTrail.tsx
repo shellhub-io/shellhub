@@ -124,7 +124,13 @@ export default function DeviceTrail() {
           title={DEVICE_STEP_TITLES.shell}
           state={stateOf("shell")}
         >
-          {flow.device && <ShellStep device={flow.device} namespace={nsName} />}
+          {flow.device && (
+            <ShellStep
+              device={flow.device}
+              namespace={nsName}
+              signsInByKey={flow.signsInByKey}
+            />
+          )}
         </TrailStep>
       </Trail>
     </FirstRunLayout>

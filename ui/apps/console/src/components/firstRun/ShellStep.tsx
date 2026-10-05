@@ -21,6 +21,7 @@ const ONLINE_POLL_MS = 3000;
 interface ShellStepProps {
   device: PairedDevice;
   namespace: string;
+  signsInByKey: boolean;
 }
 
 /**
@@ -29,7 +30,11 @@ interface ShellStepProps {
  * in the console's frame, so once one is open the user is taken to the device's page, where it
  * shows.
  */
-export default function ShellStep({ device, namespace }: ShellStepProps) {
+export default function ShellStep({
+  device,
+  namespace,
+  signsInByKey,
+}: ShellStepProps) {
   const navigate = useNavigate();
   const endpoint = useSshEndpoint();
   const [login, setLogin] = useState(DEFAULT_LOGIN);
@@ -90,8 +95,10 @@ export default function ShellStep({ device, namespace }: ShellStepProps) {
                 From your terminal
               </p>
               <p className="text-xs text-text-muted">
-                The device&apos;s own users and passwords apply. Click the login
-                to change it.
+                {signsInByKey
+                  ? "Uses your SSH key. The first time, it shows a link to approve it."
+                  : "The device's own users and passwords apply."}{" "}
+                Click the login to change it.
               </p>
             </div>
             <CopyButton text={command} showLabel />
