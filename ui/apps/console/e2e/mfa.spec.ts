@@ -18,7 +18,7 @@ import {
   mfaSecret,
   password,
 } from "./seed";
-import { findEmailLink, readLatestEmail } from "./mail";
+import { readLatestEmail } from "./mail";
 import { buildRequestContext } from "./api";
 
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -114,11 +114,11 @@ async function setRecoveryEmail(token: string, recoveryEmail: string) {
 }
 
 async function readResetEmail(email: string) {
-  const line = await readLatestEmail(email);
+  const { line, link } = await readLatestEmail(email, "/reset-mfa");
   const code = line.match(/following code\.(?:\\n|\s)*([A-Z2-7]{5})\b/)?.[1];
   if (!code)
     throw new Error(`expected a code in the email to ${email}: ${line}`);
-  return { code, link: findEmailLink(line, "/reset-mfa") };
+  return { code, link };
 }
 
 async function readResetCodes(user: MFAUser) {

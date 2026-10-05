@@ -64,12 +64,13 @@ export const buildShortId = () => randomUUID().slice(0, 8);
 export const buildRandomEmail = (prefix: string) =>
   `${prefix}-${buildShortId()}@e2e.test`;
 
-export function createUser(prefix: string, { admin = false } = {}) {
+export function buildUserIdentity(prefix: string) {
   const id = buildShortId();
-  const user = {
-    username: `e2e-${prefix}-${id}`,
-    email: `${prefix}-${id}@e2e.test`,
-  };
+  return { username: `e2e-${prefix}-${id}`, email: `${prefix}-${id}@e2e.test` };
+}
+
+export function createUserWithCli(prefix: string, { admin = false } = {}) {
+  const user = buildUserIdentity(prefix);
   serverAdmin(
     "user",
     "create",

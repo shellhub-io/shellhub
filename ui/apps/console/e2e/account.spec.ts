@@ -1,32 +1,24 @@
 import { type Page, expect, test } from "@playwright/test";
-import { login, registerUser } from "@/client";
+import { login } from "@/client";
 import { isCloud } from "./env";
 import {
   consoleAccountDeletionReason,
   createTeam,
   createTeamWithMember,
+  createUser,
   deleteOwnAccount,
   emailDeliveryReason,
   fillLoginForm,
   signInAndOpen,
+  signUpUser,
 } from "./helpers";
-import {
-  buildShortId,
-  createUser,
-  password,
-  readUserInvitationStatus,
-} from "./seed";
+import { buildUserIdentity, password, readUserInvitationStatus } from "./seed";
 import { buildRequestContext, invite } from "./api";
 import { readEmailLink } from "./mail";
 
 const openSignUpReason = "only the cloud has open sign-up";
 
 const newPassword = `${password}-new`;
-
-function buildAccount() {
-  const id = buildShortId();
-  return { username: `e2e-signup-${id}`, email: `signup-${id}@e2e.test` };
-}
 
 async function expectLoginStatus(
   username: string,
@@ -39,15 +31,6 @@ async function expectLoginStatus(
     body: { username, password: attemptedPassword },
   });
   expect(response?.status, `signing in as ${username}`).toBe(status);
-}
-
-async function registerAccount() {
-  const account = buildAccount();
-  await registerUser({
-    ...buildRequestContext(),
-    body: { ...account, name: "E2E Signup", password, email_marketing: false },
-  });
-  return account;
 }
 
 async function signUp(
@@ -76,7 +59,7 @@ test.describe("registration", () => {
   test.skip(!isCloud, openSignUpReason);
 
   test("signing up leaves the account unconfirmed", async ({ page }) => {
-    const account = buildAccount();
+    const account = buildUserIdentity("signup");
 
     await signUp(page, account);
 
@@ -87,7 +70,7 @@ test.describe("registration", () => {
     page,
   }) => {
     const { owner, tenant } = await createTeam();
-    const account = buildAccount();
+    const account = buildUserIdentity("signup");
     await invite(owner.token, tenant, account.email);
 
     await signUp(page, account);
@@ -100,7 +83,7 @@ test.describe("email confirmation", () => {
   test.skip(!isCloud, emailDeliveryReason);
 
   test("the emailed link activates the account", async ({ page }) => {
-    const account = await registerAccount();
+    const account = await signUpUser("signup", { confirm: false });
     const link = await readEmailLink(account.email, "/validation-account");
 
     await page.goto(link);
@@ -112,7 +95,7 @@ test.describe("email confirmation", () => {
   });
 
   test("a resent email replaces the first link", async ({ page }) => {
-    const account = await registerAccount();
+    const account = await signUpUser("signup", { confirm: false });
     const firstLink = await readEmailLink(account.email, "/validation-account");
     const readNewestLink = () =>
       readEmailLink(account.email, "/validation-account");
@@ -140,7 +123,7 @@ test.describe("email confirmation", () => {
 
 test.describe("password", () => {
   test("changing the password replaces the old one", async ({ page }) => {
-    const user = createUser("password");
+    const user = await createUser("password");
 
     await signInAndOpen(page, user.username, "/account/security");
     await page
@@ -161,7 +144,7 @@ test.describe("password", () => {
 
   test("the emailed reset link sets a new password", async ({ page }) => {
     test.skip(!isCloud, emailDeliveryReason);
-    const user = createUser("forgot");
+    const user = await createUser("forgot");
 
     await page.goto("/login");
     await page.getByRole("link", { name: "Forgot password?" }).click();
