@@ -203,6 +203,12 @@ func main() {
 				return fmt.Errorf("generating keys: %w", err)
 			}
 
+			cmd.PrintErrln("Building agent image...")
+
+			if err := environment.BuildAgentImage(ctx, ".."); err != nil {
+				return fmt.Errorf("building agent image: %w", err)
+			}
+
 			cfg := environment.Config{
 				Edition:  edition,
 				Name:     projectName,
