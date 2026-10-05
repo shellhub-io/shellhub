@@ -8,15 +8,8 @@ import {
 
 interface Props {
   variant?: "info" | "warning" | "danger" | "feature";
-  /** Header text. Defaults to the variant's own word. */
   title?: string;
-  /**
-   * Set false to drop the header entirely, leaving only the tone: the rule and
-   * the wash. Material for MkDocs spells the same thing `!!! note ""`.
-   */
-  /** Drop the icon and show the header as text alone. */
   icon?: boolean;
-  /** Optional call to action, rendered under the body on any variant. */
   action?: { href: string; label: string };
 }
 

@@ -30,7 +30,6 @@ export interface MethodInfo {
   tag?: string;
   description: string;
   icon: JSX.Element;
-  /** The installer does not do this one; the platform's own toolchain does. */
   manual?: boolean;
   docsUrl?: string;
 }
