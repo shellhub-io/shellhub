@@ -116,7 +116,9 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.Provisioni
 	}
 }
 
-func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
+func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, device *models.Device, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
+	uid := device.UID
+
 	if record {
 		s.recordEnrollment(ctx, key, req, uid, hostname, reRegistration)
 	}
@@ -134,12 +136,16 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 				log.WithError(err).WithField("device_uid", uid).Warn("provisioning key exhausted; device remains pending")
 			case errors.Is(err, ErrDeviceLicenseLimit):
 				log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
+			case errors.Is(err, ErrDeviceMACConnected):
+				log.WithError(err).WithField("device_uid", uid).Warn("a device with the same MAC address is connected; device remains pending")
 			default:
 				log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
 			}
 
 			return models.DeviceStatusPending
 		}
+
+		s.reloadName(ctx, device)
 
 		return models.DeviceStatusAccepted
 	case enrollReject:
@@ -168,6 +174,82 @@ func (s *service) recordEnrollment(ctx context.Context, key *models.Provisioning
 	s.appendProvisioningKeyEvent(ctx, key, req, uid, hostname, reRegistration)
 }
 
+var errProvisioningKeyUnusable = errors.New("the provisioning key is a system key or is no longer valid")
+
+func (s *service) presentedProvisioningKey(ctx context.Context, sc scope.Scope, presented string) (*models.ProvisioningKey, error) {
+	key, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyIDResolver, hashProvisioningKey(presented))
+	if err != nil {
+		return nil, err
+	}
+
+	if key.IsSystem() || !key.IsValid() {
+		return nil, errProvisioningKeyUnusable
+	}
+
+	return key, nil
+}
+
+func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, req requests.DeviceAuth, uid, hostname string) bool {
+	if req.ProvisioningKey == "" {
+		return false
+	}
+
+	key, err := s.presentedProvisioningKey(ctx, scope.MustBounded(device.TenantID), req.ProvisioningKey)
+	switch {
+	case errors.Is(err, store.ErrNoDocuments), errors.Is(err, errProvisioningKeyUnusable):
+		return false
+	case err != nil:
+		log.WithError(err).WithField("device_uid", uid).Warn("failed to resolve the provisioning key a pending device presented")
+
+		return false
+	}
+
+	if key.ID == device.ProvisioningKeyID {
+		return false
+	}
+
+	device.EnrollWith(key)
+
+	if err := s.store.DeviceUpdateUnlessRemoved(ctx, device); err != nil {
+		log.WithError(err).WithFields(log.Fields{"device_uid": uid, "provisioning_key": key.Name}).
+			Warn("failed to adopt the provisioning key a pending device presented")
+
+		return false
+	}
+
+	if len(key.Tags) > 0 {
+		s.applyProvisioningKeyTags(ctx, scope.MustBounded(device.TenantID), uid, key.Tags)
+	}
+
+	s.decideEnrollment(ctx, device, key, req, uid, hostname, true)
+
+	return true
+}
+
+func (s *service) decideEnrollment(ctx context.Context, device *models.Device, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, record bool) {
+	now := clock.Now()
+	device.LastEnrollmentAttemptAt = &now
+
+	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, device, hostname, "", false, record)
+	if status == models.DeviceStatusPending {
+		return
+	}
+
+	device.Status = status
+	device.StatusUpdatedAt = clock.Now()
+}
+
+func (s *service) reloadName(ctx context.Context, device *models.Device) {
+	stored, err := s.store.DeviceResolve(ctx, scope.MustBounded(device.TenantID), store.DeviceUIDResolver, device.UID)
+	if err != nil {
+		log.WithError(err).WithField("device_uid", device.UID).Warn("failed to read back an accepted device's name")
+
+		return
+	}
+
+	device.Name = stored.Name
+}
+
 func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device, req requests.DeviceAuth, uid, hostname string) {
 	if device.ProvisioningKeyID == "" {
 		return
@@ -182,14 +264,7 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 		return
 	}
 
-	now := clock.Now()
-	device.LastEnrollmentAttemptAt = &now
-
-	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, uid, hostname, "", false, false)
-	if status != models.DeviceStatusPending {
-		device.Status = status
-		device.StatusUpdatedAt = clock.Now()
-	}
+	s.decideEnrollment(ctx, device, key, req, uid, hostname, false)
 }
 
 type enrollmentWebhookRequest struct {

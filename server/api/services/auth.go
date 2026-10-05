@@ -160,33 +160,37 @@ func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.Pr
 	}
 }
 
-func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, string, error) {
+func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
 	if req.ProvisioningKey != "" {
-		sk, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyIDResolver, hashProvisioningKey(req.ProvisioningKey))
-		if err != nil || sk.IsSystem() || !sk.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]any{"provisioning_key": "invalid"}, err)
+		sk, err := s.presentedProvisioningKey(ctx, sc, req.ProvisioningKey)
+		if errors.Is(err, errProvisioningKeyUnusable) {
+			return nil, NewErrAuthInvalid(map[string]any{"provisioning_key": "invalid"}, nil)
 		}
 
-		return sk, sk.ID, nil
+		if err != nil {
+			return nil, NewErrAuthInvalid(map[string]any{"provisioning_key": "invalid"}, err)
+		}
+
+		return sk, nil
 	}
 
 	if paired {
 		if pairing, err := s.store.ProvisioningKeyResolveSystemPairing(ctx, sc); err == nil {
-			return pairing, pairing.ID, nil
+			return pairing, nil
 		}
 
-		return nil, "", nil
+		return nil, nil
 	}
 
 	if legacy, err := s.store.ProvisioningKeyResolveSystem(ctx, sc); err == nil {
 		if !legacy.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]any{"provisioning_key": "required"}, nil)
+			return nil, NewErrAuthInvalid(map[string]any{"provisioning_key": "required"}, nil)
 		}
 
-		return legacy, legacy.ID, nil
+		return legacy, nil
 	}
 
-	return nil, "", nil
+	return nil, nil
 }
 
 func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey string) (string, error) {
@@ -256,7 +260,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 	}
 
 	var provisioningKey *models.ProvisioningKey
-	var provisioningKeyID string
 
 	auth := models.DeviceAuth{
 		Hostname:  strings.ToLower(hostname),
@@ -292,7 +295,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			return nil, err
 		}
 
-		provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
+		provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
 		if err != nil {
 			return nil, err
 		}
@@ -310,26 +313,22 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		device = &models.Device{
-			CreatedAt:         clock.Now(),
-			UID:               uid,
-			TenantID:          req.TenantID,
-			LastSeen:          clock.Now(),
-			DisconnectedAt:    nil,
-			Status:            models.DeviceStatusPending,
-			StatusUpdatedAt:   clock.Now(),
-			Name:              strings.ToLower(hostname),
-			Identity:          &models.DeviceIdentity{MAC: req.Identity.MAC},
-			PublicKey:         req.PublicKey,
-			RemoteAddr:        remoteAddr,
-			Taggable:          models.Taggable{TagIDs: []string{}, Tags: nil},
-			Position:          &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
-			Ephemeral:         provisioningKey != nil && provisioningKey.Ephemeral,
-			ProvisioningKeyID: provisioningKeyID,
+			CreatedAt:       clock.Now(),
+			UID:             uid,
+			TenantID:        req.TenantID,
+			LastSeen:        clock.Now(),
+			DisconnectedAt:  nil,
+			Status:          models.DeviceStatusPending,
+			StatusUpdatedAt: clock.Now(),
+			Name:            strings.ToLower(hostname),
+			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
+			PublicKey:       req.PublicKey,
+			RemoteAddr:      remoteAddr,
+			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
+			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
 		}
 
-		if device.Ephemeral {
-			device.EphemeralTimeout = provisioningKey.EphemeralTimeout
-		}
+		device.EnrollWith(provisioningKey)
 
 		if req.Info != nil {
 			device.Info = &models.DeviceInfo{
@@ -353,7 +352,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
 		}
 
-		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, uid, hostname, enrollment.ownerID, false, true)
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
 	} else {
 		revived := device.RemovedAt != nil
 
@@ -376,7 +375,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 				}
 			}
 
-			provisioningKey, provisioningKeyID, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
+			provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
 			if err != nil {
 				return nil, err
 			}
@@ -384,12 +383,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			device.RemovedAt = nil
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = clock.Now()
-			device.Ephemeral = provisioningKey != nil && provisioningKey.Ephemeral
-			device.EphemeralTimeout = 0
-			if device.Ephemeral {
-				device.EphemeralTimeout = provisioningKey.EphemeralTimeout
-			}
-			device.ProvisioningKeyID = provisioningKeyID
+			device.EnrollWith(provisioningKey)
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
 				return nil, err
 			}
@@ -409,13 +403,15 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 				}
 			}
 
-			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, uid, hostname, enrollment.ownerID, true, true)
+			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment.ownerID, true, true)
 			if status != models.DeviceStatusPending {
 				device.Status = status
 				device.StatusUpdatedAt = clock.Now()
 			}
 		} else if device.Status == models.DeviceStatusPending {
-			s.reconcileEnrollment(ctx, device, req, uid, hostname)
+			if !s.adoptPresentedKey(ctx, device, req, uid, hostname) {
+				s.reconcileEnrollment(ctx, device, req, uid, hostname)
+			}
 		}
 
 		if req.Info != nil {

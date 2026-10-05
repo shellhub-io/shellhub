@@ -161,15 +161,6 @@ func (e *ownershipE2E) accept(t *testing.T, uid string) {
 	}))
 }
 
-func (e *ownershipE2E) device(t *testing.T, uid string) *models.Device {
-	t.Helper()
-
-	device, err := e.st.DeviceResolve(context.Background(), scope.MustBounded(e.tenantID), store.DeviceUIDResolver, uid)
-	require.NoError(t, err)
-
-	return device
-}
-
 func (e *ownershipE2E) accepted(t *testing.T) []models.Device {
 	t.Helper()
 
@@ -212,6 +203,7 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 
 		team := e.enrollKey(t, mac, "pk-old")
 		e.accept(t, team)
+		e.disconnect(t, team)
 
 		accepted := e.pair(t, member, mac, "pk-new")
 
@@ -226,7 +218,8 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 
-		e.pair(t, member, mac, "pk-old")
+		owned := e.pair(t, member, mac, "pk-old")
+		e.disconnect(t, owned.UID)
 
 		uid := e.enrollKey(t, mac, "pk-new")
 		e.accept(t, uid)
@@ -242,13 +235,51 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 		first := e.member(t, "first", authorizer.RoleOperator)
 		second := e.member(t, "second", authorizer.RoleOperator)
 
-		e.pair(t, first, mac, "pk-old")
+		old := e.pair(t, first, mac, "pk-old")
+		e.disconnect(t, old.UID)
+
 		accepted := e.pair(t, second, mac, "pk-new")
 
 		assert.Equal(t, second, accepted.OwnerID)
 		devices := e.accepted(t)
 		require.Len(t, devices, 1)
 		assert.Equal(t, second, devices[0].OwnerID)
+	})
+}
+
+func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) {
+	const mac = "aa:bb:cc:dd:ee:02"
+	ctx := context.Background()
+	e := setupOwnershipE2E(t)
+	first := e.member(t, "first", authorizer.RoleOperator)
+	member := e.member(t, "member", authorizer.RoleOperator)
+
+	old := e.pair(t, first, mac, "pk-old").UID
+
+	pairing, err := e.svc.CreateDevicePairing(ctx, pairingRequest(mac, "pk-new"))
+	require.NoError(t, err)
+
+	_, err = e.svc.AcceptDevicePairing(ctx, member, &requests.DevicePairingAccept{Code: pairing.Code, TenantID: e.tenantID})
+	require.ErrorIs(t, err, ErrDeviceMACConnected)
+
+	devices := e.accepted(t)
+	require.Len(t, devices, 1)
+	assert.Equal(t, old, devices[0].UID)
+
+	t.Run("pairing again once the old agent is gone merges", func(t *testing.T) {
+		e.disconnect(t, old)
+
+		pending, err := e.st.DeviceResolve(ctx, scope.MustBounded(e.tenantID), store.DeviceMACResolver, mac,
+			e.st.Options().WithDeviceStatus(models.DeviceStatusPending))
+		require.NoError(t, err)
+		require.NoError(t, e.svc.cache.Delete(ctx, deviceAuthCacheKey(pending.UID)), "the approval comes back after the auth cache expired")
+
+		accepted := e.pair(t, member, mac, "pk-new")
+
+		devices := e.accepted(t)
+		require.Len(t, devices, 1)
+		assert.Equal(t, accepted.UID, devices[0].UID)
+		assert.Equal(t, member, devices[0].OwnerID, "a retried pairing still ties the device to the member who approved it")
 	})
 }
 

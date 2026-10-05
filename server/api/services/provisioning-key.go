@@ -488,17 +488,26 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		return NewErrAuthUnathorized(errors.New("enrollment callback token already redeemed"))
 	}
 
+	sc, err := BoundTo(claims.TenantID)
+	if err != nil {
+		return NewErrProvisioningKeyForbidden()
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, claims.DeviceUID)
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(claims.DeviceUID), err)
+	}
+
+	if device.ProvisioningKeyID != claims.ProvisioningKeyID {
+		return NewErrProvisioningKeyForbidden()
+	}
+
 	if req.Decision == "reject" {
 		return s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 			TenantID: claims.TenantID,
 			UID:      claims.DeviceUID,
 			Status:   string(models.DeviceStatusRejected),
 		})
-	}
-
-	sc, err := BoundTo(claims.TenantID)
-	if err != nil {
-		return NewErrProvisioningKeyForbidden()
 	}
 
 	key, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyIDResolver, claims.ProvisioningKeyID)

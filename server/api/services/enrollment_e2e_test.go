@@ -105,9 +105,15 @@ func (e *enrollmentE2E) enroll(t *testing.T, mac, provisioningKey string) string
 
 func (e *enrollmentE2E) enrollWithPublicKey(t *testing.T, mac, publicKey, provisioningKey string) string {
 	t.Helper()
+
+	return e.enrollAs(t, "host-"+mac, mac, publicKey, provisioningKey)
+}
+
+func (e *enrollmentE2E) enrollAs(t *testing.T, hostname, mac, publicKey, provisioningKey string) string {
+	t.Helper()
 	req := requests.DeviceAuth{
 		TenantID:       e.tenantID,
-		Hostname:       "host-" + mac,
+		Hostname:       hostname,
 		Identity:       &requests.DeviceIdentity{MAC: mac},
 		Info:           &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 		PublicKey:      publicKey,
@@ -446,6 +452,27 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
 		require.Equal(t, 0, e.usedTimes(t, digest(0x63)), "a refused accept must not consume a use")
 	})
+
+	for _, tc := range []struct {
+		decision     string
+		webhook, own byte
+	}{
+		{decision: "accept", webhook: 0x64, own: 0x65},
+		{decision: "reject", webhook: 0x66, own: 0x67},
+	} {
+		t.Run("a device that moved to another key can't be decided via the old key's callback: "+tc.decision, func(t *testing.T) {
+			mac := fmt.Sprintf("aa:bb:cc:dd:ee:%02x", tc.webhook)
+			uid, token := enrollDeferred(tc.webhook, "webhook-left-"+tc.decision, mac)
+
+			e.provisioningKey(t, digest(tc.own), "manual-review-"+tc.decision, models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
+			e.enroll(t, mac, plaintextFor(tc.own))
+			require.Equal(t, digest(tc.own), e.device(t, uid).ProvisioningKeyID)
+
+			err := e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: tc.decision})
+			require.ErrorIs(t, err, ErrProvisioningKeyForbidden, "the %s of a key the device no longer enrolls with must not decide it", tc.decision)
+			require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
+		})
+	}
 }
 
 // TestEnrollmentE2E_ReconcilePending covers the reconcile path: a webhook device that landed pending
@@ -502,6 +529,38 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 		require.Equal(t, 3, hits, "an accepted device must not re-consult the integrator")
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 	})
+}
+
+func TestEnrollmentE2E_ReconcileALegacyKeyInWebhookMode(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+	ctx := context.Background()
+
+	cur := now
+	clk := clockmock.NewMockClock(t)
+	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
+	clock.Set(t, clk)
+
+	decision := "defer"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]string{"decision": decision})
+	}))
+	defer srv.Close()
+
+	legacy, err := e.st.ProvisioningKeyResolveSystem(ctx, scope.MustBounded(e.tenantID))
+	require.NoError(t, err)
+	legacy.Mode = models.ProvisioningKeyModeWebhook
+	legacy.WebhookURL = srv.URL
+	legacy.WebhookSecret = "s3cr3t"
+	require.NoError(t, e.st.ProvisioningKeyUpdate(ctx, legacy))
+
+	uid := e.enroll(t, "aa:bb:cc:dd:ee:68", "")
+	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "the integrator deferred")
+
+	decision = "accept"
+	cur = now.Add(models.EnrollmentReconcileInterval + time.Minute)
+	e.enroll(t, "aa:bb:cc:dd:ee:68", "")
+
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid), "a legacy key a user switched to webhook is retried like any webhook key")
 }
 
 // TestEnrollmentE2E_ReconcileSkipsInvalidKey proves reconcile respects the key's validity: a device
@@ -742,4 +801,157 @@ func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
 		require.NoError(t, accept(uid))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x91)))
 	})
+}
+
+func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+	const mac = "aa:bb:cc:dd:ee:70"
+
+	cur := now
+	clk := clockmock.NewMockClock(t)
+	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
+	clock.Set(t, clk)
+
+	e.provisioningKey(t, digest(0x70), "auto-twin", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
+
+	first := e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, first))
+
+	second := e.enrollAs(t, "second-box", mac, "pk-second", plaintextFor(0x70))
+	require.Equal(t, models.DeviceStatusPending, e.status(t, second), "a connected twin keeps the device; the newcomer waits")
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, first))
+	require.Equal(t, "first-box", e.device(t, first).Name, "the connected twin keeps its name")
+	require.Equal(t, 1, e.usedTimes(t, digest(0x70)), "a refused merge spends no key use")
+
+	t.Run("both agents keep authenticating and nothing flips", func(t *testing.T) {
+		for range 3 {
+			cur = cur.Add(models.EnrollmentReconcileInterval + time.Second)
+			e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
+			e.enrollAs(t, "second-box", mac, "pk-second", plaintextFor(0x70))
+		}
+
+		require.Equal(t, models.DeviceStatusAccepted, e.status(t, first))
+		require.Equal(t, models.DeviceStatusPending, e.status(t, second))
+	})
+}
+
+func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+
+	e.provisioningKey(t, digest(0x76), "auto-names", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
+
+	t.Run("a new enrollment answers with the name it took over", func(t *testing.T) {
+		const mac = "aa:bb:cc:dd:ee:76"
+		old := e.enrollAs(t, "field-box", mac, "pk-old", plaintextFor(0x76))
+		e.disconnect(t, old)
+
+		res, err := e.svc.AuthDevice(context.Background(), requests.DeviceAuth{
+			TenantID:        e.tenantID,
+			Hostname:        "fresh-image",
+			Identity:        &requests.DeviceIdentity{MAC: mac},
+			PublicKey:       "pk-new",
+			ProvisioningKey: plaintextFor(0x76),
+		})
+		require.NoError(t, err)
+
+		require.Equal(t, models.DeviceStatusAccepted, res.Status)
+		require.Equal(t, "field-box", res.Name)
+		require.Equal(t, "field-box", e.device(t, res.UID).Name)
+	})
+
+	t.Run("a revived device keeps the name it took over", func(t *testing.T) {
+		const mac = "aa:bb:cc:dd:ee:77"
+		revived := e.enrollAs(t, "box-a", mac, "pk-a", plaintextFor(0x76))
+		require.NoError(t, e.svc.DeleteDevice(context.Background(), models.UID(revived), e.tenantID))
+
+		twin := e.enrollAs(t, "box-b", mac, "pk-b", plaintextFor(0x76))
+		require.Equal(t, models.DeviceStatusAccepted, e.status(t, twin))
+		e.disconnect(t, twin)
+
+		e.enrollAs(t, "box-a", mac, "pk-a", plaintextFor(0x76))
+
+		require.Equal(t, models.DeviceStatusAccepted, e.status(t, revived))
+		require.Equal(t, "box-b", e.device(t, revived).Name)
+	})
+}
+
+func TestEnrollmentE2E_PresentedKeyDecidesAPendingDevice(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+
+	e.provisioningKey(t, digest(0x72), "auto-presented", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
+
+	t.Run("a valid key accepts a device left pending on the legacy key", func(t *testing.T) {
+		uid := e.enroll(t, "aa:bb:cc:dd:ee:72", "")
+		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
+
+		require.Equal(t, uid, e.enroll(t, "aa:bb:cc:dd:ee:72", plaintextFor(0x72)))
+
+		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
+		require.Equal(t, digest(0x72), e.device(t, uid).ProvisioningKeyID)
+		require.Equal(t, 1, e.usedTimes(t, digest(0x72)))
+		require.Len(t, e.events(t, "auto-presented"), 1)
+	})
+
+	t.Run("an unknown key is ignored", func(t *testing.T) {
+		uid := e.enroll(t, "aa:bb:cc:dd:ee:73", "")
+		legacy := e.device(t, uid).ProvisioningKeyID
+
+		e.enroll(t, "aa:bb:cc:dd:ee:73", "provisioning-key-unknown")
+
+		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
+		require.Equal(t, legacy, e.device(t, uid).ProvisioningKeyID)
+	})
+
+	t.Run("a revoked key is ignored", func(t *testing.T) {
+		e.provisioningKey(t, digest(0x74), "auto-revoked", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
+			clearSecret(k)
+			k.Revoked = true
+		})
+
+		uid := e.enroll(t, "aa:bb:cc:dd:ee:74", "")
+		legacy := e.device(t, uid).ProvisioningKeyID
+
+		e.enroll(t, "aa:bb:cc:dd:ee:74", plaintextFor(0x74))
+
+		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
+		require.Equal(t, legacy, e.device(t, uid).ProvisioningKeyID)
+	})
+
+	t.Run("a rejected device stays rejected", func(t *testing.T) {
+		uid := e.enroll(t, "aa:bb:cc:dd:ee:75", "")
+		require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
+			TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusRejected),
+		}))
+
+		e.enroll(t, "aa:bb:cc:dd:ee:75", plaintextFor(0x72))
+
+		require.Equal(t, models.DeviceStatusRejected, e.status(t, uid))
+	})
+}
+
+func TestEnrollmentE2E_AutomaticKeyMergesOnceTheTwinDisconnects(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+	const mac = "aa:bb:cc:dd:ee:71"
+
+	cur := now
+	clk := clockmock.NewMockClock(t)
+	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
+	clock.Set(t, clk)
+
+	e.provisioningKey(t, digest(0x71), "auto-reflash", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
+
+	old := e.enrollAs(t, "field-box", mac, "pk-old", plaintextFor(0x71))
+	reflashed := e.enrollAs(t, "fresh-image", mac, "pk-reflashed", plaintextFor(0x71))
+	require.Equal(t, models.DeviceStatusPending, e.status(t, reflashed))
+
+	e.disconnect(t, old)
+	cur = now.Add(models.EnrollmentReconcileInterval + time.Second)
+
+	e.enrollAs(t, "fresh-image", mac, "pk-reflashed", plaintextFor(0x71))
+
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, reflashed))
+	require.Equal(t, "field-box", e.device(t, reflashed).Name, "the reflashed device takes over the old device's name")
+
+	_, err := e.st.DeviceResolve(context.Background(), scope.MustBounded(e.tenantID), store.DeviceUIDResolver, old)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 }

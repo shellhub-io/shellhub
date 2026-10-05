@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -97,7 +98,16 @@ func agentBuildLog() io.Writer {
 }
 
 func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	raw := make([]byte, 6)
+	if _, err := rand.Read(raw); err != nil {
+		return nil, err
+	}
+
+	identity := hex.EncodeToString(raw)
+
 	envs := map[string]string{
+		"SHELLHUB_PREFERRED_IDENTITY": identity,
+		"SHELLHUB_PREFERRED_HOSTNAME": "agent-" + identity,
 		"SHELLHUB_SERVER_ADDRESS":     "http://localhost",
 		"SHELLHUB_TENANT_ID":          "00000000-0000-4000-0000-000000000000",
 		"SHELLHUB_PRIVATE_KEY":        "/tmp/shellhub.key",
@@ -231,7 +241,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "reconnect to server with custom identity",
 			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("test"),
+				NewAgentContainerWithIdentity("custom-reconnect"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -296,7 +306,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "authenticate with password with custom identity",
 			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("test"),
+				NewAgentContainerWithIdentity("custom-password"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -531,7 +541,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC with custom identity",
 			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("test"),
+				NewAgentContainerWithIdentity("custom-exec"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()

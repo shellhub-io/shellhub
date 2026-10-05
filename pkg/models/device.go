@@ -84,6 +84,24 @@ type Device struct {
 	Taggable `json:",inline"`
 }
 
+// EnrollWith records key as the provisioning key the device enrolled with and takes its ephemeral
+// policy. A nil key, an enrollment with no key to attribute, clears all three fields.
+func (d *Device) EnrollWith(key *ProvisioningKey) {
+	d.ProvisioningKeyID = ""
+	d.Ephemeral = false
+	d.EphemeralTimeout = 0
+
+	if key == nil {
+		return
+	}
+
+	d.ProvisioningKeyID = key.ID
+	d.Ephemeral = key.Ephemeral
+	if d.Ephemeral {
+		d.EphemeralTimeout = key.EphemeralTimeout
+	}
+}
+
 // DeviceAuthRequest is what an agent sends to enroll or to re-authenticate. It repeats on every
 // agent restart, so handling it must be idempotent.
 type DeviceAuthRequest struct {

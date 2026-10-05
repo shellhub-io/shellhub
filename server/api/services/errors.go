@@ -111,6 +111,7 @@ var (
 	ErrDeviceBillingBlocked            = errors.New("the namespace's subscription blocks new devices", ErrLayer, ErrCodePayment)
 	ErrDeviceLicenseLimit              = errors.New("device license limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
+	ErrDeviceMACConnected              = errors.New("another device with this MAC address is connected", ErrLayer, ErrCodeDuplicated)
 	ErrDeviceCreate                    = errors.New("device create", ErrLayer, ErrCodeStore)
 	ErrDeviceCustomFieldLimitReached   = errors.New("device custom field limit reached", ErrLayer, ErrCodeLimit)
 	ErrMaxDeviceCountReached           = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
@@ -469,6 +470,14 @@ func NewErrDeviceLimit(limit int, next error) error {
 // the maximum allowed number of custom_fields entries.
 func NewErrDeviceCustomFieldLimitReached(limit int, next error) error {
 	return NewErrLimit(ErrDeviceCustomFieldLimitReached, limit, next)
+}
+
+// NewErrDeviceMACConnected returns the error an accept gets when it would merge away an accepted
+// device with the same MAC whose agent is still connected. The accept changes nothing. The conflict
+// is reported on the "identity.mac" field, a key no device name can take, so a client tells it apart
+// from the duplicated-name conflict, which is keyed by the name itself.
+func NewErrDeviceMACConnected(next error) error {
+	return NewErrDuplicated(ErrDeviceMACConnected, []string{"identity.mac"}, next)
 }
 
 // NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.

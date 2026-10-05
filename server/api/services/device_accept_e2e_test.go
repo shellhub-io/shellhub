@@ -28,6 +28,21 @@ func (e *enrollmentE2E) acceptedDevice(t *testing.T, mac string) string {
 	return uid
 }
 
+func (e *enrollmentE2E) disconnect(t *testing.T, uid string) {
+	t.Helper()
+
+	require.NoError(t, e.st.DeviceOffline(context.Background(), uid, now))
+}
+
+func (e *enrollmentE2E) device(t *testing.T, uid string) *models.Device {
+	t.Helper()
+
+	device, err := e.st.DeviceResolve(context.Background(), scope.MustBounded(e.tenantID), store.DeviceUIDResolver, uid)
+	require.NoError(t, err)
+
+	return device
+}
+
 func (e *enrollmentE2E) heldOpen(t *testing.T, writes func(ctx context.Context) error) (commit func()) {
 	t.Helper()
 
@@ -144,6 +159,7 @@ func TestDeviceAcceptE2E_ConcurrentAcceptOfAnotherDeviceWithTheSameMACMergesInto
 	oldUID := e.acceptedDevice(t, mac)
 	mergedUID := e.enrollWithPublicKey(t, mac, "pk-merged", "")
 	lateUID := e.enrollWithPublicKey(t, mac, "pk-late", "")
+	e.disconnect(t, mergedUID)
 
 	err := e.acceptWhileMergeHeldOpen(t, mac, oldUID, mergedUID, lateUID)
 
@@ -173,7 +189,7 @@ func TestDeviceAcceptE2E_ManyConcurrentAcceptsOfTheSameDevice(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:03"
 
-	e.acceptedDevice(t, mac)
+	e.disconnect(t, e.acceptedDevice(t, mac))
 	newUID := e.enrollWithPublicKey(t, mac, "pk-new", "")
 
 	const racers = 8
@@ -207,4 +223,38 @@ func TestDeviceAcceptE2E_ManyConcurrentAcceptsOfTheSameDevice(t *testing.T) {
 	counts := e.deviceCounts(t)
 	require.Equal(t, int64(1), counts.DevicesAcceptedCount)
 	require.Equal(t, int64(0), counts.DevicesPendingCount)
+}
+
+func TestDeviceAcceptE2E_RefusesToMergeAwayAConnectedDevice(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+	const mac = "aa:bb:cc:dd:51:05"
+
+	oldUID := e.acceptedDevice(t, mac)
+	oldName := e.device(t, oldUID).Name
+	newUID := e.enrollWithPublicKey(t, mac, "pk-new", "")
+
+	err := e.accept(context.Background(), newUID)
+
+	require.ErrorIs(t, err, ErrDeviceMACConnected)
+	require.Equal(t, models.DeviceStatusPending, e.status(t, newUID))
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, oldUID))
+	require.Equal(t, oldName, e.device(t, oldUID).Name)
+}
+
+func TestDeviceAcceptE2E_MergesAwayADisconnectedDevice(t *testing.T) {
+	e := setupEnrollmentE2E(t)
+	const mac = "aa:bb:cc:dd:51:06"
+
+	oldUID := e.acceptedDevice(t, mac)
+	oldName := e.device(t, oldUID).Name
+	newUID := e.enrollWithPublicKey(t, mac, "pk-new", "")
+	e.disconnect(t, oldUID)
+
+	require.NoError(t, e.accept(context.Background(), newUID))
+
+	require.Equal(t, models.DeviceStatusAccepted, e.status(t, newUID))
+	require.Equal(t, oldName, e.device(t, newUID).Name)
+
+	_, err := e.st.DeviceResolve(context.Background(), scope.MustBounded(e.tenantID), store.DeviceUIDResolver, oldUID)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 }

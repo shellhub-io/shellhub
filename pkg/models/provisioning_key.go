@@ -159,11 +159,19 @@ func (s *ProvisioningKey) WebhookCallbackTTLOrDefault() int {
 }
 
 // ReconcilableOnAuth reports whether a still-pending device enrolled with this key should have its
-// enrollment policy re-evaluated on a later AuthDevice. Only webhook and allowlist can leave a device
-// pending on a recoverable condition (a deferred/failed integrator, or an accept blocked by the license
-// limit), so only those are retried; automatic/manual have no such recoverable pending state.
+// enrollment policy re-evaluated on a later AuthDevice. Every mode but manual can leave a device
+// pending on a recoverable condition: a deferred or failed integrator, an accept blocked by the license
+// limit, or a merge refused because the device it would replace is still connected. Manual waits for a
+// person and is never retried. The pairing key is never retried either: it is decided by the member
+// approving the pairing, who becomes the device's owner, and a re-evaluation would accept the device
+// with no owner.
 func (s *ProvisioningKey) ReconcilableOnAuth() bool {
-	return s.Mode == ProvisioningKeyModeWebhook || s.Mode == ProvisioningKeyModeAllowlist
+	if s.IsPairing() {
+		return false
+	}
+
+	return s.Mode == ProvisioningKeyModeWebhook || s.Mode == ProvisioningKeyModeAllowlist ||
+		s.Mode == ProvisioningKeyModeAutomatic
 }
 
 // IsSystem reports whether this is one of the namespace's auto-managed system keys (legacy or
