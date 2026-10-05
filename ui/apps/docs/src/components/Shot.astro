@@ -26,21 +26,15 @@ import { recordShot } from "../lib/shots/registry";
  * already. All three get the same frame, the same ceiling on size, and enlarge on click.
  */
 interface Props {
-  /** A captured screenshot: the id the pipeline photographs it under. Requires `route`. */
   id?: string;
-  /** An existing image, by path. */
   src?: string;
-  /** A recorded interaction: the basename of the .webm and .mp4 pair under /img/manual. */
   clip?: string;
   alt?: string;
-  /** Capture coordinates, read by the capture pass rather than by this component. */
   route?: string;
   of?: ShotSelector;
   viewport?: ShotViewport;
   edition?: ShotEdition;
-  /** The SSH access mode the browsed namespace must be in. Omit for the ordinary one. */
   accessMode?: ShotAccessMode;
-  /** The situation the signed-in account must be in. Omit for the ordinary one. */
   account?: ShotAccount;
   frame?: ShotFrame;
   before?: ShotInteraction[];
