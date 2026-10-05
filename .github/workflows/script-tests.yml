@@ -76,10 +76,6 @@ jobs:
       - name: Run gen-config tests
         run: bats tests/ui/gen-config.bats
 
-      # The runner has GNU sed/tr, but gen-config.sh escapes JSON with the
-      # busybox ones in the production image, where the N-slurp, the \n match
-      # and the octal tr ranges all behave differently. Read the image out of
-      # the Dockerfile so an alpine bump is covered by the same guard.
       - name: Run gen-config tests on busybox
         run: |
           image=$(sed -n 's/^FROM \(alpine:[^[:space:]]*\) AS production$/\1/p' ui/Dockerfile)
@@ -139,19 +135,12 @@ jobs:
           echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  /tmp/shellcheck.tar.xz" | sha256sum -c -
           sudo tar -xJf /tmp/shellcheck.tar.xz -C /usr/local/bin --strip-components=1 shellcheck-v0.11.0/shellcheck
 
-      # No paths filter: install.sh is served from server/api/services/system.go
-      # and drives the agent, so a change on either side can break it without
-      # the script itself appearing in the diff.
       - name: Lint install.sh
         run: shellcheck -s sh -S warning install.sh
 
       - name: Run install.sh tests
         run: bats install.bats shellhub-agent-wrapper.bats
 
-      # The runner's /bin/sh is dash. Users curl|sh this script onto whatever
-      # they have, so run the same suite where /bin/sh is busybox ash. Read the
-      # version out of the agent's Dockerfile so an alpine bump is covered by
-      # the same guard.
       - name: Run install.sh tests on busybox
         run: |
           version=$(sed -n 's/^ARG ALPINE_VERSION=\(.*\)$/\1/p' agent/Dockerfile)

@@ -1,8 +1,3 @@
-# Redocly configuration. Controls linting and how the OpenAPI specs are bundled
-# and rendered. https://redocly.com/docs/cli/configuration/
-
-# This extends the recommended configuration values.
-# https://redocly.com/docs/cli/rules/#recommended-config
 extends:
   - recommended
 
@@ -13,8 +8,6 @@ plugins:
   - ./plugins/customer-filter.js
 
 apis:
-  # Full specs: the internal source of truth, consumed by the frontend codegen
-  # and the dev-mode response validator. No filtering applied.
   community@v1:
     root: ./spec/community-openapi.yaml
   cloud@v1:
@@ -22,8 +15,6 @@ apis:
   enterprise@v1:
     root: ./spec/enterprise-openapi.yaml
 
-  # Customer specs: the published documentation. The drop-non-customer decorator
-  # keeps only the namespace-scoped, api-key usable surface.
   community-customer@v1:
     root: ./spec/community-openapi.yaml
     decorators:

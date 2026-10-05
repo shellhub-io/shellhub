@@ -1,8 +1,6 @@
 name: Docs CD
 
 on:
-  # No path filter on push. A release publishes the site, and a tag carries no dependable list of
-  # changed files, so a filtered trigger would skip it.
   push:
     branches:
       - master
@@ -21,9 +19,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # A release publishes the site, so the tag has to say whether it is one anybody should be sent
-  # to. `is-latest-tag` answers that the same way the image publishing does, and a pre-release
-  # stops here instead of spending a build.
   channel:
     name: Decide what this build describes
     runs-on: ubuntu-latest
@@ -61,17 +56,6 @@ jobs:
 
           echo "publish=true" >> "$GITHUB_OUTPUT"
 
-          # The version the pages name is the one the stack runs: SHELLHUB_VERSION, the line the
-          # release bumps and the same value docker-compose reads.
-          #
-          # Except in one window. The bump is merged before the tag is pushed, so master spends
-          # the gap naming a release nobody can check out yet, and a page that hands out
-          # `git clone -b` has to name a tag that exists. The newest tag stands in until it does.
-          #
-          # `versionsort.suffix` is what makes that ordering semver's rather than the string's: it
-          # marks -rc as a pre-release, so v0.27.0 outranks v0.27.0-rc.10 instead of losing to it
-          # on the digits. Sorting by date would read the same today and lie the moment a tag is
-          # moved, which the release playbook does.
           git fetch --tags --quiet
           version=$(grep '^SHELLHUB_VERSION=' .env | cut -d= -f2-)
           if ! git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
@@ -79,8 +63,6 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-          # A release and the branch are the same channel to a reader, and `docs/stable` is the
-          # project's production branch, which is what promotes a deployment to the site.
           if [ "$IS_TAG" = "true" ] || [ "$REF_NAME" = "docs/stable" ]; then
             echo "channel=stable" >> "$GITHUB_OUTPUT"
             echo "branch=docs/stable" >> "$GITHUB_OUTPUT"
@@ -122,8 +104,6 @@ jobs:
         working-directory: ui
         run: npm run sync -w @shellhub/docs
 
-      # CI is set by Actions, which is what makes the build refuse a declared screenshot with
-      # no image and an image no page references, instead of quietly rewriting the checkout.
       - name: Build
         working-directory: ui
         env:
@@ -131,10 +111,6 @@ jobs:
           PUBLIC_SHELLHUB_VERSION: ${{ needs.channel.outputs.version }}
         run: npm run build -w @shellhub/docs
 
-      # Only `docs/stable`, the project's production branch, publishes to the site. Every other
-      # name lands on a preview URL, which is how master and open pull requests get read. The
-      # name is a label on the deployment, not a git branch, so a release tag carries the one
-      # that promotes it.
       - name: Deploy to Cloudflare Pages
         id: deploy
         if: github.event.pull_request.user.login != 'dependabot[bot]'

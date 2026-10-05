@@ -42,7 +42,6 @@ jobs:
           - module: server
             sarif_name: server
             tags: ""
-          # agent build-tag coverage relies on GOFLAGS being forwarded to go/packages
           - module: agent
             sarif_name: agent
             tags: docker
@@ -65,7 +64,6 @@ jobs:
       - name: Run govulncheck
         uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1
         env:
-          # govulncheck honors GOFLAGS through go/packages for build-tag coverage
           GOFLAGS: ${{ matrix.tags != '' && format('-tags={0}', matrix.tags) || '' }}
         with:
           go-version-file: ${{ matrix.module == '.' && 'go.mod' || format('{0}/go.mod', matrix.module) }}
@@ -75,9 +73,6 @@ jobs:
           output-file: govulncheck-${{ matrix.sarif_name }}.sarif
           repo-checkout: false
 
-      # Vuln gating is performed by GitHub's native "Code scanning results" PR check
-      # (identical to CodeQL/Semgrep); this upload step is the success signal for
-      # security-gate — govulncheck's own exit code does NOT block the PR.
       - name: Upload SARIF report
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
         uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
@@ -147,8 +142,6 @@ jobs:
           sarif_file: trivy-${{ matrix.image }}.sarif
           category: trivy-${{ matrix.image }}
 
-  # security-gate is the frozen required-check name referenced in branch protection.
-  # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
   security-gate:
     name: security-gate
     needs: [govulncheck, trivy-image]

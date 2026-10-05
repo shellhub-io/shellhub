@@ -80,7 +80,6 @@ jobs:
           category: codeql-go-${{ matrix.module == '.' && 'root' || matrix.module }}
           output: codeql-results-${{ matrix.module == '.' && 'root' || matrix.module }}.sarif
 
-  # security-gate aggregates all CodeQL jobs for branch protection.
   security-gate:
     name: security-gate
     needs: [analyze]

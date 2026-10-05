@@ -42,8 +42,6 @@ services:
       - api_public_key
       - ssh_private_key
     networks:
-      # api and ssh are kept resolvable so anything still addressing the old
-      # service names on this network keeps working across the upgrade.
       shellhub:
         aliases:
           - api

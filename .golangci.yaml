@@ -13,8 +13,6 @@ formatters:
   enable:
     - gofumpt
     - goimports
-    # goimports keeps whatever grouping it is handed, so an import added in its own
-    # block stays there and reads as a deliberate section. gci decides the grouping.
     - gci
   settings:
     gci:
@@ -26,8 +24,6 @@ linters:
   exclusions:
     paths:
       - "mocks/.*\\.go$"
-      # npm ships Go sources inside ui/node_modules. CI never installs them for the
-      # Go jobs, so only a local run sees the package — and lints a vendor's code.
       - "node_modules/"
     rules:
       - path: _test\.go$
@@ -49,10 +45,8 @@ linters:
     - nlreturn
     - nilerr
     - gosec
-    # Resource leaks and silent truncation.
     - sqlclosecheck
     - rowserrcheck
-    # Constructs that compile but cannot mean what they say.
     - durationcheck
     - asasalint
     - makezero
@@ -66,27 +60,19 @@ linters:
     - musttag
     - iotamixing
     - unqueryvet
-    # Naming and idiom the codebase already follows.
     - perfsprint
     - usetesting
     - errname
     - intrange
-    # Error identity survives wrapping: errors.Is/As over == and type assertions.
     - errorlint
     - forcetypeassert
-    # I/O that a cancelled request should not outlive.
     - noctx
     - errchkjson
-    # A response body left open holds its connection out of the pool.
     - bodyclose
-    # A switch over an enum with no default silently ignores a value added later.
     - exhaustive
     - gocritic
-    # A nolint that no longer suppresses anything, or is written so it never did.
     - nolintlint
-    # Time that is compared must come from the mockable clock.
     - forbidigo
-    # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper
     - usestdlibvars
@@ -98,7 +84,6 @@ linters:
   settings:
     forbidigo:
       forbid:
-        # forbidigo's own defaults, restated because naming any pattern replaces them.
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
         - pattern: ^time\.Now$
           msg: use clock.Now() so a test can control it. If this is an elapsed-time
@@ -113,23 +98,13 @@ linters:
           msg: a swapped hasher outlives the test that set it. Use hash.Set, which puts the
             previous one back when the test ends.
     exhaustive:
-      # A default case is the codebase's way of saying the rest are deliberately ignored.
-      # Without this the linter demands every one of Stripe's 200-odd event types be listed.
       default-signifies-exhaustive: true
     gosec:
       excludes:
-        # G104 (errors unhandled) duplicates errcheck, which reports the same call
-        # with a better message and honours the //nolint:errcheck convention.
         - G104
     revive:
       severity: warning
       rules:
-        # A doc comment on an exported symbol is one of the two comments code-style.md
-        # leaves, and this is the rule that asks for it. Enabled for every module: the
-        # policy has the linter as its only source of doc comments, so a module the rule
-        # skips is a module with no documentation requirement at all.
-        # disableStutteringCheck keeps the rule on the comment: a package-stuttering name
-        # is a rename, which is a different change with different reviewers.
         - name: exported
           arguments:
             - disableStutteringCheck

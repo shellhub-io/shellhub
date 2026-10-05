@@ -308,7 +308,6 @@ paths:
     $ref: paths/api@user@mfa@reset@{user-id}.yaml
   /api/user:
     $ref: paths/api@user.yaml
-  # Resolve an invitation by its code (accept-invite pipeline)
   /api/invitations/resolve:
     $ref: paths/api@invitations@resolve.yaml
   /api/namespaces/{tenant}/invitations/links:

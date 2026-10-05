@@ -1,4 +1,3 @@
-# Session object containing information about an active or completed session
 type: object
 properties:
   uid:

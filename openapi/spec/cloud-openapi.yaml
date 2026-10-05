@@ -155,7 +155,6 @@ paths:
     $ref: paths/api@devices@{uid}@tunnels.yaml
   /api/devices/{uid}/tunnels/{address}:
     $ref: paths/api@devices@{uid}@tunnels@{address}.yaml
-  # Admin (cloud and enterprise)
   /admin/api/authentication:
     $ref: paths/admin@api@authentication.yaml
   /admin/api/authentication/local:

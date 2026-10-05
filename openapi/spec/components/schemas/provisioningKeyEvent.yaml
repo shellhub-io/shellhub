@@ -80,12 +80,8 @@ properties:
     format: date-time
     example: 2020-05-01T00:00:00Z
   device_status:
-    # The registered device's current status, joined live so the history can offer an accept/reject
-    # action. Empty when the device no longer exists.
     $ref: deviceStatus.yaml
   decided_status:
-    # The registration's frozen outcome (accepted or rejected), stamped when the device was decided.
-    # Empty while still pending. Survives the device being removed, unlike the live device_status.
     $ref: deviceStatus.yaml
   decided_at:
     description: |

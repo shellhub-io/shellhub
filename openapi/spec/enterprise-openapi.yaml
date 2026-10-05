@@ -92,7 +92,6 @@ components:
     $ref: ./components/schemas/security.yaml
 paths:
   $ref: community-openapi.yaml#/paths
-  # Shared surface (cloud and enterprise)
   /api/sessions/{uid}/records/{seat}:
     $ref: paths/api@sessions@{uid}@records@{seat}.yaml
   /api/firewall/rules:
@@ -131,10 +130,8 @@ paths:
     $ref: paths/api@devices@{uid}@tunnels.yaml
   /api/devices/{uid}/tunnels/{address}:
     $ref: paths/api@devices@{uid}@tunnels@{address}.yaml
-  # Enterprise only
   /api/user/saml/auth:
     $ref: paths/api@user@saml@auth.yaml
-  # Admin (cloud and enterprise)
   /admin/api/authentication:
     $ref: paths/admin@api@authentication.yaml
   /admin/api/authentication/local:

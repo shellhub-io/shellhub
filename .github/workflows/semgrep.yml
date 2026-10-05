@@ -33,16 +33,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # Full history required for --baseline-commit diff
           fetch-depth: 0
 
       - name: Mark workspace safe for git (semgrep container runs as different user)
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # --error is deliberately absent: under --sarif, semgrep counts
       # nosemgrep-suppressed findings as blocking, so --error would ignore every
-      # inline suppression. The "Evaluate findings" step below is the gate and
-      # reads the suppressions back out of the SARIF.
       - name: Run Semgrep (PR — baseline diff)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -73,11 +69,6 @@ jobs:
           sarif_file: semgrep.sarif
           category: semgrep
 
-      # Pull requests block on findings they introduce (the scan above is
-      # already limited to the baseline diff). The full scans on tags and the
-      # daily cron report only: they re-report a pre-existing backlog that no
-      # single change is accountable for, and failing on it just keeps master
-      # permanently red. The backlog stays visible as code scanning alerts.
       - name: Evaluate findings
         if: ${{ always() }}
         env:
@@ -111,8 +102,6 @@ jobs:
           sys.exit(1)
           PY
 
-  # security-gate is the frozen required-check name referenced in branch protection.
-  # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
   security-gate:
     name: security-gate
     needs: [scan]
