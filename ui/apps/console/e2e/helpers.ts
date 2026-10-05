@@ -22,6 +22,7 @@ export const singleNamespaceReason =
   "community binds the instance to a single namespace";
 
 export const emailDeliveryReason = "only the cloud sends email";
+export const mfaReason = "MFA exists only in enterprise and cloud";
 
 export const consoleAccountDeletionReason =
   "only the cloud deletes an account from the console";
