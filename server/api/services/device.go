@@ -441,6 +441,13 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 			}
 
 			if existingMacDevice != nil && existingMacDevice.UID != device.UID {
+				if existingMacDevice.Online {
+					log.WithFields(log.Fields{"device_uid": device.UID, "existing_device_uid": existingMacDevice.UID, "device_mac": device.Identity.MAC}).
+						Warn("device merge refused - the device with the same MAC address is connected")
+
+					return NewErrDeviceMACConnected(nil)
+				}
+
 				existingNameDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, device.Name, opts...)
 				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 					log.WithError(err).

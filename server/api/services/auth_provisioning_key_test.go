@@ -164,7 +164,6 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 		paired        bool
 		requiredMocks func(context.Context, *mocks.MockStore)
 		expectedKey   *models.ProvisioningKey
-		expectedID    string
 	}{
 		{
 			description: "attributes a tenant-only enrollment to the legacy key",
@@ -173,7 +172,6 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 				s.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(legacy, nil).Once()
 			},
 			expectedKey: legacy,
-			expectedID:  "legacydigest",
 		},
 		{
 			description: "attributes a paired enrollment to the pairing key, not the legacy key",
@@ -182,7 +180,6 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 				s.On("ProvisioningKeyResolveSystemPairing", ctx, scope.MustBounded(tenant)).Return(pairing, nil).Once()
 			},
 			expectedKey: pairing,
-			expectedID:  "pairingdigest",
 		},
 		{
 			description: "attributes nothing when the pairing key is missing",
@@ -191,7 +188,6 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 				s.On("ProvisioningKeyResolveSystemPairing", ctx, scope.MustBounded(tenant)).Return(nil, store.ErrNoDocuments).Once()
 			},
 			expectedKey: nil,
-			expectedID:  "",
 		},
 	}
 
@@ -203,11 +199,10 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 			tc.requiredMocks(ctx, storeMock)
 
 			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
-			key, id, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), requests.DeviceAuth{TenantID: tenant}, tc.paired)
+			key, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), requests.DeviceAuth{TenantID: tenant}, tc.paired)
 
 			require.NoError(tt, err)
 			require.Equal(tt, tc.expectedKey, key)
-			require.Equal(tt, tc.expectedID, id)
 			storeMock.AssertExpectations(tt)
 		})
 	}
