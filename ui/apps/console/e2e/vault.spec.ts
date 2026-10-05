@@ -1,5 +1,4 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
-import { generateKeyPairSync } from "node:crypto";
 import { getVault } from "@/client";
 import { isCommunity } from "./env";
 import {
@@ -11,75 +10,24 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
-import { buildShortId } from "./seed";
 import { expectStatus } from "./api";
+import {
+  addKey,
+  buildPrivateKey,
+  createVault,
+  keyEntry,
+  masterPassword,
+  openSetUp,
+  setUpVault,
+  uninitializedState,
+} from "./vault";
 
-const masterPassword = "vault-master-password";
 const serverStorageReason = "community keeps the vault in the browser only";
-
-const storageOptions = {
-  local: "This device only",
-  server: "Sync to the ShellHub server",
-};
-
-function buildPrivateKey() {
-  return generateKeyPairSync("rsa", {
-    modulusLength: 2048,
-    privateKeyEncoding: { type: "pkcs1", format: "pem" },
-    publicKeyEncoding: { type: "spki", format: "pem" },
-  }).privateKey;
-}
 
 async function openVault(page: Page) {
   const team = await createTeam({ sshAccessMode: "legacy" });
   await signInAndOpen(page, team.owner.username, "/secure-vault");
   return team;
-}
-
-const uninitializedState = (page: Page) =>
-  page.getByRole("button", { name: "Set Up Secure Vault" });
-
-async function openSetUp(page: Page) {
-  await uninitializedState(page).click();
-  return page.getByRole("dialog", { name: "Set up secure vault" });
-}
-
-async function createVault(
-  dialog: Locator,
-  storage?: keyof typeof storageOptions,
-) {
-  if (storage) {
-    await dialog.getByText(storageOptions[storage]).check();
-  }
-  await dialog
-    .getByLabel("Master Password", { exact: true })
-    .fill(masterPassword);
-  await dialog
-    .getByLabel("Confirm Password", { exact: true })
-    .fill(masterPassword);
-  await dialog.getByRole("button", { name: "Create Vault" }).click();
-  await expect(dialog).toBeHidden();
-}
-
-async function setUpVault(page: Page, storage?: keyof typeof storageOptions) {
-  await createVault(await openSetUp(page), storage);
-}
-
-const keyEntry = (page: Page, name: string) =>
-  page.getByRole("button", { name: `Edit ${name}` });
-
-async function addKey(page: Page) {
-  const name = `e2e-key-${buildShortId()}`;
-  await page.getByRole("button", { name: "Add Private Key" }).click();
-  const dialog = page.getByRole("dialog", { name: "Add private key" });
-  await dialog.getByLabel("Name", { exact: true }).fill(name);
-  await dialog.getByRole("button", { name: "Text", exact: true }).click();
-  await dialog
-    .getByLabel("Private Key", { exact: true })
-    .fill(buildPrivateKey());
-  await dialog.getByRole("button", { name: "Add key" }).click();
-  await expect(keyEntry(page, name)).toBeVisible();
-  return name;
 }
 
 const lockedState = (page: Page) =>
