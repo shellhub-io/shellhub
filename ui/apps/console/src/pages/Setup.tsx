@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
@@ -6,6 +6,7 @@ import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { setup } from "@/client";
 import { getConfig, isCommunity } from "@/env";
+import { useOnboardingSurvey } from "@/hooks/useOnboardingSurvey";
 import { useAuthStore } from "@/stores/authStore";
 import {
   FormInputField,
@@ -21,6 +22,8 @@ import {
 import { firstRunEntryState } from "@/components/firstRun/entry";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
 import { suggestNamespace } from "./setup/validate";
+import OnboardingStep from "./setup/OnboardingStep";
+import { emptyAnswers, type SurveyAnswers } from "./setup/onboardingSurvey";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -36,14 +39,21 @@ export default function Setup() {
   const config = getConfig();
   const loginWithToken = useAuthStore((state) => state.loginWithToken);
 
-  const showOnboarding = isCommunity() && !!config.onboardingUrl;
+  const surveyBaseUrl = isCommunity() ? config.onboardingUrl : "";
+  const surveyQuery = useOnboardingSurvey(surveyBaseUrl);
+  const survey = surveyQuery.data ?? null;
+  const showOnboarding =
+    surveyBaseUrl !== "" && (surveyQuery.isPending || survey !== null);
 
-  const [step, setStep] = useState(
-    showOnboarding ? STEP_ONBOARDING : STEP_ACCOUNT,
-  );
+  const [chosenStep, setStep] = useState(STEP_ONBOARDING);
+  const step = showOnboarding ? chosenStep : STEP_ACCOUNT;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [surveyCompleted, setSurveyCompleted] = useState(false);
+  const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers | null>(
+    null,
+  );
+  const [surveyResponseId, setSurveyResponseId] = useState<string | null>(null);
 
   const { control, handleSubmit, formState, setValue } =
     useForm<SetupFormValues>({
@@ -72,40 +82,6 @@ export default function Setup() {
   }, [usernameValue, namespaceEdited, setValue]);
 
   const disableCreateAccountButton = loading || !formState.isValid;
-
-  const onboardingUrl = (() => {
-    if (!config.onboardingUrl) return "";
-    const params = new URLSearchParams({
-      consent_to_contact: "accepted",
-      source: "self-hosted",
-      embed: "true",
-      instance_domain: window.location.hostname,
-    });
-    if (import.meta.env.DEV) params.append("preview", "true");
-    return `${config.onboardingUrl}?${params.toString()}`;
-  })();
-
-  const handleMessage = useCallback(
-    (event: MessageEvent) => {
-      if (!config.onboardingUrl) return;
-      try {
-        const origin = new URL(config.onboardingUrl).origin;
-        if (event.origin !== origin) return;
-      } catch {
-        return;
-      }
-      if (event.data === "formbricksSurveyCompleted") {
-        setSurveyCompleted(true);
-      }
-    },
-    [config.onboardingUrl],
-  );
-
-  useEffect(() => {
-    if (!showOnboarding) return;
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [showOnboarding, handleMessage]);
 
   const onSubmit = async (values: SetupFormValues) => {
     setLoading(true);
@@ -172,35 +148,27 @@ export default function Setup() {
             state={surveyState}
             summary={surveyCompleted ? "Thanks" : "Skipped"}
           >
-            <div className="space-y-4">
-              <p className="text-xs text-text-secondary">
-                Help us improve ShellHub by sharing your feedback.
-              </p>
-              <div className="relative h-[60dvh] overflow-auto rounded-lg border border-border">
-                <iframe
-                  src={onboardingUrl}
-                  title="Onboarding survey"
-                  className="absolute inset-0 w-full h-full border-0"
-                />
-              </div>
-              <div className="flex items-center justify-end gap-3">
-                {import.meta.env.DEV && (
-                  <button
-                    type="button"
-                    onClick={() => setStep(STEP_ACCOUNT)}
-                    className="text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
-                  >
-                    Skip survey (dev only)
-                  </button>
-                )}
-                <Button
-                  disabled={!surveyCompleted}
-                  onClick={() => setStep(STEP_ACCOUNT)}
-                >
-                  Continue
-                </Button>
-              </div>
-            </div>
+            {survey ? (
+              <OnboardingStep
+                survey={survey}
+                baseUrl={surveyBaseUrl}
+                hidden={{
+                  instance_type: config.edition,
+                  instance_domain: window.location.hostname,
+                }}
+                initialAnswers={surveyAnswers ?? emptyAnswers(survey)}
+                responseId={surveyResponseId}
+                onDone={(answers, responseId) => {
+                  setSurveyAnswers(answers);
+                  setSurveyResponseId(responseId);
+                  setSurveyCompleted(true);
+                  setStep(STEP_ACCOUNT);
+                }}
+                onSkip={() => setStep(STEP_ACCOUNT)}
+              />
+            ) : (
+              <p className="text-xs text-text-muted">Loading survey...</p>
+            )}
           </TrailStep>
         )}
         <TrailStep

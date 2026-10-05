@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { createTestWrapper } from "@/tests/wrapper";
+import { ONBOARDING_TRIGGER } from "../setup/onboardingSurvey";
 import Setup from "../Setup";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -37,6 +39,7 @@ function renderSetup() {
     <MemoryRouter>
       <Setup />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
@@ -250,51 +253,147 @@ describe("Setup", () => {
     });
   });
 
-  describe("two-step onboarding flow (when onboardingUrl is set)", () => {
+  describe("onboarding survey (when onboardingUrl is set)", () => {
+    const surveyApi = "https://forms.example.test/api/v1/client/ws1";
+    let sent: { method: string; url: string; body: unknown }[];
+
+    const survey = {
+      id: "survey-1",
+      type: "app",
+      status: "inProgress",
+      triggers: [{ actionClass: { name: ONBOARDING_TRIGGER } }],
+      hiddenFields: { enabled: true, fieldIds: ["instance_domain"] },
+      blocks: [
+        {
+          elements: [
+            {
+              type: "multipleChoiceSingle",
+              id: "role",
+              headline: { default: "What is your role?" },
+              required: true,
+              choices: [
+                { id: "dev", label: { default: "Developer" } },
+                { id: "ops", label: { default: "Operator" } },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    function serveSurvey(environment: () => Response) {
+      server.use(
+        http.get(`${surveyApi}/environment`, environment),
+        http.post(`${surveyApi}/responses`, async ({ request }) => {
+          sent.push({
+            method: "POST",
+            url: request.url,
+            body: await request.json(),
+          });
+          return HttpResponse.json({ data: { id: "response-1" } });
+        }),
+        http.put(`${surveyApi}/responses/:id`, async ({ request }) => {
+          sent.push({
+            method: "PUT",
+            url: request.url,
+            body: await request.json(),
+          });
+          return HttpResponse.json({ data: {} });
+        }),
+      );
+    }
+
     beforeEach(() => {
+      sent = [];
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        onboardingUrl: "https://onboarding.example.com/survey",
+        onboardingUrl: surveyApi,
       });
+      serveSurvey(() =>
+        HttpResponse.json({ data: { data: { surveys: [survey] } } }),
+      );
     });
 
-    it("starts on the onboarding step and shows the survey iframe", () => {
+    async function answerAndContinue(
+      user: ReturnType<typeof userEvent.setup>,
+      choice: RegExp,
+    ) {
+      await user.click(await screen.findByRole("radio", { name: choice }));
+      await user.click(screen.getByRole("button", { name: /^continue$/i }));
+      await screen.findByLabelText(/^name$/i);
+    }
+
+    it("starts on the survey, rendered from the Formbricks workspace", async () => {
       renderSetup();
-      expect(screen.getByTitle(/onboarding survey/i)).toBeInTheDocument();
+
+      expect(
+        await screen.findByRole("radiogroup", { name: /what is your role/i }),
+      ).toBeInTheDocument();
       expect(screen.queryByLabelText(/^name$/i)).not.toBeInTheDocument();
     });
 
-    it("moves to the account step after Continue is clicked and survey is completed", async () => {
+    it("holds the user on the survey until a required question is answered", async () => {
       const user = userEvent.setup();
       renderSetup();
 
-      window.dispatchEvent(
-        new MessageEvent("message", {
-          data: "formbricksSurveyCompleted",
-          origin: "https://onboarding.example.com",
-        }),
-      );
-
       await user.click(
-        await screen.findByRole("button", { name: /continue/i }),
+        await screen.findByRole("button", { name: /^continue$/i }),
       );
 
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
+      expect(await screen.findByText(/pick one/i)).toBeInTheDocument();
+      expect(sent).toEqual([]);
+    });
+
+    it("sends the answers with the instance domain, then moves to the account step", async () => {
+      const user = userEvent.setup();
+      renderSetup();
+
+      await answerAndContinue(user, /developer/i);
+
+      expect(sent).toEqual([
+        {
+          method: "POST",
+          url: `${surveyApi}/responses`,
+          body: {
+            surveyId: "survey-1",
+            finished: true,
+            data: {
+              role: "Developer",
+              instance_domain: window.location.hostname,
+            },
+          },
+        },
+      ]);
+    });
+
+    it("updates the response already sent when the user goes back and changes an answer", async () => {
+      const user = userEvent.setup();
+      renderSetup();
+
+      await answerAndContinue(user, /developer/i);
+      await user.click(screen.getByRole("button", { name: /back/i }));
+
+      expect(
+        await screen.findByRole("radio", { name: /developer/i }),
+      ).toBeChecked();
+
+      await answerAndContinue(user, /operator/i);
+
+      expect(sent.map((s) => [s.method, s.url])).toEqual([
+        ["POST", `${surveyApi}/responses`],
+        ["PUT", `${surveyApi}/responses/response-1`],
+      ]);
+      expect(sent[1].body).toEqual({
+        finished: true,
+        data: { role: "Operator", instance_domain: window.location.hostname },
+      });
     });
 
     it("tells the dashboard the survey is behind the user", async () => {
       const user = userEvent.setup();
       renderSetup();
 
-      window.dispatchEvent(
-        new MessageEvent("message", {
-          data: "formbricksSurveyCompleted",
-          origin: "https://onboarding.example.com",
-        }),
-      );
-      await user.click(
-        await screen.findByRole("button", { name: /continue/i }),
-      );
+      await answerAndContinue(user, /developer/i);
       await fillValidForm(user);
       await user.click(
         screen.getByRole("button", { name: /create and continue/i }),
@@ -308,26 +407,47 @@ describe("Setup", () => {
       );
     });
 
-    it("shows a Back button on the account step that returns to onboarding", async () => {
+    it("offers to skip when the answers cannot be sent", async () => {
+      server.use(
+        http.post(`${surveyApi}/responses`, () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
       const user = userEvent.setup();
       renderSetup();
 
-      window.dispatchEvent(
-        new MessageEvent("message", {
-          data: "formbricksSurveyCompleted",
-          origin: "https://onboarding.example.com",
-        }),
-      );
-
       await user.click(
-        await screen.findByRole("button", { name: /continue/i }),
+        await screen.findByRole("radio", { name: /developer/i }),
       );
+      await user.click(screen.getByRole("button", { name: /^continue$/i }));
 
-      expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument();
+      expect(
+        await screen.findByText(/your answers could not be sent/i),
+      ).toBeInTheDocument();
 
-      await user.click(screen.getByRole("button", { name: /back/i }));
+      await user.click(screen.getByRole("button", { name: /skip survey/i }));
 
-      expect(screen.getByTitle(/onboarding survey/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
     });
+
+    it.each([
+      [
+        "the workspace cannot be reached",
+        () => HttpResponse.json({}, { status: 503 }),
+      ],
+      [
+        "the workspace has no onboarding survey",
+        () => HttpResponse.json({ data: { data: { surveys: [] } } }),
+      ],
+    ])(
+      "goes straight to the account step when %s",
+      async (_case, environment) => {
+        serveSurvey(environment);
+        renderSetup();
+
+        expect(await screen.findByLabelText(/^name$/i)).toBeInTheDocument();
+        expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+      },
+    );
   });
 });
