@@ -3,6 +3,7 @@ import type {
   Device,
   FirewallRulesResponse,
   GetLicenseResponse,
+  GetSshApprovalResponses,
   GetStatusDevicesResponse,
   ProvisioningKey,
   ProvisioningKeyEvent,
@@ -385,6 +386,30 @@ export function mockRecordingMeta(
     durationSec: 10,
     createdAt: 0,
     size: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * Builds an SSH login approval that is pending and asks to add a new key (`kind: "identity"`), with
+ * its 90 seconds still to run. A re-authentication or a decided approval has to override `kind` or
+ * `state`.
+ */
+export function mockSshApproval(
+  overrides: Partial<GetSshApprovalResponses[200]> = {},
+): GetSshApprovalResponses[200] {
+  return {
+    code: "WXYZ2K7Q",
+    kind: "identity",
+    fingerprint: "SHA256:abc",
+    sshid: "root@my-namespace.device",
+    device_name: "device",
+    username: "root",
+    ip_address: "10.0.0.1",
+    requested_at: "2026-07-27T12:00:00Z",
+    expires_in_seconds: 90,
+    namespace: "my-namespace",
+    state: "pending",
     ...overrides,
   };
 }
