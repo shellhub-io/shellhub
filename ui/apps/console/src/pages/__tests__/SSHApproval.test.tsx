@@ -5,31 +5,14 @@ import { Routes, Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockNamespace } from "@/tests/factories";
+import { mockNamespace, mockSshApproval } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import SSHApproval from "../SSHApproval";
 
-function approvalData(overrides: Record<string, unknown> = {}) {
-  return {
-    code: "WXYZ2K7Q",
-    kind: "identity",
-    fingerprint: "SHA256:abc",
-    sshid: "root@my-namespace.device",
-    device_name: "device",
-    username: "root",
-    ip_address: "10.0.0.1",
-    requested_at: "2026-07-27T12:00:00Z",
-    expires_in_seconds: 90,
-    namespace: "my-namespace",
-    state: "pending",
-    ...overrides,
-  };
-}
-
-function setApproval(overrides: Record<string, unknown> = {}) {
+function setApproval(overrides: Parameters<typeof mockSshApproval>[0] = {}) {
   server.use(
     http.get("*/api/ssh-approvals/:code", () =>
-      HttpResponse.json(approvalData(overrides)),
+      HttpResponse.json(mockSshApproval(overrides)),
     ),
   );
 }
@@ -55,14 +38,12 @@ describe("SSHApproval", () => {
     vi.clearAllMocks();
     seedAuthStore();
     server.use(
-      http.get("*/api/namespaces", () =>
-        jsonWithTotal([mockNamespace()]),
-      ),
+      http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
       http.get("*/api/auth/token/:tenant", () =>
         HttpResponse.json({ token: "jwt-token" }),
       ),
       http.get("*/api/ssh-approvals/:code", () =>
-        HttpResponse.json(approvalData()),
+        HttpResponse.json(mockSshApproval()),
       ),
       http.post(
         "*/api/ssh-approvals/:code/confirm",
@@ -206,9 +187,7 @@ describe("SSHApproval", () => {
     expect(
       screen.queryByLabelText(/account password/i),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/re-authenticated/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/re-authenticated/i)).not.toBeInTheDocument();
   });
 
   it("proves the password and reports the login released", async () => {
