@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   findOnboardingSurvey,
   type OnboardingSurvey,
-} from "@/pages/setup/onboardingSurvey";
+} from "@/components/firstRun/survey/onboardingSurvey";
 
 async function fetchOnboardingSurvey(
   baseUrl: string,

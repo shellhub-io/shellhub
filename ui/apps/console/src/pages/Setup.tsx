@@ -22,8 +22,11 @@ import {
 import { firstRunEntryState } from "@/components/firstRun/entry";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
 import { suggestNamespace } from "./setup/validate";
-import OnboardingStep from "./setup/OnboardingStep";
-import { emptyAnswers, type SurveyAnswers } from "./setup/onboardingSurvey";
+import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
+import {
+  emptyAnswers,
+  type SurveyAnswers,
+} from "@/components/firstRun/survey/onboardingSurvey";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;

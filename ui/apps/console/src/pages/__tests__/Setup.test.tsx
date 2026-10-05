@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { ONBOARDING_TRIGGER } from "../setup/onboardingSurvey";
+import { ONBOARDING_TRIGGER } from "@/components/firstRun/survey/onboardingSurvey";
 import Setup from "../Setup";
 
 const mockNavigate = vi.hoisted(() => vi.fn());

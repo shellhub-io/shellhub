@@ -63,7 +63,7 @@ export default function OnboardingStep({
   return (
     <form onSubmit={onSubmit} className="space-y-6" noValidate>
       <p className="text-xs text-text-secondary">
-        Help us improve ShellHub by sharing your feedback.
+        A few questions about you and what you are connecting.
       </p>
 
       <OnboardingSurveyFields survey={survey} control={control} />
