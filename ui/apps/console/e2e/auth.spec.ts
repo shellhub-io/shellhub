@@ -9,9 +9,10 @@ import {
   directMembershipReason,
   signUpFromInvite,
   createTeamWithMember,
+  createUser,
   signOut,
 } from "./helpers";
-import { password, buildShortId, createUser, createNamespace } from "./seed";
+import { password, buildShortId, createNamespace } from "./seed";
 import { buildRequestContext, expectStatus, invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
@@ -74,7 +75,7 @@ test.describe("account lockout", () => {
   test("locks out after 3 failed attempts, then recovers", async ({ page }) => {
     test.setTimeout(120_000);
 
-    const user = createUser("lockout");
+    const user = await createUser("lockout");
     createNamespace(
       user.username,
       `ns-lockout-${buildShortId()}`,
@@ -115,7 +116,7 @@ test.describe("accept invitation", () => {
   });
 
   async function inviteUser() {
-    const user = createUser("invitee");
+    const user = await createUser("invitee");
     createNamespace(
       user.username,
       `ns-invitee-${buildShortId()}`,

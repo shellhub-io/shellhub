@@ -1,15 +1,19 @@
 import { type Page, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { getValidateAccount, registerUser } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
+import { isCloud } from "./env";
+import { readLatestEmail } from "./mail";
 import {
   password,
   buildShortId,
-  createUser,
+  buildUserIdentity,
+  createUserWithCli,
   createNamespace,
   addMember,
   type NamespaceOptions,
 } from "./seed";
-import { loginAs } from "./api";
+import { buildRequestContext, loginAs } from "./api";
 
 export const directMembershipReason =
   "enterprise adds existing users directly, without an invitation link";
@@ -22,11 +26,37 @@ export const emailDeliveryReason = "only the cloud sends email";
 export const consoleAccountDeletionReason =
   "only the cloud deletes an account from the console";
 
+export async function signUpUser(prefix: string, { confirm = true } = {}) {
+  const user = buildUserIdentity(prefix);
+  await registerUser({
+    ...buildRequestContext(),
+    body: { ...user, name: user.username, password, email_marketing: false },
+  });
+  if (!confirm) return user;
+
+  const { link } = await readLatestEmail(user.email, "/validation-account");
+  const email = link.params.get("email");
+  const token = link.params.get("token");
+  if (!email || !token) {
+    throw new Error(`expected email and token params in ${link.path}`);
+  }
+  await getValidateAccount({
+    ...buildRequestContext(),
+    query: { email, token },
+  });
+  return user;
+}
+
+export async function createUser(prefix: string, { admin = false } = {}) {
+  if (!isCloud || admin) return createUserWithCli(prefix, { admin });
+  return signUpUser(prefix);
+}
+
 export async function createTeam({
   admin = false,
   sshAccessMode,
 }: { admin?: boolean } & NamespaceOptions = {}) {
-  const owner = createUser("owner", { admin });
+  const owner = await createUser("owner", { admin });
   const namespace = `e2e-team-${buildShortId()}`;
   const tenant = randomUUID();
   createNamespace(owner.username, namespace, tenant, { sshAccessMode });
@@ -39,7 +69,7 @@ export async function createTeamWithMember(
   options: NamespaceOptions = {},
 ) {
   const team = await createTeam(options);
-  const member = createUser("member");
+  const member = await createUser("member");
   addMember(member.username, team.namespace, role);
   const { token, tenant, id } = await loginAs(member.username, password);
   if (tenant !== team.tenant) {

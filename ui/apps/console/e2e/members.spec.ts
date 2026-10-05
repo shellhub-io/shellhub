@@ -22,6 +22,7 @@ import {
   createTeam,
   consoleAccountDeletionReason,
   createTeamWithMember,
+  createUser,
   deleteOwnAccount,
   findRow,
   signIn,
@@ -35,7 +36,6 @@ import {
   password,
   buildShortId,
   buildRandomEmail,
-  createUser,
   addMember,
   expireInvitation,
   readUserInvitationStatus,
@@ -162,7 +162,7 @@ test.describe("invitations", () => {
   test("a used invitation link stops working", async ({ browser }) => {
     test.skip(isEnterprise, directMembershipReason);
     const { owner, tenant } = await createTeam();
-    const invitee = createUser("invitee");
+    const invitee = await createUser("invitee");
     const { link } = await invite(owner.token, tenant, invitee.email);
 
     const { token } = await loginAs(invitee.username, password);
