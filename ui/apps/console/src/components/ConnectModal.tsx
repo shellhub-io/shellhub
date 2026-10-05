@@ -27,6 +27,7 @@ import {
   useBrowserKeyFingerprint,
 } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
+import { isEnterpriseOrCloud } from "@/env";
 import { isAlreadyEnrolled } from "../utils/sshIdentity";
 import { listSshIdentitiesOptions } from "../client";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
@@ -299,7 +300,8 @@ export default function ConnectModal({
   const createIdentity = useCreateSSHIdentity();
   const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
-  const namespaceRecords = namespace?.settings?.session_record ?? false;
+  const namespaceRecords =
+    isEnterpriseOrCloud() && (namespace?.settings?.session_record ?? false);
 
   const identityMode = namespace?.settings?.ssh_access_mode === "identity";
   const browserKeyFingerprint = useBrowserKeyFingerprint();

@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { setEdition } from "@/tests/edition";
 import { mockDevice, mockNamespace } from "@/tests/factories";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import ConnectModal from "@/components/ConnectModal";
@@ -67,6 +68,7 @@ const recSwitch = () =>
 
 describe("ConnectModal", () => {
   beforeEach(() => {
+    setEdition("community");
     seedAuthStore({ name: "gustavo", email: "gustavo@shellhub.io" });
     serveConnectApi("legacy");
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
@@ -133,13 +135,26 @@ describe("ConnectModal", () => {
     });
 
     it("states the server recording and offers no switch when the namespace records", async () => {
+      setEdition("enterprise");
       serveConnectApi("legacy", true);
+      server.use(
+        http.get("*/api/vault", () => new HttpResponse(null, { status: 404 })),
+      );
       renderModal();
 
       expect(
         await screen.findByText(/recorded and stored on the server/i),
       ).toBeInTheDocument();
       expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    });
+
+    it("records in this browser on community, where the server never records", async () => {
+      serveConnectApi("identity", true);
+      renderModal();
+
+      await screen.findByRole("group", { name: "Identity" });
+
+      expect(await recSwitch()).toHaveAttribute("aria-checked", "true");
     });
   });
 
