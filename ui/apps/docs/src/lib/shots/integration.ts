@@ -38,7 +38,6 @@ export function shots(): AstroIntegration {
       },
 
       "astro:build:start": () => {
-        // A watched rebuild reuses the process, so last build's entries survive.
         resetShots();
       },
 
@@ -53,9 +52,6 @@ export function shots(): AstroIntegration {
         const orphans = unreferencedImages(publicDir, fileURLToPath(dir));
 
         if (orphans.length > 0) {
-          // CI reports what was left behind rather than deleting it: a build
-          // that quietly rewrites the checkout hides the fact that the removal
-          // was never committed.
           const left = `no page references: ${orphans.join(", ")}`;
           if (process.env.CI) throw new Error(left);
 
@@ -72,8 +68,6 @@ export function shots(): AstroIntegration {
 
         const message = `no image captured yet for: ${missing.join(", ")}`;
 
-        // A missing image is normal while writing a page and unacceptable on the
-        // published site, so it is a warning locally and a failure in CI.
         if (process.env.CI) throw new Error(message);
         logger.warn(message);
       },

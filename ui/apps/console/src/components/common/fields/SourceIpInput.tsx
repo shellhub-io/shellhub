@@ -156,7 +156,6 @@ export default function SourceIpInput({
         />
       </div>
 
-      {/* Live parse preview — appears as the user types a resolvable entry. */}
       {canAdd && (
         <button
           type="button"
@@ -199,7 +198,6 @@ export default function SourceIpInput({
         </div>
       )}
 
-      {/* Quick-add common private ranges. */}
       {draft === "" && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {SUGGESTIONS.filter((s) => !values.includes(s.value)).map((s) => (

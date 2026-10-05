@@ -9,10 +9,6 @@ import {
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { toBase64Json } from "@/utils/encoding";
 
-/**
- * Builds the public-key list filter: a search matched against the name or the fingerprint, so
- * either half of what a user remembers finds the key.
- */
 function buildPublicKeyFilter(search: string): string {
   const filters = [
     { type: "operator", params: { name: "or" } },

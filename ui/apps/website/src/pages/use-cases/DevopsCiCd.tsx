@@ -227,7 +227,6 @@ function CodeLine({
 export default function DevopsCiCd() {
   return (
     <SiteLayout>
-      {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="primary" />
@@ -262,7 +261,6 @@ export default function DevopsCiCd() {
         </div>
       </section>
 
-      {/* ── Ansible Integration ──────────────────────────────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -328,7 +326,6 @@ export default function DevopsCiCd() {
         </div>
       </Section>
 
-      {/* ── Terraform Integration ────────────────────────────────── */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <Reveal delay={0.1} className="order-2 lg:order-1">
@@ -394,7 +391,6 @@ export default function DevopsCiCd() {
         </div>
       </Section>
 
-      {/* ── CI/CD Pipeline ───────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="CI/CD Pipeline"
@@ -409,7 +405,6 @@ export default function DevopsCiCd() {
               title=".github/workflows/deploy.yml"
               className="border-primary/30 shadow-[0_0_40px_rgba(102,122,204,0.1)]"
             >
-              {/* Pipeline step indicators */}
               <div className="flex items-center gap-6 mb-6 pb-5 border-b border-border">
                 {pipelineSteps.map((step, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -432,14 +427,12 @@ export default function DevopsCiCd() {
                 ))}
               </div>
 
-              {/* Workflow YAML */}
               <div className="space-y-0 mb-6 overflow-x-auto">
                 {pipelineDeployLines.map((line, i) => (
                   <CodeLine key={i} {...line} />
                 ))}
               </div>
 
-              {/* Status bar */}
               <div className="pt-4 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
@@ -456,7 +449,6 @@ export default function DevopsCiCd() {
         </Reveal>
       </Section>
 
-      {/* ── Pain Points ──────────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="The Problem"
@@ -478,7 +470,6 @@ export default function DevopsCiCd() {
         </div>
       </Section>
 
-      {/* ── Key Features ─────────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Capabilities"

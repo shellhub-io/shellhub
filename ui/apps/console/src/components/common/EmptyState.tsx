@@ -84,7 +84,6 @@ export default function EmptyState({
       aria-labelledby={headingId}
       className="relative min-h-full flex items-center justify-center"
     >
-      {/* Decorative background — bleeds past the main padding (p-8 pb-4) */}
       <div
         aria-hidden="true"
         className="absolute inset-0 overflow-hidden pointer-events-none -mx-8 -mt-8 -mb-4"
@@ -97,7 +96,6 @@ export default function EmptyState({
       </div>
 
       <div className="w-full max-w-3xl px-4 py-6 animate-fade-in">
-        {/* Header */}
         <div className="text-center mb-10">
           <div
             aria-hidden="true"
@@ -128,7 +126,6 @@ export default function EmptyState({
           </p>
         </div>
 
-        {/* Feature highlights */}
         {features?.length ? (
           <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
             {features.map((feature, idx) => (
@@ -156,7 +153,6 @@ export default function EmptyState({
           </ul>
         ) : null}
 
-        {/* Call to action */}
         <div
           className="text-center animate-slide-up"
           style={{ animationDelay: hasFeatures ? "450ms" : "200ms" }}

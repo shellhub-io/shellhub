@@ -270,7 +270,6 @@ export default function Devices() {
         </RestrictedAction>
       </PageHeader>
 
-      {/* Filter bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
         <span className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
           Accepted
@@ -294,7 +293,6 @@ export default function Devices() {
         </div>
       </div>
 
-      {/* Active tag filters */}
       {params.tags.length > 0 && (
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
           <span className="text-2xs font-mono text-text-muted uppercase tracking-wider shrink-0">

@@ -73,9 +73,7 @@ export function WindowChrome({
         className,
       )}
     >
-      {/* Title bar */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        {/* Traffic-light dots */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span className={cn("rounded-full", dotSize, "bg-accent-red/60")} />
           <span
@@ -93,7 +91,6 @@ export function WindowChrome({
           )}
         </div>
 
-        {/* Center content */}
         <div className="flex flex-1 items-center min-w-0">
           {variant === "terminal" && title && (
             <span className="text-2xs text-text-muted font-mono truncate">
@@ -110,13 +107,11 @@ export function WindowChrome({
           )}
         </div>
 
-        {/* Actions slot */}
         {titleBarSlot && (
           <div className="flex items-center gap-1 shrink-0">{titleBarSlot}</div>
         )}
       </div>
 
-      {/* Body */}
       <div
         className={cn(
           "relative p-5 font-mono text-xs leading-relaxed",

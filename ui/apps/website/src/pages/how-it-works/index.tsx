@@ -100,7 +100,6 @@ const vpnLimitations = [
 export default function HowItWorks() {
   return (
     <SiteLayout>
-      {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
@@ -141,7 +140,6 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* ── Architecture Diagram ─────────────────────────────────── */}
       <Section id="architecture">
         <SectionHeader
           eyebrow="Architecture"
@@ -164,7 +162,6 @@ export default function HowItWorks() {
                   <ArrowMarker id="hw-a-dim" fill={`${C.primary}60`} />
                 </defs>
 
-                {/* ── User ── */}
                 <text
                   x="70"
                   y="24"
@@ -222,7 +219,6 @@ export default function HowItWorks() {
                   laptop / browser
                 </text>
 
-                {/* ── Arrow: User to Gateway ── */}
                 <line
                   x1="125"
                   y1="80"
@@ -252,7 +248,6 @@ export default function HowItWorks() {
                   SSH / HTTPS
                 </text>
 
-                {/* ── ShellHub Cloud ── */}
                 <rect
                   x="265"
                   y="20"
@@ -276,7 +271,6 @@ export default function HowItWorks() {
                   SHELLHUB CLOUD
                 </text>
 
-                {/* Logo badge */}
                 <rect
                   x="395"
                   y="38"
@@ -299,7 +293,6 @@ export default function HowItWorks() {
                   SH
                 </text>
 
-                {/* Internal modules */}
                 {[
                   {
                     x: 285,
@@ -388,7 +381,6 @@ export default function HowItWorks() {
                   </g>
                 ))}
 
-                {/* Gateway label */}
                 <text
                   x="430"
                   y="278"
@@ -400,7 +392,6 @@ export default function HowItWorks() {
                   CLOUD OR SELF-HOSTED
                 </text>
 
-                {/* ── NAT Wall ── */}
                 <rect
                   x="630"
                   y="30"
@@ -428,7 +419,6 @@ export default function HowItWorks() {
                   NAT
                 </text>
 
-                {/* ── Arrow: Gateway to NAT ── */}
                 <line
                   x1="600"
                   y1="115"
@@ -439,7 +429,6 @@ export default function HowItWorks() {
                   markerEnd="url(#hw-a-grn)"
                 />
 
-                {/* ── Arrows: NAT to Devices ── */}
                 <line
                   x1="642"
                   y1="85"
@@ -493,7 +482,6 @@ export default function HowItWorks() {
                   NAT Traversal
                 </text>
 
-                {/* ── YOUR DEVICES label ── */}
                 <text
                   x="790"
                   y="22"
@@ -506,7 +494,6 @@ export default function HowItWorks() {
                   YOUR DEVICES
                 </text>
 
-                {/* ── Devices ── */}
                 {[
                   {
                     y: 36,
@@ -551,7 +538,6 @@ export default function HowItWorks() {
                       fill={C.card}
                       stroke={C.border}
                     />
-                    {/* icon box */}
                     <rect
                       x="696"
                       y={d.y + 12}
@@ -579,7 +565,6 @@ export default function HowItWorks() {
                             ? "dk"
                             : "IoT"}
                     </text>
-                    {/* labels */}
                     <text
                       x="736"
                       y={d.y + 24}
@@ -607,7 +592,6 @@ export default function HowItWorks() {
                     >
                       agent running
                     </text>
-                    {/* animated status dot */}
                     <circle cx="834" cy={d.y + 10} r="3.5" fill={C.green}>
                       <animate
                         attributeName="opacity"
@@ -625,7 +609,6 @@ export default function HowItWorks() {
         </Reveal>
       </Section>
 
-      {/* ── 3-Step Process (Vertical Timeline) ───────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Getting Started"
@@ -635,13 +618,10 @@ export default function HowItWorks() {
         />
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Timeline line */}
           <div className="absolute left-8 lg:left-1/2 top-0 bottom-0 w-px bg-border hidden md:block" />
 
-          {/* Step 1: Install Agent */}
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8 mb-16">
-              {/* Timeline dot */}
               <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-primary border-2 border-background z-raised hidden md:block" />
 
               <div className="md:pr-12 md:text-right">
@@ -714,7 +694,6 @@ export default function HowItWorks() {
             </div>
           </Reveal>
 
-          {/* Step 2: Agent Connects */}
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8 mb-16">
               <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-cyan border-2 border-background z-raised hidden md:block" />
@@ -778,7 +757,6 @@ export default function HowItWorks() {
                           />
                         </defs>
 
-                        {/* Device */}
                         <rect
                           x="20"
                           y="60"
@@ -838,7 +816,6 @@ export default function HowItWorks() {
                           />
                         </circle>
 
-                        {/* NAT Wall */}
                         <rect
                           x="145"
                           y="40"
@@ -866,7 +843,6 @@ export default function HowItWorks() {
                           NAT
                         </text>
 
-                        {/* Outbound arrow: Device through NAT to Cloud */}
                         <line
                           x1="115"
                           y1="100"
@@ -897,7 +873,6 @@ export default function HowItWorks() {
                           outbound :443
                         </text>
 
-                        {/* Cloud */}
                         <rect
                           x="230"
                           y="50"
@@ -950,7 +925,6 @@ export default function HowItWorks() {
                           Auth + Encryption
                         </text>
 
-                        {/* Labels */}
                         <text
                           x="65"
                           y="170"
@@ -979,7 +953,6 @@ export default function HowItWorks() {
             </div>
           </Reveal>
 
-          {/* Step 3: SSH from Anywhere */}
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8">
               <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-green border-2 border-background z-raised hidden md:block" />
@@ -1068,7 +1041,6 @@ export default function HowItWorks() {
         </div>
       </Section>
 
-      {/* ── Why Not VPN? (Comparison) ────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Comparison"
@@ -1077,7 +1049,6 @@ export default function HowItWorks() {
         />
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* ShellHub Side (highlighted) */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
               <HighlightCard
@@ -1119,7 +1090,6 @@ export default function HowItWorks() {
             </ShimmerCard>
           </Reveal>
 
-          {/* VPN Side */}
           <Reveal delay={0.1}>
             <ShimmerCard className="h-full">
               <Card hover className="p-8 flex flex-col h-full">

@@ -110,7 +110,6 @@ function NativeSSH() {
   return (
     <Section>
       <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Text */}
         <div>
           <SectionHeader
             align="left"
@@ -161,7 +160,6 @@ function NativeSSH() {
           </div>
         </div>
 
-        {/* Terminal Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
             <WindowChrome
@@ -200,12 +198,10 @@ function SessionRecording() {
   return (
     <Section>
       <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Playback Mockup (left on this one for visual variety) */}
         <Reveal delay={0.1}>
           <ShimmerCard>
             <Card className="overflow-hidden">
               <div className="p-6">
-                {/* Header bar */}
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/20 flex items-center justify-center">
@@ -226,7 +222,6 @@ function SessionRecording() {
                   </span>
                 </div>
 
-                {/* Fake terminal playback area */}
                 <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs mb-4">
                   <div className="text-text-muted mb-1">
                     <span className="text-accent-green">admin@rpi-gateway</span>
@@ -252,7 +247,6 @@ function SessionRecording() {
                   </div>
                 </div>
 
-                {/* Playback controls */}
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -288,7 +282,6 @@ function SessionRecording() {
                     />
                   </button>
 
-                  {/* Timeline */}
                   <div className="flex-1 mx-2">
                     <div className="h-1.5 bg-surface rounded-full overflow-hidden border border-border">
                       <div className="h-full w-[62%] bg-gradient-to-r from-accent-cyan to-primary rounded-full relative">
@@ -302,7 +295,6 @@ function SessionRecording() {
                   </span>
                 </div>
 
-                {/* Session metadata */}
                 <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-2xs text-text-muted mb-0.5">Duration</p>
@@ -322,7 +314,6 @@ function SessionRecording() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Text */}
         <div>
           <SectionHeader
             align="left"
@@ -381,7 +372,6 @@ function WebTerminal() {
   return (
     <Section>
       <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Text */}
         <div>
           <SectionHeader
             align="left"
@@ -432,14 +422,12 @@ function WebTerminal() {
           </div>
         </div>
 
-        {/* Browser Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
             <WindowChrome
               variant="browser"
               path="/devices/rpi-gateway/terminal"
             >
-              {/* Fake tabs row */}
               <div className="flex items-center gap-1 mb-4">
                 <div className="px-3 py-1.5 bg-surface border border-border rounded-t-lg text-2xs font-mono text-text-primary flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
@@ -451,7 +439,6 @@ function WebTerminal() {
                 </div>
               </div>
 
-              {/* Terminal area inside browser */}
               <div className="bg-[#15161A] rounded-lg border border-border p-4">
                 <div className="text-text-muted mb-1.5">
                   <span className="text-accent-green">admin@rpi-gateway</span>:
@@ -480,7 +467,6 @@ function WebTerminal() {
                 </div>
               </div>
 
-              {/* Status bar */}
               <div className="mt-3 flex items-center justify-between text-2xs text-text-muted">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
@@ -564,7 +550,6 @@ function FileTransfer() {
   return (
     <Section>
       <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Terminal Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
             <WindowChrome
@@ -615,7 +600,6 @@ function FileTransfer() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Text */}
         <div>
           <SectionHeader
             align="left"
@@ -678,7 +662,6 @@ function DockerAccess() {
           <div className="relative bg-card border border-primary/30 rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(102,122,204,0.08)]">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.03] pointer-events-none" />
             <div className="relative grid lg:grid-cols-2 gap-0">
-              {/* Diagram side */}
               <div className="p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-border/50">
                 <div className="mb-6">
                   <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary mb-3">
@@ -694,10 +677,8 @@ function DockerAccess() {
                   </p>
                 </div>
 
-                {/* Architecture diagram */}
                 <div className="mt-6">
                   <svg viewBox="0 0 400 220" className="w-full" fill="none">
-                    {/* Your workstation */}
                     <rect
                       x="10"
                       y="10"
@@ -730,7 +711,6 @@ function DockerAccess() {
                       ssh client
                     </text>
 
-                    {/* Arrow */}
                     <line
                       x1="130"
                       y1="35"
@@ -742,7 +722,6 @@ function DockerAccess() {
                     />
                     <polygon points="165,31 173,35 165,39" fill={C.primary} />
 
-                    {/* ShellHub Gateway */}
                     <rect
                       x="175"
                       y="10"
@@ -775,7 +754,6 @@ function DockerAccess() {
                       Gateway
                     </text>
 
-                    {/* Arrow down */}
                     <line
                       x1="230"
                       y1="60"
@@ -787,7 +765,6 @@ function DockerAccess() {
                     />
                     <polygon points="226,85 230,93 234,85" fill={C.primary} />
 
-                    {/* Remote Host */}
                     <rect
                       x="50"
                       y="95"
@@ -808,7 +785,6 @@ function DockerAccess() {
                       Remote Host
                     </text>
 
-                    {/* ShellHub Agent */}
                     <rect
                       x="160"
                       y="100"
@@ -831,7 +807,6 @@ function DockerAccess() {
                       ShellHub Agent
                     </text>
 
-                    {/* Container 1 */}
                     <rect
                       x="70"
                       y="140"
@@ -874,7 +849,6 @@ function DockerAccess() {
                       running
                     </text>
 
-                    {/* Container 2 */}
                     <rect
                       x="185"
                       y="140"
@@ -917,7 +891,6 @@ function DockerAccess() {
                       running
                     </text>
 
-                    {/* Container 3 */}
                     <rect
                       x="300"
                       y="140"
@@ -960,7 +933,6 @@ function DockerAccess() {
                       running
                     </text>
 
-                    {/* Connection lines from agent to containers */}
                     <line
                       x1="195"
                       y1="128"
@@ -992,7 +964,6 @@ function DockerAccess() {
                 </div>
               </div>
 
-              {/* Terminal side */}
               <div className="p-8 lg:p-10 flex flex-col justify-center">
                 <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs mb-6">
                   <p className="text-text-muted mb-2">
@@ -1058,7 +1029,6 @@ function DeviceOrganization() {
       />
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Tags card */}
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
             <HighlightCard color="primary" className="p-8 h-full">
@@ -1079,7 +1049,6 @@ function DeviceOrganization() {
                   </div>
                 </div>
 
-                {/* Tag mockup */}
                 <div className="space-y-2.5 mb-6">
                   {[
                     {
@@ -1159,7 +1128,6 @@ function DeviceOrganization() {
           </ShimmerCard>
         </Reveal>
 
-        {/* Namespaces card */}
         <Reveal delay={0.1}>
           <ShimmerCard className="h-full">
             <HighlightCard color="accent-cyan" className="p-8 h-full">
@@ -1180,7 +1148,6 @@ function DeviceOrganization() {
                   </div>
                 </div>
 
-                {/* Namespace mockup */}
                 <div className="space-y-2.5 mb-6">
                   {[
                     {

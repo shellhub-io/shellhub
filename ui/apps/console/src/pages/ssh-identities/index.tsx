@@ -160,10 +160,6 @@ export default function SSHIdentities() {
               </span>
 
               <span className="flex items-center gap-1.5 text-2xs text-text-muted">
-                {/* Colour carries the only distinction worth a glance: the key
-                    this browser holds is primary, every other origin is muted.
-                    The label is the icon's accessible name, so it is still
-                    readable without seeing the colour or the shape. */}
                 <span
                   role="img"
                   aria-label={source.label}
@@ -272,7 +268,6 @@ export default function SSHIdentities() {
               </Dropdown.Trigger>
 
               <Dropdown.Panel className="w-40 py-1">
-                {/* Editing is own-key only, and renaming is all it does. */}
                 {mine && (
                   <RestrictedAction action="sshIdentity:add">
                     <Dropdown.Item
@@ -285,7 +280,6 @@ export default function SSHIdentities() {
                     </Dropdown.Item>
                   </RestrictedAction>
                 )}
-                {/* Revoking your own key needs add; another member's needs manage. */}
                 <RestrictedAction
                   action={mine ? "sshIdentity:add" : "sshIdentity:manage"}
                 >

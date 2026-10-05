@@ -575,7 +575,6 @@ function AccessPolicyModal({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {/* Name */}
         <InputField
           id="access-policy-name"
           label="Name"
@@ -584,7 +583,6 @@ function AccessPolicyModal({
           placeholder="e.g. Operators to prod"
         />
 
-        {/* Action */}
         <div>
           <Label hint="Allow grants the access below; deny blocks it and wins over any allow.">
             Action
@@ -627,7 +625,6 @@ function AccessPolicyModal({
           )}
         </div>
 
-        {/* Subject */}
         <div>
           <Label hint="Who the policy applies to.">Subject</Label>
           <PickerBox trigger={whoTrigger}>
@@ -730,7 +727,6 @@ function AccessPolicyModal({
           </PickerBox>
         </div>
 
-        {/* Devices */}
         <div>
           <Label hint="Which devices the subject can reach.">Devices</Label>
           <PickerBox trigger={devTrigger}>
@@ -798,7 +794,6 @@ function AccessPolicyModal({
           </PickerBox>
         </div>
 
-        {/* Logins */}
         <div>
           <Label hint="Which unix logins are allowed on those devices.">
             Logins
@@ -806,7 +801,6 @@ function AccessPolicyModal({
           <LoginsInput values={logins} onChange={setLogins} />
         </div>
 
-        {/* Source IP */}
         <SourceIpInput
           key={sourceIpKey}
           id="access-policy-source-ip"
@@ -817,9 +811,6 @@ function AccessPolicyModal({
           onDraftError={setSourceIpDraftError}
         />
 
-        {/* Require re-authentication — toggle card, with the freshness window
-            nested inside once enabled. Hidden for an API key, which cannot
-            re-authenticate. */}
         {reauthApplies && (
           <div
             className={cn(
@@ -884,7 +875,6 @@ function AccessPolicyModal({
           </div>
         )}
 
-        {/* Consequence callout */}
         <div className="flex gap-2.5 px-3.5 py-3 rounded-xl border border-border bg-card text-sm leading-relaxed">
           <CheckIcon
             className={cn(
@@ -917,7 +907,6 @@ function AccessPolicyModal({
           </p>
         </div>
 
-        {/* Error */}
         {error && (
           <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
             <ExclamationCircleIcon

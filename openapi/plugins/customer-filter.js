@@ -1,27 +1,3 @@
-// Redocly decorator that keeps only the customer-facing surface of the API.
-//
-// An operation is kept when it is usable by a customer integration, which means
-// all of:
-//   1. its path is not under /admin or /internal (those surfaces are never
-//      customer facing), and
-//   2. it accepts the `api-key` security scheme (api-key auth is namespace
-//      related and not tied to a user), and
-//   3. it is not explicitly flagged with `x-internal: true`.
-//
-// Everything else (admin, internal, login/auth, account, billing, MFA, user and
-// the few api-key accepting but account level routes) is dropped. Path items
-// left without any operation are removed too.
-//
-// Operations are removed at the operation level, because deleting a whole path
-// item from its parent does not stick for paths composed through a
-// `paths: $ref` import (cloud and enterprise specs). Empty path items are then
-// pruned in the Root visitor, which runs on the fully assembled document.
-//
-// The `x-internal` flag is an explicit override for operations that accept an
-// api-key but are still not part of the customer integration surface (for
-// example create/list namespace, leave namespace, list api keys, member
-// invitations).
-
 // Home page (info.description) for the customer docs. The full spec keeps its
 // own internal-facing description; this one is injected only into the filtered
 // build.
@@ -123,15 +99,12 @@ function DropNonCustomer() {
             continue;
           }
 
-          // Kept operation: clean it up for the customer docs.
           if (Array.isArray(operation.tags)) {
             operation.tags = operation.tags.filter(
               (tag) => !NON_RESOURCE_TAGS.has(tag),
             );
           }
 
-          // The customer docs are api-key only, so drop the jwt alternative
-          // from the security requirements (it stays in the full spec).
           if (Array.isArray(operation.security)) {
             operation.security = operation.security.filter(
               (requirement) =>
@@ -154,8 +127,6 @@ function DropNonCustomer() {
           }
         }
 
-        // Drop root tags that no surviving operation references, so the
-        // rendered docs do not show empty tag groups.
         if (Array.isArray(root.tags)) {
           const usedTags = new Set();
 
@@ -181,14 +152,10 @@ function DropNonCustomer() {
           });
         }
 
-        // The customer docs authenticate only with api-key, so drop the jwt
-        // security scheme. The full spec keeps it.
         if (root.components && root.components.securitySchemes) {
           delete root.components.securitySchemes.jwt;
         }
 
-        // Replace the home page with the customer-facing description. The full
-        // spec keeps its internal-facing one.
         if (root.info) {
           root.info.description = CUSTOMER_DESCRIPTION;
         }

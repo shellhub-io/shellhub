@@ -142,7 +142,6 @@ const platforms = [
 export default function IotEmbedded() {
   return (
     <SiteLayout>
-      {/* ═══════ Hero ═══════ */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="green" />
@@ -180,7 +179,6 @@ export default function IotEmbedded() {
         </div>
       </section>
 
-      {/* ═══════ Fleet Overview Mockup (2-col) ═══════ */}
       <Section>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -233,11 +231,9 @@ export default function IotEmbedded() {
             </div>
           </div>
 
-          {/* Fake dashboard panel */}
           <Reveal delay={0.1}>
             <ShimmerCard>
               <WindowChrome variant="browser" path="/devices">
-                {/* Table header */}
                 <div className="flex items-center gap-3 px-3 py-2 mb-1">
                   <span className="text-2xs text-text-muted font-mono uppercase tracking-wider w-5">
                     St
@@ -253,7 +249,6 @@ export default function IotEmbedded() {
                   </span>
                 </div>
 
-                {/* Device rows */}
                 <div className="space-y-2">
                   {fleetDevices.map((d, i) => (
                     <div
@@ -294,7 +289,6 @@ export default function IotEmbedded() {
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
@@ -337,7 +331,6 @@ export default function IotEmbedded() {
         </div>
       </Section>
 
-      {/* ═══════ Key Features — Mixed Layout ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="Built for IoT"
@@ -346,12 +339,10 @@ export default function IotEmbedded() {
           subtitle="Every feature in ShellHub was designed with constrained, distributed devices in mind."
         />
 
-        {/* Big card: NAT Traversal with SVG diagram */}
         <Reveal>
           <ShimmerCard className="mb-4">
             <HighlightCard color="primary">
               <div className="relative grid lg:grid-cols-2 gap-8 p-8">
-                {/* Left: text */}
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-4">
                     <IconBadge color="primary">
@@ -384,7 +375,6 @@ export default function IotEmbedded() {
                   </ul>
                 </div>
 
-                {/* Right: SVG network diagram */}
                 <div className="flex items-center justify-center">
                   <div className="w-full max-w-md">
                     <svg
@@ -392,7 +382,6 @@ export default function IotEmbedded() {
                       fill="none"
                       className="w-full h-auto"
                     >
-                      {/* Device box */}
                       <rect
                         x="10"
                         y="60"
@@ -423,7 +412,6 @@ export default function IotEmbedded() {
                       >
                         10.0.0.42
                       </text>
-                      {/* Device icon */}
                       <rect
                         x="42"
                         y="124"
@@ -443,7 +431,6 @@ export default function IotEmbedded() {
                         opacity="0.7"
                       />
 
-                      {/* CGNAT wall */}
                       <rect
                         x="134"
                         y="30"
@@ -469,7 +456,6 @@ export default function IotEmbedded() {
                         CGNAT
                       </text>
 
-                      {/* Outbound arrow: device -> ShellHub (over the wall) */}
                       <path
                         d="M110 100 C 130 100, 130 55, 170 55 L 260 55"
                         stroke={C.green}
@@ -488,7 +474,6 @@ export default function IotEmbedded() {
                         outbound
                       </text>
 
-                      {/* ShellHub cloud box */}
                       <rect
                         x="260"
                         y="30"
@@ -521,7 +506,6 @@ export default function IotEmbedded() {
                       >
                         cloud relay
                       </text>
-                      {/* Terminal icon inside */}
                       <rect
                         x="305"
                         y="88"
@@ -542,7 +526,6 @@ export default function IotEmbedded() {
                         $_
                       </text>
 
-                      {/* User arrow: user -> ShellHub */}
                       <path
                         d="M325 170 L 325 130"
                         stroke={C.cyan}
@@ -551,7 +534,6 @@ export default function IotEmbedded() {
                         markerEnd="url(#arrowCyan)"
                       />
 
-                      {/* User box */}
                       <rect
                         x="275"
                         y="170"
@@ -598,7 +580,6 @@ export default function IotEmbedded() {
           ))}
         </div>
 
-        {/* Highlighted card: Lightweight Agent */}
         <Reveal>
           <ShimmerCard className="">
             <HighlightCard color="accent-green">
@@ -627,7 +608,6 @@ export default function IotEmbedded() {
                     </p>
                   </div>
 
-                  {/* Specs panel */}
                   <div className="flex flex-row lg:flex-col gap-3 flex-wrap">
                     {[
                       {
@@ -680,7 +660,6 @@ export default function IotEmbedded() {
         </Reveal>
       </Section>
 
-      {/* ═══════ Supported Platforms ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="Compatibility"

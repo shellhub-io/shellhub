@@ -11,13 +11,6 @@ const fixture = fileURLToPath(
 
 let manifest: ShotManifest;
 
-/**
- * The component runs in Vite's SSR module graph and the integration in Node's.
- * Those are separate module caches, so a registry that works under vitest can
- * still hand the integration an empty array during a real build. Only an actual
- * `astro build` exercises both graphs, which is why this one test is worth its
- * cost.
- */
 describe("shots integration, over a real astro build", () => {
   beforeAll(() => {
     rmSync(`${fixture}/dist`, { recursive: true, force: true });

@@ -235,8 +235,6 @@ function PendingRequest({
         <h2 className="text-lg font-semibold text-text-primary mb-2">
           Prove it&apos;s you
         </h2>
-        {/* One line of what is being released, so proving a factor never gets
-            detached from the login it belongs to. */}
         <p className="text-sm text-text-secondary mb-5">
           The login on{" "}
           <span className="text-text-primary font-medium">
@@ -274,9 +272,6 @@ function PendingRequest({
           : "The SSH login waiting in your terminal used a key ShellHub doesn't know yet."}
       </p>
 
-      {/* Only a new identity attaches something, so only it draws the
-          key-to-account binding. Its absence is what tells a re-auth that
-          nothing is being created. */}
       {!reauth && (
         <BindingCard
           details={details}
@@ -299,9 +294,6 @@ function PendingRequest({
           Login details
         </summary>
         <dl className="px-3.5 pb-2.5">
-          {/* The code proves the page belongs to the login printed in the
-              terminal. Mounted inline there is no banner to compare it with, and
-              a code the user never saw only puzzles. */}
           {showCode && (
             <SpecRow label="code" value={details.code || code} mono />
           )}
@@ -674,9 +666,6 @@ function BindingCard({
         </div>
       </div>
 
-      {/* An identity is scoped to one namespace, and this one comes from the SSHID
-          the login used, so it is not necessarily the one being browsed. Wear the
-          namespace selector's badge so it reads as a namespace, not a bare word. */}
       {details.namespace && (
         <div
           className={`flex items-center gap-3.5 px-4 py-3 border-t ${elsewhere ? "border-accent-yellow/30 bg-accent-yellow/[0.07]" : "border-border bg-black/20"}`}

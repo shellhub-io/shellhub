@@ -149,7 +149,6 @@ export default function ManageTagsModal({
           </Button>
         }
       >
-        {/* Create input */}
         <form
           onSubmit={(e) => void handleCreate(e)}
           className="px-6 py-3 border-b border-border shrink-0"
@@ -184,7 +183,6 @@ export default function ManageTagsModal({
           )}
         </form>
 
-        {/* Error */}
         {error && (
           <div className="px-6 py-2 shrink-0">
             <div className="flex items-center justify-between gap-2">
@@ -206,7 +204,6 @@ export default function ManageTagsModal({
           </div>
         )}
 
-        {/* Tag list */}
         <div className="flex-auto min-h-0 overflow-y-auto">
           {isLoading && tags.length === 0 ? (
             <PageLoader label="Loading tags" padding="sm" />

@@ -83,7 +83,6 @@ export default function UserDetails() {
         ]}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
@@ -100,7 +99,6 @@ export default function UserDetails() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="secondary"
@@ -141,9 +139,7 @@ export default function UserDetails() {
         </div>
       </div>
 
-      {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Identity Card */}
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
@@ -164,7 +160,6 @@ export default function UserDetails() {
           </dl>
         </Card>
 
-        {/* Account Card */}
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ClockIcon className="w-4 h-4 text-primary" />
@@ -213,14 +208,12 @@ export default function UserDetails() {
         user={user}
       />
 
-      {/* Reset Password Dialog */}
       <ResetPasswordDialog
         open={resetPasswordOpen}
         onClose={() => setResetPasswordOpen(false)}
         userId={id ?? ""}
       />
 
-      {/* Delete Confirmation */}
       <DeleteUserDialog
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}

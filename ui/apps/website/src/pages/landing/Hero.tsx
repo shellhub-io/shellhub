@@ -12,12 +12,10 @@ export function Hero() {
       <GlowOrbs preset="hero" />
 
       <div className="relative z-raised max-w-4xl flex flex-col items-center">
-        {/* Floating ShellHub cloud */}
         <div className="animate-float mb-8 inline-block">
           <ShellHubCloudIcon className="h-16 drop-shadow-[0_0_24px_rgba(102,122,204,0.35)]" />
         </div>
 
-        {/* Badge like app's active nav pill */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.06] border border-primary/20 mb-8 animate-fade-in">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />

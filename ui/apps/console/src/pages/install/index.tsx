@@ -146,7 +146,6 @@ export default function Install() {
   );
 }
 
-/** A numbered step on a rail, so the two read as an order rather than as two cards. */
 function Step({
   number,
   title,

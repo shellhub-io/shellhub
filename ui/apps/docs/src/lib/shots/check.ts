@@ -24,14 +24,6 @@ function* walk(dir: string): Generator<string> {
   }
 }
 
-/**
- * Every image path the built site asks for.
- *
- * Read from the output rather than from the sources, because that is the only
- * answer covering every way a page can reference one: a <Shot> tag, a markdown
- * image, a raw <img>. Astro copies public/ verbatim and rewrites none of these
- * URLs, so what is in the HTML is what a reader will request.
- */
 function referencedImages(outDir: string): Set<string> {
   const found = new Set<string>();
   if (!existsSync(outDir)) return found;
@@ -51,10 +43,6 @@ function referencedImages(outDir: string): Set<string> {
 export function unreferencedImages(publicDir: string, outDir: string): string[] {
   const referenced = referencedImages(outDir);
 
-  // A build that referenced nothing at all is a build that produced no pages,
-  // not a site that stopped using every image it has. Proposing the whole
-  // directory for deletion on that evidence is the one mistake here that would
-  // be expensive.
   if (referenced.size === 0) return [];
 
   const orphans: string[] = [];
