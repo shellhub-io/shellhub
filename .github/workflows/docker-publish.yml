@@ -14,8 +14,6 @@ jobs:
   build:
     name: Build, scan and publish '${{ matrix.project }}' to Docker Registry
 
-    # Each image is built, scanned, then pushed independently so a scan failure
-    # only blocks that image. fail-fast: false lets the other images continue.
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +84,6 @@ jobs:
           username: ${{ secrets.PORTUS_USERNAME }}
           password: ${{ secrets.PORTUS_TOKEN }}
 
-      # The image is tagged but NOT pushed yet so Trivy can scan it first.
       - name: Build '${{ matrix.project }}' image (load only, no push)
         if: matrix.project != 'server-enterprise'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
@@ -113,9 +110,6 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.project }}
           cache-to: type=gha,scope=${{ matrix.project }},mode=max
 
-      # Scan BEFORE pushing — failures here abort the job; nothing has been pushed yet.
-      # .trivyignore is always at shellhub/.trivyignore because all sources
-      # are checked out under the shellhub/ subdirectory.
       - name: Scan '${{ matrix.project }}' image with Trivy
         run: |
           docker run --rm \
@@ -129,10 +123,6 @@ jobs:
               --ignorefile /work/shellhub/.trivyignore \
               ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
 
-      # Push the SAME image that was just scanned — `docker push` re-uses the
-      # layers in the local daemon, so the pushed digest is identical to what
-      # Trivy scanned. The `latest` tag is only applied when this is the
-      # highest stable semver release.
       - name: Push '${{ matrix.project }}' image (same digest as scanned)
         run: |
           docker push "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"

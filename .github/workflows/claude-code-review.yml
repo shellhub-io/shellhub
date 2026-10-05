@@ -1,12 +1,10 @@
 name: Claude Code Review
 
 on:
-  # Using pull_request_target because shellhub is public (fork PRs need secrets)
   pull_request_target:
     types: [opened, ready_for_review, edited]
     branches: [master]
 
-  # Manual review via /review command in comments
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -47,9 +45,6 @@ jobs:
           owner: shellhub-io
           repositories: cloud,claude
 
-      # For issue_comment events, github.event.pull_request.head.sha is
-      # unavailable (the payload only has github.event.issue). Resolve the
-      # PR head SHA via the REST API so no git checkout is needed yet.
       - name: Resolve PR head ref
         id: pr-ref
         env:
@@ -152,7 +147,6 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
         run: |
-          # Default to non-admin so continue-on-error failures are fail-closed
           echo "is_admin=false" >> "$GITHUB_OUTPUT"
           HTTP_STATUS=$(gh api orgs/shellhub-io/teams/admin/memberships/"$PR_AUTHOR" \
             --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
@@ -232,8 +226,6 @@ jobs:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           anthropic-base-url: ${{ secrets.ANTHROPIC_BASE_URL }}
 
-  # A separate job so that a review job cancelled by its own timeout, or a runner
-  # that died under it, cannot leave the tracking comment stranded mid-progress.
   finalize:
     name: Finalize tracking comment
     needs: review

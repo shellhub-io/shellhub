@@ -63,8 +63,6 @@ jobs:
         project: [server, agent, pkg, gateway]
         database: ['']  # Empty by default
         include:
-          # race_args applies to `go test` only: a race-instrumented `go build`
-          # would just be discarded, and the detector costs several minutes.
           - project: server
             extra_args: ""
             lint_args: ""
@@ -82,12 +80,6 @@ jobs:
             extra_args: ""
             lint_args: ""
             race_args: "-race"
-          # Integration tests with PostgreSQL. Each of the ~31 SSH cases stands up
-          # its own agent container and runs twice (transport v1 and v2), and the
-          # provisioning-key and access-policy cases stand up a stack apiece, so the
-          # suite needs well over the 25m the unit-test projects get. The detector
-          # is left off here: it would instrument the harness, not the services
-          # under test, on an already long job.
           - project: tests
             extra_args: ""
             lint_args: ""
@@ -134,7 +126,6 @@ jobs:
       - name: Set SHELLHUB_DATABASE for integration tests
         if: matrix.project == 'tests' && matrix.database != ''
         run: |
-          # Update .env file with the correct database backend
           sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=${{ matrix.database }}/' .env
           echo "Running integration tests with database: ${{ matrix.database }}"
 
@@ -193,9 +184,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Only the GOOS the agent carries platform-specific source for. A target
-        # with no _<goos>.go file of its own would be compiling the same code the
-        # validate job already builds.
         goos: [freebsd]
 
     runs-on: ubuntu-latest
@@ -213,9 +201,6 @@ jobs:
         working-directory: agent
         run: go mod download
 
-      # The binaries cannot run here, so this is a compile and type check only.
-      # It is what catches a build tag drifting out of sync with the interface it
-      # implements, which is how the FreeBSD backend went unbuildable unnoticed.
       - name: Go build [Go]
         working-directory: agent
         env:

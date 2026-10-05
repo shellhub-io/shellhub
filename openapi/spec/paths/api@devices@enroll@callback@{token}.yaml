@@ -9,7 +9,6 @@ post:
   tags:
     - devices
     - community
-  # The signed token in the path is the only credential, so this endpoint takes no API key or JWT.
   security: []
   parameters:
     - name: token

@@ -34,9 +34,6 @@ jobs:
           owner: shellhub-io
           repositories: shellhub,cloud,claude,team
 
-      # For issue_comment events, github.event.pull_request.head.sha is
-      # unavailable (the payload only has github.event.issue). Resolve the
-      # PR head SHA via the REST API so the correct ref is checked out.
       - name: Resolve PR head ref
         id: pr-ref
         if: github.event_name == 'pull_request_review_comment' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
