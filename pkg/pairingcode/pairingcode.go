@@ -25,16 +25,14 @@ const (
 // New returns a fresh canonical code of the given length: uppercase, no
 // separator. It draws from crypto/rand with rejection sampling so every
 // character is uniform (a plain byte%30 would bias the first 256%30 characters).
-func New(length int) (string, error) {
+func New(length int) string {
 	rejectAtOrAbove := byte(256 - (256 % len(Alphabet)))
 
 	out := make([]byte, 0, length)
 	buf := make([]byte, length)
 
 	for len(out) < length {
-		if _, err := rand.Read(buf); err != nil {
-			return "", err
-		}
+		rand.Read(buf)
 
 		for _, b := range buf {
 			if b >= rejectAtOrAbove {
@@ -48,7 +46,7 @@ func New(length int) (string, error) {
 		}
 	}
 
-	return string(out), nil
+	return string(out)
 }
 
 // Normalize canonicalizes a code as typed by a user: uppercased, with the

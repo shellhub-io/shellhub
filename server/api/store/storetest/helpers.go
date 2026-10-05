@@ -24,8 +24,7 @@ func uniqueHex(t *testing.T, n int) string {
 	t.Helper()
 
 	buf := make([]byte, (n+1)/2)
-	_, err := rand.Read(buf)
-	require.NoError(t, err)
+	rand.Read(buf)
 
 	return hex.EncodeToString(buf)[:n]
 }

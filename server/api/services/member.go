@@ -191,10 +191,7 @@ func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invi
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
-	sig, err := pairingcode.New(pairingcode.InviteCodeLength)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate invite code: %w", err)
-	}
+	sig := pairingcode.New(pairingcode.InviteCodeLength)
 
 	invitation := &models.MembershipInvitation{
 		TenantID:        tenantID,
@@ -221,10 +218,7 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
-	sig, err := pairingcode.New(pairingcode.InviteCodeLength)
-	if err != nil {
-		return fmt.Errorf("failed to generate invite code: %w", err)
-	}
+	sig := pairingcode.New(pairingcode.InviteCodeLength)
 
 	invitation.Status = models.MembershipInvitationStatusPending
 	invitation.Role = role
