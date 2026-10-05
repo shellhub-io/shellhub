@@ -61,9 +61,11 @@ export interface OnboardingSurvey {
 
 /**
  * The answers as the setup form holds them: a choice by its id, the free text typed for an
- * "other" choice, contact fields by name, consent as a checkbox.
+ * "other" choice, contact fields by name, consent as a checkbox, and whether the user answers
+ * anonymously, which withholds contact and consent whatever they hold.
  */
 export interface SurveyAnswers {
+  anonymous: boolean;
   choices: Record<string, string>;
   other: Record<string, string>;
   contact: Record<string, Partial<Record<ContactField, string>>>;
@@ -247,10 +249,39 @@ export function findOnboardingSurvey(
 }
 
 /**
- * The empty answers for a survey, the form's default values.
+ * What an account already tells us about its owner, to start the contact fields from.
  */
-export function emptyAnswers(survey: OnboardingSurvey): SurveyAnswers {
+export interface KnownContact {
+  name: string | null;
+  email: string | null;
+}
+
+function contactValues(
+  fields: { name: ContactField }[],
+  known: KnownContact,
+): Partial<Record<ContactField, string>> {
+  const name = (known.name ?? "").trim();
+  const splitName = fields.some((f) => f.name === "lastName");
+  const [first = "", ...rest] = splitName ? name.split(/\s+/) : [name];
+  const values: Partial<Record<ContactField, string>> = {
+    firstName: first,
+    lastName: rest.join(" "),
+    email: known.email ?? "",
+  };
+  return Object.fromEntries(fields.map((f) => [f.name, values[f.name] ?? ""]));
+}
+
+/**
+ * The starting answers for a survey, the form's default values: blank, with the contact fields
+ * filled from what the account tells us. The whole name goes in the first-name field unless the
+ * survey also shows a last-name field, in which case it is split at the first space.
+ */
+export function emptyAnswers(
+  survey: OnboardingSurvey,
+  known: KnownContact = { name: null, email: null },
+): SurveyAnswers {
   const answers: SurveyAnswers = {
+    anonymous: false,
     choices: {},
     other: {},
     contact: {},
@@ -262,9 +293,7 @@ export function emptyAnswers(survey: OnboardingSurvey): SurveyAnswers {
       answers.choices[q.id] = "";
       answers.other[q.id] = "";
     } else if (q.kind === "contact") {
-      answers.contact[q.id] = Object.fromEntries(
-        q.fields.map((f) => [f.name, ""]),
-      );
+      answers.contact[q.id] = contactValues(q.fields, known);
     } else {
       answers.consent[q.id] = false;
     }
@@ -283,7 +312,9 @@ export function isOtherChoice(choice: SurveyChoice): boolean {
 /**
  * The response data Formbricks stores: a choice by its label (or the typed text for "other"),
  * contact info as the five-field array, consent as "accepted", and the hidden fields the survey
- * declares. Unanswered optional questions are left out.
+ * declares. Unanswered optional questions are left out. Contact details are sent whether or not
+ * consent is given: consent decides whether we may reach out, not whether we keep what was typed.
+ * An anonymous answer leaves out both.
  */
 export function responseData(
   survey: OnboardingSurvey,
@@ -299,6 +330,8 @@ export function responseData(
       data[q.id] = isOtherChoice(choice)
         ? answers.other[q.id]?.trim() || choice.label
         : choice.label;
+    } else if (answers.anonymous) {
+      continue;
     } else if (q.kind === "contact") {
       const values = answers.contact[q.id] ?? {};
       const row = CONTACT_FIELDS.map((name) => values[name]?.trim() ?? "");
@@ -333,6 +366,8 @@ export function validateAnswers(
       if (q.required && !answers.choices[q.id]) {
         errors[`choices.${q.id}`] = "Pick one";
       }
+    } else if (answers.anonymous) {
+      continue;
     } else if (q.kind === "contact") {
       const values = answers.contact[q.id] ?? {};
       for (const field of q.fields) {

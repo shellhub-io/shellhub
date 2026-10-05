@@ -24,11 +24,8 @@ function QuestionHeading({
     <div className="mb-2">
       <p id={id} className="text-sm font-medium text-text-primary">
         {question.headline}
-        {question.required && (
-          <span className="text-text-muted" aria-hidden="true">
-            {" "}
-            *
-          </span>
+        {question.kind !== "consent" && !question.required && (
+          <span className="font-normal text-text-muted"> (optional)</span>
         )}
       </p>
       {question.subheader && (
@@ -87,23 +84,44 @@ function ContactQuestion({
   control: Control<SurveyAnswers>;
 }) {
   const headingId = useId();
+  const anonymous = useWatch({ control, name: "anonymous" });
+  const oddCount = question.fields.length % 2 === 1;
 
   return (
     <fieldset aria-labelledby={headingId}>
       <QuestionHeading id={headingId} question={question} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {question.fields.map((field) => (
-          <FormInputField<SurveyAnswers>
-            key={field.name}
-            id={`${question.id}-${field.name}`}
-            label={field.placeholder || field.name}
-            name={`contact.${question.id}.${field.name}`}
-            control={control}
-            type={field.name === "email" ? "email" : "text"}
-            maxLength={200}
-          />
-        ))}
+      <div className="mb-3">
+        <FormCheckboxField<SurveyAnswers>
+          id={`${question.id}-anonymous`}
+          name="anonymous"
+          control={control}
+          label="Answer anonymously"
+          labelSize="sm"
+        />
       </div>
+      {anonymous ? (
+        <p className="text-xs text-text-muted">
+          Your answers are sent without your name or email.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {question.fields.map((field, i) => (
+            <div
+              key={field.name}
+              className={oddCount && i === 0 ? "sm:col-span-2" : undefined}
+            >
+              <FormInputField<SurveyAnswers>
+                id={`${question.id}-${field.name}`}
+                label={field.placeholder || field.name}
+                name={`contact.${question.id}.${field.name}`}
+                control={control}
+                type={field.name === "email" ? "email" : "text"}
+                maxLength={200}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </fieldset>
   );
 }
@@ -116,6 +134,9 @@ function ConsentQuestion({
   control: Control<SurveyAnswers>;
 }) {
   const headingId = useId();
+  const anonymous = useWatch({ control, name: "anonymous" });
+
+  if (anonymous) return null;
 
   return (
     <fieldset aria-labelledby={headingId}>

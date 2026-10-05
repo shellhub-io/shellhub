@@ -208,6 +208,29 @@ describe("responseData", () => {
     });
   });
 
+  it("sends the contact details even without consent", () => {
+    const survey = parsed();
+    const answers = emptyAnswers(survey);
+    answers.choices.role = "dev";
+    answers.contact.contact = { email: "ana@example.com" };
+
+    expect(responseData(survey, answers, {})).toEqual({
+      role: "Developer",
+      contact: ["", "", "ana@example.com", "", ""],
+    });
+  });
+
+  it("leaves out contact and consent when the user answers anonymously", () => {
+    const survey = parsed();
+    const answers = emptyAnswers(survey);
+    answers.anonymous = true;
+    answers.choices.role = "dev";
+    answers.contact.contact = { email: "ana@example.com" };
+    answers.consent.consent = true;
+
+    expect(responseData(survey, answers, {})).toEqual({ role: "Developer" });
+  });
+
   it("sends the typed text for other, and leaves unanswered questions out", () => {
     const survey = parsed();
     const answers = emptyAnswers(survey);
@@ -215,6 +238,49 @@ describe("responseData", () => {
     answers.other.role = "Hobbyist";
 
     expect(responseData(survey, answers, {})).toEqual({ role: "Hobbyist" });
+  });
+});
+
+describe("emptyAnswers", () => {
+  it("puts the whole account name in the first-name field when the survey hides last name", () => {
+    expect(
+      emptyAnswers(parsed(), {
+        name: "Ana Maria Souza",
+        email: "ana@example.com",
+      }).contact.contact,
+    ).toEqual({ firstName: "Ana Maria Souza", email: "ana@example.com" });
+  });
+
+  it("splits the account name at the first space when the survey shows last name", () => {
+    const survey = findOnboardingSurvey(
+      environment(
+        surveyPayload({
+          blocks: [
+            {
+              elements: [
+                {
+                  type: "contactInfo",
+                  id: "contact",
+                  headline: { default: "Contact" },
+                  required: false,
+                  firstName: hidden(true),
+                  lastName: hidden(true),
+                  email: hidden(false),
+                  phone: hidden(false),
+                  company: hidden(false),
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+    if (!survey) throw new Error("fixture survey did not parse");
+
+    expect(
+      emptyAnswers(survey, { name: "Ana Maria Souza", email: null }).contact
+        .contact,
+    ).toEqual({ firstName: "Ana", lastName: "Maria Souza" });
   });
 });
 
@@ -228,6 +294,16 @@ describe("validateAnswers", () => {
       "choices.role": "Pick one",
       "contact.contact.email": "Enter a valid email",
     });
+  });
+
+  it("does not check contact fields the user withholds by answering anonymously", () => {
+    const survey = parsed();
+    const answers = emptyAnswers(survey);
+    answers.anonymous = true;
+    answers.choices.role = "dev";
+    answers.contact.contact = { email: "not-an-email" };
+
+    expect(validateAnswers(survey, answers)).toEqual({});
   });
 
   it("passes once the required answers are in", () => {
