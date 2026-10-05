@@ -28,7 +28,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// writeHostKey writes a throwaway host key for the bridge to pin to, and returns its path.
 func writeHostKey(t *testing.T) string {
 	t.Helper()
 
@@ -173,8 +172,6 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 
 const tenantID = "00000000-0000-4000-0000-000000000000"
 
-// deviceInNamespace is what the store answers for a device lookup bounded to the caller's
-// namespace: the device when it belongs there, and nothing when it does not.
 func deviceInNamespace(inScope bool) (*models.Device, error) {
 	if !inScope {
 		return nil, store.ErrNoDocuments

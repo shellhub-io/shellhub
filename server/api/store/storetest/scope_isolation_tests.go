@@ -13,13 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The isolation suite is the behavioural signal behind making namespace scope explicit: every
-// converted operation seeds a row in one namespace, reads it bounded to a second, and expects
-// nothing back. A converted query that stops applying its scope fails here rather than shipping.
-//
-// Each subtest also asserts the positive case against the owning namespace, so a query that returns
-// nothing for an unrelated reason (a broken predicate, a missing fixture) cannot pass by accident.
-
 // TestScopeIsolationDeviceResolve locks that DeviceResolve answers within the owning namespace and returns
 // nothing when bounded to another.
 func (s *Suite) TestScopeIsolationDeviceResolve(t *testing.T) {

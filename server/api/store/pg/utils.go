@@ -102,10 +102,6 @@ func applyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Sc
 	return applyOptions(ctx, query, append([]store.QueryOption{ScopeOption(sc)}, opts...)...)
 }
 
-// resolveUnique runs a resolver's query and returns the single row it matched. A resolver names one
-// row by definition, so a second match is store.ErrAmbiguous rather than a choice to make: the
-// credential resolvers run unbounded, where the digest is the only thing naming a namespace, and
-// picking a row there authenticates into a namespace at random.
 func resolveUnique[E any](ctx context.Context, db bun.IDB, sc scope.Scope, column, val string, opts ...store.QueryOption) (*E, error) {
 	rows := make([]E, 0, 2)
 

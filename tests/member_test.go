@@ -110,8 +110,6 @@ func asBearer(t *testing.T, compose *environment.DockerCompose, token string) *r
 	return compose.Anonymous(t.Context()).SetAuthToken(token)
 }
 
-// pairAgent reads the pairing code an unpaired agent prints and accepts it into the test namespace
-// as the bearer of token, who becomes the device's owner. It returns the device's uid.
 func pairAgent(t *testing.T, compose *environment.DockerCompose, agent testcontainers.Container, token string) string {
 	t.Helper()
 

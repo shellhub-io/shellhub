@@ -93,8 +93,6 @@ type Info struct {
 	IP string `json:"ip"`
 }
 
-// readHostKey loads the public half of the SSH server's host key, which the bridge pins its
-// loopback connection to.
 func readHostKey(path string) (ssh.PublicKey, error) {
 	pem, err := os.ReadFile(path) //nolint:gosec // path comes from the server's own configuration, not user input.
 	if err != nil {
