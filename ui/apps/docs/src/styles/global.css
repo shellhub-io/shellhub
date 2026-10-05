@@ -8,13 +8,11 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Offset anchors below the sticky header (h-14 = 56px + 24px breathing room) */
 .prose :is(h1, h2, h3, h4, h5, h6) {
   scroll-margin-top: 5rem;
 }
 
 @layer components {
-  /* Fade modifier: top-anchored linear mask for the shared .grid-bg utility */
   .grid-bg-fade {
     mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 60%);
     -webkit-mask-image: linear-gradient(
@@ -25,19 +23,11 @@ html {
   }
 }
 
-/* ══════════════════════════════════════
-   Hero Search Hover Effect
-   ══════════════════════════════════════ */
-
 .hero-search-btn:hover {
   border-color: rgba(102, 122, 204, 0.35);
   background: rgba(30, 33, 39, 0.95);
   box-shadow: 0 0 0 3px rgba(102, 122, 204, 0.08), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
-
-/* ══════════════════════════════════════
-   TOC Links (JS-generated elements)
-   ══════════════════════════════════════ */
 
 .toc-link {
   display: block;
@@ -62,10 +52,6 @@ html {
   color: theme('colors.primary.DEFAULT');
   border-left-color: theme('colors.primary.DEFAULT');
 }
-
-/* ══════════════════════════════════════
-   Command Palette (JS-generated HTML)
-   ══════════════════════════════════════ */
 
 .cmd-palette {
   position: fixed;
@@ -208,10 +194,6 @@ html {
   font-size: 13px;
 }
 
-/* ══════════════════════════════════════
-   Mobile Navigation Drawer Backdrop
-   ══════════════════════════════════════ */
-
 @media (prefers-reduced-motion: no-preference) {
   #docs-sidebar {
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -233,10 +215,6 @@ html {
   pointer-events: auto;
 }
 
-/* ══════════════════════════════════════
-   Prose — Markdown Content Styling
-   ══════════════════════════════════════ */
-
 .prose {
   color: theme('colors.text-primary');
   line-height: 1.6;
@@ -245,8 +223,6 @@ html {
 .prose > *:first-child {
   margin-top: 0 !important;
 }
-
-/* Headings */
 
 .prose h1 {
   font-size: 2rem;
@@ -280,8 +256,6 @@ html {
   margin: 24px 0 8px 0;
 }
 
-/* Body */
-
 .prose p {
   font-size: 15px;
   line-height: 1.75;
@@ -302,8 +276,6 @@ html {
   line-height: 1.7;
 }
 
-/* Links */
-
 .prose a {
   color: theme('colors.primary.DEFAULT');
   text-decoration: none;
@@ -316,8 +288,6 @@ html {
   border-bottom-color: theme('colors.primary.DEFAULT');
 }
 
-/* Inline code */
-
 .prose code {
   font-family: "IBM Plex Mono", monospace;
   font-size: 13px;
@@ -327,8 +297,6 @@ html {
   padding: 1.5px 6px;
   color: theme('colors.accent.cyan');
 }
-
-/* Code blocks */
 
 .code-block {
   position: relative;
@@ -363,7 +331,6 @@ html {
   pointer-events: auto;
 }
 
-/* Touch devices: always show the button (no :hover available) */
 @media (hover: none) {
   .code-copy-btn {
     opacity: 1;
@@ -429,8 +396,6 @@ html {
   line-height: 1.65;
 }
 
-/* Lists */
-
 .prose ul {
   margin-bottom: 16px;
   padding-left: 24px;
@@ -467,8 +432,6 @@ html {
   font-size: 12.5px;
 }
 
-/* Blockquotes */
-
 .prose blockquote {
   border-left: 2px solid rgba(102, 122, 204, 0.35);
   padding: 4px 16px;
@@ -477,16 +440,12 @@ html {
   font-style: italic;
 }
 
-/* Horizontal rules */
-
 .prose hr {
   border: none;
   height: 1px;
   background: theme('colors.border');
   margin: 36px 0;
 }
-
-/* Tables */
 
 .prose table {
   width: 100%;
@@ -530,13 +489,6 @@ html {
   font-size: 13px;
 }
 
-/* ── Callouts ──────────────────────────────────────────────────────────────
-   The page already carries three levels of heading, so a callout does not get
-   a fourth. Only danger is allowed to interrupt: it keeps a heavier rule and a
-   stronger wash. The rest state their kind in the reading voice — sentence
-   case, no tracking — and sit on one continuous tint so they read as an aside
-   in the prose rather than a widget dropped into it. */
-
 .prose .callout {
   --callout: theme('colors.accent.cyan');
   margin: 22px 0;
@@ -550,7 +502,6 @@ html {
 .prose .callout[data-tone='red']     { --callout: theme('colors.accent.red'); }
 .prose .callout[data-tone='primary'] { --callout: theme('colors.primary.DEFAULT'); }
 
-/* Danger is the one that has to stop someone mid-scroll. */
 .prose .callout[data-tone='red'] {
   border-left-width: 3px;
   background: color-mix(in srgb, var(--callout) 7%, transparent);
@@ -568,9 +519,6 @@ html {
 
 .prose .callout-icon { width: 14px; height: 14px; flex-shrink: 0; }
 
-/* Bare: no header at all, so the tone is carried by the rule and the wash and
-   nothing else. The word "Note" adds nothing a reader cannot already see, and
-   without an icon beside it, it reads as a heading the callout does not have. */
 .prose .callout[data-bare] .callout-body > :first-child { margin-top: 0; }
 
 .prose .callout-body > :first-child { margin-top: 0; }
@@ -581,8 +529,6 @@ html {
 
 .prose .callout-action { margin: 10px 0 0 0; font-size: 13px; }
 
-/* The action reads as a next step, not an inline reference, so it takes the
-   callout's hue and drops the underline until hover. */
 .prose .callout-action a {
   color: var(--callout);
   font-weight: 500;
@@ -594,11 +540,6 @@ html {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-
-/* ── Deprecated ────────────────────────────────────────────────────────────
-   A pill for the thing that still works and should not be reached for. It has
-   to survive inside a heading and inside a table cell, so it carries its own
-   size rather than inheriting one, and it never wraps away from what it marks. */
 
 .prose .badge-deprecated {
   display: inline-block;
@@ -619,14 +560,10 @@ html {
 
 .prose td .badge-deprecated { margin-left: 0; }
 
-/* The design system resets `dialog` with `all: unset`, which takes the browser's
-   `dialog:not([open]) { display: none }` with it: a closed dialog would keep
-   sitting over the page. */
 dialog.shot-zoom:not([open]) {
   display: none;
 }
 
-/* Preflight zeroes the UA's `margin: auto`, which is what centres a modal. */
 dialog.shot-zoom {
   position: fixed;
   overflow: visible;
@@ -640,8 +577,6 @@ dialog.shot-zoom {
   cursor: zoom-out;
 }
 
-/* Sized against the viewport, not the dialog: a percentage here would ask the
-   dialog for a width the dialog is deriving from this image. */
 dialog.shot-zoom img {
   display: block;
   width: auto;

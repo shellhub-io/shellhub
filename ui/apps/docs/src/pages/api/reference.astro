@@ -26,9 +26,6 @@ const editions = [
     <meta name="description" content="Every route an API key can call, per edition." />
     <link rel="icon" href="/favicon.ico" />
     <style is:inline>
-      /* Redoc renders its own light surface, so this page does not load the documentation
-         stylesheet: it would bring the dark body and the prose type Redoc has no use for.
-         The few colours the bar needs are the design system's, written out. */
       :root {
         --bar-bg: #18191b;
         --bar-surface: #1e2127;
@@ -70,7 +67,6 @@ const editions = [
         width: auto;
       }
 
-      /* The same pill the documentation header carries, so this page reads as part of it. */
       header .tag {
         padding: 0.1rem 0.5rem;
         font-family: "IBM Plex Mono", ui-monospace, monospace;

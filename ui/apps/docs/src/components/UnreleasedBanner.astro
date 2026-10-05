@@ -2,8 +2,6 @@
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { releasedDocsUrl } from "../data/links";
 
-// Only the build from `docs/stable` describes a version anyone can install. Every other build
-// comes off master, where a page may document a feature that has not shipped in any release.
 const isUnreleasedBuild = import.meta.env.PUBLIC_DOCS_CHANNEL !== "stable";
 ---
 

@@ -71,8 +71,6 @@ const selected = initial && items.includes(initial) ? initial : items[0];
     margin: 1.5rem 0;
   }
 
-  /* Until the script runs every panel is showing, and a row of tabs above them
-     would be describing a selection that is not happening yet. */
   .tabs-list {
     display: none;
     gap: 0.25rem;
@@ -124,8 +122,6 @@ const selected = initial && items.includes(initial) ? initial : items[0];
     border-radius: 0.25rem 0.25rem 0 0;
   }
 
-  /* The first thing in a panel sits against the tab row, which is already a rule
-     with space under it. */
   [role="tabpanel"] > :global(:first-child) {
     margin-top: 0;
   }
