@@ -1,67 +1,63 @@
-import { FormEvent } from "react";
-import { useForm, type FieldPath } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Callout } from "@shellhub/design-system/primitives";
+import { getConfig } from "@/env";
 import { useSubmitOnboardingSurvey } from "@/hooks/useOnboardingSurvey";
-import OnboardingSurveyFields from "./OnboardingSurveyFields";
 import {
+  emptyAnswers,
   responseData,
-  validateAnswers,
+  surveyAnswersSchema,
+  type KnownContact,
   type OnboardingSurvey,
   type SurveyAnswers,
-} from "./onboardingSurvey";
+} from "@/utils/onboardingSurvey";
+import OnboardingSurveyFields from "./OnboardingSurveyFields";
 
-/**
- * The survey step of setup: the questions, and a Continue that sends the answers before moving
- * on. It starts from the answers given last time, so stepping back from the account step and
- * returning keeps them, and it updates the response already sent rather than sending a second.
- */
-export default function OnboardingStep({
-  survey,
-  baseUrl,
-  hidden,
-  initialAnswers,
-  responseId,
-  onDone,
-  onSkip,
-}: {
-  survey: OnboardingSurvey;
-  baseUrl: string;
-  hidden: Record<string, string>;
-  initialAnswers: SurveyAnswers;
+interface StepProps {
+  initialAnswers: SurveyAnswers | null;
+  known?: KnownContact;
   responseId: string | null;
   onDone: (answers: SurveyAnswers, responseId: string) => void;
   onSkip: () => void;
-}) {
-  const { control, getValues, setError, clearErrors } = useForm<SurveyAnswers>({
-    defaultValues: initialAnswers,
+}
+
+function SurveyForm({
+  survey,
+  initialAnswers,
+  known,
+  responseId,
+  onDone,
+  onSkip,
+}: StepProps & { survey: OnboardingSurvey }) {
+  const { control, handleSubmit } = useForm<SurveyAnswers>({
+    resolver: zodResolver(surveyAnswersSchema(survey)),
+    defaultValues: initialAnswers ?? emptyAnswers(survey, known),
   });
-  const submit = useSubmitOnboardingSurvey(baseUrl);
+  const submit = useSubmitOnboardingSurvey();
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    clearErrors();
-
-    const answers = getValues();
-    const errors = Object.entries(validateAnswers(survey, answers));
-    if (errors.length > 0) {
-      for (const [path, message] of errors) {
-        setError(path as FieldPath<SurveyAnswers>, { message });
-      }
-      return;
-    }
-
+  const send = (answers: SurveyAnswers) => {
+    const hidden = {
+      instance_type: getConfig().edition,
+      instance_domain: window.location.hostname,
+    };
     submit.mutate(
       {
         surveyId: survey.id,
         responseId,
-        data: responseData(survey, answers, hidden),
+        data: responseData(survey, answers, hidden, {
+          update: responseId !== null,
+        }),
       },
       { onSuccess: (id) => onDone(answers, id) },
     );
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6" noValidate>
+    <form
+      onSubmit={(e) => void handleSubmit(send)(e)}
+      className="space-y-6"
+      noValidate
+    >
       <p className="text-xs text-text-secondary">
         A few questions about you and what you are connecting.
       </p>
@@ -86,4 +82,21 @@ export default function OnboardingStep({
       </div>
     </form>
   );
+}
+
+/**
+ * The survey step of a first-run trail: the questions, and a Continue that sends the answers
+ * before moving on. A null survey is still loading. It starts from `initialAnswers` when the
+ * caller kept the last ones, so stepping back from the next step keeps them, and otherwise from
+ * blanks with the contact fields filled from `known`. Given a `responseId`, it updates that
+ * response rather than sending a second.
+ */
+export default function OnboardingStep({
+  survey,
+  ...props
+}: StepProps & { survey: OnboardingSurvey | null }) {
+  if (!survey) {
+    return <p className="text-xs text-text-muted">Loading survey...</p>;
+  }
+  return <SurveyForm survey={survey} {...props} />;
 }

@@ -7,8 +7,14 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockUserAuth } from "@/tests/factories";
+import {
+  choiceElement,
+  contactElement,
+  mockSurveyPayload,
+  surveyEnvironment,
+} from "@/tests/onboardingSurvey";
 import { getConfig, defaultConfig } from "@/env";
-import { ONBOARDING_TRIGGER } from "../survey/onboardingSurvey";
+import { saveResponseId } from "@/utils/savedSurvey";
 import NamespaceTrail from "../NamespaceTrail";
 
 vi.mock("@/components/layout/SessionMenu", () => ({
@@ -16,47 +22,14 @@ vi.mock("@/components/layout/SessionMenu", () => ({
 }));
 
 const SURVEY_API = "https://forms.example.test/api/v1/client/ws1";
-const USER_ID = "user-123";
 
-const survey = {
-  id: "survey-1",
-  type: "app",
-  status: "inProgress",
-  triggers: [{ actionClass: { name: ONBOARDING_TRIGGER } }],
+const survey = mockSurveyPayload({
   hiddenFields: { enabled: true, fieldIds: ["instance_type"] },
-  blocks: [
-    {
-      elements: [
-        {
-          type: "contactInfo",
-          id: "contact",
-          headline: { default: "Contact information" },
-          required: false,
-          firstName: {
-            show: true,
-            required: false,
-            placeholder: { default: "Name" },
-          },
-          lastName: { show: false, required: false },
-          email: {
-            show: true,
-            required: false,
-            placeholder: { default: "Email" },
-          },
-          phone: { show: false, required: false },
-          company: { show: false, required: false },
-        },
-        {
-          type: "multipleChoiceSingle",
-          id: "role",
-          headline: { default: "What's your role?" },
-          required: true,
-          choices: [{ id: "dev", label: { default: "Developer" } }],
-        },
-      ],
-    },
+  elements: [
+    contactElement(),
+    choiceElement("role", "What's your role?", [["dev", "Developer"]]),
   ],
-};
+});
 
 const mockGetConfig = vi.mocked(getConfig);
 let sent: { method: string; body: unknown }[];
@@ -70,6 +43,21 @@ function renderTrail() {
   );
 }
 
+function storedEntries(): Map<string, string | null> {
+  return new Map(
+    Array.from({ length: localStorage.length }, (_, i) => {
+      const key = localStorage.key(i) ?? "";
+      return [key, localStorage.getItem(key)];
+    }),
+  );
+}
+
+async function answerAndContinue(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("radio", { name: /developer/i }));
+  await user.click(screen.getByRole("button", { name: /^continue$/i }));
+  await screen.findByRole("button", { name: /back to the survey/i });
+}
+
 beforeEach(() => {
   sent = [];
   localStorage.clear();
@@ -79,14 +67,14 @@ beforeEach(() => {
     onboardingUrl: SURVEY_API,
   });
   seedAuthStore({
-    userId: USER_ID,
+    userId: "user-123",
     name: "Ana Maria Souza",
     email: "ana@example.com",
   });
   server.use(
     http.get("*/api/auth/user", () => HttpResponse.json(mockUserAuth())),
     http.get(`${SURVEY_API}/environment`, () =>
-      HttpResponse.json({ data: { data: { surveys: [survey] } } }),
+      HttpResponse.json(surveyEnvironment(survey)),
     ),
     http.post(`${SURVEY_API}/responses`, async ({ request }) => {
       sent.push({ method: "POST", body: await request.json() });
@@ -107,21 +95,14 @@ describe("NamespaceTrail onboarding survey", () => {
       "Ana Maria Souza",
     );
     expect(screen.getByLabelText(/^email$/i)).toHaveValue("ana@example.com");
-    expect(
-      screen.queryByRole("textbox", { name: /namespace/i }),
-    ).not.toBeInTheDocument();
   });
 
   it("sends the answers as cloud and moves on to creating a namespace", async () => {
     const user = userEvent.setup();
     renderTrail();
 
-    await user.click(await screen.findByRole("radio", { name: /developer/i }));
-    await user.click(screen.getByRole("button", { name: /^continue$/i }));
+    await answerAndContinue(user);
 
-    expect(
-      await screen.findByRole("button", { name: /back to the survey/i }),
-    ).toBeInTheDocument();
     expect(sent).toEqual([
       {
         method: "POST",
@@ -138,12 +119,10 @@ describe("NamespaceTrail onboarding survey", () => {
     ]);
   });
 
-  it("starts on the namespace step when this browser already sent a response", async () => {
+  it("opens on the namespace step when this browser already sent a response", async () => {
     const user = userEvent.setup();
     const first = renderTrail();
-    await user.click(await screen.findByRole("radio", { name: /developer/i }));
-    await user.click(screen.getByRole("button", { name: /^continue$/i }));
-    await screen.findByRole("button", { name: /back to the survey/i });
+    await answerAndContinue(user);
     first.unmount();
 
     renderTrail();
@@ -154,26 +133,88 @@ describe("NamespaceTrail onboarding survey", () => {
     expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
   });
 
-  it("updates the saved response instead of sending a second one", async () => {
+  it("updates the response sent on an earlier visit instead of sending a second one", async () => {
     const user = userEvent.setup();
     const first = renderTrail();
-    await user.click(await screen.findByRole("radio", { name: /developer/i }));
-    await user.click(screen.getByRole("button", { name: /^continue$/i }));
-    await screen.findByRole("button", { name: /back to the survey/i });
+    await answerAndContinue(user);
     first.unmount();
 
     renderTrail();
     await user.click(
       await screen.findByRole("button", { name: /back to the survey/i }),
     );
-    expect(
-      await screen.findByRole("radio", { name: /developer/i }),
-    ).toBeChecked();
-    await user.click(screen.getByRole("button", { name: /^continue$/i }));
+    await answerAndContinue(user);
 
     await waitFor(() =>
       expect(sent.map((s) => s.method)).toEqual(["POST", "PUT"]),
     );
+  });
+
+  it("adds only the response id to browser storage, never the answers", async () => {
+    const user = userEvent.setup();
+    renderTrail();
+    await screen.findByRole("radio", { name: /developer/i });
+    const before = storedEntries();
+
+    await answerAndContinue(user);
+
+    const added = [...storedEntries()]
+      .filter(([key, value]) => before.get(key) !== value)
+      .map(([, value]) => value);
+    expect(added).toEqual(["response-1"]);
+  });
+
+  it("sends a new response when the saved one no longer exists", async () => {
+    saveResponseId("user-123", "survey-1", "deleted");
+    server.use(
+      http.put(`${SURVEY_API}/responses/:id`, async ({ request }) => {
+        sent.push({ method: "PUT", body: await request.json() });
+        return HttpResponse.json({}, { status: 404 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderTrail();
+
+    await user.click(
+      await screen.findByRole("button", { name: /back to the survey/i }),
+    );
+    await answerAndContinue(user);
+
+    expect(sent.map((s) => s.method)).toEqual(["PUT", "POST"]);
+  });
+
+  it("asks again when the trigger moved to another survey", async () => {
+    saveResponseId("user-123", "old-survey", "response-0");
+    renderTrail();
+
+    expect(
+      await screen.findByRole("radio", { name: /developer/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("takes back the contact details sent earlier when the user turns anonymous", async () => {
+    const user = userEvent.setup();
+    renderTrail();
+    await answerAndContinue(user);
+
+    await user.click(
+      screen.getByRole("button", { name: /back to the survey/i }),
+    );
+    await user.click(
+      await screen.findByRole("checkbox", { name: /answer anonymously/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /^continue$/i }));
+    await screen.findByRole("button", { name: /back to the survey/i });
+
+    expect(sent.map((s) => s.method)).toEqual(["POST", "PUT"]);
+    expect(sent[1].body).toEqual({
+      finished: true,
+      data: {
+        contact: ["", "", "", "", ""],
+        role: "Developer",
+        instance_type: "cloud",
+      },
+    });
   });
 
   it("skips the survey on enterprise", async () => {

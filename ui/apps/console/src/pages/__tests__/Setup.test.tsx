@@ -2,10 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { ONBOARDING_TRIGGER } from "@/components/firstRun/survey/onboardingSurvey";
+import {
+  choiceElement,
+  mockSurveyPayload,
+  surveyEnvironment,
+} from "@/tests/onboardingSurvey";
 import Setup from "../Setup";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -257,31 +261,17 @@ describe("Setup", () => {
     const surveyApi = "https://forms.example.test/api/v1/client/ws1";
     let sent: { method: string; url: string; body: unknown }[];
 
-    const survey = {
-      id: "survey-1",
-      type: "app",
-      status: "inProgress",
-      triggers: [{ actionClass: { name: ONBOARDING_TRIGGER } }],
+    const survey = mockSurveyPayload({
       hiddenFields: { enabled: true, fieldIds: ["instance_domain"] },
-      blocks: [
-        {
-          elements: [
-            {
-              type: "multipleChoiceSingle",
-              id: "role",
-              headline: { default: "What is your role?" },
-              required: true,
-              choices: [
-                { id: "dev", label: { default: "Developer" } },
-                { id: "ops", label: { default: "Operator" } },
-              ],
-            },
-          ],
-        },
+      elements: [
+        choiceElement("role", "What is your role?", [
+          ["dev", "Developer"],
+          ["ops", "Operator"],
+        ]),
       ],
-    };
+    });
 
-    function serveSurvey(environment: () => Response) {
+    function serveSurvey(environment: () => Response | Promise<Response>) {
       server.use(
         http.get(`${surveyApi}/environment`, environment),
         http.post(`${surveyApi}/responses`, async ({ request }) => {
@@ -309,9 +299,7 @@ describe("Setup", () => {
         ...defaultConfig,
         onboardingUrl: surveyApi,
       });
-      serveSurvey(() =>
-        HttpResponse.json({ data: { data: { surveys: [survey] } } }),
-      );
+      serveSurvey(() => HttpResponse.json(surveyEnvironment(survey)));
     });
 
     async function answerAndContinue(
@@ -430,6 +418,33 @@ describe("Setup", () => {
       expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
     });
 
+    it("reads the survey from a URL configured with a trailing slash", async () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        onboardingUrl: `${surveyApi}/`,
+      });
+      renderSetup();
+
+      expect(
+        await screen.findByRole("radiogroup", { name: /what is your role/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("goes straight to the account step when the workspace never answers", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        serveSurvey(() => delay("infinite").then(() => HttpResponse.json({})));
+        renderSetup();
+        expect(screen.getByText(/loading survey/i)).toBeInTheDocument();
+
+        await vi.advanceTimersByTimeAsync(5000);
+
+        expect(await screen.findByLabelText(/^name$/i)).toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it.each([
       [
         "the workspace cannot be reached",
@@ -437,7 +452,7 @@ describe("Setup", () => {
       ],
       [
         "the workspace has no onboarding survey",
-        () => HttpResponse.json({ data: { data: { surveys: [] } } }),
+        () => HttpResponse.json(surveyEnvironment()),
       ],
     ])(
       "goes straight to the account step when %s",

@@ -11,7 +11,7 @@ import {
   type OnboardingSurvey,
   type SurveyAnswers,
   type SurveyQuestion,
-} from "./onboardingSurvey";
+} from "@/utils/onboardingSurvey";
 
 function QuestionHeading({
   id,
