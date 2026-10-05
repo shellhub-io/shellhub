@@ -87,6 +87,17 @@ describe("getAcceptErrorMessage", () => {
     it("returns rename copy for 409", () => {
       expect(msg({ status: 409 })).toMatch(/rename|name|already exists/i);
     });
+
+    it("tells the user to stop the connected agent when the conflict is the MAC address", () => {
+      const result = msg({ status: 409, fields: { "identity.mac": "duplicated" } });
+
+      expect(result).toMatch(/same MAC address is connected/i);
+      expect(result).not.toMatch(/rename/i);
+    });
+
+    it("still asks to rename when the duplicated name happens to be mac", () => {
+      expect(msg({ status: 409, fields: { mac: "duplicated" } })).toMatch(/rename/i);
+    });
   });
 
   describe("unknown errors", () => {
