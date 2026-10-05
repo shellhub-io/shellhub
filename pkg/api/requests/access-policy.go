@@ -1,9 +1,10 @@
 package requests
 
 // AccessPolicyFilter selects the devices an access policy applies to, by
-// tags. Empty (or omitted) matches every device.
+// tags. Empty (or omitted) matches every device. More than three tags fails
+// validation.
 type AccessPolicyFilter struct {
-	Tags []string `json:"tags,omitempty"`
+	Tags []string `json:"tags,omitempty" validate:"omitempty,max=3"`
 }
 
 // AccessPolicySubject identifies who an access policy grants access to.
