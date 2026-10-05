@@ -1,4 +1,4 @@
-import { isSdkError } from "@/api/errors";
+import { apiErrorFields, isSdkError } from "@/api/errors";
 import { isCloud, isEnterprise } from "@/env";
 
 type EntityType = "device" | "container";
@@ -41,6 +41,8 @@ export function getAcceptErrorMessage(
     case 403:
       return `You do not have permission to accept ${entityType}s in this namespace.`;
     case 409:
+      if ("identity.mac" in apiErrorFields(err))
+        return `Another ${entityType} with the same MAC address is connected. Stop its agent, then accept this ${entityType} again.`;
       return `A ${entityType} with this name already exists in the namespace. Please rename the ${entityType} and try again.`;
     default:
       return fallback(entityType);
