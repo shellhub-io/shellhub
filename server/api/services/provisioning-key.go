@@ -126,9 +126,7 @@ func (s *service) encryptProvisioningKey(plaintext string) (string, error) {
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
-	if _, err := rand.Read(nonce); err != nil {
-		return "", err
-	}
+	rand.Read(nonce)
 
 	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
 

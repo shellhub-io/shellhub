@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
@@ -13,8 +12,7 @@ func TestNew(t *testing.T) {
 		seen := make(map[string]struct{})
 
 		for range 2000 {
-			code, err := New(length)
-			require.NoError(t, err)
+			code := New(length)
 
 			assert.Len(t, code, length)
 			assert.Equal(t, strings.ToUpper(code), code, "code must be uppercase")
@@ -55,8 +53,7 @@ func TestNormalize(t *testing.T) {
 func TestIsValid(t *testing.T) {
 	assert.True(t, IsValid("WXYZ2K7Q", DeviceCodeLength))
 
-	code, err := New(InviteCodeLength)
-	require.NoError(t, err)
+	code := New(InviteCodeLength)
 	assert.True(t, IsValid(code, InviteCodeLength))
 
 	assert.False(t, IsValid("", DeviceCodeLength))

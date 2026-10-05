@@ -735,10 +735,7 @@ const tunnelReconnectInterval = 10 * time.Second
 func nextPingInterval(base time.Duration) time.Duration {
 	spread := base / 5
 
-	offset, err := rand.Int(rand.Reader, big.NewInt(int64(2*spread)+1))
-	if err != nil {
-		return base
-	}
+	offset, _ := rand.Int(rand.Reader, big.NewInt(int64(2*spread)+1))
 
 	return base - spread + time.Duration(offset.Int64())
 }

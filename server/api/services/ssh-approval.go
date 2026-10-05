@@ -49,10 +49,7 @@ type SSHApprovalService interface {
 }
 
 func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error) {
-	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return nil, err
-	}
+	code := pairingcode.New(pairingcode.DeviceCodeLength)
 
 	now := clock.Now()
 	if err := s.store.SSHApprovalCreate(ctx, &models.SSHApproval{
@@ -132,10 +129,7 @@ func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*mod
 }
 
 func (s *service) ConfirmSSHApproval(ctx context.Context, userID string, req *requests.SSHApprovalConfirm) (string, error) {
-	confirmationCode, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return "", err
-	}
+	confirmationCode := pairingcode.New(pairingcode.DeviceCodeLength)
 
 	if err := s.decideSSHApproval(ctx, userID, req.Code, models.SSHApprovalConfirmed, confirmationCode, req.ExpiresIn); err != nil {
 		return "", err

@@ -73,10 +73,7 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 		}
 	}
 
-	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return nil, err
-	}
+	code := pairingcode.New(pairingcode.DeviceCodeLength)
 
 	pairing := &devicePairing{
 		Hostname:  req.Hostname,

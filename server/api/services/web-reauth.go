@@ -102,10 +102,7 @@ func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebRe
 		return "", NewErrSSHApprovalCodeNotFound(req.ApprovalCode, nil)
 	}
 
-	confirmationCode, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return "", err
-	}
+	confirmationCode := pairingcode.New(pairingcode.DeviceCodeLength)
 
 	claimed, err := st.SSHApprovalDecide(ctx, approval.Code, models.SSHApprovalConfirmed, req.UserID, confirmationCode, now)
 	if err != nil {

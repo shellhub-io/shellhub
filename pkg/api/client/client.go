@@ -76,10 +76,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		const MinRetryAfterSecs int64 = 5
 		const MaxRetryAfterSecs int64 = 65
 
-		secs, err := rand.Int(rand.Reader, big.NewInt(MaxRetryAfterSecs-MinRetryAfterSecs))
-		if err != nil {
-			return time.Duration(MinRetryAfterSecs) * time.Second
-		}
+		secs, _ := rand.Int(rand.Reader, big.NewInt(MaxRetryAfterSecs-MinRetryAfterSecs))
 
 		return time.Duration(secs.Int64()+MinRetryAfterSecs) * time.Second
 	}

@@ -14,12 +14,10 @@ func FuzzVerify(f *testing.F) {
 	const settings = "$y$j9T$AAt9R641xPvCI9nXw1HHW/"
 
 	for range 100 {
-		v, err := rand.Int(rand.Reader, big.NewInt(64))
-		require.NoError(f, err)
+		v, _ := rand.Int(rand.Reader, big.NewInt(64))
 
 		password := make([]byte, v.Int64())
-		_, err = rand.Read(password)
-		require.NoError(f, err)
+		rand.Read(password)
 
 		hash, err := yescrypt.Hash(password, []byte(settings))
 		require.NoError(f, err)

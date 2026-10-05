@@ -38,9 +38,8 @@ var (
 	// ErrNoFreePort is returned by [Reserve] when every port between 10000 and the start of the
 	// ephemeral range is in use or reserved.
 	ErrNoFreePort = errors.New("no free port below the ephemeral range", ErrLayer, ErrCodeNoFreePort)
-	// ErrReserve is returned by [Reserve], joined with the underlying error, when it cannot draw
-	// the random start of its walk, or when a socket fails for a reason other than the port being
-	// in use, in which case the port is its data.
+	// ErrReserve is returned by [Reserve], joined with the underlying error, when a socket fails
+	// for a reason other than the port being in use. The port is its data.
 	ErrReserve = errors.New("cannot reserve a port", ErrLayer, ErrCodeReserve)
 )
 
@@ -126,10 +125,7 @@ func hold(port int) (int, error) {
 func Reserve() (*Reservation, error) {
 	span := ephemeralPortStart() - lowestRandomPort
 
-	first, err := rand.Int(rand.Reader, big.NewInt(int64(span)))
-	if err != nil {
-		return nil, errors.Wrap(ErrReserve, err)
-	}
+	first, _ := rand.Int(rand.Reader, big.NewInt(int64(span)))
 
 	for i := range span {
 		port := lowestRandomPort + (int(first.Int64())+i)%span

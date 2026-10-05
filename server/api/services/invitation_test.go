@@ -20,7 +20,6 @@ import (
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func freezeClockAndUUID(t *testing.T, now time.Time) {
@@ -33,8 +32,7 @@ func TestService_ResolveInvitation(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 
-	code, err := pairingcode.New(pairingcode.InviteCodeLength)
-	require.NoError(t, err)
+	code := pairingcode.New(pairingcode.InviteCodeLength)
 	normalized := pairingcode.Normalize(code)
 
 	type Expected struct {

@@ -35,10 +35,7 @@ type DeviceLoginCodeService interface {
 }
 
 func (s *service) CreateDeviceLoginCode(ctx context.Context, uid, tenantID string) (*models.DeviceLoginCode, error) {
-	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
-	if err != nil {
-		return nil, err
-	}
+	code := pairingcode.New(pairingcode.DeviceCodeLength)
 
 	var previous string
 	if err := s.cache.Get(ctx, "login_code_device/"+uid, &previous); err == nil && previous != "" {

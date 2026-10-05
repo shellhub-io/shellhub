@@ -817,8 +817,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				fileSize := 10 * 1024 * 1024 // 10MB
 				randomData := make([]byte, fileSize)
-				_, err = rand.Read(randomData)
-				require.NoError(t, err)
+				rand.Read(randomData)
 
 				tempFile, err := os.CreateTemp(t.TempDir(), "large-file-test-*.bin")
 				require.NoError(t, err)
