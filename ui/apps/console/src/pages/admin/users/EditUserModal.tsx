@@ -33,7 +33,8 @@ export default function EditUserModal({
   const updateUser = useUpdateUser();
   const currentUserId = useAuthStore((s) => s.userId);
 
-  const schema = userSchema("edit");
+  const usernameRequired = !!user?.username;
+  const schema = userSchema("edit", usernameRequired);
   const defaults = buildUserDefaults(user);
 
   const form = useDrawerForm(open, schema, defaults);
@@ -72,7 +73,7 @@ export default function EditUserModal({
       title="Edit user"
       description={
         <>
-          Change <ObjectName>{user?.username}</ObjectName>'s details, password
+          Change <ObjectName>{user?.username || user?.email}</ObjectName>'s details, password
           and whether they administer the instance.
         </>
       }
@@ -84,6 +85,7 @@ export default function EditUserModal({
         idPrefix="edit-user"
         canChangeConfirmed={canChangeConfirmed}
         disableAdmin={disableAdmin}
+        usernameRequired={usernameRequired}
       />
     </FormModal>
   );

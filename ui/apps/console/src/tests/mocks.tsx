@@ -8,12 +8,14 @@ export function MockModal({
   open,
   onClose,
   title,
+  description,
   children,
   footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  description?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
 }) {
@@ -21,6 +23,7 @@ export function MockModal({
   return (
     <div role="dialog" aria-label={title}>
       <h2>{title}</h2>
+      {description && <div>{description}</div>}
       <button type="button" onClick={onClose}>
         Close Modal
       </button>

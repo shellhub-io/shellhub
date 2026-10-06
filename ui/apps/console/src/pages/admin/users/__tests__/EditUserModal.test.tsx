@@ -30,6 +30,11 @@ const confirmedUser: UserAdminResponse = {
   status: "confirmed",
 };
 
+const userWithoutUsername: UserAdminResponse = {
+  ...mockUser,
+  username: "",
+};
+
 const updateSpy = vi.fn();
 
 function renderModal(
@@ -80,6 +85,12 @@ describe("EditUserModal", () => {
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeDisabled();
+    });
+
+    it("marks the username input required for a user who has one", () => {
+      renderModal();
+
+      expect(screen.getByLabelText(/^username$/i)).toBeRequired();
     });
 
     it("disables submit button when username is cleared", async () => {
@@ -303,6 +314,93 @@ describe("EditUserModal", () => {
       );
       expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
+    });
+  });
+
+  describe("a user without a username", () => {
+    it("saves an edit and keeps the username empty", async () => {
+      const user = userEvent.setup();
+      renderModal({ user: userWithoutUsername });
+
+      const nameInput = screen.getByLabelText(/^name$/i);
+      await user.clear(nameInput);
+      await user.type(nameInput, "Alice Updated");
+      await user.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              name: "Alice Updated",
+              username: "",
+            }),
+          }),
+        );
+      });
+    });
+
+    it("does not mark the username input required", () => {
+      renderModal({ user: userWithoutUsername });
+
+      expect(screen.getByLabelText(/^username$/i)).not.toBeRequired();
+    });
+
+    it("sends a valid username typed in", async () => {
+      const user = userEvent.setup();
+      renderModal({ user: userWithoutUsername });
+
+      await user.type(screen.getByLabelText(/^username$/i), "alice");
+      await user.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ username: "alice" }),
+          }),
+        );
+      });
+    });
+
+    it("still rejects an invalid username typed in", async () => {
+      const user = userEvent.setup();
+      renderModal({ user: userWithoutUsername });
+      const usernameInput = screen.getByLabelText(/^username$/i);
+
+      await user.type(usernameInput, "Invalid Username!");
+      await user.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      expect(updateSpy).not.toHaveBeenCalled();
+      expect(usernameInput).toHaveAttribute("aria-invalid", "true");
+    });
+
+    it("sends an empty username when only spaces are typed in", async () => {
+      const user = userEvent.setup();
+      renderModal({ user: userWithoutUsername });
+
+      await user.type(screen.getByLabelText(/^username$/i), "   ");
+      await user.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ username: "" }),
+          }),
+        );
+      });
+    });
+
+    it("names the user by email in the description", () => {
+      renderModal({ user: userWithoutUsername });
+
+      expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     });
   });
 
