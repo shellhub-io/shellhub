@@ -31,6 +31,17 @@ func (dc *DockerCompose) AgeSSHIdentityLastUse(t *testing.T, fingerprint string,
 		map[string]string{"fingerprint": fingerprint, "age": interval(age)})
 }
 
+// BreakAccessPolicySourceIP replaces the source addresses of the access policy id with an entry
+// that is not an address at all, failing t unless exactly that policy changed. The API refuses such
+// an entry, so it writes the row directly, standing in for a row that went bad under the API.
+func (dc *DockerCompose) BreakAccessPolicySourceIP(t *testing.T, id string) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE access_policies SET source_ip = ARRAY['not-an-address'] WHERE id = :'id'",
+		map[string]string{"id": id})
+}
+
 // DeleteAccessPolicy deletes the access policy id from the namespace the client is authenticated
 // against, failing t unless the server answers 200.
 func (dc *DockerCompose) DeleteAccessPolicy(t *testing.T, id string) {

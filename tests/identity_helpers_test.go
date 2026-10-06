@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"regexp"
 	"slices"
 	"testing"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -18,10 +20,23 @@ import (
 
 const (
 	approvalChallengeName = "shellhub-approval"
+	deniedChallengeName   = "shellhub-approval-denied"
 )
+
+const (
+	accessDeniedReason = "An access policy does not allow this login."
+)
+
+var reauthPromptPattern = regexp.MustCompile(`/ssh-identities/confirm/([2-9A-Z]{8})`)
 
 type challengePrompt struct {
 	name        string
+	instruction string
+}
+
+type approvalPrompt struct {
+	code        string
+	kind        models.SSHApprovalKind
 	instruction string
 }
 
@@ -78,6 +93,43 @@ func dialInteractive(ctx context.Context, addr, sshid string, signer ssh.Signer,
 	return handshake(ctx, addr, sshid, []ssh.AuthMethod{ssh.PublicKeys(signer), ssh.KeyboardInteractive(challenge)})
 }
 
+func (l *login) awaitApproval(t *testing.T) approvalPrompt {
+	t.Helper()
+
+	deadline := time.After(approvalWait)
+
+	for {
+		select {
+		case prompt := <-l.prompts:
+			l.seen = append(l.seen, prompt)
+
+			if prompt.name != approvalChallengeName {
+				continue
+			}
+
+			if match := approvalCodePattern.FindStringSubmatch(prompt.instruction); match != nil {
+				return approvalPrompt{code: match[1], kind: models.SSHApprovalIdentity, instruction: prompt.instruction}
+			}
+
+			if match := reauthPromptPattern.FindStringSubmatch(prompt.instruction); match != nil {
+				return approvalPrompt{code: match[1], kind: models.SSHApprovalReauth, instruction: prompt.instruction}
+			}
+
+			require.Failf(t, "the approval prompt carries no code", "%q", prompt.instruction)
+		case err := <-l.done:
+			l.done <- err
+
+			require.Failf(t, "the login ended before an approval was asked for", "err: %v", err)
+		case <-deadline:
+			require.Fail(t, "the gateway never asked for an approval")
+		}
+	}
+}
+
+func (l *login) answer(code string) {
+	l.answers <- code
+}
+
 func (l *login) result(t *testing.T) error {
 	t.Helper()
 
@@ -98,6 +150,16 @@ func (l *login) result(t *testing.T) error {
 			return err
 		}
 	}
+}
+
+func (l *login) denial() string {
+	for _, prompt := range slices.Backward(l.seen) {
+		if prompt.name == deniedChallengeName {
+			return prompt.instruction
+		}
+	}
+
+	return ""
 }
 
 func (l *login) approvals() int {
@@ -125,6 +187,28 @@ func requireRefusedAtAuth(t *testing.T, compose *environment.DockerCompose, sshi
 
 	err := dialSSH(t.Context(), compose.SSHAddress(), sshid, []ssh.Signer{signer}, nil, nil)
 	require.ErrorContains(t, err, "unable to authenticate")
+}
+
+func approvalRequest(ctx context.Context, compose *environment.DockerCompose, token string) *resty.Request {
+	req := compose.R(ctx)
+	if token != "" {
+		req = req.SetAuthToken(token)
+	}
+
+	return req
+}
+
+func confirmApprovalAs(ctx context.Context, compose *environment.DockerCompose, token, code string, expiresIn *int) (*models.SSHApprovalConfirmation, *resty.Response, error) {
+	confirmation := new(models.SSHApprovalConfirmation)
+
+	req := approvalRequest(ctx, compose, token).SetResult(confirmation)
+	if expiresIn != nil {
+		req = req.SetBody(map[string]int{"expires_in": *expiresIn})
+	}
+
+	resp, err := req.Post("/api/ssh-approvals/" + code + "/confirm")
+
+	return confirmation, resp, err
 }
 
 func identitiesHolding(t *testing.T, compose *environment.DockerCompose, fingerprint string) []models.SSHIdentity {
@@ -195,6 +279,10 @@ func apiKeyIdentity(t *testing.T, compose *environment.DockerCompose, name strin
 	require.Len(t, identities, 1)
 
 	return identities[0]
+}
+
+func userSubject(id string) requests.AccessPolicySubject {
+	return requests.AccessPolicySubject{Type: string(models.PolicySubjectUser), Value: id}
 }
 
 func apiKeySubject(id string) requests.AccessPolicySubject {
