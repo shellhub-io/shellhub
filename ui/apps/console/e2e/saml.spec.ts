@@ -1,12 +1,14 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
 import { SignedXml } from "xml-crypto";
 import {
+  createNamespace,
   getAuthenticationSettings,
   getInfo,
   getSamlAuthUrl,
+  getUser,
   getUserInfo,
 } from "@/client";
-import { buildRequestContext } from "./api";
+import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise, requireEnv } from "./env";
 import { createTeam, signInAndOpen, signOut } from "./helpers";
 import {
@@ -14,6 +16,7 @@ import {
   type SignOnRequest,
   adminContext,
   answerSignOn,
+  answerSignOnRequest,
   disableSaml,
   enableSaml,
   identityProvider,
@@ -24,7 +27,7 @@ import {
   signOnURLs,
   waitForSessionToken,
 } from "./saml";
-import { buildRandomEmail, buildShortId, composeExec } from "./seed";
+import { buildRandomEmail, buildShortId, composeExec, password } from "./seed";
 
 test.skip(!isEnterprise, samlReason);
 test.afterEach(disableSaml);
@@ -38,6 +41,24 @@ async function readSamlSettings() {
   const { data } = await getAuthenticationSettings(await adminContext());
   if (!data.saml) throw new Error("expected the SAML settings");
   return data.saml;
+}
+
+async function signInThroughApi(user: SamlUser) {
+  const { data } = await getSamlAuthUrl(buildRequestContext());
+  const { action, samlResponse } = answerSignOnRequest(new URL(data.url), user);
+  const response = await fetch(action, {
+    method: "POST",
+    redirect: "manual",
+    body: new URLSearchParams({ SAMLResponse: samlResponse }),
+  });
+  const location = required(
+    response.headers.get("location"),
+    `a redirect from the assertion consumer, got ${response.status}`,
+  );
+  return required(
+    new URL(location).searchParams.get("token"),
+    `a session token in ${location}`,
+  );
 }
 
 async function readSessionUser(token: string) {
@@ -290,5 +311,101 @@ test.describe("Admin configuration", () => {
     expect(
       requests[0].document.getAttribute("AssertionConsumerServiceURL"),
     ).toBe(assertionURL);
+  });
+});
+
+test.describe("Sign-in", () => {
+  test.beforeEach(() => enableSaml());
+
+  test("a returning SAML user signs in to their namespace", async ({
+    page,
+  }) => {
+    const user = buildSamlUser();
+    const first = await signInThroughApi(user);
+    const namespace = `e2e-saml-${buildShortId()}`;
+    await createNamespace({
+      ...buildRequestContext({ token: first }),
+      body: { name: namespace },
+    });
+    await answerSignOn(page.context(), user);
+
+    const token = await signInWithSso(page);
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(
+      page
+        .getByRole("listitem")
+        .filter({ has: page.getByRole("heading", { name: "Namespace" }) })
+        .getByText(namespace, { exact: true }),
+    ).toBeVisible();
+    expect((await readSessionUser(token)).id).toBe(
+      (await readSessionUser(first)).id,
+    );
+  });
+
+  test("a first SAML sign-in creates the account", async ({ page }) => {
+    const user = buildSamlUser();
+    await answerSignOn(page.context(), user);
+
+    const token = await signInWithSso(page);
+
+    const account = await readSessionUser(token);
+    expect(account).toMatchObject({
+      email: user.email,
+      name: user.name,
+      origin: "saml",
+      auth_methods: ["saml"],
+    });
+    const { data } = await getUser({
+      ...(await adminContext()),
+      path: { id: account.id },
+    });
+    expect(data).toMatchObject({ email: user.email, username: "" });
+  });
+
+  test("a SAML sign-in with a local account's email signs in to that account", async ({
+    page,
+  }) => {
+    const { owner } = await createTeam();
+    const { id } = await loginAs(owner.username, password);
+    await answerSignOn(page.context(), {
+      email: owner.email,
+      name: owner.username,
+    });
+
+    const token = await signInWithSso(page);
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    expect(await readSessionUser(token)).toMatchObject({
+      id,
+      user: owner.username,
+      auth_methods: ["local", "saml"],
+    });
+    expect((await loginAs(owner.username, password)).id).toBe(id);
+  });
+});
+
+test.describe("Bindings", () => {
+  test("the redirect binding sends the request to the redirect endpoint", async ({
+    page,
+  }) => {
+    await enableSaml({
+      binding: {
+        post: signOnURLs.post,
+        redirect: signOnURLs.redirect,
+        preferred: "redirect",
+      },
+    });
+    const user = buildSamlUser();
+    const requests = await answerSignOn(page.context(), user);
+
+    const token = await signInWithSso(page);
+
+    expect(requests).toHaveLength(1);
+    expect(endpointOf(requests[0].url)).toBe(signOnURLs.redirect);
+    expect(requests[0].document.getAttribute("Destination")).toBe(
+      signOnURLs.redirect,
+    );
+    expect((await readSessionUser(token)).email).toBe(user.email);
   });
 });
