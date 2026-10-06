@@ -358,7 +358,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 		service:  service,
 		dialer:   dialer,
 		sessions: sessions,
-		Events:   NewEvents(ctx.SessionID(), service),
+		Events:   NewEvents(ctx.SessionID(), scope.MustBounded(namespace.TenantID), service),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -504,10 +504,14 @@ func (s *Session) register(ctx context.Context) error {
 	return nil
 }
 
+func (s *Session) namespaceScope() scope.Scope {
+	return scope.MustBounded(s.Namespace.TenantID)
+}
+
 func (s *Session) authenticate(ctx context.Context) error {
 	value := true
 
-	return s.service.UpdateSession(ctx, models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
+	return s.service.UpdateSession(ctx, s.namespaceScope(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Authenticated: &value,
 	})
 }
@@ -537,7 +541,7 @@ func (s *Session) Recorded(seat int) error {
 		return ErrRecordingNoPty
 	}
 
-	return s.service.UpdateSession(context.Background(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
+	return s.service.UpdateSession(context.Background(), s.namespaceScope(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Recorded: &value,
 	})
 }
@@ -1096,7 +1100,7 @@ func Event[D any](sess EventWriter, t string, data []byte, seat int) {
 
 // KeepAlive tells the API the session is still live, so that it is not reaped as stale.
 func (s *Session) KeepAlive(ctx context.Context) error {
-	if err := s.service.KeepAliveSession(ctx, models.UID(s.UID)); err != nil {
+	if err := s.service.KeepAliveSession(ctx, s.namespaceScope(), models.UID(s.UID)); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			Error("Error when trying to keep alive the session")
@@ -1184,7 +1188,7 @@ func (s *Session) Finish() error {
 		s.sessions.Remove(s.UID)
 
 		if s.registered {
-			if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
+			if err := s.service.DeactivateSession(context.Background(), s.namespaceScope(), models.UID(s.UID)); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 					Error("Error when trying to finish the session")

@@ -16,7 +16,7 @@ func TestKeepAliveLoopMarksTheSessionAlive(t *testing.T) {
 	service := servicemocks.NewMockService(t)
 
 	var calls atomic.Int32
-	service.On("KeepAliveSession", mock.Anything, models.UID("test-uid")).
+	service.On("KeepAliveSession", mock.Anything, tenantScope, models.UID("test-uid")).
 		Run(func(mock.Arguments) { calls.Add(1) }).
 		Return(nil)
 
@@ -40,14 +40,14 @@ func TestKeepAliveLoopStopsBeforeTheSessionIsDeactivated(t *testing.T) {
 		calls      atomic.Int32
 	)
 
-	service.On("KeepAliveSession", mock.Anything, models.UID("test-uid")).
+	service.On("KeepAliveSession", mock.Anything, tenantScope, models.UID("test-uid")).
 		Run(func(mock.Arguments) {
 			lastAlive.Store(seq.Add(1))
 			calls.Add(1)
 		}).
 		Return(nil)
 
-	service.On("DeactivateSession", mock.Anything, models.UID("test-uid")).
+	service.On("DeactivateSession", mock.Anything, tenantScope, models.UID("test-uid")).
 		Run(func(mock.Arguments) {
 			deactivate.Store(seq.Add(1))
 		}).
@@ -55,7 +55,7 @@ func TestKeepAliveLoopStopsBeforeTheSessionIsDeactivated(t *testing.T) {
 
 	sess := newTestSession(service, nil)
 	sess.registered = true
-	sess.Events = NewEvents("test-uid", service)
+	sess.Events = NewEvents("test-uid", tenantScope, service)
 
 	ctx := newStubContext()
 	sess.startKeepAlive(ctx, time.Millisecond)

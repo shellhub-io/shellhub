@@ -55,7 +55,7 @@ func (s *Session) markAlive(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, keepAliveTimeout)
 	defer cancel()
 
-	return s.service.KeepAliveSession(ctx, models.UID(s.UID))
+	return s.service.KeepAliveSession(ctx, s.namespaceScope(), models.UID(s.UID))
 }
 
 func (s *Session) stopKeepAlive() {

@@ -39,10 +39,24 @@ type SessionService interface {
 	// receive a cross-namespace read by omission.
 	GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error)
-	DeactivateSession(ctx context.Context, uid models.UID) error
-	KeepAliveSession(ctx context.Context, uid models.UID) error
-	UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error
-	EventSession(ctx context.Context, events []models.SessionEvent) error
+	// DeactivateSession retires the session within the namespace sc is bounded to. It returns
+	// ErrSessionNotFound when no session in that namespace has the UID, store.ErrInvalidScope when
+	// sc is not bounded, and the store's error when retiring the session fails.
+	DeactivateSession(ctx context.Context, sc scope.Scope, uid models.UID) error
+	// KeepAliveSession stamps the session within the namespace sc is bounded to as still live. It
+	// returns ErrSessionNotFound when no session in that namespace has the UID, store.ErrInvalidScope
+	// when sc is not bounded, and the store's error when the write fails.
+	KeepAliveSession(ctx context.Context, sc scope.Scope, uid models.UID) error
+	// UpdateSession applies model to the session within the namespace sc is bounded to. It returns
+	// ErrSessionNotFound when no session in that namespace has the UID, store.ErrInvalidScope when sc
+	// is not bounded, and the store's error when the write fails. A failure to put an authenticated
+	// session in the active set is logged, not returned.
+	UpdateSession(ctx context.Context, sc scope.Scope, uid models.UID, model models.SessionUpdate) error
+	// EventSession records events against sessions in the namespace sc is bounded to, all of
+	// them or none. It returns store.ErrNoDocuments when any event's session is gone or outside
+	// that namespace, store.ErrInvalidScope when sc is not bounded, and the store's error when the
+	// write fails.
+	EventSession(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error
 }
 
 func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
@@ -99,17 +113,21 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 	return s.store.SessionResolve(ctx, scope.NewUnbounded("reading back the session this call just created, by its generated UID"), store.SessionUIDResolver, uid)
 }
 
-func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	sess, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
+func (s *service) DeactivateSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
+	if !sc.IsBounded() {
+		return store.ErrInvalidScope
+	}
+
+	sess, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	return s.store.ActiveSessionDelete(ctx, models.UID(sess.UID))
+	return s.store.ActiveSessionDelete(ctx, sc, models.UID(sess.UID))
 }
 
-func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
-	err := s.store.SessionKeepAlive(ctx, uid, clock.Now())
+func (s *service) KeepAliveSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
+	err := s.store.SessionKeepAlive(ctx, sc, uid, clock.Now())
 	switch {
 	case err == nil:
 		return nil
@@ -120,8 +138,12 @@ func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	}
 }
 
-func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	session, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
+func (s *service) UpdateSession(ctx context.Context, sc scope.Scope, uid models.UID, model models.SessionUpdate) error {
+	if !sc.IsBounded() {
+		return store.ErrInvalidScope
+	}
+
+	session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
@@ -140,16 +162,9 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 		}
 	}
 
-	return s.store.SessionUpdate(ctx, session)
+	return s.store.SessionUpdate(ctx, sc, session)
 }
 
-// EventSession records session events.
-//
-// It does not check that the session exists first. session_events.session_id
-// references sessions(id), so an event for a session that is gone is refused by the
-// database anyway — and the check is not free: resolving a session aggregates the types
-// and seats of every event it already has, which made recording an event cost more the
-// longer the session ran.
-func (s *service) EventSession(ctx context.Context, events []models.SessionEvent) error {
-	return s.store.SessionEventsCreateMany(ctx, events)
+func (s *service) EventSession(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error {
+	return s.store.SessionEventsCreateMany(ctx, sc, events)
 }

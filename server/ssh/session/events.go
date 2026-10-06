@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
@@ -28,6 +29,7 @@ const (
 // reader sees.
 type Events struct {
 	session string
+	sc      scope.Scope
 	service services.Service
 
 	queue chan models.SessionEvent
@@ -41,11 +43,12 @@ type Events struct {
 }
 
 // NewEvents returns a buffered stream of session events for session, delivered through
-// service. The buffer is bounded: when it fills, events are dropped and counted rather than
-// blocking the session they describe.
-func NewEvents(session string, service services.Service) *Events {
+// service within the namespace sc is bounded to. The buffer is bounded: when it fills, events
+// are dropped and counted rather than blocking the session they describe.
+func NewEvents(session string, sc scope.Scope, service services.Service) *Events {
 	return &Events{
 		session: session,
+		sc:      sc,
 		service: service,
 		queue:   make(chan models.SessionEvent, eventQueueSize),
 	}
@@ -147,7 +150,7 @@ func (e *Events) run() {
 		ctx, cancel := context.WithTimeout(context.Background(), eventWriteTimeout)
 		defer cancel()
 
-		if err := e.service.EventSession(ctx, batch); err != nil {
+		if err := e.service.EventSession(ctx, e.sc, batch); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": e.session,
 				"events":  len(batch),

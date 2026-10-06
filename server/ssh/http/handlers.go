@@ -153,7 +153,7 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		return err
 	}
 
-	if err := h.Service.DeactivateSession(ctx, models.UID(data.UID)); err != nil {
+	if err := h.Service.DeactivateSession(ctx, sc, models.UID(data.UID)); err != nil {
 		log.WithError(err).
 			WithField("session", data.UID).
 			Error("failed to deactivate a session no gateway owns")

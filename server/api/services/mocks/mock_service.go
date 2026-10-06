@@ -2061,16 +2061,16 @@ func (_c *MockService_CreateUserToken_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // DeactivateSession provides a mock function for the type MockService
-func (_mock *MockService) DeactivateSession(ctx context.Context, uid models.UID) error {
-	ret := _mock.Called(ctx, uid)
+func (_mock *MockService) DeactivateSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
+	ret := _mock.Called(ctx, sc, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeactivateSession")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) error); ok {
+		r0 = returnFunc(ctx, sc, uid)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2084,24 +2084,30 @@ type MockService_DeactivateSession_Call struct {
 
 // DeactivateSession is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid models.UID
-func (_e *MockService_Expecter) DeactivateSession(ctx any, uid any) *MockService_DeactivateSession_Call {
-	return &MockService_DeactivateSession_Call{Call: _e.mock.On("DeactivateSession", ctx, uid)}
+func (_e *MockService_Expecter) DeactivateSession(ctx any, sc any, uid any) *MockService_DeactivateSession_Call {
+	return &MockService_DeactivateSession_Call{Call: _e.mock.On("DeactivateSession", ctx, sc, uid)}
 }
 
-func (_c *MockService_DeactivateSession_Call) Run(run func(ctx context.Context, uid models.UID)) *MockService_DeactivateSession_Call {
+func (_c *MockService_DeactivateSession_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID)) *MockService_DeactivateSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -2112,7 +2118,7 @@ func (_c *MockService_DeactivateSession_Call) Return(err error) *MockService_Dea
 	return _c
 }
 
-func (_c *MockService_DeactivateSession_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) error) *MockService_DeactivateSession_Call {
+func (_c *MockService_DeactivateSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID) error) *MockService_DeactivateSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3226,16 +3232,16 @@ func (_c *MockService_EvaluateLicense_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // EventSession provides a mock function for the type MockService
-func (_mock *MockService) EventSession(ctx context.Context, events []models.SessionEvent) error {
-	ret := _mock.Called(ctx, events)
+func (_mock *MockService) EventSession(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error {
+	ret := _mock.Called(ctx, sc, events)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EventSession")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []models.SessionEvent) error); ok {
-		r0 = returnFunc(ctx, events)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []models.SessionEvent) error); ok {
+		r0 = returnFunc(ctx, sc, events)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3249,24 +3255,30 @@ type MockService_EventSession_Call struct {
 
 // EventSession is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - events []models.SessionEvent
-func (_e *MockService_Expecter) EventSession(ctx any, events any) *MockService_EventSession_Call {
-	return &MockService_EventSession_Call{Call: _e.mock.On("EventSession", ctx, events)}
+func (_e *MockService_Expecter) EventSession(ctx any, sc any, events any) *MockService_EventSession_Call {
+	return &MockService_EventSession_Call{Call: _e.mock.On("EventSession", ctx, sc, events)}
 }
 
-func (_c *MockService_EventSession_Call) Run(run func(ctx context.Context, events []models.SessionEvent)) *MockService_EventSession_Call {
+func (_c *MockService_EventSession_Call) Run(run func(ctx context.Context, sc scope.Scope, events []models.SessionEvent)) *MockService_EventSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []models.SessionEvent
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].([]models.SessionEvent)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 []models.SessionEvent
+		if args[2] != nil {
+			arg2 = args[2].([]models.SessionEvent)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -3277,7 +3289,7 @@ func (_c *MockService_EventSession_Call) Return(err error) *MockService_EventSes
 	return _c
 }
 
-func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Context, events []models.SessionEvent) error) *MockService_EventSession_Call {
+func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error) *MockService_EventSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4119,16 +4131,16 @@ func (_c *MockService_GetUserAdmin_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // KeepAliveSession provides a mock function for the type MockService
-func (_mock *MockService) KeepAliveSession(ctx context.Context, uid models.UID) error {
-	ret := _mock.Called(ctx, uid)
+func (_mock *MockService) KeepAliveSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
+	ret := _mock.Called(ctx, sc, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for KeepAliveSession")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) error); ok {
+		r0 = returnFunc(ctx, sc, uid)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -4142,24 +4154,30 @@ type MockService_KeepAliveSession_Call struct {
 
 // KeepAliveSession is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid models.UID
-func (_e *MockService_Expecter) KeepAliveSession(ctx any, uid any) *MockService_KeepAliveSession_Call {
-	return &MockService_KeepAliveSession_Call{Call: _e.mock.On("KeepAliveSession", ctx, uid)}
+func (_e *MockService_Expecter) KeepAliveSession(ctx any, sc any, uid any) *MockService_KeepAliveSession_Call {
+	return &MockService_KeepAliveSession_Call{Call: _e.mock.On("KeepAliveSession", ctx, sc, uid)}
 }
 
-func (_c *MockService_KeepAliveSession_Call) Run(run func(ctx context.Context, uid models.UID)) *MockService_KeepAliveSession_Call {
+func (_c *MockService_KeepAliveSession_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID)) *MockService_KeepAliveSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -4170,7 +4188,7 @@ func (_c *MockService_KeepAliveSession_Call) Return(err error) *MockService_Keep
 	return _c
 }
 
-func (_c *MockService_KeepAliveSession_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) error) *MockService_KeepAliveSession_Call {
+func (_c *MockService_KeepAliveSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID) error) *MockService_KeepAliveSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7349,16 +7367,16 @@ func (_c *MockService_UpdatePublicKey_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // UpdateSession provides a mock function for the type MockService
-func (_mock *MockService) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	ret := _mock.Called(ctx, uid, model)
+func (_mock *MockService) UpdateSession(ctx context.Context, sc scope.Scope, uid models.UID, model models.SessionUpdate) error {
+	ret := _mock.Called(ctx, sc, uid, model)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateSession")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, models.SessionUpdate) error); ok {
-		r0 = returnFunc(ctx, uid, model)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID, models.SessionUpdate) error); ok {
+		r0 = returnFunc(ctx, sc, uid, model)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -7372,30 +7390,36 @@ type MockService_UpdateSession_Call struct {
 
 // UpdateSession is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid models.UID
 //   - model models.SessionUpdate
-func (_e *MockService_Expecter) UpdateSession(ctx any, uid any, model any) *MockService_UpdateSession_Call {
-	return &MockService_UpdateSession_Call{Call: _e.mock.On("UpdateSession", ctx, uid, model)}
+func (_e *MockService_Expecter) UpdateSession(ctx any, sc any, uid any, model any) *MockService_UpdateSession_Call {
+	return &MockService_UpdateSession_Call{Call: _e.mock.On("UpdateSession", ctx, sc, uid, model)}
 }
 
-func (_c *MockService_UpdateSession_Call) Run(run func(ctx context.Context, uid models.UID, model models.SessionUpdate)) *MockService_UpdateSession_Call {
+func (_c *MockService_UpdateSession_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID, model models.SessionUpdate)) *MockService_UpdateSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 models.SessionUpdate
+		var arg2 models.UID
 		if args[2] != nil {
-			arg2 = args[2].(models.SessionUpdate)
+			arg2 = args[2].(models.UID)
+		}
+		var arg3 models.SessionUpdate
+		if args[3] != nil {
+			arg3 = args[3].(models.SessionUpdate)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -7406,7 +7430,7 @@ func (_c *MockService_UpdateSession_Call) Return(err error) *MockService_UpdateS
 	return _c
 }
 
-func (_c *MockService_UpdateSession_Call) RunAndReturn(run func(ctx context.Context, uid models.UID, model models.SessionUpdate) error) *MockService_UpdateSession_Call {
+func (_c *MockService_UpdateSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID, model models.SessionUpdate) error) *MockService_UpdateSession_Call {
 	_c.Call.Return(run)
 	return _c
 }

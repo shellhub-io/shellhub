@@ -3,6 +3,7 @@ package storetest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -885,6 +886,147 @@ func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 	got, err = st.SSHIdentityResolve(ctx, scope.MustBounded(other), store.SSHIdentityFingerprintResolver, fingerprint)
 	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
+}
+
+// TestScopeIsolationSessionUpdate locks that SessionUpdate changes a session only within its owning
+// namespace and refuses a scope that is not bounded.
+func (s *Suite) TestScopeIsolationSessionUpdate(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	uid := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"))))
+
+	recorded := func() bool {
+		got, err := st.SessionResolve(ctx, scope.MustBounded(owner), store.SessionUIDResolver, string(uid))
+		require.NoError(t, err)
+
+		return got.Recorded
+	}
+
+	require.ErrorIs(t,
+		st.SessionUpdate(ctx, scope.MustBounded(other), &models.Session{UID: string(uid), Recorded: true}),
+		store.ErrNoDocuments)
+	assert.False(t, recorded(), "a write bounded to another namespace leaves the session as it was")
+
+	require.ErrorIs(t,
+		st.SessionUpdate(ctx, scope.NewUnbounded(reasonTestQueryMechanics), &models.Session{UID: string(uid), Recorded: true}),
+		store.ErrInvalidScope)
+	assert.False(t, recorded())
+
+	require.NoError(t, st.SessionUpdate(ctx, scope.MustBounded(owner), &models.Session{UID: string(uid), Recorded: true}))
+	assert.True(t, recorded())
+}
+
+// TestScopeIsolationSessionKeepAlive locks that SessionKeepAlive stamps a session, and puts it back
+// in the active set, only within its owning namespace.
+func (s *Suite) TestScopeIsolationSessionKeepAlive(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	uid := s.CreateSession(t,
+		WithSessionDevice(s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"))),
+		WithSessionActive(false),
+	)
+	before := s.sessionLastSeen(t, owner, uid)
+
+	require.ErrorIs(t, st.SessionKeepAlive(ctx, scope.MustBounded(other), uid, before.Add(time.Hour)), store.ErrNoDocuments)
+	_, err := st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	require.ErrorIs(t, err, store.ErrNoDocuments, "a keep-alive bounded to another namespace does not reactivate the session")
+	assert.True(t, before.Equal(s.sessionLastSeen(t, owner, uid)), "a keep-alive bounded to another namespace leaves seen_at as it was")
+
+	require.ErrorIs(t,
+		st.SessionKeepAlive(ctx, scope.NewUnbounded(reasonTestQueryMechanics), uid, clock.Now()),
+		store.ErrInvalidScope)
+
+	require.NoError(t, st.SessionKeepAlive(ctx, scope.MustBounded(owner), uid, clock.Now()))
+	_, err = st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	require.NoError(t, err)
+}
+
+// TestScopeIsolationActiveSessionDelete locks that ActiveSessionDelete retires a session only within
+// its owning namespace.
+func (s *Suite) TestScopeIsolationActiveSessionDelete(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	uid := s.CreateSession(t,
+		WithSessionDevice(s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"))),
+		WithSessionActive(true),
+	)
+	before := s.sessionLastSeen(t, owner, uid)
+
+	require.ErrorIs(t, st.ActiveSessionDelete(ctx, scope.MustBounded(other), uid), store.ErrNoDocuments)
+	_, err := st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	require.NoError(t, err, "a delete bounded to another namespace leaves the session active")
+	assert.True(t, before.Equal(s.sessionLastSeen(t, owner, uid)), "a delete bounded to another namespace leaves seen_at as it was")
+
+	require.ErrorIs(t,
+		st.ActiveSessionDelete(ctx, scope.NewUnbounded(reasonTestQueryMechanics), uid),
+		store.ErrInvalidScope)
+
+	require.NoError(t, st.ActiveSessionDelete(ctx, scope.MustBounded(owner), uid))
+	_, err = st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	require.ErrorIs(t, err, store.ErrNoDocuments)
+}
+
+// TestScopeIsolationSessionEventsCreateMany locks that SessionEventsCreateMany writes a batch only
+// when every event's session belongs to the bounded namespace, and writes nothing otherwise.
+func (s *Suite) TestScopeIsolationSessionEventsCreateMany(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	ownerSession := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"))))
+	otherSession := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithTenantID(other), WithDeviceName("dev"))))
+
+	event := func(uid models.UID) models.SessionEvent {
+		return models.SessionEvent{Session: string(uid), Type: models.SessionEventTypePtyRequest, Timestamp: clock.Now()}
+	}
+
+	count := func(uid models.UID) int {
+		_, n, err := st.SessionEventsList(ctx, uid, 0, models.SessionEventTypePtyRequest)
+		require.NoError(t, err)
+
+		return n
+	}
+
+	require.ErrorIs(t,
+		st.SessionEventsCreateMany(ctx, scope.MustBounded(other), []models.SessionEvent{event(ownerSession)}),
+		store.ErrNoDocuments)
+	assert.Equal(t, 0, count(ownerSession), "a batch bounded to another namespace writes nothing")
+
+	require.ErrorIs(t,
+		st.SessionEventsCreateMany(ctx, scope.MustBounded(owner), []models.SessionEvent{event(ownerSession), event(otherSession)}),
+		store.ErrNoDocuments)
+	assert.Equal(t, 0, count(ownerSession), "a batch with one event outside the namespace writes none of it")
+	assert.Equal(t, 0, count(otherSession))
+
+	require.ErrorIs(t,
+		st.SessionEventsCreateMany(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []models.SessionEvent{event(ownerSession)}),
+		store.ErrInvalidScope)
+
+	require.NoError(t, st.SessionEventsCreateMany(ctx, scope.MustBounded(owner), []models.SessionEvent{event(ownerSession), event(ownerSession)}))
+	assert.Equal(t, 2, count(ownerSession))
+}
+
+func (s *Suite) sessionLastSeen(t *testing.T, tenantID string, uid models.UID) time.Time {
+	t.Helper()
+
+	session, err := s.provider.Store().SessionResolve(context.Background(), scope.MustBounded(tenantID), store.SessionUIDResolver, string(uid))
+	require.NoError(t, err)
+
+	return session.LastSeen
 }
 
 func memberIDs(members []models.MemberView) []string {

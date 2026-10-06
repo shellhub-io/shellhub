@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -57,6 +58,8 @@ func (s *stubContext) Value(key any) any {
 	return s.values[key]
 }
 
+var tenantScope = scope.MustBounded("tenant-id")
+
 func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
@@ -75,7 +78,8 @@ func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Sessi
 				TenantID: "tenant-id",
 			},
 			Namespace: &models.Namespace{
-				Name: "namespace",
+				Name:     "namespace",
+				TenantID: "tenant-id",
 			},
 		},
 		once:  new(sync.Once),
@@ -120,7 +124,7 @@ func TestRecorded(t *testing.T) {
 			pty:         true,
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					UpdateSession(mock.Anything, models.UID("test-uid"), mock.Anything).
+					UpdateSession(mock.Anything, tenantScope, models.UID("test-uid"), mock.Anything).
 					Return(errStoreDown).
 					Once()
 			},
@@ -133,7 +137,7 @@ func TestRecorded(t *testing.T) {
 			pty:         true,
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					UpdateSession(mock.Anything, models.UID("test-uid"), mock.Anything).
+					UpdateSession(mock.Anything, tenantScope, models.UID("test-uid"), mock.Anything).
 					Return(nil).
 					Once()
 			},

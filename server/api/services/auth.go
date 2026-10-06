@@ -455,7 +455,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		session.LastSeen = clock.Now()
-		if err := s.store.SessionUpdate(ctx, session); err != nil {
+		if err := s.store.SessionUpdate(ctx, sc, session); err != nil {
 			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot set session's last seen")
 
 			continue

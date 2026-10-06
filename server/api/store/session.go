@@ -37,13 +37,16 @@ type SessionStore interface {
 	SessionResolve(ctx context.Context, sc scope.Scope, resolver SessionResolver, value string, opts ...QueryOption) (*models.Session, error)
 	// SessionCreate creates a new session. It returns the inserted UID and an error if any.
 	SessionCreate(ctx context.Context, session models.Session) (string, error)
-	// SessionUpdate updates a session. It returns an error if any.
-	SessionUpdate(ctx context.Context, session *models.Session) error
+	// SessionUpdate updates the session within the namespace sc is bounded to. It returns
+	// ErrInvalidScope when sc is not bounded, ErrNoDocuments when no session in that namespace has
+	// the model's UID, and the database's error when the statement fails.
+	SessionUpdate(ctx context.Context, sc scope.Scope, session *models.Session) error
 
 	// SessionKeepAlive stamps the session as still live: it advances the session's last-seen time
 	// and puts the session back in the active set if ActiveSessionCleanup took it out. It returns
-	// ErrNoDocuments when no session has the given UID.
-	SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time) error
+	// ErrInvalidScope when sc is not bounded, ErrNoDocuments when no session in the namespace sc is
+	// bounded to has the given UID, and the database's error when the statement fails.
+	SessionKeepAlive(ctx context.Context, sc scope.Scope, uid models.UID, at time.Time) error
 
 	// ActiveSessionCreate creates an active session entry. It returns an error if any.
 	ActiveSessionCreate(ctx context.Context, session *models.Session) error
@@ -52,8 +55,11 @@ type SessionStore interface {
 	// ActiveSessionUpdate updates an active session. It returns an error if any.
 	ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error
 
-	// ActiveSessionDelete removes active session entries. It returns an error if any.
-	ActiveSessionDelete(ctx context.Context, uid models.UID) error
+	// ActiveSessionDelete retires the session within the namespace sc is bounded to: it stamps its
+	// last-seen time and removes it from the active set. It returns ErrInvalidScope when sc is not
+	// bounded, ErrNoDocuments when no session in that namespace has the given UID, and the
+	// database's error when the statement fails.
+	ActiveSessionDelete(ctx context.Context, sc scope.Scope, uid models.UID) error
 
 	// ActiveSessionCleanup retires every active session whose last keep-alive predates before by
 	// dropping its active-session row. It returns how many it retired.
@@ -64,8 +70,11 @@ type SessionStore interface {
 	SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error
 	// SessionEventsCreateMany creates session events in a single statement. Events
 	// carry their own timestamp, so a batch does not reorder anything a reader
-	// sees. It returns an error if any; an empty slice is a no-op.
-	SessionEventsCreateMany(ctx context.Context, events []models.SessionEvent) error
+	// sees. The batch is written whole or not at all: it returns ErrNoDocuments, and writes
+	// nothing, when any event's session is outside the namespace sc is bounded to. It returns
+	// ErrInvalidScope when sc is not bounded and the database's error when the statement fails. An
+	// empty slice with a bounded scope is a no-op.
+	SessionEventsCreateMany(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error
 	// SessionEventsList retrieves session events based on filters. It returns the list of events, total count, and an error if any.
 	SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...QueryOption) ([]models.SessionEvent, int, error)
 	// SessionEventsDelete removes session events based on filters. It returns an error if any.
