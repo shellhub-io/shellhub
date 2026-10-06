@@ -386,6 +386,13 @@ func (s *Stack) ExpireCacheEntryIn(ctx context.Context, key string, ttl time.Dur
 	return s.cacheCommand(ctx, "PEXPIRE", key, strconv.FormatInt(ttl.Milliseconds(), 10))
 }
 
+// CopyCacheEntry stores a copy of the cache entry from under the key to, with the time from has
+// left. ctx bounds the exec. It returns the errors [Stack.ExpireCacheEntryIn] does, an error when
+// the cache holds no entry named from, and an error when it already holds one named to.
+func (s *Stack) CopyCacheEntry(ctx context.Context, from, to string) error {
+	return s.cacheCommand(ctx, "COPY", from, to)
+}
+
 func (s *Stack) cacheCommand(ctx context.Context, args ...string) error {
 	cache := s.Service(ServiceRedis)
 	if cache == nil {

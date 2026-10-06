@@ -367,6 +367,14 @@ func (dc *DockerCompose) ExpireCacheEntryIn(t *testing.T, key string, ttl time.D
 	require.NoError(t, dc.stack.ExpireCacheEntryIn(t.Context(), key, ttl))
 }
 
+// CopyCacheEntry stores a copy of the cache entry from under the key to, failing t unless the cache
+// holds from and does not hold to. See [Stack.CopyCacheEntry].
+func (dc *DockerCompose) CopyCacheEntry(t *testing.T, from, to string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.CopyCacheEntry(t.Context(), from, to))
+}
+
 // ProvisioningKeyHistory returns the enrollment events of the provisioning key whose digest is id,
 // newest first, failing t unless the server answers 200.
 func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []models.ProvisioningKeyEvent {
