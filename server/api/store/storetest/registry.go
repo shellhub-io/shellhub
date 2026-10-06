@@ -181,6 +181,7 @@ var Groups = []Group{
 		(*Suite).TestScopeIsolationSessionResolve,
 		(*Suite).TestScopeIsolationSessionList,
 		(*Suite).TestScopeIsolationSessionUpdate,
+		(*Suite).TestScopeIsolationSessionUpdateKeepsNamespace,
 		(*Suite).TestScopeIsolationSessionKeepAlive,
 		(*Suite).TestScopeIsolationActiveSessionDelete,
 		(*Suite).TestScopeIsolationSessionEventsCreateMany,

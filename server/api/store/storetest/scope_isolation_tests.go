@@ -920,6 +920,25 @@ func (s *Suite) TestScopeIsolationSessionUpdate(t *testing.T) {
 	assert.True(t, recorded())
 }
 
+// TestScopeIsolationSessionUpdateKeepsNamespace locks that SessionUpdate cannot move a session to
+// another namespace through the model it writes.
+func (s *Suite) TestScopeIsolationSessionUpdateKeepsNamespace(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	uid := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"))))
+
+	require.NoError(t, st.SessionUpdate(ctx, scope.MustBounded(owner),
+		&models.Session{UID: string(uid), TenantID: other, Recorded: true}))
+
+	got, err := st.SessionResolve(ctx, scope.MustBounded(owner), store.SessionUIDResolver, string(uid))
+	require.NoError(t, err)
+	assert.Equal(t, owner, got.TenantID)
+}
+
 // TestScopeIsolationSessionKeepAlive locks that SessionKeepAlive stamps a session, and puts it back
 // in the active set, only within its owning namespace.
 func (s *Suite) TestScopeIsolationSessionKeepAlive(t *testing.T) {

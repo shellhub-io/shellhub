@@ -135,7 +135,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, sc scope.Scope, session *models
 	result, err := db.NewUpdate().
 		Model(e).
 		OmitZero().
-		ExcludeColumn("authenticated", "recorded").
+		ExcludeColumn("namespace_id", "authenticated", "recorded").
 		Set("authenticated = ?", e.Authenticated).
 		Set("recorded = ?", e.Recorded).
 		Where("id = ?", e.ID).
