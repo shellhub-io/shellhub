@@ -34,3 +34,47 @@ get:
       $ref: ../components/responses/503.yaml
     '501':
       description: SAML authentication is not enabled or instance is not running Enterprise edition
+post:
+  operationId: authSamlUser
+  summary: Receive a SAML assertion
+  description: |
+    The assertion consumer service. The Identity Provider posts the user's signed
+    assertion here through the browser.
+
+    Without a `RelayState`, it signs the user in and redirects to `/login` with the
+    session token, or with the attributes the assertion is missing. With a
+    `RelayState`, it answers a re-authentication started at
+    `/api/user/saml/reauth` and redirects to `/sso-reauth` with `status=ok` and
+    the confirmation code that approves the SSH login, or with `status=error`.
+  tags:
+    - cloud
+    - users
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          type: object
+          required:
+            - SAMLResponse
+          properties:
+            SAMLResponse:
+              type: string
+              description: The base64-encoded SAML response from the Identity Provider
+            RelayState:
+              type: string
+              description: The re-authentication token, when the assertion answers a re-authentication
+  responses:
+    '301':
+      description: Redirects the browser back to the console
+      headers:
+        Location:
+          schema:
+            type: string
+    '500':
+      $ref: '../components/responses/500.yaml'
+    '503':
+      $ref: ../components/responses/503.yaml
+    '501':
+      description: SAML authentication is not enabled or instance is not running Enterprise edition

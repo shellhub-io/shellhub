@@ -1,3 +1,6 @@
 spec/paths/api@healthcheck.yaml:
   operation-4xx-response:
     - '#/get/responses'
+spec/paths/api@user@saml@auth.yaml:
+  operation-2xx-response:
+    - '#/post/responses'
