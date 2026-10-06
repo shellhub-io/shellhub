@@ -37,7 +37,8 @@ type SessionStore interface {
 	SessionResolve(ctx context.Context, sc scope.Scope, resolver SessionResolver, value string, opts ...QueryOption) (*models.Session, error)
 	// SessionCreate creates a new session. It returns the inserted UID and an error if any.
 	SessionCreate(ctx context.Context, session models.Session) (string, error)
-	// SessionUpdate updates the session within the namespace sc is bounded to. It returns
+	// SessionUpdate updates the session within the namespace sc is bounded to. It never moves the
+	// session to another namespace, whatever TenantID the model carries. It returns
 	// ErrInvalidScope when sc is not bounded, ErrNoDocuments when no session in that namespace has
 	// the model's UID, and the database's error when the statement fails.
 	SessionUpdate(ctx context.Context, sc scope.Scope, session *models.Session) error
