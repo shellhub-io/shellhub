@@ -31,6 +31,7 @@ import {
 import { fillDigits, signInWithMFA, totp } from "./mfa";
 import {
   buildShortId,
+  composeExec,
   enableMFA,
   markSamlOrigin,
   mfaSecret,
@@ -38,6 +39,7 @@ import {
   startAgent,
 } from "./seed";
 import {
+  type AnswerOptions,
   answerSignOn,
   disableSaml,
   enableSaml,
@@ -360,15 +362,16 @@ async function requireReauth(team: Team) {
   });
 }
 
-async function signInAsSamlOwner(page: Page) {
+async function signInAsSamlOwner(page: Page, options?: AnswerOptions) {
   const team = await createTeam({ sshAccessMode: "identity" });
   await requireReauth(team);
   markSamlOrigin(team.owner.username);
   const device = await createDevice(team);
-  const requests = await answerSignOn(page.context(), {
-    email: team.owner.email,
-    name: team.owner.username,
-  });
+  const requests = await answerSignOn(
+    page.context(),
+    { email: team.owner.email, name: team.owner.username },
+    options,
+  );
   await signInWithSso(page);
   await expect(page).toHaveURL(/\/dashboard$/);
   await dismissWizard(page);
@@ -380,6 +383,19 @@ async function reauthenticateWithSso(page: Page) {
   await dialog.getByRole("button", { name: "Continue" }).click();
   await dialog.getByRole("button", { name: "Re-authenticate" }).click();
   return dialog;
+}
+
+function expireSamlRelayToken(token: string) {
+  const out = composeExec("redis", [
+    "valkey-cli",
+    "DEL",
+    `saml-stepup/${token}`,
+  ]);
+  if (out !== "1") {
+    throw new Error(
+      `expected to expire SAML relay token ${token}, got "${out}"`,
+    );
+  }
 }
 
 const reauthDialog = (page: Page) =>
@@ -460,6 +476,31 @@ test.describe("Re-authentication", () => {
           ({ document }) => document.getAttributeNode("ForceAuthn")?.value,
         ),
       ).toEqual([undefined, "true"]);
+      await expectAuthenticatedWebSession(team, device.uid);
+    });
+
+    test("an expired relay token refuses the SAML re-authentication", async ({
+      page,
+    }) => {
+      let expiredRelayState = "";
+      const { team, device } = await signInAsSamlOwner(page, {
+        beforeAnswer: ({ relayState }) => {
+          if (!relayState || expiredRelayState) return;
+          expireSamlRelayToken(relayState);
+          expiredRelayState = relayState;
+        },
+      });
+
+      await connectWithBrowserKey(page, device.name);
+      const dialog = await reauthenticateWithSso(page);
+
+      await expect(dialog).toContainText(
+        "Re-authentication with your provider failed. Please try again.",
+      );
+
+      await dialog.getByRole("button", { name: "Re-authenticate" }).click();
+
+      await expectShell(page, device.name);
       await expectAuthenticatedWebSession(team, device.uid);
     });
   });

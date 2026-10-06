@@ -223,12 +223,13 @@ export function answerSignOnRequest(
 
 export type AnswerOptions = {
   attributes?: AttributeNames;
+  beforeAnswer?: (request: SignOnRequest) => void;
 };
 
 export async function answerSignOn(
   context: BrowserContext,
   user: SamlUser,
-  { attributes }: AnswerOptions = {},
+  { attributes, beforeAnswer }: AnswerOptions = {},
 ) {
   const requests: SignOnRequest[] = [];
   await context.route(`${identityProvider}/sso/**`, async (route) => {
@@ -238,6 +239,7 @@ export async function answerSignOn(
       attributes,
     );
     requests.push(request);
+    beforeAnswer?.(request);
     await route.fulfill({
       contentType: "text/html",
       body: `<form method="post" action="${action}"><input type="hidden" name="SAMLResponse" value="${samlResponse}"><input type="hidden" name="RelayState" value="${request.relayState}"></form><script>document.forms[0].submit()</script>`,
