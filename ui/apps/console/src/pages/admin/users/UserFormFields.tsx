@@ -20,6 +20,7 @@ interface UserFormFieldsProps {
   idPrefix: string;
   canChangeConfirmed?: boolean;
   disableAdmin?: boolean;
+  usernameRequired?: boolean;
 }
 
 /**
@@ -32,6 +33,7 @@ export default function UserFormFields({
   idPrefix,
   canChangeConfirmed = true,
   disableAdmin = false,
+  usernameRequired = true,
 }: UserFormFieldsProps) {
   const isCreate = mode === "create";
 
@@ -58,7 +60,7 @@ export default function UserFormFields({
         hint={USERNAME_HINT}
         autoComplete="username"
         maxLength={USERNAME_MAX_LENGTH}
-        required
+        required={usernameRequired}
       />
 
       <FormInputField

@@ -46,15 +46,19 @@ export type UserFormValues = z.infer<typeof userFields>;
 
 /**
  * On edit a blank password means "keep the current one", so it skips the
- * length rule; every other field is validated the same way in both modes.
+ * length rule. When usernameRequired is false a blank username is accepted,
+ * and a typed one is still validated; every other field is validated the same
+ * way in both modes.
  */
-export function userSchema(mode: UserFormMode) {
+export function userSchema(mode: UserFormMode, usernameRequired = true) {
   return userFields.superRefine((v, ctx) => {
     const nameError = validateName(v.name);
     if (nameError) ctx.addIssue({ code: "custom", path: ["name"], message: nameError });
 
-    const usernameError = validateUsername(v.username);
-    if (usernameError) ctx.addIssue({ code: "custom", path: ["username"], message: usernameError });
+    if (usernameRequired || v.username.trim() !== "") {
+      const usernameError = validateUsername(v.username);
+      if (usernameError) ctx.addIssue({ code: "custom", path: ["username"], message: usernameError });
+    }
 
     const emailError = validateEmail(v.email);
     if (emailError) ctx.addIssue({ code: "custom", path: ["email"], message: emailError });
