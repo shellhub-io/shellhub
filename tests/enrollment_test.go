@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -23,6 +24,7 @@ func TestEnrollmentPolicy(t *testing.T) {
 
 	t.Run("automatic", func(t *testing.T) { testAutomaticEnrollment(t, compose) })
 	t.Run("manual", func(t *testing.T) { testManualEnrollment(t, compose) })
+	t.Run("allowlist", func(t *testing.T) { testAllowlistEnrollment(t, compose) })
 }
 
 func newKeyedDeviceAuthRequest(t *testing.T, key, hostname, mac string) requests.DeviceAuth {
@@ -65,6 +67,24 @@ func requireAuthRefused(t *testing.T, compose *environment.DockerCompose, req re
 	for _, device := range compose.ListDevices(t, models.DeviceStatusEmpty) {
 		assert.NotEqual(t, req.Hostname, device.Name, "a refused enrollment left a device behind")
 	}
+}
+
+func awaitStatusOnReauth(t *testing.T, compose *environment.DockerCompose, req requests.DeviceAuth, uid string, status models.DeviceStatus) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := postDeviceAuth(t.Context(), compose, req)
+		if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
+			return
+		}
+
+		current, resp, err := compose.GetDevice(t.Context(), uid)
+		if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
+			return
+		}
+
+		assert.Equal(tt, status, current.Status)
+	}, deviceAuthCacheTTL+30*time.Second, 2*time.Second)
 }
 
 func tagNames(device models.Device) []string {
