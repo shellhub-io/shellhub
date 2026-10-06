@@ -359,6 +359,14 @@ func (dc *DockerCompose) SessionEventCount(t *testing.T, uid string) int {
 	return count
 }
 
+// ExpireCacheEntryIn sets the time the cache entry key has left to ttl, failing t unless the cache
+// holds the entry. See [Stack.ExpireCacheEntryIn].
+func (dc *DockerCompose) ExpireCacheEntryIn(t *testing.T, key string, ttl time.Duration) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.ExpireCacheEntryIn(t.Context(), key, ttl))
+}
+
 // ProvisioningKeyHistory returns the enrollment events of the provisioning key whose digest is id,
 // newest first, failing t unless the server answers 200.
 func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []models.ProvisioningKeyEvent {

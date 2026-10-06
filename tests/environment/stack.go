@@ -12,6 +12,8 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -196,7 +198,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		return nil, down(err)
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres} {
+	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err != nil {
 			return nil, down(err)
@@ -264,7 +266,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 		}
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres} {
+	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err == nil {
 			s.services[svc] = c
@@ -374,6 +376,41 @@ func (s *Stack) SQL(ctx context.Context, statement string, vars map[string]strin
 	}
 
 	return string(body), nil
+}
+
+// ExpireCacheEntryIn sets the time the cache entry key has left to ttl, so the cache drops it on
+// its own once ttl elapses. ctx bounds the exec. It returns an error when the stack runs no cache,
+// the error of an exec that could not start or whose output could not be read, an error carrying
+// the CLI's output when it exits non-zero, and an error when the cache holds no entry named key.
+func (s *Stack) ExpireCacheEntryIn(ctx context.Context, key string, ttl time.Duration) error {
+	return s.cacheCommand(ctx, "PEXPIRE", key, strconv.FormatInt(ttl.Milliseconds(), 10))
+}
+
+func (s *Stack) cacheCommand(ctx context.Context, args ...string) error {
+	cache := s.Service(ServiceRedis)
+	if cache == nil {
+		return errors.New("the stack runs no cache")
+	}
+
+	code, output, err := cache.Exec(ctx, append([]string{"valkey-cli"}, args...), tcexec.Multiplexed())
+	if err != nil {
+		return err
+	}
+
+	body, err := io.ReadAll(output)
+	if err != nil {
+		return err
+	}
+
+	if code != 0 {
+		return fmt.Errorf("valkey-cli exited with %d: %s", code, body)
+	}
+
+	if reply := strings.TrimSpace(string(body)); reply != "1" {
+		return fmt.Errorf("valkey-cli %v changed nothing: it replied %q", args, reply)
+	}
+
+	return nil
 }
 
 // NewUser creates a user via the server's admin CLI.

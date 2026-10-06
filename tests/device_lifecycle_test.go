@@ -235,3 +235,12 @@ func deviceUIDs(devices []models.Device) []string {
 
 	return uids
 }
+
+func deviceNames(devices []models.Device) []string {
+	names := make([]string, 0, len(devices))
+	for _, device := range devices {
+		names = append(names, device.Name)
+	}
+
+	return names
+}
