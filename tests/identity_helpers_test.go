@@ -24,6 +24,8 @@ const (
 )
 
 const (
+	rejectedReason     = "This login was rejected in the console."
+	expiredReason      = "This request expired. Connect again to get a new one."
 	accessDeniedReason = "An access policy does not allow this login."
 )
 
@@ -209,6 +211,39 @@ func confirmApprovalAs(ctx context.Context, compose *environment.DockerCompose, 
 	resp, err := req.Post("/api/ssh-approvals/" + code + "/confirm")
 
 	return confirmation, resp, err
+}
+
+func rejectApprovalAs(ctx context.Context, compose *environment.DockerCompose, token, code string) (*resty.Response, error) {
+	return approvalRequest(ctx, compose, token).Post("/api/ssh-approvals/" + code + "/reject")
+}
+
+func getApprovalAs(ctx context.Context, compose *environment.DockerCompose, token, code string) (*models.SSHApprovalRequest, *resty.Response, error) {
+	approval := new(models.SSHApprovalRequest)
+
+	resp, err := approvalRequest(ctx, compose, token).SetResult(approval).Get("/api/ssh-approvals/" + code)
+
+	return approval, resp, err
+}
+
+func confirmApproval(t *testing.T, compose *environment.DockerCompose, code string) string {
+	t.Helper()
+
+	confirmation, resp, err := confirmApprovalAs(t.Context(), compose, "", code, nil)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	require.NotEmpty(t, confirmation.ConfirmationCode)
+
+	return confirmation.ConfirmationCode
+}
+
+func approvalState(t *testing.T, compose *environment.DockerCompose, code string) models.SSHApprovalState {
+	t.Helper()
+
+	approval, resp, err := getApprovalAs(t.Context(), compose, "", code)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+	return approval.State
 }
 
 func postReauth(ctx context.Context, compose *environment.DockerCompose, fingerprint, code string) (*models.SSHApprovalConfirmation, *resty.Response, error) {
