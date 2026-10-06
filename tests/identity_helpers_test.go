@@ -211,6 +211,28 @@ func confirmApprovalAs(ctx context.Context, compose *environment.DockerCompose, 
 	return confirmation, resp, err
 }
 
+func postReauth(ctx context.Context, compose *environment.DockerCompose, fingerprint, code string) (*models.SSHApprovalConfirmation, *resty.Response, error) {
+	confirmation := new(models.SSHApprovalConfirmation)
+
+	resp, err := compose.R(ctx).
+		SetBody(&requests.WebReauthVerify{Password: ShellHubPassword, Fingerprint: fingerprint, ApprovalCode: code}).
+		SetResult(confirmation).
+		Post("/api/web-terminal/reauth")
+
+	return confirmation, resp, err
+}
+
+func reauthenticate(t *testing.T, compose *environment.DockerCompose, fingerprint, code string) string {
+	t.Helper()
+
+	confirmation, resp, err := postReauth(t.Context(), compose, fingerprint, code)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	require.NotEmpty(t, confirmation.ConfirmationCode)
+
+	return confirmation.ConfirmationCode
+}
+
 func identitiesHolding(t *testing.T, compose *environment.DockerCompose, fingerprint string) []models.SSHIdentity {
 	t.Helper()
 
