@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"encoding/base64"
 	"os"
 	"path/filepath"
 	"testing"
@@ -88,6 +89,17 @@ func TestEdition(t *testing.T) {
 			assert.Equal(t, "production", envs["SHELLHUB_ENV"])
 
 			assert.Equal(t, tt.editionEnvs, pick(envs, "SHELLHUB_BILLING", "COMPOSE_PROFILES", "SHELLHUB_EMAIL_PROVIDER", "SHELLHUB_MAXMIND_MIRROR"))
+
+			secret, ok := envs["SHELLHUB_SAML_SECRET"]
+			if tt.edition == EditionCommunity {
+				assert.False(t, ok, "community has no SAML to sign requests for")
+
+				return
+			}
+
+			key, err := base64.URLEncoding.DecodeString(secret)
+			require.NoError(t, err, "the server decodes the SAML secret as URL-safe base64")
+			assert.Len(t, key, 32, "the SAML secret encrypts the SP key with AES-256")
 		})
 	}
 
