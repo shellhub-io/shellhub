@@ -88,14 +88,9 @@ func openShellSession(t *testing.T, ctx context.Context, compose *environment.Do
 func requireSessionActive(t *testing.T, ctx context.Context, compose *environment.DockerCompose, uid string, active bool) {
 	t.Helper()
 
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		session := models.Session{} //nolint:exhaustruct // filled from the API response
-
-		resp, err := compose.R(ctx).SetResult(&session).Get("/api/sessions/" + uid)
-		assert.NoError(tt, err)
-		assert.Equal(tt, 200, resp.StatusCode())
+	awaitSession(t, ctx, compose, uid, 30*time.Second, func(tt *assert.CollectT, session models.Session) {
 		assert.Equal(tt, active, session.Active)
-	}, 30*time.Second, 1*time.Second)
+	})
 }
 
 func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {

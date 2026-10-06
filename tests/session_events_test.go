@@ -84,16 +84,9 @@ func sessionAfter(t *testing.T, ctx context.Context, compose *environment.Docker
 func sessionDetail(t *testing.T, ctx context.Context, compose *environment.DockerCompose, uid string) models.Session {
 	t.Helper()
 
-	session := models.Session{} //nolint:exhaustruct // filled from the API response
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).SetResult(&session).Get("/api/sessions/" + uid)
-		assert.NoError(tt, err)
-		assert.Equal(tt, 200, resp.StatusCode(), "the strict validator names the mismatch: %s", resp.String())
+	return awaitSession(t, ctx, compose, uid, 30*time.Second, func(tt *assert.CollectT, session models.Session) {
 		assert.NotEmpty(tt, session.Events.Items, "the timeline is written after the channel opens")
-	}, 30*time.Second, 1*time.Second)
-
-	return session
+	})
 }
 
 func itemOfType(events []models.SessionEvent, eventType models.SessionEventType) *models.SessionEvent {
