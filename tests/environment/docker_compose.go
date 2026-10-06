@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -321,6 +322,41 @@ func (dc *DockerCompose) SetNamespaceMaxDevices(ctx context.Context, tenant stri
 	}
 
 	return nil
+}
+
+// AgeSession moves the start of the session uid back by age, failing t unless exactly that session
+// changed. It stands in for the days a session waits to fall out of the retention window, so the
+// retention job finds it expired without the test waiting for them.
+func (dc *DockerCompose) AgeSession(t *testing.T, uid string, age time.Duration) {
+	t.Helper()
+
+	output, err := dc.stack.SQL(t.Context(),
+		"UPDATE sessions SET started_at = started_at - make_interval(secs => :'seconds') WHERE id = :'uid'",
+		map[string]string{"uid": uid, "seconds": strconv.FormatFloat(age.Seconds(), 'f', -1, 64)})
+	require.NoError(t, err)
+	require.Contains(t, output, "UPDATE 1")
+}
+
+var sessionEventCountPattern = regexp.MustCompile(`events=(\d+)`)
+
+// SessionEventCount returns how many events the database holds for the session uid, terminal
+// output included, reading the table directly so it still answers once the session is gone. It
+// fails t when the count cannot be read.
+func (dc *DockerCompose) SessionEventCount(t *testing.T, uid string) int {
+	t.Helper()
+
+	output, err := dc.stack.SQL(t.Context(),
+		"SELECT 'events=' || count(*) FROM session_events WHERE session_id = :'uid'",
+		map[string]string{"uid": uid})
+	require.NoError(t, err)
+
+	match := sessionEventCountPattern.FindStringSubmatch(output)
+	require.NotNil(t, match, "psql printed no count: %s", output)
+
+	count, err := strconv.Atoi(match[1])
+	require.NoError(t, err)
+
+	return count
 }
 
 // ProvisioningKeyHistory returns the enrollment events of the provisioning key whose digest is id,
