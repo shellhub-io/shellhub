@@ -2,6 +2,8 @@ package environment
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -113,6 +115,7 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	if e != EditionCommunity {
 		envs["SHELLHUB_EMAIL_PROVIDER"] = "dummy"
 		envs["SHELLHUB_MAXMIND_MIRROR"] = ""
+		envs["SHELLHUB_SAML_SECRET"] = buildSAMLSecret()
 	}
 
 	if e == EditionCloud {
@@ -121,6 +124,13 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	}
 
 	return envs, nil
+}
+
+func buildSAMLSecret() string {
+	key := make([]byte, 32)
+	rand.Read(key)
+
+	return base64.URLEncoding.EncodeToString(key)
 }
 
 func (e Edition) openapiSpec() string {
