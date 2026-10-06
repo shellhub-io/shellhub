@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
-	github.com/docker/cli v29.6.0+incompatible
+	github.com/docker/cli v29.8.2+incompatible
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
 	github.com/moby/moby/api v1.56.0
