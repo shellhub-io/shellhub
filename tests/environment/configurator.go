@@ -46,6 +46,13 @@ func (dcc *DockerComposeConfigurator) WithEnv(name, value string) *DockerCompose
 	return dcc
 }
 
+// WithCronTrigger publishes the stack's redis on a port reserved for it, so [DockerCompose.RunCron]
+// can reach the queue the server schedules its cron jobs on. Without it redis takes whatever port
+// the daemon picks, which the test neither knows nor, under rootless Docker, can reach.
+func (dcc *DockerComposeConfigurator) WithCronTrigger() *DockerComposeConfigurator {
+	return dcc.WithEnv(redisPortEnv, ReservePort(dcc.t))
+}
+
 // Up initiates the ShellHub instance, blocking until all services are in the running or
 // healthy state. The first successful Up in a run builds the server, gateway and ui images;
 // every later Up starts from those images and fails if they were removed in between.

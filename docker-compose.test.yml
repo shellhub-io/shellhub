@@ -42,3 +42,5 @@ services:
       retries: 20
   redis:
     labels: *e2e-labels
+    ports:
+      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_TEST_REDIS_PORT:-0}:6379
