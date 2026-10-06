@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -48,15 +46,7 @@ func testEnrollmentLimits(t *testing.T, compose *environment.DockerCompose) {
 		within := enroll(t, compose, newKeyedDeviceAuthRequest(t, key.Key, "limit-within", "02:00:00:00:60:03"))
 		require.Equal(t, models.DeviceStatusAccepted, within.Status)
 
-		namespace := new(responses.Namespace)
-		resp, err := compose.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + ShellHubNamespace)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-
-		require.NoError(t, compose.SetNamespaceMaxDevices(t.Context(), ShellHubNamespace, int(namespace.DevicesAcceptedCount)))
-		t.Cleanup(func() {
-			assert.NoError(t, compose.SetNamespaceMaxDevices(context.Background(), ShellHubNamespace, -1))
-		})
+		compose.LimitNamespaceToItsAcceptedDevices(t, ShellHubNamespace)
 
 		req := newKeyedDeviceAuthRequest(t, key.Key, "limit-over", "02:00:00:00:60:04")
 		over := enroll(t, compose, req)

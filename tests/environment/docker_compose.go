@@ -375,6 +375,25 @@ func (dc *DockerCompose) CopyCacheEntry(t *testing.T, from, to string) {
 	require.NoError(t, dc.stack.CopyCacheEntry(t.Context(), from, to))
 }
 
+// LimitNamespaceToItsAcceptedDevices sets the device limit of the namespace tenant to the number of
+// devices it has accepted, so accepting one more is refused, and lifts the limit when t ends. The
+// client must be authenticated against a member of tenant. A namespace that has accepted no device
+// would read the limit as none, so it fails t then, and when the namespace cannot be read or written.
+func (dc *DockerCompose) LimitNamespaceToItsAcceptedDevices(t *testing.T, tenant string) {
+	t.Helper()
+
+	namespace := new(responses.Namespace)
+	resp, err := dc.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + tenant)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	require.Positive(t, namespace.DevicesAcceptedCount, "a limit of zero devices is no limit")
+
+	require.NoError(t, dc.SetNamespaceMaxDevices(t.Context(), tenant, int(namespace.DevicesAcceptedCount)))
+	t.Cleanup(func() {
+		assert.NoError(t, dc.SetNamespaceMaxDevices(context.Background(), tenant, -1))
+	})
+}
+
 // ProvisioningKeyHistory returns the enrollment events of the provisioning key whose digest is id,
 // newest first, failing t unless the server answers 200.
 func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []models.ProvisioningKeyEvent {
