@@ -171,6 +171,20 @@ export function enableMFA(
   }
 }
 
+export function markSamlOrigin(username: string) {
+  const out = sql(
+    "UPDATE users SET origin = 'saml' WHERE username = :'username';",
+    {
+      username,
+    },
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(
+      `expected to mark ${username} as a SAML user, got "${out}"`,
+    );
+  }
+}
+
 export function countRecoveryCodes(username: string) {
   const count = sql(
     "SELECT coalesce(cardinality(mfa_recovery_codes), 0) FROM users WHERE username = :'username';",

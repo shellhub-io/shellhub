@@ -1,7 +1,18 @@
-import { type Locator, type Page, expect, test } from "@playwright/test";
-import { type ChildProcess, execFileSync, spawn } from "node:child_process";
-import sshpk from "sshpk";
 import {
+  type BrowserContext,
+  type Locator,
+  type Page,
+  expect,
+  test,
+} from "@playwright/test";
+import { type ChildProcess, execFileSync, spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { inflateRawSync } from "node:zlib";
+import sshpk from "sshpk";
+import { DOMParser } from "@xmldom/xmldom";
+import { SignedXml } from "xml-crypto";
+import {
+  configureSamlAuthentication,
   createAccessPolicy,
   createPublicKey,
   createSshIdentity,
@@ -16,11 +27,12 @@ import {
   listSshIdentities,
   updateDeviceStatus,
 } from "@/client";
-import { buildRequestContext } from "./api";
-import { isCommunity } from "./env";
+import { buildRequestContext, loginAs } from "./api";
+import { adminUser, isCommunity, isEnterprise, requireEnv } from "./env";
 import {
   createTeam,
   createTeamWithOwnerInAnother,
+  dismissWizard,
   findRow,
   mfaReason,
   signInAndOpen,
@@ -31,6 +43,7 @@ import { fillDigits, signInWithMFA, totp } from "./mfa";
 import {
   buildShortId,
   enableMFA,
+  markSamlOrigin,
   mfaSecret,
   password,
   startAgent,
@@ -361,6 +374,178 @@ async function reauthenticateWithPassword(page: Page) {
   await dialog.getByRole("button", { name: "Re-authenticate" }).click();
 }
 
+const identityProvider = "http://idp.e2e.test";
+const signOnURL = `${identityProvider}/sso`;
+
+const issuerElement = `<saml:Issuer>${identityProvider}</saml:Issuer>`;
+const buildSamlId = () => `_${randomUUID()}`;
+
+function buildSigningKey() {
+  const privateKey = buildPrivateKey();
+  const certificate = sshpk.createSelfSignedCertificate(
+    sshpk.identityForHost(new URL(identityProvider).hostname),
+    sshpk.parsePrivateKey(privateKey),
+    {
+      validFrom: new Date(Date.now() - 60_000),
+      validUntil: new Date(Date.now() + 86_400_000),
+    },
+  );
+  return { privateKey, certificate: certificate.toString("pem") };
+}
+
+const signingKey = buildSigningKey();
+
+async function adminContext() {
+  const { token } = await loginAs(adminUser.username, adminUser.password);
+  return buildRequestContext({ token });
+}
+
+async function enableSaml() {
+  await configureSamlAuthentication({
+    ...(await adminContext()),
+    body: {
+      enable: true,
+      idp: {
+        entity_id: identityProvider,
+        certificate: signingKey.certificate,
+        binding: { redirect: signOnURL, preferred: "redirect" },
+        mappings: { email: "email", name: "name" },
+      },
+      sp: { sign_requests: false },
+    },
+  });
+}
+
+async function disableSaml() {
+  await configureSamlAuthentication({
+    ...(await adminContext()),
+    body: { enable: false, idp: {}, sp: {} },
+  });
+}
+
+function required(value: string | null | undefined, what: string) {
+  if (!value) throw new Error(`expected ${what}`);
+  return value;
+}
+
+const requireAttribute = (request: Element, name: string) =>
+  required(request.getAttribute(name), `${name} in the SAML request`);
+
+type AssertionFields = {
+  email: string;
+  requestId: string;
+  consumer: string;
+  audience: string;
+  issued: string;
+  expires: string;
+};
+
+function buildAssertion(fields: AssertionFields) {
+  const { email, requestId, consumer, audience, issued, expires } = fields;
+  return [
+    `<saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${buildSamlId()}" Version="2.0" IssueInstant="${issued}">`,
+    issuerElement,
+    "<saml:Subject>",
+    `<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">${email}</saml:NameID>`,
+    '<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">',
+    `<saml:SubjectConfirmationData InResponseTo="${requestId}" NotOnOrAfter="${expires}" Recipient="${consumer}"/>`,
+    "</saml:SubjectConfirmation>",
+    "</saml:Subject>",
+    `<saml:Conditions NotBefore="${issued}" NotOnOrAfter="${expires}">`,
+    `<saml:AudienceRestriction><saml:Audience>${audience}</saml:Audience></saml:AudienceRestriction>`,
+    "</saml:Conditions>",
+    `<saml:AuthnStatement AuthnInstant="${issued}" SessionIndex="${buildSamlId()}">`,
+    "<saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></saml:AuthnContext>",
+    "</saml:AuthnStatement>",
+    "<saml:AttributeStatement>",
+    `<saml:Attribute Name="email"><saml:AttributeValue>${email}</saml:AttributeValue></saml:Attribute>`,
+    `<saml:Attribute Name="name"><saml:AttributeValue>${email}</saml:AttributeValue></saml:Attribute>`,
+    "</saml:AttributeStatement>",
+    "</saml:Assertion>",
+  ].join("");
+}
+
+function signAssertion(response: string) {
+  const signature = new SignedXml({
+    privateKey: signingKey.privateKey,
+    publicCert: signingKey.certificate,
+    signatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+    canonicalizationAlgorithm: "http://www.w3.org/2001/10/xml-exc-c14n#",
+  });
+  signature.addReference({
+    xpath: "//*[local-name(.)='Assertion']",
+    transforms: [
+      "http://www.w3.org/2000/09/xmldsig#enveloped-signature",
+      "http://www.w3.org/2001/10/xml-exc-c14n#",
+    ],
+    digestAlgorithm: "http://www.w3.org/2001/04/xmlenc#sha256",
+  });
+  signature.computeSignature(response, {
+    prefix: "ds",
+    location: {
+      reference: "//*[local-name(.)='Assertion']/*[local-name(.)='Issuer']",
+      action: "after",
+    },
+  });
+  return signature.getSignedXml();
+}
+
+function buildResponse(request: Element, email: string) {
+  const now = new Date();
+  const fields = {
+    email,
+    requestId: requireAttribute(request, "ID"),
+    consumer: requireAttribute(request, "AssertionConsumerServiceURL"),
+    audience: required(
+      request.getElementsByTagNameNS(
+        "urn:oasis:names:tc:SAML:2.0:assertion",
+        "Issuer",
+      )[0]?.textContent,
+      "an Issuer in the SAML request",
+    ),
+    issued: now.toISOString(),
+    expires: new Date(now.getTime() + 5 * 60_000).toISOString(),
+  };
+  const response = [
+    `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${buildSamlId()}" Version="2.0" IssueInstant="${fields.issued}" Destination="${fields.consumer}" InResponseTo="${fields.requestId}">`,
+    issuerElement,
+    '<samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status>',
+    buildAssertion(fields),
+    "</samlp:Response>",
+  ].join("");
+  return { consumer: fields.consumer, xml: signAssertion(response) };
+}
+
+async function answerSignOnWithAssertion(
+  context: BrowserContext,
+  email: string,
+) {
+  const requests: Element[] = [];
+  await context.route(`${signOnURL}?**`, async (route) => {
+    const url = new URL(route.request().url());
+    const encodedRequest = required(
+      url.searchParams.get("SAMLRequest"),
+      `a SAMLRequest in ${url}`,
+    );
+    const request = new DOMParser().parseFromString(
+      inflateRawSync(Buffer.from(encodedRequest, "base64")).toString(),
+      "text/xml",
+    ).documentElement;
+    requests.push(request);
+    const { consumer, xml } = buildResponse(request, email);
+    const action = new URL(
+      new URL(consumer).pathname,
+      requireEnv("E2E_BASE_URL"),
+    );
+    const relayState = url.searchParams.get("RelayState") ?? "";
+    await route.fulfill({
+      contentType: "text/html",
+      body: `<form method="post" action="${action}"><input type="hidden" name="SAMLResponse" value="${Buffer.from(xml).toString("base64")}"><input type="hidden" name="RelayState" value="${relayState}"></form><script>document.forms[0].submit()</script>`,
+    });
+  });
+  return requests;
+}
+
 test.describe("Re-authentication", () => {
   test("a policy asks for the password before the shell opens", async ({
     page,
@@ -410,8 +595,40 @@ test.describe("Re-authentication", () => {
     expect(await readDeviceSessions(team, device.uid)).toEqual([]);
   });
 
-  test("a SAML user re-authenticates in the identity provider popup", () => {
-    test.skip(true, "needs a SAML identity provider in the e2e stack");
+  test.describe("with SAML", () => {
+    test.skip(!isEnterprise, "only enterprise signs users in with SAML");
+    test.beforeEach(enableSaml);
+    test.afterEach(disableSaml);
+
+    test("a SAML user re-authenticates in the identity provider popup", async ({
+      page,
+    }) => {
+      const team = await createTeam({ sshAccessMode: "identity" });
+      await requireReauth(team);
+      markSamlOrigin(team.owner.username);
+      const device = await createDevice(team);
+      const signOnRequests = await answerSignOnWithAssertion(
+        page.context(),
+        team.owner.email,
+      );
+      await page.goto("/login");
+      await page.getByRole("button", { name: "Login with SSO" }).click();
+      await expect(page).toHaveURL(/\/dashboard$/);
+      await dismissWizard(page);
+
+      await connectWithBrowserKey(page, device.name);
+      const dialog = reauthDialog(page);
+      await dialog.getByRole("button", { name: "Continue" }).click();
+      await dialog.getByRole("button", { name: "Re-authenticate" }).click();
+
+      await expectShell(page, device.name);
+      expect(
+        signOnRequests.map(
+          (request) => request.getAttributeNode("ForceAuthn")?.value,
+        ),
+      ).toEqual([undefined, "true"]);
+      await expectAuthenticatedWebSession(team, device.uid);
+    });
   });
 });
 

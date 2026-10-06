@@ -43,6 +43,8 @@
     "@tanstack/react-query-devtools": "^5.104.0",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.5",
-    "msw": "^2.15.0"
+    "@xmldom/xmldom": "^0.8.15",
+    "msw": "^2.15.0",
+    "xml-crypto": "^6.3.3"
   }
 }
