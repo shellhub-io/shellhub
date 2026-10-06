@@ -23,8 +23,9 @@ func constraintToField(constraint string) string {
 	}
 }
 
-// constraintUsersEmailKey and constraintUsersUsernameKey are the PostgreSQL unique-constraint
-// names for the users table, as created by migration 001_initial_schema.
+// constraintUsersEmailKey and constraintUsersUsernameKey are the names PostgreSQL reports for a
+// uniqueness violation on the users table: the email constraint from migration
+// 001_initial_schema, and the username index from 043, unique only among non-empty usernames.
 // WARNING: renaming these constraints in a migration silently breaks the constraintToField
 // mapping — update both together.
 const (
