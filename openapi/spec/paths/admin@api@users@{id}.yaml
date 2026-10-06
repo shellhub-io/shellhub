@@ -102,9 +102,7 @@ get:
                 description: Whether the user is waiting for a system admin to approve the account.
                 type: boolean
               max_namespaces:
-                description: Maximum number of namespaces the user can own
-                type: integer
-                minimum: 0
+                $ref: ../components/schemas/maxNamespaces.yaml
               created_at:
                 description: User's creating date
                 type: string
@@ -116,7 +114,7 @@ get:
               name:
                 $ref: ../components/schemas/userName.yaml
               username:
-                $ref: ../components/schemas/userUsername.yaml
+                $ref: ../components/schemas/userUsernameOrEmpty.yaml
               email:
                 $ref: ../components/schemas/userEmail.yaml
               recovery_email:
