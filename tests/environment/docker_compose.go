@@ -3,7 +3,11 @@ package environment
 import (
 	"context"
 	"crypto/rsa"
+	"fmt"
 	"io"
+	"net/http"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -179,7 +183,7 @@ func (dc *DockerCompose) CreateProvisioningKey(t *testing.T, req *requests.Creat
 		SetResult(key).
 		Post("/api/namespaces/provisioning-key")
 	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
 	require.NotEmpty(t, key.Key)
 
 	return key
@@ -193,27 +197,14 @@ func (dc *DockerCompose) AwaitProvisioningKeyUses(t *testing.T, name string, use
 
 	require.Positive(t, uses, "a key charged no use is asserted by RequireProvisioningKeyUnused")
 
-	keys := []models.ProvisioningKey{}
-
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/provisioning-key")
-		assert.NoError(tt, err)
-		assert.Equal(tt, 200, resp.StatusCode())
-
-		found := false
-
-		for _, key := range keys {
-			if key.Name != name {
-				continue
-			}
-
-			found = true
-
-			assert.Equal(tt, uses, key.UsedTimes)
-			assert.NotNil(tt, key.LastUsedAt)
+		key, err := dc.findProvisioningKey(t.Context(), name)
+		if !assert.NoError(tt, err) {
+			return
 		}
 
-		assert.True(tt, found, "the key was not listed")
+		assert.Equal(tt, uses, key.UsedTimes)
+		assert.NotNil(tt, key.LastUsedAt)
 	}, 30*time.Second, 1*time.Second)
 }
 
@@ -223,24 +214,124 @@ func (dc *DockerCompose) AwaitProvisioningKeyUses(t *testing.T, name string, use
 func (dc *DockerCompose) RequireProvisioningKeyUnused(t *testing.T, name string) {
 	t.Helper()
 
+	key := dc.ProvisioningKey(t, name)
+
+	require.Zero(t, key.UsedTimes)
+	require.Nil(t, key.LastUsedAt)
+}
+
+// RequireProvisioningKeyUsesHold asserts that the provisioning key named name stays charged uses
+// enrollments for five seconds, failing t the first time it reads another count. It proves a
+// charge that must not happen did not arrive late, so call it once the action that must not have
+// charged the key has been answered.
+func (dc *DockerCompose) RequireProvisioningKeyUsesHold(t *testing.T, name string, uses int) {
+	t.Helper()
+
+	require.Never(t, func() bool {
+		key, err := dc.findProvisioningKey(t.Context(), name)
+
+		return err != nil || key.UsedTimes != uses
+	}, 5*time.Second, time.Second, "the provisioning key %q was not held at %d uses", name, uses)
+}
+
+// ProvisioningKey returns the provisioning key named name as the listing serves it, failing t when
+// the namespace the client is authenticated against lists no such key.
+func (dc *DockerCompose) ProvisioningKey(t *testing.T, name string) models.ProvisioningKey {
+	t.Helper()
+
+	key, err := dc.findProvisioningKey(t.Context(), name)
+	require.NoError(t, err)
+
+	return *key
+}
+
+func (dc *DockerCompose) findProvisioningKey(ctx context.Context, name string) (*models.ProvisioningKey, error) {
 	keys := []models.ProvisioningKey{}
 
-	resp, err := dc.R(t.Context()).SetResult(&keys).Get("/api/namespaces/provisioning-key")
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
-
-	for _, key := range keys {
-		if key.Name != name {
-			continue
-		}
-
-		require.Zero(t, key.UsedTimes)
-		require.Nil(t, key.LastUsedAt)
-
-		return
+	resp, err := dc.R(ctx).
+		SetQueryParam("per_page", "100").
+		SetResult(&keys).
+		Get("/api/namespaces/provisioning-key")
+	if err != nil {
+		return nil, err
 	}
 
-	require.Fail(t, "the key was not listed")
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("listing the provisioning keys answered %d: %s", resp.StatusCode(), resp.String())
+	}
+
+	for i := range keys {
+		if keys[i].Name == name {
+			return &keys[i], nil
+		}
+	}
+
+	return nil, fmt.Errorf("no provisioning key is named %q", name)
+}
+
+// PatchProvisioningKey applies changes to the provisioning key named name and returns the answer
+// whatever its status code. The changes are the request body as JSON Merge Patch reads it: a field
+// left out is left unchanged. It returns the error only for a request that never got an answer.
+func (dc *DockerCompose) PatchProvisioningKey(ctx context.Context, name string, changes map[string]any) (*resty.Response, error) {
+	return dc.R(ctx).SetBody(changes).Patch("/api/namespaces/provisioning-key/" + name)
+}
+
+// UpdateProvisioningKey applies changes to the provisioning key named name, as
+// [DockerCompose.PatchProvisioningKey] does, and fails t unless the server answers 200.
+func (dc *DockerCompose) UpdateProvisioningKey(t *testing.T, name string, changes map[string]any) {
+	t.Helper()
+
+	resp, err := dc.PatchProvisioningKey(t.Context(), name, changes)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+}
+
+// ExpireProvisioningKey moves the expiry of the provisioning key named name one minute into the
+// past, failing t unless exactly that key changed. The API sets an expiry only in whole days
+// ahead, so it writes the row directly, standing in for the day a real key waits to expire.
+func (dc *DockerCompose) ExpireProvisioningKey(t *testing.T, name string) {
+	t.Helper()
+
+	output, err := dc.stack.SQL(t.Context(),
+		"UPDATE provisioning_keys SET expires_at = now() - interval '1 minute' WHERE name = :'name'",
+		map[string]string{"name": name})
+	require.NoError(t, err)
+	require.Contains(t, output, "UPDATE 1")
+}
+
+// SetNamespaceMaxDevices sets how many accepted devices the namespace tenant may hold, -1 for no
+// limit. Only the cloud sets a limit through the product, so it writes the row directly. It
+// returns psql's error, or an error unless exactly that namespace changed.
+func (dc *DockerCompose) SetNamespaceMaxDevices(ctx context.Context, tenant string, maxDevices int) error {
+	output, err := dc.stack.SQL(ctx,
+		"UPDATE namespaces SET max_devices = :'max_devices' WHERE id = :'tenant'",
+		map[string]string{"tenant": tenant, "max_devices": strconv.Itoa(maxDevices)})
+	if err != nil {
+		return err
+	}
+
+	if !strings.Contains(output, "UPDATE 1") {
+		return fmt.Errorf("expected one namespace to change, psql printed %q", output)
+	}
+
+	return nil
+}
+
+// ProvisioningKeyHistory returns the enrollment events of the provisioning key whose digest is id,
+// newest first, failing t unless the server answers 200.
+func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []models.ProvisioningKeyEvent {
+	t.Helper()
+
+	events := []models.ProvisioningKeyEvent{}
+
+	resp, err := dc.R(t.Context()).
+		SetQueryParam("per_page", "100").
+		SetResult(&events).
+		Get("/api/namespaces/provisioning-key/" + id + "/history")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+	return events
 }
 
 // CreateAccessPolicy creates an access policy in the namespace the client is authenticated

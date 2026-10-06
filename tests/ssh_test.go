@@ -1778,7 +1778,13 @@ func deviceSSHID(device *models.Device) string {
 func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
 	t.Helper()
 
-	compose := environment.New(t, run).Up(ctx)
+	return newConfiguredSSHEnvironment(t, ctx, environment.New(t, run), sshAccessMode)
+}
+
+func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator *environment.DockerComposeConfigurator, sshAccessMode string) *environment.DockerCompose {
+	t.Helper()
+
+	compose := configurator.Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
