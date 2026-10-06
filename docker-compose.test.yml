@@ -19,6 +19,7 @@ services:
       - SHELLHUB_OPENAPI_VALIDATION=strict
       - SHELLHUB_OPENAPI_SCHEMA=file:///etc/shellhub/openapi.json
       - SHELLHUB_LOG_FORMAT=text
+      - SHELLHUB_SESSION_RETENTION_DAYS=${SHELLHUB_SESSION_RETENTION_DAYS:-0}
     volumes:
       - ./openapi/static/openapi-${SHELLHUB_EDITION:-community}.json:/etc/shellhub/openapi.json:ro
   gateway:
