@@ -127,5 +127,6 @@ updates:
         - "golang.org/x/*"
   ignore:
     - dependency-name: "github.com/shellhub-io/shellhub"
+    - dependency-name: "github.com/docker/cli"
     - dependency-name: "github.com/labstack/echo-contrib"
       versions: [">=0.50.0"]
