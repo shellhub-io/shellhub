@@ -39,6 +39,7 @@ func TestDevicePairing(t *testing.T) {
 
 	t.Run("pairing", func(t *testing.T) { testPairingCode(t, compose) })
 	t.Run("login code", func(t *testing.T) { testDeviceLoginCode(t, compose) })
+	t.Run("code format", func(t *testing.T) { testDeviceCodeFormat(t, compose) })
 }
 
 // TestDevicePairingAgent runs a real agent with no tenant, for what it does with a pairing: the code
