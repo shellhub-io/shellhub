@@ -1,4 +1,4 @@
-FROM node:24.20.0-alpine3.24 AS base
+FROM node:24.21.0-alpine3.24 AS base
 
 ARG NPM_CONFIG_REGISTRY
 
@@ -30,7 +30,7 @@ COPY ui/scripts /scripts
 
 CMD ["/scripts/entrypoint-dev.sh"]
 
-FROM node:24.20.0-alpine3.24 AS spec-bundler
+FROM node:24.21.0-alpine3.24 AS spec-bundler
 RUN npm install -g @redocly/cli@2.31.5
 WORKDIR /spec
 COPY openapi/spec ./spec
