@@ -5,7 +5,6 @@ import {
   expect,
   test,
 } from "@playwright/test";
-import { generateKeyPairSync, randomBytes } from "node:crypto";
 import {
   getNamespaceMembershipInvitationList,
   acceptInvite,
@@ -32,6 +31,7 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
+import { buildDeviceAuthRequest } from "./devices";
 import {
   password,
   buildShortId,
@@ -350,31 +350,8 @@ test.describe("namespace switching", () => {
   });
 });
 
-function buildPairingRequest() {
-  const { publicKey } = generateKeyPairSync("rsa", {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: "spki", format: "pem" },
-  });
-  return {
-    hostname: `e2e-device-${buildShortId()}`,
-    identity: {
-      mac: [0x02, ...randomBytes(5)]
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join(":"),
-    },
-    info: {
-      id: "debian",
-      pretty_name: "Debian GNU/Linux 12",
-      version: "12",
-      arch: "x86_64",
-      platform: "native" as const,
-    },
-    public_key: publicKey,
-  };
-}
-
 async function requestPairing() {
-  const body = buildPairingRequest();
+  const body = buildDeviceAuthRequest();
   const { data } = await createDevicePairing({
     ...buildRequestContext(),
     body,
@@ -385,7 +362,7 @@ async function requestPairing() {
   return { code: data.code, name: body.hostname, body };
 }
 
-type PairedDevice = ReturnType<typeof buildPairingRequest> & {
+type PairedDevice = ReturnType<typeof buildDeviceAuthRequest> & {
   tenant_id: string;
 };
 
