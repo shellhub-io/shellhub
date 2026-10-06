@@ -411,7 +411,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(&models.Session{UID: "session_1", Active: true}, nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
 					Return(nil).
 					Once()
 				storeMock.
@@ -427,7 +427,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(&models.Session{UID: "session_2", Active: true}, nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
 					Return(nil).
 					Once()
 				storeMock.
@@ -809,7 +809,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
 					Return(nil).
 					Once()
 				storeMock.
@@ -825,7 +825,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -1075,7 +1075,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1091,7 +1091,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
+					On("SessionUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
 					Return(nil).
 					Once()
 				cacheMock.

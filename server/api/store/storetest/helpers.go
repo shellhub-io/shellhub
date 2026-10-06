@@ -305,6 +305,15 @@ func WithSessionActive(active bool) SessionOption {
 	}
 }
 
+func (s *Suite) sessionScope(t *testing.T, uid models.UID) scope.Scope {
+	t.Helper()
+
+	session, err := s.provider.Store().SessionResolve(context.Background(), scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(uid))
+	require.NoError(t, err)
+
+	return scope.MustBounded(session.TenantID)
+}
+
 // CreateSession creates a session with default or customized values
 // Returns the generated session UID
 // If device is not provided via WithSessionDevice(), a default device will be created

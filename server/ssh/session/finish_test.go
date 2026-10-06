@@ -19,10 +19,10 @@ func newConnectedSession(t *testing.T, tunnel dialer.TunnelDialer) (*Session, *s
 	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 
 	service := servicemocks.NewMockService(t)
-	service.On("DeactivateSession", mock.Anything, models.UID("test-uid")).Return(nil).Maybe()
+	service.On("DeactivateSession", mock.Anything, tenantScope, models.UID("test-uid")).Return(nil).Maybe()
 
 	sess := newTestSession(service, tunnel)
-	sess.Events = NewEvents(sess.UID, service)
+	sess.Events = NewEvents(sess.UID, tenantScope, service)
 	sess.registered = true
 
 	require.NoError(t, sess.connect(newStubContext(), noAuth))
@@ -73,19 +73,19 @@ func TestFinishDeactivatesTheSessionWhenTheCloseCannotBeDelivered(t *testing.T) 
 	require.NoError(t, sess.Finish())
 
 	service.AssertNumberOfCalls(t, "DeactivateSession", 1)
-	service.AssertCalled(t, "DeactivateSession", mock.Anything, models.UID("test-uid"))
+	service.AssertCalled(t, "DeactivateSession", mock.Anything, tenantScope, models.UID("test-uid"))
 }
 
 // TestFinishSkipsTheCloseWhenTheDeviceWasNeverReached keeps a failed dial from producing a
 // second one: there is no session on the device to close.
 func TestFinishSkipsTheCloseWhenTheDeviceWasNeverReached(t *testing.T) {
 	service := servicemocks.NewMockService(t)
-	service.On("DeactivateSession", mock.Anything, models.UID("test-uid")).Return(nil).Once()
+	service.On("DeactivateSession", mock.Anything, tenantScope, models.UID("test-uid")).Return(nil).Once()
 
 	stub := &dialertest.Stub{Err: dialer.ErrNoConnection} //nolint:exhaustruct
 
 	sess := newTestSession(service, stub)
-	sess.Events = NewEvents(sess.UID, service)
+	sess.Events = NewEvents(sess.UID, tenantScope, service)
 	sess.registered = true
 
 	require.NoError(t, sess.Finish())
@@ -100,11 +100,11 @@ func TestFinishSkipsTheDeactivationWhenTheLoginNeverRegistered(t *testing.T) {
 	service := servicemocks.NewMockService(t)
 
 	sess := newTestSession(service, dialertest.NewAgent(t))
-	sess.Events = NewEvents(sess.UID, service)
+	sess.Events = NewEvents(sess.UID, tenantScope, service)
 
 	require.NoError(t, sess.Finish())
 
-	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything)
+	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestFinishRunsOnce keeps finalisation idempotent: the close request is sent, and the session

@@ -123,7 +123,12 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 }
 
 // SessionUpdate implements [store.SessionStore].
-func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error {
+func (pg *Pg) SessionUpdate(ctx context.Context, sc scope.Scope, session *models.Session) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
 	db := pg.GetConnection(ctx)
 
 	e := entity.SessionFromModel(session)
@@ -134,6 +139,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 		Set("authenticated = ?", e.Authenticated).
 		Set("recorded = ?", e.Recorded).
 		Where("id = ?", e.ID).
+		Where("namespace_id = ?", tenantID).
 		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
@@ -152,7 +158,12 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 }
 
 // SessionKeepAlive implements [store.SessionStore].
-func (pg *Pg) SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time) error {
+func (pg *Pg) SessionKeepAlive(ctx context.Context, sc scope.Scope, uid models.UID, at time.Time) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
@@ -160,6 +171,7 @@ func (pg *Pg) SessionKeepAlive(ctx context.Context, uid models.UID, at time.Time
 			Model((*entity.Session)(nil)).
 			Set("seen_at = ?", at).
 			Where("id = ?", string(uid)).
+			Where("namespace_id = ?", tenantID).
 			Exec(ctx)
 		if err != nil {
 			return fromSQLError(err)
@@ -242,7 +254,12 @@ func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.Act
 }
 
 // ActiveSessionDelete implements [store.SessionStore].
-func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
+func (pg *Pg) ActiveSessionDelete(ctx context.Context, sc scope.Scope, uid models.UID) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
@@ -250,6 +267,7 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 			Model((*entity.Session)(nil)).
 			Set("seen_at = ?", clock.Now()).
 			Where("id = ?", string(uid)).
+			Where("namespace_id = ?", tenantID).
 			Exec(ctx)
 		if err != nil {
 			return fromSQLError(err)
@@ -328,7 +346,12 @@ func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEven
 }
 
 // SessionEventsCreateMany implements [store.SessionStore].
-func (pg *Pg) SessionEventsCreateMany(ctx context.Context, events []models.SessionEvent) error {
+func (pg *Pg) SessionEventsCreateMany(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
 	if len(events) == 0 {
 		return nil
 	}
@@ -342,8 +365,30 @@ func (pg *Pg) SessionEventsCreateMany(ctx context.Context, events []models.Sessi
 		entities = append(entities, e)
 	}
 
-	if _, err := db.NewInsert().Model(&entities).Exec(ctx); err != nil {
+	batch := db.NewValues(&entities).Column("id", "session_id", "type", "seat", "data", "created_at")
+	result, err := db.NewRaw(`
+		WITH batch (id, session_id, type, seat, data, created_at) AS (?)
+		INSERT INTO session_events (id, session_id, type, seat, data, created_at)
+		SELECT batch.id::uuid, batch.session_id, batch.type, batch.seat, batch.data, batch.created_at
+		FROM batch
+		WHERE NOT EXISTS (
+			SELECT 1 FROM batch AS outside
+			WHERE NOT EXISTS (
+				SELECT 1 FROM sessions
+				WHERE sessions.id = outside.session_id AND sessions.namespace_id = ?
+			)
+		)`, batch, tenantID).Exec(ctx)
+	if err != nil {
 		return fromSQLError(err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected < int64(len(entities)) {
+		return store.ErrNoDocuments
 	}
 
 	return nil

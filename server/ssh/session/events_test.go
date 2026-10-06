@@ -25,14 +25,14 @@ func collectEvents(t *testing.T, err error) (*servicemocks.MockService, func() [
 	)
 
 	service.
-		On("EventSession", mock.Anything, mock.Anything).
+		On("EventSession", mock.Anything, tenantScope, mock.Anything).
 		Run(func(args mock.Arguments) {
 			mu.Lock()
 			defer mu.Unlock()
 
-			events, ok := args.Get(1).([]models.SessionEvent)
+			events, ok := args.Get(2).([]models.SessionEvent)
 			if !ok {
-				panic("mock argument 1 is not a []models.SessionEvent")
+				panic("mock argument 2 is not a []models.SessionEvent")
 			}
 
 			written = append(written, events...)
@@ -51,7 +51,7 @@ func collectEvents(t *testing.T, err error) (*servicemocks.MockService, func() [
 func TestEventsStartsNoWriterUntilSomethingIsRecorded(t *testing.T) {
 	service := servicemocks.NewMockService(t)
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 
 	unstarted := false
 	events.start.Do(func() { unstarted = true })
@@ -64,7 +64,7 @@ func TestEventsStartsNoWriterUntilSomethingIsRecorded(t *testing.T) {
 func TestEventsWritesEverythingQueued(t *testing.T) {
 	service, written := collectEvents(t, nil)
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 
 	const total = eventBatchSize*2 + 7
 	for i := range total {
@@ -89,7 +89,7 @@ func TestEventsWritesEverythingQueued(t *testing.T) {
 func TestEventsFlushesWhileTheSessionIsOpen(t *testing.T) {
 	service, written := collectEvents(t, nil)
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 	t.Cleanup(func() { events.Close() }) //nolint:errcheck
 
 	events.Write(models.SessionEvent{Session: "session-uid", Type: models.SessionEventTypePtyOutput})
@@ -100,7 +100,7 @@ func TestEventsFlushesWhileTheSessionIsOpen(t *testing.T) {
 func TestEventsWriteAfterCloseIsIgnored(t *testing.T) {
 	service, written := collectEvents(t, nil)
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 	require.NoError(t, events.Close())
 
 	assert.NotPanics(t, func() {
@@ -114,7 +114,7 @@ func TestEventsWriteAfterCloseIsIgnored(t *testing.T) {
 func TestEventsCloseIsIdempotent(t *testing.T) {
 	service, _ := collectEvents(t, nil)
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 
 	require.NoError(t, events.Close())
 	assert.NotPanics(t, func() { events.Close() }) //nolint:errcheck
@@ -123,7 +123,7 @@ func TestEventsCloseIsIdempotent(t *testing.T) {
 func TestEventsSurvivesAFailingStore(t *testing.T) {
 	service, _ := collectEvents(t, errors.New("store is down"))
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 
 	assert.NotPanics(t, func() {
 		for range eventBatchSize + 1 {
@@ -139,7 +139,7 @@ func TestEventsWritesOutsideTheCallersContext(t *testing.T) {
 
 	ctxErr := make(chan error, 1)
 	service.
-		On("EventSession", mock.Anything, mock.Anything).
+		On("EventSession", mock.Anything, tenantScope, mock.Anything).
 		Run(func(args mock.Arguments) {
 			ctx, ok := args.Get(0).(context.Context)
 			require.True(t, ok)
@@ -148,7 +148,7 @@ func TestEventsWritesOutsideTheCallersContext(t *testing.T) {
 		Return(nil).
 		Once()
 
-	events := NewEvents("session-uid", service)
+	events := NewEvents("session-uid", tenantScope, service)
 	events.Write(models.SessionEvent{Session: "session-uid", Type: models.SessionEventTypePtyOutput})
 
 	require.NoError(t, events.Close())

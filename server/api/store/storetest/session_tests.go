@@ -139,7 +139,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		sessA := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
-		require.NoError(t, st.ActiveSessionDelete(ctx, sessB)) // closes sessB
+		require.NoError(t, st.ActiveSessionDelete(ctx, s.sessionScope(t, sessB), sessB))
 
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
@@ -201,7 +201,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
-		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+		require.NoError(t, st.ActiveSessionDelete(ctx, s.sessionScope(t, sessB), sessB))
 
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
@@ -231,7 +231,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
-		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+		require.NoError(t, st.ActiveSessionDelete(ctx, s.sessionScope(t, sessB), sessB))
 
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
@@ -261,7 +261,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
-		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+		require.NoError(t, st.ActiveSessionDelete(ctx, s.sessionScope(t, sessB), sessB))
 
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
@@ -293,7 +293,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
-		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+		require.NoError(t, st.ActiveSessionDelete(ctx, s.sessionScope(t, sessB), sessB))
 
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
@@ -417,7 +417,7 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		err := st.SessionUpdate(ctx, &models.Session{
+		err := st.SessionUpdate(ctx, s.sessionScope(t, sessionUID), &models.Session{
 			UID:           string(sessionUID),
 			Authenticated: true,
 		})
@@ -431,7 +431,7 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("fails when session is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.SessionUpdate(ctx, &models.Session{
+		err := st.SessionUpdate(ctx, scope.MustBounded(s.CreateNamespace(t)), &models.Session{
 			UID:           "nonexistent-session-uid",
 			Authenticated: true,
 		})
@@ -441,14 +441,12 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("succeeds when setting Authenticated to true", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		tenantID := s.CreateNamespace(t)
 		sessionUID := s.CreateSession(t, WithSessionUser("user2"))
 
-		err := st.SessionUpdate(ctx, &models.Session{
+		err := st.SessionUpdate(ctx, s.sessionScope(t, sessionUID), &models.Session{
 			UID:           string(sessionUID),
 			Authenticated: true,
 			StartedAt:     time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
-			TenantID:      tenantID,
 		})
 		require.NoError(t, err)
 	})
@@ -458,7 +456,7 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionUser("user4"))
 
-		err := st.SessionUpdate(ctx, &models.Session{
+		err := st.SessionUpdate(ctx, s.sessionScope(t, sessionUID), &models.Session{
 			UID:      string(sessionUID),
 			Recorded: true,
 		})
@@ -474,7 +472,7 @@ func (s *Suite) TestActiveSessionDelete(t *testing.T) {
 	t.Run("fails when session is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.ActiveSessionDelete(ctx, models.UID("nonexistent"))
+		err := st.ActiveSessionDelete(ctx, scope.MustBounded(s.CreateNamespace(t)), models.UID("nonexistent"))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -483,7 +481,7 @@ func (s *Suite) TestActiveSessionDelete(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionActive(true))
 
-		err := st.ActiveSessionDelete(ctx, sessionUID)
+		err := st.ActiveSessionDelete(ctx, s.sessionScope(t, sessionUID), sessionUID)
 		require.NoError(t, err)
 	})
 }
@@ -913,7 +911,7 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 
 		clk.now = cutoff.AddDate(0, 0, -20)
 		recorded := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
-		require.NoError(t, st.SessionUpdate(ctx, &models.Session{UID: string(recorded), Recorded: true}))
+		require.NoError(t, st.SessionUpdate(ctx, s.sessionScope(t, recorded), &models.Session{UID: string(recorded), Recorded: true}))
 
 		clk.now = now
 
@@ -998,7 +996,7 @@ func (s *Suite) TestSessionKeepAlive(t *testing.T) {
 	t.Run("fails when the session is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.SessionKeepAlive(ctx, "nonexistent", clock.Now())
+		err := st.SessionKeepAlive(ctx, scope.MustBounded(s.CreateNamespace(t)), "nonexistent", clock.Now())
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -1028,7 +1026,7 @@ func (s *Suite) TestSessionKeepAlive(t *testing.T) {
 		require.True(t, ok, "seen_at scans as a time: %T", before["seen_at"])
 
 		at := seenAt.Add(90 * time.Second)
-		require.NoError(t, st.SessionKeepAlive(ctx, uid, at))
+		require.NoError(t, st.SessionKeepAlive(ctx, s.sessionScope(t, uid), uid, at))
 
 		after := read()
 
@@ -1134,7 +1132,7 @@ func (s *Suite) TestActiveSessionCleanup(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, isActive(t, uid))
 
-		require.NoError(t, st.SessionKeepAlive(ctx, uid, cutoff.Add(time.Minute)))
+		require.NoError(t, st.SessionKeepAlive(ctx, s.sessionScope(t, uid), uid, cutoff.Add(time.Minute)))
 
 		assert.True(t, isActive(t, uid), "a gateway still ticking the session is still holding it")
 	})

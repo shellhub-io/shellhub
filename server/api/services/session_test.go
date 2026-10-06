@@ -476,6 +476,7 @@ func TestDeactivateSession(t *testing.T) {
 	mock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
+	sc := scope.MustBounded("00000000-0000-4000-0000-000000000000")
 
 	cases := []struct {
 		name          string
@@ -487,7 +488,7 @@ func TestDeactivateSession(t *testing.T) {
 			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, "_uid").
+				mock.On("SessionResolve", ctx, sc, store.SessionUIDResolver, "_uid").
 					Return(nil, goerrors.New("get error")).Once()
 			},
 			expected: NewErrSessionNotFound("_uid", goerrors.New("get error")),
@@ -496,12 +497,12 @@ func TestDeactivateSession(t *testing.T) {
 			name: "fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, "_uid").
+				mock.On("SessionResolve", ctx, sc, store.SessionUIDResolver, "_uid").
 					Return(&models.Session{
 						UID: "_uid",
 					}, nil).Once()
 
-				mock.On("ActiveSessionDelete", ctx, models.UID("_uid")).
+				mock.On("ActiveSessionDelete", ctx, sc, models.UID("_uid")).
 					Return(goerrors.New("error")).Once()
 			},
 			expected: goerrors.New("error"),
@@ -510,12 +511,12 @@ func TestDeactivateSession(t *testing.T) {
 			name: "succeeds",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, "_uid").
+				mock.On("SessionResolve", ctx, sc, store.SessionUIDResolver, "_uid").
 					Return(&models.Session{
 						UID: "_uid",
 					}, nil).Once()
 
-				mock.On("ActiveSessionDelete", ctx, models.UID("_uid")).
+				mock.On("ActiveSessionDelete", ctx, sc, models.UID("_uid")).
 					Return(nil).Once()
 			},
 			expected: nil,
@@ -527,7 +528,7 @@ func TestDeactivateSession(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
-			err := service.DeactivateSession(ctx, tc.uid)
+			err := service.DeactivateSession(ctx, sc, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -540,6 +541,7 @@ func TestKeepAliveSession(t *testing.T) {
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clock.Freeze(t, now)
+	sc := scope.MustBounded("00000000-0000-4000-0000-000000000000")
 
 	cases := []struct {
 		name          string
@@ -551,7 +553,7 @@ func TestKeepAliveSession(t *testing.T) {
 			name: "fails when the session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func(m *storemock.MockStore) {
-				m.On("SessionKeepAlive", ctx, models.UID("_uid"), now).Return(store.ErrNoDocuments).Once()
+				m.On("SessionKeepAlive", ctx, sc, models.UID("_uid"), now).Return(store.ErrNoDocuments).Once()
 			},
 			expected: NewErrSessionNotFound("_uid", store.ErrNoDocuments),
 		},
@@ -559,7 +561,7 @@ func TestKeepAliveSession(t *testing.T) {
 			name: "succeeds when the session exists",
 			uid:  models.UID("_uid"),
 			requiredMocks: func(m *storemock.MockStore) {
-				m.On("SessionKeepAlive", ctx, models.UID("_uid"), now).Return(nil).Once()
+				m.On("SessionKeepAlive", ctx, sc, models.UID("_uid"), now).Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -571,7 +573,7 @@ func TestKeepAliveSession(t *testing.T) {
 			tc.requiredMocks(storeMock)
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
-			err := service.KeepAliveSession(ctx, tc.uid)
+			err := service.KeepAliveSession(ctx, sc, tc.uid)
 			assert.Equal(t, tc.expected, err)
 
 			storeMock.AssertExpectations(t)
@@ -583,6 +585,7 @@ func TestUpdateSession(t *testing.T) {
 	mockStore := storemock.NewMockStore(t)
 	ctx := context.Background()
 	uid := models.UID("test-uid")
+	sc := scope.MustBounded("00000000-0000-4000-0000-000000000000")
 	updateModel := models.SessionUpdate{}
 	theTrue := true
 	updateModel.Authenticated = &theTrue
@@ -595,9 +598,9 @@ func TestUpdateSession(t *testing.T) {
 		expectedErr   error
 	}{
 		{
-			description: "fails when SessionGet returns error",
+			description: "fails when SessionResolve returns error",
 			requiredMocks: func() {
-				mockStore.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid)).
+				mockStore.On("SessionResolve", ctx, sc, store.SessionUIDResolver, string(uid)).
 					Return(nil, goerrors.New("get error")).Once()
 			},
 			expectedErr: NewErrSessionNotFound(uid, goerrors.New("get error")),
@@ -605,11 +608,11 @@ func TestUpdateSession(t *testing.T) {
 		{
 			description: "fails when SessionUpdate returns error",
 			requiredMocks: func() {
-				mockStore.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid)).
+				mockStore.On("SessionResolve", ctx, sc, store.SessionUIDResolver, string(uid)).
 					Return(sess, nil).Once()
 				mockStore.On("ActiveSessionCreate", ctx, sess).
 					Return(nil).Once()
-				mockStore.On("SessionUpdate", ctx, sess).
+				mockStore.On("SessionUpdate", ctx, sc, sess).
 					Return(goerrors.New("update error")).Once()
 			},
 			expectedErr: goerrors.New("update error"),
@@ -617,11 +620,11 @@ func TestUpdateSession(t *testing.T) {
 		{
 			description: "succeeds when no errors",
 			requiredMocks: func() {
-				mockStore.On("SessionResolve", ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid)).
+				mockStore.On("SessionResolve", ctx, sc, store.SessionUIDResolver, string(uid)).
 					Return(sess, nil).Once()
 				mockStore.On("ActiveSessionCreate", ctx, sess).
 					Return(nil).Once()
-				mockStore.On("SessionUpdate", ctx, sess).
+				mockStore.On("SessionUpdate", ctx, sc, sess).
 					Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -632,10 +635,53 @@ func TestUpdateSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			err := service.UpdateSession(ctx, uid, updateModel)
+			err := service.UpdateSession(ctx, sc, uid, updateModel)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
 
 	mockStore.AssertExpectations(t)
+}
+
+func TestDeactivateAndUpdateSessionRefuseAnUnboundedScopeBeforeTouchingTheStore(t *testing.T) {
+	ctx := context.Background()
+	uid := models.UID("test-uid")
+	authenticated := true
+
+	scopes := map[string]scope.Scope{
+		"unbounded":  scope.NewUnbounded("test: a caller that forgot the tenant"),
+		"zero value": {},
+	}
+
+	mutations := map[string]func(Service, scope.Scope) error{
+		"DeactivateSession": func(s Service, sc scope.Scope) error {
+			return s.DeactivateSession(ctx, sc, uid)
+		},
+		"UpdateSession": func(s Service, sc scope.Scope) error {
+			return s.UpdateSession(ctx, sc, uid, models.SessionUpdate{Authenticated: &authenticated})
+		},
+	}
+
+	for name, mutate := range mutations {
+		for kind, sc := range scopes {
+			t.Run(name+" with a "+kind+" scope", func(t *testing.T) {
+				service := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache())
+
+				assert.ErrorIs(t, mutate(service, sc), store.ErrInvalidScope)
+			})
+		}
+	}
+}
+
+func TestEventSessionForwardsTheScopeAndEventsToTheStore(t *testing.T) {
+	ctx := context.Background()
+	sc := scope.MustBounded("00000000-0000-4000-0000-000000000000")
+	events := []models.SessionEvent{{Session: "_uid", Type: models.SessionEventTypeShell}}
+	storeErr := goerrors.New("store error")
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("SessionEventsCreateMany", ctx, sc, events).Return(storeErr).Once()
+
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	assert.Equal(t, storeErr, service.EventSession(ctx, sc, events))
 }

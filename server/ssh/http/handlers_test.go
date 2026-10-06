@@ -113,7 +113,7 @@ func TestHandleSSHCloseRetiresASessionNobodyOwns(t *testing.T) {
 	service := servicemocks.NewMockService(t)
 	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).
 		Return(&models.Session{UID: "session-uid", TenantID: "tenant-id"}, nil).Once()
-	service.On("DeactivateSession", mock.Anything, models.UID("session-uid")).Return(nil).Once()
+	service.On("DeactivateSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).Return(nil).Once()
 
 	h := &Handlers{ //nolint:exhaustruct // the close path reaches neither the tunnel registry nor the config
 		Dialer:   dialertest.NewAgent(t),
@@ -147,7 +147,7 @@ func TestHandleSSHCloseLeavesAnotherNamespacesSessionAlone(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "a refusal must answer a JSON error body")
 	assert.NotEmpty(t, body.Message, "a refusal's body must say why")
 
-	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything)
+	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func TestHandleSSHCloseDelegatesASessionItOwns(t *testing.T) {
