@@ -7,7 +7,7 @@ properties:
   origin:
     $ref: userOrigin.yaml
   user:
-    $ref: userUsername.yaml
+    $ref: userUsernameOrEmpty.yaml
   name:
     $ref: userName.yaml
   email:

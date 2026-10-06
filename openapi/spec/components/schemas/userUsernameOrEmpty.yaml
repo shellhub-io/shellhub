@@ -1,0 +1,6 @@
+description: User's username. Empty for a user created by a SAML sign-in, who has none.
+anyOf:
+  - $ref: userUsername.yaml
+  - type: string
+    maxLength: 0
+example: example

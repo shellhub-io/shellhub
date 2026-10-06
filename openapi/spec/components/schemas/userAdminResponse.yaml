@@ -37,7 +37,7 @@ properties:
   email:
     $ref: userEmail.yaml
   username:
-    $ref: userUsername.yaml
+    $ref: userUsernameOrEmpty.yaml
   recovery_email:
     description: User's recovery email address.
     type: string

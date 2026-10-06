@@ -48,6 +48,7 @@ get:
                           description: A single public X509 certificate of the IdP.
                       binding:
                         type: object
+                        nullable: true
                         description: |
                           Configuration for SAML binding methods that define how authentication requests 
                           and responses are transmitted between ShellHub and the IdP.
@@ -66,12 +67,13 @@ get:
                               will redirect users for authentication using the HTTP-Redirect method.
                           preferred:
                             type: string
-                            enum: [post, redirect]
+                            enum: ['', post, redirect]
                             description: |
                               Specifies which binding method ShellHub prefers when both POST and 
                               Redirect bindings are available. If left blank or empty, POST binding is preferred.
                       mappings:
                         type: object
+                        nullable: true
                         properties:
                           email:
                             type: string
