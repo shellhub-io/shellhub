@@ -56,6 +56,12 @@ func (dc *DockerCompose) SSHAddress() string {
 	return dc.stack.SSHAddress()
 }
 
+// BaseURL is the HTTP base URL the gateway is published on, for a client [DockerCompose.R] cannot
+// stand in for, such as a WebSocket.
+func (dc *DockerCompose) BaseURL() string {
+	return dc.stack.BaseURL()
+}
+
 // APIPublicKey returns the key the server verifies tokens with, failing t if it cannot be read.
 func (dc *DockerCompose) APIPublicKey(t *testing.T) *rsa.PublicKey {
 	t.Helper()
