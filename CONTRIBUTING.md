@@ -24,6 +24,10 @@ already reported or fixed by searching on GitHub through our
   changes.
 * Check out the README for the project for specific information to
   that repository.
+* Run `devscripts/comment-scan --diff` before pushing. The code style
+  allows a comment only as a doc comment on an exported declaration or as
+  the reason on a linter suppression; CI runs the same check on every pull
+  request.
 * Push the change to a separate branch for your feature.
 * Open a pull request.
 * We try to merge and deploy changes as soon as possible, or at least

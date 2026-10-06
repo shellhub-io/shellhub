@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIRECTIVE='^[[:space:]]*//(go:|nolint)|^[[:space:]]*///[[:space:]]*<reference|eslint-disable|@(vitest|jest)-environment|@ts-(expect-error|ignore|nocheck)|prettier-ignore|istanbul ignore|Code generated|stylelint-disable|markdownlint-(disable|enable)|vale (on|off)'
+HASH_DIRECTIVE='^[[:space:]]*#[[:space:]]*(shellcheck[[:space:]]|hadolint[[:space:]]|zizmor:|nosemgrep|yaml-language-server:|syntax=|escape=|check=|prettier-ignore|codespell:ignore|bats[[:space:]]+(file_tags|test_tags)=)|[{][{].*[}][}]'
+LICENCE='Copyright|SPDX-License-Identifier|All rights reserved|Use of this source code|Licensed under'
+
+usage() {
+  cat <<'USAGE'
+Usage: devscripts/comment-scan --diff [<base>]
+       devscripts/comment-scan <file>
+       devscripts/comment-scan --language <file>
+
+Reports the comments the ShellHub code style does not allow. Two kinds stay:
+a doc comment on an exported declaration (what revive's exported rule and
+jsdoc/require-jsdoc ask for), and a linter suppression or tool directive with
+its reason. Name the thing in code instead, and put the reason a name cannot
+carry in the commit message, where git blame reaches it.
+
+--diff [<base>]     Check only the lines added since the merge base with <base>
+                    (default origin/master), committed or not, plus untracked
+                    files. Prints <path>:<line>: <text> and exits 1 on a finding.
+                    This is the check CI runs on a pull request.
+<file>              Print <line>:<text> for every disallowed comment in <file>.
+--language <file>   Print the language <file> is read as, or nothing.
+
+Languages: Go, TypeScript/JavaScript (and JSX), Astro, HTML, CSS, YAML, shell,
+bats, Dockerfiles and Makefiles. A script without an extension is read by its
+shebang.
+USAGE
+}
+
+language() {
+  case "${1##*/}" in
+    *.go) echo go ;;
+    *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) echo ts ;;
+    *.astro|*.html) echo markup ;;
+    *.css) echo css ;;
+    *.yml|*.yaml) echo yaml ;;
+    *.sh|*.bash|*.bats|*.zsh|*.mk|Makefile|GNUmakefile|Dockerfile|Dockerfile.*|*.Dockerfile|*.dockerfile|Containerfile)
+      echo shell ;;
+    *.*) ;;
+    *)
+      if [[ -f "$1" ]] && head -n 1 "$1" | grep -qE '^#!.*[/ ](ba|da|k|z)?sh([[:space:]]|$)'; then
+        echo shell
+      fi
+      ;;
+  esac
+}
+
+scan_hash() {
+  awk -v yaml="$2" -v directive="$HASH_DIRECTIVE" -v licence="$LICENCE" '
+    function indent_of(s,   t) {
+      t = s
+      sub(/[^[:space:]].*$/, "", t)
+      gsub(/\t/, "  ", t)
+      return length(t)
+    }
+    function is_comment(i) {
+      return !opaque[i] && src[i] ~ /^[[:space:]]*#/
+    }
+    { src[NR] = $0 }
+    END {
+      scalar = -1
+      for (i = 1; i <= NR; i++) {
+        line = src[i]
+        if (heredoc != "") {
+          opaque[i] = 1
+          t = line
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", t)
+          if (t == heredoc) heredoc = ""
+          continue
+        }
+        if (scalar >= 0) {
+          if (line ~ /^[[:space:]]*$/ || indent_of(line) > scalar) {
+            if (!script) { opaque[i] = 1; continue }
+          } else {
+            scalar = -1
+          }
+        }
+        if (line ~ /^[[:space:]]*#/) continue
+        if (yaml && scalar < 0 && line ~ /:[[:space:]]*[|>][-+0-9]*[[:space:]]*(#.*)?$/) {
+          scalar = indent_of(line)
+          key = line
+          sub(/^[[:space:]]*(-[[:space:]]+)?/, "", key)
+          sub(/[[:space:]]*:.*$/, "", key)
+          script = (key == "run" || key == "script" || key == "command" || key == "entrypoint")
+          continue
+        }
+        if (match(line, /<<-?[[:space:]]*["\047]?[A-Za-z_][A-Za-z0-9_]*/) && substr(line, RSTART - 1, 1) != "<") {
+          heredoc = substr(line, RSTART, RLENGTH)
+          sub(/^<<-?[[:space:]]*["\047]?/, "", heredoc)
+        }
+      }
+      for (i = 1; i <= NR; i++) {
+        if (!is_comment(i)) continue
+        if (i == 1 && src[i] ~ /^#!/) continue
+        if (src[i] ~ directive) continue
+        for (j = i; j <= NR && is_comment(j); j++) continue
+        for (s = i; s >= 1 && is_comment(s); s--) continue
+        licensed = 0
+        for (m = s + 1; m < j; m++) if (src[m] ~ licence) licensed = 1
+        if (licensed) continue
+        print i ":" src[i]
+      }
+    }
+  ' "$1"
+}
+
+scan_slash() {
+  awk -v ts="$2" -v markup="$3" -v directive="$DIRECTIVE" -v licence="$LICENCE" '
+    function is_comment(s) {
+      return s ~ /^[[:space:]]*\/\// || s ~ /^[[:space:]]*\/\*/ ||
+        (ts && s ~ /^[[:space:]]*\{\/\*/) || (markup && s ~ /^[[:space:]]*<!--/)
+    }
+    function mark_blocks(   i, open, closer) {
+      for (i = 1; i <= NR; i++) {
+        if (open) { blocked[i] = 1; if (src[i] ~ closer) open = 0; continue }
+        if ((src[i] ~ /^[[:space:]]*\/\*/ || (ts && src[i] ~ /^[[:space:]]*\{\/\*/)) && src[i] !~ /\*\//) {
+          blocked[i] = 1; open = 1; closer = "\\*/"
+        } else if (markup && src[i] ~ /^[[:space:]]*<!--/ && src[i] !~ /-->/) {
+          blocked[i] = 1; open = 1; closer = "-->"
+        }
+      }
+    }
+    function indent_of(s,   t) {
+      t = s
+      sub(/[^[:space:]].*$/, "", t)
+      gsub(/\t/, "  ", t)
+      return length(t)
+    }
+    function declares(s) {
+      if (s ~ /^package[[:space:]]/) return 1
+      if (s ~ /^func[[:space:]]+(\([^)]*\)[[:space:]]*)?[A-Z]/) return 1
+      if (s ~ /^(type|const|var)[[:space:]]+[A-Z]/) return 1
+      if (s ~ /^(type|const|var)[[:space:]]*\(/) return 1
+      if (ts && s ~ /^export[[:space:]]/) return 1
+      if (ts && s ~ /^(function|class|const|let|var|interface|type|enum)[[:space:]]/) {
+        name = s
+        sub(/^(function|class|const|let|var|interface|type|enum)[[:space:]]+/, "", name)
+        sub(/[^A-Za-z0-9_$].*$/, "", name)
+        if (name in exported) return 1
+      }
+      return 0
+    }
+    function collect_exports(   i, line, names, n, k) {
+      for (i = 1; i <= NR; i++) {
+        line = src[i]
+        if (line ~ /^export[[:space:]]+default[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*;?[[:space:]]*$/) {
+          name = line
+          sub(/^export[[:space:]]+default[[:space:]]+/, "", name)
+          sub(/[^A-Za-z0-9_$].*$/, "", name)
+          exported[name] = 1
+          continue
+        }
+        if (line ~ /^export[[:space:]]*\{/) {
+          names = line
+          sub(/^export[[:space:]]*\{/, "", names)
+          sub(/\}.*$/, "", names)
+          n = split(names, k, ",")
+          for (j2 = 1; j2 <= n; j2++) {
+            name = k[j2]
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+            sub(/[[:space:]]+as[[:space:]]+.*$/, "", name)
+            sub(/^type[[:space:]]+/, "", name)
+            if (name != "") exported[name] = 1
+          }
+        }
+      }
+    }
+    { src[NR] = $0 }
+    END {
+      mark_blocks()
+      collect_exports()
+      if (markup) exported["Props"] = 1
+      for (i = 1; i <= NR; i++) {
+        if (group == 2) {
+          if (src[i] !~ /^[[:space:]]*$/ && indent_of(src[i]) == member_indent) member[i] = 1
+          if (src[i] ~ /^[})]/) group = 0
+        } else if (group) {
+          member[i] = 1
+          if (src[i] ~ /^[})]/) group = 0
+        } else if (src[i] ~ /^(export[[:space:]]+)?(default[[:space:]]+)?(abstract[[:space:]]+)?class[[:space:]]/) {
+          group = 2
+          member_indent = -1
+        } else if (src[i] ~ /^(export[[:space:]]+)?(type|const|var|interface)[[:space:]]*([A-Z][^=]*)?[({][[:space:]]*$/) {
+          group = 1
+        }
+        if (group == 2 && member_indent < 0 && src[i] !~ /^[[:space:]]*$/ && indent_of(src[i]) > 0) member_indent = indent_of(src[i])
+      }
+      for (i = 1; i <= NR; i++) {
+        if (!(is_comment(src[i]) || blocked[i])) continue
+        if (src[i] ~ directive) continue
+        for (j = i; j <= NR && (is_comment(src[j]) || blocked[j]); j++) continue
+        for (s = i; s >= 1 && (is_comment(src[s]) || blocked[s]); s--) continue
+        licensed = 0
+        for (m = s + 1; m < j; m++) if (src[m] ~ licence) licensed = 1
+        if (licensed) continue
+        for (d = j; d <= NR && src[d] ~ /^[[:space:]]*$/; d++) continue
+        if (d <= NR && (declares(src[d]) || (member[d] && src[d] ~ /^[[:space:]]+([A-Z]|(static|async|get|set|readonly|private|public|protected)[[:space:]]|[a-z_$][A-Za-z0-9_$]*[<(])/))) continue
+        print i ":" src[i]
+      }
+    }
+  ' "$1"
+}
+
+scan_file() {
+  case "$(language "$1")" in
+    go|css) scan_slash "$1" 0 0 ;;
+    ts) scan_slash "$1" 1 0 ;;
+    markup) scan_slash "$1" 1 1 ;;
+    yaml) scan_hash "$1" 1 ;;
+    shell) scan_hash "$1" 0 ;;
+  esac
+}
+
+added_lines() {
+  awk '/^@@/ {
+    match($0, /\+[0-9]+(,[0-9]+)?/)
+    split(substr($0, RSTART + 1, RLENGTH - 1), r, ",")
+    n = (2 in r) ? r[2] : 1
+    for (i = 0; i < n; i++) print r[1] + i
+  }'
+}
+
+annotation_escape() {
+  local s=$1
+  s=${s//'%'/'%25'}
+  s=${s//$'\r'/'%0D'}
+  s=${s//$'\n'/'%0A'}
+  printf '%s' "$s"
+}
+
+scan_diff() {
+  local base=$1 root merge_base found=0 path lines report n text
+  root=$(git rev-parse --show-toplevel)
+  cd "$root"
+  merge_base=$(git merge-base "$base" HEAD) || {
+    echo "comment-scan: no merge base with $base; fetch it first (git fetch origin)." >&2
+    exit 2
+  }
+
+  while IFS= read -r path; do
+    [[ -f "$path" && ! -L "$path" ]] || continue
+    [[ -n "$(language "$path")" ]] || continue
+    if git ls-files --error-unmatch -- "$path" >/dev/null 2>&1; then
+      lines=$(git diff -U0 "$merge_base" -- "$path" | added_lines | tr '\n' ' ')
+    else
+      lines=$(awk '{ printf "%d ", NR }' "$path")
+    fi
+    [[ -n "${lines// /}" ]] || continue
+
+    report=$(scan_file "$path" | awk -v nums="$lines" '
+      BEGIN { split(nums, a, " "); for (i in a) want[a[i]] = 1 }
+      { split($0, p, ":"); if (p[1] in want) print }')
+    [[ -n "$report" ]] || continue
+
+    while IFS= read -r line; do
+      n=${line%%:*}
+      text=${line#*:}
+      text=${text#"${text%%[![:space:]]*}"}
+      echo "$path:$n: $text"
+      if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
+        echo "::error file=$(annotation_escape "$path"),line=$n::$(annotation_escape "Comment not allowed: $text")"
+      fi
+      found=$((found + 1))
+    done <<<"$report"
+  done < <({
+    git diff --name-only --diff-filter=d "$merge_base" --
+    git ls-files --others --exclude-standard
+  } | sort -u)
+
+  if ((found > 0)); then
+    echo
+    echo "$found comment(s) above are not allowed. Run devscripts/comment-scan --help for the rule."
+    exit 1
+  fi
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  --language) language "$2" ;;
+  --diff) scan_diff "${2:-origin/master}" ;;
+  "") usage >&2; exit 2 ;;
+  *) scan_file "$1" ;;
+esac
