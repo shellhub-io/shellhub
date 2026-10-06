@@ -29,6 +29,7 @@ export function useFocusTrap(
     const previousFocus = document.activeElement as HTMLElement | null;
 
     const raf = requestAnimationFrame(() => {
+      if (container.contains(document.activeElement)) return;
       if (!autoFocus) {
         container.focus();
         return;

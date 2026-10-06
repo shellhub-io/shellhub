@@ -117,6 +117,19 @@ describe("useFocusTrap", () => {
       );
     });
 
+    it("leaves focus on an element focused inside before the first frame", () => {
+      let nextFrame: FrameRequestCallback = () => {};
+      vi.mocked(window.requestAnimationFrame).mockImplementation((cb) => {
+        nextFrame = cb;
+        return 0;
+      });
+      render(<Trap active={true} />);
+      const second = screen.getByRole("button", { name: "Second" });
+      second.focus();
+      nextFrame(0);
+      expect(document.activeElement).toBe(second);
+    });
+
     it("falls back to a dismiss button when nothing else can take focus", () => {
       render(<DismissFirstTrap onlyDismiss />);
       expect(document.activeElement).toBe(
