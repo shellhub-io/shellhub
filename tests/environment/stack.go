@@ -196,7 +196,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		return nil, down(err)
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer} {
+	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err != nil {
 			return nil, down(err)
@@ -264,7 +264,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 		}
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer} {
+	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err == nil {
 			s.services[svc] = c
@@ -341,6 +341,39 @@ func (s *Stack) Admin(ctx context.Context, args ...string) error {
 	}
 
 	return nil
+}
+
+// SQL runs statement through psql in the postgres container, against the database the server
+// uses, and returns what psql printed. Each entry of vars becomes a psql variable the statement
+// reads as :'name', so a value never needs quoting into the statement. ctx bounds the exec. It
+// returns the error of an exec that could not start or whose output could not be read, and an
+// error carrying psql's output when psql exits non-zero, which it does for a statement that
+// fails.
+func (s *Stack) SQL(ctx context.Context, statement string, vars map[string]string) (string, error) {
+	cmd := []string{
+		"sh", "-c", `printf '%s\n' "$0" | psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 "$@"`,
+		statement,
+	}
+
+	for _, name := range slices.Sorted(maps.Keys(vars)) {
+		cmd = append(cmd, "-v", name+"="+vars[name])
+	}
+
+	code, output, err := s.Service(ServicePostgres).Exec(ctx, cmd, tcexec.Multiplexed())
+	if err != nil {
+		return "", err
+	}
+
+	body, err := io.ReadAll(output)
+	if err != nil {
+		return "", err
+	}
+
+	if code != 0 {
+		return "", fmt.Errorf("psql exited with %d: %s", code, body)
+	}
+
+	return string(body), nil
 }
 
 // NewUser creates a user via the server's admin CLI.

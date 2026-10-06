@@ -12,8 +12,9 @@ type Service string
 
 // The services a test may reach through [DockerCompose.Service].
 const (
-	ServiceGateway Service = "gateway"
-	ServiceServer  Service = "server"
+	ServiceGateway  Service = "gateway"
+	ServiceServer   Service = "server"
+	ServicePostgres Service = "postgres"
 )
 
 // ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.

@@ -34,6 +34,18 @@ func New(t *testing.T, run *Run) *DockerComposeConfigurator {
 	}
 }
 
+// WithEnv sets name to value in the environment the stack is brought up with, over the .env
+// files. A variable reaches a service only where the compose file passes it on.
+func (dcc *DockerComposeConfigurator) WithEnv(name, value string) *DockerComposeConfigurator {
+	if dcc.cfg.Envs == nil {
+		dcc.cfg.Envs = make(map[string]string)
+	}
+
+	dcc.cfg.Envs[name] = value
+
+	return dcc
+}
+
 // Up initiates the ShellHub instance, blocking until all services are in the running or
 // healthy state. The first successful Up in a run builds the server, gateway and ui images;
 // every later Up starts from those images and fails if they were removed in between.
