@@ -46,6 +46,10 @@ func dialSSH(ctx context.Context, addr, sshid string, signers []ssh.Signer, prom
 		}))
 	}
 
+	return handshake(ctx, addr, sshid, auth)
+}
+
+func handshake(ctx context.Context, addr, sshid string, auth []ssh.AuthMethod) error {
 	config := &ssh.ClientConfig{
 		User:            sshid,
 		Auth:            auth,
@@ -58,6 +62,9 @@ func dialSSH(ctx context.Context, addr, sshid string, signers []ssh.Signer, prom
 	if err != nil {
 		return err
 	}
+
+	stop := context.AfterFunc(ctx, func() { _ = conn.Close() })
+	defer stop()
 
 	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
 	if err != nil {
