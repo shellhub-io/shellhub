@@ -38,6 +38,7 @@ func TestDevicePairing(t *testing.T) {
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("pairing", func(t *testing.T) { testPairingCode(t, compose) })
+	t.Run("login code", func(t *testing.T) { testDeviceLoginCode(t, compose) })
 }
 
 // TestDevicePairingAgent runs a real agent with no tenant, for what it does with a pairing: the code
