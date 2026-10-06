@@ -28,6 +28,7 @@ func TestEnrollmentPolicy(t *testing.T) {
 	t.Run("keyless", func(t *testing.T) { testKeylessEnrollment(t, compose) })
 	t.Run("system keys", func(t *testing.T) { testSystemKeyPresented(t, compose) })
 	t.Run("re-registration", func(t *testing.T) { testReRegistration(t, compose) })
+	t.Run("limits", func(t *testing.T) { testEnrollmentLimits(t, compose) })
 }
 
 func newKeyedDeviceAuthRequest(t *testing.T, key, hostname, mac string) requests.DeviceAuth {
