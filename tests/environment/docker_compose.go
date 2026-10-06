@@ -412,14 +412,19 @@ func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []model
 }
 
 // CreateAccessPolicy creates an access policy in the namespace the client is authenticated
-// against, failing t unless the server accepts it. The policy takes effect on the next login
-// decision; a namespace in the identity mode is born holding one that grants its owner.
-func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPolicyCreate) {
+// against and returns it as stored, failing t unless the server accepts it. The policy takes
+// effect on the next login decision; a namespace in the identity mode is born holding one that
+// grants its owner.
+func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPolicyCreate) models.AccessPolicy {
 	t.Helper()
 
-	resp, err := dc.R(t.Context()).SetBody(req).Post("/api/access-policies")
+	policy := models.AccessPolicy{}
+
+	resp, err := dc.R(t.Context()).SetBody(req).SetResult(&policy).Post("/api/access-policies")
 	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode())
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+	return policy
 }
 
 // AwaitDeviceWithStatus waits until exactly one device in the namespace has the given status and
