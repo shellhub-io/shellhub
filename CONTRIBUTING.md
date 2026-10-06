@@ -14,6 +14,33 @@ already reported or fixed by searching on GitHub through our
 [issues](https://github.com/ShellHub-io/shellhub/issues).
 
 
+## Development environment
+
+Everything runs in containers, so the host needs only Docker with Compose and git. Use the
+`bin/docker-compose` wrapper rather than `docker compose` directly. The wrapper picks the compose
+files for the edition and environment you set.
+
+Switch the stack to development mode, which adds hot reload and a built-in agent, and start it.
+`make start` generates the service keys on the first run:
+
+```sh
+echo "SHELLHUB_ENV=development" >> .env.override
+make start
+```
+
+Once the services are up, create a user and a namespace. Keep the tenant ID as written,
+because the built-in agent registers into it.
+
+```sh
+./bin/cli user create <username> <password> <email>
+./bin/cli namespace create <namespace> <username> 00000000-0000-4000-0000-000000000000
+```
+
+Open `http://localhost` and accept the pending device. Open a shell on it from the console, or with
+your own SSH key through `ssh shellhub@<namespace>.shellhub@localhost`. The first time, ShellHub
+prints a link to confirm the key in the console. The session lands in the agent's container, not
+on your machine. [devscripts](devscripts) has helpers for adding more devices and running tests.
+
 ## Submitting Changes
 
 * Check for open issues, or open a fresh issue to start a discussion
