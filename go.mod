@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/yamux v0.1.2
 	github.com/hibiken/asynq v0.26.0
 	github.com/jarcoal/httpmock v1.4.2
-	github.com/labstack/echo/v5 v5.3.1
+	github.com/labstack/echo/v5 v5.4.0
 	github.com/moby/moby/api v1.55.0
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/sethvargo/go-envconfig v1.4.3
