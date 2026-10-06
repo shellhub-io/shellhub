@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -99,7 +101,7 @@ func itemOfType(events []models.SessionEvent, eventType models.SessionEventType)
 	return nil
 }
 
-func payloadString(t *testing.T, event *models.SessionEvent, key string) string {
+func payload[T any](t *testing.T, event *models.SessionEvent, key string) T {
 	t.Helper()
 
 	require.NotNil(t, event, "no event of the wanted type is in the timeline")
@@ -107,10 +109,26 @@ func payloadString(t *testing.T, event *models.SessionEvent, key string) string 
 	data, ok := event.Data.(map[string]any)
 	require.True(t, ok, "the event payload is not an object: %T", event.Data)
 
-	value, ok := data[key].(string)
-	require.True(t, ok, "the payload carries no string under %q: %v", key, data)
+	value, ok := data[key].(T)
+	require.True(t, ok, "the payload carries no %T under %q: %v", value, key, data)
 
 	return value
+}
+
+func commandsBySeat(events []models.SessionEvent) map[int]string {
+	commands := make(map[int]string)
+
+	for _, event := range events {
+		if event.Type != models.SessionEventTypeExec {
+			continue
+		}
+
+		if data, ok := event.Data.(map[string]any); ok {
+			commands[event.Seat], _ = data["command"].(string)
+		}
+	}
+
+	return commands
 }
 
 func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
@@ -141,7 +159,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 				assert.Equal(t, models.SessionEventTypePtyRequest, session.Events.First)
 				assert.Equal(t, "xterm-256color",
-					payloadString(t, itemOfType(session.Events.Items, models.SessionEventTypePtyRequest), "term"))
+					payload[string](t, itemOfType(session.Events.Items, models.SessionEventTypePtyRequest), "term"))
 			},
 		},
 		{
@@ -160,7 +178,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 				assert.Equal(t, models.SessionEventTypeExec, session.Events.First)
 				assert.Equal(t, "uptime",
-					payloadString(t, itemOfType(session.Events.Items, models.SessionEventTypeExec), "command"))
+					payload[string](t, itemOfType(session.Events.Items, models.SessionEventTypeExec), "command"))
 			},
 		},
 		{
@@ -204,9 +222,100 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 				assert.Equal(t, models.SessionEventTypeExec, session.Events.First)
 				assert.Contains(t,
-					payloadString(t, itemOfType(session.Events.Items, models.SessionEventTypeExec), "command"),
+					payload[string](t, itemOfType(session.Events.Items, models.SessionEventTypeExec), "command"),
 					"scp",
 					"only the payload separates a legacy transfer from an ordinary command")
+			},
+		},
+		{
+			name: "a resized terminal records its new size",
+			open: func(t *testing.T, conn *ssh.Client) {
+				t.Helper()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+
+				stdin, err := sess.StdinPipe()
+				require.NoError(t, err)
+
+				stdout, err := sess.StdoutPipe()
+				require.NoError(t, err)
+
+				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{ssh.ECHO: 1}))
+				require.NoError(t, sess.Shell())
+				require.NoError(t, sess.WindowChange(50, 132))
+
+				_, err = stdin.Write([]byte("stty size\n"))
+				require.NoError(t, err)
+
+				resized := make(chan struct{})
+
+				go func() {
+					scanner := bufio.NewScanner(stdout)
+					for scanner.Scan() {
+						if strings.Contains(scanner.Text(), "50 132") {
+							close(resized)
+
+							return
+						}
+					}
+				}()
+
+				select {
+				case <-resized:
+				case <-time.After(30 * time.Second):
+					require.Fail(t, "the shell never reported the size the client resized it to")
+				}
+			},
+			expect: func(t *testing.T, session models.Session) {
+				t.Helper()
+
+				resize := itemOfType(session.Events.Items, models.SessionEventTypeWindowChange)
+				assert.InDelta(t, 132, payload[float64](t, resize, "columns"), 0)
+				assert.InDelta(t, 50, payload[float64](t, resize, "rows"), 0)
+				assert.Contains(t, session.Events.Types, string(models.SessionEventTypeWindowChange))
+			},
+		},
+		{
+			name: "a command records the status it exited with",
+			open: func(t *testing.T, conn *ssh.Client) {
+				t.Helper()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+
+				var exit *ssh.ExitError
+
+				require.ErrorAs(t, sess.Run("exit 3"), &exit)
+				require.Equal(t, 3, exit.ExitStatus())
+			},
+			expect: func(t *testing.T, session models.Session) {
+				t.Helper()
+
+				assert.InDelta(t, 3,
+					payload[float64](t, itemOfType(session.Events.Items, models.SessionEventTypeExitStatus), "status"), 0)
+				assert.Contains(t, session.Events.Types, string(models.SessionEventTypeExitStatus))
+			},
+		},
+		{
+			name: "channels on one connection take a seat each",
+			open: func(t *testing.T, conn *ssh.Client) {
+				t.Helper()
+
+				for _, command := range []string{"echo first", "echo second"} {
+					sess, err := conn.NewSession()
+					require.NoError(t, err)
+
+					_, err = sess.CombinedOutput(command)
+					require.NoError(t, err)
+				}
+			},
+			expect: func(t *testing.T, session models.Session) {
+				t.Helper()
+
+				assert.ElementsMatch(t, []int{0, 1}, session.Events.Seats)
+				assert.Equal(t, map[int]string{0: "echo first", 1: "echo second"}, commandsBySeat(session.Events.Items),
+					"each command is recorded against the seat its channel took")
 			},
 		},
 	}
@@ -222,6 +331,9 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 			assert.Empty(t, opened.Events.Items, "the list carries no timeline")
 			assert.Nil(t, opened.Principal, "the legacy access model authorizes no principal")
+
+			require.NoError(t, conn.Close())
+			requireSessionActive(t, ctx, compose, opened.UID, false)
 
 			session := sessionDetail(t, ctx, compose, opened.UID)
 			tc.expect(t, session)
