@@ -22,6 +22,7 @@ func TestEnrollmentPolicy(t *testing.T) {
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("automatic", func(t *testing.T) { testAutomaticEnrollment(t, compose) })
+	t.Run("manual", func(t *testing.T) { testManualEnrollment(t, compose) })
 }
 
 func newKeyedDeviceAuthRequest(t *testing.T, key, hostname, mac string) requests.DeviceAuth {
