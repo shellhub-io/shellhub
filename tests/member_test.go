@@ -1,9 +1,7 @@
 package main
 
 import (
-	"io"
 	"net/http"
-	"regexp"
 	"testing"
 	"time"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,8 +21,6 @@ const (
 	departingEmail    = "departing@ossystems.com.br"
 	departingPassword = "password"
 )
-
-var agentPairingLink = regexp.MustCompile(`accept-device\?code=([` + pairingcode.Alphabet + `]+)`)
 
 // TestRemoveMemberThroughTheAdminCLI removes a member with the admin CLI, a process apart from the
 // server that caches the member's API keys and holds the tunnels of the devices they paired.
@@ -113,35 +108,5 @@ func asBearer(t *testing.T, compose *environment.DockerCompose, token string) *r
 func pairAgent(t *testing.T, compose *environment.DockerCompose, agent testcontainers.Container, token string) string {
 	t.Helper()
 
-	var code string
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		reader, err := agent.Logs(t.Context())
-		if !assert.NoError(tt, err) {
-			return
-		}
-
-		defer func() { _ = reader.Close() }()
-
-		logs, err := io.ReadAll(reader)
-		if !assert.NoError(tt, err) {
-			return
-		}
-
-		match := agentPairingLink.FindSubmatch(logs)
-		if assert.NotNil(tt, match, "the agent has not printed a pairing code") {
-			code = string(match[1])
-		}
-	}, 30*time.Second, time.Second)
-
-	accepted := new(models.DevicePairingAccepted)
-	resp, err := asBearer(t, compose, token).
-		SetBody(map[string]string{"tenant_id": ShellHubNamespace}).
-		SetResult(accepted).
-		Post("/api/devices/pairing/" + code + "/accept")
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-	require.NotEmpty(t, accepted.UID)
-
-	return accepted.UID
+	return acceptPairing(t, asBearer(t, compose, token), awaitAgentPairingCode(t, agent)).UID
 }

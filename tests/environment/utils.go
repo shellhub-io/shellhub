@@ -15,6 +15,7 @@ const (
 	ServiceGateway  Service = "gateway"
 	ServiceServer   Service = "server"
 	ServicePostgres Service = "postgres"
+	ServiceRedis    Service = "redis"
 )
 
 // ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.
