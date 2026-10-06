@@ -7,7 +7,7 @@ require (
 	github.com/docker/cli v29.6.0+incompatible
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
-	github.com/moby/moby/api v1.55.0
+	github.com/moby/moby/api v1.56.0
 	github.com/pkg/sftp v1.13.11
 	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.10.2
