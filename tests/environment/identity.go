@@ -31,6 +31,17 @@ func (dc *DockerCompose) AgeSSHIdentityLastUse(t *testing.T, fingerprint string,
 		map[string]string{"fingerprint": fingerprint, "age": interval(age)})
 }
 
+// AgeSSHIdentityReauth sets the last re-authentication of the SSH identity whose key has
+// fingerprint to age ago, failing t unless exactly that identity changed. It stands in for the
+// time an access policy's re-authentication window takes to lapse.
+func (dc *DockerCompose) AgeSSHIdentityReauth(t *testing.T, fingerprint string, age time.Duration) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE ssh_identities SET last_reauth_at = now() - :'age'::interval WHERE fingerprint = :'fingerprint'",
+		map[string]string{"fingerprint": fingerprint, "age": interval(age)})
+}
+
 // BreakAccessPolicySourceIP replaces the source addresses of the access policy id with an entry
 // that is not an address at all, failing t unless exactly that policy changed. The API refuses such
 // an entry, so it writes the row directly, standing in for a row that went bad under the API.
