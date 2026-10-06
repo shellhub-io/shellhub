@@ -230,6 +230,18 @@ func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, "username", field)
 	})
+
+	t.Run("users without a username do not clash", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		for _, email := range []string{"first@test.com", "second@test.com"} {
+			_, err := st.UserCreate(ctx, &models.User{
+				UserData: models.UserData{Name: email, Email: email},
+				Password: models.UserPassword{Hash: "somehash"},
+			})
+			require.NoError(t, err, email)
+		}
+	})
 }
 
 // TestUserUpdate exercises UserUpdate against the store under test.
