@@ -42,6 +42,17 @@ func (dc *DockerCompose) AgeSSHIdentityReauth(t *testing.T, fingerprint string, 
 		map[string]string{"fingerprint": fingerprint, "age": interval(age)})
 }
 
+// ExpireSSHApproval moves the expiry of the SSH approval code one second into the past, failing t
+// unless exactly that approval changed. The approval window is a constant the server holds, so it
+// writes the row directly instead of waiting the window out.
+func (dc *DockerCompose) ExpireSSHApproval(t *testing.T, code string) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE ssh_approvals SET expires_at = now() - interval '1 second' WHERE code = :'code'",
+		map[string]string{"code": code})
+}
+
 // BreakAccessPolicySourceIP replaces the source addresses of the access policy id with an entry
 // that is not an address at all, failing t unless exactly that policy changed. The API refuses such
 // an entry, so it writes the row directly, standing in for a row that went bad under the API.
