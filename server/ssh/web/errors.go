@@ -46,8 +46,9 @@ var (
 	// ErrBridgeReadHostKey is returned when the SSH server's host key cannot be read, leaving
 	// the bridge nothing to pin its loopback connection to.
 	ErrBridgeReadHostKey = errors.New("failed to read the SSH server's host key")
-	// ErrBridgeDecryptPassword is returned when the parked credentials hold a password the
-	// server cannot decrypt, so the bridge ends before it tries to log in to the device.
+	// ErrBridgeDecryptPassword is returned, joined with the cause, when the parked credentials
+	// hold a password the server cannot decrypt, so the bridge ends before it tries to log in
+	// to the device.
 	ErrBridgeDecryptPassword = errors.New("failed to decrypt the credentials' password")
 )
 
