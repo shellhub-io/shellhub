@@ -2330,6 +2330,12 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 				Status:   "accepted",
 			},
 			requiredMocks: func() {
+				licenseEvaluator.
+					On("CanAcceptDevice", ctx).
+					Return(false, nil).
+					Once().
+					Maybe()
+
 				newDevice := &models.Device{
 					UID:      "new-device",
 					Name:     "device-name",
