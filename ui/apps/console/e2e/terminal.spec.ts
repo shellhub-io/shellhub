@@ -638,6 +638,49 @@ test.describe("SSH Approval", () => {
   });
 });
 
+test.describe("Public Keys", () => {
+  test.afterEach(() => {
+    for (const client of nativeClients.splice(0)) client.kill();
+  });
+
+  test("a key registered in the console lets the ssh client in", async ({
+    page,
+  }) => {
+    const team = await createTeam({ sshAccessMode: "legacy" });
+    const device = await createDevice(team);
+    const publicKey = createNativeClientKey(device.container);
+    await signInAndOpen(page, team.owner.username, "/sshkeys/public-keys");
+
+    await page.getByRole("button", { name: "Add your first key" }).click();
+    const dialog = page.getByRole("dialog", { name: "New public key" });
+    await dialog
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill(`e2e-native-${buildShortId()}`);
+    await dialog
+      .getByRole("radio", { name: "Restrict by username" })
+      .press("Space");
+    await dialog
+      .getByRole("textbox", { name: "Username pattern" })
+      .fill(deviceLogin);
+    await dialog
+      .getByRole("radio", { name: "Filter by hostname" })
+      .press("Space");
+    await dialog
+      .getByRole("textbox", { name: "Hostname pattern" })
+      .fill(device.name);
+    await dialog.getByRole("button", { name: "Text", exact: true }).click();
+    await dialog
+      .getByRole("textbox", { name: "Public key data" })
+      .fill(publicKey);
+    await dialog.getByRole("button", { name: "Create key" }).click();
+    await expect(dialog).toBeHidden();
+
+    await expectNativeShell(
+      openNativeSSH(device.container, sshidOf(team, device)),
+    );
+  });
+});
+
 test.describe("Window Management", () => {
   test("two terminals stay connected side by side", async ({ page }) => {
     const team = await createTeam({ sshAccessMode: "legacy" });
