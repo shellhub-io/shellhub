@@ -108,17 +108,50 @@ function advanceTestClock(id: string, to: number) {
   );
 }
 
-function finalizeInvoiceIfDraft(subscription: string) {
-  const [draft] = stripeCli<{ data: StripeObject[] }>(
+type StripeEvent = { id: string; data: { object: StripeObject } };
+
+function sendFinalInvoicePaid(
+  subscription: string,
+  periodEnd: number,
+  since: number,
+) {
+  const [invoice] = stripeCli<{ data: (StripeObject & { created: number })[] }>(
     "invoices",
     "list",
     "-d",
     `subscription=${subscription}`,
     "-d",
-    "status=draft",
+    "limit=1",
   ).data;
-  if (draft) {
-    stripeCli("invoices", "finalize_invoice", draft.id);
+  if (!invoice || invoice.created < periodEnd) {
+    throw new Error(
+      `expected a final invoice for ${subscription} created at or after ${periodEnd}, got ${invoice?.id}`,
+    );
+  }
+  if (invoice.status === "draft") {
+    stripeCli("invoices", "finalize_invoice", invoice.id);
+    return;
+  }
+  const paid = stripeCli<{ data: StripeEvent[] }>(
+    "events",
+    "list",
+    "-d",
+    "type=invoice.paid",
+    "-d",
+    `created[gte]=${since}`,
+    "-d",
+    "limit=100",
+  ).data.find((event) => event.data.object.id === invoice.id);
+  if (!paid) {
+    throw new Error(
+      `expected Stripe to have sent invoice.paid for ${invoice.id}`,
+    );
+  }
+  const resent = stripeCli("events", "resend", paid.id);
+  if (resent.id !== paid.id) {
+    throw new Error(
+      `expected Stripe to resend ${paid.id}, got ${JSON.stringify(resent)}`,
+    );
   }
 }
 
@@ -407,6 +440,7 @@ test.describe("Billing", () => {
     owner,
   }) => {
     test.setTimeout(360_000);
+    const startedAt = Math.floor(Date.now() / 1000);
     const { clock, customer } = createTestClockCustomer(owner);
     await openBilling(page, owner);
     await subscribeWithNewCard(page);
@@ -427,7 +461,7 @@ test.describe("Billing", () => {
     await expect
       .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
       .toBe("canceled");
-    finalizeInvoiceIfDraft(subscription.id);
+    sendFinalInvoicePaid(subscription.id, periodEnd, startedAt);
     await expect
       .poll(() => hasAbandonedFinalInvoice(subscription.id), {
         timeout: 30_000,
