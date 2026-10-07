@@ -32,6 +32,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusNoContent
 	case services.ErrCodeConflict:
 		return http.StatusConflict
+	case services.ErrCodeNotImplemented:
+		return http.StatusNotImplemented
 	default:
 		return http.StatusInternalServerError
 	}

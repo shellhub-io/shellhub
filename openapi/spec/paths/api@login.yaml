@@ -89,3 +89,5 @@ post:
             $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml
+    '501':
+      $ref: ../components/responses/501.yaml

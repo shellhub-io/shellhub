@@ -34,7 +34,8 @@ const (
 	ErrCodeNoContentChange
 	// ErrCodeCreated is the error code to be used when the resource was created, but the following operations failed.
 	ErrCodeCreated
-	// ErrCodeNotImplemented is the error code to be used when the resource is not yet implemented.
+	// ErrCodeNotImplemented is the error code for an authentication method this instance does not offer,
+	// whether turned off or unsupported by its edition (mapped to HTTP 501).
 	ErrCodeNotImplemented
 	// ErrCodeConflict is the error code for when the request conflicts with the resource's
 	// current state (mapped to HTTP 409).

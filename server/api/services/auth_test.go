@@ -1169,7 +1169,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				res:      nil,
 				lockout:  0,
 				mfaToken: "",
-				err:      NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String()),
+				err:      store.ErrNoDocuments,
 			},
 		},
 		{

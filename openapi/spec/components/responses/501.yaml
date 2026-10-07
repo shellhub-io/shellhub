@@ -1,0 +1,7 @@
+description: Not implemented
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/apiError.yaml
+    example:
+      message: internal server error
