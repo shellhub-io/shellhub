@@ -1,5 +1,4 @@
 import { type Page, expect, test } from "@playwright/test";
-import { login } from "@/client";
 import { isCloud } from "./env";
 import {
   consoleAccountDeletionReason,
@@ -13,25 +12,12 @@ import {
   signUpUser,
 } from "./helpers";
 import { buildUserIdentity, password, readUserInvitationStatus } from "./seed";
-import { buildRequestContext, invite } from "./api";
+import { expectLoginStatus, invite } from "./api";
 import { readEmailLink } from "./mail";
 
 const openSignUpReason = "only the cloud has open sign-up";
 
 const newPassword = `${password}-new`;
-
-async function expectLoginStatus(
-  username: string,
-  attemptedPassword: string,
-  status: number,
-) {
-  const { response } = await login({
-    ...buildRequestContext(),
-    throwOnError: false,
-    body: { username, password: attemptedPassword },
-  });
-  expect(response?.status, `signing in as ${username}`).toBe(status);
-}
 
 async function signUp(
   page: Page,

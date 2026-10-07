@@ -48,6 +48,19 @@ export async function expectStatus(
   expect(response?.status, `${via} on ${response?.url}`).toBe(expected);
 }
 
+export async function expectLoginStatus(
+  username: string,
+  attemptedPassword: string,
+  status: number,
+) {
+  const { response } = await login({
+    ...buildRequestContext(),
+    throwOnError: false,
+    body: { username, password: attemptedPassword },
+  });
+  expect(response?.status, `signing in as ${username}`).toBe(status);
+}
+
 export async function loginAs(username: string, password: string) {
   const { data } = await login({
     ...buildRequestContext(),
