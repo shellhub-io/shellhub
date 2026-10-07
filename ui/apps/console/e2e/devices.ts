@@ -1,4 +1,6 @@
 import { generateKeyPairSync, randomBytes } from "node:crypto";
+import { authDevice } from "@/client";
+import { buildRequestContext } from "./api";
 import { buildShortId } from "./seed";
 
 export function buildDeviceAuthRequest() {
@@ -22,4 +24,13 @@ export function buildDeviceAuthRequest() {
     },
     public_key: publicKey,
   };
+}
+
+export async function enrollDevice(tenant: string) {
+  const body = { ...buildDeviceAuthRequest(), tenant_id: tenant };
+  const { data } = await authDevice({ ...buildRequestContext(), body });
+  if (!data.uid || !data.token) {
+    throw new Error(`expected ${body.hostname} to enroll into ${tenant}`);
+  }
+  return { uid: data.uid, token: data.token, name: body.hostname };
 }
