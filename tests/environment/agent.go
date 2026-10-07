@@ -21,16 +21,19 @@ const (
 
 // AgentBuild describes the agent image [BuildAgentImage] builds. Context is the build context
 // and is required. Repository defaults to shellhub-e2e/agent and Dockerfile, relative to
-// Context, to agent/Dockerfile.test. Output receives the build log; nil discards it.
+// Context, to agent/Dockerfile.test. Version, when set, is the version the agent reports instead
+// of latest. Output receives the build log; nil discards it.
 type AgentBuild struct {
 	Repository string
 	Context    string
 	Dockerfile string
+	Version    string
 	Output     io.Writer
 }
 
 // BuildAgentImage builds the agent the e2e tests start, accepting [AgentUsername] and
-// [AgentPassword], labelled with run and tagged with the run's ID in build's repository. It
+// [AgentPassword], labelled with run and tagged with the run's ID in build's repository, followed
+// by -<version> when build sets a Version, so a versioned agent never replaces the default one. It
 // talks to the daemon through its API, so it needs no docker CLI. It returns the tag, an error
 // when the Docker host cannot be resolved or the provider cannot be created, or the error the
 // daemon reports for the build; cancelling ctx aborts the build.
@@ -55,15 +58,22 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 	defer provider.Close() //nolint:errcheck // the image is built; closing the provider's client changes nothing
 
 	username, password := AgentUsername, AgentPassword
+	tag := run.ID()
+	buildArgs := map[string]*string{"USERNAME": &username, "PASSWORD": &password}
+
+	if build.Version != "" {
+		tag += "-" + build.Version
+		buildArgs["SHELLHUB_VERSION"] = &build.Version
+	}
 
 	return provider.BuildImage(ctx, &tc.ContainerRequest{
 		FromDockerfile: tc.FromDockerfile{
 			Context:        build.Context,
 			Dockerfile:     build.Dockerfile,
 			Repo:           build.Repository,
-			Tag:            run.ID(),
+			Tag:            tag,
 			BuildLogWriter: build.Output,
-			BuildArgs:      map[string]*string{"USERNAME": &username, "PASSWORD": &password},
+			BuildArgs:      buildArgs,
 			BuildOptionsModifier: func(options *client.ImageBuildOptions) {
 				options.Labels = map[string]string{runLabel: run.ID()}
 			},

@@ -96,35 +96,48 @@ func agentBuildLog() io.Writer {
 	return nil
 }
 
-var agentImage struct {
+var agentImages struct {
 	sync.Mutex
-	tag string
+	tags map[string]string
 }
 
-func buildAgentImage(ctx context.Context) (string, error) {
-	agentImage.Lock()
-	defer agentImage.Unlock()
+func buildAgentImage(ctx context.Context, version string) (string, error) {
+	agentImages.Lock()
+	defer agentImages.Unlock()
 
-	if agentImage.tag != "" {
-		return agentImage.tag, nil
+	if tag, ok := agentImages.tags[version]; ok {
+		return tag, nil
 	}
 
 	tag, err := environment.BuildAgentImage(ctx, run, environment.AgentBuild{
 		Repository: os.Getenv("SHELLHUB_E2E_AGENT_IMAGE"),
 		Context:    envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
 		Dockerfile: os.Getenv("SHELLHUB_E2E_AGENT_DOCKERFILE"),
+		Version:    version,
 		Output:     agentBuildLog(),
 	})
 	if err != nil {
 		return "", err
 	}
 
-	agentImage.tag = tag
+	if agentImages.tags == nil {
+		agentImages.tags = make(map[string]string)
+	}
+
+	agentImages.tags[version] = tag
 
 	return tag, nil
 }
 
 func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	return NewAgentContainerAtVersion(ctx, gatewayID, "", opts...)
+}
+
+// NewAgentContainerAtVersion builds an agent that reports version instead of "latest" and returns
+// its container, created but not started. Each version is built once per run under its own tag,
+// so the agent every other test starts keeps its tag; an empty version builds that default agent.
+// It returns the error of a build or a container creation that fails, both bounded by ctx.
+func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	raw := make([]byte, 6)
 	if _, err := rand.Read(raw); err != nil {
 		return nil, err
@@ -148,7 +161,7 @@ func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentCo
 		opt(envs)
 	}
 
-	image, err := buildAgentImage(ctx)
+	image, err := buildAgentImage(ctx, version)
 	if err != nil {
 		return nil, err
 	}
