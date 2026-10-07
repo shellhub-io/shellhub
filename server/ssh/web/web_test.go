@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"encoding/pem"
 	"net/http"
@@ -276,6 +277,31 @@ func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
 	service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
 		Return(nil, store.ErrNoDocuments).Once()
 
+	server := startBridge(t, service)
+
+	status, reply := postSession(t, server.URL, `{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
+	require.Equal(t, http.StatusOK, status)
+
+	assert.NotContains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
+	assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
+}
+
+func TestWebSessionRouteRefusesAPasswordItCannotEncrypt(t *testing.T) {
+	service := servicemocks.NewMockService(t)
+	service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
+		Return(deviceInNamespace(true)).Once()
+
+	server := startBridge(t, service)
+
+	status, reply := postSession(t, server.URL, `{"device":"device-uid","username":"root","password":"`+strings.Repeat("a", 191)+`"}`)
+	assert.Equal(t, http.StatusBadRequest, status)
+	assert.Contains(t, reply.Error, ErrCredentialsEncryptPassword.Error())
+	assert.Contains(t, reply.Error, rsa.ErrMessageTooLong.Error())
+}
+
+func startBridge(t *testing.T, service *servicemocks.MockService) *httptest.Server {
+	t.Helper()
+
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
 	e.Use(gateway.WithContext())
@@ -283,11 +309,20 @@ func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
 	require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
 	server := httptest.NewServer(e)
-	defer server.Close()
+	t.Cleanup(server.Close)
 
-	body := strings.NewReader(`{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
+	return server
+}
 
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, server.URL+WebSessionRoute, body)
+type sessionReply struct {
+	Token string `json:"token"`
+	Error string `json:"error"`
+}
+
+func postSession(t *testing.T, serverURL, body string) (int, sessionReply) {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, serverURL+WebSessionRoute, strings.NewReader(body))
 	require.NoError(t, err)
 
 	req.Header.Set("Content-Type", "application/json")
@@ -297,18 +332,12 @@ func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 
-	defer res.Body.Close() //nolint:errcheck
+	defer res.Body.Close() //nolint:errcheck // the body is decoded before the close runs, and a failed close cannot change it
 
-	require.Equal(t, http.StatusOK, res.StatusCode)
+	var reply sessionReply
+	require.NoError(t, json.NewDecoder(res.Body).Decode(&reply))
 
-	var success struct {
-		Token string `json:"token"`
-	}
-
-	require.NoError(t, json.NewDecoder(res.Body).Decode(&success))
-
-	assert.NotContains(t, openBridge(t, server.URL, success.Token), ErrBridgeCredentialsNotFound.Error())
-	assert.Contains(t, openBridge(t, server.URL, success.Token), ErrBridgeCredentialsNotFound.Error())
+	return res.StatusCode, reply
 }
 
 func openBridge(t *testing.T, serverURL, token string) string {

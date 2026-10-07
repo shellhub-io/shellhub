@@ -37,12 +37,12 @@ type Credentials struct {
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
 	if c.Password == "" {
-		return ErrCreditialsNoPassword
+		return nil
 	}
 
 	signed, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, []byte(c.Password), nil)
 	if err != nil {
-		return errors.New("failed to sign the session's password")
+		return errors.Join(ErrCredentialsEncryptPassword, err)
 	}
 
 	c.Password = hex.EncodeToString(signed)
@@ -52,7 +52,7 @@ func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
 
 func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 	if c.Password == "" {
-		return ErrCreditialsNoPassword
+		return nil
 	}
 
 	decoded, err := hex.DecodeString(c.Password)
