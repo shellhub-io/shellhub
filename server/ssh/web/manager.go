@@ -26,7 +26,7 @@ func (m *manager) save(id string, data *Credentials) {
 }
 
 func (m *manager) get(id string) (*Credentials, bool) {
-	l, ok := m.credentials.Load(id)
+	l, ok := m.credentials.LoadAndDelete(id)
 	if !ok {
 		return nil, false
 	}
