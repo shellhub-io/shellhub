@@ -358,7 +358,9 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 }
 
 func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.DeviceUpdateStatus, ownerID string) error {
-	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID)); err != nil {
+	licensed := s.licenseAllowsAcceptance(ctx, models.DeviceStatus(req.Status))
+
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID, licensed)); err != nil {
 		return err
 	}
 
@@ -395,7 +397,22 @@ func (s *service) chargeProvisioningKeyUse(ctx context.Context, tenantID, provis
 	return nil
 }
 
-func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string) store.TransactionCb {
+func (s *service) licenseAllowsAcceptance(ctx context.Context, status models.DeviceStatus) bool {
+	if s.licenseEvaluator == nil || status != models.DeviceStatusAccepted {
+		return true
+	}
+
+	ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
+	if err != nil {
+		log.WithError(err).Warn("license evaluator returned an error; failing open and allowing device acceptance")
+
+		return true
+	}
+
+	return ok
+}
+
+func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string, licensed bool) store.TransactionCb {
 	return func(ctx context.Context) error {
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
@@ -492,7 +509,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
-				if err := s.validateDeviceAcceptance(ctx, namespace); err != nil {
+				if err := s.validateDeviceAcceptance(ctx, namespace, licensed); err != nil {
 					return err
 				}
 			}
@@ -630,7 +647,7 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	return nil
 }
 
-func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
+func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace, licensed bool) error {
 	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
 		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
 			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
@@ -653,17 +670,8 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 		}
 	}
 
-	if s.licenseEvaluator != nil {
-		ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
-		if err != nil {
-			log.WithError(err).Warn("license evaluator returned an error; failing open and allowing device acceptance")
-
-			return nil
-		}
-
-		if !ok {
-			return ErrDeviceLicenseLimit
-		}
+	if !licensed {
+		return ErrDeviceLicenseLimit
 	}
 
 	return nil
