@@ -150,7 +150,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
 		conn := NewConn(wsconn)
-		defer conn.Close() //nolint:errcheck
+		defer conn.Close() //nolint:errcheck // the handler is returning and has no one left to report a close failure to
 
 		exit := func(err error) {
 			log.WithError(err).Log(exitLogLevel(err), "web terminal error")
@@ -165,7 +165,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				return
 			}
 
-			conn.Write(buffer) //nolint:errcheck
+			conn.Write(buffer) //nolint:errcheck // a failed write means the browser is gone, so there is no one left to tell
 		}
 
 		token, err := getToken(wsconn.Request())
@@ -199,7 +199,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 		go conn.KeepAlive()
 
 		if err := creds.decryptPassword(magickey.GetReference()); err != nil {
-			exit(ErrBridgeDecryptPassword)
+			exit(errors.Join(ErrBridgeDecryptPassword, err))
 
 			return
 		}

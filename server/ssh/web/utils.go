@@ -57,12 +57,12 @@ func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 
 	decoded, err := hex.DecodeString(c.Password)
 	if err != nil {
-		return errors.New("failed to decode the session's password")
+		return errors.Join(errors.New("failed to decode the session's password"), err)
 	}
 
 	decrypted, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, decoded, nil)
 	if err != nil {
-		return errors.New("failed to decrypt the session's password")
+		return errors.Join(errors.New("failed to decrypt the session's password"), err)
 	}
 
 	c.Password = string(decrypted)
