@@ -10,7 +10,7 @@
     ".": {},
     "apps/console": {
       "entry": ["src/migrate.tsx", "playwright.config.ts"],
-      "ignore": ["src/client/**"],
+      "ignore": ["src/client/**", "e2e/tmp/**"],
       "playwright": {
         "config": [],
         "entry": ["e2e/**/*.ts"]
