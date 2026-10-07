@@ -269,6 +269,74 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 	}
 }
 
+func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
+	service := servicemocks.NewMockService(t)
+	service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
+		Return(deviceInNamespace(true)).Once()
+	service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
+		Return(nil, store.ErrNoDocuments).Once()
+
+	e := echo.New()
+	e.HTTPErrorHandler = handlers.NewErrors(nil)
+	e.Use(gateway.WithContext())
+
+	require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
+
+	server := httptest.NewServer(e)
+	defer server.Close()
+
+	body := strings.NewReader(`{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, server.URL+WebSessionRoute, body)
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Tenant-ID", tenantID)
+	req.Header.Set("X-Role", authorizer.RoleOperator.String())
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	defer res.Body.Close() //nolint:errcheck
+
+	require.Equal(t, http.StatusOK, res.StatusCode)
+
+	var success struct {
+		Token string `json:"token"`
+	}
+
+	require.NoError(t, json.NewDecoder(res.Body).Decode(&success))
+
+	assert.NotContains(t, openBridge(t, server.URL, success.Token), ErrBridgeCredentialsNotFound.Error())
+	assert.Contains(t, openBridge(t, server.URL, success.Token), ErrBridgeCredentialsNotFound.Error())
+}
+
+func openBridge(t *testing.T, serverURL, token string) string {
+	t.Helper()
+
+	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+"/ws/ssh?token="+token+"&cols=80&rows=24", serverURL)
+	require.NoError(t, err)
+
+	cfg.Header.Set("X-Real-Ip", "127.0.0.1")
+
+	conn, err := websocket.DialConfig(cfg)
+	require.NoError(t, err)
+
+	defer conn.Close() //nolint:errcheck
+
+	var raw []byte
+	require.NoError(t, websocket.Message.Receive(conn, &raw))
+
+	var msg Message
+	require.NoError(t, json.Unmarshal(raw, &msg))
+	require.Equal(t, messageKindError, msg.Kind)
+
+	data, ok := msg.Data.(string)
+	require.True(t, ok)
+
+	return data
+}
+
 func TestNewSSHServerBridge_MissingHostKey(t *testing.T) {
 	err := NewSSHServerBridge(echo.New(), nil, nil, webhandoff.NewStore(), &Config{HostKeyFile: filepath.Join(t.TempDir(), "absent.key")})
 
