@@ -64,6 +64,14 @@ beforeEach(() => {
 });
 
 describe("RuleModal — create mode", () => {
+  it("tells the user lower priority values are evaluated first", () => {
+    renderModal();
+
+    expect(screen.getByLabelText(/priority/i)).toHaveAccessibleDescription(
+      /^Lower values are evaluated first\./,
+    );
+  });
+
   it("submit is disabled until a valid priority is entered", async () => {
     const user = userEvent.setup();
     renderModal();
