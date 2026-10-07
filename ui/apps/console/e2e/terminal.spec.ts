@@ -68,8 +68,10 @@ const agentExec = (container: string, args: string[]) =>
   docker(["exec", container, ...args]);
 
 const agents: string[] = [];
+const nativeClients: ChildProcess[] = [];
 
 test.afterEach(() => {
+  for (const client of nativeClients.splice(0)) client.kill();
   if (agents.length) docker(["rm", "--force", ...agents.splice(0)]);
 });
 
@@ -522,8 +524,6 @@ function createNativeClientKey(container: string) {
   return agentExec(container, ["cat", `${nativeClientKey}.pub`]);
 }
 
-const nativeClients: ChildProcess[] = [];
-
 function openNativeSSH(container: string, sshid: string) {
   const client = spawn("docker", [
     "exec",
@@ -586,10 +586,6 @@ async function openNewKeyApproval(page: Page) {
 }
 
 test.describe("SSH Approval", () => {
-  test.afterEach(() => {
-    for (const client of nativeClients.splice(0)) client.kill();
-  });
-
   test("approving a new key in the console lets the ssh client in", async ({
     page,
   }) => {
@@ -639,10 +635,6 @@ test.describe("SSH Approval", () => {
 });
 
 test.describe("Public Keys", () => {
-  test.afterEach(() => {
-    for (const client of nativeClients.splice(0)) client.kill();
-  });
-
   test("a key registered in the console lets the ssh client in", async ({
     page,
   }) => {
@@ -678,6 +670,56 @@ test.describe("Public Keys", () => {
     await expectNativeShell(
       openNativeSSH(device.container, sshidOf(team, device)),
     );
+  });
+});
+
+test.describe("Firewall Rules", () => {
+  test.skip(isCommunity, "only enterprise and cloud evaluate firewall rules");
+
+  test("a deny rule created in the console keeps the ssh client out", async ({
+    page,
+  }) => {
+    const team = await createTeam({ sshAccessMode: "legacy" });
+    const device = await createDevice(team);
+    const publicKey = createNativeClientKey(device.container);
+    await createPublicKey({
+      ...ownerContext(team),
+      body: {
+        name: `e2e-native-${buildShortId()}`,
+        data: Buffer.from(publicKey).toString("base64"),
+        username: ".*",
+        filter: { hostname: ".*" },
+      },
+    });
+    await expectNativeShell(
+      openNativeSSH(device.container, sshidOf(team, device)),
+    );
+    await signInAndOpen(page, team.owner.username, "/firewall-rules");
+
+    await page.getByRole("button", { name: "Add your first rule" }).click();
+    const dialog = page.getByRole("dialog", { name: "New firewall rule" });
+    await dialog.getByRole("textbox", { name: "Priority" }).fill("1");
+    await dialog.getByRole("radio", { name: "Deny" }).press("Space");
+    await dialog
+      .getByRole("radiogroup", { name: "Username" })
+      .getByRole("radio", { name: "Restrict with regexp" })
+      .press("Space");
+    await dialog
+      .getByRole("textbox", { name: "Username pattern" })
+      .fill(deviceLogin);
+    await dialog
+      .getByRole("radio", { name: "Filter by hostname" })
+      .press("Space");
+    await dialog
+      .getByRole("textbox", { name: "Hostname pattern" })
+      .fill(device.name);
+    await dialog.getByRole("button", { name: "Create rule" }).click();
+    await expect(dialog).toBeHidden();
+
+    const ssh = openNativeSSH(device.container, sshidOf(team, device));
+    await expect
+      .poll(() => ssh.read(), { message: "the ssh client to be refused" })
+      .toContain("Access to the device has been denied.");
   });
 });
 
