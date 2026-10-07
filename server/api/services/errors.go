@@ -144,7 +144,7 @@ var (
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
-	ErrSetupForbidden                  = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
+	ErrSetupCompleted                  = errors.New("setup has already been completed", ErrLayer, ErrCodeConflict)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErrAuthDeviceNoIdentity            = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
@@ -567,9 +567,10 @@ func NewErrUserDelete(err error) error {
 	return NewErrInvalid(ErrUserDelete, nil, err)
 }
 
-// NewErrSetupForbidden reports that the instance is already set up, so setup cannot run again.
-func NewErrSetupForbidden(err error) error {
-	return NewErrForbidden(ErrSetupForbidden, err)
+// NewErrSetupCompleted reports that the instance is already set up, so setup cannot run again.
+// It carries ErrCodeConflict so the echo handler maps it to HTTP 409.
+func NewErrSetupCompleted() error {
+	return errors.Wrap(ErrSetupCompleted, nil)
 }
 
 // NewErrAuthDeviceNoIdentityAndHostname reports that a device offered neither a MAC nor a

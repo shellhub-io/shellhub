@@ -49,7 +49,7 @@ func TestSetup(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "Fail when setup isn't allowed",
+			description: "Fail when the system cannot be read",
 			req: requests.Setup{
 				Email:     "teste@google.com",
 				Name:      "userteste",
@@ -60,7 +60,21 @@ func TestSetup(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrSetupForbidden(errors.New("error", "", 0)),
+			expected: errors.New("error", "", 0),
+		},
+		{
+			description: "Fail when the instance is already set up",
+			req: requests.Setup{
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
+			},
+			requiredMocks: func() {
+				storeMock.On("SystemGet", ctx).Return(&models.System{Setup: true}, nil).Once()
+			},
+			expected: NewErrSetupCompleted(),
 		},
 		{
 			description: "Fail when cannot hash the password",
