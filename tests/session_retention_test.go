@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -36,11 +37,7 @@ func TestSessionRetention(t *testing.T) {
 
 	compose.RunCron(t, sessionRetentionCron)
 
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).Get("/api/sessions/" + expired)
-		assert.NoError(tt, err)
-		assert.Equal(tt, 404, resp.StatusCode(), "a finished session past the window is deleted")
-	}, 30*time.Second, 1*time.Second)
+	awaitSessionDeleted(t, ctx, compose, expired)
 
 	compose.AwaitServerLog(t, "pruned sessions past the retention window")
 
@@ -56,4 +53,14 @@ func TestSessionRetention(t *testing.T) {
 		assert.True(t, session.Active)
 		assert.Positive(t, compose.SessionEventCount(t, live.UID))
 	})
+}
+
+func awaitSessionDeleted(t *testing.T, ctx context.Context, compose *environment.DockerCompose, uid string) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := compose.R(ctx).Get("/api/sessions/" + uid)
+		assert.NoError(tt, err)
+		assert.Equal(tt, http.StatusNotFound, resp.StatusCode(), "session %s is still there", uid)
+	}, 30*time.Second, 1*time.Second)
 }
