@@ -46,6 +46,9 @@ var (
 	// ErrBridgeReadHostKey is returned when the SSH server's host key cannot be read, leaving
 	// the bridge nothing to pin its loopback connection to.
 	ErrBridgeReadHostKey = errors.New("failed to read the SSH server's host key")
+	// ErrBridgeDecryptPassword is returned when the parked credentials hold a password the
+	// server cannot decrypt, so the bridge ends before it tries to log in to the device.
+	ErrBridgeDecryptPassword = errors.New("failed to decrypt the credentials' password")
 )
 
 // Failures in reading the parameters of a session request.
@@ -55,9 +58,10 @@ var (
 	ErrGetDimensions = errors.New("failed to get a terminal dimension")
 )
 
-// ErrCreditialsNoPassword is returned when password authentication was asked for but the
-// parked credentials hold none.
-var ErrCreditialsNoPassword = errors.New("this creditials does not have a password defined")
+// ErrCredentialsEncryptPassword is returned, joined with the cause, when the server cannot
+// encrypt a password before parking it. A password longer than the magic key's OAEP limit of
+// 190 bytes is the case a caller can trigger.
+var ErrCredentialsEncryptPassword = errors.New("failed to encrypt the credentials' password")
 
 // Refusals the browser is shown, as opposed to internal failures.
 var (

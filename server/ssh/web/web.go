@@ -1,6 +1,7 @@
 package web
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -129,7 +130,16 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				return
 			}
 
-			request.encryptPassword(key) //nolint:errcheck
+			if err := request.encryptPassword(key); err != nil {
+				status := http.StatusInternalServerError
+				if errors.Is(err, rsa.ErrMessageTooLong) {
+					status = http.StatusBadRequest
+				}
+
+				response(res, status, Fail{Error: err.Error()})
+
+				return
+			}
 
 			manager.save(token.ID, &request)
 
@@ -188,7 +198,11 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 		go conn.KeepAlive()
 
-		creds.decryptPassword(magickey.GetReference()) //nolint:errcheck
+		if err := creds.decryptPassword(magickey.GetReference()); err != nil {
+			exit(ErrBridgeDecryptPassword)
+
+			return
+		}
 
 		if err := newSession(
 			wsconn.Request().Context(),
