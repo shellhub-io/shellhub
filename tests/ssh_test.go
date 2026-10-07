@@ -1767,6 +1767,14 @@ func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	ownNamespace(t, ctx, compose, sshAccessMode)
+
+	return compose
+}
+
+func ownNamespace(t *testing.T, ctx context.Context, compose *environment.DockerCompose, sshAccessMode string) {
+	t.Helper()
+
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, sshAccessMode)
 
 	auth := models.UserAuthResponse{}
@@ -1784,8 +1792,6 @@ func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator
 	}, 30*time.Second, 1*time.Second)
 
 	compose.JWT(auth.Token)
-
-	return compose
 }
 
 func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) testcontainers.Container {
