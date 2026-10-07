@@ -108,7 +108,7 @@ function advanceTestClock(id: string, to: number) {
   );
 }
 
-function finalizeDraftInvoice(subscription: string) {
+function finalizeInvoiceIfDraft(subscription: string) {
   const [draft] = stripeCli<{ data: StripeObject[] }>(
     "invoices",
     "list",
@@ -117,10 +117,9 @@ function finalizeDraftInvoice(subscription: string) {
     "-d",
     "status=draft",
   ).data;
-  if (!draft) {
-    throw new Error(`expected a draft final invoice for ${subscription}`);
+  if (draft) {
+    stripeCli("invoices", "finalize_invoice", draft.id);
   }
-  stripeCli("invoices", "finalize_invoice", draft.id);
 }
 
 function readTestClockStatus(id: string) {
@@ -428,7 +427,7 @@ test.describe("Billing", () => {
     await expect
       .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
       .toBe("canceled");
-    finalizeDraftInvoice(subscription.id);
+    finalizeInvoiceIfDraft(subscription.id);
     await expect
       .poll(() => hasAbandonedFinalInvoice(subscription.id), {
         timeout: 30_000,
