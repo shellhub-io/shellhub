@@ -3,6 +3,7 @@ package environment
 import (
 	"context"
 	"io"
+	"strconv"
 	"testing"
 	"time"
 
@@ -63,4 +64,17 @@ func (dc *DockerCompose) AwaitDeviceOffline(t *testing.T, uid string) {
 		assert.Equal(tt, 200, resp.StatusCode(), resp.String())
 		assert.False(tt, current.Online)
 	}, 90*time.Second, 1*time.Second)
+}
+
+// AgeSessionKeepAlive moves the last keep-alive of the session uid back by age, failing t unless
+// exactly that session changed. It stands in for the keep-alives a session misses while the
+// reaper's window runs out, so the reaper finds it overdue without the test waiting the window.
+func (dc *DockerCompose) AgeSessionKeepAlive(t *testing.T, uid string, age time.Duration) {
+	t.Helper()
+
+	output, err := dc.stack.SQL(t.Context(),
+		"UPDATE sessions SET seen_at = seen_at - make_interval(secs => :'seconds') WHERE id = :'uid'",
+		map[string]string{"uid": uid, "seconds": strconv.FormatFloat(age.Seconds(), 'f', -1, 64)})
+	require.NoError(t, err)
+	require.Contains(t, output, "UPDATE 1")
 }

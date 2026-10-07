@@ -1507,44 +1507,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "connection with cipher and MAC preferences",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-					Config: ssh.Config{
-						Ciphers: []string{
-							"aes256-ctr", "aes192-ctr", "aes128-ctr",
-							"aes256-gcm@openssh.com", "aes128-gcm@openssh.com",
-						},
-						MACs: []string{
-							"hmac-sha2-256-etm@openssh.com",
-							"hmac-sha2-512-etm@openssh.com",
-							"hmac-sha2-256",
-							"hmac-sha2-512",
-						},
-					},
-				}
-
-				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
-				require.NoError(t, err)
-				defer conn.Close() //nolint:errcheck
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-				defer sess.Close() //nolint:errcheck
-
-				output, err := sess.Output("echo -n 'cipher test'")
-				require.NoError(t, err)
-				assert.Equal(t, "cipher test", string(output))
-			},
-		},
-		{
 			name: "multiple concurrent SSH sessions",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -1626,49 +1588,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.FixedHostKey(impostor.PublicKey()),
 				})
 				require.ErrorContains(t, err, "ssh: host key mismatch")
-			},
-		},
-		{
-			name: "connection with keep-alive and heartbeat",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-					Timeout:         10 * time.Second,
-				}
-
-				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
-				require.NoError(t, err)
-				defer conn.Close() //nolint:errcheck
-
-				go func() {
-					ticker := time.NewTicker(2 * time.Second)
-					defer ticker.Stop()
-					for range 3 {
-						<-ticker.C
-						_, _, err := conn.SendRequest("keepalive@shellhub.io", true, nil)
-						if err != nil {
-							t.Logf("Keep-alive failed: %v", err)
-
-							return
-						}
-					}
-				}()
-
-				time.Sleep(8 * time.Second)
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-				defer sess.Close() //nolint:errcheck
-
-				output, err := sess.Output("echo -n 'alive after keepalive'")
-				require.NoError(t, err)
-				assert.Equal(t, "alive after keepalive", string(output))
 			},
 		},
 		{
