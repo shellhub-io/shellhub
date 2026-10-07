@@ -2,11 +2,15 @@ package main
 
 import (
 	"net/http"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -158,6 +162,145 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
 		})
 	}
+}
+
+// TestNamespaceAPIKeyAuthentication covers what a namespace API key can do once minted: manage the
+// namespace's tags, act only within its role, keep working when it never expires, and stop working
+// once its expiry passes. The routes that refuse a key whatever its role are covered by
+// [TestRoutesThatRefuseAPIKeys].
+func TestNamespaceAPIKeyAuthentication(t *testing.T) {
+	compose := environment.New(t, run).Up(t.Context())
+	t.Cleanup(compose.Down)
+
+	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+
+	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
+
+	_, device := startAcceptedAgent(t, t.Context(), compose)
+
+	deviceTags := func(t *testing.T) []string {
+		t.Helper()
+
+		current, resp, err := compose.GetDevice(t.Context(), device.UID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		return tagNames(current.Tags)
+	}
+
+	namespaceTags := func(t *testing.T, req *resty.Request) []string {
+		t.Helper()
+
+		tags := []models.Tag{}
+		resp, err := req.SetResult(&tags).Get("/api/tags")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		return tagNames(tags)
+	}
+
+	t.Run("a key creates, lists, attaches, detaches and deletes tags", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "tagger", ExpiresAt: -1, OptRole: authorizer.RoleOperator})
+
+		resp, err := withAPIKey(t, compose, key.Key).SetBody(map[string]string{"name": "staging"}).Post("/api/tags")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		assert.Contains(t, namespaceTags(t, withAPIKey(t, compose, key.Key)), "staging")
+
+		resp, err = withAPIKey(t, compose, key.Key).Post("/api/devices/" + device.UID + "/tags/staging")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, []string{"staging"}, deviceTags(t))
+
+		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/devices/" + device.UID + "/tags/staging")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Empty(t, deviceTags(t))
+
+		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/tags/staging")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		assert.NotContains(t, namespaceTags(t, compose.R(t.Context())), "staging")
+	})
+
+	t.Run("a key acts only within its role", func(t *testing.T) {
+		listDevices := func(req *resty.Request) (*resty.Response, error) { return req.Get("/api/devices") }
+		createTag := func(req *resty.Request) (*resty.Response, error) {
+			return req.SetBody(map[string]string{"name": "role" + uuid.Generate()[:8]}).Post("/api/tags")
+		}
+		listAccessPolicies := func(req *resty.Request) (*resty.Response, error) { return req.Get("/api/access-policies") }
+
+		cases := []struct {
+			role                    authorizer.Role
+			devices, tags, policies int
+		}{
+			{role: authorizer.RoleObserver, devices: http.StatusOK, tags: http.StatusForbidden, policies: http.StatusForbidden},
+			{role: authorizer.RoleOperator, devices: http.StatusOK, tags: http.StatusOK, policies: http.StatusForbidden},
+			{role: authorizer.RoleAdministrator, devices: http.StatusOK, tags: http.StatusOK, policies: http.StatusOK},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.role.String(), func(t *testing.T) {
+				key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: tc.role.String(), ExpiresAt: -1, OptRole: tc.role})
+				require.Equal(t, tc.role, key.Role)
+
+				for _, check := range []struct {
+					request func(*resty.Request) (*resty.Response, error)
+					want    int
+				}{
+					{request: listDevices, want: tc.devices},
+					{request: createTag, want: tc.tags},
+					{request: listAccessPolicies, want: tc.policies},
+				} {
+					resp, err := check.request(withAPIKey(t, compose, key.Key))
+					require.NoError(t, err)
+					assert.Equal(t, check.want, resp.StatusCode(), "%s %s: %s", resp.Request.Method, resp.Request.URL, resp.String())
+				}
+			})
+		}
+	})
+
+	t.Run("a key that never expires is stored without an expiry and authenticates", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "forever", ExpiresAt: -1})
+		require.Equal(t, int64(-1), key.ExpiresIn)
+
+		keys := []models.APIKey{}
+		resp, err := compose.R(t.Context()).SetResult(&keys).Get("/api/namespaces/api-key")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		index := slices.IndexFunc(keys, func(k models.APIKey) bool { return k.Name == "forever" })
+		require.GreaterOrEqual(t, index, 0)
+		assert.Equal(t, int64(-1), keys[index].ExpiresIn,
+			"-1 is the marker for a key that never expires, not a time")
+
+		resp, err = withAPIKey(t, compose, key.Key).Get("/api/devices")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("a key is refused once its expiry passes", func(t *testing.T) {
+		const ttl = 10 * time.Second
+
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "expiring", ExpiresAt: 30})
+		compose.ExpireAPIKeyIn(t, key.Name, ttl)
+
+		resp, err := withAPIKey(t, compose, key.Key).Get("/api/devices")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			resp, err := withAPIKey(t, compose, key.Key).Get("/api/devices")
+			if !assert.NoError(tt, err) {
+				return
+			}
+
+			assert.Equal(tt, http.StatusUnauthorized, resp.StatusCode(), resp.String())
+		}, 3*ttl, time.Second)
+	})
 }
 
 func withAPIKey(t *testing.T, compose *environment.DockerCompose, plaintext string) *resty.Request {
