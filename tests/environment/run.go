@@ -34,15 +34,27 @@ type Run struct {
 	stack  bool
 	client *client.Client
 	lease  *client.HijackedResponse
+	issuer *LicenseIssuer
+}
+
+// RunOption configures a run [StartRun] starts.
+type RunOption func(*Run)
+
+// IssuingLicenses makes the run compile issuer's public key into its enterprise server in place of
+// the production license key, and start every enterprise stack under a license issuer signs rather
+// than the one SHELLHUB_LICENSE_FILE names. A stack then picks its license with [Config.License]
+// and runs without one under [Config.Unlicensed].
+func IssuingLicenses(issuer *LicenseIssuer) RunOption {
+	return func(r *Run) { r.issuer = issuer }
 }
 
 // StartRun starts a run for the calling process. Its lease is a container whose stdin the
 // process holds open, so the daemon releases the lease however the process ends. It sweeps the
 // dead runs on the daemon once the lease exists, logging what it cannot remove. It returns an
 // error when the daemon cannot be reached or the lease cannot be created. The lease outlives
-// ctx; [Run.Close] releases it.
-func StartRun(ctx context.Context) (*Run, error) {
-	return startRun(ctx, newRunID(), false)
+// ctx; [Run.Close] releases it. opts configure the run before it builds anything.
+func StartRun(ctx context.Context, opts ...RunOption) (*Run, error) {
+	return startRun(ctx, newRunID(), false, opts...)
 }
 
 // StartStackRun starts the run of a kept compose stack, identified by its project name. The
@@ -59,7 +71,7 @@ func StartStackRun(ctx context.Context, project string) (*Run, error) {
 	return startRun(ctx, project, true)
 }
 
-func startRun(ctx context.Context, id string, stack bool) (*Run, error) {
+func startRun(ctx context.Context, id string, stack bool, opts ...RunOption) (*Run, error) {
 	if err := pinDockerHost(); err != nil {
 		return nil, err
 	}
@@ -70,6 +82,9 @@ func startRun(ctx context.Context, id string, stack bool) (*Run, error) {
 	}
 
 	r := &Run{id: id, stack: stack, client: cli}
+	for _, opt := range opts {
+		opt(r)
+	}
 
 	if err := r.holdLease(ctx); err != nil {
 		_ = cli.Close()
@@ -88,6 +103,10 @@ func newRunID() string {
 
 // ID returns the run's ID, valid as an image tag and as a compose project name.
 func (r *Run) ID() string { return r.id }
+
+// LicenseIssuer returns the issuer [IssuingLicenses] gave the run, or nil when the run's stacks
+// run under the license SHELLHUB_LICENSE_FILE names.
+func (r *Run) LicenseIssuer() *LicenseIssuer { return r.issuer }
 
 // Labels returns the labels every container the run starts must carry. A stack run's include
 // the lease, so its containers keep the run alive.

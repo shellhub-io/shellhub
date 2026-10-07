@@ -9,6 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const licenseIssuerKeyPath = ".stack/license-issuer.pem"
+
 var run *environment.Run
 
 func TestMain(m *testing.M) {
@@ -20,10 +22,12 @@ func runSuite(m *testing.M) int {
 
 	ctx := context.Background()
 
-	if err := environment.BundleOpenAPI(ctx, environment.EditionCommunity, ".."); err != nil {
-		log.WithError(err).Error("failed to bundle the OpenAPI schema")
+	for _, edition := range []environment.Edition{environment.EditionCommunity, environment.EditionEnterprise} {
+		if err := environment.BundleOpenAPI(ctx, edition, ".."); err != nil {
+			log.WithError(err).WithField("edition", edition).Error("failed to bundle the OpenAPI schema")
 
-		return 1
+			return 1
+		}
 	}
 
 	if err := environment.GenerateKeys(".."); err != nil {
@@ -32,8 +36,14 @@ func runSuite(m *testing.M) int {
 		return 1
 	}
 
-	var err error
-	if run, err = environment.StartRun(ctx); err != nil {
+	issuer, err := environment.LoadLicenseIssuer(licenseIssuerKeyPath)
+	if err != nil {
+		log.WithError(err).Error("failed to load the license issuer")
+
+		return 1
+	}
+
+	if run, err = environment.StartRun(ctx, environment.IssuingLicenses(issuer)); err != nil {
 		log.WithError(err).Error("failed to start the e2e run")
 
 		return 1

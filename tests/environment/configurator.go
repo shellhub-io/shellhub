@@ -46,6 +46,42 @@ func (dcc *DockerComposeConfigurator) WithEnv(name, value string) *DockerCompose
 	return dcc
 }
 
+// WithEdition brings the stack up as edition instead of the community edition. An enterprise or
+// cloud edition builds from the cloud source, so Up fails the test when CloudDir holds no go.mod,
+// and a cloud edition also when it holds no docker-compose.yml.
+func (dcc *DockerComposeConfigurator) WithEdition(edition Edition) *DockerComposeConfigurator {
+	dcc.cfg.Edition = edition
+
+	return dcc
+}
+
+// WithLicense makes the server load license from its license file on startup, in place of
+// [FullLicense]. It needs an enterprise or cloud stack whose run issues licenses, see
+// [IssuingLicenses]; Up fails the test otherwise, and when [DockerComposeConfigurator.WithoutLicense]
+// is set too.
+func (dcc *DockerComposeConfigurator) WithLicense(license License) *DockerComposeConfigurator {
+	dcc.cfg.License = &license
+
+	return dcc
+}
+
+// WithoutLicense starts the server with no license file, so it loads none on startup. It needs an
+// enterprise or cloud stack; Up fails the test otherwise.
+func (dcc *DockerComposeConfigurator) WithoutLicense() *DockerComposeConfigurator {
+	dcc.cfg.Unlicensed = true
+
+	return dcc
+}
+
+// WithEveryAddressIn gives the server a GeoIP database that locates every address, private ones
+// included, in country, an ISO 3166 code such as "BR". It needs an enterprise or cloud stack; Up
+// fails the test otherwise.
+func (dcc *DockerComposeConfigurator) WithEveryAddressIn(country string) *DockerComposeConfigurator {
+	dcc.cfg.LocatedCountry = country
+
+	return dcc
+}
+
 // WithCronTrigger publishes the stack's redis on a port reserved for it, so [DockerCompose.RunCron]
 // can reach the queue the server schedules its cron jobs on. Without it redis takes whatever port
 // the daemon picks, which the test neither knows nor, under rootless Docker, can reach.

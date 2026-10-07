@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const stackArtifactsDir = ".stack"
+
 // Service names a container in the test stack.
 type Service string
 
