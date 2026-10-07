@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { GetAuthenticationSettingsResponse } from "@/client";
+import type {
+  ConfigureSamlAuthenticationData,
+  GetAuthenticationSettingsResponse,
+} from "@/client";
 
 /**
  * The stored SAML configuration, taken from the generated response type so the form and the API
@@ -43,6 +46,7 @@ export const samlSchema = z
     metadataUrl: z.string(),
     postUrl: z.string(),
     redirectUrl: z.string(),
+    preferredBinding: z.enum(["", "post", "redirect"]),
     entityId: z.string(),
     certificate: z.string(),
     emailMapping: z.string(),
@@ -104,6 +108,7 @@ export function buildSamlDefaults(
       metadataUrl: "",
       postUrl: "",
       redirectUrl: "",
+      preferredBinding: "",
       entityId: "",
       certificate: "",
       emailMapping: "",
@@ -117,6 +122,7 @@ export function buildSamlDefaults(
     metadataUrl: "",
     postUrl: existingConfig.idp?.binding?.post ?? "",
     redirectUrl: existingConfig.idp?.binding?.redirect ?? "",
+    preferredBinding: existingConfig.idp?.binding?.preferred ?? "",
     entityId: existingConfig.idp?.entity_id ?? "",
     certificate: existingConfig.idp?.certificates?.[0] ?? "",
     emailMapping: existingConfig.idp?.mappings?.email ?? "",
@@ -125,9 +131,21 @@ export function buildSamlDefaults(
   };
 }
 
+type PreferredBinding = NonNullable<
+  ConfigureSamlAuthenticationData["body"]["idp"]["binding"]
+>["preferred"];
+
+function keptPreferredBinding(values: SamlFormValues): PreferredBinding {
+  if (values.preferredBinding === "post" && values.postUrl) return "post";
+  if (values.preferredBinding === "redirect" && values.redirectUrl)
+    return "redirect";
+  return undefined;
+}
+
 /**
  * Turns validated SAML form values into the request body, sending only the branch that was
- * filled in — the metadata URL or the manual fields, never both.
+ * filled in: the metadata URL or the manual fields, never both. The manual branch carries
+ * `preferredBinding` only while that binding's URL is set; the metadata branch carries none.
  */
 export function buildSamlBody(values: SamlFormValues) {
   if (values.useMetadataUrl) {
@@ -137,6 +155,7 @@ export function buildSamlBody(values: SamlFormValues) {
       sp: { sign_requests: values.signRequests },
     };
   }
+  const preferred = keptPreferredBinding(values);
   return {
     enable: true,
     idp: {
@@ -144,6 +163,7 @@ export function buildSamlBody(values: SamlFormValues) {
       binding: {
         ...(values.postUrl ? { post: values.postUrl } : {}),
         ...(values.redirectUrl ? { redirect: values.redirectUrl } : {}),
+        ...(preferred ? { preferred } : {}),
       },
       certificate: normalizeCert(values.certificate),
       ...(values.emailMapping || values.nameMapping
