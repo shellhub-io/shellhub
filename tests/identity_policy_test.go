@@ -109,9 +109,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 	t.Run("a tag-filtered policy grants only the devices carrying the tag", func(t *testing.T) {
 		member, signer := memberWithKey(t, compose, "tagged", authorizer.RoleOperator)
 
-		resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": "production"}).Post("/api/tags")
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode(), resp.String())
+		createTag(t, compose, "production")
 
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "production",
@@ -203,6 +201,14 @@ func memberWithKey(t *testing.T, compose *environment.DockerCompose, username st
 	compose.EnrollIdentityAs(t, member.Token, username, data)
 
 	return member, signer
+}
+
+func createTag(t *testing.T, compose *environment.DockerCompose, name string) {
+	t.Helper()
+
+	resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": name}).Post("/api/tags")
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
 }
 
 func tagDevice(t *testing.T, compose *environment.DockerCompose, uid, tag string) {
