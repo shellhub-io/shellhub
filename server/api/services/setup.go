@@ -28,13 +28,26 @@ const (
 // SetupService creates the first user and namespace on a fresh instance. It refuses once an
 // instance is set up, so it cannot be used to add a second administrator.
 type SetupService interface {
+	// Setup creates the first user, as the instance's administrator, with their namespace, binds
+	// the instance to that namespace and signs the user in. It returns ErrSetupCompleted once the
+	// instance is set up; ErrUserInvalid or ErrUserPasswordInvalid for a request that fails
+	// validation; ErrUserDuplicated or ErrUserUnhandledDuplicate when the user conflicts with an
+	// existing one; ErrNamespaceDuplicated or ErrNamespaceCreateStore when the namespace cannot be
+	// created, after removing the user again, or ErrUserDelete when that removal fails; and the
+	// store's error when the system row cannot be read or written or the user cannot be stored.
+	// A failed write of the system row leaves the user and namespace in place. When no token can
+	// be issued for the new user, it returns an empty response and no error.
 	Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error) {
 	system, err := s.store.SystemGet(ctx)
-	if err != nil || system.Setup {
-		return nil, NewErrSetupForbidden(err)
+	if err != nil {
+		return nil, err
+	}
+
+	if system.Setup {
+		return nil, NewErrSetupCompleted()
 	}
 
 	data := models.UserData{

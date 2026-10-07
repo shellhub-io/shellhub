@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -63,6 +64,26 @@ func TestSetup(t *testing.T) {
 				}).Return(nil, errors.New("")).Once()
 			},
 			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "fail when the instance is already set up",
+			body: `{
+                "name": "John Doe",
+                "username": "john.doe",
+                "email": "john.doe@example.com",
+                "password": "password",
+                "namespace": "john-doe"
+            }`,
+			requiredMocks: func() {
+				servicesMock.On("Setup", mock.Anything, requests.Setup{
+					Name:      "John Doe",
+					Username:  "john.doe",
+					Email:     "john.doe@example.com",
+					Password:  "password",
+					Namespace: "john-doe",
+				}).Return(nil, services.NewErrSetupCompleted()).Once()
+			},
+			expected: http.StatusConflict,
 		},
 		{
 			description: "success to setup on service",
