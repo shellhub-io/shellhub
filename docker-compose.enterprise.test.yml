@@ -1,8 +1,13 @@
+x-e2e-labels: &e2e-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+
 services:
   redis:
     image: valkey/valkey:9.1-alpine
   minio:
     image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    labels: *e2e-labels
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s

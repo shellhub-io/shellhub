@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,11 +24,29 @@ const (
 	projectPrefix  = "shellhub-e2e-"
 )
 
+var validName = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
+
 type stateFile struct {
-	Name    string            `json:"name"`
-	Edition string            `json:"edition"`
-	Files   []string          `json:"files"`
-	Envs    map[string]string `json:"envs"`
+	Name       string            `json:"name"`
+	Edition    string            `json:"edition"`
+	Files      []string          `json:"files"`
+	Envs       map[string]string `json:"envs"`
+	AgentImage string            `json:"agent_image"`
+}
+
+func defaultStackName(root string) string {
+	sum := sha256.Sum256([]byte(root))
+
+	return hex.EncodeToString(sum[:])[:12]
+}
+
+func repositoryRoot() (string, error) {
+	root, err := filepath.Abs("..")
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.EvalSymlinks(root)
 }
 
 func statePath(name string) string {
@@ -70,6 +90,7 @@ func printExports(w io.Writer, s *stateFile) error {
 		"E2E_ADMIN_USER=" + adminUsername,
 		"E2E_ADMIN_PASSWORD=" + adminPassword,
 		"E2E_ADMIN_NAMESPACE=" + adminNamespace,
+		"E2E_AGENT_IMAGE=" + s.AgentImage,
 	} {
 		if _, err := fmt.Fprintf(w, "export %s\n", line); err != nil {
 			return err
@@ -137,6 +158,21 @@ func teardown(ctx context.Context, cmd *cobra.Command, name string) error {
 	return nil
 }
 
+func teardownRun(ctx context.Context, cmd *cobra.Command, name string) error {
+	run, err := environment.StartStackRun(ctx, projectPrefix+name)
+	if err != nil {
+		return fmt.Errorf("starting the stack's run: %w", err)
+	}
+
+	err = teardown(ctx, cmd, name)
+
+	if closeErr := run.Close(ctx); closeErr != nil {
+		cmd.PrintErrf("Could not remove everything the stack left behind: %v\n", closeErr)
+	}
+
+	return err
+}
+
 func main() {
 	_ = os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 
@@ -145,9 +181,13 @@ func main() {
 		cloudDir string
 	)
 
-	validName := regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
+	root, err := repositoryRoot()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: resolving the repository root: %v\n", err)
+		os.Exit(1)
+	}
 
-	root := &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:           "stack",
 		Short:         "Manage a ShellHub e2e stack",
 		SilenceUsage:  true,
@@ -161,8 +201,8 @@ func main() {
 		},
 	}
 
-	root.PersistentFlags().StringVar(&name, "name", "default", "stack name")
-	root.PersistentFlags().StringVar(&cloudDir, "cloud-dir", "../../cloud", "path to the cloud repo")
+	rootCmd.PersistentFlags().StringVar(&name, "name", defaultStackName(root), "stack name")
+	rootCmd.PersistentFlags().StringVar(&cloudDir, "cloud-dir", "../../cloud", "path to the cloud repo")
 
 	var (
 		editionFlag string
@@ -193,8 +233,13 @@ func main() {
 
 			projectName := projectPrefix + name
 
-			if err := teardown(ctx, cmd, name); err != nil {
+			if err := teardownRun(ctx, cmd, name); err != nil {
 				return err
+			}
+
+			run, err := environment.StartStackRun(ctx, projectName)
+			if err != nil {
+				return fmt.Errorf("starting the stack's run: %w", err)
 			}
 
 			cmd.PrintErrln("Generating keys...")
@@ -205,7 +250,8 @@ func main() {
 
 			cmd.PrintErrln("Building agent image...")
 
-			if err := environment.BuildAgentImage(ctx, ".."); err != nil {
+			agentImage, err := environment.BuildAgentImage(ctx, run, environment.AgentBuild{Context: "..", Output: os.Stderr})
+			if err != nil {
 				return fmt.Errorf("building agent image: %w", err)
 			}
 
@@ -214,6 +260,7 @@ func main() {
 				Name:     projectName,
 				HTTPPort: httpPort,
 				CloudDir: cloudDir,
+				Run:      run,
 			}
 
 			cmd.PrintErrf("Starting stack %q (edition=%s)...\n", projectName, edition)
@@ -246,10 +293,11 @@ func main() {
 			}
 
 			state := &stateFile{
-				Name:    projectName,
-				Edition: string(edition),
-				Files:   stack.Files(),
-				Envs:    stack.Envs(),
+				Name:       projectName,
+				Edition:    string(edition),
+				Files:      stack.Files(),
+				Envs:       stack.Envs(),
+				AgentImage: agentImage,
 			}
 
 			if err := writeState(state, name); err != nil {
@@ -269,7 +317,7 @@ func main() {
 		Use:   "down",
 		Short: "Tear the e2e stack down",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if err := teardown(cmd.Context(), cmd, name); err != nil {
+			if err := teardownRun(cmd.Context(), cmd, name); err != nil {
 				return err
 			}
 
@@ -279,9 +327,9 @@ func main() {
 		},
 	}
 
-	root.AddCommand(upCmd, downCmd)
+	rootCmd.AddCommand(upCmd, downCmd)
 
-	if err := root.ExecuteContext(context.Background()); err != nil {
+	if err := rootCmd.ExecuteContext(context.Background()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

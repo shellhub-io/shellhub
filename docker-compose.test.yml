@@ -1,8 +1,13 @@
 version: "3.7"
 
+x-e2e-labels: &e2e-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+
 services:
   server:
-    image: server:test-${SHELLHUB_BUILD_EDITION:-community}
+    image: shellhub-e2e/server:${SHELLHUB_E2E_RUN:?}-${SHELLHUB_BUILD_EDITION:-community}
+    labels: *e2e-labels
     pull_policy: never
     restart: on-failure:3
     healthcheck:
@@ -17,7 +22,8 @@ services:
     volumes:
       - ./openapi/static/openapi-${SHELLHUB_EDITION:-community}.json:/etc/shellhub/openapi.json:ro
   gateway:
-    image: gateway:test
+    image: shellhub-e2e/gateway:${SHELLHUB_E2E_RUN:?}
+    labels: *e2e-labels
     pull_policy: never
     restart: on-failure:3
     healthcheck:
@@ -26,10 +32,13 @@ services:
       retries: 20
     ports: []
   ui:
-    image: ui:test
+    image: shellhub-e2e/ui:${SHELLHUB_E2E_RUN:?}
+    labels: *e2e-labels
     pull_policy: never
     restart: on-failure:3
     healthcheck:
       interval: 5s
       start_period: 10s
       retries: 20
+  redis:
+    labels: *e2e-labels

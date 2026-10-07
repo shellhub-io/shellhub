@@ -31,9 +31,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var (
-	ShellHubAgentUsername = "root"
-	ShellHubAgentPassword = "password"
+const (
+	ShellHubAgentUsername = environment.AgentUsername
+	ShellHubAgentPassword = environment.AgentPassword
 )
 
 const (
@@ -94,7 +94,35 @@ func agentBuildLog() io.Writer {
 		return os.Stderr
 	}
 
-	return io.Discard
+	return nil
+}
+
+var agentImage struct {
+	sync.Mutex
+	tag string
+}
+
+func buildAgentImage(ctx context.Context) (string, error) {
+	agentImage.Lock()
+	defer agentImage.Unlock()
+
+	if agentImage.tag != "" {
+		return agentImage.tag, nil
+	}
+
+	tag, err := environment.BuildAgentImage(ctx, run, environment.AgentBuild{
+		Repository: os.Getenv("SHELLHUB_E2E_AGENT_IMAGE"),
+		Context:    envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
+		Dockerfile: os.Getenv("SHELLHUB_E2E_AGENT_DOCKERFILE"),
+		Output:     agentBuildLog(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	agentImage.tag = tag
+
+	return tag, nil
 }
 
 func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
@@ -121,23 +149,18 @@ func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentCo
 		opt(envs)
 	}
 
+	image, err := buildAgentImage(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Env: envs,
+			Image:  image,
+			Env:    envs,
+			Labels: run.Labels(),
 			HostConfigModifier: func(hc *container.HostConfig) {
 				hc.NetworkMode = container.NetworkMode("container:" + gatewayID)
-			},
-			FromDockerfile: testcontainers.FromDockerfile{
-				Repo:           envOr("SHELLHUB_E2E_AGENT_IMAGE", "agent"),
-				Tag:            "test",
-				Context:        envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
-				Dockerfile:     envOr("SHELLHUB_E2E_AGENT_DOCKERFILE", "agent/Dockerfile.test"),
-				BuildLogWriter: agentBuildLog(),
-				KeepImage:      true,
-				BuildArgs: map[string]*string{
-					"USERNAME": &ShellHubAgentUsername,
-					"PASSWORD": &ShellHubAgentPassword,
-				},
 			},
 		},
 		Logger: log.New(io.Discard, "", log.LstdFlags),
@@ -1755,7 +1778,7 @@ func deviceSSHID(device *models.Device) string {
 func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
 	t.Helper()
 
-	compose := environment.New(t).Up(ctx)
+	compose := environment.New(t, run).Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)

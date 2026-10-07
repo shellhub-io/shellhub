@@ -66,6 +66,10 @@ func (e Edition) composeFiles(cloudDir string) ([]string, error) {
 		base = append(base, "../docker-compose.enterprise.test.yml")
 	}
 
+	if e == EditionCloud {
+		base = append(base, "../docker-compose.cloud.test.yml")
+	}
+
 	return base, nil
 }
 

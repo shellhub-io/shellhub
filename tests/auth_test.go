@@ -19,7 +19,7 @@ import (
 func TestLoginWithoutANamespace(t *testing.T) {
 	ctx := context.Background()
 
-	compose := environment.New(t).Up(ctx)
+	compose := environment.New(t, run).Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, "nobody", "nobody@ossystems.com.br", ShellHubPassword)

@@ -127,7 +127,7 @@ func sweepOperations(t *testing.T) []sweepOperation {
 func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
 	ctx := context.Background()
 
-	compose := environment.New(t).Up(ctx)
+	compose := environment.New(t, run).Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
