@@ -81,7 +81,7 @@ jobs:
             lint_args: ""
             race_args: "-race"
           - project: tests
-            extra_args: ""
+            extra_args: "-skip ^TestEnterprise"
             lint_args: ""
             database: postgres
             test_timeout: "60m"
@@ -139,6 +139,84 @@ jobs:
         if: matrix.project != 'tests'
         working-directory: ${{ matrix.project }}
         run: go build -v ${{ matrix.extra_args }} ./...
+
+  enterprise-tests:
+    name: validate (tests - enterprise)
+    needs: changes
+    if: ${{ needs.changes.outputs.go == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: shellhub
+
+      - name: Decide whether the cloud source can be checked out
+        id: cloud-access
+        if: >-
+          github.event_name != 'pull_request'
+          || github.event.pull_request.head.repo.full_name == github.repository
+        run: echo "granted=true" >> "$GITHUB_OUTPUT"
+
+      - name: Report the enterprise tests skipped for a fork
+        if: steps.cloud-access.outputs.granted != 'true'
+        run: echo "::notice title=Enterprise tests skipped::a pull request from a fork cannot check out the private cloud source"
+
+      - name: Generate cloud repo token
+        id: cloud-token
+        if: steps.cloud-access.outputs.granted == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+          permission-contents: read
+
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: steps.cloud-access.outputs.granted == 'true'
+        env:
+          GH_TOKEN: ${{ steps.cloud-token.outputs.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ -n "$HEAD_REF" ] && gh api "repos/shellhub-io/cloud/branches/$HEAD_REF" >/dev/null 2>&1; then
+            echo "ref=$HEAD_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=master" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out cloud source
+        if: steps.cloud-access.outputs.granted == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.cloud-token.outputs.token }}
+          ref: ${{ steps.cloud-branch.outputs.ref }}
+          fetch-depth: 1
+          path: cloud
+          persist-credentials: false
+
+      - name: Set up Go
+        if: steps.cloud-access.outputs.granted == 'true'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: shellhub/tests/go.mod
+          cache-dependency-path: shellhub/tests/go.sum
+
+      - name: Set SHELLHUB_DATABASE for integration tests
+        if: steps.cloud-access.outputs.granted == 'true'
+        working-directory: shellhub
+        run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
+
+      - name: Run the enterprise tests
+        if: steps.cloud-access.outputs.granted == 'true'
+        working-directory: shellhub/tests
+        run: go test -run ^TestEnterprise -timeout 60m ./...
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
 
   mocks:
     name: generated mocks
@@ -217,7 +295,7 @@ jobs:
 
   qa:
     name: qa
-    needs: [changes, validate, mocks, cross-compile]
+    needs: [changes, validate, enterprise-tests, mocks, cross-compile]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
