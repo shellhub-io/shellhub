@@ -15,10 +15,11 @@ type DockerComposeConfigurator struct {
 	t   *testing.T
 }
 
-// New creates a new [DockerComposeConfigurator]. By default, it reads from the .env file, but
-// it assigns random values for ports and network to avoid collision errors. Use
-// [DockerComposeConfigurator.Up] to build the instance, initiating a [DockerCompose] instance.
-func New(t *testing.T) *DockerComposeConfigurator {
+// New creates a new [DockerComposeConfigurator] whose stacks belong to run. By default, it reads
+// from the .env file, but it assigns random values for ports and network to avoid collision
+// errors. Use [DockerComposeConfigurator.Up] to build the instance, initiating a [DockerCompose]
+// instance.
+func New(t *testing.T, run *Run) *DockerComposeConfigurator {
 	t.Helper()
 
 	return &DockerComposeConfigurator{
@@ -27,14 +28,15 @@ func New(t *testing.T) *DockerComposeConfigurator {
 			HTTPPort: ReservePort(t),
 			SSHPort:  ReservePort(t),
 			Network:  "shellhub_network_" + uuid.Generate(),
+			Run:      run,
 		},
 		t: t,
 	}
 }
 
 // Up initiates the ShellHub instance, blocking until all services are in the running or
-// healthy state. The first successful Up in a test binary builds the server, gateway and ui
-// images; every later Up starts from those images and fails if they were removed in between.
+// healthy state. The first successful Up in a run builds the server, gateway and ui images;
+// every later Up starts from those images and fails if they were removed in between.
 //
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
 // [assert.FailNow] if an error arises.

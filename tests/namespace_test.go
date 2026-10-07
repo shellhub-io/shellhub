@@ -33,7 +33,7 @@ const (
 func TestLeaveNamespace(t *testing.T) {
 	ctx := context.Background()
 
-	compose := environment.New(t).Up(ctx)
+	compose := environment.New(t, run).Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
@@ -145,7 +145,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 // TestDeleteNamespaceRefusesItsAPIKeys uses a key once, so the server caches it, then deletes the
 // key's namespace. Deleting the namespace evicts nothing from that cache.
 func TestDeleteNamespaceRefusesItsAPIKeys(t *testing.T) {
-	compose := environment.New(t).Up(t.Context())
+	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)

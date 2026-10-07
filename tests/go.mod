@@ -8,6 +8,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
 	github.com/moby/moby/api v1.56.0
+	github.com/moby/moby/client v0.5.0
 	github.com/pkg/sftp v1.13.11
 	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.10.2
@@ -90,7 +91,6 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.3.0 // indirect
 	github.com/moby/locker v1.0.1 // indirect
-	github.com/moby/moby/client v0.5.0 // indirect
 	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/moby/sys/capability v0.4.0 // indirect

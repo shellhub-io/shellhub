@@ -26,7 +26,8 @@ import (
 )
 
 // Config describes a ShellHub stack to bring up. Zero values select sensible defaults:
-// community edition, random ports, random network, cloudDir at ../../cloud.
+// community edition, random ports, random network, cloudDir at ../../cloud. Run is required:
+// the stack's images, containers and network belong to it.
 type Config struct {
 	Edition  Edition
 	Name     string
@@ -35,11 +36,17 @@ type Config struct {
 	Network  string
 	CloudDir string
 	Envs     map[string]string
+	Run      *Run
+}
+
+type imageBuild struct {
+	run     string
+	edition Edition
 }
 
 var stackImages struct {
 	sync.Mutex
-	built map[Edition]bool
+	built map[imageBuild]bool
 }
 
 // Stack is a running ShellHub compose stack. All methods return errors instead of calling
@@ -51,17 +58,26 @@ type Stack struct {
 	client    *resty.Client
 	anonymous *resty.Client
 	dc        compose.ComposeStack
+	run       *Run
+	network   string
 }
 
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
-// healthy. The first Up per edition in a process builds the images; later Ups reuse them. A cloud
-// stack bills through Stripe test mode: Up returns an error naming the first of STRIPE_SECRET_KEY,
+// healthy. The first Up per edition in a run builds the images, tagged with the run's ID; later
+// Ups reuse them. The stack's network is created by the run, so Up returns an error when cfg has
+// no run and when the daemon refuses the network. It also returns an error, after taking the
+// stack down, when compose fails, when the daemon cannot list the stack's containers, or when a
+// service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up returns an error naming the first of STRIPE_SECRET_KEY,
 // STRIPE_PRICE_ID and SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and
 // .env.override, and an error when Stripe returns no webhook secret for the key. An enterprise or
 // cloud stack loads the license at SHELLHUB_LICENSE_FILE: Up returns an error when neither the
 // shell nor .env.override sets it, or when the file does not exist. A relative path resolves
 // against the repository root.
 func Up(ctx context.Context, cfg Config) (*Stack, error) {
+	if cfg.Run == nil {
+		return nil, errors.New("the stack config has no run to own its images")
+	}
+
 	if cfg.CloudDir == "" {
 		cfg.CloudDir = "../../cloud"
 	}
@@ -116,8 +132,10 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
-		"SHELLHUB_NETWORK":   cfg.Network,
-	}, cfg.Envs)
+	}, cfg.Envs, map[string]string{
+		"SHELLHUB_NETWORK":          cfg.Network,
+		"SHELLHUB_NETWORK_EXTERNAL": "true",
+	}, cfg.Run.composeEnvs())
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +144,14 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		return nil, err
 	}
 
+	built := imageBuild{run: cfg.Run.ID(), edition: cfg.Edition}
+
 	stackImages.Lock()
 	if stackImages.built == nil {
-		stackImages.built = make(map[Edition]bool)
+		stackImages.built = make(map[imageBuild]bool)
 	}
 
-	needsBuild := !stackImages.built[cfg.Edition]
+	needsBuild := !stackImages.built[built]
 	if needsBuild {
 		defer stackImages.Unlock()
 
@@ -145,8 +165,23 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		return nil, err
 	}
 
+	if err := cfg.Run.createNetwork(ctx, cfg.Network); err != nil {
+		return nil, fmt.Errorf("creating network %s: %w", cfg.Network, err)
+	}
+
+	stack := &Stack{
+		files:     files,
+		envs:      merged,
+		services:  make(map[Service]*tc.DockerContainer),
+		client:    newClient(cfg.HTTPPort),
+		anonymous: newClient(cfg.HTTPPort),
+		dc:        tcDc,
+		run:       cfg.Run,
+		network:   cfg.Network,
+	}
+
 	down := func(err error) error {
-		return errors.Join(err, removeStack(context.WithoutCancel(ctx), tcDc))
+		return errors.Join(err, stack.Down(context.WithoutCancel(ctx)))
 	}
 
 	if err := tcDc.WithEnv(merged).Up(ctx, compose.Wait(true)); err != nil {
@@ -154,27 +189,23 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	}
 
 	if needsBuild {
-		stackImages.built[cfg.Edition] = true
+		stackImages.built[built] = true
 	}
 
-	services := make(map[Service]*tc.DockerContainer)
+	if err := cfg.Run.requireLabels(ctx, cfg.Name); err != nil {
+		return nil, down(err)
+	}
+
 	for _, svc := range []Service{ServiceGateway, ServiceServer} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err != nil {
 			return nil, down(err)
 		}
 
-		services[svc] = c
+		stack.services[svc] = c
 	}
 
-	return &Stack{
-		files:     files,
-		envs:      merged,
-		services:  services,
-		client:    newClient(cfg.HTTPPort),
-		anonymous: newClient(cfg.HTTPPort),
-		dc:        tcDc,
-	}, nil
+	return stack, nil
 }
 
 func newComposeStack(name string, files []string) (*compose.DockerCompose, error) {
@@ -243,13 +274,17 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 	return s, nil
 }
 
-// Down removes the stack's containers, networks and volumes but keeps images.
+// Down removes the stack's containers and volumes, and keeps its images. It also removes the
+// network of a stack [Up] started; a stack from [Attach] leaves its network to [Run.Close]. It
+// returns the first error from compose or from removing the network, and stops at the first.
+// ctx bounds both.
 func (s *Stack) Down(ctx context.Context) error {
-	return removeStack(ctx, s.dc)
-}
+	err := s.dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
+	if err != nil || s.run == nil {
+		return err
+	}
 
-func removeStack(ctx context.Context, dc compose.ComposeStack) error {
-	return dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
+	return s.run.removeNetwork(ctx, s.network)
 }
 
 // Files returns a copy of the compose file list used to start the stack.

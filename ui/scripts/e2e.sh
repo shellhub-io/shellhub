@@ -2,7 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
-name=${E2E_STACK_NAME:-default}
+name_args=()
+[ -n "${E2E_STACK_NAME:-}" ] && name_args=(--name "$E2E_STACK_NAME")
 edition=${E2E_EDITION:-community}
 runner=${E2E_RUNNER:-docker}
 
@@ -49,6 +50,7 @@ playwright() {
 
   compose_run \
     -e E2E_COMPOSE_PROJECT -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
+    -e E2E_AGENT_IMAGE \
     -e CI \
     e2e npx playwright test "$@"
 }
@@ -60,10 +62,10 @@ fi
 case "${1:-test}" in
   up)
     shift
-    stack up --edition "$edition" --name "$name" "$@" | grep '^export '
+    stack up --edition "$edition" ${name_args[@]+"${name_args[@]}"} "$@" | grep '^export '
     ;;
   down)
-    stack down --name "$name"
+    stack down ${name_args[@]+"${name_args[@]}"}
     ;;
   test)
     shift
@@ -74,13 +76,13 @@ case "${1:-test}" in
         *) playwright_args+=("$arg") ;;
       esac
     done
-    [ -n "${CI:-}" ] && trap 'stack down --name "$name"' EXIT
-    env=$(stack up --edition "$edition" --name "$name") || exit $?
+    [ -n "${CI:-}" ] && trap 'stack down ${name_args[@]+"${name_args[@]}"}' EXIT
+    env=$(stack up --edition "$edition" ${name_args[@]+"${name_args[@]}"}) || exit $?
     eval "$(echo "$env" | grep '^export ')"
     status=0
     playwright ${playwright_args[@]+"${playwright_args[@]}"} || status=$?
     if [ -z "${CI:-}" ]; then
-      echo "stack '$name' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: ui/scripts/e2e.sh down" >&2
+      echo "stack '$E2E_COMPOSE_PROJECT' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: ui/scripts/e2e.sh down" >&2
     fi
     exit "$status"
     ;;

@@ -13,7 +13,7 @@ import (
 )
 
 func TestRoutesThatRefuseAPIKeys(t *testing.T) {
-	compose := environment.New(t).Up(t.Context())
+	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)

@@ -1,3 +1,6 @@
+x-e2e-build-labels: &e2e-build-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+
 services:
   server:
     pull_policy: build
@@ -9,15 +12,18 @@ services:
         EDITION: ${SHELLHUB_BUILD_EDITION:-community}
       additional_contexts:
         cloud-src: ${SHELLHUB_CLOUD_SRC:-.}
+      labels: *e2e-build-labels
   gateway:
     pull_policy: build
     build:
       context: .
       dockerfile: gateway/Dockerfile
       target: production
+      labels: *e2e-build-labels
   ui:
     pull_policy: build
     build:
       context: .
       dockerfile: ui/Dockerfile
       target: production
+      labels: *e2e-build-labels

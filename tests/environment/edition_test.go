@@ -61,6 +61,7 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.test.yml",
 				"../docker-compose.postgres.test.yml",
 				"../docker-compose.enterprise.test.yml",
+				"../docker-compose.cloud.test.yml",
 			},
 			envFiles: []string{"../.env", "../.env.enterprise", cloudEnv},
 			editionEnvs: map[string]string{

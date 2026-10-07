@@ -6,11 +6,12 @@
 // has no dependency on [testing.T], so standalone binaries (such as cmd/stack) can use it.
 //
 // For tests, [New] creates a [DockerComposeConfigurator] that wraps [Config] with randomised
-// ports and network, and [DockerComposeConfigurator.Up] wraps [Up] with [require.NoError]:
+// ports and network and the [Run] the test binary started in TestMain, and
+// [DockerComposeConfigurator.Up] wraps [Up] with [require.NoError]:
 //
 //	func TestSomething(t *testing.T) {
 //	    ctx := context.Background()
-//	    cfg := environment.New(t)
+//	    cfg := environment.New(t, run)
 //
 //	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
@@ -21,7 +22,7 @@
 //
 //	func TestSomething(t *testing.T) {
 //	    ctx := context.Background()
-//	    cfg := environment.New(t)
+//	    cfg := environment.New(t, run)
 //
 //	    dockerCompose := cfg.Up(ctx)
 //	    t.Cleanup(dockerCompose.Down)
