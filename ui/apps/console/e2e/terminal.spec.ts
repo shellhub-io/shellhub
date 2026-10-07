@@ -788,6 +788,26 @@ function readCastOutput(cast: string) {
     .join("");
 }
 
+function countBrowserCasts(page: Page) {
+  return page.evaluate(async () => {
+    type Entries = AsyncIterable<[string, FileSystemHandle]>;
+    const count = async (dir: FileSystemDirectoryHandle): Promise<number> => {
+      let casts = 0;
+      for await (const [name, handle] of (
+        dir as unknown as { entries(): Entries }
+      ).entries()) {
+        if (handle.kind === "directory") {
+          casts += await count(handle as FileSystemDirectoryHandle);
+        } else if (name.endsWith(".cast")) {
+          casts += 1;
+        }
+      }
+      return casts;
+    };
+    return count(await navigator.storage.getDirectory());
+  });
+}
+
 async function recordInBrowserAndPlayBack(page: Page, team: Team) {
   const device = await createDeviceAndSignIn(page, team);
 
@@ -826,6 +846,46 @@ test.describe("Session Recording", () => {
     await setNamespaceRecording(team, false);
 
     await recordInBrowserAndPlayBack(page, team);
+  });
+
+  test("a session that printed nothing leaves no browser recording", async ({
+    page,
+  }) => {
+    const team = await createTeam({ sshAccessMode: "identity" });
+    await setNamespaceRecording(team, false);
+    await requireReauth(team);
+    const device = await createDeviceAndSignIn(page, team);
+
+    const dialog = await openConnect(page, device.name);
+    await expect(
+      dialog.getByRole("switch", {
+        name: "Record this session in this browser",
+      }),
+    ).toBeChecked();
+    await openInBrowser(dialog);
+    await page
+      .getByRole("dialog", { name: "Register this browser" })
+      .getByRole("button", { name: "Register and connect" })
+      .click();
+    await expect
+      .poll(() => countBrowserCasts(page), {
+        message: "the browser to record the session waiting for approval",
+      })
+      .toBe(1);
+
+    await reauthDialog(page).getByRole("button", { name: "Reject" }).click();
+    await expect(terminal(page, device.name).getByRole("alert")).toContainText(
+      "Login not approved",
+    );
+    await page.getByRole("button", { name: `Close ${device.name}` }).click();
+
+    await expect
+      .poll(() => countBrowserCasts(page), {
+        message: "the empty recording to be removed",
+      })
+      .toBe(0);
+    await page.goto("/preferences/recordings");
+    await expect(page.getByText("0 recordings", { exact: true })).toBeVisible();
   });
 
   test("community records in the browser while namespace recording is on", async ({
