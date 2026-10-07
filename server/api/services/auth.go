@@ -597,8 +597,10 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
-	if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
-		return nil, 0, "", NewErrUserUpdate(user, err)
+	if user.Preferences.PreferredNamespace != tenantID {
+		if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
+			return nil, 0, "", NewErrUserUpdate(user, err)
+		}
 	}
 
 	if err := s.AuthCacheToken(ctx, tenantID, user.ID, token); err != nil {
