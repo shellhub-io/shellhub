@@ -229,10 +229,7 @@ func testLicensedDeviceConnection(t *testing.T, ctx context.Context, compose *en
 		t.Run(tc.description, func(t *testing.T) {
 			tc.install(t)
 
-			mark := compose.ServerLogMark(t)
-
-			assert.Contains(t, dialForBanner(t, compose, deviceSSHID(device), signer), "Access Denied")
-			compose.AwaitServerLogLine(t, mark, "sshid="+deviceSSHID(device), tc.reason)
+			requireAccessDenied(t, compose, deviceSSHID(device), signer, tc.reason)
 		})
 	}
 }

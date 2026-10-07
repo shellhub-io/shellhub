@@ -29,9 +29,7 @@ func TestSSHPublicKeyRules(t *testing.T) {
 	_, named := startAcceptedAgent(t, ctx, compose)
 	_, other := startAcceptedAgent(t, ctx, compose)
 
-	resp, err := compose.R(ctx).SetBody(map[string]string{"name": "filtered"}).Post("/api/tags")
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	createTag(t, compose, "filtered")
 
 	t.Run("a hostname filter lets the key into the device it matches", func(t *testing.T) {
 		signer := registerPublicKey(t, compose, ".*", requests.PublicKeyFilter{Hostname: regexp.QuoteMeta(named.Name)})

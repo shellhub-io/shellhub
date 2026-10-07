@@ -200,6 +200,15 @@ func TestSSHServerRestart(t *testing.T) {
 	})
 }
 
+func requireAccessDenied(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer, reasons ...string) {
+	t.Helper()
+
+	mark := compose.ServerLogMark(t)
+
+	assert.Contains(t, dialForBanner(t, compose, sshid, signer), "Access Denied")
+	compose.AwaitServerLogLine(t, mark, append([]string{"sshid=" + sshid}, reasons...)...)
+}
+
 func dialForBanner(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer) string {
 	t.Helper()
 
