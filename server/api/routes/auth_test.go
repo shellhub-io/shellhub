@@ -225,6 +225,27 @@ func TestAuthLocalUser(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when local authentication is disabled",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			mocks: func() {
+				mock.
+					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+						Identifier: "john_doe",
+						Password:   "secret",
+					}, gomock.Anything).
+					Return(nil, int64(0), "", svc.NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())).
+					Once()
+			},
+			expected: Expected{
+				body:    nil,
+				headers: map[string]string{},
+				status:  http.StatusNotImplemented,
+			},
+		},
+		{
 			description: "fails when reaching the attempt limits",
 			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",

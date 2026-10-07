@@ -47,8 +47,14 @@ type AuthService interface {
 	// a stateful token. The role must be added in the auth middleware. The TenantID in the response will be empty if the user
 	// is not a member of any namespace or if the user's membership status is pending.
 	//
-	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
-	// is enabled and an error, if any
+	// It returns a timestamp when the block ends if the user is locked out, and a token to be used with the OTP code if the MFA
+	// is enabled.
+	//
+	// It returns the store's error as is when the system settings cannot be read, and [ErrAuthMethodNotAllowed] when
+	// local authentication is off. It returns [ErrAuthUnathorized] for an unknown identifier, a user without local
+	// authentication, a lockout or a wrong password, [ErrUserNotConfirmed] for an unconfirmed user and
+	// [ErrUserAwaitingApproval] for a user an admin has not approved yet. It returns [ErrTokenSigned] when the token
+	// cannot be signed, and [ErrUserUpdate] when the user's last login or preferred namespace cannot be saved.
 	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
 	//
@@ -493,7 +499,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
-	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
+	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		return nil, 0, "", err
+	}
+
+	if !system.Authentication.Local.Enabled {
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
 
