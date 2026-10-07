@@ -113,6 +113,21 @@ func (dc *DockerCompose) LicenseRows(t *testing.T) int {
 	return rows
 }
 
+// BreakLicenseStore makes every read of the stored license fail with a database error until t
+// ends, by renaming the table out from under the server. It stops t when the rename fails, and
+// marks t failed when renaming the table back at the end fails.
+func (dc *DockerCompose) BreakLicenseStore(t *testing.T) {
+	t.Helper()
+
+	_, err := dc.stack.SQL(t.Context(), "ALTER TABLE licenses RENAME TO licenses_unreachable", nil)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_, err := dc.stack.SQL(context.WithoutCancel(t.Context()), "ALTER TABLE licenses_unreachable RENAME TO licenses", nil)
+		assert.NoError(t, err)
+	})
+}
+
 // WriteLicenseFile replaces the contents of the license file the server loads on startup with
 // contents, failing t when the stack has no license file, when the file is the one
 // SHELLHUB_LICENSE_FILE names rather than one the run issued, or when it cannot be written. It rewrites the
