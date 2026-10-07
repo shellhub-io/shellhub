@@ -92,9 +92,9 @@ func awaitStatusOnReauth(t *testing.T, compose *environment.DockerCompose, req r
 	}, deviceAuthCacheTTL+30*time.Second, 2*time.Second)
 }
 
-func tagNames(device models.Device) []string {
-	names := make([]string, 0, len(device.Tags))
-	for _, tag := range device.Tags {
+func tagNames(tags []models.Tag) []string {
+	names := make([]string, 0, len(tags))
+	for _, tag := range tags {
 		names = append(names, tag.Name)
 	}
 

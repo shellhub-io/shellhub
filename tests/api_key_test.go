@@ -28,14 +28,8 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 		OptRole:   authorizer.RoleAdministrator,
 	})
 
-	withKey := func(t *testing.T) *resty.Request {
-		t.Helper()
-
-		return compose.Anonymous(t.Context()).SetHeader("X-API-Key", key.Key)
-	}
-
 	t.Run("the key authenticates on a namespace route", func(t *testing.T) {
-		resp, err := withKey(t).Get("/api/devices")
+		resp, err := withAPIKey(t, compose, key.Key).Get("/api/devices")
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 	})
@@ -159,9 +153,15 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run("refuses "+tc.description, func(t *testing.T) {
-			resp, err := withKey(t).Execute(tc.method, tc.path)
+			resp, err := withAPIKey(t, compose, key.Key).Execute(tc.method, tc.path)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
 		})
 	}
+}
+
+func withAPIKey(t *testing.T, compose *environment.DockerCompose, plaintext string) *resty.Request {
+	t.Helper()
+
+	return compose.Anonymous(t.Context()).SetHeader("X-API-Key", plaintext)
 }

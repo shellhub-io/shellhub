@@ -39,7 +39,7 @@ func testReRegistration(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, enrolled.UID, reregistered.UID)
 		assert.Equal(t, models.DeviceStatusAccepted, reregistered.Status)
 		assert.Equal(t, key.ID, reregistered.ProvisioningKeyID)
-		assert.ElementsMatch(t, []string{"enrolled", "reenrolled"}, tagNames(reregistered),
+		assert.ElementsMatch(t, []string{"enrolled", "reenrolled"}, tagNames(reregistered.Tags),
 			"re-registration adds the key's current tags to those the removed device kept")
 		assert.True(t, reregistered.Ephemeral)
 		assert.Equal(t, 4, reregistered.EphemeralTimeout)

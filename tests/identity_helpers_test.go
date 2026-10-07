@@ -191,6 +191,20 @@ func requireRefusedAtAuth(t *testing.T, compose *environment.DockerCompose, sshi
 	require.ErrorContains(t, err, "unable to authenticate")
 }
 
+func expireIdentityAndRequireRefused(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer) {
+	t.Helper()
+
+	compose.ExpireSSHIdentity(t, ssh.FingerprintSHA256(signer.PublicKey()))
+
+	mark := compose.ServerLogMark(t)
+
+	refused := startLogin(t, compose, sshid, signer)
+	require.Error(t, refused.result(t))
+	assert.Zero(t, refused.approvals(), "a known key past its expiry must not be sent to enrollment again")
+
+	compose.AwaitServerLogLine(t, mark, deadIdentityLog, `error="ssh access denied by policy"`)
+}
+
 func approvalRequest(ctx context.Context, compose *environment.DockerCompose, token string) *resty.Request {
 	req := compose.R(ctx)
 	if token != "" {
@@ -312,12 +326,23 @@ func newMember(t *testing.T, compose *environment.DockerCompose, username string
 func newAPIKeyIdentity(t *testing.T, compose *environment.DockerCompose, name string, singleUse bool) (*responses.CreateAPIKey, ssh.Signer) {
 	t.Helper()
 
+	return enrollAPIKeyIdentity(t, compose, name, nil, singleUse)
+}
+
+func enrollAPIKeyIdentity(t *testing.T, compose *environment.DockerCompose, name string, expiresIn *int, singleUse bool) (*responses.CreateAPIKey, ssh.Signer) {
+	t.Helper()
+
 	key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: name, ExpiresAt: -1})
 
 	signer, data := newSigner(t)
 
+	body := map[string]any{"name": name, "data": data, "single_use": singleUse}
+	if expiresIn != nil {
+		body["expires_in"] = *expiresIn
+	}
+
 	resp, err := compose.R(t.Context()).
-		SetBody(map[string]any{"name": name, "data": data, "single_use": singleUse}).
+		SetBody(body).
 		Post("/api/namespaces/api-key/" + name + "/ssh-identities")
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode(), resp.String())
