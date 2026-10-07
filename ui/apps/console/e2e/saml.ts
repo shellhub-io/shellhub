@@ -7,6 +7,7 @@ import { SignedXml } from "xml-crypto";
 import { configureSamlAuthentication } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { adminUser, requireEnv } from "./env";
+import { required } from "./helpers";
 import { buildPrivateKey } from "./vault";
 
 export const samlReason = "only enterprise signs users in with SAML";
@@ -88,11 +89,6 @@ export async function disableSaml() {
     ...(await adminContext()),
     body: { enable: false, idp: {}, sp: {} },
   });
-}
-
-export function required(value: string | null | undefined, what: string) {
-  if (!value) throw new Error(`expected ${what}`);
-  return value;
 }
 
 const requireAttribute = (request: Element, name: string) =>
