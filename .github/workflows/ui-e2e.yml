@@ -179,6 +179,7 @@ jobs:
         env:
           E2E_EDITION: ${{ matrix.edition }}
           E2E_RUNNER: host
+          E2E_EXPIRED_LICENSE: ${{ matrix.edition == 'enterprise' && secrets.TEST_EXPIRED_LICENSE || '' }}
           STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
           STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
           SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}

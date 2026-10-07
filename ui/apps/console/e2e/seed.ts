@@ -218,3 +218,10 @@ export function setBillingCustomer(tenant: string, customer: string) {
     );
   }
 }
+
+export function deleteLicenses() {
+  const out = sql("DELETE FROM licenses;", {});
+  if (!out.startsWith("DELETE ") || out === "DELETE 0") {
+    throw new Error(`expected to delete the installed license, got "${out}"`);
+  }
+}
