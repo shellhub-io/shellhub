@@ -123,7 +123,7 @@ func assertObjectsGone(t assert.TestingT, ctx context.Context, cli *client.Clien
 func liveRun(t *testing.T) *Run {
 	t.Helper()
 
-	run, err := StartRun(t.Context())
+	run, err := StartRun(t.Context(), nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() { _ = run.Close(context.Background()) })
@@ -132,7 +132,7 @@ func liveRun(t *testing.T) *Run {
 }
 
 func sweepByStartingRun(t assert.TestingT, ctx context.Context) {
-	run, err := StartRun(ctx)
+	run, err := StartRun(ctx, nil)
 	if assert.NoError(t, err) {
 		assert.NoError(t, run.Close(ctx))
 	}
@@ -153,7 +153,7 @@ func TestRunHelperProcess(t *testing.T) {
 
 	switch mode {
 	case "process":
-		run, err = StartRun(ctx)
+		run, err = StartRun(ctx, nil)
 	case "stack":
 		run, err = StartStackRun(ctx, os.Getenv(runHelperProject))
 	default:

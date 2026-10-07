@@ -40,6 +40,8 @@ WORKDIR /go/src/github.com/shellhub-io/shellhub/server
 RUN mkdir -p /templates
 COPY ./install.sh /templates/install.sh
 
+ARG GO_LDFLAGS
+
 RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud \
     if [ "$EDITION" = "enterprise" ]; then \
         cd /go/src && go work init \
@@ -47,10 +49,10 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
             ./github.com/shellhub-io/shellhub/openapi \
             ./github.com/shellhub-io/shellhub/server \
             ./github.com/shellhub-io/cloud && \
-        GOWORK=/go/src/go.work go build -tags enterprise -o /server github.com/shellhub-io/cloud/cmd/server && \
+        GOWORK=/go/src/go.work go build -tags enterprise -ldflags "$GO_LDFLAGS" -o /server github.com/shellhub-io/cloud/cmd/server && \
         mjml /go/src/github.com/shellhub-io/cloud/templates/*.mjml -o /templates; \
     else \
-        go build -o /server .; \
+        go build -ldflags "$GO_LDFLAGS" -o /server .; \
     fi
 
 FROM base AS development

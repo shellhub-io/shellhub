@@ -1,0 +1,4 @@
+services:
+  server:
+    volumes:
+      - ${SHELLHUB_TEST_GEOIP_DIR:?}:/usr/share/GeoIP:ro

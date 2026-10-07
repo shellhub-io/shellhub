@@ -2,6 +2,7 @@ package environment
 
 import (
 	"encoding/base64"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,6 +14,7 @@ import (
 func TestEdition(t *testing.T) {
 	cloudDir := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(cloudDir, "docker-compose.yml"), []byte("name: shellhub\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(cloudDir, "go.mod"), []byte("module github.com/shellhub-io/cloud\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(cloudDir, ".env"), []byte("SHELLHUB_BILLING=stripe\n"), 0o600))
 
 	cloudCompose := filepath.Join(cloudDir, "docker-compose.yml")
@@ -103,10 +105,19 @@ func TestEdition(t *testing.T) {
 		})
 	}
 
-	t.Run("cloud without dir", func(t *testing.T) {
-		_, err := EditionCloud.composeFiles("/nonexistent/path")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "cloud edition requires")
+	t.Run("paid editions without the cloud source", func(t *testing.T) {
+		for _, edition := range []Edition{EditionEnterprise, EditionCloud} {
+			_, err := edition.composeFiles("/nonexistent/path")
+			require.ErrorIs(t, err, fs.ErrNotExist, edition)
+		}
+	})
+
+	t.Run("cloud without its compose file", func(t *testing.T) {
+		dir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module github.com/shellhub-io/cloud\n"), 0o600))
+
+		_, err := EditionCloud.composeFiles(dir)
+		require.ErrorContains(t, err, "cloud edition requires")
 	})
 
 	t.Run("cloud without .env", func(t *testing.T) {

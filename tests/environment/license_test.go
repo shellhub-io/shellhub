@@ -72,3 +72,23 @@ func TestLicenseEnvs(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadLicenseIssuer(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "issuer", "license-issuer.pem")
+
+	first, err := LoadLicenseIssuer(path)
+	require.NoError(t, err)
+
+	again, err := LoadLicenseIssuer(path)
+	require.NoError(t, err)
+
+	assert.True(t, first.key.Equal(again.key), "a second load generated another key")
+
+	t.Run("fails on a file that holds no key", func(t *testing.T) {
+		garbage := filepath.Join(t.TempDir(), "license-issuer.pem")
+		require.NoError(t, os.WriteFile(garbage, []byte("not a key"), 0o600))
+
+		_, err := LoadLicenseIssuer(garbage)
+		require.ErrorIs(t, err, errNotLicenseIssuer)
+	})
+}

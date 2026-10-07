@@ -10,6 +10,7 @@ services:
       target: production
       args:
         EDITION: ${SHELLHUB_BUILD_EDITION:-community}
+        GO_LDFLAGS: ${SHELLHUB_TEST_GO_LDFLAGS:-}
       additional_contexts:
         cloud-src: ${SHELLHUB_CLOUD_SRC:-.}
       labels: *e2e-build-labels
