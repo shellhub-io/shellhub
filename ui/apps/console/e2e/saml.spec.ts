@@ -10,7 +10,7 @@ import {
 } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise, requireEnv } from "./env";
-import { createTeam, signInAndOpen, signOut } from "./helpers";
+import { createTeam, required, signInAndOpen, signOut } from "./helpers";
 import {
   type SamlUser,
   type SignOnRequest,
@@ -21,7 +21,6 @@ import {
   enableSaml,
   identityProvider,
   idpCertificate,
-  required,
   samlReason,
   signInWithSso,
   signOnURLs,

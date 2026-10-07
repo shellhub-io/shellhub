@@ -27,6 +27,11 @@ export const mfaReason = "MFA exists only in enterprise and cloud";
 export const consoleAccountDeletionReason =
   "only the cloud deletes an account from the console";
 
+export function required(value: string | null | undefined, what: string) {
+  if (!value) throw new Error(`expected ${what}`);
+  return value;
+}
+
 export async function signUpUser(prefix: string, { confirm = true } = {}) {
   const user = buildUserIdentity(prefix);
   await registerUser({
