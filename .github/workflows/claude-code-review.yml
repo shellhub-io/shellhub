@@ -76,11 +76,12 @@ jobs:
         if: github.event_name != 'pull_request_target'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_TEAMS: admin core
           EVENT_NAME: ${{ github.event_name }}
           REVIEW_USER: ${{ github.event.review.user.login }}
           COMMENT_USER: ${{ github.event.comment.user.login }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ "$EVENT_NAME" == "pull_request_review" ]]; then
             USERNAME="$REVIEW_USER"
@@ -88,20 +89,26 @@ jobs:
             USERNAME="$COMMENT_USER"
           fi
 
-          HTTP_STATUS=$(gh api orgs/shellhub-io/teams/admin/memberships/"$USERNAME" \
-            --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
-          [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
+          AUTHORIZED=false
+          CHECK_FAILED=false
+          for TEAM in $REVIEW_TEAMS; do
+            HTTP_STATUS=$(gh api "orgs/shellhub-io/teams/$TEAM/memberships/$USERNAME" \
+              --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
+            [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+              AUTHORIZED=true
+              break
+            elif [[ "$HTTP_STATUS" != "404" ]]; then
+              echo "::warning::$TEAM team membership check returned HTTP $HTTP_STATUS for $USERNAME"
+              CHECK_FAILED=true
+            fi
+          done
 
-          if [[ "$HTTP_STATUS" == "200" ]]; then
-            echo "authorized=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$HTTP_STATUS" == "404" ]]; then
-            echo "authorized=false" >> "$GITHUB_OUTPUT"
+          echo "authorized=$AUTHORIZED" >> "$GITHUB_OUTPUT"
 
+          if [[ "$AUTHORIZED" == "false" && "$CHECK_FAILED" == "false" ]]; then
             GH_TOKEN="$COMMENT_TOKEN" gh pr comment "$PR_NUMBER" \
-              --body "@$USERNAME You are not authorized to request an explicit review. If you believe this PR needs a new automated review round, please tag the \`@shellhub-io/admin\` team and a team member can trigger it." || true
-          else
-            echo "::warning::Team membership check returned HTTP $HTTP_STATUS for $USERNAME"
-            echo "authorized=false" >> "$GITHUB_OUTPUT"
+              --body "@$USERNAME You are not authorized to request an explicit review. If you believe this PR needs a new automated review round, please tag the \`@shellhub-io/core\` team and a team member can trigger it." || true
           fi
 
       - name: Acknowledge /review command
@@ -145,20 +152,22 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REVIEW_TEAMS: admin core
           PR_AUTHOR: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
         run: |
           echo "is_admin=false" >> "$GITHUB_OUTPUT"
-          HTTP_STATUS=$(gh api orgs/shellhub-io/teams/admin/memberships/"$PR_AUTHOR" \
-            --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
-          [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
-          if [[ "$HTTP_STATUS" == "200" ]]; then
-            echo "is_admin=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$HTTP_STATUS" == "404" ]]; then
-            echo "is_admin=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::Author team membership check returned HTTP $HTTP_STATUS for $PR_AUTHOR"
-            echo "is_admin=false" >> "$GITHUB_OUTPUT"
-          fi
+          echo "can_request_review=false" >> "$GITHUB_OUTPUT"
+          for TEAM in $REVIEW_TEAMS; do
+            HTTP_STATUS=$(gh api "orgs/shellhub-io/teams/$TEAM/memberships/$PR_AUTHOR" \
+              --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
+            [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+              echo "can_request_review=true" >> "$GITHUB_OUTPUT"
+              [[ "$TEAM" != "admin" ]] || echo "is_admin=true" >> "$GITHUB_OUTPUT"
+            elif [[ "$HTTP_STATUS" != "404" ]]; then
+              echo "::warning::Author $TEAM team membership check returned HTTP $HTTP_STATUS for $PR_AUTHOR"
+            fi
+          done
 
       - name: Generate issue token
         id: issue-token
@@ -215,7 +224,7 @@ jobs:
           project: shellhub
           repo: ${{ github.repository }}
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
-          author-is-admin: ${{ steps.author-check.outputs.is_admin }}
+          author-can-request-review: ${{ steps.author-check.outputs.can_request_review }}
           command-trigger: ${{ github.event_name != 'pull_request_target' }}
           sibling-repository: shellhub-io/cloud
           sibling-ref: ${{ steps.cloud-branch.outputs.ref }}
