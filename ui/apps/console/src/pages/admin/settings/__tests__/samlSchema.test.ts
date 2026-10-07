@@ -12,6 +12,7 @@ function resolve(
     metadataUrl: "",
     postUrl: "",
     redirectUrl: "",
+    preferredBinding: "",
     entityId: "",
     certificate: "",
     emailMapping: "",

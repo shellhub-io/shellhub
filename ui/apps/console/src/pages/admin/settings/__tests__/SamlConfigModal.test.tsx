@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import SamlConfigModal from "../SamlConfigModal";
+import type { SamlSettings } from "../samlSchema";
 
 const VALID_URL = "https://idp.example.com/sso";
 const VALID_METADATA_URL = "https://idp.example.com/metadata.xml";
@@ -17,7 +18,7 @@ const defaultProps = {
   open: true,
   onClose: vi.fn(),
   onSaved: vi.fn(),
-  existingConfig: null,
+  existingConfig: null as SamlSettings | null,
 };
 
 function renderModal(props: Partial<typeof defaultProps> = {}) {
@@ -171,6 +172,65 @@ describe("SamlConfigModal", () => {
         }),
       );
     });
+  });
+
+  describe("editing a stored configuration", () => {
+    const REDIRECT_URL = "https://idp.example.com/sso/redirect";
+    const storedConfig = (preferred: "post" | "redirect"): SamlSettings => ({
+      enabled: true,
+      idp: {
+        entity_id: VALID_ENTITY_ID,
+        certificates: [VALID_CERT],
+        binding: { post: VALID_URL, redirect: REDIRECT_URL, preferred },
+      },
+      sp: { sign_auth_requests: false },
+    });
+
+    it.each(["post", "redirect"] as const)(
+      "keeps a preferred %s binding the form does not show",
+      async (preferred) => {
+        const user = userEvent.setup();
+        renderModal({ existingConfig: storedConfig(preferred) });
+
+        await user.clear(screen.getByLabelText(/entity id/i));
+        await user.type(screen.getByLabelText(/entity id/i), "https://idp.example.com/other");
+        await user.click(getSubmitButton());
+
+        await waitFor(() => expect(samlSpy).toHaveBeenCalledTimes(1));
+        expect(samlSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              idp: expect.objectContaining({
+                binding: { post: VALID_URL, redirect: REDIRECT_URL, preferred },
+              }),
+            }),
+          }),
+        );
+      },
+    );
+
+    it.each([
+      { preferred: "post", cleared: /sso post url/i, binding: { redirect: REDIRECT_URL } },
+      { preferred: "redirect", cleared: /sso redirect url/i, binding: { post: VALID_URL } },
+    ] as const)(
+      "drops a preferred $preferred binding once its URL is cleared",
+      async ({ preferred, cleared, binding }) => {
+        const user = userEvent.setup();
+        renderModal({ existingConfig: storedConfig(preferred) });
+
+        await user.clear(screen.getByLabelText(cleared));
+        await user.click(getSubmitButton());
+
+        await waitFor(() => expect(samlSpy).toHaveBeenCalledTimes(1));
+        expect(samlSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              idp: expect.objectContaining({ binding }),
+            }),
+          }),
+        );
+      },
+    );
   });
 
   describe("save failure", () => {
