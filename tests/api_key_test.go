@@ -9,6 +9,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -268,17 +269,10 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "forever", ExpiresAt: -1})
 		require.Equal(t, int64(-1), key.ExpiresIn)
 
-		keys := []models.APIKey{}
-		resp, err := compose.R(t.Context()).SetResult(&keys).Get("/api/namespaces/api-key")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-
-		index := slices.IndexFunc(keys, func(k models.APIKey) bool { return k.Name == "forever" })
-		require.GreaterOrEqual(t, index, 0)
-		assert.Equal(t, int64(-1), keys[index].ExpiresIn,
+		assert.Equal(t, int64(-1), listedAPIKey(t, compose, "forever").ExpiresIn,
 			"-1 is the marker for a key that never expires, not a time")
 
-		resp, err = withAPIKey(t, compose, key.Key).Get("/api/devices")
+		resp, err := withAPIKey(t, compose, key.Key).Get("/api/devices")
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 	})
@@ -308,6 +302,82 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 			assert.Equal(tt, http.StatusUnauthorized, resp.StatusCode(), resp.String())
 		}, 3*ttl, time.Second)
 	})
+}
+
+func TestAPIKeyRoleCap(t *testing.T) {
+	compose := environment.New(t, run).Up(t.Context())
+	t.Cleanup(compose.Down)
+
+	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+
+	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
+
+	requestKey := func(t *testing.T, req *resty.Request, name string, role authorizer.Role) *resty.Response {
+		t.Helper()
+
+		resp, err := req.SetBody(&requests.CreateAPIKey{Name: name, ExpiresAt: -1, OptRole: role}).Post("/api/namespaces/api-key")
+		require.NoError(t, err)
+
+		return resp
+	}
+
+	t.Run("an owner's key created without a role is an administrator key", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "defaulted", ExpiresAt: -1})
+		assert.Equal(t, authorizer.RoleAdministrator, key.Role)
+		assert.Equal(t, authorizer.RoleAdministrator, listedAPIKey(t, compose, key.Name).Role)
+
+		resp, err := withAPIKey(t, compose, key.Key).Delete("/api/namespaces/" + ShellHubNamespace)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("no key is created as owner", func(t *testing.T) {
+		resp := requestKey(t, compose.R(t.Context()), "owner", authorizer.RoleOwner)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("an operator creates no key", func(t *testing.T) {
+		operator := newMember(t, compose, "operator", authorizer.RoleOperator)
+
+		resp := requestKey(t, asBearer(t, compose, operator.Token), "operator", "")
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("a key keeps its role after its creator is demoted", func(t *testing.T) {
+		creator := newMember(t, compose, "demoted", authorizer.RoleAdministrator)
+
+		key := new(responses.CreateAPIKey)
+		resp := requestKey(t, asBearer(t, compose, creator.Token).SetResult(key), "demoted", "")
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, authorizer.RoleAdministrator, key.Role)
+
+		resp, err := compose.R(t.Context()).
+			SetBody(map[string]string{"role": authorizer.RoleOperator.String()}).
+			Patch("/api/namespaces/" + ShellHubNamespace + "/members/" + creator.ID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		assert.Equal(t, authorizer.RoleAdministrator, listedAPIKey(t, compose, key.Name).Role)
+
+		resp, err = withAPIKey(t, compose, key.Key).Get("/api/access-policies")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
+}
+
+func listedAPIKey(t *testing.T, compose *environment.DockerCompose, name string) models.APIKey {
+	t.Helper()
+
+	keys := []models.APIKey{}
+	resp, err := compose.R(t.Context()).SetResult(&keys).Get("/api/namespaces/api-key")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	index := slices.IndexFunc(keys, func(k models.APIKey) bool { return k.Name == name })
+	require.GreaterOrEqual(t, index, 0, "the key %s is not listed", name)
+
+	return keys[index]
 }
 
 func withAPIKey(t *testing.T, compose *environment.DockerCompose, plaintext string) *resty.Request {
