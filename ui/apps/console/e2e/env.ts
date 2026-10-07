@@ -1,7 +1,10 @@
-export function requireEnv(name: string): string {
+export function requireEnv(
+  name: string,
+  hint = "run 'stack up' first",
+): string {
   const value = process.env[name];
   if (!value) {
-    throw new Error(`${name} is not set, run 'stack up' first`);
+    throw new Error(`${name} is not set, ${hint}`);
   }
 
   return value;
