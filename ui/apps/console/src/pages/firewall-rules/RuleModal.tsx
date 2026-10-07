@@ -108,7 +108,7 @@ export default function RuleModal({
         id="rule-priority"
         label="Priority"
         placeholder="e.g. 100"
-        hint="Higher values are evaluated first. Must be greater than 0."
+        hint="Lower values are evaluated first. Must be greater than 0."
       />
 
       <FormRadioGroupField<RuleFormValues, "allow" | "deny">
