@@ -63,7 +63,7 @@ func testAutomaticEnrollment(t *testing.T, compose *environment.DockerCompose) {
 		device := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "automatic-tagged", "02:00:00:00:10:06"))
 
 		assert.Equal(t, models.DeviceStatusAccepted, device.Status)
-		assert.ElementsMatch(t, []string{"fleet", "edge"}, tagNames(device))
+		assert.ElementsMatch(t, []string{"fleet", "edge"}, tagNames(device.Tags))
 	})
 
 	t.Run("the device is ephemeral when the key is", func(t *testing.T) {

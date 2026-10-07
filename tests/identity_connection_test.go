@@ -39,15 +39,7 @@ func TestSSHIdentityConnection(t *testing.T) {
 
 		requireStraightThrough(t, compose, sshid, signer)
 
-		compose.ExpireSSHIdentity(t, fingerprint)
-
-		mark := compose.ServerLogMark(t)
-
-		refused := startLogin(t, compose, sshid, signer)
-		require.Error(t, refused.result(t))
-		assert.Zero(t, refused.approvals(), "a known key past its expiry must not be sent to enrollment again")
-
-		compose.AwaitServerLogLine(t, mark, deadIdentityLog, `error="ssh access denied by policy"`)
+		expireIdentityAndRequireRefused(t, compose, sshid, signer)
 
 		identity := identityByFingerprint(t, compose, fingerprint)
 		assert.False(t, identity.Active(time.Now()), //nolint:forbidigo // the expiry the server compares against its own wall clock
