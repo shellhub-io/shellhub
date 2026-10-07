@@ -139,9 +139,10 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 	)
 
 	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
-		defer wsconn.Close() //nolint:errcheck
+		conn := NewConn(wsconn)
+		defer conn.Close() //nolint:errcheck
 
-		exit := func(wsconn *websocket.Conn, err error) {
+		exit := func(err error) {
 			log.WithError(err).Log(exitLogLevel(err), "web terminal error")
 
 			buffer, marshalErr := json.Marshal(Message{
@@ -154,39 +155,36 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				return
 			}
 
-			wsconn.Write(buffer) //nolint:errcheck
+			conn.Write(buffer) //nolint:errcheck
 		}
 
 		token, err := getToken(wsconn.Request())
 		if err != nil {
-			exit(wsconn, ErrWebSocketGetToken)
+			exit(ErrWebSocketGetToken)
 
 			return
 		}
 
 		cols, rows, err := getDimensions(wsconn.Request())
 		if err != nil {
-			exit(wsconn, ErrWebSocketGetDimensions)
+			exit(ErrWebSocketGetDimensions)
 
 			return
 		}
 
 		ip, err := getIP(wsconn.Request())
 		if err != nil {
-			exit(wsconn, ErrWebSocketGetIP)
+			exit(ErrWebSocketGetIP)
 
 			return
 		}
 
 		creds, ok := manager.get(token)
 		if !ok {
-			exit(wsconn, ErrBridgeCredentialsNotFound)
+			exit(ErrBridgeCredentialsNotFound)
 
 			return
 		}
-
-		conn := NewConn(wsconn)
-		defer conn.Close() //nolint:errcheck
 
 		go conn.KeepAlive()
 
@@ -202,7 +200,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 			Info{IP: ip},
 			hostKey,
 		); err != nil {
-			exit(wsconn, err)
+			exit(err)
 
 			return
 		}
