@@ -146,15 +146,20 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 }
 
 type replyNewlineSkipper struct {
-	reader  *bufio.Reader
-	checked bool
+	reader *bufio.Reader
+	peeked bool
 }
 
 func (s *replyNewlineSkipper) Read(b []byte) (int, error) {
-	if !s.checked {
-		s.checked = true
+	if !s.peeked {
+		next, err := s.reader.Peek(1)
+		if err != nil {
+			return 0, err
+		}
 
-		if next, err := s.reader.Peek(1); err == nil && next[0] == '\n' {
+		s.peeked = true
+
+		if next[0] == '\n' {
 			_, _ = s.reader.Discard(1)
 		}
 	}
