@@ -232,3 +232,29 @@ export function deleteLicenses() {
     throw new Error(`expected to delete the installed license, got "${out}"`);
   }
 }
+
+function evictCachedSystem() {
+  composeExec("redis", ["valkey-cli", "DEL", "system"]);
+}
+
+export function reopenSetup() {
+  const out = sql(
+    "UPDATE systems SET setup = false WHERE setup AND instance_tenant_id IS NULL;",
+    {},
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(`expected to reopen the instance's setup, got "${out}"`);
+  }
+  evictCachedSystem();
+}
+
+export function closeSetup() {
+  const out = sql(
+    "UPDATE systems SET setup = true, instance_tenant_id = NULL;",
+    {},
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(`expected to close the instance's setup, got "${out}"`);
+  }
+  evictCachedSystem();
+}
