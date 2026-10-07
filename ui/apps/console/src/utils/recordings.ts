@@ -105,7 +105,7 @@ export function saveRecording(logs: string, filename: string): void {
 export class OpfsCastRecorder {
   private startMs = 0;
   private started = false;
-  private count = 0;
+  private outputs = 0;
   private failed = false;
   private chain: Promise<void> = Promise.resolve();
   private cols = 80;
@@ -174,7 +174,7 @@ export class OpfsCastRecorder {
    */
   recordOutput(text: string): void {
     if (!this.started || this.failed) return;
-    this.count += 1;
+    this.outputs += 1;
     this.lastElapsed = this.elapsed();
     this.write(outputLine(this.lastElapsed, text));
   }
@@ -184,23 +184,14 @@ export class OpfsCastRecorder {
    */
   recordResize(cols: number, rows: number): void {
     if (!this.started || this.failed) return;
-    this.count += 1;
     this.lastElapsed = this.elapsed();
     this.write(resizeLine(this.lastElapsed, cols, rows));
   }
 
   /**
-   * How many events have been written. Zero means nothing happened in the session, which is what
-   * finish uses to decide the recording is not worth keeping.
-   */
-  get eventCount(): number {
-    return this.count;
-  }
-
-  /**
-   * Closes the file and returns its metadata, or null if there is nothing worth keeping — a
-   * recording that captured no events is deleted rather than left as an empty entry in the list.
-   * A failure to close is also null, and the partial file is removed.
+   * Closes the file and returns its metadata, or null if there is nothing worth keeping: a
+   * recording that captured no output, resizes or not, is deleted rather than left as an empty
+   * entry in the list. A failure to close is also null, and the partial file is removed.
    */
   async finish(): Promise<RecordingMeta | null> {
     try {
@@ -210,7 +201,7 @@ export class OpfsCastRecorder {
       console.error("session recording: failed to close file", err);
       return null;
     }
-    if (this.count === 0) {
+    if (this.outputs === 0) {
       await this.removeFiles();
       return null;
     }
