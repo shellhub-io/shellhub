@@ -87,23 +87,35 @@ function expectIdpCertificate(certificates: string[] | undefined) {
   ]);
 }
 
-function buildIdpMetadata(entityId: string) {
+const bindingNames = {
+  post: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+  redirect: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+};
+
+type Binding = keyof typeof bindingNames;
+
+function buildIdpMetadata(
+  entityId: string,
+  bindings: Binding[] = ["post", "redirect"],
+) {
   return [
     `<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="${entityId}">`,
     '<md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">',
     '<md:KeyDescriptor use="signing"><ds:KeyInfo><ds:X509Data>',
     `<ds:X509Certificate>${stripCertificate(idpCertificate)}</ds:X509Certificate>`,
     "</ds:X509Data></ds:KeyInfo></md:KeyDescriptor>",
-    `<md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="${signOnURLs.post}"/>`,
-    `<md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="${signOnURLs.redirect}"/>`,
+    ...bindings.map(
+      (binding) =>
+        `<md:SingleSignOnService Binding="${bindingNames[binding]}" Location="${signOnURLs[binding]}"/>`,
+    ),
     "</md:IDPSSODescriptor>",
     "</md:EntityDescriptor>",
   ].join("");
 }
 
-async function publishIdpMetadata(entityId: string) {
+async function publishIdpMetadata(entityId: string, bindings?: Binding[]) {
   const file = `e2e-idp-${buildShortId()}.xml`;
-  const metadata = buildIdpMetadata(entityId);
+  const metadata = buildIdpMetadata(entityId, bindings);
   composeExec("ui", ["sh", "-c", `cat > /var/www/${file}`], metadata);
   const served = await fetch(new URL(file, requireEnv("E2E_BASE_URL")));
   if ((await served.text()) !== metadata) {
@@ -159,6 +171,18 @@ async function saveSamlDialog(dialog: Locator) {
   await expect(dialog).toBeHidden();
 }
 
+async function saveMetadataUrl(page: Page, metadataUrl: string) {
+  const dialog = await openSamlDialog(page);
+  await checkBox(dialog, "Use Metadata URL");
+  await dialog.getByLabel("IdP Metadata URL").fill(metadataUrl);
+  await saveSamlDialog(dialog);
+}
+
+async function openEditDialog(page: Page) {
+  await page.getByRole("button", { name: "Edit Configuration" }).click();
+  return samlDialog(page);
+}
+
 test.describe("Admin configuration", () => {
   test("SAML takes the identity provider from its metadata URL", async ({
     page,
@@ -167,10 +191,7 @@ test.describe("Admin configuration", () => {
     const metadataUrl = await publishIdpMetadata(entityId);
     await openAuthenticationSettings(page);
 
-    const dialog = await openSamlDialog(page);
-    await checkBox(dialog, "Use Metadata URL");
-    await dialog.getByLabel("IdP Metadata URL").fill(metadataUrl);
-    await saveSamlDialog(dialog);
+    await saveMetadataUrl(page, metadataUrl);
 
     await expect(page.getByText(entityId)).toBeVisible();
     const saml = await readSamlSettings();
@@ -275,8 +296,7 @@ test.describe("Admin configuration", () => {
     await openAuthenticationSettings(page);
     const entityId = buildEntityId();
 
-    await page.getByRole("button", { name: "Edit Configuration" }).click();
-    const dialog = samlDialog(page);
+    const dialog = await openEditDialog(page);
     await expect(dialog.getByLabel("Entity ID")).toHaveValue(identityProvider);
     await dialog.getByLabel("Entity ID").fill(entityId);
     await dialog.getByLabel("SSO POST URL").fill(signOnURLs.post);
@@ -386,6 +406,18 @@ test.describe("Sign-in", () => {
 });
 
 test.describe("Bindings", () => {
+  async function signInThroughEndpoint(page: Page, endpoint: string) {
+    const user = buildSamlUser();
+    const requests = await answerSignOn(page.context(), user);
+
+    const token = await signInWithSso(page);
+
+    expect(requests).toHaveLength(1);
+    expect(endpointOf(requests[0].url)).toBe(endpoint);
+    expect(requests[0].document.getAttribute("Destination")).toBe(endpoint);
+    expect((await readSessionUser(token)).email).toBe(user.email);
+  }
+
   test("the redirect binding sends the request to the redirect endpoint", async ({
     page,
   }) => {
@@ -396,16 +428,70 @@ test.describe("Bindings", () => {
         preferred: "redirect",
       },
     });
-    const user = buildSamlUser();
-    const requests = await answerSignOn(page.context(), user);
 
-    const token = await signInWithSso(page);
+    await signInThroughEndpoint(page, signOnURLs.redirect);
+  });
 
-    expect(requests).toHaveLength(1);
-    expect(endpointOf(requests[0].url)).toBe(signOnURLs.redirect);
-    expect(requests[0].document.getAttribute("Destination")).toBe(
-      signOnURLs.redirect,
-    );
-    expect((await readSessionUser(token)).email).toBe(user.email);
+  test("the POST binding sends the request to the POST endpoint", async ({
+    page,
+  }) => {
+    await enableSaml({
+      binding: {
+        post: signOnURLs.post,
+        redirect: signOnURLs.redirect,
+        preferred: "post",
+      },
+    });
+
+    await signInThroughEndpoint(page, signOnURLs.post);
+  });
+
+  test("with both endpoints and no preference, the POST binding is used", async ({
+    page,
+  }) => {
+    await enableSaml({
+      binding: { post: signOnURLs.post, redirect: signOnURLs.redirect },
+    });
+
+    await signInThroughEndpoint(page, signOnURLs.post);
+  });
+
+  test("metadata offering only the POST binding signs in through it", async ({
+    page,
+  }) => {
+    const metadataUrl = await publishIdpMetadata(identityProvider, ["post"]);
+    const admin = await openAuthenticationSettings(page);
+
+    await saveMetadataUrl(page, metadataUrl);
+
+    const { idp } = await readSamlSettings();
+    expect(idp).toMatchObject({
+      entity_id: identityProvider,
+      binding: { post: signOnURLs.post, redirect: "" },
+    });
+    await signOut(page, admin.username);
+    await signInThroughEndpoint(page, signOnURLs.post);
+  });
+
+  test("editing the configuration keeps the preferred binding", async ({
+    page,
+  }) => {
+    await enableSaml({
+      binding: {
+        post: signOnURLs.post,
+        redirect: signOnURLs.redirect,
+        preferred: "redirect",
+      },
+    });
+    await openAuthenticationSettings(page);
+
+    const dialog = await openEditDialog(page);
+    const entityId = buildEntityId();
+    await dialog.getByLabel("Entity ID").fill(entityId);
+    await saveSamlDialog(dialog);
+    await expect(page.getByText(entityId)).toBeVisible();
+
+    expect((await readSamlSettings()).idp?.binding?.preferred).toBe("redirect");
+    expect(await readSignOnTarget()).toBe(signOnURLs.redirect);
   });
 });
