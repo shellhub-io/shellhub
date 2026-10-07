@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -255,10 +254,17 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err := environment.agent.Stop(ctx, nil)
 				require.NoError(t, err)
 
+				environment.services.AwaitDeviceOffline(t, device.UID)
+
 				err = environment.agent.Start(ctx)
 				require.NoError(t, err)
 
 				environment.services.AwaitDeviceOnline(t, device.UID)
+
+				conn := dialDevice(t, ctx, environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the new tunnel answered
+
+				assert.Equal(t, "reconnected", runOnDevice(t, conn, "echo -n reconnected"))
 			},
 		},
 		{
@@ -274,10 +280,17 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err := environment.agent.Stop(ctx, nil)
 				require.NoError(t, err)
 
+				environment.services.AwaitDeviceOffline(t, device.UID)
+
 				err = environment.agent.Start(ctx)
 				require.NoError(t, err)
 
 				environment.services.AwaitDeviceOnline(t, device.UID)
+
+				conn := dialDevice(t, ctx, environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the new tunnel answered
+
+				assert.Equal(t, "reconnected", runOnDevice(t, conn, "echo -n reconnected"))
 			},
 		},
 		{
@@ -322,8 +335,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
-				require.Error(t, err)
+				err := handshakeWith(t.Context(), environment.services.SSHAddress(), config)
+				require.ErrorContains(t, err, "ssh: unable to authenticate, attempted methods [none password]")
 			},
 		},
 		{
@@ -394,8 +407,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
-				require.Error(t, err)
+				err := handshakeWith(t.Context(), environment.services.SSHAddress(), config)
+				require.ErrorContains(t, err, "ssh: unable to authenticate, attempted methods [none publickey]")
 			},
 		},
 		{
@@ -702,14 +715,16 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				sess, err := scp.NewClientBySSH(conn)
 				require.NoError(t, err)
 
-				ctx := context.Background()
+				const content = "uploaded through scp\n"
 
-				file := bytes.NewBuffer(make([]byte, 1024))
-
-				err = sess.CopyFilePassThru(ctx, file, "/tmp/sent", "0644", io.LimitReader)
+				err = sess.CopyFilePassThru(t.Context(), strings.NewReader(content), "/tmp/scp-uploaded", "0640", nil)
 				require.NoError(t, err)
 
 				sess.Close()
+
+				assert.Equal(t, content, runOnDevice(t, conn, "cat /tmp/scp-uploaded"))
+				assert.Equal(t, "640\n", runOnDevice(t, conn, "stat -c %a /tmp/scp-uploaded"))
+
 				_ = conn.Close()
 			},
 		},
@@ -736,17 +751,22 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
+				const content = "downloaded through scp\n"
+
+				runOnDevice(t, conn, "printf %s '"+content+"' > /tmp/scp-downloaded")
+
 				sess, err := scp.NewClientBySSH(conn)
 				require.NoError(t, err)
 
-				ctx := context.Background()
+				var file bytes.Buffer
 
-				file := bytes.NewBuffer(make([]byte, 1024))
-
-				err = sess.CopyFromRemotePassThru(ctx, file, "/etc/os-release", nil)
+				err = sess.CopyFromRemotePassThru(t.Context(), &file, "/tmp/scp-downloaded", nil)
 				require.NoError(t, err)
 
 				sess.Close()
+
+				assert.Equal(t, content, file.String())
+
 				_ = conn.Close()
 			},
 		},
@@ -892,7 +912,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "session timeout behavior",
+			name: "connection EXEC outlives a silent pause",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
@@ -1572,44 +1592,27 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "connection with strict host key checking simulation",
+			name: "connection verifies the server's host key",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				var learnedKey ssh.PublicKey
-				config1 := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-						learnedKey = key
+				hostKey := environment.services.SSHHostKey(t)
 
-						return nil
-					},
-				}
+				conn := dialClient(t, t.Context(), environment.services.SSHAddress(), &ssh.ClientConfig{
+					User:            deviceSSHID(device),
+					Auth:            []ssh.AuthMethod{ssh.PublicKeys(environment.signer)},
+					HostKeyCallback: ssh.FixedHostKey(hostKey),
+				})
+				_ = conn.Close()
 
-				conn1, err := ssh.Dial("tcp", environment.services.SSHAddress(), config1)
-				require.NoError(t, err)
-				_ = conn1.Close()
+				impostor, _ := newSigner(t)
 
-				config2 := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-						if !bytes.Equal(key.Marshal(), learnedKey.Marshal()) {
-							return errors.New("host key mismatch")
-						}
-
-						return nil
-					},
-				}
-
-				conn2, err := ssh.Dial("tcp", environment.services.SSHAddress(), config2)
-				require.NoError(t, err)
-				defer conn2.Close() //nolint:errcheck
+				err := handshakeWith(t.Context(), environment.services.SSHAddress(), &ssh.ClientConfig{
+					User:            deviceSSHID(device),
+					Auth:            []ssh.AuthMethod{ssh.PublicKeys(environment.signer)},
+					HostKeyCallback: ssh.FixedHostKey(impostor.PublicKey()),
+				})
+				require.ErrorContains(t, err, "ssh: host key mismatch")
 			},
 		},
 		{
@@ -1744,55 +1747,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				n, err := stdout.Read(buffer)
 				require.NoError(t, err)
 				assert.Positive(t, n)
-			},
-		},
-		{
-			name: "connection with signal handling",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				conn, err := ssh.Dial("tcp", environment.services.SSHAddress(), config)
-				require.NoError(t, err)
-				defer conn.Close() //nolint:errcheck
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-				defer sess.Close() //nolint:errcheck
-
-				err = sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{})
-				require.NoError(t, err)
-
-				stdin, err := sess.StdinPipe()
-				require.NoError(t, err)
-
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				_, err = stdin.Write([]byte("sleep 30 &\n"))
-				require.NoError(t, err)
-
-				time.Sleep(100 * time.Millisecond)
-
-				err = sess.Signal(ssh.SIGINT)
-				if err != nil {
-					t.Logf("Signal sending not supported: %v", err)
-				}
-
-				err = sess.Signal(ssh.SIGTERM)
-				if err != nil {
-					t.Logf("Signal sending not supported: %v", err)
-				}
-
-				_, err = stdin.Write([]byte("echo 'signal test done'\n"))
-				require.NoError(t, err)
 			},
 		},
 	}
