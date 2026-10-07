@@ -17,6 +17,8 @@ import (
 
 const greeting = "220 smtp.example.com ESMTP ready\r\n"
 
+const httpResponse = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
+
 func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
 	t.Helper()
 
@@ -62,6 +64,47 @@ func TestHTTPProxyTargetKeepsGreetingSentWithTheReply(t *testing.T) {
 	_, err = io.ReadFull(conn, buf)
 	require.NoError(t, err)
 	assert.Equal(t, greeting, string(buf))
+}
+
+func TestHTTPProxyTargetDropsTheNewlineEndingTheReply(t *testing.T) {
+	client, agent := pipeWithDeadline(t)
+
+	go answerHTTPProxy(agent, `{"status":"ok"}`+"\n"+httpResponse)
+
+	conn, err := HTTPProxyTarget{Host: "127.0.0.1", Port: 3000}.
+		prepare(context.Background(), client, TransportVersion2)
+	require.NoError(t, err)
+
+	buf := make([]byte, len(httpResponse))
+	_, err = io.ReadFull(conn, buf)
+	require.NoError(t, err)
+	assert.Equal(t, httpResponse, string(buf))
+}
+
+func TestHTTPProxyTargetReturnsBeforeTheDeviceSendsAnything(t *testing.T) {
+	client, agent := pipeWithDeadline(t)
+
+	go func() {
+		answerHTTPProxy(agent, `{"status":"ok"}`)
+
+		if _, err := http.ReadRequest(bufio.NewReader(agent)); err != nil {
+			return
+		}
+
+		agent.Write([]byte(httpResponse)) //nolint:errcheck // a lost response fails the test through ReadFull
+	}()
+
+	conn, err := HTTPProxyTarget{Host: "127.0.0.1", Port: 3000}.
+		prepare(context.Background(), client, TransportVersion2)
+	require.NoError(t, err)
+
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:3000/", nil)
+	require.NoError(t, req.Write(conn))
+
+	buf := make([]byte, len(httpResponse))
+	_, err = io.ReadFull(conn, buf)
+	require.NoError(t, err)
+	assert.Equal(t, httpResponse, string(buf))
 }
 
 func TestHTTPProxyTargetV1KeepsGreetingSentWithTheReply(t *testing.T) {
