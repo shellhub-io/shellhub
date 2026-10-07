@@ -128,6 +128,23 @@ func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {
 	require.NoError(t, dc.stack.DeleteNamespace(t.Context(), name))
 }
 
+// EditSSHAccessMode switches the namespace tenant to the SSH access mode mode through the API, as
+// the bearer of the JWT set with [DockerCompose.JWT], failing the test unless the server answers
+// 200. The server answers 403 unless tenant is the token's namespace and its bearer may update it,
+// and refuses the legacy mode unless the namespace allows it, as one created in that mode does.
+// Switching to the identity mode seeds an access policy granting the owner every device and login
+// when the namespace has no access policy yet. It runs on a context that outlives the test, so it
+// can sit in a cleanup.
+func (dc *DockerCompose) EditSSHAccessMode(t *testing.T, tenant, mode string) {
+	t.Helper()
+
+	resp, err := dc.R(context.WithoutCancel(t.Context())).
+		SetBody(map[string]string{"ssh_access_mode": mode}).
+		Put("/api/namespaces/ssh-access-mode/" + tenant)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+}
+
 // LogSource is anything whose logs a test can read, such as a compose service or a container the
 // test started itself.
 type LogSource interface {
