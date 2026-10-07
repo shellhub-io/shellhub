@@ -12,12 +12,14 @@ const stackArtifactsDir = ".stack"
 // Service names a container in the test stack.
 type Service string
 
-// The services a test may reach through [DockerCompose.Service].
+// The services a test may reach through [DockerCompose.Service]. ServiceObjectStorage, the
+// S3-compatible store session recordings are kept in, runs in enterprise and cloud stacks only.
 const (
-	ServiceGateway  Service = "gateway"
-	ServiceServer   Service = "server"
-	ServicePostgres Service = "postgres"
-	ServiceRedis    Service = "redis"
+	ServiceGateway       Service = "gateway"
+	ServiceServer        Service = "server"
+	ServicePostgres      Service = "postgres"
+	ServiceRedis         Service = "redis"
+	ServiceObjectStorage Service = "minio"
 )
 
 // ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.

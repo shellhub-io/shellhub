@@ -23,17 +23,16 @@ var (
 	// ErrCronNotScheduled is returned by [Stack.RunCron] when the server has registered no cron job
 	// on the spec, which it also is in the seconds before its scheduler first reports in.
 	ErrCronNotScheduled = errors.New("no cron job is scheduled on the spec")
-	// ErrCronAmbiguous is returned by [Stack.RunCron] when more than one cron job is scheduled on
-	// the spec, since a job is told apart only by its spec.
-	ErrCronAmbiguous = errors.New("more than one cron job is scheduled on the spec")
 )
 
-// RunCron enqueues, once and now, the cron job the server scheduled on spec, the five-field
-// expression it was registered with, so the job runs in the server as it would at its next tick
-// without waiting for it. It returns once the job is queued, not once it has run, so read the
-// job's outcome for that. It returns ErrCronUnreachable for a stack whose redis port is unknown,
-// ErrCronNotScheduled when no job is scheduled on spec, ErrCronAmbiguous when several are, and
-// redis's error when it cannot read the schedule or queue the job. ctx bounds the enqueue.
+// RunCron enqueues, once and now, every cron job the server scheduled on spec, the five-field
+// expression they were registered with, so the jobs run in the server as they would at their next
+// tick without waiting for it. A job is told apart only by its spec, so jobs sharing one, such as
+// the enterprise recording archive and the active-session reaper on "* * * * *", all run. It
+// returns once the jobs are queued, not once they have run, so read their outcome for that. It
+// returns ErrCronUnreachable for a stack whose redis port is unknown, ErrCronNotScheduled when no
+// job is scheduled on spec, and redis's error when it cannot read the schedule or queue a job,
+// having queued the jobs before it. ctx bounds the enqueue.
 func (s *Stack) RunCron(ctx context.Context, spec string) error {
 	port := s.envs[redisPortEnv]
 	if port == "" {
@@ -58,25 +57,25 @@ func (s *Stack) RunCron(ctx context.Context, spec string) error {
 		}
 	}
 
-	switch len(scheduled) {
-	case 0:
+	if len(scheduled) == 0 {
 		return fmt.Errorf("%w: %q", ErrCronNotScheduled, spec)
-	case 1:
-	default:
-		return fmt.Errorf("%w: %q", ErrCronAmbiguous, spec)
 	}
 
 	client := asynq.NewClient(redis)
-	defer client.Close() //nolint:errcheck // the task is queued once EnqueueContext returns
+	defer client.Close() //nolint:errcheck // every task is queued once EnqueueContext returns
 
-	_, err = client.EnqueueContext(ctx, asynq.NewTask(scheduled[0].Type(), scheduled[0].Payload()), asynq.Queue(cronQueue))
+	for _, task := range scheduled {
+		if _, err := client.EnqueueContext(ctx, asynq.NewTask(task.Type(), task.Payload()), asynq.Queue(cronQueue)); err != nil {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }
 
-// RunCron enqueues the cron job the server scheduled on spec, as [Stack.RunCron] does, waiting up
-// to 30 seconds for the server's scheduler to report the job in. It fails t on any other error,
-// and if the job is still not scheduled when the wait ends.
+// RunCron enqueues every cron job the server scheduled on spec, as [Stack.RunCron] does, waiting
+// up to 30 seconds for the server's scheduler to report a job in. It fails t on any other error,
+// and if no job is scheduled when the wait ends.
 func (dc *DockerCompose) RunCron(t *testing.T, spec string) {
 	t.Helper()
 

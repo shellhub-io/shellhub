@@ -243,7 +243,12 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, down(err)
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis} {
+	services := []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis}
+	if cfg.Edition != EditionCommunity {
+		services = append(services, ServiceObjectStorage)
+	}
+
+	for _, svc := range services {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err != nil {
 			return nil, down(err)
