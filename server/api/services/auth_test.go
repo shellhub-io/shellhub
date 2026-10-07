@@ -1783,10 +1783,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
-				mock.
-					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
-					Return(nil).
-					Once()
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
@@ -1880,10 +1876,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 				mock.
 					On("UserUpdate", ctx, &updatedUser).
-					Return(nil).
-					Once()
-				mock.
-					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
 					Return(nil).
 					Once()
 			},
@@ -2006,10 +1998,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 				mock.
 					On("UserUpdate", ctx, updatedUser).
-					Return(nil).
-					Once()
-				mock.
-					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
 			},
@@ -2239,10 +2227,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 				mock.
 					On("UserUpdate", ctx, &expectedUser).
-					Return(nil).
-					Once()
-				mock.
-					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
 					Return(nil).
 					Once()
 			},
