@@ -84,6 +84,14 @@ func testLicensedDeviceAcceptance(t *testing.T, compose *environment.DockerCompo
 
 		requireAcceptAnswers(t, compose, device, http.StatusPaymentRequired)
 	})
+
+	t.Run("accepting a device succeeds when the license cannot be read", func(t *testing.T) {
+		device := enrollPendingDevice(t, compose, "license-unreadable", "02:00:00:00:21:f1")
+		useLicense(t, compose, licenseForDevices(acceptedDevices(t, compose)))
+		compose.BreakLicenseStore(t)
+
+		requireAcceptAnswers(t, compose, device, http.StatusOK)
+	})
 }
 
 func enrollPendingDevice(t *testing.T, compose *environment.DockerCompose, hostname, mac string) models.Device {
