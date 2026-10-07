@@ -50,12 +50,14 @@ func dialSSH(ctx context.Context, addr, sshid string, signers []ssh.Signer, prom
 }
 
 func handshake(ctx context.Context, addr, sshid string, auth []ssh.AuthMethod) error {
-	config := &ssh.ClientConfig{
+	return handshakeWith(ctx, addr, &ssh.ClientConfig{
 		User:            sshid,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // a test dialing its own throwaway server
-	}
+	})
+}
 
+func handshakeWith(ctx context.Context, addr string, config *ssh.ClientConfig) error {
 	dialer := new(net.Dialer)
 
 	conn, err := dialer.DialContext(ctx, "tcp", addr)
