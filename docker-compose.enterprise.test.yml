@@ -18,6 +18,6 @@ services:
       minio:
         condition: service_healthy
     volumes:
-      - ${SHELLHUB_LICENSE_FILE}:/etc/shellhub/license.dat:ro
+      - ${SHELLHUB_LICENSE_FILE:-/dev/null}:/etc/shellhub/license.dat:ro
     environment:
-      - ADMIN_API_LICENSE_FILE=/etc/shellhub/license.dat
+      - ADMIN_API_LICENSE_FILE=${SHELLHUB_LICENSE_FILE:+/etc/shellhub/license.dat}

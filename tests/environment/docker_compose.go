@@ -522,11 +522,12 @@ func (dc *DockerCompose) UpdateDeviceStatus(t *testing.T, uid string, action Dev
 	require.Equal(t, 200, resp.StatusCode(), resp.String())
 }
 
-// DeleteDevice removes the device uid and fails t unless the server answers 200.
+// DeleteDevice removes the device uid and fails t unless the server answers 200. It outlives t's
+// context, so a t.Cleanup can remove a device with it.
 func (dc *DockerCompose) DeleteDevice(t *testing.T, uid string) {
 	t.Helper()
 
-	resp, err := dc.R(t.Context()).Delete("/api/devices/" + uid)
+	resp, err := dc.R(context.WithoutCancel(t.Context())).Delete("/api/devices/" + uid)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode(), resp.String())
 }

@@ -34,6 +34,7 @@ type Run struct {
 	stack  bool
 	client *client.Client
 	lease  *client.HijackedResponse
+	issuer *LicenseIssuer
 }
 
 // StartRun starts a run for the calling process. Its lease is a container whose stdin the
@@ -41,8 +42,13 @@ type Run struct {
 // dead runs on the daemon once the lease exists, logging what it cannot remove. It returns an
 // error when the daemon cannot be reached or the lease cannot be created. The lease outlives
 // ctx; [Run.Close] releases it.
-func StartRun(ctx context.Context) (*Run, error) {
-	return startRun(ctx, newRunID(), false)
+//
+// A non-nil issuer makes the run compile issuer's public key into its enterprise server in place
+// of the production license key, and start every enterprise stack under a license issuer signs
+// rather than the one SHELLHUB_LICENSE_FILE names. A stack then picks its license with
+// [Config.License] and runs without one under [Config.Unlicensed].
+func StartRun(ctx context.Context, issuer *LicenseIssuer) (*Run, error) {
+	return startRun(ctx, newRunID(), false, issuer)
 }
 
 // StartStackRun starts the run of a kept compose stack, identified by its project name. The
@@ -56,10 +62,10 @@ func StartStackRun(ctx context.Context, project string) (*Run, error) {
 		return nil, fmt.Errorf("invalid stack project %q: must match %s", project, validStackProject.String())
 	}
 
-	return startRun(ctx, project, true)
+	return startRun(ctx, project, true, nil)
 }
 
-func startRun(ctx context.Context, id string, stack bool) (*Run, error) {
+func startRun(ctx context.Context, id string, stack bool, issuer *LicenseIssuer) (*Run, error) {
 	if err := pinDockerHost(); err != nil {
 		return nil, err
 	}
@@ -69,7 +75,7 @@ func startRun(ctx context.Context, id string, stack bool) (*Run, error) {
 		return nil, fmt.Errorf("new docker client: %w", err)
 	}
 
-	r := &Run{id: id, stack: stack, client: cli}
+	r := &Run{id: id, stack: stack, client: cli, issuer: issuer}
 
 	if err := r.holdLease(ctx); err != nil {
 		_ = cli.Close()
@@ -88,6 +94,10 @@ func newRunID() string {
 
 // ID returns the run's ID, valid as an image tag and as a compose project name.
 func (r *Run) ID() string { return r.id }
+
+// LicenseIssuer returns the issuer [StartRun] gave the run, or nil when the run's stacks
+// run under the license SHELLHUB_LICENSE_FILE names.
+func (r *Run) LicenseIssuer() *LicenseIssuer { return r.issuer }
 
 // Labels returns the labels every container the run starts must carry. A stack run's include
 // the lease, so its containers keep the run alive.

@@ -8,8 +8,10 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/hibiken/asynq v0.26.0
 	github.com/joho/godotenv v1.5.1
+	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moby/moby/api v1.56.0
 	github.com/moby/moby/client v0.5.0
+	github.com/oschwald/maxminddb-golang/v2 v2.1.1
 	github.com/pkg/sftp v1.13.11
 	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.10.2
@@ -149,6 +151,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect

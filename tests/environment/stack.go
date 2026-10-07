@@ -11,6 +11,7 @@ import (
 	"log"
 	"maps"
 	"net/http"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -30,15 +31,24 @@ import (
 // Config describes a ShellHub stack to bring up. Zero values select sensible defaults:
 // community edition, random ports, random network, cloudDir at ../../cloud. Run is required:
 // the stack's images, containers and network belong to it.
+//
+// License, Unlicensed and LocatedCountry apply to the enterprise and cloud editions. License is the
+// license the server loads from its license file on startup, [FullLicense] when nil, and needs a run
+// that issues licenses, see [StartRun]. Unlicensed starts the server with no license file at all.
+// LocatedCountry, an ISO 3166 code, gives the server a GeoIP database that locates every address in
+// that country.
 type Config struct {
-	Edition  Edition
-	Name     string
-	HTTPPort string
-	SSHPort  string
-	Network  string
-	CloudDir string
-	Envs     map[string]string
-	Run      *Run
+	Edition        Edition
+	Name           string
+	HTTPPort       string
+	SSHPort        string
+	Network        string
+	CloudDir       string
+	Envs           map[string]string
+	Run            *Run
+	License        *License
+	Unlicensed     bool
+	LocatedCountry string
 }
 
 type imageBuild struct {
@@ -62,6 +72,7 @@ type Stack struct {
 	dc        compose.ComposeStack
 	run       *Run
 	network   string
+	artifacts []string
 }
 
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
@@ -69,13 +80,20 @@ type Stack struct {
 // Ups reuse them. The stack's network is created by the run, so Up returns an error when cfg has
 // no run and when the daemon refuses the network. It also returns an error, after taking the
 // stack down, when compose fails, when the daemon cannot list the stack's containers, or when a
-// service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up returns an error naming the first of STRIPE_SECRET_KEY,
-// STRIPE_PRICE_ID and SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and
-// .env.override, and an error when Stripe returns no webhook secret for the key. An enterprise or
-// cloud stack loads the license at SHELLHUB_LICENSE_FILE: Up returns an error when neither the
-// shell nor .env.override sets it, or when the file does not exist. A relative path resolves
-// against the repository root.
-func Up(ctx context.Context, cfg Config) (*Stack, error) {
+// service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up
+// returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
+// SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
+// Stripe returns no webhook secret for the key. An enterprise or cloud stack with Unlicensed set
+// loads no license file; otherwise one whose run issues licenses loads the one cfg names, and one
+// whose run does not loads the license at SHELLHUB_LICENSE_FILE, erroring when neither the shell
+// nor .env.override sets it, or when the file does not exist. A relative path resolves against the
+// repository root. Up returns an error when an enterprise or cloud stack finds no cloud source (a
+// go.mod) in CloudDir, when a cloud stack finds no docker-compose.yml there, when cfg names a
+// license its run cannot issue or asks for a license and for none, when the run's issuer cannot
+// encode its public key or sign the license, when a license or GeoIP path cannot be resolved or its
+// file written, and when a community stack asks for a license, for no license, or for a GeoIP
+// database. A stack that fails to come up leaves no license or GeoIP file behind.
+func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if cfg.Run == nil {
 		return nil, errors.New("the stack config has no run to own its images")
 	}
@@ -92,13 +110,6 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 	editionEnvs, err := cfg.Edition.envs(cfg.CloudDir)
 	if err != nil {
 		return nil, err
-	}
-
-	var licenseVars map[string]string
-	if cfg.Edition != EditionCommunity {
-		if licenseVars, err = licenseEnvs(envOverridePath); err != nil {
-			return nil, err
-		}
 	}
 
 	var billingEnvs map[string]string
@@ -131,7 +142,40 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		cfg.Name = uuid.Generate()
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, billingEnvs, map[string]string{
+	var (
+		licenseVars map[string]string
+		geoIPVars   map[string]string
+		artifacts   []string
+	)
+
+	defer func() {
+		if err != nil {
+			err = errors.Join(err, removeArtifacts(artifacts))
+		}
+	}()
+
+	if cfg.Edition != EditionCommunity {
+		if licenseVars, artifacts, err = cfg.licensingEnvs(); err != nil {
+			return nil, err
+		}
+
+		if cfg.LocatedCountry != "" {
+			var dir string
+
+			geoIPVars, dir, err = cfg.geoIPEnvs()
+			artifacts = append(artifacts, dir)
+
+			if err != nil {
+				return nil, err
+			}
+
+			files = append(files, "../docker-compose.geoip.test.yml")
+		}
+	} else if cfg.License != nil || cfg.Unlicensed || cfg.LocatedCountry != "" {
+		return nil, errors.New("the community edition loads no license and locates no address")
+	}
+
+	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 	}, cfg.Envs, map[string]string{
@@ -180,6 +224,7 @@ func Up(ctx context.Context, cfg Config) (*Stack, error) {
 		dc:        tcDc,
 		run:       cfg.Run,
 		network:   cfg.Network,
+		artifacts: artifacts,
 	}
 
 	down := func(err error) error {
@@ -276,17 +321,18 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 	return s, nil
 }
 
-// Down removes the stack's containers and volumes, and keeps its images. It also removes the
-// network of a stack [Up] started; a stack from [Attach] leaves its network to [Run.Close]. It
-// returns the first error from compose or from removing the network, and stops at the first.
-// ctx bounds both.
+// Down removes the stack's containers and volumes, and keeps its images. Once compose is down, it
+// also removes the network and the license and GeoIP files of a stack [Up] started; a stack from
+// [Attach] leaves its network to [Run.Close]. It returns the compose error alone, stopping there,
+// or the errors from removing the network and the files, joined. ctx bounds compose and the
+// network.
 func (s *Stack) Down(ctx context.Context) error {
 	err := s.dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
 	if err != nil || s.run == nil {
 		return err
 	}
 
-	return s.run.removeNetwork(ctx, s.network)
+	return errors.Join(s.run.removeNetwork(ctx, s.network), removeArtifacts(s.artifacts))
 }
 
 // Files returns a copy of the compose file list used to start the stack.
@@ -575,4 +621,13 @@ func (s *Stack) Logs(ctx context.Context, w io.Writer) error {
 	}
 
 	return nil
+}
+
+func removeArtifacts(paths []string) error {
+	var errs []error
+	for _, path := range paths {
+		errs = append(errs, os.RemoveAll(path))
+	}
+
+	return errors.Join(errs...)
 }
