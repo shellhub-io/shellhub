@@ -166,7 +166,8 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 
 // TestNamespaceAPIKeyAuthentication covers what a namespace API key can do once minted: manage the
 // namespace's tags, act only within its role, keep working when it never expires, and stop working
-// once its expiry passes. The routes that refuse a key whatever its role are covered by
+// once its expiry passes. It also covers a key carrying the instance key prefix, which the server
+// honours only on the admin API, being refused on a namespace route. The routes that refuse a key whatever its role are covered by
 // [TestRoutesThatRefuseAPIKeys].
 func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 	compose := environment.New(t, run).Up(t.Context())
@@ -280,6 +281,12 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 		resp, err = withAPIKey(t, compose, key.Key).Get("/api/devices")
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("a key carrying the instance key prefix is refused on a namespace route", func(t *testing.T) {
+		resp, err := withAPIKey(t, compose, models.InstanceAPIKeyPrefix+uuid.Generate()).Get("/api/devices")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
 	})
 
 	t.Run("a key is refused once its expiry passes", func(t *testing.T) {
