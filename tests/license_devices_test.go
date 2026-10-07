@@ -221,7 +221,7 @@ func testLicensedDeviceConnection(t *testing.T, ctx context.Context, compose *en
 
 				useLicense(t, compose, licenseInRegions("US"))
 			},
-			reason: "destination device is blocked by a firewall rule",
+			reason: firewallBlockedLog,
 		},
 	}
 
