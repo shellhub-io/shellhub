@@ -1,25 +1,21 @@
 import { expect, test } from "@playwright/test";
-import { authDevice, createDeviceLoginCode, getDevice } from "@/client";
+import { createDeviceLoginCode, getDevice } from "@/client";
 import { isCommunity } from "./env";
 import {
   createTeamWithOwnerInAnother,
   signInAndOpen,
   singleNamespaceReason,
 } from "./helpers";
-import { buildDeviceAuthRequest } from "./devices";
+import { enrollDevice } from "./devices";
 import { buildRequestContext } from "./api";
 
 async function requestLoginCode(tenant: string) {
-  const body = { ...buildDeviceAuthRequest(), tenant_id: tenant };
-  const { data: device } = await authDevice({ ...buildRequestContext(), body });
-  if (!device.token || !device.uid) {
-    throw new Error(`expected ${body.hostname} to enroll into ${tenant}`);
-  }
+  const device = await enrollDevice(tenant);
   const { data } = await createDeviceLoginCode(
     buildRequestContext({ token: device.token }),
   );
-  if (!data.code) throw new Error(`expected a login code for ${body.hostname}`);
-  return { code: data.code, uid: device.uid, name: body.hostname };
+  if (!data.code) throw new Error(`expected a login code for ${device.name}`);
+  return { code: data.code, uid: device.uid, name: device.name };
 }
 
 test.describe("accepting a device by its login code", () => {
