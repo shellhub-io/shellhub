@@ -751,6 +751,99 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
+			name: "connection EXEC of a shell builtin",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
+				conn := dialDevice(t, t.Context(), environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the builtin answered
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close() //nolint:errcheck // Output already waited for the exit status
+
+				output, err := sess.Output("cd /var/log && pwd && type -t cd")
+				require.NoError(t, err)
+
+				assert.Equal(t, "/var/log\nbuiltin\n", string(output))
+			},
+		},
+		{
+			name: "connection SFTP to make a directory",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
+				conn := dialDevice(t, t.Context(), environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the directory is read back
+
+				client, err := sftp.NewClient(conn)
+				require.NoError(t, err)
+				defer client.Close() //nolint:errcheck // the test reads its outcome over an exec channel, so a failed close leaves nothing to assert
+
+				require.NoError(t, client.Mkdir("/tmp/sftp-made"))
+
+				assert.Equal(t, "directory\n", runOnDevice(t, conn, "stat -c %F /tmp/sftp-made"))
+			},
+		},
+		{
+			name: "connection SFTP to list a directory",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
+				conn := dialDevice(t, t.Context(), environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the listing is read
+
+				runOnDevice(t, conn, "mkdir /tmp/sftp-listed && printf 12345 > /tmp/sftp-listed/file && mkdir /tmp/sftp-listed/dir")
+
+				client, err := sftp.NewClient(conn)
+				require.NoError(t, err)
+				defer client.Close() //nolint:errcheck // the listing is already read
+
+				entries, err := client.ReadDir("/tmp/sftp-listed")
+				require.NoError(t, err)
+
+				listed := map[string]os.FileInfo{}
+				for _, entry := range entries {
+					listed[entry.Name()] = entry
+				}
+
+				require.Len(t, listed, 2)
+				require.Contains(t, listed, "file")
+				require.Contains(t, listed, "dir")
+				assert.False(t, listed["file"].IsDir())
+				assert.Equal(t, int64(5), listed["file"].Size())
+				assert.True(t, listed["dir"].IsDir())
+			},
+		},
+		{
+			name: "connection SCP to upload a directory recursively",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
+				conn := dialDevice(t, t.Context(), environment.services, device, environment.signer)
+				defer conn.Close() //nolint:errcheck // the test is over once the tree is read back
+
+				sendSCPTree(t, conn, "/tmp", scpDirectory{
+					name: "scp-tree",
+					mode: "0750",
+					files: map[string]string{
+						"top.txt": "at the top",
+					},
+					dirs: []scpDirectory{{
+						name: "nested",
+						mode: "0700",
+						files: map[string]string{
+							"deep.txt": "one level down",
+						},
+					}},
+				})
+
+				assert.Equal(t, "at the top|one level down", runOnDevice(t, conn,
+					`printf '%s|%s' "$(cat /tmp/scp-tree/top.txt)" "$(cat /tmp/scp-tree/nested/deep.txt)"`))
+				assert.Equal(t, "750 700\n", runOnDevice(t, conn, "stat -c %a /tmp/scp-tree /tmp/scp-tree/nested | paste -sd ' '"))
+			},
+		},
+		{
 			name:    "direct tcpip port redirect",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, env *Environment, device *models.Device) {
