@@ -137,8 +137,27 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 			return nil, &ProxyRefusedError{Reason: result["error"]}
 		}
 
-		return withBuffered(conn, io.MultiReader(decoder.Buffered(), conn)), nil
+		rest := bufio.NewReader(io.MultiReader(decoder.Buffered(), conn))
+
+		return withBuffered(conn, &replyNewlineSkipper{reader: rest}), nil
 	default:
 		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
+}
+
+type replyNewlineSkipper struct {
+	reader  *bufio.Reader
+	checked bool
+}
+
+func (s *replyNewlineSkipper) Read(b []byte) (int, error) {
+	if !s.checked {
+		s.checked = true
+
+		if next, err := s.reader.Peek(1); err == nil && next[0] == '\n' {
+			_, _ = s.reader.Discard(1)
+		}
+	}
+
+	return s.reader.Read(b)
 }
