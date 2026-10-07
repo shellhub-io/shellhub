@@ -144,30 +144,8 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 	server := httptest.NewServer(e)
 	defer server.Close()
 
-	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws/ssh?token=nonexistent&cols=80&rows=24"
-	origin := server.URL
-
 	assert.NotPanics(t, func() {
-		cfg, err := websocket.NewConfig(wsURL, origin)
-		require.NoError(t, err)
-
-		cfg.Header.Set("X-Real-Ip", "127.0.0.1")
-
-		conn, err := websocket.DialConfig(cfg)
-		require.NoError(t, err)
-		defer conn.Close() //nolint:errcheck
-
-		var raw []byte
-		err = websocket.Message.Receive(conn, &raw)
-		require.NoError(t, err)
-
-		var msg Message
-		require.NoError(t, json.Unmarshal(raw, &msg))
-		assert.Equal(t, messageKindError, msg.Kind)
-
-		data, ok := msg.Data.(string)
-		require.True(t, ok)
-		assert.Contains(t, data, ErrBridgeCredentialsNotFound.Error())
+		assert.Contains(t, openBridge(t, server.URL, "nonexistent"), ErrBridgeCredentialsNotFound.Error())
 	}, "handler must not panic when credentials are not found")
 }
 
@@ -282,7 +260,7 @@ func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
 	status, reply := postSession(t, server.URL, `{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
 	require.Equal(t, http.StatusOK, status)
 
-	assert.NotContains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
+	assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrGetAuth.Error())
 	assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
 }
 
@@ -343,7 +321,7 @@ func postSession(t *testing.T, serverURL, body string) (int, sessionReply) {
 func openBridge(t *testing.T, serverURL, token string) string {
 	t.Helper()
 
-	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+"/ws/ssh?token="+token+"&cols=80&rows=24", serverURL)
+	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+WebsocketSSHBridgeRoute+"?token="+token+"&cols=80&rows=24", serverURL)
 	require.NoError(t, err)
 
 	cfg.Header.Set("X-Real-Ip", "127.0.0.1")
@@ -351,7 +329,7 @@ func openBridge(t *testing.T, serverURL, token string) string {
 	conn, err := websocket.DialConfig(cfg)
 	require.NoError(t, err)
 
-	defer conn.Close() //nolint:errcheck
+	defer conn.Close() //nolint:errcheck // the bridge has already answered, and a failed close does not change it
 
 	var raw []byte
 	require.NoError(t, websocket.Message.Receive(conn, &raw))
