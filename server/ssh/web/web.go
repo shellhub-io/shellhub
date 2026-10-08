@@ -65,6 +65,9 @@ type Config struct {
 // authn is the API's authenticator, used to declare the WebSocket upgrade as
 // reachable without a credential. It may be nil in tests.
 //
+// A web session token opens one WebSocket. The upgrade spends it before checking the terminal size
+// and the client IP, so an open that fails on either cannot be retried with the same token.
+//
 // It fails when the SSH server's host key cannot be read, since without it the bridge has
 // nothing to pin its connection to.
 func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service, handoff *webhandoff.Store, config *Config) error {
@@ -175,6 +178,13 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 			return
 		}
 
+		creds, ok := manager.get(token)
+		if !ok {
+			exit(ErrBridgeCredentialsNotFound)
+
+			return
+		}
+
 		cols, rows, err := getDimensions(wsconn.Request())
 		if err != nil {
 			exit(ErrWebSocketGetDimensions)
@@ -185,13 +195,6 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 		ip, err := getIP(wsconn.Request())
 		if err != nil {
 			exit(ErrWebSocketGetIP)
-
-			return
-		}
-
-		creds, ok := manager.get(token)
-		if !ok {
-			exit(ErrBridgeCredentialsNotFound)
 
 			return
 		}

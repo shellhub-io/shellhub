@@ -264,6 +264,44 @@ func TestNewSSHServerBridge_TokenOpensOneBridge(t *testing.T) {
 	assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
 }
 
+func TestNewSSHServerBridge_FailedOpenSpendsTheToken(t *testing.T) {
+	tests := []struct {
+		description string
+		query       string
+		realIP      string
+		expected    error
+	}{
+		{
+			description: "an invalid terminal size",
+			query:       "cols=wide&rows=24",
+			realIP:      "127.0.0.1",
+			expected:    ErrWebSocketGetDimensions,
+		},
+		{
+			description: "a missing client IP",
+			query:       "cols=80&rows=24",
+			realIP:      "",
+			expected:    ErrWebSocketGetIP,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			service := servicemocks.NewMockService(t)
+			service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
+				Return(deviceInNamespace(true)).Once()
+
+			server := startBridge(t, service)
+
+			status, reply := postSession(t, server.URL, `{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
+			require.Equal(t, http.StatusOK, status)
+
+			assert.Contains(t, openBridgeWith(t, server.URL, "token="+reply.Token+"&"+test.query, test.realIP), test.expected.Error())
+			assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
+		})
+	}
+}
+
 func TestWebSessionRouteRefusesAPasswordItCannotEncrypt(t *testing.T) {
 	service := servicemocks.NewMockService(t)
 	service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
@@ -321,10 +359,18 @@ func postSession(t *testing.T, serverURL, body string) (int, sessionReply) {
 func openBridge(t *testing.T, serverURL, token string) string {
 	t.Helper()
 
-	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+WebsocketSSHBridgeRoute+"?token="+token+"&cols=80&rows=24", serverURL)
+	return openBridgeWith(t, serverURL, "token="+token+"&cols=80&rows=24", "127.0.0.1")
+}
+
+func openBridgeWith(t *testing.T, serverURL, query, realIP string) string {
+	t.Helper()
+
+	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+WebsocketSSHBridgeRoute+"?"+query, serverURL)
 	require.NoError(t, err)
 
-	cfg.Header.Set("X-Real-Ip", "127.0.0.1")
+	if realIP != "" {
+		cfg.Header.Set("X-Real-Ip", realIP)
+	}
 
 	conn, err := websocket.DialConfig(cfg)
 	require.NoError(t, err)
