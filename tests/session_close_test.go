@@ -16,6 +16,12 @@ import (
 func dialClient(t *testing.T, ctx context.Context, addr string, config *ssh.ClientConfig) *ssh.Client {
 	t.Helper()
 
+	return dialClientWithin(t, ctx, addr, config, 30*time.Second)
+}
+
+func dialClientWithin(t *testing.T, ctx context.Context, addr string, config *ssh.ClientConfig, timeout time.Duration) *ssh.Client {
+	t.Helper()
+
 	var client *ssh.Client
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
@@ -34,7 +40,7 @@ func dialClient(t *testing.T, ctx context.Context, addr string, config *ssh.Clie
 		}
 
 		client = ssh.NewClient(sshConn, chans, reqs)
-	}, 30*time.Second, 1*time.Second)
+	}, timeout, 1*time.Second)
 
 	return client
 }
@@ -42,13 +48,19 @@ func dialClient(t *testing.T, ctx context.Context, addr string, config *ssh.Clie
 func dialDevice(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer) *ssh.Client {
 	t.Helper()
 
-	return dialClient(t, ctx, compose.SSHAddress(), &ssh.ClientConfig{ //nolint:exhaustruct // the remaining fields keep their defaults
+	return dialDeviceWithin(t, ctx, compose, device, signer, 30*time.Second)
+}
+
+func dialDeviceWithin(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer, timeout time.Duration) *ssh.Client {
+	t.Helper()
+
+	return dialClientWithin(t, ctx, compose.SSHAddress(), &ssh.ClientConfig{ //nolint:exhaustruct // the remaining fields keep their defaults
 		User: deviceSSHID(device),
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // the test stack's host key is ephemeral
-	})
+	}, timeout)
 }
 
 func openShellSession(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device) (*ssh.Client, *models.Session) {
