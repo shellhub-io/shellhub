@@ -177,7 +177,7 @@ func TestSSHServerRestart(t *testing.T) {
 	requireSessionActive(t, ctx, compose, orphaned.UID, true)
 
 	t.Run("the agent reconnects and serves new sessions", func(t *testing.T) {
-		conn := dialDevice(t, ctx, compose, device, signer)
+		conn := dialDeviceWithin(t, ctx, compose, device, signer, 90*time.Second)
 		defer conn.Close() //nolint:errcheck // the test is over once the command answered
 
 		assert.Equal(t, "after the restart", runOnDevice(t, conn, "echo -n after the restart"))
