@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers/pkg/converter"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -17,17 +18,23 @@ import (
 const genericMessage = "internal server error"
 
 func report(reporter *sentry.Client, err error, request *http.Request) {
+	if reporter == nil {
+		return
+	}
+
+	request = request.Clone(request.Context())
+	request.URL.RawQuery = middleware.RedactQuery(request.URL.RawQuery)
+	request.Header.Del("Referer")
+
 	go func() {
-		if reporter != nil {
-			reporter.CaptureEvent(&sentry.Event{ //nolint:exhaustruct
-				Level:   sentry.LevelError,
-				Message: err.Error(),
-				Request: sentry.NewRequest(request),
-				Tags: map[string]string{
-					"domain": os.Getenv("SHELLHUB_DOMAIN"),
-				},
-			}, &sentry.EventHint{Request: request}, &sentry.Scope{}) //nolint:exhaustruct
-		}
+		reporter.CaptureEvent(&sentry.Event{ //nolint:exhaustruct
+			Level:   sentry.LevelError,
+			Message: err.Error(),
+			Request: sentry.NewRequest(request),
+			Tags: map[string]string{
+				"domain": os.Getenv("SHELLHUB_DOMAIN"),
+			},
+		}, &sentry.EventHint{Request: request}, &sentry.Scope{}) //nolint:exhaustruct
 	}()
 }
 
@@ -78,7 +85,9 @@ func fieldsOf(e errors.Error) map[string]string {
 	}
 }
 
-// NewErrors returns a custom echo's error handler.
+// NewErrors returns a custom echo's error handler. An internal store error is reported to reporter,
+// when it is not nil, with the request's query passed through [middleware.RedactQuery] and without
+// its Referer header, as the page URL it names can carry the same secrets.
 func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 	return func(ctx *echo.Context, err error) {
 		if errors.Is(err, store.ErrInternal) {
