@@ -202,7 +202,7 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 		return tagNames(tags)
 	}
 
-	t.Run("a key creates, lists, attaches, detaches and deletes tags", func(t *testing.T) {
+	t.Run("a key creates, lists, attaches, renames, detaches and deletes tags", func(t *testing.T) {
 		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "tagger", ExpiresAt: -1, OptRole: authorizer.RoleOperator})
 
 		resp, err := withAPIKey(t, compose, key.Key).SetBody(map[string]string{"name": "staging"}).Post("/api/tags")
@@ -216,16 +216,32 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 		assert.Equal(t, []string{"staging"}, deviceTags(t))
 
-		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/devices/" + device.UID + "/tags/staging")
+		renamed := new(models.Tag)
+		resp, err = withAPIKey(t, compose, key.Key).
+			SetBody(map[string]string{"name": "production"}).
+			SetResult(renamed).
+			Patch("/api/tags/staging")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, "production", renamed.Name)
+		assert.Equal(t, ShellHubNamespace, renamed.TenantID)
+		assert.True(t, renamed.UpdatedAt.After(renamed.CreatedAt))
+
+		tagsAfterRename := namespaceTags(t, withAPIKey(t, compose, key.Key))
+		assert.Contains(t, tagsAfterRename, "production")
+		assert.NotContains(t, tagsAfterRename, "staging")
+		assert.Equal(t, []string{"production"}, deviceTags(t))
+
+		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/devices/" + device.UID + "/tags/production")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 		assert.Empty(t, deviceTags(t))
 
-		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/tags/staging")
+		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/tags/production")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 
-		assert.NotContains(t, namespaceTags(t, compose.R(t.Context())), "staging")
+		assert.NotContains(t, namespaceTags(t, compose.R(t.Context())), "production")
 	})
 
 	t.Run("a key acts only within its role", func(t *testing.T) {
