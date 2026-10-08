@@ -86,12 +86,7 @@ test("without a license every admin page sends the admin to the license page", a
 test("with an expired license every admin page sends the admin to the license page", async ({
   page,
 }) => {
-  await installLicense(
-    requireEnv(
-      "E2E_EXPIRED_LICENSE",
-      "set it to a license that expired more than 7 days ago",
-    ),
-  );
+  await installLicense(requireEnv("E2E_EXPIRED_LICENSE"));
 
   await expectRedirectedToLicense(page, "Your license has expired!");
 });

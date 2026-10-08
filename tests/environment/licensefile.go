@@ -45,7 +45,7 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 		return nil, nil, err
 	}
 
-	path, err := filepath.Abs(filepath.Join(stackArtifactsDir, "licenses", cfg.Name+".dat"))
+	path, err := licenseFilePath(cfg.Name)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -61,4 +61,8 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 	envs, err := mergeEnvs(nil, ldflags, map[string]string{licenseFileEnv: path})
 
 	return envs, []string{path}, err
+}
+
+func licenseFilePath(stack string) (string, error) {
+	return filepath.Abs(filepath.Join(stackArtifactsDir, "licenses", stack+".dat"))
 }

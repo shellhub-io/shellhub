@@ -9,8 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const licenseIssuerKeyPath = ".stack/license-issuer.pem"
-
 var run *environment.Run
 
 func TestMain(m *testing.M) {
@@ -36,7 +34,7 @@ func runSuite(m *testing.M) int {
 		return 1
 	}
 
-	issuer, err := environment.LoadLicenseIssuer(licenseIssuerKeyPath)
+	issuer, err := environment.LoadLicenseIssuer(environment.LicenseIssuerKeyPath)
 	if err != nil {
 		log.WithError(err).Error("failed to load the license issuer")
 

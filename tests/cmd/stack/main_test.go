@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDefaultStackName(t *testing.T) {
@@ -39,4 +43,18 @@ func TestDefaultStackName(t *testing.T) {
 			assert.Equal(t, tc.same, first == second)
 		})
 	}
+}
+
+func TestPrintExportsSurvivesEval(t *testing.T) {
+	state := &stateFile{Name: "shellhub-e2e-a", Edition: "enterprise", AgentImage: "agent:a b"}
+
+	var out bytes.Buffer
+	require.NoError(t, printExports(&out, state, []byte(`it's "$HOME" * ;`)))
+
+	script := out.String() + `printf '%s|%s' "$E2E_AGENT_IMAGE" "$E2E_EXPIRED_LICENSE"`
+	sh := exec.CommandContext(t.Context(), "sh")
+	sh.Stdin = strings.NewReader(script)
+	got, err := sh.Output()
+	require.NoError(t, err)
+	assert.Equal(t, `agent:a b|it's "$HOME" * ;`, string(got))
 }

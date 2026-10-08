@@ -56,13 +56,13 @@ func StartRun(ctx context.Context, issuer *LicenseIssuer) (*Run, error) {
 // for as long as any of them exists. The calling process holds a lease of its own until it
 // exits or calls [Run.Close], covering the objects it creates before the first stack
 // container. It returns an error when project is not a valid image tag and project name, and
-// in the cases [StartRun] does.
-func StartStackRun(ctx context.Context, project string) (*Run, error) {
+// in the cases [StartRun] does. issuer works as it does for [StartRun].
+func StartStackRun(ctx context.Context, project string, issuer *LicenseIssuer) (*Run, error) {
 	if !validStackProject.MatchString(project) {
 		return nil, fmt.Errorf("invalid stack project %q: must match %s", project, validStackProject.String())
 	}
 
-	return startRun(ctx, project, true, nil)
+	return startRun(ctx, project, true, issuer)
 }
 
 func startRun(ctx context.Context, id string, stack bool, issuer *LicenseIssuer) (*Run, error) {
@@ -95,8 +95,8 @@ func newRunID() string {
 // ID returns the run's ID, valid as an image tag and as a compose project name.
 func (r *Run) ID() string { return r.id }
 
-// LicenseIssuer returns the issuer [StartRun] gave the run, or nil when the run's stacks
-// run under the license SHELLHUB_LICENSE_FILE names.
+// LicenseIssuer returns the issuer [StartRun] or [StartStackRun] gave the run, or nil when the
+// run's stacks run under the license SHELLHUB_LICENSE_FILE names.
 func (r *Run) LicenseIssuer() *LicenseIssuer { return r.issuer }
 
 // Labels returns the labels every container the run starts must carry. A stack run's include

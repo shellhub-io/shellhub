@@ -155,7 +155,7 @@ func TestRunHelperProcess(t *testing.T) {
 	case "process":
 		run, err = StartRun(ctx, nil)
 	case "stack":
-		run, err = StartStackRun(ctx, os.Getenv(runHelperProject))
+		run, err = StartStackRun(ctx, os.Getenv(runHelperProject), nil)
 	default:
 		t.Fatalf("unknown helper mode %q", mode)
 	}
