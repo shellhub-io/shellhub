@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -498,6 +499,7 @@ func TestService_UpdateTag(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
+		tag *models.Tag
 		err error
 	}
 
@@ -628,7 +630,7 @@ func TestService_UpdateTag(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds updating tag",
+			description: "fails when reading back the renamed tag fails",
 			req: &requests.UpdateTag{
 				Name:     "production",
 				NewName:  "staging",
@@ -636,6 +638,7 @@ func TestService_UpdateTag(t *testing.T) {
 			},
 			requiredMocks: func() {
 				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+				updatedTag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "staging"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
@@ -649,16 +652,65 @@ func TestService_UpdateTag(t *testing.T) {
 					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
 					Return([]string{}, false, nil).
 					Once()
-
-				expectedTag := *tag
-				expectedTag.Name = "staging"
-
 				storeMock.
-					On("TagUpdate", ctx, &expectedTag).
+					On("TagUpdate", ctx, updatedTag).
 					Return(nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, scope.MustBounded("tenant1"), store.TagIDResolver, "tag_00000000-0000-4000-0000-000000000000").
+					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: Expected{
+				err: errors.New("error"),
+			},
+		},
+		{
+			description: "succeeds returning the tag as stored after the rename",
+			req: &requests.UpdateTag{
+				Name:     "production",
+				NewName:  "staging",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+				updatedTag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "staging"}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
+					Return(tag, nil).
+					Once()
+				storeMock.
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("TagUpdate", ctx, updatedTag).
+					Return(nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, scope.MustBounded("tenant1"), store.TagIDResolver, "tag_00000000-0000-4000-0000-000000000000").
+					Return(&models.Tag{
+						ID:        "tag_00000000-0000-4000-0000-000000000000",
+						TenantID:  "tenant1",
+						Name:      "staging",
+						CreatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2026, 1, 2, 12, 0, 0, 0, time.UTC),
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				tag: &models.Tag{
+					ID:        "tag_00000000-0000-4000-0000-000000000000",
+					TenantID:  "tenant1",
+					Name:      "staging",
+					CreatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2026, 1, 2, 12, 0, 0, 0, time.UTC),
+				},
 				err: nil,
 			},
 		},
@@ -666,12 +718,17 @@ func TestService_UpdateTag(t *testing.T) {
 
 	service := NewService(storeMock, privateKey, publicKey, nil)
 
+	storeMock.
+		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Times(len(cases))
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			err := service.UpdateTag(ctx, tc.req)
-			require.Equal(t, tc.expected, Expected{err})
+			tag, err := service.UpdateTag(ctx, tc.req)
+			require.Equal(t, tc.expected, Expected{tag, err})
 		})
 	}
 

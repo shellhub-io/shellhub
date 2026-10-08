@@ -52,11 +52,17 @@ type TagsService interface {
 	// database, ignoring pagination, and an error if any.
 	ListTags(ctx context.Context, req *requests.ListTags) (tags []models.Tag, totalCount int, err error)
 
-	// UpdateTag updates a tag with the specified name in the specified namespace.
+	// UpdateTag updates a tag with the specified name in the specified namespace and returns the tag
+	// as stored after the update, with the updated_at the store set.
 	//
-	// It returns an error if any. A name already taken yields [ErrDuplicateTagName], carrying the
-	// conflicting field name(s).
-	UpdateTag(ctx context.Context, req *requests.UpdateTag) (err error)
+	// It returns [ErrForbidden] for an empty tenant. Any failure resolving the namespace yields
+	// [ErrNamespaceNotFound] and any failure resolving the tag by name yields [ErrTagNameNotFound].
+	// [ErrDuplicateTagName], carrying the conflicting field name(s), is returned whenever the conflict
+	// check reports the new name taken, even alongside a store failure. Any other failure in the
+	// conflict check, the update, the read back or the transaction itself is returned unchanged. The
+	// rename and the read back run in one transaction, so a failed read back undoes the rename. The tag
+	// is nil whenever the error is not.
+	UpdateTag(ctx context.Context, req *requests.UpdateTag) (tag *models.Tag, err error)
 
 	// DeleteTag deletes a tag with the specified name in the specified namespace.
 	//
@@ -160,19 +166,33 @@ func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]model
 	return tags, totalCount, nil
 }
 
-func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) error {
+func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) (*models.Tag, error) {
+	var renamed *models.Tag
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		renamed, err = s.updateTag(ctx, req)
+
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
+	return renamed, nil
+}
+
+func (s *service) updateTag(ctx context.Context, req *requests.UpdateTag) (*models.Tag, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
 	tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 	if err != nil {
-		return NewErrTagNotFound(req.Name, err)
+		return nil, NewErrTagNotFound(req.Name, err)
 	}
 
 	conflictsAttrs := &models.TagConflicts{}
@@ -182,17 +202,21 @@ func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) error 
 
 	if conflicts, has, err := s.store.TagConflicts(ctx, sc, conflictsAttrs); has || err != nil {
 		if !has {
-			return err
+			return nil, err
 		}
 
-		return NewErrTagDuplicated(conflicts, err)
+		return nil, NewErrTagDuplicated(conflicts, err)
 	}
 
 	if req.NewName != "" && !strings.EqualFold(req.NewName, tag.Name) {
 		tag.Name = req.NewName
 	}
 
-	return s.store.TagUpdate(ctx, tag)
+	if err := s.store.TagUpdate(ctx, tag); err != nil {
+		return nil, err
+	}
+
+	return s.store.TagResolve(ctx, sc, store.TagIDResolver, tag.ID)
 }
 
 func (s *service) DeleteTag(ctx context.Context, req *requests.DeleteTag) error {

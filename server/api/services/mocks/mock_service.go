@@ -7436,20 +7436,31 @@ func (_c *MockService_UpdateSession_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // UpdateTag provides a mock function for the type MockService
-func (_mock *MockService) UpdateTag(ctx context.Context, req *requests.UpdateTag) error {
+func (_mock *MockService) UpdateTag(ctx context.Context, req *requests.UpdateTag) (*models.Tag, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateTag")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) error); ok {
+	var r0 *models.Tag
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) (*models.Tag, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) *models.Tag); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Tag)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.UpdateTag) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockService_UpdateTag_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateTag'
@@ -7482,12 +7493,12 @@ func (_c *MockService_UpdateTag_Call) Run(run func(ctx context.Context, req *req
 	return _c
 }
 
-func (_c *MockService_UpdateTag_Call) Return(err error) *MockService_UpdateTag_Call {
-	_c.Call.Return(err)
+func (_c *MockService_UpdateTag_Call) Return(tag *models.Tag, err error) *MockService_UpdateTag_Call {
+	_c.Call.Return(tag, err)
 	return _c
 }
 
-func (_c *MockService_UpdateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateTag) error) *MockService_UpdateTag_Call {
+func (_c *MockService_UpdateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateTag) (*models.Tag, error)) *MockService_UpdateTag_Call {
 	_c.Call.Return(run)
 	return _c
 }

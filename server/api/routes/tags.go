@@ -91,7 +91,8 @@ func (h *Handler) GetTags(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
-// UpdateTag renames a tag, which renames it everywhere it is attached.
+// UpdateTag renames a tag, which renames it everywhere it is attached, and answers with the tag as
+// stored after the rename.
 func (h *Handler) UpdateTag(c *gateway.Context) error {
 	req := new(requests.UpdateTag)
 
@@ -103,11 +104,12 @@ func (h *Handler) UpdateTag(c *gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdateTag(c.Ctx(), req); err != nil {
+	tag, err := h.service.UpdateTag(c.Ctx(), req)
+	if err != nil {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, tag)
 }
 
 // DeleteTag removes a tag and detaches it from everything carrying it.
