@@ -58,7 +58,14 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	sess := newTestSession(nil, dialertest.NewSilentAgent(t))
 
 	done := make(chan error, 1)
-	go func() { done <- sess.connect(newStubContext(), noAuth) }()
+	returned := make(chan struct{})
+	t.Cleanup(func() { <-returned })
+
+	go func() {
+		defer close(returned)
+
+		done <- sess.connect(newStubContext(), noAuth)
+	}()
 
 	select {
 	case <-done:
