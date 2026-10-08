@@ -199,6 +199,7 @@ export class OpfsCastRecorder {
       await this.writable.close();
     } catch (err) {
       console.error("session recording: failed to close file", err);
+      await this.removeFiles();
       return null;
     }
     if (this.outputs === 0) {
