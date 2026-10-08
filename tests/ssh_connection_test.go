@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -175,6 +177,7 @@ func TestSSHServerRestart(t *testing.T) {
 	require.NoError(t, server.Start(ctx))
 
 	requireSessionActive(t, ctx, compose, orphaned.UID, true)
+	awaitAgentTunnels(t, compose, 2)
 
 	t.Run("the agent reconnects and serves new sessions", func(t *testing.T) {
 		conn := dialDevice(t, ctx, compose, device, signer)
@@ -198,6 +201,23 @@ func TestSSHServerRestart(t *testing.T) {
 		requireSessionActive(t, ctx, compose, orphaned.UID, false)
 		requireSessionActive(t, ctx, compose, idle.UID, true)
 	})
+}
+
+func awaitAgentTunnels(t *testing.T, compose *environment.DockerCompose, count int) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		reader, err := compose.Service(environment.ServiceServer).Logs(t.Context())
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		defer func() { _ = reader.Close() }()
+
+		logs, err := io.ReadAll(reader)
+		assert.NoError(tt, err)
+		assert.GreaterOrEqual(tt, strings.Count(string(logs), "v2 connection established"), count)
+	}, 2*time.Minute, 2*time.Second)
 }
 
 func dialForBanner(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer) string {
