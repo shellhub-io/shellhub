@@ -223,7 +223,7 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 
 		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/tags/staging")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 
 		assert.NotContains(t, namespaceTags(t, compose.R(t.Context())), "staging")
 	})
