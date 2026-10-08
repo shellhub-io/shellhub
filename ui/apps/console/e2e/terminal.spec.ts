@@ -69,12 +69,12 @@ function docker(args: string[]) {
 const agentExec = (container: string, args: string[]) =>
   docker(["exec", container, ...args]);
 
-const agents: string[] = [];
+const containers: string[] = [];
 const nativeClients: ChildProcess[] = [];
 
 test.afterEach(() => {
   for (const client of nativeClients.splice(0)) client.kill();
-  if (agents.length) docker(["rm", "--force", ...agents.splice(0)]);
+  if (containers.length) docker(["rm", "--force", ...containers.splice(0)]);
 });
 
 const ownerContext = (team: Team) =>
@@ -127,7 +127,7 @@ async function acceptDevice(
 async function createDevice(team: Team) {
   const name = `e2e-device-${buildShortId()}`;
   const container = startAgent(team.tenant, name);
-  agents.push(container);
+  containers.push(container);
   return { uid: await acceptDevice(team, name), name, container };
 }
 
@@ -155,8 +155,8 @@ function startContainer(name: string, label: string) {
 async function createContainer(team: Team) {
   const name = `e2e-container-${buildShortId()}`;
   const label = `io.shellhub.e2e.connector=${name}`;
-  agents.push(startContainer(name, label));
-  agents.push(startConnector(team.tenant, label));
+  containers.push(startContainer(name, label));
+  containers.push(startConnector(team.tenant, label));
   return {
     uid: await acceptDevice(team, name, getContainers),
     name,
@@ -788,6 +788,25 @@ test.describe("Containers", () => {
 
     await expectShell(page, container.name, /sh-[\d.]+#/);
     await expectAuthenticatedWebSession(team, container.uid);
+  });
+
+  test("a registered key lets the ssh client into a container", async () => {
+    const team = await createTeam({ sshAccessMode: "legacy" });
+    const container = await createContainer(team);
+    const publicKey = createNativeClientKey(container.container);
+    await createPublicKey({
+      ...ownerContext(team),
+      body: {
+        name: `e2e-native-${buildShortId()}`,
+        data: Buffer.from(publicKey).toString("base64"),
+        username: ".*",
+        filter: { hostname: ".*" },
+      },
+    });
+
+    await expectNativeShell(
+      openNativeSSH(container.container, sshidOf(team, container)),
+    );
   });
 });
 
