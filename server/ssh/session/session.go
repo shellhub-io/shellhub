@@ -157,6 +157,8 @@ type Session struct {
 
 	once *sync.Once
 
+	closingOnAgent sync.WaitGroup
+
 	keepaliveMu      sync.Mutex
 	keepaliveStopped bool
 	keepaliveCancel  context.CancelFunc
@@ -1169,9 +1171,10 @@ func (s *Session) closeOnAgent() {
 // than to the caller, because each teardown step is worth attempting whatever the one before
 // it did. The error is always nil.
 //
-// The device is told on its own goroutine. Finish runs from the client connection's Close, so
-// a device holding a tunnel it no longer answers on would otherwise park that goroutine for
-// the dial's full budget and delay the API learning the session ended.
+// The device is told on its own goroutine, which Finish returns without waiting for. Finish
+// runs from the client connection's Close, so a device holding a tunnel it no longer answers
+// on would otherwise park that goroutine for the dial's full budget and delay the API learning
+// the session ended.
 func (s *Session) Finish() error {
 	s.once.Do(func() {
 		log.WithFields(log.Fields{
@@ -1181,7 +1184,7 @@ func (s *Session) Finish() error {
 		s.Events.Close() //nolint:errcheck
 
 		if s.agent.conn != nil {
-			go s.closeOnAgent()
+			s.closingOnAgent.Go(s.closeOnAgent)
 		}
 
 		s.stopKeepAlive()
