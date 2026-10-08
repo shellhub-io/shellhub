@@ -128,7 +128,7 @@ func (h *Handler) DeleteTag(c *gateway.Context) error {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // PushTagToDevice attaches an existing tag to a device.
