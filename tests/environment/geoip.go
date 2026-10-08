@@ -17,7 +17,7 @@ const (
 )
 
 func (cfg Config) geoIPEnvs() (map[string]string, string, error) {
-	dir, err := filepath.Abs(filepath.Join(stackArtifactsDir, "geoip", cfg.Name))
+	dir, err := geoIPDir(cfg.Name)
 	if err != nil {
 		return nil, "", err
 	}
@@ -30,6 +30,10 @@ func (cfg Config) geoIPEnvs() (map[string]string, string, error) {
 		geoIPDirEnv:    dir,
 		geoIPMirrorEnv: unreachableGeoIPMirror,
 	}, dir, nil
+}
+
+func geoIPDir(stack string) (string, error) {
+	return filepath.Abs(filepath.Join(stackArtifactsDir, "geoip", stack))
 }
 
 func writeGeoIPDatabases(dir, country string) error {

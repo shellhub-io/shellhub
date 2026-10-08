@@ -21,6 +21,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
+// LicenseIssuerKeyPath is the key file, relative to tests/, that the Go suite and the e2e stack
+// pass to [LoadLicenseIssuer].
+const LicenseIssuerKeyPath = stackArtifactsDir + "/license-issuer.pem"
+
 const (
 	licenseFileEnv = "SHELLHUB_LICENSE_FILE"
 	goLDFlagsEnv   = "SHELLHUB_TEST_GO_LDFLAGS"

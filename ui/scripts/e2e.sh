@@ -36,7 +36,7 @@ stack() {
 
   local run_args=(-w "$REPO_ROOT/tests")
   local var
-  for var in SHELLHUB_LICENSE_FILE STRIPE_SECRET_KEY STRIPE_PRICE_ID SHELLHUB_STRIPE_PUBLISHABLE_KEY; do
+  for var in STRIPE_SECRET_KEY STRIPE_PRICE_ID SHELLHUB_STRIPE_PUBLISHABLE_KEY; do
     run_args+=(-e "$var")
   done
   compose_run "${run_args[@]}" test go run ./cmd/stack "$@"
@@ -51,7 +51,7 @@ playwright() {
   compose_run \
     -e E2E_COMPOSE_PROJECT -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
     -e E2E_AGENT_IMAGE \
-    -e E2E_EXPIRED_LICENSE \
+    -e E2E_EXPIRED_LICENSE -e E2E_LICENSE_ISSUER_KEY \
     -e CI \
     e2e npx playwright test "$@"
 }

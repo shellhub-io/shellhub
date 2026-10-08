@@ -295,18 +295,26 @@ func mergeEnvs(files []string, layers ...map[string]string) (map[string]string, 
 }
 
 // Attach reconnects to an existing compose project by name without starting it. It is used
-// to tear down a stack from a different process than the one that brought it up.
+// to tear down a stack from a different process than the one that brought it up, so the stack it
+// returns owns the license and GeoIP files [Up] writes for a stack of that name. It returns an
+// error when the compose project cannot be loaded or those files' paths cannot be resolved.
 func Attach(ctx context.Context, name string, files []string, envs map[string]string) (*Stack, error) {
 	tcDc, err := newComposeStack(name, files)
 	if err != nil {
 		return nil, err
 	}
 
+	artifacts, err := stackArtifacts(name)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &Stack{
-		files:    files,
-		envs:     envs,
-		services: make(map[Service]*tc.DockerContainer),
-		dc:       tcDc,
+		files:     files,
+		envs:      envs,
+		services:  make(map[Service]*tc.DockerContainer),
+		dc:        tcDc,
+		artifacts: artifacts,
 	}
 
 	if envs != nil {
@@ -327,14 +335,18 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 }
 
 // Down removes the stack's containers and volumes, and keeps its images. Once compose is down, it
-// also removes the network and the license and GeoIP files of a stack [Up] started; a stack from
-// [Attach] leaves its network to [Run.Close]. It returns the compose error alone, stopping there,
-// or the errors from removing the network and the files, joined. ctx bounds compose and the
-// network.
+// also removes the stack's license and GeoIP files, and the network of a stack [Up] started; a
+// stack from [Attach] leaves its network to [Run.Close]. It returns the compose error alone,
+// stopping there, or the errors from removing the network and the files, joined. ctx bounds
+// compose and the network.
 func (s *Stack) Down(ctx context.Context) error {
 	err := s.dc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
-	if err != nil || s.run == nil {
+	if err != nil {
 		return err
+	}
+
+	if s.run == nil {
+		return removeArtifacts(s.artifacts)
 	}
 
 	return errors.Join(s.run.removeNetwork(ctx, s.network), removeArtifacts(s.artifacts))
@@ -663,6 +675,20 @@ func (s *Stack) Logs(ctx context.Context, w io.Writer) error {
 	}
 
 	return nil
+}
+
+func stackArtifacts(stack string) ([]string, error) {
+	license, err := licenseFilePath(stack)
+	if err != nil {
+		return nil, err
+	}
+
+	geoIP, err := geoIPDir(stack)
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{license, geoIP}, nil
 }
 
 func removeArtifacts(paths []string) error {

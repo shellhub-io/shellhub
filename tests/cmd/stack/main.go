@@ -10,7 +10,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
+	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/spf13/cobra"
@@ -80,24 +83,47 @@ func writeState(s *stateFile, name string) error {
 	return os.WriteFile(statePath(name), data, 0o600)
 }
 
-func printExports(w io.Writer, s *stateFile) error {
-	baseURL := "http://localhost:" + s.Envs["SHELLHUB_HTTP_PORT"]
+func expiredLicense(issuer *environment.LicenseIssuer) ([]byte, error) {
+	license := environment.FullLicense()
+	license.StartsAt = clock.Now().Add(-2 * 365 * 24 * time.Hour).Unix()
+	license.ExpiresAt = clock.Now().Add(-365 * 24 * time.Hour).Unix()
 
-	for _, line := range []string{
-		"E2E_BASE_URL=" + baseURL,
-		"E2E_EDITION=" + s.Edition,
-		"E2E_COMPOSE_PROJECT=" + s.Name,
-		"E2E_ADMIN_USER=" + adminUsername,
-		"E2E_ADMIN_PASSWORD=" + adminPassword,
-		"E2E_ADMIN_NAMESPACE=" + adminNamespace,
-		"E2E_AGENT_IMAGE=" + s.AgentImage,
-	} {
-		if _, err := fmt.Fprintf(w, "export %s\n", line); err != nil {
+	return issuer.Sign(license)
+}
+
+type export struct{ name, value string }
+
+func printExports(w io.Writer, s *stateFile, expired []byte) error {
+	exports := []export{
+		{"E2E_BASE_URL", "http://localhost:" + s.Envs["SHELLHUB_HTTP_PORT"]},
+		{"E2E_EDITION", s.Edition},
+		{"E2E_COMPOSE_PROJECT", s.Name},
+		{"E2E_ADMIN_USER", adminUsername},
+		{"E2E_ADMIN_PASSWORD", adminPassword},
+		{"E2E_ADMIN_NAMESPACE", adminNamespace},
+		{"E2E_AGENT_IMAGE", s.AgentImage},
+	}
+
+	if expired != nil {
+		issuerKey, err := filepath.Abs(environment.LicenseIssuerKeyPath)
+		if err != nil {
+			return err
+		}
+
+		exports = append(exports, export{"E2E_EXPIRED_LICENSE", string(expired)}, export{"E2E_LICENSE_ISSUER_KEY", issuerKey})
+	}
+
+	for _, e := range exports {
+		if _, err := fmt.Fprintf(w, "export %s=%s\n", e.name, shellQuote(e.value)); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", `'\''`) + "'"
 }
 
 func saveLogs(ctx context.Context, cmd *cobra.Command, stack *environment.Stack, name string) {
@@ -159,7 +185,7 @@ func teardown(ctx context.Context, cmd *cobra.Command, name string) error {
 }
 
 func teardownRun(ctx context.Context, cmd *cobra.Command, name string) error {
-	run, err := environment.StartStackRun(ctx, projectPrefix+name)
+	run, err := environment.StartStackRun(ctx, projectPrefix+name, nil)
 	if err != nil {
 		return fmt.Errorf("starting the stack's run: %w", err)
 	}
@@ -237,7 +263,12 @@ func main() {
 				return err
 			}
 
-			run, err := environment.StartStackRun(ctx, projectName)
+			issuer, err := environment.LoadLicenseIssuer(environment.LicenseIssuerKeyPath)
+			if err != nil {
+				return fmt.Errorf("loading the license issuer: %w", err)
+			}
+
+			run, err := environment.StartStackRun(ctx, projectName, issuer)
 			if err != nil {
 				return fmt.Errorf("starting the stack's run: %w", err)
 			}
@@ -304,9 +335,16 @@ func main() {
 				return fmt.Errorf("writing state file: %w", err)
 			}
 
+			var expired []byte
+			if edition != environment.EditionCommunity {
+				if expired, err = expiredLicense(issuer); err != nil {
+					return fmt.Errorf("signing the expired license: %w", err)
+				}
+			}
+
 			cmd.PrintErrln("Stack ready.")
 
-			return printExports(stdout, state)
+			return printExports(stdout, state, expired)
 		},
 	}
 
