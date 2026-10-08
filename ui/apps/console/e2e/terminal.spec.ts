@@ -557,6 +557,23 @@ test.describe("Re-authentication", () => {
       ).toEqual([undefined, "true"]);
     });
 
+    test("a blocked popup explains why the SAML re-authentication cannot start", async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        window.open = () => null;
+      });
+      const { team, device } = await signInAsSamlOwner(page);
+
+      await connectWithBrowserKey(page, device.name);
+      const dialog = await reauthenticateWithSso(page);
+
+      await expect(dialog).toContainText(
+        "Pop-up blocked. Allow pop-ups for this site and try again.",
+      );
+      expect(await readDeviceSessions(team, device.uid)).toEqual([]);
+    });
+
     test("an expired relay token refuses the SAML re-authentication", async ({
       page,
     }) => {
