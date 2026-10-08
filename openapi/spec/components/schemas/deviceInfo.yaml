@@ -23,6 +23,8 @@ properties:
     enum:
       - docker
       - native
+      - bundle
+      - connector
     example: docker
 required:
   - id
