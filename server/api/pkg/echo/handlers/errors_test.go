@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"sync"
 	"testing"
@@ -64,6 +65,17 @@ func (s *spyTransport) firstMessage() string {
 	}
 
 	return s.events[0].Message
+}
+
+func (s *spyTransport) firstRequest() *sentry.Request {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(s.events) == 0 {
+		return nil
+	}
+
+	return s.events[0].Request
 }
 
 func (s *spyTransport) waitForEvent(timeout time.Duration) bool {
@@ -312,4 +324,25 @@ func TestNewErrors(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewErrorsRedactsCredentialsInTheReportedQuery(t *testing.T) {
+	client, spy := newSpyClient(t)
+	handler := NewErrors(client)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/invitations/resolve?invite=secret&email=user%40example.com&page=1", nil)
+	req.Header.Set("Referer", "https://shellhub.example.com/accept-invite?invite=secret")
+	ctx := echo.New().NewContext(req, httptest.NewRecorder())
+
+	handler(ctx, errors.Wrap(store.ErrInternal, errors.New("some internal detail", store.ErrLayer, store.ErrCodeInternal)))
+
+	require.True(t, spy.waitForEvent(500*time.Millisecond), "expected a sentry event within 500ms")
+	require.NotNil(t, spy.firstRequest())
+
+	reported, err := url.ParseQuery(spy.firstRequest().QueryString)
+	require.NoError(t, err)
+	assert.Equal(t, url.Values{"invite": {"REDACTED"}, "email": {"REDACTED"}, "page": {"1"}}, reported)
+	assert.NotContains(t, spy.firstRequest().Headers, "Referer", "the page URL can carry the same secrets")
+	assert.Equal(t, "invite=secret&email=user%40example.com&page=1", req.URL.RawQuery, "the request being served must not change")
+	assert.Equal(t, "https://shellhub.example.com/accept-invite?invite=secret", req.Header.Get("Referer"), "the request being served must not change")
 }
