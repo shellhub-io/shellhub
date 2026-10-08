@@ -7,6 +7,7 @@ import {
   createSshIdentity,
   deleteAccessPolicy,
   editNamespace,
+  getContainers,
   getDevice,
   getDevices,
   getSession,
@@ -36,6 +37,7 @@ import {
   markSamlOrigin,
   mfaSecret,
   password,
+  runInGateway,
   startAgent,
 } from "./seed";
 import {
@@ -78,16 +80,22 @@ test.afterEach(() => {
 const ownerContext = (team: Team) =>
   buildRequestContext({ token: team.owner.token });
 
-async function waitForPendingDevice(team: Team, name: string) {
+type DeviceList = typeof getDevices | typeof getContainers;
+
+async function waitForPendingDevice(
+  team: Team,
+  name: string,
+  list: DeviceList,
+) {
   let uid: string | undefined;
   await expect
     .poll(
       async () => {
-        const { data } = await getDevices({
+        const { data } = await list({
           ...ownerContext(team),
           query: { status: "pending" },
         });
-        uid = data.find((device) => device.name === name)?.uid;
+        uid = data?.find((device) => device.name === name)?.uid;
         return uid;
       },
       { message: `${name} to ask to join ${team.namespace}`, timeout: 30_000 },
@@ -99,11 +107,12 @@ async function waitForPendingDevice(team: Team, name: string) {
   return uid;
 }
 
-async function createDevice(team: Team) {
-  const name = `e2e-device-${buildShortId()}`;
-  const container = startAgent(team.tenant, name);
-  agents.push(container);
-  const uid = await waitForPendingDevice(team, name);
+async function acceptDevice(
+  team: Team,
+  name: string,
+  list: DeviceList = getDevices,
+) {
+  const uid = await waitForPendingDevice(team, name, list);
   const context = ownerContext(team);
   await updateDeviceStatus({ ...context, path: { uid, status: "accept" } });
   await expect
@@ -112,7 +121,47 @@ async function createDevice(team: Team) {
       { message: `${name} to come online` },
     )
     .toBe(true);
-  return { uid, name, container };
+  return uid;
+}
+
+async function createDevice(team: Team) {
+  const name = `e2e-device-${buildShortId()}`;
+  const container = startAgent(team.tenant, name);
+  agents.push(container);
+  return { uid: await acceptDevice(team, name), name, container };
+}
+
+function startConnector(tenant: string, label: string) {
+  const socket = process.env.E2E_DOCKER_SOCKET ?? "/var/run/docker.sock";
+  return runInGateway(
+    [
+      `--volume=${socket}:/var/run/docker.sock`,
+      "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
+      `--env=SHELLHUB_TENANT_ID=${tenant}`,
+      "--env=SHELLHUB_PRIVATE_KEYS=/tmp/keys",
+      `--env=SHELLHUB_CONNECTOR_LABEL=${label}`,
+    ],
+    ["connector"],
+  );
+}
+
+function startContainer(name: string, label: string) {
+  return runInGateway(
+    [`--name=${name}`, `--label=${label}`, "--entrypoint=sleep"],
+    ["infinity"],
+  );
+}
+
+async function createContainer(team: Team) {
+  const name = `e2e-container-${buildShortId()}`;
+  const label = `io.shellhub.e2e.connector=${name}`;
+  agents.push(startContainer(name, label));
+  agents.push(startConnector(team.tenant, label));
+  return {
+    uid: await acceptDevice(team, name, getContainers),
+    name,
+    container: name,
+  };
 }
 
 async function createDeviceAndSignIn(page: Page, team: Team) {
@@ -190,9 +239,13 @@ async function typeInTerminal(page: Page, device: string, line: string) {
 
 const buildMarker = () => `x${buildShortId()}`;
 
-async function expectShell(page: Page, device: string) {
+async function expectShell(
+  page: Page,
+  device: string,
+  prompt: string | RegExp = ":~#",
+) {
   const marker = buildMarker();
-  await expect(terminalOutput(page, device)).toContainText(":~#", {
+  await expect(terminalOutput(page, device)).toContainText(prompt, {
     timeout: 15_000,
   });
   await typeInTerminal(page, device, `echo ${marker} | tr a-z A-Z`);
@@ -203,8 +256,8 @@ async function expectShell(page: Page, device: string) {
   return marker;
 }
 
-async function openConnect(page: Page, device: string) {
-  await page.getByRole("link", { name: "Devices", exact: true }).click();
+async function openConnect(page: Page, device: string, list = "Devices") {
+  await page.getByRole("link", { name: list, exact: true }).click();
   await findRow(page, device).getByRole("button", { name: "Connect" }).click();
   const dialog = page.getByRole("dialog", { name: "Connect" });
   await dialog.getByLabel("Login").fill(deviceLogin);
@@ -720,6 +773,21 @@ test.describe("Firewall Rules", () => {
     await expect
       .poll(() => ssh.read(), { message: "the ssh client to be refused" })
       .toContain("Access to the device has been denied.");
+  });
+});
+
+test.describe("Containers", () => {
+  test("a password opens a shell in a container", async ({ page }) => {
+    const team = await createTeam({ sshAccessMode: "legacy" });
+    const container = await createContainer(team);
+    await signInAndOpen(page, team.owner.username, "/containers");
+
+    const dialog = await openConnect(page, container.name, "Containers");
+    await choosePassword(dialog);
+    await openInBrowser(dialog);
+
+    await expectShell(page, container.name, /sh-[\d.]+#/);
+    await expectAuthenticatedWebSession(team, container.uid);
   });
 });
 
