@@ -403,10 +403,47 @@ func (s *Stack) Admin(ctx context.Context, args ...string) error {
 // error carrying psql's output when psql exits non-zero, which it does for a statement that
 // fails.
 func (s *Stack) SQL(ctx context.Context, statement string, vars map[string]string) (string, error) {
+	return s.psql(ctx, statement, vars)
+}
+
+// SQLValue runs query like [Stack.SQL] and returns the one value it selects, as psql prints it
+// unaligned: "t" or "f" for a boolean, an empty string for NULL. It returns the errors [Stack.SQL]
+// does, an error when the query selects no row, and an error when psql prints more than one line,
+// which it does for more than one row and for a value holding a line break.
+func (s *Stack) SQLValue(ctx context.Context, query string, vars map[string]string) (string, error) {
+	output, err := s.psql(ctx, query, vars, "--tuples-only", "--no-align")
+	if err != nil {
+		return "", err
+	}
+
+	if output == "" {
+		return "", errors.New("the query selected no row")
+	}
+
+	value, rest, _ := strings.Cut(strings.TrimSuffix(output, "\n"), "\n")
+	if rest != "" {
+		return "", fmt.Errorf("psql printed more than one line: %q", output)
+	}
+
+	return value, nil
+}
+
+func (s *Stack) sqlInt(ctx context.Context, query string, vars map[string]string) (int, error) {
+	value, err := s.SQLValue(ctx, query, vars)
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(value)
+}
+
+func (s *Stack) psql(ctx context.Context, statement string, vars map[string]string, flags ...string) (string, error) {
 	cmd := []string{
 		"sh", "-c", `printf '%s\n' "$0" | psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 "$@"`,
 		statement,
 	}
+
+	cmd = append(cmd, flags...)
 
 	for _, name := range slices.Sorted(maps.Keys(vars)) {
 		cmd = append(cmd, "-v", name+"="+vars[name])

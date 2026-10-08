@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -354,34 +353,18 @@ func (dc *DockerCompose) AgeSession(t *testing.T, uid string, age time.Duration)
 	require.Contains(t, output, "UPDATE 1")
 }
 
-var sessionEventCountPattern = regexp.MustCompile(`events=(\d+)`)
-
 // SessionEventCount returns how many events the database holds for the session uid, terminal
 // output included, reading the table directly so it still answers once the session is gone. It
 // fails t when the count cannot be read.
 func (dc *DockerCompose) SessionEventCount(t *testing.T, uid string) int {
 	t.Helper()
 
-	count, err := dc.stack.sessionEventCount(t.Context(), uid, "")
+	count, err := dc.stack.sqlInt(t.Context(),
+		"SELECT count(*) FROM session_events WHERE session_id = :'uid'",
+		map[string]string{"uid": uid})
 	require.NoError(t, err)
 
 	return count
-}
-
-func (s *Stack) sessionEventCount(ctx context.Context, uid, eventType string) (int, error) {
-	output, err := s.SQL(ctx,
-		"SELECT 'events=' || count(*) FROM session_events WHERE session_id = :'uid' AND (:'type' = '' OR type = :'type')",
-		map[string]string{"uid": uid, "type": eventType})
-	if err != nil {
-		return 0, err
-	}
-
-	match := sessionEventCountPattern.FindStringSubmatch(output)
-	if match == nil {
-		return 0, fmt.Errorf("psql printed no count: %q", output)
-	}
-
-	return strconv.Atoi(match[1])
 }
 
 // ExpireCacheEntryIn sets the time the cache entry key has left to ttl, failing t unless the cache
