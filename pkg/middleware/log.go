@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"log/slog"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -89,9 +90,49 @@ const (
 	HeaderTenantID = "X-Tenant-ID"
 )
 
+const redacted = "REDACTED"
+
+var redactedQueryParams = []string{"token", "invite", "approval_code", "email"}
+
+// RedactQuery returns rawQuery with "REDACTED" as the value of every parameter that carries a
+// credential or personal data to a route: token, invite, approval_code and email. Names are compared
+// after percent-decoding and case-insensitively, as echo's binder also binds a name sent in another
+// case. Everything else keeps its original form and order. A query that cannot be parsed comes back
+// as "REDACTED" whole. The list is matched by name, so a route that starts reading a secret from a
+// new parameter leaks it until the parameter is added.
+func RedactQuery(rawQuery string) string {
+	if rawQuery == "" {
+		return ""
+	}
+
+	if _, err := url.ParseQuery(rawQuery); err != nil {
+		return redacted
+	}
+
+	pairs := strings.Split(rawQuery, "&")
+	for i, pair := range pairs {
+		key, _, _ := strings.Cut(pair, "=")
+		name, _ := url.QueryUnescape(key)
+		if slices.ContainsFunc(redactedQueryParams, func(param string) bool { return strings.EqualFold(param, name) }) {
+			pairs[i] = key + "=" + redacted
+		}
+	}
+
+	return strings.Join(pairs, "&")
+}
+
+func redactURI(requestURI string) string {
+	path, query, found := strings.Cut(requestURI, "?")
+	if !found {
+		return requestURI
+	}
+
+	return path + "?" + RedactQuery(query)
+}
+
 // Log is the echo middleware that logs one line per request, with the user and tenant taken from
-// the headers named above. It measures with the wall clock deliberately: this is elapsed time, not
-// a timestamp a test needs to control.
+// the headers named above and the request URI's query passed through [RedactQuery]. It measures
+// with the wall clock deliberately: this is elapsed time, not a timestamp a test needs to control.
 //
 // It runs the error handler itself rather than returning the error, so the status that handler
 // writes is already on the response by the time the line is built, and it unwraps echo's
@@ -121,7 +162,7 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			"id":            c.Request().Header.Get(echo.HeaderXRequestID),
 			"remote_ip":     c.RealIP(),
 			"host":          c.Request().Host,
-			"uri":           c.Request().RequestURI,
+			"uri":           redactURI(c.Request().RequestURI),
 			"method":        c.Request().Method,
 			"user_agent":    c.Request().UserAgent(),
 			"status":        status,
