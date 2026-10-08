@@ -534,6 +534,29 @@ test.describe("Re-authentication", () => {
       await expectAuthenticatedWebSession(team, device.uid);
     });
 
+    test("a SAML user re-authenticates an ssh client login in the provider popup", async ({
+      page,
+    }) => {
+      const { team, device, requests } = await signInAsSamlOwner(page);
+      const publicKey = createNativeClientKey(device.container);
+      await createSshIdentity({
+        ...ownerContext(team),
+        body: { name: `e2e-native-${buildShortId()}`, data: publicKey },
+      });
+      const ssh = openNativeSSH(device.container, sshidOf(team, device));
+
+      await page.goto(await readApprovalPath(ssh, "confirm"));
+      await reauthenticateWithSso(page);
+      ssh.write(await readConfirmationCode(page));
+
+      await expectNativeShell(ssh);
+      expect(
+        requests.map(
+          ({ document }) => document.getAttributeNode("ForceAuthn")?.value,
+        ),
+      ).toEqual([undefined, "true"]);
+    });
+
     test("an expired relay token refuses the SAML re-authentication", async ({
       page,
     }) => {
