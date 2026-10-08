@@ -5,8 +5,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"regexp"
-	"strconv"
 	"testing"
 	"time"
 
@@ -93,21 +91,13 @@ func (dc *DockerCompose) RemoveLicenses(t *testing.T) {
 	require.NoError(t, err)
 }
 
-var licenseRowsPattern = regexp.MustCompile(`licenses=(\d+)`)
-
 // LicenseRows returns how many licenses the server has stored. Installing one adds a row rather
 // than replacing one, so the count tells whether a license was written. It fails t when the count
 // cannot be read.
 func (dc *DockerCompose) LicenseRows(t *testing.T) int {
 	t.Helper()
 
-	output, err := dc.stack.SQL(t.Context(), "SELECT 'licenses=' || count(*) FROM licenses", nil)
-	require.NoError(t, err)
-
-	match := licenseRowsPattern.FindStringSubmatch(output)
-	require.NotNil(t, match, "psql printed no count: %s", output)
-
-	rows, err := strconv.Atoi(match[1])
+	rows, err := dc.stack.sqlInt(t.Context(), "SELECT count(*) FROM licenses", nil)
 	require.NoError(t, err)
 
 	return rows

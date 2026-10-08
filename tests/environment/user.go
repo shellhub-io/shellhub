@@ -1,7 +1,6 @@
 package environment
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,21 +17,17 @@ func (dc *DockerCompose) SetUserPasswordDigest(t *testing.T, username, digest st
 		map[string]string{"username": username, "digest": digest})
 }
 
-var passwordDigestPattern = regexp.MustCompile(`digest=(\S+)`)
-
 // UserPasswordDigest returns the stored password digest of the user username, reading the row
 // directly because no route returns it. It fails t unless psql runs the query and prints a
 // non-empty digest, so a missing user and a user with no digest both fail it.
 func (dc *DockerCompose) UserPasswordDigest(t *testing.T, username string) string {
 	t.Helper()
 
-	output, err := dc.stack.SQL(t.Context(),
-		"SELECT 'digest=' || password_digest FROM users WHERE username = :'username'",
+	digest, err := dc.stack.SQLValue(t.Context(),
+		"SELECT password_digest FROM users WHERE username = :'username'",
 		map[string]string{"username": username})
 	require.NoError(t, err)
+	require.NotEmpty(t, digest, "the user %s has no password digest", username)
 
-	match := passwordDigestPattern.FindStringSubmatch(output)
-	require.NotNil(t, match, "psql printed no digest for %s: %s", username, output)
-
-	return match[1]
+	return digest
 }

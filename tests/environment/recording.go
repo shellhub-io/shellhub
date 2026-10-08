@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"path"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -86,9 +85,12 @@ func (dc *DockerCompose) AwaitSessionEventOfType(t *testing.T, uid string, event
 
 // SessionEventCountOfType returns how many events of eventType the database holds for the session
 // uid, reading the table directly, so it counts the terminal output the API never lists. ctx bounds
-// the exec. It returns the errors [Stack.SQL] does, and an error when psql prints no count.
+// the exec. It returns the errors [Stack.SQLValue] does, and strconv.Atoi's error when the count
+// psql prints is not an integer.
 func (s *Stack) SessionEventCountOfType(ctx context.Context, uid string, eventType models.SessionEventType) (int, error) {
-	return s.sessionEventCount(ctx, uid, string(eventType))
+	return s.sqlInt(ctx,
+		"SELECT count(*) FROM session_events WHERE session_id = :'uid' AND type = :'type'",
+		map[string]string{"uid": uid, "type": string(eventType)})
 }
 
 // SessionConverted reports whether the archive job has marked the session uid converted, its
@@ -115,25 +117,19 @@ func (dc *DockerCompose) AwaitSessionConverted(t *testing.T, uid string) {
 	}, 30*time.Second, time.Second)
 }
 
-var sessionConvertedPattern = regexp.MustCompile(`converted=(true|false)`)
-
 // SessionConverted reports whether the session uid is marked converted. Only the database holds
-// the mark, so it reads the row directly. ctx bounds the exec. It returns the errors [Stack.SQL]
-// does, and an error when no session has the uid.
+// the mark, so it reads the row directly. ctx bounds the exec. It returns the errors
+// [Stack.SQLValue] does, the one for no row when no session has the uid, and strconv.ParseBool's
+// error when the mark is NULL.
 func (s *Stack) SessionConverted(ctx context.Context, uid string) (bool, error) {
-	output, err := s.SQL(ctx,
-		"SELECT 'converted=' || converted FROM sessions WHERE id = :'uid'",
+	value, err := s.SQLValue(ctx,
+		"SELECT converted FROM sessions WHERE id = :'uid'",
 		map[string]string{"uid": uid})
 	if err != nil {
 		return false, err
 	}
 
-	match := sessionConvertedPattern.FindStringSubmatch(output)
-	if match == nil {
-		return false, fmt.Errorf("no session has the uid %s: psql printed %q", uid, output)
-	}
-
-	return match[1] == "true", nil
+	return strconv.ParseBool(value)
 }
 
 // BreakSessionPtyRequest makes the terminal request the session uid recorded unreadable, so
