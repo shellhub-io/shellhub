@@ -27,7 +27,10 @@ class FakeDirectory {
             files.set(name, `${files.get(name) ?? ""}${chunk}`);
             return Promise.resolve();
           },
-          close: () => Promise.resolve(),
+          close: () =>
+            closeFails
+              ? Promise.reject(new Error("the disk is full"))
+              : Promise.resolve(),
           abort: () => Promise.resolve(),
         }),
     });
@@ -40,6 +43,7 @@ class FakeDirectory {
 }
 
 let storage: FakeDirectory;
+let closeFails: boolean;
 
 function countCasts(directory: FakeDirectory): number {
   let casts = [...directory.files.keys()].filter((name) =>
@@ -64,6 +68,7 @@ async function startRecording() {
 describe("OpfsCastRecorder", () => {
   beforeEach(() => {
     storage = new FakeDirectory();
+    closeFails = false;
     vi.stubGlobal("navigator", {
       storage: { getDirectory: () => Promise.resolve(storage) },
     });
@@ -73,6 +78,7 @@ describe("OpfsCastRecorder", () => {
   afterEach(() => {
     setRecordingsScope(null);
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("keeps a recording of a session that printed output", async () => {
@@ -92,6 +98,16 @@ describe("OpfsCastRecorder", () => {
   it("drops a recording of a session that only resized", async () => {
     const recorder = await startRecording();
     recorder.recordResize(132, 50);
+
+    expect(await recorder.finish()).toBeNull();
+    expect(countCasts(storage)).toBe(0);
+  });
+
+  it("drops a recording whose file fails to close", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const recorder = await startRecording();
+    recorder.recordOutput("hello");
+    closeFails = true;
 
     expect(await recorder.finish()).toBeNull();
     expect(countCasts(storage)).toBe(0);
