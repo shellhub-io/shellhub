@@ -163,15 +163,6 @@ jobs:
           go-version-file: shellhub/tests/go.mod
           cache-dependency-path: shellhub/tests/go.sum
 
-      - name: Write the enterprise license
-        if: steps.edition.outputs.runs == 'true' && matrix.edition != 'community'
-        env:
-          LICENSE: ${{ secrets.TEST_LICENSE }}
-        run: |
-          [ -n "$LICENSE" ] || { echo "::error::TEST_LICENSE is not set"; exit 1; }
-          printf '%s' "$LICENSE" > "$RUNNER_TEMP/license.dat"
-          echo "SHELLHUB_LICENSE_FILE=$RUNNER_TEMP/license.dat" >> "$GITHUB_ENV"
-
       - name: Run E2E tests
         if: steps.edition.outputs.runs == 'true'
         working-directory: shellhub/ui
@@ -179,7 +170,6 @@ jobs:
         env:
           E2E_EDITION: ${{ matrix.edition }}
           E2E_RUNNER: host
-          E2E_EXPIRED_LICENSE: ${{ matrix.edition == 'enterprise' && secrets.TEST_EXPIRED_LICENSE || '' }}
           STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
           STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
           SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}
