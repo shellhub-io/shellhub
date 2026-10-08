@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -425,7 +426,23 @@ func TestCreateTag(t *testing.T) {
 func TestUpdateTag(t *testing.T) {
 	type Expected struct {
 		status int
+		body   string
 	}
+
+	renamed := &models.Tag{
+		ID:        "tag_00000000-0000-4000-0000-000000000000",
+		TenantID:  "00000000-0000-4000-0000-000000000000",
+		Name:      "staging",
+		CreatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Date(2026, 1, 2, 12, 0, 0, 0, time.UTC),
+	}
+
+	renamedBody := `{
+		"tenant_id": "00000000-0000-4000-0000-000000000000",
+		"name": "staging",
+		"created_at": "2026-01-01T12:00:00Z",
+		"updated_at": "2026-01-02T12:00:00Z"
+	}`
 
 	cases := []struct {
 		description   string
@@ -498,13 +515,13 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return(svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
+					Return(nil, svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
 					Once()
 			},
 			expected: Expected{status: http.StatusNotFound},
 		},
 		{
-			description: "succeeds with 200 and no body (new URL)",
+			description: "succeeds with 200 and the renamed tag (new URL)",
 			url:         "/api/tags/production",
 			headers: map[string]string{
 				"Content-Type": "application/json",
@@ -522,10 +539,10 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return(nil).
+					Return(renamed, nil).
 					Once()
 			},
-			expected: Expected{status: http.StatusOK},
+			expected: Expected{status: http.StatusOK, body: renamedBody},
 		},
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
@@ -545,10 +562,10 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return(nil).
+					Return(renamed, nil).
 					Once()
 			},
-			expected: Expected{status: http.StatusOK},
+			expected: Expected{status: http.StatusOK, body: renamedBody},
 		},
 		{
 			description: "returns 409 when the name is already taken",
@@ -569,7 +586,7 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return(svc.NewErrTagDuplicated([]string{"name"}, nil)).
+					Return(nil, svc.NewErrTagDuplicated([]string{"name"}, nil)).
 					Once()
 			},
 			expected: Expected{status: http.StatusConflict},
@@ -596,6 +613,11 @@ func TestUpdateTag(t *testing.T) {
 
 			res := rec.Result()
 			assert.Equal(t, tc.expected.status, res.StatusCode)
+
+			if tc.expected.body != "" {
+				assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
+				assert.JSONEq(t, tc.expected.body, rec.Body.String())
+			}
 
 			svcMock.AssertExpectations(t)
 		})
