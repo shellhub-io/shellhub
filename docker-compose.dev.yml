@@ -106,6 +106,7 @@ services:
       - ${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     environment:
       - NPM_CONFIG_UPDATE_NOTIFIER=false
+      - E2E_DOCKER_SOCKET=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}
 
 volumes:
   tools-cache:

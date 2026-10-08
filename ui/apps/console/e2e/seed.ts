@@ -32,7 +32,7 @@ export function composeLogs(service: string) {
   });
 }
 
-export function startAgent(tenant: string, hostname: string) {
+export function runInGateway(args: string[], command: string[] = []) {
   const gateway = compose(["ps", "-q", "gateway"]).trim();
   if (!gateway) throw new Error(`expected a running gateway in ${stackName}`);
   return execFileSync(
@@ -44,16 +44,23 @@ export function startAgent(tenant: string, hostname: string) {
       "--label=com.docker.compose.service=agent",
       `--label=io.shellhub.e2e.run=${stackName}`,
       `--network=container:${gateway}`,
-      "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
-      `--env=SHELLHUB_TENANT_ID=${tenant}`,
-      `--env=SHELLHUB_PREFERRED_HOSTNAME=${hostname}`,
-      `--env=SHELLHUB_PREFERRED_IDENTITY=${hostname}`,
-      "--env=SHELLHUB_PRIVATE_KEY=/tmp/shellhub.key",
-      "--env=SHELLHUB_KEEPALIVE_INTERVAL=1",
+      ...args,
       agentImage,
+      ...command,
     ],
     { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"], timeout: 30_000 },
   ).trim();
+}
+
+export function startAgent(tenant: string, hostname: string) {
+  return runInGateway([
+    "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
+    `--env=SHELLHUB_TENANT_ID=${tenant}`,
+    `--env=SHELLHUB_PREFERRED_HOSTNAME=${hostname}`,
+    `--env=SHELLHUB_PREFERRED_IDENTITY=${hostname}`,
+    "--env=SHELLHUB_PRIVATE_KEY=/tmp/shellhub.key",
+    "--env=SHELLHUB_KEEPALIVE_INTERVAL=1",
+  ]);
 }
 
 function serverAdmin(...args: string[]) {
