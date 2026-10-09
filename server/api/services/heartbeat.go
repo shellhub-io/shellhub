@@ -140,66 +140,62 @@ func (h *DeviceHeartbeater) drain(batch *deviceHeartbeatBatch) {
 }
 
 func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
-	tenantByUID, seenAt := batch.take()
-	if len(tenantByUID) == 0 {
+	latestByUID := batch.take()
+	if len(latestByUID) == 0 {
 		return
 	}
 
-	uids := slices.Sorted(maps.Keys(tenantByUID))
+	beats := make([]store.DeviceBeat, 0, len(latestByUID))
+	for _, uid := range slices.Sorted(maps.Keys(latestByUID)) {
+		beats = append(beats, store.DeviceBeat{UID: uid, At: latestByUID[uid].at})
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
-	gone, err := h.store.DeviceHeartbeat(ctx, uids, seenAt)
+	gone, err := h.store.DeviceHeartbeat(ctx, beats)
 	if err != nil {
 		log.WithError(err).
-			WithField("devices", len(uids)).
+			WithField("devices", len(beats)).
 			Error("failed to write the device heartbeat batch")
 
 		return
 	}
 
-	log.WithFields(log.Fields{"devices": len(uids), "gone": len(gone)}).
+	log.WithFields(log.Fields{"devices": len(beats), "gone": len(gone)}).
 		Debug("wrote the device heartbeat batch")
 
 	for _, uid := range gone {
-		log.WithFields(log.Fields{"tenant_id": tenantByUID[uid], "device_uid": uid}).
+		log.WithFields(log.Fields{"tenant_id": latestByUID[uid].tenantID, "device_uid": uid}).
 			Info("a device holding a tunnel was deleted or removed; closing its tunnel")
 
-		fireDeviceRemoved(ctx, tenantByUID[uid], uid)
+		fireDeviceRemoved(ctx, latestByUID[uid].tenantID, uid)
 	}
 }
 
 type deviceHeartbeatBatch struct {
-	tenantByUID map[string]string
-	oldest      time.Time
+	latestByUID map[string]deviceHeartbeat
 }
 
 func newDeviceHeartbeatBatch() *deviceHeartbeatBatch {
-	return &deviceHeartbeatBatch{tenantByUID: make(map[string]string)}
+	return &deviceHeartbeatBatch{latestByUID: make(map[string]deviceHeartbeat)}
 }
 
 func (b *deviceHeartbeatBatch) add(beat deviceHeartbeat) {
-	if len(b.tenantByUID) == 0 || beat.at.Before(b.oldest) {
-		b.oldest = beat.at
+	if latest, ok := b.latestByUID[beat.uid]; ok && latest.at.After(beat.at) {
+		return
 	}
 
-	b.tenantByUID[beat.uid] = beat.tenantID
+	b.latestByUID[beat.uid] = beat
 }
 
 func (b *deviceHeartbeatBatch) len() int {
-	return len(b.tenantByUID)
+	return len(b.latestByUID)
 }
 
-func (b *deviceHeartbeatBatch) take() (map[string]string, time.Time) {
-	if len(b.tenantByUID) == 0 {
-		return nil, time.Time{}
-	}
+func (b *deviceHeartbeatBatch) take() map[string]deviceHeartbeat {
+	latestByUID := b.latestByUID
+	b.latestByUID = make(map[string]deviceHeartbeat)
 
-	tenantByUID, seenAt := b.tenantByUID, b.oldest
-
-	b.tenantByUID = make(map[string]string)
-	b.oldest = time.Time{}
-
-	return tenantByUID, seenAt
+	return latestByUID
 }

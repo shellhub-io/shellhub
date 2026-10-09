@@ -86,7 +86,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	require.NoError(t, err)
 
 	heartbeat := clock.Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
-	gone, err := st.DeviceHeartbeat(ctx, []string{string(uid)}, heartbeat)
+	gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: heartbeat}})
 	require.NoError(t, err)
 	require.Empty(t, gone)
 

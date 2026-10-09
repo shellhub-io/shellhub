@@ -289,7 +289,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 					Return([]string{}, nil).
 					Once()
 				cacheMock.
@@ -342,7 +342,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 					Return([]string{}, nil).
 					Once()
 				storeMock.
@@ -403,7 +403,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 					Return([]string{}, nil).
 					Once()
 				storeMock.
@@ -505,7 +505,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 					Return([]string{}, nil).
 					Once()
 				cacheMock.
@@ -573,7 +573,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 					Return([]string{}, nil).
 					Once()
 				cacheMock.
@@ -3193,7 +3193,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 		storeMock.
-			On("DeviceHeartbeat", ctx, []string{uid}, now).
+			On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 			Return([]string{}, nil).
 			Once()
 		cacheMock.
@@ -3248,7 +3248,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 		storeMock.
-			On("DeviceHeartbeat", ctx, []string{uid}, now).
+			On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
 			Return([]string{}, nil).
 			Once()
 		cacheMock.

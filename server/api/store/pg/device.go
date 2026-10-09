@@ -236,17 +236,17 @@ func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) erro
 }
 
 // DeviceHeartbeat implements [store.DeviceStore].
-func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) ([]string, error) {
+func (pg *Pg) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat) ([]string, error) {
 	db := pg.GetConnection(ctx)
 
-	unnestExpr, unnestIDs := deviceExprUnnestIDs(ids)
+	unnestExpr, unnestIDs, unnestTimes := deviceExprUnnestBeats(beats)
 
 	updated := []string{}
 	if err := db.NewUpdate().
 		Model((*entity.Device)(nil)).
-		Set("last_seen = ?", lastSeen).
+		Set("last_seen = _data.at").
 		Set("disconnected_at = NULL").
-		TableExpr(unnestExpr, unnestIDs).
+		TableExpr(unnestExpr, unnestIDs, unnestTimes).
 		Where("device.id = _data.id").
 		Where("device.status <> ?", models.DeviceStatusRemoved).
 		Returning("device.id").
@@ -260,9 +260,9 @@ func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.T
 	}
 
 	gone := []string{}
-	for _, id := range ids {
-		if _, ok := found[id]; !ok {
-			gone = append(gone, id)
+	for _, beat := range beats {
+		if _, ok := found[beat.UID]; !ok {
+			gone = append(gone, beat.UID)
 		}
 	}
 
@@ -409,8 +409,15 @@ func deviceExprAcceptable(mode store.DeviceAcceptable) string {
 	}
 }
 
-func deviceExprUnnestIDs(ids []string) (string, any) {
-	return "(SELECT unnest(?::varchar[]) as id) as _data", pgdialect.Array(ids)
+func deviceExprUnnestBeats(beats []store.DeviceBeat) (string, any, any) {
+	ids := make([]string, len(beats))
+	times := make([]time.Time, len(beats))
+	for i, beat := range beats {
+		ids[i] = beat.UID
+		times[i] = beat.At
+	}
+
+	return "unnest(?::varchar[], ?::timestamptz[]) AS _data(id, at)", pgdialect.Array(ids), pgdialect.Array(times)
 }
 
 // DeviceResolverToString returns the column resolver selects, reporting
