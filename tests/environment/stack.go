@@ -64,6 +64,7 @@ var stackImages struct {
 // Stack is a running ShellHub compose stack. All methods return errors instead of calling
 // [testing.T], so standalone binaries can use it. The test-time wrapper is [DockerCompose].
 type Stack struct {
+	name      string
 	files     []string
 	envs      map[string]string
 	services  map[Service]*tc.DockerContainer
@@ -214,6 +215,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	stack := &Stack{
+		name:      cfg.Name,
 		files:     files,
 		envs:      merged,
 		services:  make(map[Service]*tc.DockerContainer),
@@ -308,6 +310,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 	}
 
 	s := &Stack{
+		name:      name,
 		files:     files,
 		envs:      envs,
 		services:  make(map[Service]*tc.DockerContainer),
@@ -388,6 +391,41 @@ func (s *Stack) Anonymous(ctx context.Context) *resty.Request {
 func (s *Stack) JWT(token string) {
 	s.client.SetAuthScheme("Bearer")
 	s.client.SetAuthToken(token)
+}
+
+// RestartServer recreates the server with envs set over the stack's environment. The gateway, and
+// the agents sharing its network, keep running, and so does every service whose configuration
+// envs leaves unchanged. Data survives, since the volumes are kept. ctx bounds compose. It returns the error loading the compose project,
+// compose's error, or the error resolving the new server container.
+func (s *Stack) RestartServer(ctx context.Context, envs map[string]string) error {
+	maps.Copy(s.envs, envs)
+
+	dc, err := newComposeStack(s.name, s.files)
+	if err != nil {
+		return err
+	}
+
+	behindGateway := make([]string, 0, len(s.services))
+	for svc := range s.services {
+		if svc != ServiceGateway {
+			behindGateway = append(behindGateway, string(svc))
+		}
+	}
+
+	if err := dc.WithEnv(s.envs).Up(ctx, compose.RunServices(behindGateway...), compose.Wait(true)); err != nil {
+		return err
+	}
+
+	s.dc = dc
+
+	server, err := dc.ServiceContainer(ctx, string(ServiceServer))
+	if err != nil {
+		return err
+	}
+
+	s.services[ServiceServer] = server
+
+	return nil
 }
 
 // Admin runs `/server admin <args>` inside the server container.

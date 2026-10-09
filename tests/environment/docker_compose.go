@@ -72,6 +72,14 @@ func (dc *DockerCompose) APIPublicKey(t *testing.T) *rsa.PublicKey {
 	return key
 }
 
+// RestartServerWith recreates the server with name set to value, failing t if compose cannot
+// bring it back. See [Stack.RestartServer].
+func (dc *DockerCompose) RestartServerWith(t *testing.T, name, value string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.RestartServer(t.Context(), map[string]string{name: value}))
+}
+
 // Service retrieves the specified service.
 func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.stack.Service(service)
