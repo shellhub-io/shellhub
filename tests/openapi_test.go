@@ -28,6 +28,10 @@ const (
 	sweepObserverEmail    = "sweep-observer@shellhub.io"
 	sweepObserverPassword = "password"
 
+	sweepRevoker         = "sweep-revoker"
+	sweepRevokerEmail    = "sweep-revoker@shellhub.io"
+	sweepRevokerPassword = "password"
+
 	unresolvablePathParam = "e2e-sweep"
 )
 
@@ -56,6 +60,10 @@ var (
 		http.MethodPut:    true,
 		http.MethodPatch:  true,
 		http.MethodDelete: true,
+	}
+
+	operationsThatRevokeTheCaller = map[sweepOperation]bool{
+		{method: http.MethodDelete, path: "/api/users/tokens"}: true,
 	}
 )
 
@@ -135,9 +143,14 @@ func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
 	compose.NewUser(t, sweepObserver, sweepObserverEmail, sweepObserverPassword)
 	compose.NewMember(t, sweepObserver, ShellHubNamespaceName, string(authorizer.RoleObserver))
 
+	compose.NewUser(t, sweepRevoker, sweepRevokerEmail, sweepRevokerPassword)
+	compose.NewMember(t, sweepRevoker, ShellHubNamespaceName, string(authorizer.RoleObserver))
+
 	observer := compose.AuthUser(t, sweepObserver, sweepObserverPassword)
+	revoker := compose.AuthUser(t, sweepRevoker, sweepRevokerPassword)
 
 	require.NotEmpty(t, observer.Token)
+	require.NotEmpty(t, revoker.Token)
 
 	compose.AwaitServerLog(t, strictModeEnabledMarker)
 	compose.AwaitServerLog(t, validationRanMarker)
@@ -155,9 +168,14 @@ func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
 
 		for _, caller := range callers {
 			t.Run(caller.name+" "+operation.method+" "+operation.path, func(t *testing.T) {
+				token := caller.token
+				if token != "" && operationsThatRevokeTheCaller[operation] {
+					token = revoker.Token
+				}
+
 				req := compose.Anonymous(ctx)
-				if caller.token != "" {
-					req = req.SetAuthToken(caller.token)
+				if token != "" {
+					req = req.SetAuthToken(token)
 				}
 
 				resp, err := req.Execute(operation.method, path)

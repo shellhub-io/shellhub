@@ -732,3 +732,46 @@ func TestUpdatePasswordUser(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestRevokeUserTokens(t *testing.T) {
+	const userID = "65fde3a72c4c7507c7f53c43"
+
+	cases := []struct {
+		description   string
+		requiredMocks func(context.Context, *mocks.MockStore)
+		expected      error
+	}{
+		{
+			description: "fails when the user does not exist",
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserRevokeTokens", ctx, userID).Return(store.ErrNoDocuments).Once()
+			},
+			expected: NewErrUserNotFound(userID, store.ErrNoDocuments),
+		},
+		{
+			description: "fails when the tokens cannot be revoked",
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserRevokeTokens", ctx, userID).Return(errors.New("error", "", 0)).Once()
+			},
+			expected: NewErrUserUpdate(&models.User{ID: userID}, errors.New("error", "", 0)),
+		},
+		{
+			description: "succeeds",
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserRevokeTokens", ctx, userID).Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+			storeMock := mocks.NewMockStore(t)
+			tc.requiredMocks(ctx, storeMock)
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			assert.Equal(t, tc.expected, service.RevokeUserTokens(ctx, userID))
+		})
+	}
+}

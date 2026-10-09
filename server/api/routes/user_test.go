@@ -308,3 +308,66 @@ func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 	mock.AssertExpectations(t)
 }
+
+func TestRevokeUserTokens(t *testing.T) {
+	cases := []struct {
+		description   string
+		headers       map[string]string
+		requiredMocks func(svcMock *mocks.MockService)
+		expected      int
+	}{
+		{
+			description:   "fails when the caller has no ID",
+			headers:       map[string]string{"X-Role": authorizer.RoleObserver.String()},
+			requiredMocks: func(_ *mocks.MockService) {},
+			expected:      http.StatusBadRequest,
+		},
+		{
+			description: "fails when the user does not exist",
+			headers: map[string]string{
+				"X-ID":   "000000000000000000000000",
+				"X-Role": authorizer.RoleObserver.String(),
+			},
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RevokeUserTokens", gomock.Anything, "000000000000000000000000").
+					Return(svc.ErrUserNotFound).
+					Once()
+			},
+			expected: http.StatusNotFound,
+		},
+		{
+			description: "succeeds when the user exists",
+			headers: map[string]string{
+				"X-ID":   "000000000000000000000000",
+				"X-Role": authorizer.RoleObserver.String(),
+			},
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RevokeUserTokens", gomock.Anything, "000000000000000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			svcMock := mocks.NewMockService(t)
+			tc.requiredMocks(svcMock)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/users/tokens", nil)
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(svcMock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+		})
+	}
+}

@@ -13,6 +13,7 @@ const (
 	URLUpdateUser                   = "/users"
 	URLDeprecatedUpdateUser         = "/users/:id/data"
 	URLDeprecatedUpdateUserPassword = "/users/:id/password" //nolint:gosec
+	URLRevokeUserTokens             = "/users/tokens"       //nolint:gosec // a route path, not a credential
 )
 
 // UpdateUser changes the caller's profile.
@@ -28,6 +29,24 @@ func (h *Handler) UpdateUser(c *gateway.Context) error {
 	}
 
 	if err := h.service.UpdateUser(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// RevokeUserTokens revokes every token the caller holds, the one it calls with included.
+func (h *Handler) RevokeUserTokens(c *gateway.Context) error {
+	var req requests.RevokeUserTokens
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.RevokeUserTokens(c.Ctx(), req.UserID); err != nil {
 		return err
 	}
 

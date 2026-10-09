@@ -136,6 +136,8 @@ paths:
     $ref: paths/api@users@{id}@data.yaml
   /api/users/{id}/password:
     $ref: paths/api@users@{id}@password.yaml
+  /api/users/tokens:
+    $ref: paths/api@users@tokens.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/namespaces/ssh-access-mode/{tenant}:

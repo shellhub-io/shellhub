@@ -148,6 +148,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
 	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
+	publicAPI.DELETE(URLRevokeUserTokens, gateway.Handler(handler.RevokeUserTokens), routesmiddleware.BlockAPIKey)
 
 	publicAPI.POST(RegisterUserURL, gateway.Handler(handler.RegisterUser))
 	publicAPI.GET(URLResolveInvitation, gateway.Handler(handler.ResolveInvitation))
