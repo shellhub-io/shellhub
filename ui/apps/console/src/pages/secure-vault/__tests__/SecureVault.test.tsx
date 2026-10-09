@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockDevice } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
@@ -497,6 +498,14 @@ describe("SecureVault", () => {
       id: "vault-key-1",
       name: "My Key",
       fingerprint: "ff:ee:dd:cc",
+    });
+
+    beforeEach(() => {
+      server.use(
+        http.get("*/api/devices/:uid", () =>
+          HttpResponse.json(mockDevice({ uid: "dev-1", name: "my-device" })),
+        ),
+      );
     });
 
     function setupConnectStore(

@@ -55,6 +55,10 @@ beforeEach(() => {
       "*/api/namespaces/api-key/:key",
       () => new HttpResponse(null, { status: 204 }),
     ),
+    http.get("*/api/namespaces/api-key/:name/ssh-identities", () =>
+      HttpResponse.json([]),
+    ),
+    http.get("*/api/access-policies", () => jsonWithTotal([])),
   );
   useAuthStore.setState({ role: "owner" });
 });

@@ -4,6 +4,7 @@ import { http } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { defaultHandlers } from "@/tests/handlers";
 import {
   ACCOUNT_TAB_ID,
   PREFERENCES_TAB_ID,
@@ -24,6 +25,7 @@ function syncAt(pathname: string) {
 beforeEach(() => {
   seedAuthStore();
   useWorkspaceTabsStore.setState({ tabs: [], failures: {} });
+  server.use(...defaultHandlers);
   server.use(http.get("*/api/namespaces", () => jsonWithTotal([])));
 });
 

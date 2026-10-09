@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useSignUpStore } from "../signUpStore";
@@ -14,6 +14,10 @@ beforeEach(() => {
     resendError: null,
     validationStatus: "idle",
   });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 const payload = {
@@ -276,7 +280,11 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().validationStatus).toBe("failed-token");
     });
 
-    it("transitions to failed-token on 401 (wrong token)", async () => {
+    it("transitions to failed-token on 401 (wrong token) without leaving the page", async () => {
+      vi.stubGlobal("location", {
+        href: "",
+        search: "?email=t@t.com&token=wrong-token",
+      });
       server.use(
         http.get("*/api/user/validation_account", () =>
           HttpResponse.json({}, { status: 401 }),
@@ -286,6 +294,7 @@ describe("signUpStore", () => {
       await useSignUpStore.getState().validateAccount("t@t.com", "wrong-token");
 
       expect(useSignUpStore.getState().validationStatus).toBe("failed-token");
+      expect(window.location.href).toBe("");
     });
 
     it("transitions to failed on 404 (user not found)", async () => {
