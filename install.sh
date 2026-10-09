@@ -137,6 +137,8 @@ podman_install() {
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
   else
+    require_release_version
+
     echo "📥 Downloading ShellHub container image..."
 
     {
@@ -220,6 +222,8 @@ docker_install() {
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
   else
+    require_release_version
+
     echo "📥 Downloading ShellHub container image..."
 
     {
@@ -356,6 +360,8 @@ standalone_install() {
     $SUDO cp "$AGENT_BINARY" "$INSTALL_BIN"
     $SUDO chmod 755 "$INSTALL_BIN"
   else
+    require_release_version
+
     echo "📥 Downloading ShellHub agent binary..."
 
     {
@@ -484,9 +490,9 @@ download() {
   _DOWNLOAD_OUTPUT=$2
 
   if type curl >/dev/null 2>&1; then
-    curl -fsSL $_DOWNLOAD_URL --output $_DOWNLOAD_OUTPUT
+    curl -fsSL "$_DOWNLOAD_URL" --output "$_DOWNLOAD_OUTPUT"
   elif type wget >/dev/null 2>&1; then
-    wget -q -O $_DOWNLOAD_OUTPUT $_DOWNLOAD_URL
+    wget -q -O "$_DOWNLOAD_OUTPUT" "$_DOWNLOAD_URL"
   fi
 }
 
@@ -494,10 +500,28 @@ http_get() {
   _HTTP_GET_URL=$1
 
   if type curl >/dev/null 2>&1; then
-    curl -sk $_HTTP_GET_URL
+    curl -fsS "$_HTTP_GET_URL"
   elif type wget >/dev/null 2>&1; then
-    wget -q -O - $_HTTP_GET_URL
+    wget -q -O - "$_HTTP_GET_URL"
   fi
+}
+
+require_release_version() {
+  case "$AGENT_VERSION" in
+  *[!0-9A-Za-z.-]*) ;;
+  *)
+    printf '%s\n' "$AGENT_VERSION" | grep -Eqx 'latest|v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?' && return 0
+    ;;
+  esac
+
+  if [ -z "$AGENT_VERSION" ]; then
+    echo "❌ ERROR: $SERVER_ADDRESS did not report an agent version."
+    echo "Set AGENT_VERSION to a release tag (such as v0.27.0), or make this system trust the certificate of $SERVER_ADDRESS."
+  else
+    echo "❌ ERROR: The agent version is not a ShellHub release tag (such as v0.27.0)."
+    echo "Set AGENT_VERSION to a release tag."
+  fi
+  exit 1
 }
 
 main() {
@@ -512,7 +536,7 @@ main() {
   SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
   TENANT_ID="${TENANT_ID}"
   INSTALL_METHOD="$INSTALL_METHOD"
-  AGENT_VERSION="${AGENT_VERSION:-$(http_get $SERVER_ADDRESS/info | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
+  AGENT_VERSION="${AGENT_VERSION:-$(http_get "$SERVER_ADDRESS/info" | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
   [ -n "$AGENT_IMAGE" ] && AGENT_IMAGE_OVERRIDDEN="1"
   AGENT_IMAGE="${AGENT_IMAGE:-docker.io/shellhubio/agent:$AGENT_VERSION}"
   BINARY_ARCH="$BINARY_ARCH"
