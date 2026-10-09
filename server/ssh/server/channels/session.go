@@ -56,6 +56,13 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.7
 	WindowChangeRequestType = "window-change"
+	// SignalRequestType asks the device to deliver a signal to the session's command.
+	//
+	//  A signal can be delivered to the remote process/service using the following message.  Some
+	//  systems may not implement signals, in which case they SHOULD ignore this message.
+	//
+	// https://www.rfc-editor.org/rfc/rfc4254#section-6.9
+	SignalRequestType = "signal"
 	// ExitStatusRequest carries the command's exit code back to the client.
 	//
 	//  When the command running at the other end terminates, the following message can be sent to return the exit
@@ -271,6 +278,21 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 					}
 
 					sess.Event(req.Type, dimensions, seat)
+				case SignalRequestType:
+					sess.Event(req.Type, req.Payload, seat)
+
+					_, forwardErr := agent.Channel.SendRequest(req.Type, false, req.Payload)
+					if forwardErr != nil {
+						logger.WithError(forwardErr).Error("failed to send the signal from client to agent")
+					}
+
+					if req.WantReply {
+						if err := req.Reply(forwardErr == nil, nil); err != nil {
+							logger.WithError(err).Error("failed to answer the client's signal")
+						}
+					}
+
+					continue
 				case AuthRequestOpenSSHRequest:
 					gliderssh.SetAgentRequested(ctx)
 
