@@ -6,9 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
@@ -274,4 +277,94 @@ func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
 			assert.Equal(t, tc.code, atomic.LoadInt32(&sess.exitCode))
 		})
 	}
+}
+
+func TestExec_DeliversASignalToTheCommand(t *testing.T) {
+	signals, done, sess := startInterruptTrapExec(t)
+
+	signals <- gliderssh.SIGINT
+
+	requireExecExitedWith(t, done, sess, 3)
+}
+
+func TestExec_IgnoresAnUnknownSignal(t *testing.T) {
+	signals, done, sess := startInterruptTrapExec(t)
+
+	signals <- gliderssh.Signal("BOGUS")
+
+	select {
+	case <-done:
+		t.Fatal("an unknown signal ended the command")
+	case <-time.After(500 * time.Millisecond):
+	}
+
+	signals <- gliderssh.SIGINT
+
+	requireExecExitedWith(t, done, sess, 3)
+}
+
+func startInterruptTrapExec(t *testing.T) (chan<- gliderssh.Signal, <-chan struct{}, *fakeSession) {
+	t.Helper()
+
+	osauthMock := &osauthMocks.MockBackend{}
+	osauth.Set(t, osauthMock)
+
+	osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(&osauth.User{
+		UID:      0,
+		GID:      0,
+		Username: "root",
+		Shell:    "/bin/sh",
+		HomeDir:  "/root",
+	}, nil).Maybe()
+	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
+
+	ready := filepath.Join(t.TempDir(), "ready")
+
+	deviceName := "test-device"
+	s := NewSessioner(&deviceName, nil)
+
+	sess := newFakeSession("session-exec-signal", "root")
+	sess.command = []string{"sh"}
+	sess.rawCommand = fmt.Sprintf(`trap 'exit 3' INT; touch %s; for i in $(seq 1 100); do sleep 0.1; done`, ready)
+	sess.signals = make(chan chan<- gliderssh.Signal, 1)
+
+	testCtx, ok := sess.ctx.(*testSSHContext)
+	require.True(t, ok)
+	testCtx.SetValue(gliderssh.ContextKeyConn, &gossh.ServerConn{Conn: &fakeGosshConn{}})
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		_ = s.Exec(sess)
+	}()
+
+	var signals chan<- gliderssh.Signal
+
+	select {
+	case signals = <-sess.signals:
+	case <-time.After(10 * time.Second):
+		t.Fatal("Exec never asked the session for its signals")
+	}
+
+	require.Eventually(t, func() bool {
+		_, err := os.Stat(ready)
+
+		return err == nil
+	}, 10*time.Second, 10*time.Millisecond, "the command never installed its trap")
+
+	return signals, done, sess
+}
+
+func requireExecExitedWith(t *testing.T, done <-chan struct{}, sess *fakeSession, code int32) {
+	t.Helper()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the command did not react to the signal")
+	}
+
+	assert.Equal(t, code, atomic.LoadInt32(&sess.exitCode))
 }
