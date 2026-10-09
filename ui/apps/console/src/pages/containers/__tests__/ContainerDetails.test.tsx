@@ -10,7 +10,7 @@ import {
   mockContainer as mockContainerFactory,
   mockNamespace,
 } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (
@@ -115,7 +115,7 @@ beforeEach(() => {
       HttpResponse.json(mockNamespace()),
     ),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/tags", () => HttpResponse.json([])),
     http.put(

@@ -6,7 +6,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -63,7 +63,7 @@ beforeEach(() => {
   server.use(
     http.get("*/api/namespaces", () => jsonWithTotal([])),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/devices", () => jsonWithTotal([])),
   );

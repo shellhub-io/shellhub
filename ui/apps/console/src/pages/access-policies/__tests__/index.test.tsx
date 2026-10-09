@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
 
@@ -31,7 +31,7 @@ beforeEach(() => {
       HttpResponse.json(mockNamespace()),
     ),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/service-accounts", () => HttpResponse.json([])),
     http.delete(

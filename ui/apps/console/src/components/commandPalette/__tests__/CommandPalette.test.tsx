@@ -9,7 +9,7 @@ import {
   mockDevice as mockDeviceFactory,
   mockNamespace,
 } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
 import type { TerminalSession } from "@/stores/terminalStore";
 
@@ -88,7 +88,7 @@ describe("CommandPalette", () => {
         HttpResponse.json(mockNamespace({ name: "dev" })),
       ),
       http.get("*/api/auth/token/:tenant", () =>
-        HttpResponse.json({ token: "jwt-token", role: "owner" }),
+        HttpResponse.json({ token: VALID_JWT, role: "owner" }),
       ),
     );
     copyMock.mockClear();

@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import {
   PENDING_DEVICE_CODE_KEY,
@@ -63,7 +63,7 @@ beforeEach(() => {
       HttpResponse.json(mockNamespace({ tenant_id: String(params.tenant) })),
     ),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
   );
 });

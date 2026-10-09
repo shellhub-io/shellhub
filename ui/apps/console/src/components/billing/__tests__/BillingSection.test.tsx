@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
 const mockLocation = { hash: "", pathname: "/settings", search: "" };
 
@@ -91,7 +91,7 @@ beforeEach(() => {
   seedAuthStore();
   server.use(
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.post(
       "*/api/billing/subscription",

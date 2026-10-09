@@ -17,7 +17,7 @@ beforeEach(() => {
       return HttpResponse.json(mockNamespace({ name: "my-ns" }));
     }),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json(mockUserAuth({ token: "jwt-token" })),
+      HttpResponse.json(mockUserAuth()),
     ),
   );
 });
