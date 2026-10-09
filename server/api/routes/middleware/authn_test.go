@@ -48,6 +48,10 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 	return bearer, privateKey
 }
 
+func claimsOf(userID string) any {
+	return mock.MatchedBy(func(claims *authorizer.UserClaims) bool { return claims.ID == userID })
+}
+
 func authenticatedRequest(e *echo.Echo, bearer string) (*echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("Authorization", "Bearer "+bearer)
@@ -71,7 +75,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(true, nil).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID, Admin: true}, nil).Once()
 			},
 			expected: &gateway.Identity{
 				ID:       testUserID,
@@ -93,7 +97,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, store.ErrNoDocuments).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: nil,
 		},
@@ -109,7 +113,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, context.DeadlineExceeded).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(nil, context.DeadlineExceeded).Once()
 			},
 			expected: nil,
 		},
@@ -142,7 +146,7 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 	service := new(mocks.MockService)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
 	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(ns, "owner", nil).Once()
-	service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, nil).Once()
+	service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID}, nil).Once()
 
 	c, _ := authenticatedRequest(echo.New(), bearer)
 
@@ -154,6 +158,36 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 	assert.Equal(t, ns.DeviceLimit(), forwarded)
 
 	_, ok = authctx.NamespaceDeviceLimit(c.Request().Context(), "00000000-0000-4000-0000-000000000009")
+	assert.False(t, ok)
+
+	service.AssertExpectations(t)
+}
+
+func TestAuthenticatorResolveForwardsTokenVersion(t *testing.T) {
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeUserClaims(
+		authorizer.UserClaims{ID: testUserID, Username: "john", TokenVersion: 2},
+		"http://localhost",
+		privateKey,
+	)
+	require.NoError(t, err)
+
+	service := new(mocks.MockService)
+	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+	service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID, TokenVersion: 2}, nil).Once()
+
+	c, _ := authenticatedRequest(echo.New(), bearer)
+
+	_, err = NewAuthenticator(service).Resolve(c)
+	require.NoError(t, err)
+
+	forwarded, ok := authctx.UserTokenVersion(c.Request().Context(), testUserID)
+	require.True(t, ok)
+	assert.Equal(t, 2, forwarded)
+
+	_, ok = authctx.UserTokenVersion(c.Request().Context(), "000000000000000000000009")
 	assert.False(t, ok)
 
 	service.AssertExpectations(t)

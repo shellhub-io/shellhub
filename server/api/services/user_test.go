@@ -442,12 +442,61 @@ func TestUpdateUser(t *testing.T) {
 				}
 
 				storeMock.
-					On("UserUpdate", ctx, &updatedUser).
+					On("UserUpdateRevokingTokens", ctx, &updatedUser).
 					Return(nil).
 					Once()
 			},
 			expected: Expected{
 				err: nil,
+			},
+		},
+		{
+			description: "Fails when the new password cannot be saved",
+			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
+				Password:        "new-secret",
+				CurrentPassword: "secret",
+			},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "James Smith",
+						Username:      "james_smith",
+						Email:         "james.smith@shellhub.io",
+						RecoveryEmail: "recover@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				hashMock.
+					On("Do", "new-secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv", nil).
+					Once()
+
+				updatedUser := *user
+				updatedUser.Password = models.UserPassword{
+					Plain: "new-secret",
+					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv",
+				}
+
+				storeMock.
+					On("UserUpdateRevokingTokens", ctx, &updatedUser).
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrUserUpdate(&models.User{ID: "000000000000000000000000", UserData: models.UserData{Name: "James Smith", Username: "james_smith", Email: "james.smith@shellhub.io", RecoveryEmail: "recover@test.com"}, Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}}, errors.New("error", "", 0)),
 			},
 		},
 		{
@@ -617,7 +666,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 				expectedUser.Password.Hash = "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv"
 
 				mock.
-					On("UserUpdate", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, &expectedUser).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -638,6 +687,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 			newPassword:     "newSecret",
 			requiredMocks: func() {
 				user := &models.User{
+					ID: "65fde3a72c4c7507c7f53c43",
 					Password: models.UserPassword{
 						Plain: "secret",
 						Hash:  "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
@@ -662,7 +712,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 				expectedUser.Password.Hash = "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv"
 
 				mock.
-					On("UserUpdate", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, &expectedUser).
 					Return(nil).
 					Once()
 			},

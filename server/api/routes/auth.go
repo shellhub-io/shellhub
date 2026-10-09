@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -95,6 +96,10 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 
 	if err := c.Validate(req); err != nil {
 		return err
+	}
+
+	if version, ok := authctx.UserTokenVersion(c.Ctx(), req.UserID); ok {
+		req.TokenVersion = &version
 	}
 
 	res, err := h.service.CreateUserToken(c.Ctx(), req)

@@ -106,6 +106,14 @@ type UserData struct {
 	RecoveryEmail string `json:"recovery_email" validate:"omitempty,email"`
 }
 
+// PendingMFASignIn is what a password check leaves for the second factor to finish the sign-in
+// with: the user, and the token version the password was checked against. Finishing it after that
+// version advanced must fail.
+type PendingMFASignIn struct {
+	UserID       string
+	TokenVersion int
+}
+
 // UserMFA represents the attributes related to MFA for a user.
 type UserMFA struct {
 	// Enabled reports whether MFA is enabled for the user.

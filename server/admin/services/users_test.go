@@ -582,7 +582,7 @@ func TestUserResetPassword(t *testing.T) {
 				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
 
 				mock.
-					On("UserUpdate", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, &expectedUser).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -606,7 +606,7 @@ func TestUserResetPassword(t *testing.T) {
 				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
 
 				mock.
-					On("UserUpdate", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, &expectedUser).
 					Return(nil).
 					Once()
 			},

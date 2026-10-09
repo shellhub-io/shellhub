@@ -21,7 +21,7 @@ type AuthnService interface {
 	AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error)
 	AuthInstanceAPIKey(ctx context.Context, key string) (*models.InstanceAPIKey, error)
 	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error)
-	GetUserAdmin(ctx context.Context, userID string) (bool, error)
+	AuthUserClaims(ctx context.Context, claims *authorizer.UserClaims) (*models.User, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -213,21 +213,25 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			))
 		}
 
-		admin, err := a.service.GetUserAdmin(c.Request().Context(), claims.ID)
+		user, err := a.service.AuthUserClaims(c.Request().Context(), claims)
 		if err != nil {
 			log.WithError(err).
 				WithField("user_id", claims.ID).
-				Warn("failed to resolve the token's admin status")
+				Warn("refused the token: its user is gone, unreachable or had its tokens revoked")
 
 			return nil, nil
 		}
+
+		c.SetRequest(c.Request().WithContext(
+			authctx.WithUserTokenVersion(c.Request().Context(), claims.ID, claims.TokenVersion),
+		))
 
 		return &gateway.Identity{
 			ID:       claims.ID,
 			Username: claims.Username,
 			TenantID: claims.TenantID,
 			Role:     claims.Role,
-			Admin:    admin,
+			Admin:    user.Admin,
 		}, nil
 	}
 

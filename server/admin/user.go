@@ -72,7 +72,7 @@ func userResetPassword(service serviceFunc) *cobra.Command {
 		Use:     "password <username> <password>",
 		Args:    cobra.ExactArgs(2),
 		Short:   "Change a user's password",
-		Long:    `Updates the password for an existing user identified by the given username.`,
+		Long:    `Updates the password for an existing user identified by the given username and signs out every session the user holds.`,
 		Example: `./bin/cli user password john_doe Secret123!-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.UserUpdate{
