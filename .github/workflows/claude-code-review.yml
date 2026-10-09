@@ -171,7 +171,7 @@ jobs:
 
       - name: Generate issue token
         id: issue-token
-        if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.is_admin == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.can_request_review == 'true'
         continue-on-error: true
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
