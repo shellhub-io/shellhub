@@ -37,7 +37,8 @@ const (
 	DevicePublicKeyResolver
 )
 
-// DeviceBeat is a keep-alive from the device UID, received at At.
+// DeviceBeat says the device UID was seen alive at At. At is taken when the device is observed
+// (its authentication, or its tunnel answering a keep-alive), not when the beat is written.
 type DeviceBeat struct {
 	UID string
 	At  time.Time
@@ -74,8 +75,9 @@ type DeviceStore interface {
 	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
 	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is
 	// not removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a
-	// beat written late cannot bring a disconnected device back online. It returns the other uids,
-	// those deleted or removed, in the order given and never nil.
+	// beat written late cannot bring a disconnected device back online. Each UID must appear in beats
+	// at most once. It returns the other uids, those deleted or removed, in the order given and never
+	// nil, or a nil gone and the store error when the update fails.
 	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to

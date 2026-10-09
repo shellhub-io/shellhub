@@ -77,6 +77,27 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *testing.T) {
+	later := now.Add(time.Second)
+
+	fixedClock(t, later, now)
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.
+		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: later}}).
+		Return([]string{}, nil).
+		Once()
+
+	h := NewDeviceHeartbeater(storeMock)
+
+	h.Submit("tenant", "device-a")
+	h.Submit("tenant", "device-a")
+
+	require.NoError(t, h.Shutdown(context.Background()))
+
+	storeMock.AssertExpectations(t)
+}
+
 func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 	fixedClock(t, now)
 	removed := recordDeviceRemovals(t)
