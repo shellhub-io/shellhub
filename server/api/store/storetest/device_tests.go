@@ -732,6 +732,33 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		}
 	})
 
+	t.Run("clears a disconnect only for a beat that came after it", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		staleUID := s.CreateDevice(t, WithDeviceName("device-stale"))
+		freshUID := s.CreateDevice(t, WithDeviceName("device-fresh"))
+
+		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		require.NoError(t, st.DeviceOffline(ctx, string(staleUID), disconnectedAt))
+		require.NoError(t, st.DeviceOffline(ctx, string(freshUID), disconnectedAt))
+
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: string(staleUID), At: disconnectedAt.Add(-time.Second)},
+			{UID: string(freshUID), At: disconnectedAt.Add(time.Second)},
+		})
+		require.NoError(t, err)
+		require.Empty(t, gone)
+
+		stale, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(staleUID))
+		require.NoError(t, err)
+		require.NotNil(t, stale.DisconnectedAt, "a beat older than the disconnect must not bring the device back online")
+		assert.WithinDuration(t, disconnectedAt, *stale.DisconnectedAt, time.Millisecond)
+
+		fresh, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(freshUID))
+		require.NoError(t, err)
+		assert.Nil(t, fresh.DisconnectedAt, "a beat newer than the disconnect must bring the device back online")
+	})
+
 	t.Run("reports a device deleted with its namespace as gone", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
