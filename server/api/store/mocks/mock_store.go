@@ -1663,8 +1663,8 @@ func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // DeviceHeartbeat provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) ([]string, error) {
-	ret := _mock.Called(ctx, uids, lastSeen)
+func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat) ([]string, error) {
+	ret := _mock.Called(ctx, beats)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceHeartbeat")
@@ -1672,18 +1672,18 @@ func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, uids []string, last
 
 	var r0 []string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) ([]string, error)); ok {
-		return returnFunc(ctx, uids, lastSeen)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []store.DeviceBeat) ([]string, error)); ok {
+		return returnFunc(ctx, beats)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, time.Time) []string); ok {
-		r0 = returnFunc(ctx, uids, lastSeen)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []store.DeviceBeat) []string); ok {
+		r0 = returnFunc(ctx, beats)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, []string, time.Time) error); ok {
-		r1 = returnFunc(ctx, uids, lastSeen)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, []store.DeviceBeat) error); ok {
+		r1 = returnFunc(ctx, beats)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1697,30 +1697,24 @@ type MockStore_DeviceHeartbeat_Call struct {
 
 // DeviceHeartbeat is a helper method to define mock.On call
 //   - ctx context.Context
-//   - uids []string
-//   - lastSeen time.Time
-func (_e *MockStore_Expecter) DeviceHeartbeat(ctx any, uids any, lastSeen any) *MockStore_DeviceHeartbeat_Call {
-	return &MockStore_DeviceHeartbeat_Call{Call: _e.mock.On("DeviceHeartbeat", ctx, uids, lastSeen)}
+//   - beats []store.DeviceBeat
+func (_e *MockStore_Expecter) DeviceHeartbeat(ctx any, beats any) *MockStore_DeviceHeartbeat_Call {
+	return &MockStore_DeviceHeartbeat_Call{Call: _e.mock.On("DeviceHeartbeat", ctx, beats)}
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) Run(run func(ctx context.Context, uids []string, lastSeen time.Time)) *MockStore_DeviceHeartbeat_Call {
+func (_c *MockStore_DeviceHeartbeat_Call) Run(run func(ctx context.Context, beats []store.DeviceBeat)) *MockStore_DeviceHeartbeat_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []string
+		var arg1 []store.DeviceBeat
 		if args[1] != nil {
-			arg1 = args[1].([]string)
-		}
-		var arg2 time.Time
-		if args[2] != nil {
-			arg2 = args[2].(time.Time)
+			arg1 = args[1].([]store.DeviceBeat)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -1731,7 +1725,7 @@ func (_c *MockStore_DeviceHeartbeat_Call) Return(gone []string, err error) *Mock
 	return _c
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, uids []string, lastSeen time.Time) ([]string, error)) *MockStore_DeviceHeartbeat_Call {
+func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, beats []store.DeviceBeat) ([]string, error)) *MockStore_DeviceHeartbeat_Call {
 	_c.Call.Return(run)
 	return _c
 }

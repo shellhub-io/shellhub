@@ -441,7 +441,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			return nil, err
 		}
 
-		if _, err := s.store.DeviceHeartbeat(ctx, []string{uid}, device.LastSeen); err != nil {
+		if _, err := s.store.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: uid, At: device.LastSeen}}); err != nil {
 			log.WithError(err).Error("failed to update device last_seen to online")
 
 			return nil, err

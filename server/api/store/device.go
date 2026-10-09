@@ -37,6 +37,12 @@ const (
 	DevicePublicKeyResolver
 )
 
+// DeviceBeat is a keep-alive from the device UID, received at At.
+type DeviceBeat struct {
+	UID string
+	At  time.Time
+}
+
 // DeviceStore persists devices and the counters a namespace's device limit is enforced from.
 type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
@@ -66,10 +72,10 @@ type DeviceStore interface {
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so
 	// writing back a snapshot taken before a removal cannot undo it.
 	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
-	// DeviceHeartbeat sets last_seen to lastSeen and clears disconnected_at for every device in uids
-	// that exists and is not removed. It returns the other uids, those deleted or removed, in the
-	// order given and never nil.
-	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (gone []string, err error)
+	// DeviceHeartbeat sets last_seen to the beat's time and clears disconnected_at for every beat's
+	// device that exists and is not removed. It returns the other uids, those deleted or removed, in
+	// the order given and never nil.
+	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
 	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.

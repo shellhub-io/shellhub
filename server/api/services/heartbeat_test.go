@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -37,7 +38,7 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, now).
+		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}, {UID: "device-b", At: now}}).
 		Return([]string{}, nil).
 		Once()
 
@@ -52,15 +53,16 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-func TestDeviceHeartbeater_usesTheEarliestBeatInTheBatch(t *testing.T) {
-	earliest := now
-	latest := now.Add(2 * time.Second)
+func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
+	first := now
+	second := now.Add(time.Second)
+	third := now.Add(2 * time.Second)
 
-	fixedClock(t, earliest, latest)
+	fixedClock(t, first, second, third)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, earliest).
+		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: third}, {UID: "device-b", At: second}}).
 		Return([]string{}, nil).
 		Once()
 
@@ -68,6 +70,7 @@ func TestDeviceHeartbeater_usesTheEarliestBeatInTheBatch(t *testing.T) {
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-b")
+	h.Submit("tenant", "device-a")
 
 	require.NoError(t, h.Shutdown(context.Background()))
 
@@ -80,7 +83,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []string{"device-a", "device-b"}, now).
+		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}, {UID: "device-b", At: now}}).
 		Return([]string{"device-b"}, nil).
 		Once()
 
@@ -101,7 +104,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []string{"device-a"}, now).
+		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}}).
 		Return(nil, errors.New("error")).
 		Once()
 
@@ -131,7 +134,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, mock.Anything, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, mock.Anything).
 		Return([]string{}, nil).
 		Maybe()
 

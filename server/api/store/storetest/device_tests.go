@@ -680,10 +680,10 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-1"))
 		s.CreateDevice(t, WithDeviceName("device-2"))
 
-		gone, err := st.DeviceHeartbeat(ctx,
-			[]string{"nonexistent1", "nonexistent2"},
-			clock.Now(),
-		)
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: "nonexistent1", At: clock.Now()},
+			{UID: "nonexistent2", At: clock.Now()},
+		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{"nonexistent1", "nonexistent2"}, gone)
 	})
@@ -695,10 +695,10 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
 
 		newTime := clock.Now()
-		gone, err := st.DeviceHeartbeat(ctx,
-			[]string{string(uid1), string(uid2)},
-			newTime,
-		)
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: string(uid1), At: newTime},
+			{UID: string(uid2), At: newTime},
+		})
 		require.NoError(t, err)
 		assert.Empty(t, gone)
 
@@ -706,6 +706,29 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 			device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 			require.NoError(t, err)
 			assert.WithinDuration(t, newTime, device.LastSeen, time.Second)
+		}
+	})
+
+	t.Run("sets each device's last_seen to its own beat", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
+		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
+
+		earlier := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		later := earlier.Add(30 * time.Second)
+
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: string(uid1), At: earlier},
+			{UID: string(uid2), At: later},
+		})
+		require.NoError(t, err)
+		require.Empty(t, gone)
+
+		for uid, want := range map[models.UID]time.Time{uid1: earlier, uid2: later} {
+			device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+			require.NoError(t, err)
+			assert.WithinDuration(t, want, device.LastSeen, time.Millisecond)
 		}
 	})
 
@@ -721,10 +744,10 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, st.NamespaceDelete(ctx, namespace))
 
-		gone, err := st.DeviceHeartbeat(ctx,
-			[]string{string(kept), string(deleted)},
-			clock.Now(),
-		)
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: string(kept), At: clock.Now()},
+			{UID: string(deleted), At: clock.Now()},
+		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{string(deleted)}, gone)
 	})
@@ -742,10 +765,10 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 			WithDeviceLastSeen(lastSeen),
 		)
 
-		gone, err := st.DeviceHeartbeat(ctx,
-			[]string{string(kept), string(removed)},
-			clock.Now(),
-		)
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
+			{UID: string(kept), At: clock.Now()},
+			{UID: string(removed), At: clock.Now()},
+		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{string(removed)}, gone)
 
