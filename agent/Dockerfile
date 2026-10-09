@@ -1,12 +1,14 @@
 ARG GOLANG_VERSION=1.26.9
 ARG ALPINE_VERSION=3.24
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.26}-alpine${ALPINE_VERSION:-3.24} AS base
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.26}-alpine${ALPINE_VERSION:-3.24} AS toolchain
+
+RUN apk add --no-cache ca-certificates git
+
+FROM toolchain AS base
 
 ARG TARGETARCH
 ARG TARGETOS=linux
-
-RUN apk add --no-cache ca-certificates git
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -40,12 +42,18 @@ FROM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
 
 RUN apk add --no-cache util-linux setpriv ca-certificates
 
-FROM base AS development
+FROM toolchain AS tools
 
-RUN apk add --update openssl openssh-client util-linux setpriv
+RUN apk add --no-cache openssl openssh-client util-linux setpriv
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
     CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 && \
-    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.8.0
+    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.8.0 && \
+    go clean -cache -modcache
+
+FROM tools AS development
+
+COPY --from=base $GOPATH/pkg/mod $GOPATH/pkg/mod
+COPY --from=base $GOPATH/src/github.com/shellhub-io/shellhub $GOPATH/src/github.com/shellhub-io/shellhub
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

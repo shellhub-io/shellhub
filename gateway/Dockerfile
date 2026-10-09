@@ -1,6 +1,8 @@
-FROM golang:1.26.9-alpine3.24 AS base
+FROM golang:1.26.9-alpine3.24 AS toolchain
 
 RUN apk add --no-cache git ca-certificates libgcc
+
+FROM toolchain AS base
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -25,10 +27,16 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
 RUN go build
 
-FROM base AS development
+FROM toolchain AS tools
 
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
-    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
+    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 && \
+    go clean -cache -modcache
+
+FROM tools AS development
+
+COPY --from=base $GOPATH/pkg/mod $GOPATH/pkg/mod
+COPY --from=base $GOPATH/src/github.com/shellhub-io/shellhub $GOPATH/src/github.com/shellhub-io/shellhub
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
