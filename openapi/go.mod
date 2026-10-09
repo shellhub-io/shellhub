@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/openapi
 
-go 1.26.7
+go 1.26.9
 
 require github.com/shellhub-io/shellhub v0.0.0
 
