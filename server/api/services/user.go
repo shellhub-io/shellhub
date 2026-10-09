@@ -20,11 +20,24 @@ type UserService interface {
 	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s).
 	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error)
 
-	// UpdateUser updates the user's data, such as email and username. Since some attributes must be
-	// unique per user, a value already taken yields [ErrUserDuplicated], carrying the conflicting
-	// field name(s).
+	// UpdateUser updates the user's data, such as email and username, and a password change revokes
+	// every token the user holds. It returns [ErrUserNotFound] when the user cannot be resolved,
+	// [ErrInvalidFields] when the recovery email equals the email, [ErrUserPasswordNotMatch] when a
+	// password change carries the wrong current password, and the hashing error when the new one
+	// cannot be hashed. Since some attributes must be unique per user, a value already taken yields
+	// [ErrUserDuplicated] carrying the conflicting field name(s), or [ErrUserUnhandledDuplicate]
+	// when the store cannot name it. It returns [ErrUserUpdate] when the user cannot be saved or,
+	// on a password change, the tokens cannot be revoked; the password is then left unchanged.
+	// Every store call runs under ctx, so a cancelled ctx surfaces as [ErrUserNotFound] or
+	// [ErrUserUpdate], depending on the call it interrupts.
 	UpdateUser(ctx context.Context, req *requests.UpdateUser) (err error)
 
+	// UpdatePasswordUser changes the user's password and revokes every token the user holds. It
+	// returns [ErrUserNotFound], [ErrUserPasswordNotMatch] when currentPassword is wrong,
+	// [ErrUserPasswordInvalid] when newPassword cannot be hashed, and [ErrUserUpdate] when the
+	// password cannot be saved or the tokens cannot be revoked, leaving the password unchanged.
+	// Every store call runs under ctx, so a cancelled ctx surfaces as [ErrUserNotFound] or
+	// [ErrUserUpdate], depending on the call it interrupts.
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
@@ -46,7 +59,12 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		return err
 	}
 
-	if err := s.store.UserUpdate(ctx, updatedUser); err != nil {
+	save := s.store.UserUpdate
+	if req.Password != "" {
+		save = s.store.UserUpdateRevokingTokens
+	}
+
+	if err := save(ctx, updatedUser); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(err); ok {
 				return NewErrUserDuplicated([]string{field}, err)
@@ -81,7 +99,7 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 
 	user.Password = neo
 
-	if err := s.store.UserUpdate(ctx, user); err != nil {
+	if err := s.store.UserUpdateRevokingTokens(ctx, user); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 

@@ -48,6 +48,10 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 	return bearer, privateKey
 }
 
+func claimsOf(userID string) any {
+	return mock.MatchedBy(func(claims *authorizer.UserClaims) bool { return claims.ID == userID })
+}
+
 func authenticatedRequest(e *echo.Echo, bearer string) (*echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("Authorization", "Bearer "+bearer)
@@ -71,7 +75,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(true, nil).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID, Admin: true}, nil).Once()
 			},
 			expected: &gateway.Identity{
 				ID:       testUserID,
@@ -93,7 +97,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, store.ErrNoDocuments).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: nil,
 		},
@@ -109,7 +113,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
-				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, context.DeadlineExceeded).Once()
+				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(nil, context.DeadlineExceeded).Once()
 			},
 			expected: nil,
 		},
@@ -142,7 +146,7 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 	service := new(mocks.MockService)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
 	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(ns, "owner", nil).Once()
-	service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, nil).Once()
+	service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID}, nil).Once()
 
 	c, _ := authenticatedRequest(echo.New(), bearer)
 
