@@ -245,7 +245,7 @@ func (pg *Pg) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat) ([]
 	if err := db.NewUpdate().
 		Model((*entity.Device)(nil)).
 		Set("last_seen = _data.at").
-		Set("disconnected_at = NULL").
+		Set("disconnected_at = CASE WHEN device.disconnected_at > _data.at THEN device.disconnected_at END").
 		TableExpr(unnestExpr, unnestIDs, unnestTimes).
 		Where("device.id = _data.id").
 		Where("device.status <> ?", models.DeviceStatusRemoved).

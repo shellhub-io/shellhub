@@ -72,9 +72,10 @@ type DeviceStore interface {
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so
 	// writing back a snapshot taken before a removal cannot undo it.
 	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
-	// DeviceHeartbeat sets last_seen to the beat's time and clears disconnected_at for every beat's
-	// device that exists and is not removed. It returns the other uids, those deleted or removed, in
-	// the order given and never nil.
+	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is
+	// not removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a
+	// beat written late cannot bring a disconnected device back online. It returns the other uids,
+	// those deleted or removed, in the order given and never nil.
 	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
