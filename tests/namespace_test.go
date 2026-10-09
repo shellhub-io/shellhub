@@ -45,17 +45,7 @@ func TestLeaveNamespace(t *testing.T) {
 	compose.NewMember(t, leaverUsername, leftBehindNamespaceName, string(authorizer.RoleObserver))
 	compose.NewMember(t, leaverUsername, neverLeftNamespaceName, string(authorizer.RoleObserver))
 
-	auth := compose.AuthUser(t, leaverUsername, leaverPassword)
-
-	signedInto := models.UserAuthResponse{}
-
-	resp, err := compose.Anonymous(ctx).
-		SetAuthToken(auth.Token).
-		SetResult(&signedInto).
-		Get("/api/auth/token/" + ShellHubNamespace)
-
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode())
+	signedInto := signInto(t, compose, leaverUsername, leaverPassword)
 	require.NotNil(t, signedInto.Tenant)
 	require.Equal(t, ShellHubNamespace, *signedInto.Tenant)
 

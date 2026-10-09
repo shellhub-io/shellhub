@@ -87,16 +87,7 @@ func signInDepartingMember(t *testing.T, compose *environment.DockerCompose) *mo
 	compose.NewUser(t, departingUsername, departingEmail, departingPassword)
 	compose.NewMember(t, departingUsername, ShellHubNamespaceName, string(authorizer.RoleAdministrator))
 
-	login := compose.AuthUser(t, departingUsername, departingPassword)
-
-	signedInto := new(models.UserAuthResponse)
-	resp, err := asBearer(t, compose, login.Token).
-		SetResult(signedInto).
-		Get("/api/auth/token/" + ShellHubNamespace)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-
-	return signedInto
+	return signInto(t, compose, departingUsername, departingPassword)
 }
 
 func asBearer(t *testing.T, compose *environment.DockerCompose, token string) *resty.Request {
