@@ -8851,6 +8851,63 @@ func (_c *MockStore_UserResolve_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// UserRevokeTokens provides a mock function for the type MockStore
+func (_mock *MockStore) UserRevokeTokens(ctx context.Context, userID string) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserRevokeTokens")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserRevokeTokens_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserRevokeTokens'
+type MockStore_UserRevokeTokens_Call struct {
+	*mock.Call
+}
+
+// UserRevokeTokens is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *MockStore_Expecter) UserRevokeTokens(ctx any, userID any) *MockStore_UserRevokeTokens_Call {
+	return &MockStore_UserRevokeTokens_Call{Call: _e.mock.On("UserRevokeTokens", ctx, userID)}
+}
+
+func (_c *MockStore_UserRevokeTokens_Call) Run(run func(ctx context.Context, userID string)) *MockStore_UserRevokeTokens_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserRevokeTokens_Call) Return(err error) *MockStore_UserRevokeTokens_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserRevokeTokens_Call) RunAndReturn(run func(ctx context.Context, userID string) error) *MockStore_UserRevokeTokens_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UserUpdate provides a mock function for the type MockStore
 func (_mock *MockStore) UserUpdate(ctx context.Context, user *models.User) error {
 	ret := _mock.Called(ctx, user)
@@ -8967,6 +9024,63 @@ func (_c *MockStore_UserUpdatePreferredNamespace_Call) Return(err error) *MockSt
 }
 
 func (_c *MockStore_UserUpdatePreferredNamespace_Call) RunAndReturn(run func(ctx context.Context, userID string, tenantID string) error) *MockStore_UserUpdatePreferredNamespace_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserUpdateRevokingTokens provides a mock function for the type MockStore
+func (_mock *MockStore) UserUpdateRevokingTokens(ctx context.Context, user *models.User) error {
+	ret := _mock.Called(ctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserUpdateRevokingTokens")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
+		r0 = returnFunc(ctx, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserUpdateRevokingTokens_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserUpdateRevokingTokens'
+type MockStore_UserUpdateRevokingTokens_Call struct {
+	*mock.Call
+}
+
+// UserUpdateRevokingTokens is a helper method to define mock.On call
+//   - ctx context.Context
+//   - user *models.User
+func (_e *MockStore_Expecter) UserUpdateRevokingTokens(ctx any, user any) *MockStore_UserUpdateRevokingTokens_Call {
+	return &MockStore_UserUpdateRevokingTokens_Call{Call: _e.mock.On("UserUpdateRevokingTokens", ctx, user)}
+}
+
+func (_c *MockStore_UserUpdateRevokingTokens_Call) Run(run func(ctx context.Context, user *models.User)) *MockStore_UserUpdateRevokingTokens_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.User
+		if args[1] != nil {
+			arg1 = args[1].(*models.User)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserUpdateRevokingTokens_Call) Return(err error) *MockStore_UserUpdateRevokingTokens_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserUpdateRevokingTokens_Call) RunAndReturn(run func(ctx context.Context, user *models.User) error) *MockStore_UserUpdateRevokingTokens_Call {
 	_c.Call.Return(run)
 	return _c
 }

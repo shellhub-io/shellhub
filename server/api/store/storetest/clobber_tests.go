@@ -161,6 +161,30 @@ func (s *Suite) TestUserUpdateDoesNotClobberPreferredNamespace(t *testing.T) {
 	assert.Empty(t, updated.Preferences.PreferredNamespace, "concurrent preferred-namespace clear must not be clobbered")
 }
 
+// TestUserUpdateDoesNotClobberTokenVersion ensures a full-model UserUpdate carrying a stale token
+// version cannot bring back the tokens a concurrent revocation just invalidated.
+func (s *Suite) TestUserUpdateDoesNotClobberTokenVersion(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	userID := s.CreateUser(t)
+
+	snapshot, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+
+	require.NoError(t, st.UserRevokeTokens(ctx, userID))
+
+	snapshot.Name = "renamed"
+	require.NoError(t, st.UserUpdate(ctx, snapshot))
+
+	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+	assert.Equal(t, "renamed", updated.Name, "the intended field must still be written")
+	assert.Equal(t, snapshot.TokenVersion+1, updated.TokenVersion, "concurrent token revocation must not be clobbered")
+}
+
 // TestUserUpdatePreferredNamespace covers the targeted preferred_namespace_id write used by login.
 func (s *Suite) TestUserUpdatePreferredNamespace(t *testing.T) {
 	ctx := context.Background()
