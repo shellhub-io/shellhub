@@ -86,7 +86,7 @@ func (h *Handler) GetTags(c *gateway.Context) error {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(totalCount))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(totalCount, 10))
 
 	return c.JSON(http.StatusOK, tags)
 }

@@ -121,7 +121,7 @@ func (s *Suite) TestDeviceListFiltersByOwner(t *testing.T) {
 	devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 		st.Options().Match(ownerFilter(memberID)))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	require.Len(t, devices, 1)
 	assert.Equal(t, string(owned), devices[0].UID)
 }

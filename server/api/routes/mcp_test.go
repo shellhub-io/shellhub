@@ -132,7 +132,7 @@ func TestMCPListDevices(t *testing.T) {
 				r.DeviceStatus == models.DeviceStatus("accepted") &&
 				r.Paginator.Page == 2 && r.Paginator.PerPage == 50
 		})).
-		Return([]models.Device{{UID: "uid1"}}, 1, nil).
+		Return([]models.Device{{UID: "uid1"}}, int64(1), nil).
 		Once()
 
 	rec := mcpCall(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(),
@@ -260,7 +260,7 @@ func TestMCPListSessions(t *testing.T) {
 		On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(r *requests.ListSessions) bool {
 			return r.TenantID == mcpCallerTenant && r.Paginator.Page == 1 && r.Paginator.PerPage == 20
 		})).
-		Return([]models.Session{{UID: "sess1"}}, 1, nil).
+		Return([]models.Session{{UID: "sess1"}}, int64(1), nil).
 		Once()
 
 	rec := mcpCall(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(),

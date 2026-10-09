@@ -83,7 +83,7 @@ const pendingDevicesExpr = `(
 ) AS pending_devices`
 
 // ProvisioningKeyList implements [store.ProvisioningKeyStore].
-func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.ProvisioningKey, int, error) {
+func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.ProvisioningKey, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.ProvisioningKey, 0)
@@ -109,7 +109,7 @@ func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...s
 		provisioningKeys[i] = *entity.ProvisioningKeyToModel(&e)
 	}
 
-	return provisioningKeys, int(count), nil
+	return provisioningKeys, count, nil
 }
 
 // ProvisioningKeyResolve implements [store.ProvisioningKeyStore].
@@ -246,7 +246,7 @@ func (pg *Pg) ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Sc
 }
 
 // ProvisioningKeyEventList implements [store.ProvisioningKeyStore].
-func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.ProvisioningKeyEvent, int, error) {
+func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.ProvisioningKeyEvent, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "e")
@@ -276,7 +276,7 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 		events[i] = *entity.ProvisioningKeyEventToModel(&e)
 	}
 
-	return events, int(count), nil
+	return events, count, nil
 }
 
 // EnrollmentCallbackRedeem implements [store.ProvisioningKeyStore].

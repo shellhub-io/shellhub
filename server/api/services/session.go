@@ -32,7 +32,7 @@ var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
 // SessionService owns SSH session records and their recordings — the history of who reached
 // which device, and what was seen on screen.
 type SessionService interface {
-	ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error)
+	ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int64, error)
 
 	// GetSession fetches a session within the given namespace scope. The scope is an explicit
 	// parameter rather than something recovered from the request context, so a caller cannot
@@ -59,7 +59,7 @@ type SessionService interface {
 	EventSession(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error
 }
 
-func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
+func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int64, error) {
 	opts := make([]store.QueryOption, 0)
 	opts = append(opts, s.store.Options().Match(&req.Filters))
 	opts = append(opts, s.store.Options().Sort(&query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}))

@@ -164,7 +164,7 @@ func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.Provisioni
 	return events
 }
 
-func (e *enrollmentE2E) pendingCount(t *testing.T) int {
+func (e *enrollmentE2E) pendingCount(t *testing.T) int64 {
 	t.Helper()
 	_, count, err := e.svc.ListDevices(context.Background(), scope.MustBounded(e.tenantID), &requests.DeviceList{
 		TenantID:     e.tenantID,
@@ -193,7 +193,7 @@ func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:01", "")
 
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "keyless device must land pending")
-	require.Equal(t, 1, e.pendingCount(t), "device must be listable via ?status=pending")
+	require.Equal(t, int64(1), e.pendingCount(t), "device must be listable via ?status=pending")
 
 	events := e.events(t, "legacy")
 	require.Len(t, events, 1)
@@ -205,7 +205,7 @@ func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 	}))
 
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
-	require.Equal(t, 0, e.pendingCount(t), "device must leave the pending queue once accepted")
+	require.Equal(t, int64(0), e.pendingCount(t), "device must leave the pending queue once accepted")
 
 	require.Equal(t, models.DeviceStatusAccepted, e.events(t, "legacy")[0].DeviceStatus)
 }

@@ -40,7 +40,7 @@ type InstanceAPIKeyService interface {
 
 	// ListInstanceAPIKeys retrieves every instance API key together with the total count before
 	// pagination.
-	ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) (apiKeys []models.InstanceAPIKey, count int, err error)
+	ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) (apiKeys []models.InstanceAPIKey, count int64, err error)
 
 	// DeleteInstanceAPIKey revokes the named instance API key, taking effect immediately. It
 	// returns ErrInstanceAPIKeyNotFound when no key carries that name.
@@ -87,7 +87,7 @@ func (s *service) CreateInstanceAPIKey(ctx context.Context, req *requests.Create
 	return responses.CreateInstanceAPIKeyFromModel(apiKey, plain), nil
 }
 
-func (s *service) ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error) {
+func (s *service) ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int64, error) {
 	if req.Sorter.By == "" {
 		req.Sorter.By = "created_at"
 	}

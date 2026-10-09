@@ -93,7 +93,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return(nil, 0, errors.New("boom", "store", 0)).Once()
+					Return(nil, int64(0), errors.New("boom", "store", 0)).Once()
 			},
 			expectedAllowed: false,
 			expectedErr:     true,
@@ -107,7 +107,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{}, 0, nil).Once()
+					Return([]models.AccessPolicy{}, int64(0), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -129,7 +129,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -149,7 +149,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"deploy"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -171,7 +171,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"deploy"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -191,7 +191,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -213,7 +213,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -233,7 +233,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -253,7 +253,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-db"}}},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -275,7 +275,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-web"}}},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -296,7 +296,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:        []string{"*"},
 							RequireReauth: true,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedReauth:  true,
@@ -325,7 +325,7 @@ func TestAuthorize(t *testing.T) {
 							Action:        models.PolicyActionAllow,
 							RequireReauth: true,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedReauth:  true,
@@ -354,7 +354,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedReauth:  true,
@@ -383,7 +383,7 @@ func TestAuthorize(t *testing.T) {
 							Action:        models.PolicyActionAllow,
 							RequireReauth: true,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedReauth:  false,
@@ -404,7 +404,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:  models.PublicKeyFilter{Hostname: "["},
 							Logins:  []string{"*"},
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -434,7 +434,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
@@ -463,7 +463,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -491,7 +491,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
@@ -521,7 +521,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonPolicyUnevaluable,
@@ -545,7 +545,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
@@ -575,7 +575,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"teste"},
 							Action:  models.PolicyActionAllow,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
@@ -600,7 +600,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -623,7 +623,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -647,7 +647,7 @@ func TestAuthorize(t *testing.T) {
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -677,7 +677,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"203.0.113.0/24"},
 							Action:   models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
@@ -708,7 +708,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"203.0.113.0/24"},
 							Action:   models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -731,7 +731,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"203.0.113.9/32"},
 							Action:   models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -754,7 +754,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"10.0.0.0/8", "192.168.0.0/16"},
 							Action:   models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: true,
 			expectedErr:     false,
@@ -784,7 +784,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionDeny,
 						},
-					}, 2, nil).Once()
+					}, int64(2), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonPolicyUnevaluable,
@@ -809,7 +809,7 @@ func TestAuthorize(t *testing.T) {
 							SourceIP: []string{"garbage"},
 							Action:   models.PolicyActionAllow,
 						},
-					}, 1, nil).Once()
+					}, int64(1), nil).Once()
 			},
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
@@ -1023,7 +1023,7 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 			storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 				Return(namespace, nil).Once()
 			storeMock.On("APIKeyList", ctx, mock.Anything).
-				Return([]models.APIKey{}, 0, nil).Maybe()
+				Return([]models.APIKey{}, int64(0), nil).Maybe()
 
 			if !tc.rejected {
 				queryOptionsMock := new(storemock.MockQueryOptions)
@@ -1073,7 +1073,7 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 		Return(&models.AccessPolicy{ID: policyID}, nil).Once()
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 		Return(namespace, nil).Once()
-	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -1093,7 +1093,7 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 			Return(&models.AccessPolicy{ID: policyID}, nil).Once()
 		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 			Return(namespace, nil).Once()
-		storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+		storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
 
 		service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -1149,8 +1149,8 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 		Return(namespace, nil).Once()
-	storeMock.On("APIKeyList", ctx, mock.Anything).Return(apiKeys, len(apiKeys), nil).Maybe()
-	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, len(stored), nil).Once()
+	storeMock.On("APIKeyList", ctx, mock.Anything).Return(apiKeys, int64(len(apiKeys)), nil).Maybe()
+	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, int64(len(stored)), nil).Once()
 	clock.Freeze(t, now)
 
 	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
@@ -1201,7 +1201,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
-				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
 
 				return service.GetAccessPolicy(ctx, &requests.AccessPolicyGet{
 					AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
@@ -1214,7 +1214,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 			read: func(service *APIService, storeMock *storemock.MockStore, role string) (*models.AccessPolicy, error) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
-				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
 				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
 				storeMock.On("AccessPolicyCreate", ctx, mock.Anything).Return(policyID, nil).Once()
 				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
@@ -1235,7 +1235,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					Return(storedAccessPolicyWithRole(tenantID, policyID, role), nil).Twice()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).Once()
-				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, 0, nil).Maybe()
+				storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
 				storeMock.On("Options").Return(new(storemock.MockQueryOptions)).Maybe()
 				storeMock.On("AccessPolicyUpdate", ctx, mock.Anything).Return(nil).Once()
 
@@ -1317,7 +1317,7 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 			Return(apiKey, apiKeyErr).Once()
 
 		if apiKeyErr == nil && apiKey.IsValid() {
-			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(policies, len(policies), nil).Once()
+			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(policies, int64(len(policies)), nil).Once()
 		}
 
 		return NewService(storeMock, privateKey, publicKey, nil)

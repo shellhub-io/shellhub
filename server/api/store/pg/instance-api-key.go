@@ -48,7 +48,7 @@ func (pg *Pg) InstanceAPIKeyResolve(ctx context.Context, resolver store.Instance
 }
 
 // InstanceAPIKeyList implements [store.InstanceAPIKeyStore].
-func (pg *Pg) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.InstanceAPIKey, int, error) {
+func (pg *Pg) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.InstanceAPIKey, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.InstanceAPIKey, 0)
@@ -68,7 +68,7 @@ func (pg *Pg) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption)
 		apiKeys[i] = *entity.InstanceAPIKeyToModel(&e)
 	}
 
-	return apiKeys, int(count), nil
+	return apiKeys, count, nil
 }
 
 // InstanceAPIKeyDelete implements [store.InstanceAPIKeyStore].

@@ -101,7 +101,7 @@ func TestGetDeviceListFiltersByOwner(t *testing.T) {
 
 	t.Run("a user id passes through", func(t *testing.T) {
 		m := mocks.NewMockService(t)
-		m.On("ListDevices", gomock.Anything, gomock.Anything, gomock.Anything).Return([]models.Device{}, 0, nil).Once()
+		m.On("ListDevices", gomock.Anything, gomock.Anything, gomock.Anything).Return([]models.Device{}, int64(0), nil).Once()
 
 		assert.Equal(t, http.StatusOK, list(t, m, encode(t, "11111111-1111-4111-8111-111111111111")))
 	})

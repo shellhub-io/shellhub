@@ -662,7 +662,7 @@ func TestUserList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("UserList", ctx).
-					Return(nil, 0, storeErr).
+					Return(nil, int64(0), storeErr).
 					Once()
 			},
 			expectedUsers: nil,
@@ -673,7 +673,7 @@ func TestUserList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("UserList", ctx).
-					Return([]models.User{}, 0, nil).
+					Return([]models.User{}, int64(0), nil).
 					Once()
 			},
 			expectedUsers: []models.User{},
@@ -684,7 +684,7 @@ func TestUserList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("UserList", ctx).
-					Return(users, 2, nil).
+					Return(users, int64(2), nil).
 					Once()
 			},
 			expectedUsers: users,

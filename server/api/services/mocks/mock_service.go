@@ -4330,7 +4330,7 @@ func (_c *MockService_ListAPIKeySSHIdentities_Call) RunAndReturn(run func(ctx co
 }
 
 // ListAPIKeys provides a mock function for the type MockService
-func (_mock *MockService) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
+func (_mock *MockService) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4338,9 +4338,9 @@ func (_mock *MockService) ListAPIKeys(ctx context.Context, req *requests.ListAPI
 	}
 
 	var r0 []models.APIKey
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListAPIKey) ([]models.APIKey, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListAPIKey) ([]models.APIKey, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListAPIKey) []models.APIKey); ok {
@@ -4350,10 +4350,10 @@ func (_mock *MockService) ListAPIKeys(ctx context.Context, req *requests.ListAPI
 			r0 = ret.Get(0).([]models.APIKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListAPIKey) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListAPIKey) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListAPIKey) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4393,12 +4393,12 @@ func (_c *MockService_ListAPIKeys_Call) Run(run func(ctx context.Context, req *r
 	return _c
 }
 
-func (_c *MockService_ListAPIKeys_Call) Return(apiKeys []models.APIKey, count int, err error) *MockService_ListAPIKeys_Call {
+func (_c *MockService_ListAPIKeys_Call) Return(apiKeys []models.APIKey, count int64, err error) *MockService_ListAPIKeys_Call {
 	_c.Call.Return(apiKeys, count, err)
 	return _c
 }
 
-func (_c *MockService_ListAPIKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error)) *MockService_ListAPIKeys_Call {
+func (_c *MockService_ListAPIKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int64, error)) *MockService_ListAPIKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4472,7 +4472,7 @@ func (_c *MockService_ListAccessPolicies_Call) RunAndReturn(run func(ctx context
 }
 
 // ListDevices provides a mock function for the type MockService
-func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
+func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error) {
 	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
@@ -4480,9 +4480,9 @@ func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *
 	}
 
 	var r0 []models.Device
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList) ([]models.Device, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList) ([]models.Device, int64, error)); ok {
 		return returnFunc(ctx, sc, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList) []models.Device); ok {
@@ -4492,10 +4492,10 @@ func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.DeviceList) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.DeviceList) int64); ok {
 		r1 = returnFunc(ctx, sc, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.DeviceList) error); ok {
 		r2 = returnFunc(ctx, sc, req)
@@ -4541,18 +4541,18 @@ func (_c *MockService_ListDevices_Call) Run(run func(ctx context.Context, sc sco
 	return _c
 }
 
-func (_c *MockService_ListDevices_Call) Return(devices []models.Device, n int, err error) *MockService_ListDevices_Call {
+func (_c *MockService_ListDevices_Call) Return(devices []models.Device, n int64, err error) *MockService_ListDevices_Call {
 	_c.Call.Return(devices, n, err)
 	return _c
 }
 
-func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error)) *MockService_ListDevices_Call {
+func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error)) *MockService_ListDevices_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListInstanceAPIKeys provides a mock function for the type MockService
-func (_mock *MockService) ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error) {
+func (_mock *MockService) ListInstanceAPIKeys(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4560,9 +4560,9 @@ func (_mock *MockService) ListInstanceAPIKeys(ctx context.Context, req *requests
 	}
 
 	var r0 []models.InstanceAPIKey
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstanceAPIKey) []models.InstanceAPIKey); ok {
@@ -4572,10 +4572,10 @@ func (_mock *MockService) ListInstanceAPIKeys(ctx context.Context, req *requests
 			r0 = ret.Get(0).([]models.InstanceAPIKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListInstanceAPIKey) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListInstanceAPIKey) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListInstanceAPIKey) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4615,18 +4615,18 @@ func (_c *MockService_ListInstanceAPIKeys_Call) Run(run func(ctx context.Context
 	return _c
 }
 
-func (_c *MockService_ListInstanceAPIKeys_Call) Return(apiKeys []models.InstanceAPIKey, count int, err error) *MockService_ListInstanceAPIKeys_Call {
+func (_c *MockService_ListInstanceAPIKeys_Call) Return(apiKeys []models.InstanceAPIKey, count int64, err error) *MockService_ListInstanceAPIKeys_Call {
 	_c.Call.Return(apiKeys, count, err)
 	return _c
 }
 
-func (_c *MockService_ListInstanceAPIKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int, error)) *MockService_ListInstanceAPIKeys_Call {
+func (_c *MockService_ListInstanceAPIKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int64, error)) *MockService_ListInstanceAPIKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListNamespaceMembers provides a mock function for the type MockService
-func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error) {
+func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4634,9 +4634,9 @@ func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *request
 	}
 
 	var r0 []models.MemberView
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) ([]models.MemberView, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) ([]models.MemberView, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) []models.MemberView); ok {
@@ -4646,10 +4646,10 @@ func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *request
 			r0 = ret.Get(0).([]models.MemberView)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.MemberList) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.MemberList) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.MemberList) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4689,18 +4689,18 @@ func (_c *MockService_ListNamespaceMembers_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockService_ListNamespaceMembers_Call) Return(memberViews []models.MemberView, n int, err error) *MockService_ListNamespaceMembers_Call {
+func (_c *MockService_ListNamespaceMembers_Call) Return(memberViews []models.MemberView, n int64, err error) *MockService_ListNamespaceMembers_Call {
 	_c.Call.Return(memberViews, n, err)
 	return _c
 }
 
-func (_c *MockService_ListNamespaceMembers_Call) RunAndReturn(run func(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)) *MockService_ListNamespaceMembers_Call {
+func (_c *MockService_ListNamespaceMembers_Call) RunAndReturn(run func(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)) *MockService_ListNamespaceMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListNamespaces provides a mock function for the type MockService
-func (_mock *MockService) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
+func (_mock *MockService) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4708,9 +4708,9 @@ func (_mock *MockService) ListNamespaces(ctx context.Context, req *requests.Name
 	}
 
 	var r0 []models.Namespace
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceList) ([]models.Namespace, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceList) ([]models.Namespace, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceList) []models.Namespace); ok {
@@ -4720,10 +4720,10 @@ func (_mock *MockService) ListNamespaces(ctx context.Context, req *requests.Name
 			r0 = ret.Get(0).([]models.Namespace)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceList) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceList) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.NamespaceList) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4763,18 +4763,18 @@ func (_c *MockService_ListNamespaces_Call) Run(run func(ctx context.Context, req
 	return _c
 }
 
-func (_c *MockService_ListNamespaces_Call) Return(namespaces []models.Namespace, n int, err error) *MockService_ListNamespaces_Call {
+func (_c *MockService_ListNamespaces_Call) Return(namespaces []models.Namespace, n int64, err error) *MockService_ListNamespaces_Call {
 	_c.Call.Return(namespaces, n, err)
 	return _c
 }
 
-func (_c *MockService_ListNamespaces_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)) *MockService_ListNamespaces_Call {
+func (_c *MockService_ListNamespaces_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error)) *MockService_ListNamespaces_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListProvisioningKeyEvents provides a mock function for the type MockService
-func (_mock *MockService) ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int, error) {
+func (_mock *MockService) ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4782,9 +4782,9 @@ func (_mock *MockService) ListProvisioningKeyEvents(ctx context.Context, req *re
 	}
 
 	var r0 []models.ProvisioningKeyEvent
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKeyEvents) []models.ProvisioningKeyEvent); ok {
@@ -4794,10 +4794,10 @@ func (_mock *MockService) ListProvisioningKeyEvents(ctx context.Context, req *re
 			r0 = ret.Get(0).([]models.ProvisioningKeyEvent)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListProvisioningKeyEvents) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListProvisioningKeyEvents) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListProvisioningKeyEvents) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4837,18 +4837,18 @@ func (_c *MockService_ListProvisioningKeyEvents_Call) Run(run func(ctx context.C
 	return _c
 }
 
-func (_c *MockService_ListProvisioningKeyEvents_Call) Return(events []models.ProvisioningKeyEvent, count int, err error) *MockService_ListProvisioningKeyEvents_Call {
+func (_c *MockService_ListProvisioningKeyEvents_Call) Return(events []models.ProvisioningKeyEvent, count int64, err error) *MockService_ListProvisioningKeyEvents_Call {
 	_c.Call.Return(events, count, err)
 	return _c
 }
 
-func (_c *MockService_ListProvisioningKeyEvents_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int, error)) *MockService_ListProvisioningKeyEvents_Call {
+func (_c *MockService_ListProvisioningKeyEvents_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error)) *MockService_ListProvisioningKeyEvents_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListProvisioningKeys provides a mock function for the type MockService
-func (_mock *MockService) ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int, error) {
+func (_mock *MockService) ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4856,9 +4856,9 @@ func (_mock *MockService) ListProvisioningKeys(ctx context.Context, req *request
 	}
 
 	var r0 []models.ProvisioningKey
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKey) ([]models.ProvisioningKey, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKey) ([]models.ProvisioningKey, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListProvisioningKey) []models.ProvisioningKey); ok {
@@ -4868,10 +4868,10 @@ func (_mock *MockService) ListProvisioningKeys(ctx context.Context, req *request
 			r0 = ret.Get(0).([]models.ProvisioningKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListProvisioningKey) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListProvisioningKey) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListProvisioningKey) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4911,18 +4911,18 @@ func (_c *MockService_ListProvisioningKeys_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockService_ListProvisioningKeys_Call) Return(provisioningKeys []models.ProvisioningKey, count int, err error) *MockService_ListProvisioningKeys_Call {
+func (_c *MockService_ListProvisioningKeys_Call) Return(provisioningKeys []models.ProvisioningKey, count int64, err error) *MockService_ListProvisioningKeys_Call {
 	_c.Call.Return(provisioningKeys, count, err)
 	return _c
 }
 
-func (_c *MockService_ListProvisioningKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int, error)) *MockService_ListProvisioningKeys_Call {
+func (_c *MockService_ListProvisioningKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int64, error)) *MockService_ListProvisioningKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPublicKeys provides a mock function for the type MockService
-func (_mock *MockService) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error) {
+func (_mock *MockService) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -4930,9 +4930,9 @@ func (_mock *MockService) ListPublicKeys(ctx context.Context, req *requests.List
 	}
 
 	var r0 []models.PublicKey
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListPublicKeys) ([]models.PublicKey, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListPublicKeys) ([]models.PublicKey, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListPublicKeys) []models.PublicKey); ok {
@@ -4942,10 +4942,10 @@ func (_mock *MockService) ListPublicKeys(ctx context.Context, req *requests.List
 			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListPublicKeys) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListPublicKeys) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListPublicKeys) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -4985,12 +4985,12 @@ func (_c *MockService_ListPublicKeys_Call) Run(run func(ctx context.Context, req
 	return _c
 }
 
-func (_c *MockService_ListPublicKeys_Call) Return(publicKeys []models.PublicKey, n int, err error) *MockService_ListPublicKeys_Call {
+func (_c *MockService_ListPublicKeys_Call) Return(publicKeys []models.PublicKey, n int64, err error) *MockService_ListPublicKeys_Call {
 	_c.Call.Return(publicKeys, n, err)
 	return _c
 }
 
-func (_c *MockService_ListPublicKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error)) *MockService_ListPublicKeys_Call {
+func (_c *MockService_ListPublicKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int64, error)) *MockService_ListPublicKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5064,7 +5064,7 @@ func (_c *MockService_ListSSHIdentities_Call) RunAndReturn(run func(ctx context.
 }
 
 // ListSessions provides a mock function for the type MockService
-func (_mock *MockService) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
+func (_mock *MockService) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int64, error) {
 	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
@@ -5072,9 +5072,9 @@ func (_mock *MockService) ListSessions(ctx context.Context, sc scope.Scope, req 
 	}
 
 	var r0 []models.Session
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.ListSessions) ([]models.Session, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.ListSessions) ([]models.Session, int64, error)); ok {
 		return returnFunc(ctx, sc, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.ListSessions) []models.Session); ok {
@@ -5084,10 +5084,10 @@ func (_mock *MockService) ListSessions(ctx context.Context, sc scope.Scope, req 
 			r0 = ret.Get(0).([]models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.ListSessions) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.ListSessions) int64); ok {
 		r1 = returnFunc(ctx, sc, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.ListSessions) error); ok {
 		r2 = returnFunc(ctx, sc, req)
@@ -5133,18 +5133,18 @@ func (_c *MockService_ListSessions_Call) Run(run func(ctx context.Context, sc sc
 	return _c
 }
 
-func (_c *MockService_ListSessions_Call) Return(sessions []models.Session, n int, err error) *MockService_ListSessions_Call {
+func (_c *MockService_ListSessions_Call) Return(sessions []models.Session, n int64, err error) *MockService_ListSessions_Call {
 	_c.Call.Return(sessions, n, err)
 	return _c
 }
 
-func (_c *MockService_ListSessions_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error)) *MockService_ListSessions_Call {
+func (_c *MockService_ListSessions_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int64, error)) *MockService_ListSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListTags provides a mock function for the type MockService
-func (_mock *MockService) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int, error) {
+func (_mock *MockService) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -5152,9 +5152,9 @@ func (_mock *MockService) ListTags(ctx context.Context, req *requests.ListTags) 
 	}
 
 	var r0 []models.Tag
-	var r1 int
+	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListTags) ([]models.Tag, int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListTags) ([]models.Tag, int64, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListTags) []models.Tag); ok {
@@ -5164,10 +5164,10 @@ func (_mock *MockService) ListTags(ctx context.Context, req *requests.ListTags) 
 			r0 = ret.Get(0).([]models.Tag)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListTags) int); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListTags) int64); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(int64)
 	}
 	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListTags) error); ok {
 		r2 = returnFunc(ctx, req)
@@ -5207,12 +5207,12 @@ func (_c *MockService_ListTags_Call) Run(run func(ctx context.Context, req *requ
 	return _c
 }
 
-func (_c *MockService_ListTags_Call) Return(tags []models.Tag, totalCount int, err error) *MockService_ListTags_Call {
+func (_c *MockService_ListTags_Call) Return(tags []models.Tag, totalCount int64, err error) *MockService_ListTags_Call {
 	_c.Call.Return(tags, totalCount, err)
 	return _c
 }
 
-func (_c *MockService_ListTags_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTags) ([]models.Tag, int, error)) *MockService_ListTags_Call {
+func (_c *MockService_ListTags_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error)) *MockService_ListTags_Call {
 	_c.Call.Return(run)
 	return _c
 }

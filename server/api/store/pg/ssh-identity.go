@@ -34,7 +34,7 @@ func (pg *Pg) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentit
 }
 
 // SSHIdentityList implements [store.SSHIdentityStore].
-func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
+func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.SSHIdentity, 0)
@@ -58,7 +58,7 @@ func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store
 		identities[i] = *entity.SSHIdentityToModel(&e)
 	}
 
-	return identities, int(count), nil
+	return identities, count, nil
 }
 
 // SSHIdentityResolve implements [store.SSHIdentityStore].

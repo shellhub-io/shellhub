@@ -29,7 +29,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Empty(t, devices)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("succeeds when devices are found", func(t *testing.T) {
@@ -46,7 +46,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count)
+		assert.Equal(t, int64(4), count)
 		assert.Len(t, devices, 4)
 	})
 
@@ -64,7 +64,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: 2, PerPage: 2}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count, "total count should be 4")
+		assert.Equal(t, int64(4), count, "total count should be 4")
 		assert.Len(t, devices, 2, "page 2 should have 2 items")
 	})
 
@@ -83,7 +83,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, devices, 3)
 	})
 
@@ -102,7 +102,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, devices, 3)
 	})
 
@@ -135,7 +135,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, devices, 3)
 
 		devices, count, err = st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
@@ -145,7 +145,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, devices, 1)
 		assert.Equal(t, "device-1", devices[0].Name)
 
@@ -156,7 +156,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, devices)
 
 		_ = dev2
@@ -184,7 +184,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, devices, 1)
 		assert.Equal(t, "device-1", devices[0].Name)
 	})
@@ -203,7 +203,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 
 		for _, d := range devices {
 			if d.Status == models.DeviceStatusRemoved {
@@ -226,7 +226,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 
 		for _, d := range devices {
 			assert.False(t, d.Acceptable, "all devices should have acceptable=false in AsFalse mode")
@@ -245,7 +245,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 
 		for _, d := range devices {
 			assert.True(t, d.Acceptable, "all devices should have acceptable=true in default mode")
@@ -270,7 +270,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, devices, 2)
 	})
 
@@ -292,7 +292,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, devices, 2)
 	})
 
@@ -310,7 +310,7 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, devices, 1)
 		assert.Equal(t, models.DeviceStatusPending, devices[0].Status)
 	})

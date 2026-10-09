@@ -19,5 +19,5 @@ type StatsStore interface {
 	// It exists alongside GetStats for callers that need this count alone: GetStats answers five
 	// questions, four of them by scanning the devices table, and a caller that wants one of them
 	// pays for all five.
-	CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, error)
+	CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int64, error)
 }

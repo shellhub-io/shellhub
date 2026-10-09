@@ -47,12 +47,12 @@ func (s *Suite) TestScopeIsolationDeviceList(t *testing.T) {
 
 	devices, count, err := st.DeviceList(ctx, scope.MustBounded(owner), store.DeviceAcceptableAsFalse)
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, devices, 1)
 
 	devices, count, err = st.DeviceList(ctx, scope.MustBounded(other), store.DeviceAcceptableAsFalse)
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, devices)
 }
 
@@ -288,12 +288,12 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventList(t *testing.T) {
 
 	events, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, events, 1)
 
 	events, count, err = st.ProvisioningKeyEventList(ctx, scope.MustBounded(other), digest)
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, events)
 }
 
@@ -310,12 +310,12 @@ func (s *Suite) TestScopeIsolationAPIKeyList(t *testing.T) {
 
 	keys, count, err := st.APIKeyList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, keys, 1)
 
 	keys, count, err = st.APIKeyList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, keys)
 }
 
@@ -332,12 +332,12 @@ func (s *Suite) TestScopeIsolationPublicKeyList(t *testing.T) {
 
 	keys, count, err := st.PublicKeyList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, keys, 1)
 
 	keys, count, err = st.PublicKeyList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, keys)
 }
 
@@ -359,12 +359,12 @@ func (s *Suite) TestScopeIsolationNamespaceGetMembers(t *testing.T) {
 
 	members, count, err := st.NamespaceGetMembers(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 2, count)
+	assert.Equal(t, int64(2), count)
 	assert.ElementsMatch(t, []string{ownerUserID, memberID}, memberIDs(members))
 
 	members, count, err = st.NamespaceGetMembers(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Equal(t, []string{otherOwnerUserID}, memberIDs(members), "the other namespace holds its owner and nobody else")
 }
 
@@ -441,15 +441,15 @@ func (s *Suite) TestScopeIsolationGetStats(t *testing.T) {
 
 	ownerStats, err := st.GetStats(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, ownerStats.RegisteredDevices)
+	assert.Equal(t, int64(1), ownerStats.RegisteredDevices)
 
 	otherStats, err := st.GetStats(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, otherStats.RegisteredDevices)
+	assert.Equal(t, int64(0), otherStats.RegisteredDevices)
 
 	allStats, err := st.GetStats(ctx, scope.NewUnbounded("test: instance-wide statistics span every namespace"))
 	require.NoError(t, err)
-	assert.Equal(t, 1, allStats.RegisteredDevices)
+	assert.Equal(t, int64(1), allStats.RegisteredDevices)
 }
 
 // TestScopeIsolationCountRegisteredDevices pins that the narrow count honours the scope it is
@@ -465,15 +465,15 @@ func (s *Suite) TestScopeIsolationCountRegisteredDevices(t *testing.T) {
 
 	ownerCount, err := st.CountRegisteredDevices(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, ownerCount)
+	assert.Equal(t, int64(1), ownerCount)
 
 	otherCount, err := st.CountRegisteredDevices(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, otherCount)
+	assert.Equal(t, int64(0), otherCount)
 
 	allCount, err := st.CountRegisteredDevices(ctx, scope.NewUnbounded("test: instance-wide device count spans every namespace"))
 	require.NoError(t, err)
-	assert.Equal(t, 1, allCount)
+	assert.Equal(t, int64(1), allCount)
 }
 
 // TestScopeRejectsUnconstructedScope pins the zero value: a [scope.Scope] that was never built is
@@ -679,12 +679,12 @@ func (s *Suite) TestScopeIsolationTagList(t *testing.T) {
 
 	tags, count, err := st.TagList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, tags, 1)
 
 	tags, count, err = st.TagList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, tags)
 }
 
@@ -702,12 +702,12 @@ func (s *Suite) TestScopeIsolationSessionList(t *testing.T) {
 
 	sessions, count, err := st.SessionList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, sessions, 1)
 
 	sessions, count, err = st.SessionList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, sessions)
 }
 
@@ -845,12 +845,12 @@ func (s *Suite) TestScopeIsolationSSHIdentityList(t *testing.T) {
 
 	identities, count, err := st.SSHIdentityList(ctx, scope.MustBounded(owner))
 	require.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.Equal(t, int64(1), count)
 	assert.Len(t, identities, 1)
 
 	identities, count, err = st.SSHIdentityList(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
-	assert.Equal(t, 0, count)
+	assert.Equal(t, int64(0), count)
 	assert.Empty(t, identities)
 }
 
@@ -1013,7 +1013,7 @@ func (s *Suite) TestScopeIsolationSessionEventsCreateMany(t *testing.T) {
 		return models.SessionEvent{Session: string(uid), Type: models.SessionEventTypePtyRequest, Timestamp: clock.Now()}
 	}
 
-	count := func(uid models.UID) int {
+	count := func(uid models.UID) int64 {
 		_, n, err := st.SessionEventsList(ctx, uid, 0, models.SessionEventTypePtyRequest)
 		require.NoError(t, err)
 
@@ -1023,20 +1023,20 @@ func (s *Suite) TestScopeIsolationSessionEventsCreateMany(t *testing.T) {
 	require.ErrorIs(t,
 		st.SessionEventsCreateMany(ctx, scope.MustBounded(other), []models.SessionEvent{event(ownerSession)}),
 		store.ErrNoDocuments)
-	assert.Equal(t, 0, count(ownerSession), "a batch bounded to another namespace writes nothing")
+	assert.Equal(t, int64(0), count(ownerSession), "a batch bounded to another namespace writes nothing")
 
 	require.ErrorIs(t,
 		st.SessionEventsCreateMany(ctx, scope.MustBounded(owner), []models.SessionEvent{event(ownerSession), event(otherSession)}),
 		store.ErrNoDocuments)
-	assert.Equal(t, 0, count(ownerSession), "a batch with one event outside the namespace writes none of it")
-	assert.Equal(t, 0, count(otherSession))
+	assert.Equal(t, int64(0), count(ownerSession), "a batch with one event outside the namespace writes none of it")
+	assert.Equal(t, int64(0), count(otherSession))
 
 	require.ErrorIs(t,
 		st.SessionEventsCreateMany(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []models.SessionEvent{event(ownerSession)}),
 		store.ErrInvalidScope)
 
 	require.NoError(t, st.SessionEventsCreateMany(ctx, scope.MustBounded(owner), []models.SessionEvent{event(ownerSession), event(ownerSession)}))
-	assert.Equal(t, 2, count(ownerSession))
+	assert.Equal(t, int64(2), count(ownerSession))
 }
 
 func (s *Suite) sessionLastSeen(t *testing.T, tenantID string, uid models.UID) time.Time {

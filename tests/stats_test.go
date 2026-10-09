@@ -41,14 +41,14 @@ func TestStatsDeviceCounts(t *testing.T) {
 	t.Run("the first device counts as pending until it is accepted", func(t *testing.T) {
 		current := stats(t)
 		assert.Zero(t, current.RegisteredDevices)
-		assert.Equal(t, 1, current.PendingDevices)
+		assert.Equal(t, int64(1), current.PendingDevices)
 	})
 
 	t.Run("the first accepted device counts as registered", func(t *testing.T) {
 		compose.UpdateDeviceStatus(t, uid, environment.DeviceActionAccept)
 
 		current := stats(t)
-		assert.Equal(t, 1, current.RegisteredDevices)
+		assert.Equal(t, int64(1), current.RegisteredDevices)
 		assert.Zero(t, current.PendingDevices)
 	})
 }

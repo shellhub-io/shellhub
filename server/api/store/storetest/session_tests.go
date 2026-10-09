@@ -29,7 +29,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Empty(t, sessions)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("succeeds when sessions are found", func(t *testing.T) {
@@ -45,7 +45,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count)
+		assert.Equal(t, int64(4), count)
 		assert.Len(t, sessions, 4)
 	})
 
@@ -64,7 +64,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, sessions, 3)
 	})
 
@@ -83,7 +83,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 
 		for _, session := range sessions {
@@ -103,7 +103,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant2))
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, sessions)
 	})
 
@@ -121,13 +121,13 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}))
 		require.NoError(t, err)
-		assert.Equal(t, 5, count)
+		assert.Equal(t, int64(5), count)
 		assert.Len(t, sessions, 2)
 
 		sessions, count, err = st.SessionList(ctx, scope.MustBounded(tenant),
 			st.Options().Paginate(&query.Paginator{Page: 3, PerPage: 2}))
 		require.NoError(t, err)
-		assert.Equal(t, 5, count)
+		assert.Equal(t, int64(5), count)
 		assert.Len(t, sessions, 1)
 	})
 
@@ -156,7 +156,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
 			assert.Equal(t, device1, s.DeviceUID)
@@ -185,7 +185,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 
 		for _, s := range sessions {
@@ -216,7 +216,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
 			assert.False(t, s.Active)
@@ -246,7 +246,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
 			assert.True(t, s.Active)
@@ -278,7 +278,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Positive(t, count)
 		assert.NotEmpty(t, sessions)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
 			assert.True(t, s.Active)
@@ -310,7 +310,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Positive(t, count)
 		assert.NotEmpty(t, sessions)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, sessions, 2)
 		for _, s := range sessions {
 			assert.False(t, s.Active)
@@ -599,7 +599,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		events, count, err := st.SessionEventsList(ctx, "nonexistent", 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
 		assert.Empty(t, events)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("succeeds when events are found", func(t *testing.T) {
@@ -622,7 +622,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, events, 3)
 	})
 
@@ -648,7 +648,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, events, 2)
 	})
 
@@ -681,7 +681,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, events, 1)
 	})
 }
@@ -721,7 +721,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, events)
 	})
 
@@ -748,12 +748,12 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 
 		events1, count1, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count1)
+		assert.Equal(t, int64(0), count1)
 		assert.Empty(t, events1)
 
 		events2, count2, err := st.SessionEventsList(ctx, sessionUID, 2, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count2)
+		assert.Equal(t, int64(1), count2)
 		assert.Len(t, events2, 1)
 	})
 
@@ -789,12 +789,12 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 
 		events1, count1, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count1)
+		assert.Equal(t, int64(0), count1)
 		assert.Empty(t, events1)
 
 		events2, count2, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyRequest)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count2)
+		assert.Equal(t, int64(1), count2)
 		assert.Len(t, events2, 1)
 	})
 }
@@ -829,7 +829,7 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 		return uids
 	}
 
-	prune := func(t *testing.T, limit int) int64 {
+	prune := func(t *testing.T, limit int64) int64 {
 		t.Helper()
 
 		expired, err := st.SessionListExpired(ctx, cutoff, limit)
@@ -957,7 +957,7 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 
 		_, count, err := st.SessionEventsList(ctx, uid, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("lists nothing when the limit is not positive", func(t *testing.T) {

@@ -28,7 +28,7 @@ func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error)
 }
 
 // UserList implements [store.UserStore].
-func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
+func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.User, 0)
@@ -50,7 +50,7 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 		users[i] = *entity.UserToModel(&e)
 	}
 
-	return users, int(count), nil
+	return users, count, nil
 }
 
 // UserResolve implements [store.UserStore].

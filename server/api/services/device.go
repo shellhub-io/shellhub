@@ -59,7 +59,7 @@ var DeviceSortFields = query.NewFieldSet(
 // DeviceService owns the device lifecycle: enrolment, acceptance, renaming, tagging and
 // removal, all within a namespace scope.
 type DeviceService interface {
-	ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error)
 
 	// GetDevice fetches a device within the given namespace scope. The scope is an explicit
 	// parameter rather than something recovered from the request context, so a caller cannot
@@ -131,7 +131,7 @@ func (s *service) deviceLimit(ctx context.Context, tenantID string) (models.Name
 	return s.store.NamespaceGetDeviceLimit(ctx, tenantID)
 }
 
-func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error) {
 	opts := []store.QueryOption{}
 
 	if req.DeviceStatus != "" {

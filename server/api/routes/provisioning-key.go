@@ -75,7 +75,7 @@ func (h *Handler) ListProvisioningKeys(c *gateway.Context) error {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, res)
 }
@@ -170,7 +170,7 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, events)
 }

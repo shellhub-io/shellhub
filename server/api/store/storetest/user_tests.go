@@ -40,7 +40,7 @@ func (s *Suite) TestUserList(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, users, 3)
 	})
 }

@@ -31,7 +31,7 @@ type ExpiredSession struct {
 type SessionStore interface {
 	// SessionList retrieves a list of sessions based on the provided filters and pagination settings.
 	// It returns the list of sessions, the total count of matching documents, and an error if any.
-	SessionList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.Session, int, error)
+	SessionList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.Session, int64, error)
 	// SessionResolve fetches a session using a specific resolver within the given namespace scope.
 	// It returns the resolved session if found and an error, if any.
 	SessionResolve(ctx context.Context, sc scope.Scope, resolver SessionResolver, value string, opts ...QueryOption) (*models.Session, error)
@@ -77,14 +77,14 @@ type SessionStore interface {
 	// empty slice with a bounded scope is a no-op.
 	SessionEventsCreateMany(ctx context.Context, sc scope.Scope, events []models.SessionEvent) error
 	// SessionEventsList retrieves session events based on filters. It returns the list of events, total count, and an error if any.
-	SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...QueryOption) ([]models.SessionEvent, int, error)
+	SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...QueryOption) ([]models.SessionEvent, int64, error)
 	// SessionEventsDelete removes session events based on filters. It returns an error if any.
 	SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error
 	// SessionEventsTimeline returns a session's events oldest first, across every seat, at most
 	// limit of them, and never the terminal output type. It returns an empty slice when the
 	// session recorded nothing a reader can follow, and a limit that is not positive returns
 	// nothing.
-	SessionEventsTimeline(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error)
+	SessionEventsTimeline(ctx context.Context, uid models.UID, limit int64) ([]models.SessionEvent, error)
 
 	// SessionUpdateDeviceUID updates device UID references across sessions. It returns an error if any.
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
@@ -95,7 +95,7 @@ type SessionStore interface {
 	//
 	// Listing is separate from deleting so a caller can act on what a session owns outside the
 	// database while the row that names it still exists.
-	SessionListExpired(ctx context.Context, before time.Time, limit int) ([]ExpiredSession, error)
+	SessionListExpired(ctx context.Context, before time.Time, limit int64) ([]ExpiredSession, error)
 
 	// SessionDeleteMany deletes the given sessions, cascading into their events. It returns the
 	// number deleted, which may be lower than the number asked for if a session went away in

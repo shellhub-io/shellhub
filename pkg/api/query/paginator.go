@@ -1,7 +1,5 @@
 package query
 
-import "math"
-
 // The bounds a paginator is normalized into. Anything outside them is clamped rather than
 // rejected, so a client cannot ask for an unbounded page.
 const (
@@ -14,10 +12,10 @@ const (
 // Paginator represents the paginator parameters in a query.
 type Paginator struct {
 	// Page represents the current page number.
-	Page int `query:"page"`
+	Page int64 `query:"page"`
 
 	// PerPage represents the number of items per page.
-	PerPage int `query:"per_page"`
+	PerPage int64 `query:"per_page"`
 }
 
 // NewPaginator creates and returns a new Paginator instance with MinPage and DefaultPerPage.
@@ -33,11 +31,11 @@ func NewPaginator() *Paginator {
 // If query.Page is less than one, it is set to `MinPage`.
 // The maximum allowed value for query.PerPage is `MaxPerPage`.
 func (p *Paginator) Normalize() {
-	p.Page = int(math.Max(float64(MinPage), float64(p.Page)))
+	p.Page = max(MinPage, p.Page)
 
 	if p.PerPage == 0 {
 		p.PerPage = DefaultPerPage
 	} else {
-		p.PerPage = int(math.Max(math.Min(float64(p.PerPage), float64(MaxPerPage)), float64(MinPerPage)))
+		p.PerPage = min(max(p.PerPage, MinPerPage), MaxPerPage)
 	}
 }

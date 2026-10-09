@@ -319,7 +319,7 @@ func TestListInstanceAPIKeys(t *testing.T) {
 		Once()
 	storeMock.
 		On("InstanceAPIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
-		Return(expected, 1, nil).
+		Return(expected, int64(1), nil).
 		Once()
 
 	apiKeys, count, err := s.ListInstanceAPIKeys(ctx, &requests.ListInstanceAPIKey{
@@ -328,7 +328,7 @@ func TestListInstanceAPIKeys(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	require.Equal(t, 1, count)
+	require.Equal(t, int64(1), count)
 	require.Equal(t, expected, apiKeys)
 
 	storeMock.AssertExpectations(t)

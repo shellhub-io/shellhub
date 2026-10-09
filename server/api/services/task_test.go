@@ -88,7 +88,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 0, errors.New("database error")).
+					Return([]models.Device{}, int64(0), errors.New("database error")).
 					Once()
 			},
 			expected: errors.New("database error"),
@@ -102,7 +102,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 0, nil).
+					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
 			expected: nil,
@@ -116,7 +116,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 1000, nil).
+					Return([]models.Device{}, int64(1000), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -132,7 +132,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
-					Return([]models.Device{}, 0, errors.New("page error")).
+					Return([]models.Device{}, int64(0), errors.New("page error")).
 					Once()
 			},
 			expected: errors.New("page error"),
@@ -146,7 +146,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 2, nil).
+					Return([]models.Device{}, int64(2), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -167,7 +167,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 						},
-						2,
+						int64(2),
 						nil,
 					).
 					Once()
@@ -187,7 +187,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 3, nil).
+					Return([]models.Device{}, int64(3), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -209,7 +209,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 							{UID: "device-3", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
-						3,
+						int64(3),
 						nil,
 					).
 					Once()
@@ -237,7 +237,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 3, nil).
+					Return([]models.Device{}, int64(3), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -259,7 +259,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 							{UID: "device-3", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
-						3,
+						int64(3),
 						nil,
 					).
 					Once()
@@ -287,7 +287,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
-					Return([]models.Device{}, 2001, nil).
+					Return([]models.Device{}, int64(2001), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -307,7 +307,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 						},
-						2001,
+						int64(2001),
 						nil,
 					).
 					Once()
@@ -333,7 +333,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 						[]models.Device{
 							{UID: "device-2", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
-						2001,
+						int64(2001),
 						nil,
 					).
 					Once()
@@ -355,7 +355,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
-					Return([]models.Device{}, 2001, nil).
+					Return([]models.Device{}, int64(2001), nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-1)).
@@ -473,7 +473,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   retention,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(nil, errors.New("database error")).
 					Once()
 			},
@@ -484,7 +484,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   retention,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return([]store.ExpiredSession{}, nil).
 					Once()
 			},
@@ -495,7 +495,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   retention,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(expired(3), nil).
 					Once()
 				storeMock.
@@ -511,7 +511,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				batch := expired(sessionCleanupBatchSize - 1)
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(batch, nil).
 					Once()
 				storeMock.
@@ -526,7 +526,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   retention,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(full, nil).
 					Once()
 				storeMock.
@@ -534,7 +534,7 @@ func TestService_SessionCleanup(t *testing.T) {
 					Return(int64(sessionCleanupBatchSize), nil).
 					Once()
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return([]store.ExpiredSession{}, nil).
 					Once()
 			},
@@ -545,7 +545,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			retention:   retention,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(full, nil).
 					Times(sessionCleanupMaxBatches)
 				storeMock.
@@ -561,7 +561,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(expired(3), nil).
 					Once()
 				storeMock.
@@ -582,7 +582,7 @@ func TestService_SessionCleanup(t *testing.T) {
 				}
 
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(batch, nil).
 					Once()
 
@@ -613,7 +613,7 @@ func TestService_SessionCleanup(t *testing.T) {
 				}
 
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(batch, nil).
 					Once()
 				pruner.
@@ -633,7 +633,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return([]store.ExpiredSession{{UID: "stuck", Recorded: true}}, nil).
 					Once()
 				pruner.
@@ -649,7 +649,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				storeMock.
-					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return([]store.ExpiredSession{{UID: "a", Recorded: true}}, nil).
 					Once()
 				pruner.

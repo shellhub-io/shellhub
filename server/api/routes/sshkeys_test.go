@@ -41,7 +41,7 @@ func TestGetPublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("ListPublicKeys", gomock.Anything, &requests.ListPublicKeys{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
-					Return([]models.PublicKey{}, 1, nil).
+					Return([]models.PublicKey{}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{

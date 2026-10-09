@@ -32,9 +32,9 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		assert.Equal(t, 3, stats.RegisteredDevices) // 2 accepted from tenant1 + 1 from tenant2
-		assert.Equal(t, 1, stats.ActiveSessions)
-		assert.Equal(t, 1, stats.PendingDevices)
+		assert.Equal(t, int64(3), stats.RegisteredDevices)
+		assert.Equal(t, int64(1), stats.ActiveSessions)
+		assert.Equal(t, int64(1), stats.PendingDevices)
 	})
 
 	t.Run("succeeds with specific tenantID", func(t *testing.T) {
@@ -55,9 +55,9 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		assert.Equal(t, 3, stats.RegisteredDevices) // 3 accepted devices from tenant1
-		assert.Equal(t, 1, stats.ActiveSessions)
-		assert.Equal(t, 1, stats.PendingDevices)
+		assert.Equal(t, int64(3), stats.RegisteredDevices)
+		assert.Equal(t, int64(1), stats.ActiveSessions)
+		assert.Equal(t, int64(1), stats.PendingDevices)
 	})
 
 	t.Run("succeeds with non-existent tenantID", func(t *testing.T) {
@@ -73,10 +73,10 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		assert.Equal(t, 0, stats.RegisteredDevices)
-		assert.Equal(t, 0, stats.ActiveSessions)
-		assert.Equal(t, 0, stats.PendingDevices)
-		assert.Equal(t, 0, stats.RejectedDevices)
+		assert.Equal(t, int64(0), stats.RegisteredDevices)
+		assert.Equal(t, int64(0), stats.ActiveSessions)
+		assert.Equal(t, int64(0), stats.PendingDevices)
+		assert.Equal(t, int64(0), stats.RejectedDevices)
 	})
 }
 
@@ -102,8 +102,8 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		assert.Equal(t, 1, stats.OnlineDevices)
-		assert.Equal(t, 2, stats.RegisteredDevices, "both devices are registered regardless of presence")
+		assert.Equal(t, int64(1), stats.OnlineDevices)
+		assert.Equal(t, int64(2), stats.RegisteredDevices, "both devices are registered regardless of presence")
 	})
 
 	t.Run("moving the clock past the window takes a device offline", func(t *testing.T) {
@@ -115,13 +115,13 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 
 		stats, err := st.GetStats(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
-		assert.Equal(t, 1, stats.OnlineDevices)
+		assert.Equal(t, int64(1), stats.OnlineDevices)
 
 		clk.now = now.Add(2 * time.Minute)
 
 		stats, err = st.GetStats(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
-		assert.Equal(t, 0, stats.OnlineDevices, "the window follows the clock, not wall time")
+		assert.Equal(t, int64(0), stats.OnlineDevices, "the window follows the clock, not wall time")
 	})
 }
 
@@ -147,7 +147,7 @@ func (s *Suite) TestCountRegisteredDevices(t *testing.T) {
 		count, err := st.CountRegisteredDevices(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 		require.NoError(t, err)
 
-		assert.Equal(t, 3, count, "2 accepted from tenant1 + 1 from tenant2, ignoring pending and rejected")
+		assert.Equal(t, int64(3), count, "2 accepted from tenant1 + 1 from tenant2, ignoring pending and rejected")
 	})
 
 	t.Run("counts only the scoped namespace when bounded", func(t *testing.T) {
@@ -164,7 +164,7 @@ func (s *Suite) TestCountRegisteredDevices(t *testing.T) {
 		count, err := st.CountRegisteredDevices(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
 
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 	})
 
 	t.Run("returns zero for a namespace with no accepted devices", func(t *testing.T) {
@@ -176,7 +176,7 @@ func (s *Suite) TestCountRegisteredDevices(t *testing.T) {
 		count, err := st.CountRegisteredDevices(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
 
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("agrees with GetStats", func(t *testing.T) {

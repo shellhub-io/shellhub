@@ -56,7 +56,7 @@ func (s *Suite) TestProvisioningKeyEventCreate(t *testing.T) {
 
 		events, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		require.Len(t, events, 1)
 
 		got := events[0]
@@ -124,7 +124,7 @@ func (s *Suite) TestProvisioningKeyEventList(t *testing.T) {
 		events, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest,
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}))
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, events, 2)
 	})
 
@@ -138,14 +138,14 @@ func (s *Suite) TestProvisioningKeyEventList(t *testing.T) {
 
 		before, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
-		require.Equal(t, 1, count)
+		require.Equal(t, int64(1), count)
 		original := before[0]
 
 		appendEvent(t, tenantID, digest, "second")
 
 		after, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 
 		var still *models.ProvisioningKeyEvent
 		for i := range after {
@@ -165,7 +165,7 @@ func (s *Suite) TestProvisioningKeyEventList(t *testing.T) {
 
 		events, count, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, events)
 	})
 }

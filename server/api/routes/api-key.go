@@ -73,7 +73,7 @@ func (h *Handler) ListAPIKeys(c *gateway.Context) error {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, res)
 }

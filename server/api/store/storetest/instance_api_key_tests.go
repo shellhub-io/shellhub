@@ -104,7 +104,7 @@ func (s *Suite) TestInstanceAPIKeyList(t *testing.T) {
 
 		apiKeys, count, err := st.InstanceAPIKeyList(ctx)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, apiKeys)
 	})
 
@@ -116,7 +116,7 @@ func (s *Suite) TestInstanceAPIKeyList(t *testing.T) {
 
 		apiKeys, count, err := st.InstanceAPIKeyList(ctx)
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		require.Len(t, apiKeys, 2)
 
 		names := []string{apiKeys[0].Name, apiKeys[1].Name}

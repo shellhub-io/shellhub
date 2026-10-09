@@ -68,7 +68,7 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 
 		pubKeys, count, err := st.PublicKeyList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, pubKeys)
 	})
 
@@ -79,7 +79,7 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 
 		pubKeys, count, err := st.PublicKeyList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, pubKeys, 1)
 	})
 }

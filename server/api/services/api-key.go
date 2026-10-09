@@ -39,7 +39,7 @@ type APIKeyService interface {
 	// ListAPIKeys retrieves a list of API keys within the specified tenant ID, each with the role it authenticates
 	// with, so a key stored as owner is listed as administrator. It returns the list of API keys, the total count of
 	// documents in the database, and an error, if any.
-	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int, err error)
+	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int64, err error)
 
 	// UpdateAPIKey updates an API key with the provided tenant ID and name, dropping the key's cached
 	// document so the new role is enforced on the next request. It returns an error, if any; an error from
@@ -114,7 +114,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	return responses.CreateAPIKeyFromModel(apiKey, plaintext), nil
 }
 
-func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
+func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int64, error) {
 	if req.Sorter.By == "" {
 		req.Sorter.By = "created_at"
 	}
