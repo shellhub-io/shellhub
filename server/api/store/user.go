@@ -16,6 +16,7 @@ const (
 	UserIDResolver UserResolver = iota + 1
 	UserEmailResolver
 	UserUsernameResolver
+	UserExternalIDResolver
 )
 
 // UserStore persists accounts, their credentials and their preferences.

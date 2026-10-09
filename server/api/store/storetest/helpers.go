@@ -66,6 +66,13 @@ func WithEmail(email string) UserOption {
 	}
 }
 
+// WithExternalID sets the user's identifier in an external identity provider.
+func WithExternalID(externalID string) UserOption {
+	return func(u *models.User) {
+		u.ExternalID = externalID
+	}
+}
+
 // WithUserStatus sets the user status
 func WithUserStatus(status models.UserStatus) UserOption {
 	return func(u *models.User) {

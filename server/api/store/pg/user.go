@@ -191,6 +191,8 @@ func UserResolverToString(resolver store.UserResolver) (string, error) {
 		return "email", nil
 	case store.UserUsernameResolver:
 		return "username", nil
+	case store.UserExternalIDResolver:
+		return "external_id", nil
 	default:
 		return "", store.ErrResolverNotFound
 	}

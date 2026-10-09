@@ -111,6 +111,29 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		assert.Equal(t, userID, user.ID)
 		assert.Equal(t, models.UserStatusConfirmed, user.Status)
 	})
+
+	t.Run("fails when user not found by external ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateUser(t)
+
+		user, err := st.UserResolve(ctx, store.UserExternalIDResolver, "idp-subject")
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, user)
+	})
+
+	t.Run("succeeds resolving user by external ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateUser(t, WithExternalID("other-subject"))
+		userID := s.CreateUser(t, WithExternalID("idp-subject"))
+
+		user, err := st.UserResolve(ctx, store.UserExternalIDResolver, "idp-subject")
+		require.NoError(t, err)
+		require.NotNil(t, user)
+		assert.Equal(t, userID, user.ID)
+		assert.Equal(t, "idp-subject", user.ExternalID)
+	})
 }
 
 // TestUserCreate exercises UserCreate against the store under test.
