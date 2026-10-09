@@ -25,6 +25,7 @@ type User struct {
 	Preferences      UserPreferences `bun:"embed:"`
 	Admin            bool            `bun:"admin"`
 	AwaitingApproval bool            `bun:"awaiting_approval"`
+	TokenVersion     int             `bun:"token_version,skipupdate"`
 	Namespaces       int             `bun:"namespaces,scanonly"`
 }
 
@@ -71,6 +72,7 @@ func UserFromModel(model *models.User) *User {
 		PasswordDigest:   model.Password.Hash,
 		Admin:            model.Admin,
 		AwaitingApproval: model.AwaitingApproval,
+		TokenVersion:     model.TokenVersion,
 		Preferences: UserPreferences{
 			PreferredNamespace: model.Preferences.PreferredNamespace,
 			AuthMethods:        authMethods,
@@ -99,6 +101,7 @@ func UserToModel(entity *User) *models.User {
 		EmailMarketing:   entity.Preferences.EmailMarketing,
 		Admin:            entity.Admin,
 		AwaitingApproval: entity.AwaitingApproval,
+		TokenVersion:     entity.TokenVersion,
 		UserData: models.UserData{
 			Name:          entity.Name,
 			Username:      entity.Username,

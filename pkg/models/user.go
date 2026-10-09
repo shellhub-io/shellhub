@@ -90,6 +90,7 @@ type User struct {
 	// admin has not approved yet. While true the account is inert: only an admin can mint its
 	// activation link. It is set false when an admin creates the account directly or approves it.
 	AwaitingApproval bool `json:"awaiting_approval"`
+	TokenVersion     int  `json:"-"`
 }
 
 // UserData is the identifying half of a user, split out because these are the fields the API lets
