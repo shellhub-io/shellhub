@@ -59,7 +59,9 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 		Return(nil)
 
 	sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
-	sess.dialer = dialertest.NewAgent(t)
+	agent := dialertest.NewAgent(t)
+	sess.dialer = agent
+	sess.Device.PublicKey = agent.PublicKey()
 	sess.Events = NewEvents(sess.UID, tenantScope, serviceMock)
 
 	ctx := newStubContext()
