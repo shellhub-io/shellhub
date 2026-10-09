@@ -1,6 +1,6 @@
 INSTALL_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/install.sh"
 
-INSTALL_TEST_REAL_BINS="sh sed grep awk tr wc cat head tail cut mktemp chmod mkdir rm cp mv ln gzip sleep uname tee env dirname basename"
+INSTALL_TEST_REAL_BINS="sh sed grep awk tr wc cat head tail cut mktemp chmod mkdir rm cp mv ln gzip sha256sum sleep uname tee env dirname basename"
 
 setup_install_env() {
     REAL_BIN="$BATS_FILE_TMPDIR/real-bin"

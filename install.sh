@@ -364,9 +364,27 @@ standalone_install() {
 
     echo "📥 Downloading ShellHub agent binary..."
 
+    RELEASE_URL="https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION"
+    RELEASE_ASSET="shellhub-agent-linux-$BINARY_ARCH.gz"
+
     {
-      download "https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION/shellhub-agent-linux-$BINARY_ARCH.gz" "$TMP_DIR/shellhub-agent.gz"
+      download "$RELEASE_URL/$RELEASE_ASSET" "$TMP_DIR/shellhub-agent.gz"
     } || { rm -rf "$TMP_DIR" && echo "❌ Failed to download agent binary." && exit 1; }
+
+    echo "🔐 Verifying agent binary checksum..."
+
+    download "$RELEASE_URL/checksums.txt" "$TMP_DIR/checksums.txt" || {
+      rm -rf "$TMP_DIR"
+      echo "❌ ERROR: Could not download the checksums published with release $AGENT_VERSION."
+      echo "Releases made before checksums were published have none. Set AGENT_VERSION to a newer release, or set AGENT_BINARY to a binary you have verified."
+      exit 1
+    }
+
+    verify_checksum "$TMP_DIR/shellhub-agent.gz" "$RELEASE_ASSET" "$TMP_DIR/checksums.txt" || {
+      rm -rf "$TMP_DIR"
+      echo "❌ ERROR: The agent binary does not match the checksum published with release $AGENT_VERSION."
+      exit 1
+    }
 
     echo "📂 Extracting binary..."
 
@@ -504,6 +522,17 @@ http_get() {
   elif type wget >/dev/null 2>&1; then
     wget -q -O - "$_HTTP_GET_URL"
   fi
+}
+
+verify_checksum() {
+  _VERIFY_CHECKSUM_FILE=$1
+  _VERIFY_CHECKSUM_NAME=$2
+  _VERIFY_CHECKSUM_LIST=$3
+
+  _VERIFY_CHECKSUM_EXPECTED=$(awk -v name="$_VERIFY_CHECKSUM_NAME" '$2 == name { print $1 }' "$_VERIFY_CHECKSUM_LIST")
+  _VERIFY_CHECKSUM_ACTUAL=$(sha256sum "$_VERIFY_CHECKSUM_FILE" | cut -d ' ' -f 1)
+
+  [ -n "$_VERIFY_CHECKSUM_EXPECTED" ] && [ "$_VERIFY_CHECKSUM_EXPECTED" = "$_VERIFY_CHECKSUM_ACTUAL" ]
 }
 
 require_release_version() {

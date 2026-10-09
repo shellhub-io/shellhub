@@ -1,4 +1,4 @@
-# Verifying Container Images
+# Verifying Releases
 
 All ShellHub container images published to Docker Hub are signed using [cosign](https://docs.sigstore.dev/cosign/overview/) with keyless (OIDC) signing via [Sigstore](https://www.sigstore.dev/). Signatures are generated automatically during CI/CD using GitHub Actions' OIDC identity and recorded in the [Rekor](https://docs.sigstore.dev/logging/overview/) transparency log.
 
@@ -63,3 +63,20 @@ cosign verify-attestation \
   --type cyclonedx \
   shellhubio/<image>:<tag> | jq -r '.payload' | base64 -d | jq '.predicate'
 ```
+
+## Verifying agent binaries
+
+Each release publishes `checksums.txt` with the SHA-256 checksum of every file attached to it. The install script checks the agent binary against it before installing.
+
+The release also publishes `checksums.txt.sigstore.json`, a cosign bundle that signs `checksums.txt` with the same keyless flow as the images. To check the signature yourself, download both files and the binary from the release and run:
+
+```bash
+cosign verify-blob \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/build-agent\.yml@refs/tags/v" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  checksums.txt
+grep " shellhub-agent-linux-amd64.gz$" checksums.txt | sha256sum -c
+```
+
+`cosign verify-blob` prints `Verified OK` when the release workflow of a ShellHub tag signed `checksums.txt`. `sha256sum` then prints `OK` when the binary matches it. Replace `amd64` with the architecture you downloaded.

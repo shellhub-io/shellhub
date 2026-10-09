@@ -283,6 +283,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: download rootfs artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -305,6 +306,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom-agent-source
+      - name: generate checksums
+        run: sha256sum rootfs-*.tar.gz shellhub-agent-*.gz shellhub-agent.tar.gz sbom-*.cdx.json > checksums.txt
+      - name: install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: sign checksums with cosign
+        run: cosign sign-blob --yes --bundle checksums.txt.sigstore.json checksums.txt
       - name: release draft
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
@@ -315,3 +322,5 @@ jobs:
             shellhub-agent-*.gz
             shellhub-agent.tar.gz
             sbom-*.cdx.json
+            checksums.txt
+            checksums.txt.sigstore.json
