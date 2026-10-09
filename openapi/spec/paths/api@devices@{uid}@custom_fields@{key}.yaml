@@ -15,7 +15,7 @@ put:
     Sets or updates a single custom_fields entry on the device. Idempotent:
     sending the same key with the same value has no effect. Adding a new
     key when the device already holds the maximum number of custom_fields
-    entries returns 400.
+    entries returns 403.
   tags:
     - community
     - devices
