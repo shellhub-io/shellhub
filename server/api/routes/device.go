@@ -51,7 +51,7 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if c.QueryParam("connector") != "" {
+	if req.Connector {
 		filter := []query.Filter{
 			{
 				Type: query.FilterTypeOperator,

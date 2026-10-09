@@ -664,6 +664,109 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 	}
 }
 
+func TestGetDeviceListConnectorParameter(t *testing.T) {
+	cases := []struct {
+		description      string
+		target           string
+		body             string
+		expectedOperator string
+	}{
+		{
+			description:      "lists devices other than containers without the parameter",
+			target:           "/api/devices",
+			expectedOperator: "ne",
+		},
+		{
+			description:      "lists containers with connector=true",
+			target:           "/api/devices?connector=true",
+			expectedOperator: "eq",
+		},
+		{
+			description:      "lists devices other than containers with connector=false",
+			target:           "/api/devices?connector=false",
+			expectedOperator: "ne",
+		},
+		{
+			description:      "lists containers through /api/containers",
+			target:           "/api/containers",
+			expectedOperator: "eq",
+		},
+		{
+			description:      "lists containers through /api/containers with connector=false",
+			target:           "/api/containers?connector=false",
+			expectedOperator: "eq",
+		},
+		{
+			description:      "lists containers through /api/containers whatever the body says",
+			target:           "/api/containers",
+			body:             `{"connector":false}`,
+			expectedOperator: "eq",
+		},
+		{
+			description:      "lists devices other than containers with connector=false whatever the body says",
+			target:           "/api/devices?connector=false",
+			body:             `{"connector":true}`,
+			expectedOperator: "ne",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+
+			var captured *requests.DeviceList
+			mock.
+				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+				Run(func(args gomock.Arguments) {
+					list, ok := args.Get(2).(*requests.DeviceList)
+					require.True(t, ok)
+					captured = list
+				}).
+				Return([]models.Device{}, int64(0), nil).
+				Once()
+
+			var body io.Reader
+			if tc.body != "" {
+				body = strings.NewReader(tc.body)
+			}
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, body)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			if tc.body != "" {
+				req.Header.Set("Content-Type", "application/json")
+			}
+
+			rec := httptest.NewRecorder()
+			NewRouter(mock).ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
+			require.NotNil(t, captured)
+			require.NotEmpty(t, captured.Data)
+
+			platform, ok := captured.Data[len(captured.Data)-1].Params.(*query.FilterProperty)
+			require.True(t, ok)
+			assert.Equal(t, "platform", platform.Name)
+			assert.Equal(t, tc.expectedOperator, platform.Operator)
+			assert.Equal(t, "connector", platform.Value)
+		})
+	}
+
+	t.Run("refuses a connector value that is not a boolean", func(t *testing.T) {
+		mock := mocks.NewMockService(t)
+
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?connector=yes", nil)
+		req.Header.Set("X-Role", authorizer.RoleOwner.String())
+		req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+		rec := httptest.NewRecorder()
+		NewRouter(mock).ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, rec.Result().StatusCode)
+		mock.AssertNotCalled(t, "ListDevices")
+	})
+}
+
 func TestUpdateDevice(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
