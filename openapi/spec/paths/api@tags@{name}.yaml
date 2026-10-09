@@ -43,7 +43,10 @@ patch:
 delete:
   operationId: deleteTag
   summary: Delete a tag
-  description: Delete a tag and remove it from all devices and containers.
+  description: >-
+    Delete a tag and remove it from all devices and containers. A tag held by the
+    device filter of a public key or an access policy is not deleted: the request
+    answers 409, and `fields.name` names what holds it.
   tags:
     - community
     - tags
@@ -63,5 +66,7 @@ delete:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml

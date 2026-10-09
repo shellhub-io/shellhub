@@ -196,6 +196,24 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		assert.Equal(t, "production", tag.Name)
 		assert.Equal(t, tenantID, tag.TenantID)
 	})
+
+	t.Run("succeeds resolving tag by name for update", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
+
+		require.NoError(t, st.WithTransaction(ctx, func(ctx context.Context) error {
+			tag, err := st.TagResolve(ctx, scope.MustBounded(tenantID), store.TagNameResolver, "production", st.Options().ForUpdate())
+			if err != nil {
+				return err
+			}
+
+			assert.Equal(t, tagID, tag.ID)
+
+			return nil
+		}))
+	})
 }
 
 // TestTagUpdate exercises TagUpdate against the store under test.
