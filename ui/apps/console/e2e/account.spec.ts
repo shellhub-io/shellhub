@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { getMembershipInvitationList } from "@/client";
+import { getMembershipInvitationList, getUserInfo } from "@/client";
 import { isCloud } from "./env";
 import {
   confirmAccount,
@@ -14,7 +14,13 @@ import {
   signUpUser,
 } from "./helpers";
 import { buildUserIdentity, password } from "./seed";
-import { buildRequestContext, expectLoginStatus, invite, loginAs } from "./api";
+import {
+  buildRequestContext,
+  expectLoginStatus,
+  expectStatus,
+  invite,
+  loginAs,
+} from "./api";
 import { readEmailLink } from "./mail";
 
 const openSignUpReason = "only the cloud has open sign-up";
@@ -119,6 +125,7 @@ test.describe("email confirmation", () => {
 test.describe("password", () => {
   test("changing the password replaces the old one", async ({ page }) => {
     const user = await createUser("password");
+    const before = await loginAs(user.username, password);
 
     await signInAndOpen(page, user.username, "/account/security");
     await page
@@ -134,6 +141,7 @@ test.describe("password", () => {
       page.getByText("Password changed. Sign in with your new password."),
     ).toBeVisible();
 
+    await expectStatus(getUserInfo, { token: before.token }, 401);
     await expectLoginStatus(user.username, newPassword, 200);
     await expectLoginStatus(user.username, password, 401);
   });
@@ -141,6 +149,7 @@ test.describe("password", () => {
   test("the emailed reset link sets a new password", async ({ page }) => {
     test.skip(!isCloud, emailDeliveryReason);
     const user = await createUser("forgot");
+    const before = await loginAs(user.username, password);
 
     await page.goto("/login");
     await page.getByRole("link", { name: "Forgot password?" }).click();
@@ -159,6 +168,7 @@ test.describe("password", () => {
 
     await fillLoginForm(page, user.username, newPassword);
     await expect(page).toHaveURL(/\/dashboard$/);
+    await expectStatus(getUserInfo, { token: before.token }, 401);
     await expectLoginStatus(user.username, password, 401);
   });
 });
