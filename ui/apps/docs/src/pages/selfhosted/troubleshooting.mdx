@@ -71,8 +71,9 @@ SSH is not HTTP and will not survive an HTTP proxy — it needs its own path thr
 You are behind a proxy or load balancer and `SHELLHUB_PROXY` is not set, or
 `SHELLHUB_PROXY_TRUSTED_IPS` does not include it.
 
-This is worth fixing even if it looks cosmetic: the client address is what account lockout and
-access policy source IPs are keyed on. Left wrong, a lockout applies to everybody at once.
+This is worth fixing even if it looks cosmetic: the client address is what password lockout and
+access policy source IPs are keyed on. Left wrong, a lockout on an account applies to everyone
+signing in to it.
 
 ## Configuration changes have no effect
 
