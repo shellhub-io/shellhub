@@ -197,6 +197,41 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		assert.Nil(t, resolved)
 	})
 
+	t.Run("resolves only the new signature once an expired invitation is regenerated", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		expiredAt := clock.Now().Add(-1 * time.Hour)
+		invitation := &models.MembershipInvitation{
+			TenantID:    tenantID,
+			UserID:      invitedUser,
+			InvitedBy:   invitedBy,
+			Role:        authorizer.RoleObserver,
+			Status:      models.MembershipInvitationStatusPending,
+			ExpiresAt:   &expiredAt,
+			Sig:         "STALESIG1234",
+			Invitations: 1,
+		}
+		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
+
+		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		invitation.ExpiresAt = &expiresAt
+		invitation.Sig = "FRESHSIG1234"
+		invitation.Invitations = 2
+		require.NoError(t, st.MembershipInvitationUpdate(ctx, invitation))
+
+		stale, err := st.MembershipInvitationResolveBySig(ctx, "STALESIG1234")
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, stale)
+
+		fresh, err := st.MembershipInvitationResolveBySig(ctx, "FRESHSIG1234")
+		require.NoError(t, err)
+		assert.Equal(t, invitation.ID, fresh.ID)
+	})
+
 	t.Run("fails when the invitation carrying the signature was cancelled", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

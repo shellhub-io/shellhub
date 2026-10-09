@@ -348,13 +348,18 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 					Return(&models.User{ID: "invitee"}, nil).Once()
 				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{
-						TenantID:  "tenant",
-						UserID:    "invitee",
-						Status:    models.MembershipInvitationStatusPending,
-						ExpiresAt: &expired,
+						TenantID:    "tenant",
+						UserID:      "invitee",
+						Status:      models.MembershipInvitationStatusPending,
+						ExpiresAt:   &expired,
+						Invitations: 1,
+						Sig:         "EXPIREDSIG12",
 					}, nil).Once()
-				storeMock.On("MembershipInvitationUpdate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
-					Return(nil).Once()
+				storeMock.On("MembershipInvitationUpdate", ctx, mock.MatchedBy(func(invitation *models.MembershipInvitation) bool {
+					return invitation.Sig != "" && invitation.Sig != "EXPIREDSIG12" &&
+						invitation.ExpiresAt.Equal(now.Add(7*24*time.Hour)) &&
+						invitation.Invitations == 2
+				})).Return(nil).Once()
 			},
 			expected: Expected{true, nil},
 		},
