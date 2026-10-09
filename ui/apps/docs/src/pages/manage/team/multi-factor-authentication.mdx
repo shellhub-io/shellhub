@@ -73,14 +73,27 @@ because it never signs in. See [SSH Access](/api/ssh-access).
 
 ## Account lockout
 
-Separate from MFA but related: repeated failed sign-ins lock an account for a period, 60 minutes
-by default, configurable with `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT`. Setting it to 0 disables the
-lockout.
+Wrong passwords and wrong MFA codes each lock an account out for a while. The third failure
+starts a lockout. Attempts sent during it are refused without being checked and do not count. A
+failure shortly after a lockout ends makes the next one longer: 1, 4, 16 and then 60 minutes by
+default, the cap set by `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT`. After a lockout at the cap the count
+starts over. Setting `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` to 0 disables both lockouts.
 
-Lockout is keyed on the client address, resolved through `SHELLHUB_PROXY_TRUSTED_IPS` — so a
-self-hosted deployment behind a load balancer without that set correctly will lock out on the
-balancer's address, which is to say everybody at once. See
+Password lockout is keyed on the account and the client address, resolved through
+`SHELLHUB_PROXY_TRUSTED_IPS`. A self-hosted deployment behind a load balancer without that set
+correctly will lock out on the balancer's address, so a lockout on an account applies to everyone
+signing in to it, wherever they are. See
 [Ports and Connectivity](/about/ports-and-connectivity).
+
+MFA lockout has its own counter, keyed on the account alone, whatever the address. Wrong codes from
+every sign-in add to it, and a correct password does not reset it. Someone who knows your password
+can therefore keep you out of the MFA step by sending wrong codes. A recovery code still signs you
+in during the MFA lockout, and clears it. Change your password once you are in, so nobody can
+start a new sign-in with the old one.
+
+A sign-in already past the password step can still send wrong codes for 30 minutes after it
+started. The last of those can start one more lockout, so with the default cap the MFA lockout
+can last up to about 90 minutes after the password change.
 
 ## Where to go next
 

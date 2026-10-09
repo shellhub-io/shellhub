@@ -61,7 +61,7 @@ reads the client address from the PROXY protocol header rather than seeing the b
 defaults to `0.0.0.0/0 ::/0`, which trusts everyone — fine when nothing but your balancer can
 reach the port, and wrong if that is not true.
 
-This matters beyond cosmetics: the client address is what login lockout and any source-IP
+This matters beyond cosmetics: the client address is what password lockout and any source-IP
 restriction in an access policy are keyed on. Get it wrong and both are operating on the
 balancer's address.
 
