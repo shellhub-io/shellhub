@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rsa"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -454,6 +455,63 @@ func (_c *MockService_AuthDevice_Call) Return(deviceAuthResponse *models.DeviceA
 }
 
 func (_c *MockService_AuthDevice_Call) RunAndReturn(run func(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)) *MockService_AuthDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AuthDeviceToken provides a mock function for the type MockService
+func (_mock *MockService) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error {
+	ret := _mock.Called(ctx, claims)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthDeviceToken")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *authorizer.DeviceClaims) error); ok {
+		r0 = returnFunc(ctx, claims)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_AuthDeviceToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthDeviceToken'
+type MockService_AuthDeviceToken_Call struct {
+	*mock.Call
+}
+
+// AuthDeviceToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - claims *authorizer.DeviceClaims
+func (_e *MockService_Expecter) AuthDeviceToken(ctx any, claims any) *MockService_AuthDeviceToken_Call {
+	return &MockService_AuthDeviceToken_Call{Call: _e.mock.On("AuthDeviceToken", ctx, claims)}
+}
+
+func (_c *MockService_AuthDeviceToken_Call) Run(run func(ctx context.Context, claims *authorizer.DeviceClaims)) *MockService_AuthDeviceToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *authorizer.DeviceClaims
+		if args[1] != nil {
+			arg1 = args[1].(*authorizer.DeviceClaims)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AuthDeviceToken_Call) Return(err error) *MockService_AuthDeviceToken_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_AuthDeviceToken_Call) RunAndReturn(run func(ctx context.Context, claims *authorizer.DeviceClaims) error) *MockService_AuthDeviceToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

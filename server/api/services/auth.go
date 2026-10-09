@@ -57,6 +57,13 @@ type AuthService interface {
 	// store's error when the device, the namespace's pairing key, its counters or its heartbeat cannot
 	// be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
+	// AuthDeviceToken reports whether a device token may still be used. It returns
+	// [ErrAuthUnathorized] for claims without a valid tenant, for a token issued without a proof to
+	// a device that has proven its key, and for any token of a device that never proved it while
+	// the instance requires a proof. A token for a device the store does not know is left to the routes it
+	// reaches. ctx bounds the store read, and the store's error is returned when the device cannot
+	// be read.
+	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
 	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
 	// they have MFA enabled (which is a cloud-only feature).
@@ -242,6 +249,35 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 	return s.authDevice(ctx, req, enrollmentOptions{proof: proof})
 }
 
+func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error {
+	sc, err := scope.NewBounded(claims.TenantID)
+	if err != nil {
+		return NewErrAuthUnathorized(err)
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, claims.UID)
+	switch {
+	case errors.Is(err, store.ErrNoDocuments):
+		return nil
+	case err != nil:
+		return err
+	}
+
+	if device.KeyProvenAt == nil {
+		if s.requireDeviceKeyProof {
+			return NewErrAuthUnathorized(nil)
+		}
+
+		return nil
+	}
+
+	if !claims.KeyProven {
+		return NewErrAuthUnathorized(nil)
+	}
+
+	return nil
+}
+
 const (
 	deviceAuthChallengeTTL    = time.Minute
 	deviceAuthChallengeIssued = "issued"
@@ -372,7 +408,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 	keyProvenAt := clock.Now()
 
-	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID}, s.issuer, s.privKey)
+	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID, KeyProven: enrollment.proof == keyProofVerified}, s.issuer, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}

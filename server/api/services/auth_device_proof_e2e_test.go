@@ -8,6 +8,8 @@ import (
 	"encoding/pem"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
@@ -90,4 +92,46 @@ func TestDeviceKeyProofE2E(t *testing.T) {
 		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:02", false))
 		require.ErrorIs(t, err, ErrDeviceKeyProofRefused)
 	})
+
+	deviceClaims := func(t *testing.T, token string) *authorizer.DeviceClaims {
+		t.Helper()
+
+		claims, err := jwttoken.ClaimsFromBearerToken(publicKey, token)
+		require.NoError(t, err)
+
+		device, ok := claims.(*authorizer.DeviceClaims)
+		require.True(t, ok)
+
+		return device
+	}
+
+	for _, tc := range []struct {
+		name        string
+		mac         string
+		legacyFirst bool
+	}{
+		{name: "a device enrolled with a proof", mac: "aa:00:00:00:00:03"},
+		{name: "a legacy device that proves its key in the same second", mac: "aa:00:00:00:00:04", legacyFirst: true},
+	} {
+		t.Run("only a token issued against the proof is honoured: "+tc.name, func(t *testing.T) {
+			key, err := rsa.GenerateKey(rand.Reader, 2048)
+			require.NoError(t, err)
+
+			var legacyToken string
+			if tc.legacyFirst {
+				legacy, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, false))
+				require.NoError(t, err)
+
+				legacyToken = legacy.Token
+			}
+
+			proven, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, true))
+			require.NoError(t, err)
+			require.NoError(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, proven.Token)))
+
+			if tc.legacyFirst {
+				require.ErrorIs(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, legacyToken)), ErrAuthUnathorized)
+			}
+		})
+	}
 }

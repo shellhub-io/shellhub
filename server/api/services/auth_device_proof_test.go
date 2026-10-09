@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -167,6 +169,38 @@ func TestAuthDeviceKeyProof(t *testing.T) {
 		assert.Equal(t, refused, err)
 	})
 
+	t.Run("a token served from a cache entry that predates the proof is refused", func(t *testing.T) {
+		ctx := context.TODO()
+		storeMock := mocks.NewMockStore(t)
+		cacheMock := mockcache.NewMockCache(t)
+
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
+		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).
+			Run(func(args testifymock.Arguments) {
+				cached, ok := args.Get(2).(*map[string]string)
+				require.True(t, ok)
+				(*cached)["device_name"] = hostname
+				(*cached)["namespace_name"] = "test"
+			}).
+			Return(nil).Once()
+		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
+			Return(&models.Device{UID: uid, Name: hostname, TenantID: tenantID, Status: models.DeviceStatusAccepted, KeyProvenAt: &now}, nil).Once()
+
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+
+		res, err := service.AuthDevice(ctx, unsigned)
+		require.NoError(t, err)
+
+		claims, err := jwttoken.ClaimsFromBearerToken(&privateKey.PublicKey, res.Token)
+		require.NoError(t, err)
+
+		deviceClaims, ok := claims.(*authorizer.DeviceClaims)
+		require.True(t, ok)
+
+		assert.Equal(t, NewErrAuthUnathorized(nil), service.AuthDeviceToken(ctx, deviceClaims))
+	})
+
 	t.Run("an unsigned request is refused when the instance requires a proof", func(t *testing.T) {
 		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithDeviceKeyProofRequired())
 
@@ -270,4 +304,65 @@ func TestAuthDeviceKeyProof(t *testing.T) {
 		assert.Nil(t, res)
 		assert.Equal(t, errors.New("error", "cache", 0), err)
 	})
+}
+
+func TestAuthDeviceToken(t *testing.T) {
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		uid      = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+	)
+
+	provenAt := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	cases := []struct {
+		description string
+		device      *models.Device
+		resolveErr  error
+		keyProven   bool
+		options     []Option
+		expected    error
+	}{
+		{
+			description: "refuses a token issued without a proof once the device proved its key",
+			device:      &models.Device{UID: uid, TenantID: tenantID, KeyProvenAt: &provenAt},
+			expected:    NewErrAuthUnathorized(nil),
+		},
+		{
+			description: "honours a token issued against a proof",
+			device:      &models.Device{UID: uid, TenantID: tenantID, KeyProvenAt: &provenAt},
+			keyProven:   true,
+		},
+		{
+			description: "honours a token of a device that never proved its key",
+			device:      &models.Device{UID: uid, TenantID: tenantID},
+		},
+		{
+			description: "refuses a token of a device that never proved its key when the instance requires a proof",
+			device:      &models.Device{UID: uid, TenantID: tenantID},
+			options:     []Option{WithDeviceKeyProofRequired()},
+			expected:    NewErrAuthUnathorized(nil),
+		},
+		{
+			description: "leaves a token of an unknown device to the routes it reaches",
+			resolveErr:  store.ErrNoDocuments,
+		},
+		{
+			description: "reports a store failure",
+			resolveErr:  errors.New("error", "store", 0),
+			expected:    errors.New("error", "store", 0),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.TODO()
+			storeMock := mocks.NewMockStore(t)
+			storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(tc.device, tc.resolveErr).Once()
+
+			service := NewService(storeMock, privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), tc.options...)
+
+			err := service.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: uid, TenantID: tenantID, KeyProven: tc.keyProven})
+			assert.Equal(t, tc.expected, err)
+		})
+	}
 }
