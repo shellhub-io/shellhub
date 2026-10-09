@@ -24,6 +24,8 @@ const (
 	otherNamespace     = "00000000-0000-4000-0000-000000000001"
 	lastSeenQuietPolls = 15
 	tunnelPingTimeout  = 60 * time.Second
+	staleBeatCycles    = 8
+	staleBeatWindow    = 4 * time.Second
 )
 
 // TestDeviceAuth drives the endpoint an agent enrolls through with requests built by hand, so each
@@ -144,6 +146,28 @@ func TestDeviceAuthAgent(t *testing.T) {
 			assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String())
 			assert.True(tt, current.LastSeen.After(settled), "last_seen %s has not moved past %s", current.LastSeen, settled)
 		}, tunnelPingTimeout, 2*time.Second)
+	})
+
+	t.Run("an agent stopped soon after it connects stays offline", func(t *testing.T) {
+		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+
+		agent, device := startAcceptedAgent(t, t.Context(), compose)
+
+		for cycle := range staleBeatCycles {
+			if cycle > 0 {
+				require.NoError(t, agent.Start(t.Context()))
+				compose.AwaitDeviceOnline(t, device.UID)
+			}
+
+			require.NoError(t, agent.Stop(t.Context(), nil))
+			compose.AwaitDeviceOffline(t, device.UID)
+
+			require.Never(t, func() bool {
+				current, _, err := compose.GetDevice(t.Context(), device.UID)
+
+				return err == nil && current.Online
+			}, staleBeatWindow, 100*time.Millisecond, "cycle %d: the device came back online after its agent stopped", cycle)
+		}
 	})
 
 	t.Run("a removed device re-registers as pending under the same uid", func(t *testing.T) {
