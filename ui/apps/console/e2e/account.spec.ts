@@ -129,8 +129,9 @@ test.describe("password", () => {
     await dialog.getByLabel("New Password", { exact: true }).fill(newPassword);
     await dialog.getByLabel("Confirm New Password").fill(newPassword);
     await dialog.getByRole("button", { name: "Change password" }).click();
+    await expect(page).toHaveURL(/\/login$/);
     await expect(
-      dialog.getByText("Password changed successfully."),
+      page.getByText("Password changed. Sign in with your new password."),
     ).toBeVisible();
 
     await expectLoginStatus(user.username, newPassword, 200);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useNavigate } from "react-router-dom";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
@@ -10,9 +10,7 @@ import {
   changePasswordSchema,
   type ChangePasswordFormValues,
 } from "@/pages/account/changePasswordSchema";
-import {
-  FormPasswordField,
-} from "@/components/common/fields/rhf";
+import { FormPasswordField } from "@/components/common/fields/rhf";
 import {
   CheckIcon,
   LockClosedIcon,
@@ -34,7 +32,8 @@ function ChangePasswordModal({
   onClose: () => void;
 }) {
   const updatePw = useAuthStore((s) => s.updatePassword);
-  const [success, setSuccess] = useState(false);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
 
   const form = useDrawerForm(open, changePasswordSchema, {
     current: "",
@@ -49,14 +48,14 @@ function ChangePasswordModal({
   });
   const allFilled = !!watchedCurrent && !!watchedNewPw && !!watchedConfirmPw;
 
-  useResetOnOpen(open, () => setSuccess(false));
-
   const onValid = async (values: ChangePasswordFormValues) => {
     clearErrors("root");
     try {
       await updatePw(values.current, values.newPw);
-      setSuccess(true);
-      setTimeout(onClose, 1200);
+      logout();
+      void navigate("/login", {
+        state: { notice: "Password changed. Sign in with your new password." },
+      });
     } catch (err) {
       const errorMessage =
         isSdkError(err) && err.status === 403
@@ -103,11 +102,6 @@ function ChangePasswordModal({
         label="Confirm New Password"
         autoComplete="new-password"
       />
-      {success && (
-        <p className="text-2xs text-accent-green">
-          Password changed successfully.
-        </p>
-      )}
     </FormModal>
   );
 }
