@@ -286,35 +286,45 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: download rootfs artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: rootfs-artifacts
+          path: release
       - name: download agent binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: agent-binary-*
           merge-multiple: true
+          path: release
       - name: download vendored tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: shellhub-agent
+          path: release
       - name: download agent SBOM
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom-agent
+          path: release
       - name: download agent source SBOM
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom-agent-source
+          path: release
+      - name: generate checksums
+        working-directory: release
+        run: sha256sum -- * > checksums.txt
+      - name: install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: sign checksums with cosign
+        working-directory: release
+        run: cosign sign-blob --yes --bundle checksums.txt.sigstore.json checksums.txt
       - name: release draft
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           draft: true
           generate_release_notes: true
-          files: |
-            rootfs-*.tar.gz
-            shellhub-agent-*.gz
-            shellhub-agent.tar.gz
-            sbom-*.cdx.json
+          files: release/*
