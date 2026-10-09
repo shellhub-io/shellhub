@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "@/hooks/useCountdown";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import Modal from "@/components/common/Modal";
 
 interface MfaRecoveryTimeoutModalProps {
@@ -24,12 +24,16 @@ export default function MfaRecoveryTimeoutModal({
 }: MfaRecoveryTimeoutModalProps) {
   const [hasAccess, setHasAccess] = useState(false);
   const [disabling, setDisabling] = useState(false);
+  const [error, setError] = useState("");
   const { timeLeft, isExpired } = useCountdown(expiresAt);
 
   const handleDisable = async () => {
     setDisabling(true);
+    setError("");
     try {
       await onDisable();
+    } catch {
+      setError("Failed to disable MFA. Please try again.");
     } finally {
       setDisabling(false);
     }
@@ -65,6 +69,7 @@ export default function MfaRecoveryTimeoutModal({
       }
     >
       <div className="space-y-4">
+        {error && <Callout variant="error">{error}</Callout>}
         <p className="text-xs text-text-muted leading-relaxed">
           Once the window closes, you'll need another recovery code or to
           contact support.

@@ -279,16 +279,11 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Error Handling", () => {
-    it("handles errors when disable fails", async () => {
+    it("tells the user when disabling fails and lets them retry", async () => {
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
-      const suppressRejection = () => {};
-      process.on("unhandledRejection", suppressRejection);
-
-      onDisable.mockImplementation(() =>
-        Promise.reject(new Error("Failed to disable")),
-      );
+      onDisable.mockRejectedValue(new Error("Failed to disable"));
 
       render(
         <MfaRecoveryTimeoutModal
@@ -304,10 +299,11 @@ describe("MfaRecoveryTimeoutModal", () => {
       });
       await user.click(disableButton);
 
-      expect(onDisable).toHaveBeenCalled();
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Failed to disable MFA. Please try again.",
+      );
+      expect(disableButton).toBeEnabled();
       expect(onClose).not.toHaveBeenCalled();
-
-      process.off("unhandledRejection", suppressRejection);
     });
   });
 
