@@ -50,7 +50,7 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 		users[i] = *entity.UserToModel(&e)
 	}
 
-	return users, count, nil
+	return users, int(count), nil
 }
 
 // UserResolve implements [store.UserStore].

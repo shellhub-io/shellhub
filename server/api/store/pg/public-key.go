@@ -63,7 +63,7 @@ func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.Q
 		publicKeys[i] = *entity.PublicKeyToModel(&e)
 	}
 
-	return publicKeys, count, nil
+	return publicKeys, int(count), nil
 }
 
 // PublicKeyUpdate implements [store.PublicKeyStore].

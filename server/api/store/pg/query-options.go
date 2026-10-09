@@ -36,7 +36,7 @@ func (*queryOptions) Paginate(page *query.Paginator) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		wrapper.query = wrapper.query.Offset(page.PerPage * (page.Page - 1)).Limit(page.PerPage)
+		wrapper.query = wrapper.query.Offset(int64(page.PerPage * (page.Page - 1))).Limit(int64(page.PerPage))
 
 		return nil
 	}

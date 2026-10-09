@@ -58,7 +58,7 @@ func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store
 		identities[i] = *entity.SSHIdentityToModel(&e)
 	}
 
-	return identities, count, nil
+	return identities, int(count), nil
 }
 
 // SSHIdentityResolve implements [store.SSHIdentityStore].

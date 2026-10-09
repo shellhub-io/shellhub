@@ -98,7 +98,7 @@ func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOp
 		tags[i] = *entity.TagToModel(&e)
 	}
 
-	return tags, count, nil
+	return tags, int(count), nil
 }
 
 // TagResolve implements [store.TagsStore].

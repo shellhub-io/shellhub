@@ -100,7 +100,7 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 		devices[i] = *entity.DeviceToModel(&e)
 	}
 
-	return devices, count, nil
+	return devices, int(count), nil
 }
 
 // DeviceListExpiredEphemeral implements [store.DeviceStore].

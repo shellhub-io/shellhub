@@ -54,7 +54,7 @@ func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.Que
 		sessions[i] = *entity.SessionToModel(&e)
 	}
 
-	return sessions, count, nil
+	return sessions, int(count), nil
 }
 
 // SessionResolve implements [store.SessionStore].
@@ -426,7 +426,7 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 		events[i] = *entity.SessionEventToModel(&e)
 	}
 
-	return events, count, nil
+	return events, int(count), nil
 }
 
 // SessionEventsTimeline implements [store.SessionStore].
@@ -444,7 +444,7 @@ func (pg *Pg) SessionEventsTimeline(ctx context.Context, uid models.UID, limit i
 		Where("session_id = ?", string(uid)).
 		Where("type <> ?", string(models.SessionEventTypePtyOutput)).
 		Order("created_at ASC", "id ASC").
-		Limit(limit).
+		Limit(int64(limit)).
 		Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
@@ -514,7 +514,7 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 		Where("started_at < ?", before).
 		Where("NOT EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = session.id)").
 		Order("started_at ASC").
-		Limit(limit).
+		Limit(int64(limit)).
 		Scan(ctx, &uids, &recorded); err != nil {
 		return nil, fromSQLError(err)
 	}
