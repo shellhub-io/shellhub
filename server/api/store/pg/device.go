@@ -192,6 +192,19 @@ func (pg *Pg) deviceUpdate(ctx context.Context, device *models.Device, unlessRem
 		return store.ErrNoDocuments
 	}
 
+	if d.KeyProvenAt == nil {
+		return nil
+	}
+
+	if _, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("key_proven_at = ?", d.KeyProvenAt).
+		Where("id = ?", d.ID).
+		Where("key_proven_at IS NULL").
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
 	return nil
 }
 

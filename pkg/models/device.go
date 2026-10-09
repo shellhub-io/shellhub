@@ -80,6 +80,7 @@ type Device struct {
 	// throttles reconciliation of a still-pending enrollment on the agent's periodic AuthDevice. Nil
 	// until the first re-evaluation.
 	LastEnrollmentAttemptAt *time.Time `json:"last_enrollment_attempt_at,omitempty"`
+	KeyProvenAt             *time.Time `json:"-"`
 
 	Taggable `json:",inline"`
 }
@@ -105,9 +106,17 @@ func (d *Device) EnrollWith(key *ProvisioningKey) {
 // DeviceAuthRequest is what an agent sends to enroll or to re-authenticate. It repeats on every
 // agent restart, so handling it must be idempotent.
 type DeviceAuthRequest struct {
-	Info     *DeviceInfo `json:"info"`
-	Sessions []string    `json:"sessions,omitempty"`
+	Info      *DeviceInfo `json:"info"`
+	Sessions  []string    `json:"sessions,omitempty"`
+	Challenge string      `json:"challenge,omitempty"`
+	Signature string      `json:"signature,omitempty"`
 	*DeviceAuth
+}
+
+// DeviceAuthChallenge is a single-use challenge an agent signs to prove it holds its key.
+type DeviceAuthChallenge struct {
+	Challenge string `json:"challenge"`
+	ExpiresIn int    `json:"expires_in"`
 }
 
 // DeviceAuth is the part of an authentication request the device's UID is hashed from. A field

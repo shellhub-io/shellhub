@@ -126,6 +126,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
+	publicAPI.POST(AuthDeviceChallengeURL, gateway.Handler(handler.CreateDeviceAuthChallenge))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback))
 	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))

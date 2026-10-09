@@ -22,6 +22,20 @@ properties:
   provisioning_key:
     description: Provisioning key that enrolls the device in place of a tenant ID.
     type: string
+  challenge:
+    description: |
+      A challenge issued by the device auth challenge route. Sent with `signature`, it proves
+      the agent holds the private half of `public_key`; a device that has proven it once is
+      refused any later request without the proof.
+    type: string
+    maxLength: 64
+  signature:
+    description: |
+      The base64 SSH wire-format signature, made with the device's private key, over the SSH
+      wire encoding of the strings "shellhub-device-auth-v1", the challenge, the tenant ID, the
+      provisioning key and the public key, in that order, each empty when the request omits it.
+    type: string
+    maxLength: 2048
 required:
   - info
   - public_key

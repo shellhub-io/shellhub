@@ -90,6 +90,8 @@ type Env struct {
 	// vacuum, on a decision a user sees on screen. A value below the two-minute floor is raised
 	// to it rather than honoured.
 	SessionKeepAliveTimeout time.Duration `env:"SHELLHUB_SESSION_KEEPALIVE_TIMEOUT,default=5m"`
+
+	RequireDeviceKeyProof bool `env:"SHELLHUB_REQUIRE_DEVICE_KEY_PROOF,default=false"`
 }
 
 type sshEnv struct {
@@ -202,6 +204,10 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	servicesOptions = append(servicesOptions, services.WithIssuer(s.instanceIssuer()))
+
+	if s.env.RequireDeviceKeyProof {
+		servicesOptions = append(servicesOptions, services.WithDeviceKeyProofRequired())
+	}
 
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 

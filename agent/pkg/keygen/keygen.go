@@ -84,9 +84,10 @@ func EnsurePrivateKey(filename string) error {
 	return nil
 }
 
-// ReadPublicKey loads a PEM-encoded private key from filename and returns its public half.
-// It reports [ErrPemDecode] when the file holds no PEM block.
-func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
+// ReadPrivateKey loads a PEM-encoded PKCS#1 RSA private key from filename. It returns the error
+// reading the file, [ErrPemDecode] when the file holds no PEM block, and the parse error when the
+// block is not a PKCS#1 RSA key.
+func ReadPrivateKey(filename string) (*rsa.PrivateKey, error) {
 	data, err := os.ReadFile(filename) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
 	if err != nil {
 		return nil, err
@@ -97,12 +98,7 @@ func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
 		return nil, ErrPemDecode
 	}
 
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return &key.PublicKey, nil
+	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
 // EncodePublicKeyToPem renders key in the PEM form the server expects at enrolment.

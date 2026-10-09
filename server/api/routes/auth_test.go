@@ -592,3 +592,21 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 		"admin": false
 	}`, string(body))
 }
+
+func TestCreateDeviceAuthChallengeIsAnonymous(t *testing.T) {
+	router, _, service := authenticatedRouter(t)
+
+	service.On("CreateDeviceAuthChallenge", gomock.Anything).
+		Return(&models.DeviceAuthChallenge{Challenge: "challenge", ExpiresIn: 60}, nil).
+		Once()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/devices/auth/challenge", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var res models.DeviceAuthChallenge
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&res))
+	assert.Equal(t, models.DeviceAuthChallenge{Challenge: "challenge", ExpiresIn: 60}, res)
+}

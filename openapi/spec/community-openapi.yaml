@@ -184,6 +184,8 @@ paths:
     $ref: paths/api@devices@auth.yaml
   /api/auth/device:
     $ref: paths/api@auth@device.yaml
+  /api/devices/auth/challenge:
+    $ref: paths/api@devices@auth@challenge.yaml
   /api/register:
     $ref: paths/api@register.yaml
   /api/invitations/resolve:

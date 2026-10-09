@@ -22,6 +22,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -35,8 +36,26 @@ type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 
-	// AuthDevice authenticates a device, creating it if it doesn't exist. Returns a JWT token and device metadata for successful authentication.
-	// It also updates session timestamps for backward compatibility with older agent.
+	// CreateDeviceAuthChallenge issues a single-use challenge, valid for a minute, that an agent
+	// signs to prove it holds its device key. ctx bounds the cache write, and the cache's error is
+	// returned when the challenge cannot be stored.
+	CreateDeviceAuthChallenge(ctx context.Context) (*models.DeviceAuthChallenge, error)
+	// AuthDevice authenticates a device, enrolling it when the namespace has not seen it, and
+	// returns its token and the identity the server assigned it. A request that signs a challenge
+	// from [AuthService.CreateDeviceAuthChallenge] proves the device holds its key, and the server
+	// refuses unsigned requests for that device from then on. ctx bounds every cache and store call.
+	//
+	// It returns [ErrDeviceKeyProofRefused] for a request carrying only one of the challenge and the
+	// signature, for a challenge that was not issued, expired or was already used, for a signature
+	// that does not verify, and for an unsigned request when the instance requires a proof or the
+	// device has proven its key before. It returns [ErrAuthUnathorized] for a removed device that was
+	// paired, [ErrAuthInvalid] for a provisioning key that is unknown, unusable or required and
+	// missing, [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
+	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
+	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new device
+	// cannot be stored. It returns the cache's error when the challenge cannot be consumed, and the
+	// store's error when the device, the namespace's pairing key, its counters or its heartbeat cannot
+	// be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
@@ -215,12 +234,86 @@ func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey str
 // AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
 // attributes to the namespace's legacy key (see enrollmentProvisioningKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
-	return s.authDevice(ctx, req, enrollmentOptions{})
+	proof, err := s.proveDeviceKey(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.authDevice(ctx, req, enrollmentOptions{proof: proof})
+}
+
+const (
+	deviceAuthChallengeTTL    = time.Minute
+	deviceAuthChallengeIssued = "issued"
+	deviceAuthCacheKeyProven  = "key_proven"
+)
+
+func deviceAuthChallengeKey(challenge string) string {
+	return "device_auth_challenge/" + challenge
+}
+
+func (s *service) CreateDeviceAuthChallenge(ctx context.Context) (*models.DeviceAuthChallenge, error) {
+	challenge := rand.Text()
+
+	if _, err := s.cache.SetNX(ctx, deviceAuthChallengeKey(challenge), deviceAuthChallengeIssued, deviceAuthChallengeTTL); err != nil {
+		return nil, err
+	}
+
+	return &models.DeviceAuthChallenge{Challenge: challenge, ExpiresIn: int(deviceAuthChallengeTTL.Seconds())}, nil
+}
+
+type keyProof int
+
+const (
+	keyProofMissing keyProof = iota
+	keyProofNotAsked
+	keyProofVerified
+)
+
+func (p keyProof) refusedFor(keyProven bool) bool {
+	return p == keyProofMissing && keyProven
+}
+
+func (s *service) proveDeviceKey(ctx context.Context, req requests.DeviceAuth) (keyProof, error) {
+	if req.Challenge == "" && req.Signature == "" {
+		if s.requireDeviceKeyProof {
+			return keyProofMissing, NewErrDeviceKeyProofRefused()
+		}
+
+		return keyProofMissing, nil
+	}
+
+	if req.Challenge == "" || req.Signature == "" {
+		return keyProofMissing, NewErrDeviceKeyProofRefused()
+	}
+
+	issued, err := s.cache.CompareAndDelete(ctx, deviceAuthChallengeKey(req.Challenge), deviceAuthChallengeIssued)
+	if err != nil {
+		return keyProofMissing, err
+	}
+
+	if !issued {
+		return keyProofMissing, NewErrDeviceKeyProofRefused()
+	}
+
+	statement := devicekey.Statement{
+		Challenge:       req.Challenge,
+		TenantID:        req.TenantID,
+		ProvisioningKey: req.ProvisioningKey,
+		PublicKey:       req.PublicKey,
+	}
+
+	if err := devicekey.Verify(statement, req.Signature); err != nil {
+		return keyProofMissing, NewErrDeviceKeyProofRefused()
+	}
+
+	return keyProofVerified, nil
 }
 
 type enrollmentOptions struct {
 	paired  bool
 	ownerID string
+	proof   keyProof
 }
 
 func (s *service) enrolledByPairing(ctx context.Context, sc scope.Scope, device *models.Device) (bool, error) {
@@ -277,13 +370,20 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
 	uid := hex.EncodeToString(uidSHA[:])
 
+	keyProvenAt := clock.Now()
+
 	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID}, s.issuer, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
 
 	cachedData := make(map[string]string)
-	if err := s.cache.Get(ctx, deviceAuthCacheKey(uid), &cachedData); err == nil && cachedData["device_name"] != "" {
+	cached := s.cache.Get(ctx, deviceAuthCacheKey(uid), &cachedData) == nil && cachedData["device_name"] != ""
+	if cached && enrollment.proof.refusedFor(cachedData[deviceAuthCacheKeyProven] != "") {
+		return nil, NewErrDeviceKeyProofRefused()
+	}
+
+	if cached && (enrollment.proof != keyProofVerified || cachedData[deviceAuthCacheKeyProven] != "") {
 		resp := &models.DeviceAuthResponse{
 			UID:       uid,
 			Token:     token,
@@ -336,6 +436,10 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 		device.EnrollWith(provisioningKey)
 
+		if enrollment.proof == keyProofVerified {
+			device.KeyProvenAt = &keyProvenAt
+		}
+
 		if req.Info != nil {
 			device.Info = &models.DeviceInfo{
 				ID:         req.Info.ID,
@@ -360,6 +464,14 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
 	} else {
+		if enrollment.proof.refusedFor(device.KeyProvenAt != nil) {
+			return nil, NewErrDeviceKeyProofRefused()
+		}
+
+		if enrollment.proof == keyProofVerified && device.KeyProvenAt == nil {
+			device.KeyProvenAt = &keyProvenAt
+		}
+
 		revived := device.RemovedAt != nil
 
 		device.LastSeen = clock.Now()
@@ -482,6 +594,9 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 	cachedData["device_name"] = device.Name
 	cachedData["namespace_name"] = namespace.Name
+	if device.KeyProvenAt != nil {
+		cachedData[deviceAuthCacheKeyProven] = "true"
+	}
 	if err := s.cache.Set(ctx, deviceAuthCacheKey(uid), cachedData, time.Second*30); err != nil {
 		log.WithError(err).Warn("cannot store device authentication metadata in cache")
 	}
