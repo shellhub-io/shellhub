@@ -12,52 +12,29 @@ import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise, requireEnv } from "./env";
 import { createTeam, required, signInAndOpen, signOut } from "./helpers";
 import {
-  type SamlUser,
   type SignOnRequest,
   adminContext,
   answerSignOn,
-  answerSignOnRequest,
+  buildSamlUser,
   disableSaml,
   enableSaml,
   identityProvider,
   idpCertificate,
   samlReason,
+  signInThroughApi,
   signInWithSso,
   signOnURLs,
   waitForSessionToken,
 } from "./saml";
-import { buildRandomEmail, buildShortId, composeExec, password } from "./seed";
+import { buildShortId, composeExec, password } from "./seed";
 
 test.skip(!isEnterprise, samlReason);
 test.afterEach(disableSaml);
-
-function buildSamlUser(): SamlUser {
-  const email = buildRandomEmail("saml");
-  return { email, name: `E2E ${email}` };
-}
 
 async function readSamlSettings() {
   const { data } = await getAuthenticationSettings(await adminContext());
   if (!data.saml) throw new Error("expected the SAML settings");
   return data.saml;
-}
-
-async function signInThroughApi(user: SamlUser) {
-  const { data } = await getSamlAuthUrl(buildRequestContext());
-  const { action, samlResponse } = answerSignOnRequest(new URL(data.url), user);
-  const response = await fetch(action, {
-    method: "POST",
-    redirect: "manual",
-    body: new URLSearchParams({ SAMLResponse: samlResponse }),
-  });
-  const location = required(
-    response.headers.get("location"),
-    `a redirect from the assertion consumer, got ${response.status}`,
-  );
-  return required(
-    new URL(location).searchParams.get("token"),
-    `a session token in ${location}`,
-  );
 }
 
 async function readSessionUser(token: string) {

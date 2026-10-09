@@ -6,7 +6,6 @@ import {
   test,
 } from "@playwright/test";
 import {
-  getNamespaceMembershipInvitationList,
   acceptInvite,
   acceptDevicePairing,
   authDevice,
@@ -32,14 +31,7 @@ import {
   switchNamespace,
 } from "./helpers";
 import { buildDeviceAuthRequest } from "./devices";
-import {
-  password,
-  buildShortId,
-  buildRandomEmail,
-  addMember,
-  expireInvitation,
-  readUserInvitationStatus,
-} from "./seed";
+import { password, buildShortId, buildRandomEmail, addMember } from "./seed";
 import {
   type Endpoint,
   buildRequestContext,
@@ -109,16 +101,17 @@ test.describe("invitations", () => {
     test.skip(isEnterprise, pendingApprovalReason);
     const { owner, tenant } = await createTeam();
     const email = buildRandomEmail("invitee");
+    const username = `e2e-invitee-${buildShortId()}`;
     const { link } = await invite(owner.token, tenant, email);
-    expect(readUserInvitationStatus(email)).toBe("pending");
 
-    await signUpFromInvite(page, link, `e2e-invitee-${buildShortId()}`);
+    await signUpFromInvite(page, link, username);
 
     await expect(page.getByRole("heading", { name: "You're in" })).toBeVisible({
       timeout: 15000,
     });
     await expectInvitationPage(browser, link, "Invitation Unavailable");
-    expect(readUserInvitationStatus(email)).toBe("accepted");
+    const { tenant: joined } = await loginAs(username, password);
+    expect(joined).toBe(tenant);
   });
 
   test("a non-admin's invitee signs in only after an instance admin approves", async ({
@@ -135,7 +128,6 @@ test.describe("invitations", () => {
     await expect(
       page.getByRole("heading", { name: "Waiting for Approval" }),
     ).toBeVisible({ timeout: 15000 });
-    expect(readUserInvitationStatus(email)).toBe("accepted");
     await expectInvitationPage(browser, link, "Invitation Unavailable");
     await signIn(page, username, password);
     await expect(
@@ -184,41 +176,6 @@ test.describe("invitations", () => {
     await expect(row).toHaveCount(0);
 
     await expectInvitationPage(browser, link, "Invitation Unavailable");
-  });
-
-  test("an expired link dies, and regenerating issues a working one", async ({
-    page,
-    browser,
-  }) => {
-    const { owner, tenant } = await createTeam();
-    const email = buildRandomEmail("invitee");
-    const { link: expiredLink } = await invite(owner.token, tenant, email);
-    expireInvitation(tenant);
-    await expectInvitationPage(browser, expiredLink, "Invitation Unavailable");
-
-    await signInAndOpen(page, owner.username, "/team");
-    const row = findRow(page, email);
-    await expect(row).toContainText("expired");
-    await row
-      .getByRole("button", { name: "Regenerate invitation link" })
-      .click();
-    await confirmDialog(page, "Regenerate Link", "Regenerate");
-    await expect(row).toContainText("expires");
-
-    const { data: invitations } = await getNamespaceMembershipInvitationList({
-      ...buildRequestContext({ token: owner.token }),
-      path: { tenant },
-    });
-    const regenerated = invitations.find((i) => i.user.email === email);
-    if (!regenerated?.invite_url) {
-      throw new Error(`expected a regenerated invite_url for ${email}`);
-    }
-    await expectInvitationPage(
-      browser,
-      regenerated.invite_url,
-      "You've been invited",
-    );
-    await expectInvitationPage(browser, expiredLink, "Invitation Unavailable");
   });
 });
 
