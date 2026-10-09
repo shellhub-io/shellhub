@@ -49,7 +49,8 @@ type MemberService interface {
 	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
-	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated.
+	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated
+	// and a new one, at req.TokenVersion when set, is returned.
 	// Returns an error, if any.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 
@@ -374,7 +375,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 			Error("failed to reset user's preferred namespace")
 	}
 
-	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
+	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID, TokenVersion: req.TokenVersion})
 }
 
 func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {

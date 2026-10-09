@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rsa"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -739,6 +740,74 @@ func (_c *MockService_AuthUncacheToken_Call) Return(err error) *MockService_Auth
 }
 
 func (_c *MockService_AuthUncacheToken_Call) RunAndReturn(run func(ctx context.Context, tenant string, id string) error) *MockService_AuthUncacheToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AuthUserClaims provides a mock function for the type MockService
+func (_mock *MockService) AuthUserClaims(ctx context.Context, claims *authorizer.UserClaims) (*models.User, error) {
+	ret := _mock.Called(ctx, claims)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthUserClaims")
+	}
+
+	var r0 *models.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *authorizer.UserClaims) (*models.User, error)); ok {
+		return returnFunc(ctx, claims)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *authorizer.UserClaims) *models.User); ok {
+		r0 = returnFunc(ctx, claims)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *authorizer.UserClaims) error); ok {
+		r1 = returnFunc(ctx, claims)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_AuthUserClaims_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthUserClaims'
+type MockService_AuthUserClaims_Call struct {
+	*mock.Call
+}
+
+// AuthUserClaims is a helper method to define mock.On call
+//   - ctx context.Context
+//   - claims *authorizer.UserClaims
+func (_e *MockService_Expecter) AuthUserClaims(ctx any, claims any) *MockService_AuthUserClaims_Call {
+	return &MockService_AuthUserClaims_Call{Call: _e.mock.On("AuthUserClaims", ctx, claims)}
+}
+
+func (_c *MockService_AuthUserClaims_Call) Run(run func(ctx context.Context, claims *authorizer.UserClaims)) *MockService_AuthUserClaims_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *authorizer.UserClaims
+		if args[1] != nil {
+			arg1 = args[1].(*authorizer.UserClaims)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AuthUserClaims_Call) Return(user *models.User, err error) *MockService_AuthUserClaims_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockService_AuthUserClaims_Call) RunAndReturn(run func(ctx context.Context, claims *authorizer.UserClaims) (*models.User, error)) *MockService_AuthUserClaims_Call {
 	_c.Call.Return(run)
 	return _c
 }

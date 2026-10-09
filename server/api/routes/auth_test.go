@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -591,4 +593,80 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 		"max_namespaces": 0,
 		"admin": false
 	}`, string(body))
+}
+
+func TestRenewalCarriesTheBearerTokenVersion(t *testing.T) {
+	const (
+		userID = "000000000000000000000000"
+		tenant = "00000000-0000-4000-0000-000000000000"
+	)
+
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeUserClaims(
+		authorizer.UserClaims{ID: userID, TenantID: tenant, Username: "john", TokenVersion: 2},
+		"http://localhost",
+		privateKey,
+	)
+	require.NoError(t, err)
+
+	presentedVersion := func(version *int) bool { return version != nil && *version == 2 }
+
+	cases := []struct {
+		description   string
+		method        string
+		path          string
+		requiredMocks func(service *mocks.MockService)
+	}{
+		{
+			description: "renewing the user's token",
+			method:      http.MethodGet,
+			path:        "/api/auth/user",
+			requiredMocks: func(service *mocks.MockService) {
+				service.On("CreateUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.CreateUserToken) bool {
+					return presentedVersion(req.TokenVersion)
+				})).Return(&models.UserAuthResponse{}, nil).Once()
+			},
+		},
+		{
+			description: "switching the token's namespace",
+			method:      http.MethodGet,
+			path:        "/api/auth/token/" + tenant,
+			requiredMocks: func(service *mocks.MockService) {
+				service.On("CreateUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.CreateUserToken) bool {
+					return presentedVersion(req.TokenVersion)
+				})).Return(&models.UserAuthResponse{}, nil).Once()
+			},
+		},
+		{
+			description: "leaving the authenticated namespace",
+			method:      http.MethodDelete,
+			path:        "/api/namespaces/" + tenant + "/members",
+			requiredMocks: func(service *mocks.MockService) {
+				service.On("LeaveNamespace", gomock.Anything, gomock.MatchedBy(func(req *requests.LeaveNamespace) bool {
+					return presentedVersion(req.TokenVersion)
+				})).Return(&models.UserAuthResponse{}, nil).Once()
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			router, _, service := authenticatedRouter(t)
+			service.On("ResolveNamespaceRole", gomock.Anything, tenant, userID).
+				Return(&models.Namespace{TenantID: tenant}, authorizer.RoleObserver.String(), nil).Once()
+			service.On("AuthUserClaims", gomock.Anything, gomock.Anything).
+				Return(&models.User{ID: userID, TokenVersion: 2}, nil).Once()
+			tc.requiredMocks(service)
+
+			req := httptest.NewRequestWithContext(t.Context(), tc.method, tc.path, nil)
+			req.Header.Set("Authorization", "Bearer "+bearer)
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code)
+		})
+	}
 }

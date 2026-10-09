@@ -5,4 +5,8 @@ package requests
 type CreateUserToken struct {
 	UserID   string `param:"id" header:"X-ID" validate:"required"`
 	TenantID string `param:"tenant" validate:"omitempty,uuid"`
+	// TokenVersion is the version of the bearer being renewed, which the new token carries in
+	// place of the user's current one. Nil mints at the user's current version. The handler
+	// fills it from the authentication step; no client input reaches it.
+	TokenVersion *int `json:"-"`
 }

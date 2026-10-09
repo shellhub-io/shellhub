@@ -10,7 +10,34 @@ import (
 
 type ctxKey string
 
-const deviceLimitKey ctxKey = "namespace-device-limit"
+const (
+	deviceLimitKey  ctxKey = "namespace-device-limit"
+	tokenVersionKey ctxKey = "user-token-version" //nolint:gosec // a context key, not a credential
+)
+
+type userTokenVersion struct {
+	userID  string
+	version int
+}
+
+// WithUserTokenVersion returns ctx carrying the token version of the bearer userID authenticated
+// with.
+func WithUserTokenVersion(ctx context.Context, userID string, version int) context.Context {
+	return context.WithValue(ctx, tokenVersionKey, userTokenVersion{userID: userID, version: version})
+}
+
+// UserTokenVersion returns the token version of the bearer userID authenticated with, which
+// authentication found equal to the user's own. It reports false when the request did not
+// authenticate with a user bearer, which covers API keys, device tokens, anonymous requests and
+// contexts built outside an HTTP request, and when the bearer belongs to another user.
+func UserTokenVersion(ctx context.Context, userID string) (int, bool) {
+	held, ok := ctx.Value(tokenVersionKey).(userTokenVersion)
+	if !ok || held.userID != userID {
+		return 0, false
+	}
+
+	return held.version, true
+}
 
 type namespaceDeviceLimit struct {
 	tenantID string

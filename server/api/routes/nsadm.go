@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -237,6 +238,10 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 
 	if err := c.Validate(req); err != nil {
 		return err
+	}
+
+	if version, ok := authctx.UserTokenVersion(c.Ctx(), req.UserID); ok {
+		req.TokenVersion = &version
 	}
 
 	res, err := h.service.LeaveNamespace(c.Ctx(), req)

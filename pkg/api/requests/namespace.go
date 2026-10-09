@@ -98,6 +98,10 @@ type LeaveNamespace struct {
 	TenantID string `param:"tenant" validate:"required,uuid"`
 	// AuthenticatedTenantID represents the namespace to which the user is currently authenticated.
 	AuthenticatedTenantID string `header:"X-Tenant-ID" validate:"required"`
+	// TokenVersion is the version of the caller's bearer, which the token minted on leaving the
+	// authenticated namespace carries. Nil mints at the user's current version. The handler fills
+	// it from the authentication step; no client input reaches it.
+	TokenVersion *int `json:"-"`
 }
 
 // SessionEditRecordStatus is the structure to represent the request data for edit session record status endpoint.
