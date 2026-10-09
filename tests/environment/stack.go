@@ -591,6 +591,13 @@ func (s *Stack) NewMember(ctx context.Context, username, namespace, role string)
 	return s.Admin(ctx, "namespace", "member", "add", username, namespace, role)
 }
 
+// SetUserPassword sets a user's password via the server's admin CLI, which revokes every token the
+// user holds. It returns an error when the command cannot run or exits non-zero, as when the user
+// does not exist.
+func (s *Stack) SetUserPassword(ctx context.Context, username, password string) error {
+	return s.Admin(ctx, "user", "password", username, password)
+}
+
 // RemoveMember removes a user from a namespace via the server's admin CLI, a process apart from the
 // server that holds the tunnels of the devices the user paired.
 func (s *Stack) RemoveMember(ctx context.Context, username, namespace string) error {
