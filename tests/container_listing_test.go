@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,22 @@ func TestContainerListing(t *testing.T) {
 			requireListedApart(t, compose, status, container.UID, native.UID)
 		}
 	})
+
+	t.Run("a filter naming a device from the other listing does not cross the split", func(t *testing.T) {
+		containers := compose.ListContainersMatching(t, nameIsEither(native.Name, container.Name))
+		assert.Equal(t, []string{container.UID}, deviceUIDs(containers))
+
+		devices := compose.ListDevicesMatching(t, nameIsEither(container.Name, native.Name))
+		assert.Equal(t, []string{native.UID}, deviceUIDs(devices))
+	})
+}
+
+func nameIsEither(first, second string) []query.Filter {
+	return []query.Filter{
+		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "name", Operator: "eq", Value: first}},
+		{Type: query.FilterTypeOperator, Params: &query.FilterOperator{Name: "or"}},
+		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "name", Operator: "eq", Value: second}},
+	}
 }
 
 func requireListedApart(t *testing.T, compose *environment.DockerCompose, status models.DeviceStatus, container, native string) {

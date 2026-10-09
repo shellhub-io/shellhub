@@ -22,6 +22,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func platformFilters(operator string) *query.Filters {
+	return &query.Filters{Data: []query.Filter{{
+		Type:   query.FilterTypeProperty,
+		Params: &query.FilterProperty{Name: "platform", Operator: operator, Value: "connector"},
+	}}}
+}
+
 func TestListDevices(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -60,6 +67,10 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -72,7 +83,7 @@ func TestListDevices(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
 					Once()
 			},
@@ -102,6 +113,10 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -114,7 +129,7 @@ func TestListDevices(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
@@ -143,6 +158,10 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -153,7 +172,7 @@ func TestListDevices(t *testing.T) {
 				storeMock.
 					On("DeviceList", ctx, mock.MatchedBy(func(sc scope.Scope) bool {
 						return !sc.IsBounded() && sc.IsValid()
-					}), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					}), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{{UID: "dev1"}}, int64(1), nil).
 					Once()
 			},
@@ -194,6 +213,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 	expectQueryOptions := func(queryOptionsMock *storemock.MockQueryOptions) {
 		queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
 		queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
+		queryOptionsMock.On("Match", platformFilters("ne")).Return(nil).Once()
 		queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).Return(nil).Once()
 		queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 	}
@@ -208,7 +228,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 			models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3})
 
 		storeMock.
-			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 			Return([]models.Device{}, int64(0), nil).
 			Once()
 
@@ -231,7 +251,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 			Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 1}, nil).
 			Once()
 		storeMock.
-			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 			Return([]models.Device{}, int64(0), nil).
 			Once()
 
@@ -239,6 +259,33 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 		_, _, err := service.ListDevices(ctx, scope.MustBounded(tenantID), req)
 		require.NoError(t, err)
 	})
+}
+
+func TestListDevices_connector(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	ctx := context.TODO()
+
+	queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
+	queryOptionsMock.On("Match", platformFilters("eq")).Return(nil).Once()
+	queryOptionsMock.On("Sort", &query.Sorter{By: "last_seen", Tiebreak: "id"}).Return(nil).Once()
+	queryOptionsMock.On("Paginate", &query.Paginator{}).Return(nil).Once()
+	storeMock.
+		On("NamespaceGetDeviceLimit", ctx, tenantID).
+		Return(models.NamespaceDeviceLimit{}, nil).
+		Once()
+	storeMock.
+		On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+		Return([]models.Device{}, int64(0), nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	_, _, err := service.ListDevices(ctx, scope.MustBounded(tenantID), &requests.DeviceList{TenantID: tenantID, Connector: true})
+	require.NoError(t, err)
 }
 
 func TestListDevices_status_removed(t *testing.T) {
@@ -279,6 +326,10 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -287,7 +338,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
 					Once()
 			},
@@ -317,6 +368,10 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -325,7 +380,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{{Name: "dev"}}, int64(1), nil).
 					Once()
 			},
@@ -395,6 +450,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -434,6 +493,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -446,7 +509,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -477,6 +540,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -489,7 +556,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
@@ -520,6 +587,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -532,7 +603,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -563,6 +634,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", platformFilters("ne")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -575,7 +650,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},

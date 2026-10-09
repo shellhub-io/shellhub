@@ -7,7 +7,8 @@ import (
 
 // DeviceList is the request to page through a namespace's devices. An empty DeviceStatus means
 // every status, not none. A true Connector selects the devices whose platform is connector, and
-// false selects those whose platform is not. Connector binds only from the query, never the body.
+// false selects those whose platform is not; no Filters widen the selection past it. Connector
+// binds only from the query, never the body.
 type DeviceList struct {
 	TenantID     string              `header:"X-Tenant-ID"`
 	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`

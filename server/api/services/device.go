@@ -144,7 +144,12 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 
 	req.Sorter.Tiebreak = "id"
 
-	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
+	opts = append(opts,
+		s.store.Options().Match(&req.Filters),
+		s.store.Options().Match(platformFilter(req.Connector)),
+		s.store.Options().Sort(&req.Sorter),
+		s.store.Options().Paginate(&req.Paginator),
+	)
 
 	if req.DeviceStatus == models.DeviceStatusRemoved {
 		return s.store.DeviceList(ctx, sc, store.DeviceAcceptableFromRemoved, opts...)
@@ -164,6 +169,18 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 	}
 
 	return s.store.DeviceList(ctx, sc, acceptable, opts...)
+}
+
+func platformFilter(connector bool) *query.Filters {
+	operator := "ne"
+	if connector {
+		operator = "eq"
+	}
+
+	return &query.Filters{Data: []query.Filter{{
+		Type:   query.FilterTypeProperty,
+		Params: &query.FilterProperty{Name: "platform", Operator: operator, Value: "connector"},
+	}}}
 }
 
 func (s *service) GetDevice(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Device, error) {

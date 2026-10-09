@@ -580,133 +580,49 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 	}
 }
 
-func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
-	cases := []struct {
-		description string
-		connector   string
-		userFilter  []query.Filter
-	}{
-		{
-			description: "connector filter has AND before property when user filter is present",
-			connector:   "",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
-		},
-		{
-			description: "connector=true filter has AND before property when user filter is present",
-			connector:   "true",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			mock := mocks.NewMockService(t)
-
-			var captured *requests.DeviceList
-			mock.
-				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
-				Run(func(args gomock.Arguments) {
-					list, ok := args.Get(2).(*requests.DeviceList)
-					require.True(t, ok)
-					captured = list
-				}).
-				Return([]models.Device{}, int64(0), nil).
-				Once()
-
-			filterJSON, err := json.Marshal(tc.userFilter)
-			require.NoError(t, err)
-
-			filterB64 := base64.StdEncoding.EncodeToString(filterJSON)
-
-			urlVal := &url.Values{}
-			urlVal.Set("page", "1")
-			urlVal.Set("per_page", "10")
-			urlVal.Set("sort_by", "name")
-			urlVal.Set("order_by", "asc")
-			urlVal.Set("status", "accepted")
-			urlVal.Set("filter", filterB64)
-			if tc.connector != "" {
-				urlVal.Set("connector", tc.connector)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-
-			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
-			require.NotNil(t, captured)
-
-			data := captured.Data
-			require.GreaterOrEqual(t, len(data), 3)
-
-			lastTwo := data[len(data)-2:]
-			require.Equal(t, query.FilterTypeOperator, lastTwo[0].Type, "AND operator must precede the platform property filter")
-			require.Equal(t, query.FilterTypeProperty, lastTwo[1].Type, "platform property filter must follow the AND operator")
-
-			op, ok := lastTwo[0].Params.(*query.FilterOperator)
-			require.True(t, ok)
-			require.Equal(t, "and", op.Name)
-		})
-	}
-}
-
 func TestGetDeviceListConnectorParameter(t *testing.T) {
 	cases := []struct {
-		description      string
-		target           string
-		body             string
-		expectedOperator string
+		description       string
+		target            string
+		body              string
+		expectedConnector bool
 	}{
 		{
-			description:      "lists devices other than containers without the parameter",
-			target:           "/api/devices",
-			expectedOperator: "ne",
+			description:       "lists devices other than containers without the parameter",
+			target:            "/api/devices",
+			expectedConnector: false,
 		},
 		{
-			description:      "lists containers with connector=true",
-			target:           "/api/devices?connector=true",
-			expectedOperator: "eq",
+			description:       "lists containers with connector=true",
+			target:            "/api/devices?connector=true",
+			expectedConnector: true,
 		},
 		{
-			description:      "lists devices other than containers with connector=false",
-			target:           "/api/devices?connector=false",
-			expectedOperator: "ne",
+			description:       "lists devices other than containers with connector=false",
+			target:            "/api/devices?connector=false",
+			expectedConnector: false,
 		},
 		{
-			description:      "lists containers through /api/containers",
-			target:           "/api/containers",
-			expectedOperator: "eq",
+			description:       "lists containers through /api/containers",
+			target:            "/api/containers",
+			expectedConnector: true,
 		},
 		{
-			description:      "lists containers through /api/containers with connector=false",
-			target:           "/api/containers?connector=false",
-			expectedOperator: "eq",
+			description:       "lists containers through /api/containers with connector=false",
+			target:            "/api/containers?connector=false",
+			expectedConnector: true,
 		},
 		{
-			description:      "lists containers through /api/containers whatever the body says",
-			target:           "/api/containers",
-			body:             `{"connector":false}`,
-			expectedOperator: "eq",
+			description:       "lists containers through /api/containers whatever the body says",
+			target:            "/api/containers",
+			body:              `{"connector":false}`,
+			expectedConnector: true,
 		},
 		{
-			description:      "lists devices other than containers with connector=false whatever the body says",
-			target:           "/api/devices?connector=false",
-			body:             `{"connector":true}`,
-			expectedOperator: "ne",
+			description:       "lists devices other than containers with connector=false whatever the body says",
+			target:            "/api/devices?connector=false",
+			body:              `{"connector":true}`,
+			expectedConnector: false,
 		},
 	}
 
@@ -742,13 +658,7 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 
 			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 			require.NotNil(t, captured)
-			require.NotEmpty(t, captured.Data)
-
-			platform, ok := captured.Data[len(captured.Data)-1].Params.(*query.FilterProperty)
-			require.True(t, ok)
-			assert.Equal(t, "platform", platform.Name)
-			assert.Equal(t, tc.expectedOperator, platform.Operator)
-			assert.Equal(t, "connector", platform.Value)
+			assert.Equal(t, tc.expectedConnector, captured.Connector)
 		})
 	}
 
