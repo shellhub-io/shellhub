@@ -1,7 +1,5 @@
 FROM node:24.21.0-alpine3.24 AS base
 
-ARG NPM_CONFIG_REGISTRY
-
 RUN apk add --update build-base python3 curl git gcompat
 
 COPY ui/scripts/install-vale.sh /tmp/install-vale
@@ -18,9 +16,6 @@ COPY ui/apps/docs/package.json ./apps/docs/
 RUN npm install
 
 FROM base AS development
-
-ARG NPM_CONFIG_REGISTRY
-ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 
 WORKDIR /src
 
@@ -39,8 +34,6 @@ COPY openapi/redocly.yaml .
 RUN redocly bundle spec/openapi.yaml -o openapi.json
 
 FROM base AS builder
-
-ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app
 

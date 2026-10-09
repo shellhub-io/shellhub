@@ -1,7 +1,5 @@
 FROM golang:1.26.9-alpine3.24
 
-ARG GOPROXY
-
 RUN apk add --update ca-certificates util-linux setpriv bash openssh
 
 RUN ln -sf /bin/bash /bin/sh
@@ -17,7 +15,6 @@ COPY ./agent/go.mod ./agent/go.sum ./
 RUN go mod download
 
 ARG SHELLHUB_VERSION=latest
-ARG GOPROXY
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./agent .

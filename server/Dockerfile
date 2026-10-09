@@ -7,8 +7,6 @@ FROM scratch AS cloud-src
 
 FROM golang:1.26.9-alpine3.24 AS base
 
-ARG GOPROXY
-
 RUN apk add --no-cache git ca-certificates curl build-base openssh-client
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub
@@ -57,9 +55,7 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
 
 FROM base AS development
 
-ARG GOPROXY
 ARG MJML_VERSION
-ENV GOPROXY=${GOPROXY}
 
 RUN apk add --update openssl npm
 COPY --from=docker:29.8.1-cli /usr/local/bin/docker /usr/local/bin/docker

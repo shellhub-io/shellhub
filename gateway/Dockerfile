@@ -1,7 +1,5 @@
 FROM golang:1.26.9-alpine3.24 AS base
 
-ARG GOPROXY
-
 RUN apk add --no-cache git ca-certificates libgcc
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub

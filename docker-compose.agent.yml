@@ -6,10 +6,8 @@ services:
       context: .
       dockerfile: agent/Dockerfile
       target: development
-      network: host
       args:
         - SHELLHUB_VERSION=latest
-        - GOPROXY=${SHELLHUB_GOPROXY:-}
         - USERNAME=${SHELLHUB_DEV_AGENT_USERNAME:-shellhub}
         - PASSWORD=${SHELLHUB_DEV_AGENT_PASSWORD:-shellhub}
     network_mode: service:gateway

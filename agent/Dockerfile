@@ -3,7 +3,6 @@ ARG ALPINE_VERSION=3.24
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.26}-alpine${ALPINE_VERSION:-3.24} AS base
 
-ARG GOPROXY
 ARG TARGETARCH
 ARG TARGETOS=linux
 
@@ -22,7 +21,6 @@ RUN go mod download
 FROM base AS builder
 
 ARG SHELLHUB_VERSION=latest
-ARG GOPROXY
 ARG TARGETARCH
 ARG TARGETVARIANT
 ARG TARGETOS=linux
@@ -43,9 +41,6 @@ FROM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
 RUN apk add --no-cache util-linux setpriv ca-certificates
 
 FROM base AS development
-
-ARG GOPROXY
-ENV GOPROXY=${GOPROXY}
 
 RUN apk add --update openssl openssh-client util-linux setpriv
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \

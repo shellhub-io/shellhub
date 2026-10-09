@@ -5,9 +5,6 @@ services:
       context: .
       dockerfile: server/Dockerfile
       target: development
-      network: host
-      args:
-        - GOPROXY=${SHELLHUB_GOPROXY:-}
     volumes:
       - ./server:/go/src/github.com/shellhub-io/shellhub/server
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -29,9 +26,6 @@ services:
       context: .
       dockerfile: ui/Dockerfile
       target: development
-      network: host
-      args:
-        - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
     environment:
       - PUBLIC_SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - PUBLIC_SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
@@ -59,8 +53,6 @@ services:
       context: .
       dockerfile: openapi/Dockerfile
       target: development
-      args:
-        - GOPROXY=${SHELLHUB_GOPROXY:-}
     volumes:
       - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
