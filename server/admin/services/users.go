@@ -109,7 +109,6 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 	})
 }
 
-// UserUpdate updates a user's data based on the provided username.
 func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) error {
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
@@ -123,7 +122,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 
 	user.Password = password
 
-	if err := s.store.UserUpdate(ctx, user); err != nil {
+	if err := s.store.UserUpdateRevokingTokens(ctx, user); err != nil {
 		return ErrFailedUpdateUser
 	}
 

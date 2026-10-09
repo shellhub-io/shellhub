@@ -2584,6 +2584,97 @@ func TestCreateUserToken(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+func TestCreateUserTokenCarriesTheTokenVersion(t *testing.T) {
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+
+	ctx := context.Background()
+	user := &models.User{ID: "000000000000000000000000", TokenVersion: 3}
+
+	storeMock.On("UserResolve", ctx, store.UserIDResolver, user.ID).Return(user, nil).Once()
+	storeMock.On("NamespaceGetPreferred", ctx, user.ID).Return(nil, store.ErrNoDocuments).Once()
+	cacheMock.On("Set", ctx, "token_"+user.ID, testifymock.Anything, time.Hour*72).Return(nil).Once()
+
+	res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: user.ID})
+	require.NoError(t, err)
+
+	claims, err := jwttoken.ClaimsFromBearerToken(&privateKey.PublicKey, res.Token)
+	require.NoError(t, err)
+	userClaims, ok := claims.(*authorizer.UserClaims)
+	require.True(t, ok)
+	assert.Equal(t, 3, userClaims.TokenVersion)
+}
+
+func TestAuthUserClaims(t *testing.T) {
+	const userID = "000000000000000000000000"
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	cases := []struct {
+		description   string
+		claims        *authorizer.UserClaims
+		requiredMocks func(context.Context, *mocks.MockStore)
+		expectedUser  *models.User
+		expectedErr   error
+	}{
+		{
+			description: "fails when the user no longer exists",
+			claims:      &authorizer.UserClaims{ID: userID},
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedErr: NewErrUserNotFound(userID, store.ErrNoDocuments),
+		},
+		{
+			description: "refuses a token issued before the user's tokens were revoked",
+			claims:      &authorizer.UserClaims{ID: userID, TokenVersion: 2},
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).
+					Return(&models.User{ID: userID, TokenVersion: 3}, nil).Once()
+			},
+			expectedErr: NewErrAuthUnathorized(nil),
+		},
+		{
+			description: "honours a token issued before token versions existed while the user's tokens were never revoked",
+			claims:      &authorizer.UserClaims{ID: userID},
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).
+					Return(&models.User{ID: userID, Admin: true}, nil).Once()
+			},
+			expectedUser: &models.User{ID: userID, Admin: true},
+		},
+		{
+			description: "honours a token issued at the user's current token version",
+			claims:      &authorizer.UserClaims{ID: userID, TokenVersion: 3},
+			requiredMocks: func(ctx context.Context, storeMock *mocks.MockStore) {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).
+					Return(&models.User{ID: userID, TokenVersion: 3}, nil).Once()
+			},
+			expectedUser: &models.User{ID: userID, TokenVersion: 3},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := mocks.NewMockStore(t)
+			s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer))
+
+			ctx := context.Background()
+			tc.requiredMocks(ctx, storeMock)
+
+			user, err := s.AuthUserClaims(ctx, tc.claims)
+			assert.Equal(t, tc.expectedErr, err)
+			assert.Equal(t, tc.expectedUser, user)
+		})
+	}
+}
+
 const (
 	testKeyPlaintext  = "00000000-0000-4000-0000-000000000000"
 	testKeyDigest     = "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a"

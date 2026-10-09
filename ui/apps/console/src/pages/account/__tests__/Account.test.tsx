@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
@@ -21,6 +21,11 @@ import AccountDangerZone from "../AccountDangerZone";
 const mockGetConfig = vi.mocked(getConfig);
 const fetchUser = vi.fn(() => Promise.resolve());
 
+function SignInStub() {
+  const state = useLocation().state as { notice?: string } | null;
+  return <p>{state?.notice ?? "Sign-in page"}</p>;
+}
+
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -30,6 +35,7 @@ function renderAt(path: string) {
           <Route path="security" element={<AccountSecurity />} />
           <Route path="danger-zone" element={<AccountDangerZone />} />
         </Route>
+        <Route path="/login" element={<SignInStub />} />
       </Routes>
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
@@ -60,7 +66,9 @@ describe("Account", () => {
     it("shows the section menu alone on a narrow window", () => {
       viewport.wide = false;
       renderAt("/account");
-      expect(screen.getByRole("link", { name: "Security" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Security" }),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole("heading", { name: "Profile" }),
       ).not.toBeInTheDocument();
@@ -174,7 +182,7 @@ describe("Account", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows success message after a successful password change", async () => {
+    it("signs out and asks to sign in with the new password after a successful change", async () => {
       const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");
@@ -186,8 +194,11 @@ describe("Account", () => {
       await user.click(getModalSubmitButton());
 
       expect(
-        await screen.findByText(/password changed successfully/i),
+        await screen.findByText(
+          "Password changed. Sign in with your new password.",
+        ),
       ).toBeInTheDocument();
+      expect(useAuthStore.getState().token).toBeNull();
     });
 
     it("resets the form when the modal is reopened", async () => {

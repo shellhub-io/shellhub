@@ -26,6 +26,9 @@ patch:
                 value.
               type: string
             password:
+              description: |
+                The new password. Changing it signs out every session the user holds, including
+                the one making this request.
               type: string
             current_password:
               description: |

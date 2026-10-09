@@ -12,7 +12,8 @@ type UserClaims struct {
 	// MFA indicates whether multi-factor authentication is enabled for the user.
 	MFA bool `json:"mfa"`
 	// Admin indicates whether the user has administrative privileges.
-	Admin bool `json:"admin"`
+	Admin        bool `json:"admin"`
+	TokenVersion int  `json:"token_version"`
 }
 
 // DeviceClaims represents the attributes needed to authenticate a device.

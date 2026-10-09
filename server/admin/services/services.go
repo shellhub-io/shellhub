@@ -32,7 +32,11 @@ type Services interface {
 	UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error)
 	// UserDelete removes a user and cleans up related data based on the provided username.
 	UserDelete(ctx context.Context, input *inputs.UserDelete) error
-	// UserUpdate updates a user's data based on the provided username.
+	// UserUpdate sets the password of the user named by the provided username and revokes every
+	// token the user holds. It returns ErrUserNotFound, ErrUserPasswordInvalid, and
+	// ErrFailedUpdateUser when the password cannot be saved or the tokens cannot be revoked, leaving
+	// the password unchanged. Every store call runs under ctx, so a cancelled ctx surfaces as
+	// ErrUserNotFound or ErrFailedUpdateUser, depending on the call it interrupts.
 	UserUpdate(ctx context.Context, input *inputs.UserUpdate) error
 	// UserList lists all users in the system
 	UserList(ctx context.Context) ([]models.User, error)

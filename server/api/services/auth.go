@@ -70,6 +70,12 @@ type AuthService interface {
 	// It returns ErrNamespaceMemberNotFound when the user is not a member. The namespace is a
 	// snapshot taken at the moment of the call, not a handle onto live state.
 	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (ns *models.Namespace, role string, err error)
+	// AuthUserClaims resolves the user a token's claims name, for the authenticator to check the
+	// token against the user's current state. It returns [ErrUserNotFound] wrapping the store's
+	// error whenever the user cannot be resolved, a store failure or a cancelled ctx included, and
+	// [ErrAuthUnathorized] when the claims carry a token version other than the user's, as every
+	// token issued before the user's tokens were last revoked does.
+	AuthUserClaims(ctx context.Context, claims *authorizer.UserClaims) (user *models.User, err error)
 	// GetUserAdmin checks whether the user currently has admin privileges.
 	// Unlike the JWT claim, this queries the store so changes take effect immediately.
 	GetUserAdmin(ctx context.Context, userID string) (admin bool, err error)
@@ -584,12 +590,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	claims := authorizer.UserClaims{
-		ID:       user.ID,
-		Origin:   user.Origin.String(),
-		TenantID: tenantID,
-		Username: user.Username,
-		MFA:      user.MFA.Enabled,
-		Admin:    user.Admin,
+		ID:           user.ID,
+		Origin:       user.Origin.String(),
+		TenantID:     tenantID,
+		Username:     user.Username,
+		MFA:          user.MFA.Enabled,
+		Admin:        user.Admin,
+		TokenVersion: user.TokenVersion,
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
@@ -688,12 +695,13 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}
 
 	claims := authorizer.UserClaims{
-		ID:       user.ID,
-		Origin:   user.Origin.String(),
-		TenantID: tenantID,
-		Username: user.Username,
-		MFA:      user.MFA.Enabled,
-		Admin:    user.Admin,
+		ID:           user.ID,
+		Origin:       user.Origin.String(),
+		TenantID:     tenantID,
+		Username:     user.Username,
+		MFA:          user.MFA.Enabled,
+		Admin:        user.Admin,
+		TokenVersion: user.TokenVersion,
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
@@ -817,6 +825,19 @@ func (s *service) ResolveNamespaceRole(ctx context.Context, tenantID, userID str
 	}
 
 	return ns, member.Role.String(), nil
+}
+
+func (s *service) AuthUserClaims(ctx context.Context, claims *authorizer.UserClaims) (*models.User, error) {
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, claims.ID)
+	if err != nil {
+		return nil, NewErrUserNotFound(claims.ID, err)
+	}
+
+	if claims.TokenVersion != user.TokenVersion {
+		return nil, NewErrAuthUnathorized(nil)
+	}
+
+	return user, nil
 }
 
 func (s *service) GetUserAdmin(ctx context.Context, userID string) (bool, error) {

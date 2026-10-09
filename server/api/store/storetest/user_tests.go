@@ -265,6 +265,68 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 	})
 }
 
+// TestUserRevokeTokens checks that each revocation advances the user's token version by one, and
+// that revoking an unknown user's tokens yields ErrNoDocuments.
+func (s *Suite) TestUserRevokeTokens(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("fails when user is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.UserRevokeTokens(ctx, "00000000-0000-0000-0000-000000000000")
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("advances the token version on each revocation", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		require.Equal(t, 0, user.TokenVersion)
+
+		require.NoError(t, st.UserRevokeTokens(ctx, userID))
+		require.NoError(t, st.UserRevokeTokens(ctx, userID))
+
+		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, 2, user.TokenVersion)
+	})
+}
+
+// TestUserUpdateRevokingTokens checks that UserUpdateRevokingTokens saves the user and advances their token
+// version together, and that an unknown user yields ErrNoDocuments.
+func (s *Suite) TestUserUpdateRevokingTokens(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("fails when user is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.UserUpdateRevokingTokens(ctx, &models.User{ID: "00000000-0000-0000-0000-000000000000"})
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("saves the user and advances the token version", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+
+		user.Password = models.UserPassword{Hash: "newhash"}
+		require.NoError(t, st.UserUpdateRevokingTokens(ctx, user))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, "newhash", updated.Password.Hash)
+		assert.Equal(t, user.TokenVersion+1, updated.TokenVersion)
+	})
+}
+
 // TestUserDelete exercises UserDelete against the store under test.
 func (s *Suite) TestUserDelete(t *testing.T) {
 	ctx := context.Background()
