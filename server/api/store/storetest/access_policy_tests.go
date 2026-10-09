@@ -53,6 +53,43 @@ func (s *Suite) TestAccessPolicyTagFilterRoundTrip(t *testing.T) {
 	assert.Equal(t, []string{tagID}, policy.Filter.TagIDs)
 }
 
+// TestAccessPolicyCreateLeavesNothingWhenATagIsGone verifies a policy whose tag link cannot be
+// written is not kept: without the link its filter would grant every device.
+func (s *Suite) TestAccessPolicyCreateLeavesNothingWhenATagIsGone(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	tenantID := s.CreateNamespace(t)
+	sc := scope.MustBounded(tenantID)
+	ownerID := s.CreateUser(t)
+	s.CreateMembership(t, tenantID, ownerID, "operator")
+	tagID := s.CreateTag(t, WithTagTenant(tenantID), WithTagName("gone"))
+
+	tag, err := st.TagResolve(ctx, sc, store.TagIDResolver, tagID)
+	require.NoError(t, err)
+	require.NoError(t, st.TagDelete(ctx, tag))
+
+	_, err = st.AccessPolicyCreate(ctx, &models.AccessPolicy{
+		TenantID: tenantID,
+		Name:     "ops on a gone tag",
+		Subject:  models.PolicySubject{Type: models.PolicySubjectUser, Value: ownerID},
+		Filter:   models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
+		Logins:   []string{"root"},
+		SourceIP: []string{},
+		Action:   models.PolicyActionAllow,
+	})
+	require.Error(t, err)
+
+	policies, _, err := st.AccessPolicyList(ctx, sc)
+	require.NoError(t, err)
+
+	for _, policy := range policies {
+		assert.NotEqual(t, "ops on a gone tag", policy.Name, "a policy whose tag link failed was kept with a filter granting every device")
+	}
+}
+
 // TestAccessPolicyUpdateReplacesTheTagFilter verifies an update swaps the selector instead of
 // adding to it.
 func (s *Suite) TestAccessPolicyUpdateReplacesTheTagFilter(t *testing.T) {

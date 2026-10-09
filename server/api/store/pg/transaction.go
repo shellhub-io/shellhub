@@ -72,3 +72,11 @@ func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) (err 
 
 	return tx.Commit()
 }
+
+func (pg *Pg) inTransaction(ctx context.Context, fn store.TransactionCb) error {
+	if _, ok := ctx.Value(txKey).(bun.Tx); ok {
+		return fn(ctx)
+	}
+
+	return pg.WithTransaction(ctx, fn)
+}

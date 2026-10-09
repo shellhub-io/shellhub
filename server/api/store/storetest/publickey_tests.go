@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -123,6 +124,33 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 			WithPublicKeyTags([]string{}),
 		)
 		assert.NotEmpty(t, fingerprint)
+	})
+
+	t.Run("leaves no key behind when a tag its filter names is gone", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		sc := scope.MustBounded(tenantID)
+		tagID := s.CreateTag(t, WithTagName("gone"), WithTagTenant(tenantID))
+
+		tag, err := st.TagResolve(ctx, sc, store.TagIDResolver, tagID)
+		require.NoError(t, err)
+		require.NoError(t, st.TagDelete(ctx, tag))
+
+		fingerprint := uniqueFingerprint(t)
+		_, err = st.PublicKeyCreate(ctx, &models.PublicKey{
+			Data:        []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."),
+			Fingerprint: fingerprint,
+			TenantID:    tenantID,
+			PublicKeyFields: models.PublicKeyFields{
+				Name:   "key-with-a-gone-tag",
+				Filter: models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
+			},
+		})
+		require.Error(t, err)
+
+		_, err = st.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
+		assert.ErrorIs(t, err, store.ErrNoDocuments, "a key whose tag link failed was kept with a filter selecting every device")
 	})
 
 	t.Run("succeeds with single tag", func(t *testing.T) {
