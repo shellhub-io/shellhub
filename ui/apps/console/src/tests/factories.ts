@@ -5,6 +5,7 @@ import type {
   GetLicenseResponse,
   GetSshApprovalResponses,
   GetStatusDevicesResponse,
+  MembershipInvitation,
   ProvisioningKey,
   ProvisioningKeyEvent,
   Namespace,
@@ -410,6 +411,32 @@ export function mockSshApproval(
     expires_in_seconds: 90,
     namespace: "my-namespace",
     state: "pending",
+    ...overrides,
+  };
+}
+
+/**
+ * A pending observer invitation to my-namespace that expires in a week. An expired one has to
+ * override `expires_at`.
+ */
+export function mockMembershipInvitation(
+  overrides: Partial<MembershipInvitation> = {},
+): MembershipInvitation {
+  const user = overrides.user ?? {
+    id: "invitee-id",
+    email: "invitee@example.com",
+  };
+  return {
+    namespace: { tenant_id: "tenant-1", name: "my-namespace" },
+    user,
+    invited_by: "owner-id",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "pending",
+    status_updated_at: "2024-01-01T00:00:00Z",
+    role: "observer",
+    invite_url: `https://shellhub.test/accept-invite?invite=${user.id}`,
     ...overrides,
   };
 }
