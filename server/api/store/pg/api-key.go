@@ -74,7 +74,7 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *model
 }
 
 // APIKeyList implements [store.APIKeyStore].
-func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.APIKey, 0)
@@ -96,7 +96,7 @@ func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.Quer
 		apiKeys[i] = *entity.APIKeyToModel(&e)
 	}
 
-	return apiKeys, int(count), nil
+	return apiKeys, count, nil
 }
 
 // APIKeyResolve implements [store.APIKeyStore].

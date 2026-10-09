@@ -48,7 +48,7 @@ type ProvisioningKeyStore interface {
 
 	// ProvisioningKeyList retrieves a list of provisioning keys within the given namespace scope.
 	// Returns the list of provisioning keys, the total count of matched documents, and an error if any.
-	ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (provisioningKeys []models.ProvisioningKey, count int, err error)
+	ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
 	// ProvisioningKeyUpdate updates a provisioning key. It returns an error if any.
 	ProvisioningKeyUpdate(ctx context.Context, provisioningKey *models.ProvisioningKey) (err error)
@@ -70,7 +70,7 @@ type ProvisioningKeyStore interface {
 	// ProvisioningKeyEventList retrieves the enrollment history of the provisioning key identified by its digest
 	// within the given namespace scope, newest first. It returns the events, the total count, and an
 	// error, if any.
-	ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...QueryOption) (events []models.ProvisioningKeyEvent, count int, err error)
+	ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...QueryOption) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// EnrollmentCallbackRedeem atomically claims a deferred-decision callback token by its JWT id,
 	// making it single-use. It returns true when the token was claimed for the first time and false

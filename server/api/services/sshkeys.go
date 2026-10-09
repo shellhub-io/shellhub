@@ -29,7 +29,7 @@ var PublicKeyFilterFields = query.NewFieldConstraints(map[string][]string{
 type SSHKeysService interface {
 	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
-	ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error)
+	ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int64, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
@@ -155,7 +155,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 	}, nil
 }
 
-func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error) {
+func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int64, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
 		return nil, 0, err

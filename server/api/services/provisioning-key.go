@@ -173,14 +173,14 @@ type ProvisioningKeyService interface {
 
 	// ListProvisioningKeys retrieves a list of provisioning keys within the specified tenant ID. It returns the
 	// list, the total count of documents, and an error, if any.
-	ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) (provisioningKeys []models.ProvisioningKey, count int, err error)
+	ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
 	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. It returns an error, if any.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
 	// ListProvisioningKeyEvents retrieves the append-only enrollment history of the provisioning key identified by
 	// tenant ID and name, newest first. It returns the events, the total count, and an error, if any.
-	ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) (events []models.ProvisioningKeyEvent, count int, err error)
+	ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// ResolveEnrollmentCallback applies a webhook integrator's deferred decision, authenticated solely
 	// by the signed callback token. It returns an error, if any.
@@ -268,7 +268,7 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 	return responses.CreateProvisioningKeyFromModel(provisioningKey, key), nil
 }
 
-func (s *service) ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int, error) {
+func (s *service) ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) ([]models.ProvisioningKey, int64, error) {
 	if req.Sorter.By == "" {
 		req.Sorter.By = "created_at"
 	}
@@ -440,7 +440,7 @@ func (s *service) RevealProvisioningKey(ctx context.Context, req *requests.Revea
 	return s.decryptProvisioningKey(provisioningKey.KeyEncrypted)
 }
 
-func (s *service) ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int, error) {
+func (s *service) ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
 		return nil, 0, err

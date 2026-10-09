@@ -46,7 +46,7 @@ func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.Acces
 }
 
 // AccessPolicyList implements [store.AccessPolicyStore].
-func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
+func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.AccessPolicy, 0)
@@ -68,7 +68,7 @@ func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...stor
 		accessPolicies[i] = *entity.AccessPolicyToModel(&e)
 	}
 
-	return accessPolicies, int(count), nil
+	return accessPolicies, count, nil
 }
 
 // AccessPolicyResolve implements [store.AccessPolicyStore].

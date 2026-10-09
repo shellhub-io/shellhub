@@ -261,7 +261,7 @@ func TestListPublicKeys(t *testing.T) {
 
 	type Expected struct {
 		returnedKeys []models.PublicKey
-		count        int
+		count        int64
 		err          error
 	}
 
@@ -289,7 +289,7 @@ func TestListPublicKeys(t *testing.T) {
 					Once()
 				storeMock.
 					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, 0, errors.New("error", "", 0)).
+					Return(nil, int64(0), errors.New("error", "", 0)).
 					Once()
 			},
 			expected: Expected{nil, 0, errors.New("error", "", 0)},
@@ -312,10 +312,10 @@ func TestListPublicKeys(t *testing.T) {
 					Once()
 				storeMock.
 					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(keys, len(keys), nil).
+					Return(keys, int64(len(keys)), nil).
 					Once()
 			},
-			expected: Expected{keys, len(keys), nil},
+			expected: Expected{keys, int64(len(keys)), nil},
 		},
 	}
 
@@ -471,7 +471,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 					TenantID:    "tenant",
 				}
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.Anything).Return(nil, 0, errors.New("error", "", 0)).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(nil, int64(0), errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
@@ -494,7 +494,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 					{ID: "tag4_id", Name: "tag4", TenantID: "tenant"},
 				}
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 			},
 			expected: Expected{nil, NewErrTagNotFound("tag2", nil)},
 		},
@@ -525,7 +525,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 				expectedKey.Filter.Tags = nil
 
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 				storeMock.On("PublicKeyUpdate", ctx, &expectedKey).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
@@ -567,7 +567,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 				}
 
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 				storeMock.On("PublicKeyUpdate", ctx, &expectedKey).Return(nil).Once()
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(updatedKey, nil).Once()
 			},
@@ -785,7 +785,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				},
 			},
 			requiredMocks: func() {
-				storeMock.On("TagList", ctx, mock.Anything).Return(nil, 0, errors.New("error", "", 0)).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(nil, int64(0), errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
@@ -805,7 +805,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					{ID: "tag1_id", Name: "tag1", TenantID: "tenant"},
 					{ID: "tag4_id", Name: "tag4", TenantID: "tenant"},
 				}
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 			},
 			expected: Expected{nil, NewErrTagNotFound("tag2", nil)},
 		},
@@ -1026,7 +1026,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return("", errors.New("error", "", 0)).Once()
 			},
@@ -1070,7 +1070,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(ssh.FingerprintLegacyMD5(pubKey), nil).Once()
 			},

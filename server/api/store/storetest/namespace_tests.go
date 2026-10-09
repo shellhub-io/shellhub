@@ -24,7 +24,7 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		namespaces, count, err := st.NamespaceList(ctx)
 		require.NoError(t, err)
 		assert.Empty(t, namespaces)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 
 	t.Run("returns all namespaces without pagination", func(t *testing.T) {
@@ -41,7 +41,7 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count)
+		assert.Equal(t, int64(4), count)
 		assert.Len(t, namespaces, 4)
 
 		names := []string{}
@@ -73,7 +73,7 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, namespaces, 1)
 		assert.Equal(t, "ns-member", namespaces[0].Name)
 	})
@@ -92,7 +92,7 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count, "total count should be 4")
+		assert.Equal(t, int64(4), count, "total count should be 4")
 		assert.Len(t, namespaces, 2, "page should contain 2 items")
 	})
 
@@ -110,7 +110,7 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.Equal(t, 4, count)
+		assert.Equal(t, int64(4), count)
 		assert.Len(t, namespaces, 2, "page 2 should contain remaining 2 items")
 	})
 }
@@ -348,7 +348,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 
 		policies, count, err := st.AccessPolicyList(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		require.Len(t, policies, 1)
 		assert.Equal(t, "Owner access", policies[0].Name)
 		assert.Equal(t, models.PolicySubjectUser, policies[0].Subject.Type)
@@ -379,7 +379,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 
 		_, count, err := st.AccessPolicyList(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 	})
 }
 
@@ -714,7 +714,7 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 
 		namespaces, count, err := st.NamespaceList(ctx)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, namespaces, 1)
 	})
 

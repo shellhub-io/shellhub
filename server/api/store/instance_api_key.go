@@ -32,7 +32,7 @@ type InstanceAPIKeyStore interface {
 
 	// InstanceAPIKeyList retrieves every instance API key, together with the total count before
 	// pagination.
-	InstanceAPIKeyList(ctx context.Context, opts ...QueryOption) (apiKeys []models.InstanceAPIKey, count int, err error)
+	InstanceAPIKeyList(ctx context.Context, opts ...QueryOption) (apiKeys []models.InstanceAPIKey, count int64, err error)
 
 	// InstanceAPIKeyDelete deletes the instance API key with the given name. It returns
 	// ErrNoDocuments when no key matches.

@@ -41,7 +41,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 }
 
 // PublicKeyList implements [store.PublicKeyStore].
-func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
+func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.PublicKey, 0)
@@ -63,7 +63,7 @@ func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.Q
 		publicKeys[i] = *entity.PublicKeyToModel(&e)
 	}
 
-	return publicKeys, int(count), nil
+	return publicKeys, count, nil
 }
 
 // PublicKeyUpdate implements [store.PublicKeyStore].

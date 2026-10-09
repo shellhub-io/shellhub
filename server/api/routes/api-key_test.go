@@ -341,7 +341,7 @@ func TestListAPIKey(t *testing.T) {
 								ExpiresIn: 0,
 							},
 						},
-						0,
+						int64(0),
 						nil,
 					).
 					Once()
@@ -399,7 +399,7 @@ func TestListAPIKey(t *testing.T) {
 								ExpiresIn: 0,
 							},
 						},
-						0,
+						int64(0),
 						nil,
 					).
 					Once()
@@ -455,7 +455,7 @@ func TestListAPIKey(t *testing.T) {
 								ExpiresIn: 0,
 							},
 						},
-						0,
+						int64(0),
 						nil,
 					).
 					Once()
@@ -512,7 +512,7 @@ func TestListAPIKey(t *testing.T) {
 								ExpiresIn: 0,
 							},
 						},
-						0,
+						int64(0),
 						nil,
 					).
 					Once()

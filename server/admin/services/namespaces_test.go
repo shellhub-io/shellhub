@@ -803,7 +803,7 @@ func TestNamespaceList(t *testing.T) {
 		{
 			description: "returns an error when store fails",
 			requiredMocks: func() {
-				mock.On("NamespaceList", ctx).Return(nil, 0, errors.New("store error")).Once()
+				mock.On("NamespaceList", ctx).Return(nil, int64(0), errors.New("store error")).Once()
 			},
 			expected: Expected{nil, ErrFailedListNamespaces},
 		},
@@ -814,7 +814,7 @@ func TestNamespaceList(t *testing.T) {
 					{Name: "namespace1"},
 					{Name: "namespace2"},
 				}
-				mock.On("NamespaceList", ctx).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceList", ctx).Return(namespaces, int64(len(namespaces)), nil).Once()
 			},
 			expected: Expected{
 				[]models.Namespace{

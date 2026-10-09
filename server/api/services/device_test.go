@@ -29,7 +29,7 @@ func TestListDevices(t *testing.T) {
 
 	type Expected struct {
 		devices []models.Device
-		count   int
+		count   int64
 		err     error
 	}
 
@@ -73,7 +73,7 @@ func TestListDevices(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, errors.New("error", "", 0)).
+					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -115,7 +115,7 @@ func TestListDevices(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, nil).
+					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
 			expected: Expected{
@@ -154,7 +154,7 @@ func TestListDevices(t *testing.T) {
 					On("DeviceList", ctx, mock.MatchedBy(func(sc scope.Scope) bool {
 						return !sc.IsBounded() && sc.IsValid()
 					}), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{{UID: "dev1"}}, 1, nil).
+					Return([]models.Device{{UID: "dev1"}}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{
@@ -209,7 +209,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 
 		storeMock.
 			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-			Return([]models.Device{}, 0, nil).
+			Return([]models.Device{}, int64(0), nil).
 			Once()
 
 		service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
@@ -232,7 +232,7 @@ func TestListDevices_namespaceFromRequestContext(t *testing.T) {
 			Once()
 		storeMock.
 			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-			Return([]models.Device{}, 0, nil).
+			Return([]models.Device{}, int64(0), nil).
 			Once()
 
 		service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
@@ -248,7 +248,7 @@ func TestListDevices_status_removed(t *testing.T) {
 
 	type Expected struct {
 		devices []models.Device
-		count   int
+		count   int64
 		err     error
 	}
 
@@ -288,7 +288,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, errors.New("error", "", 0)).
+					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -326,7 +326,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{{Name: "dev"}}, 1, nil).
+					Return([]models.Device{{Name: "dev"}}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{
@@ -363,7 +363,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 
 	type Expected struct {
 		devices []models.Device
-		count   int
+		count   int64
 		err     error
 	}
 
@@ -447,7 +447,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
+					Return([]models.Device{}, int64(0), errors.New("error", "layer", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -490,7 +490,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, nil).
+					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
 			expected: Expected{
@@ -533,7 +533,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
+					Return([]models.Device{}, int64(0), errors.New("error", "layer", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -576,7 +576,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
-					Return([]models.Device{}, 0, nil).
+					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
 			expected: Expected{

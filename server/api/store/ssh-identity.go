@@ -21,7 +21,7 @@ const (
 // SSHIdentityStore persists the enrolled public keys that identify a person to a device.
 type SSHIdentityStore interface {
 	// SSHIdentityList retrieves enrolled SSH identities scoped to a namespace.
-	SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.SSHIdentity, int, error)
+	SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.SSHIdentity, int64, error)
 	// SSHIdentityResolve retrieves an SSH identity by the given resolver type and value, scoped to a namespace.
 	SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver SSHIdentityResolver, value string, opts ...QueryOption) (*models.SSHIdentity, error)
 	// SSHIdentityCreate creates a new SSH identity and returns its id.

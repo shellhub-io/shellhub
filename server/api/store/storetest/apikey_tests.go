@@ -214,7 +214,7 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, apiKeys)
 	})
 
@@ -229,7 +229,7 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, apiKeys, 2)
 	})
 
@@ -244,7 +244,7 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 1}))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count) // Total count
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, apiKeys, 1) // Page 1 with perPage=1 returns 1 item
 	})
 }
@@ -362,7 +362,7 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		require.Len(t, remaining, 1)
 		assert.Equal(t, "other-user", remaining[0].Name)
 
@@ -370,7 +370,7 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
 			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
-		assert.Equal(t, 1, otherCount)
+		assert.Equal(t, int64(1), otherCount)
 		require.Len(t, otherRemaining, 1)
 		assert.Equal(t, "other-tenant", otherRemaining[0].Name)
 	})

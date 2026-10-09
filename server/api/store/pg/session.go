@@ -14,7 +14,7 @@ import (
 )
 
 // SessionList implements [store.SessionStore].
-func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error) {
+func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "session")
@@ -54,7 +54,7 @@ func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.Que
 		sessions[i] = *entity.SessionToModel(&e)
 	}
 
-	return sessions, int(count), nil
+	return sessions, count, nil
 }
 
 // SessionResolve implements [store.SessionStore].
@@ -395,7 +395,7 @@ func (pg *Pg) SessionEventsCreateMany(ctx context.Context, sc scope.Scope, event
 }
 
 // SessionEventsList implements [store.SessionStore].
-func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
+func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.SessionEvent, 0)
@@ -426,11 +426,11 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 		events[i] = *entity.SessionEventToModel(&e)
 	}
 
-	return events, int(count), nil
+	return events, count, nil
 }
 
 // SessionEventsTimeline implements [store.SessionStore].
-func (pg *Pg) SessionEventsTimeline(ctx context.Context, uid models.UID, limit int) ([]models.SessionEvent, error) {
+func (pg *Pg) SessionEventsTimeline(ctx context.Context, uid models.UID, limit int64) ([]models.SessionEvent, error) {
 	events := make([]models.SessionEvent, 0)
 	if limit <= 0 {
 		return events, nil
@@ -444,7 +444,7 @@ func (pg *Pg) SessionEventsTimeline(ctx context.Context, uid models.UID, limit i
 		Where("session_id = ?", string(uid)).
 		Where("type <> ?", string(models.SessionEventTypePtyOutput)).
 		Order("created_at ASC", "id ASC").
-		Limit(int64(limit)).
+		Limit(limit).
 		Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
@@ -498,7 +498,7 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 }
 
 // SessionListExpired implements [store.SessionStore].
-func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error) {
+func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int64) ([]store.ExpiredSession, error) {
 	if limit <= 0 {
 		return []store.ExpiredSession{}, nil
 	}
@@ -514,7 +514,7 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 		Where("started_at < ?", before).
 		Where("NOT EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = session.id)").
 		Order("started_at ASC").
-		Limit(int64(limit)).
+		Limit(limit).
 		Scan(ctx, &uids, &recorded); err != nil {
 		return nil, fromSQLError(err)
 	}

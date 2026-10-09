@@ -26,7 +26,7 @@ type NamespaceStore interface {
 	//
 	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
 	// an error if any.
-	NamespaceList(ctx context.Context, opts ...QueryOption) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, opts ...QueryOption) ([]models.Namespace, int64, error)
 
 	// NamespaceResolve fetches a namespace using a specific resolver.
 	//
@@ -46,7 +46,7 @@ type NamespaceStore interface {
 	// passed for sorting and pagination.
 	//
 	// It returns the members, the total count (ignoring pagination), and an error if any.
-	NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.MemberView, int, error)
+	NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.MemberView, int64, error)
 
 	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
 	// the first namespace where the user is a member (typically the first one the user was added to). A list of options

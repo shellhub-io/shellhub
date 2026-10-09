@@ -63,7 +63,7 @@ func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, responses.NamespacesFromModel(namespaces))
 }
@@ -137,7 +137,7 @@ func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
 	}
 
 	members, count, err := h.service.ListNamespaceMembers(c.Ctx(), req)
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	if err != nil {
 		return err

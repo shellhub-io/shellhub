@@ -38,10 +38,10 @@ var namespaceFilterColumns = map[string]string{
 // NamespaceService owns namespaces themselves: creating, editing and removing them, and the
 // settings that apply to everything inside one.
 type NamespaceService interface {
-	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error)
 	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
-	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)
+	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error
@@ -124,7 +124,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 	return ns, nil
 }
 
-func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
+func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error) {
 	for i := range req.Filters.Data {
 		if p, ok := req.Filters.Data[i].Params.(*query.FilterProperty); ok {
 			if col, found := namespaceFilterColumns[p.Name]; found {
@@ -181,7 +181,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // username, email, role and a flattened account status), paginated. The tenant is the caller's
 // current namespace (X-Tenant-ID). Cloud/enterprise overrides the route to also fold pending
 // invitations into the response; core returns only real members.
-func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error) {
+func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error) {
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 	}

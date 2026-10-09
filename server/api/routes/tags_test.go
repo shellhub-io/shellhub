@@ -79,7 +79,7 @@ func TestGetTags(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListTags", gomock.Anything, gomock.AnythingOfType("*requests.ListTags")).
-					Return([]models.Tag{}, 5, nil).
+					Return([]models.Tag{}, int64(5), nil).
 					Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -91,7 +91,7 @@ func TestGetTags(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListTags", gomock.Anything, gomock.AnythingOfType("*requests.ListTags")).
-					Return([]models.Tag{}, 3, nil).
+					Return([]models.Tag{}, int64(3), nil).
 					Once()
 			},
 			expectedStatus: http.StatusOK,

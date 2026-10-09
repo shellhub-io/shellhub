@@ -252,7 +252,7 @@ func TestListProvisioningKeys(t *testing.T) {
 	queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "key_digest"}).Return(nil).Once()
 	queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 	storeMock.On("ProvisioningKeyList", mock.Anything, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-		Return([]models.ProvisioningKey{{Name: "ci", TenantID: tenant}}, 1, nil).Once()
+		Return([]models.ProvisioningKey{{Name: "ci", TenantID: tenant}}, int64(1), nil).Once()
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
@@ -261,7 +261,7 @@ func TestListProvisioningKeys(t *testing.T) {
 
 	keys, count, err := s.ListProvisioningKeys(context.Background(), req)
 	require.NoError(t, err)
-	require.Equal(t, 1, count)
+	require.Equal(t, int64(1), count)
 	require.Equal(t, []models.ProvisioningKey{{Name: "ci", TenantID: tenant}}, keys)
 
 	storeMock.AssertExpectations(t)
@@ -609,7 +609,7 @@ func TestListProvisioningKeyEvents(t *testing.T) {
 		req            *requests.ListProvisioningKeyEvents
 		requiredMocks  func(ctx context.Context)
 		expectedEvents []models.ProvisioningKeyEvent
-		expectedCount  int
+		expectedCount  int64
 		expectedErr    error
 	}{
 		{
@@ -633,7 +633,7 @@ func TestListProvisioningKeyEvents(t *testing.T) {
 				queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "id"}).Return(nil).Once()
 				queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 				storeMock.On("ProvisioningKeyEventList", ctx, scope.MustBounded(tenant), "hash", mock.AnythingOfType("[]store.QueryOption")).
-					Return(events, 1, nil).Once()
+					Return(events, int64(1), nil).Once()
 			},
 			expectedEvents: events,
 			expectedCount:  1,

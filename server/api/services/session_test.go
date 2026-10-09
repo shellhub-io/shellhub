@@ -31,7 +31,7 @@ func TestListSessions(t *testing.T) {
 
 	type Expected struct {
 		sessions []models.Session
-		count    int
+		count    int64
 		err      error
 	}
 
@@ -102,7 +102,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, 0, goerrors.New("error")).Once()
+					Return(nil, int64(0), goerrors.New("error")).Once()
 			},
 			expected: Expected{
 				sessions: nil,
@@ -136,7 +136,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(sessions, len(sessions), nil).Once()
+					Return(sessions, int64(len(sessions)), nil).Once()
 			},
 			expected: Expected{
 				sessions: []models.Session{
@@ -144,12 +144,8 @@ func TestListSessions(t *testing.T) {
 					{UID: "uid2"},
 					{UID: "uid3"},
 				},
-				count: len([]models.Session{
-					{UID: "uid1"},
-					{UID: "uid2"},
-					{UID: "uid3"},
-				}),
-				err: nil,
+				count: 3,
+				err:   nil,
 			},
 		},
 		{
@@ -174,7 +170,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{{UID: "uid1"}}, 1, nil).Once()
+					Return([]models.Session{{UID: "uid1"}}, int64(1), nil).Once()
 			},
 			expected: Expected{
 				sessions: []models.Session{{UID: "uid1"}},
@@ -204,7 +200,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{}, 0, nil).Once()
+					Return([]models.Session{}, int64(0), nil).Once()
 			},
 			expected: Expected{
 				sessions: []models.Session{},
@@ -234,7 +230,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{}, 0, nil).Once()
+					Return([]models.Session{}, int64(0), nil).Once()
 			},
 			expected: Expected{
 				sessions: []models.Session{},
@@ -264,7 +260,7 @@ func TestListSessions(t *testing.T) {
 				storeMock.On("SessionList", ctx, mock.MatchedBy(func(sc scope.Scope) bool {
 					return !sc.IsBounded() && sc.IsValid()
 				}), mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{{UID: "s1"}}, 1, nil).Once()
+					Return([]models.Session{{UID: "s1"}}, int64(1), nil).Once()
 			},
 			expected: Expected{
 				sessions: []models.Session{{UID: "s1"}},
@@ -326,7 +322,7 @@ func TestGetSession(t *testing.T) {
 				session := &models.Session{UID: "uid", TenantID: "00000000-0000-4000-0000-000000000000"}
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(session, nil).Once()
-				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), int64(sessionTimelineMaxEvents)).
 					Return([]models.SessionEvent{}, nil).Once()
 			},
 			expected: Expected{
@@ -345,7 +341,7 @@ func TestGetSession(t *testing.T) {
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(&models.Session{UID: "uid"}, nil).Once()
-				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), int64(sessionTimelineMaxEvents)).
 					Return([]models.SessionEvent{{Type: models.SessionEventTypeShell}}, nil).Once()
 			},
 			expected: Expected{
@@ -365,7 +361,7 @@ func TestGetSession(t *testing.T) {
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(&models.Session{UID: "uid"}, nil).Once()
-				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), sessionTimelineMaxEvents).
+				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), int64(sessionTimelineMaxEvents)).
 					Return(nil, goerrors.New("error")).Once()
 			},
 			expected: Expected{

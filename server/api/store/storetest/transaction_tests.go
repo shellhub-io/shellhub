@@ -49,7 +49,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, int64(0), count)
 		assert.Empty(t, devices)
 	})
 
@@ -79,7 +79,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, int64(1), count)
 		assert.Len(t, devices, 1)
 	})
 }

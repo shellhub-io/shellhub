@@ -50,7 +50,7 @@ type TagsService interface {
 	//
 	// It returns the list of tags with pagination, an integer representing the total count of tags in the
 	// database, ignoring pagination, and an error if any.
-	ListTags(ctx context.Context, req *requests.ListTags) (tags []models.Tag, totalCount int, err error)
+	ListTags(ctx context.Context, req *requests.ListTags) (tags []models.Tag, totalCount int64, err error)
 
 	// UpdateTag updates a tag with the specified name in the specified namespace and returns the tag
 	// as stored after the update, with the updated_at the store set.
@@ -132,7 +132,7 @@ func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *
 	return s.store.TagPullFromTarget(ctx, tag.ID, target, req.TargetID)
 }
 
-func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int, error) {
+func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
 		return []models.Tag{}, 0, err

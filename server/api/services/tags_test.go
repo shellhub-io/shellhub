@@ -373,7 +373,7 @@ func TestService_ListTags(t *testing.T) {
 
 	type Expected struct {
 		tags       []models.Tag
-		totalCount int
+		totalCount int64
 		err        error
 	}
 
@@ -429,7 +429,7 @@ func TestService_ListTags(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, 0, errors.New("error")).
+					Return(nil, int64(0), errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -466,7 +466,7 @@ func TestService_ListTags(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Tag{{Name: "production", TenantID: "tenant1"}}, 1, nil).
+					Return([]models.Tag{{Name: "production", TenantID: "tenant1"}}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{

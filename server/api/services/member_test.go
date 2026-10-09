@@ -724,7 +724,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				queryOptionsMock.On("WithMember", "000000000000000000000001").Return(nil).Once()
 				storeMock.
 					On("NamespaceList", ctx, mock.Anything).
-					Return([]models.Namespace{}, 0, nil).
+					Return([]models.Namespace{}, int64(0), nil).
 					Once()
 				storeMock.
 					On("UserDelete", ctx, &models.User{ID: "000000000000000000000001"}).
@@ -787,7 +787,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				queryOptionsMock.On("WithMember", "000000000000000000000001").Return(nil).Once()
 				storeMock.
 					On("NamespaceList", ctx, mock.Anything).
-					Return([]models.Namespace{{TenantID: "00000000-0000-4000-0000-000000000001"}}, 1, nil).
+					Return([]models.Namespace{{TenantID: "00000000-0000-4000-0000-000000000001"}}, int64(1), nil).
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").

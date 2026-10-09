@@ -440,7 +440,7 @@ func TestGetDeviceList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
-					Return(nil, 0, svc.ErrDeviceNotFound).
+					Return(nil, int64(0), svc.ErrDeviceNotFound).
 					Once()
 			},
 			expected: Expected{
@@ -460,7 +460,7 @@ func TestGetDeviceList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
-					Return([]models.Device{}, 0, nil).
+					Return([]models.Device{}, int64(0), nil).
 					Once()
 			},
 			expected: Expected{
@@ -475,8 +475,8 @@ func TestGetDeviceList(t *testing.T) {
 			tc.requiredMocks()
 
 			urlVal := &url.Values{}
-			urlVal.Set("page", strconv.Itoa(tc.req.Page))
-			urlVal.Set("per_page", strconv.Itoa(tc.req.PerPage))
+			urlVal.Set("page", strconv.FormatInt(tc.req.Page, 10))
+			urlVal.Set("per_page", strconv.FormatInt(tc.req.PerPage, 10))
 			urlVal.Set("sort_by", tc.req.By)
 			urlVal.Set("order_by", tc.req.Order)
 			urlVal.Set("status", string(tc.req.DeviceStatus))
@@ -620,7 +620,7 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 					require.True(t, ok)
 					captured = list
 				}).
-				Return([]models.Device{}, 0, nil).
+				Return([]models.Device{}, int64(0), nil).
 				Once()
 
 			filterJSON, err := json.Marshal(tc.userFilter)
@@ -811,7 +811,7 @@ func TestGetDeviceListAcceptsEveryDeviceStatus(t *testing.T) {
 		t.Run(description, func(t *testing.T) {
 			mock := mocks.NewMockService(t)
 			mock.On("ListDevices", gomock.Anything, gomock.Anything, gomock.Anything).
-				Return([]models.Device{}, 0, nil).Once()
+				Return([]models.Device{}, int64(0), nil).Once()
 
 			urlVal := url.Values{}
 			urlVal.Set("page", "1")

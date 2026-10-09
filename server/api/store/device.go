@@ -42,7 +42,7 @@ type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
 
-	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int64, error)
 
 	// DeviceResolve fetches a device using a specific resolver within the given namespace scope.
 	//

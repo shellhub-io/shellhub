@@ -148,7 +148,7 @@ func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceCo
 }
 
 // NamespaceList implements [store.NamespaceStore].
-func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
+func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Namespace, 0)
@@ -170,7 +170,7 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 		namespaces[i] = *entity.NamespaceToModel(&e)
 	}
 
-	return namespaces, int(count), nil
+	return namespaces, count, nil
 }
 
 // NamespaceResolve implements [store.NamespaceStore].
@@ -219,7 +219,7 @@ func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (mod
 }
 
 // NamespaceGetMembers implements [store.NamespaceStore].
-func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
+func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Membership, 0)
@@ -246,7 +246,7 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...s
 		members[i] = *entity.MembershipToMemberView(&entities[i])
 	}
 
-	return members, int(count), nil
+	return members, count, nil
 }
 
 // NamespaceGetPreferred implements [store.NamespaceStore].

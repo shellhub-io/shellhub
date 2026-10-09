@@ -46,7 +46,7 @@ func TestGetSessionList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
-					Return(nil, 0, svc.ErrNotFound).
+					Return(nil, int64(0), svc.ErrNotFound).
 					Once()
 			},
 			expected: Expected{
@@ -61,7 +61,7 @@ func TestGetSessionList(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
-					Return([]models.Session{}, 1, nil).
+					Return([]models.Session{}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{
@@ -141,7 +141,7 @@ func TestGetSessionList(t *testing.T) {
 
 						return prop.Name == "device_uid" && prop.Operator == "eq" && prop.Value == "abc123"
 					})).
-					Return([]models.Session{}, 1, nil).
+					Return([]models.Session{}, int64(1), nil).
 					Once()
 			},
 			expected: Expected{
@@ -158,8 +158,8 @@ func TestGetSessionList(t *testing.T) {
 
 			rawURL := "/api/sessions"
 			urlVal := url.Values{}
-			urlVal.Set("page", strconv.Itoa(tc.paginator.Page))
-			urlVal.Set("per_page", strconv.Itoa(tc.paginator.PerPage))
+			urlVal.Set("page", strconv.FormatInt(tc.paginator.Page, 10))
+			urlVal.Set("per_page", strconv.FormatInt(tc.paginator.PerPage, 10))
 			if tc.filter != "" {
 				urlVal.Set("filter", tc.filter)
 			}

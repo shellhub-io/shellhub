@@ -70,7 +70,7 @@ type TagsStore interface {
 	// TagList retrieves a list of tags within the given namespace scope.
 	//
 	// It returns the list of tags, the total count of matching documents (ignoring pagination), and an error if any.
-	TagList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (tags []models.Tag, totalCount int, err error)
+	TagList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (tags []models.Tag, totalCount int64, err error)
 
 	// TagResolve fetches a tag using a specific resolver within the given namespace scope.
 	//

@@ -57,7 +57,7 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 }
 
 // CountRegisteredDevices implements [store.StatsStore].
-func (pg *Pg) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, error) {
+func (pg *Pg) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int64, error) {
 	db := pg.GetConnection(ctx)
 
 	if !sc.IsValid() {
@@ -67,7 +67,7 @@ func (pg *Pg) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, 
 	return countInScope(ctx, buildRegisteredDevicesQuery(db), sc)
 }
 
-func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (int, error) {
+func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (int64, error) {
 	query, err := applyScopedOptions(ctx, query, sc)
 	if err != nil {
 		return 0, err
@@ -78,7 +78,7 @@ func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (
 		return 0, fromSQLError(err)
 	}
 
-	return int(count), nil
+	return count, nil
 }
 
 func buildOnlineDevicesQuery(db bun.IDB) *bun.SelectQuery {

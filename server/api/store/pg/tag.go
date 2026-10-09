@@ -77,7 +77,7 @@ func (pg *Pg) TagConflicts(ctx context.Context, sc scope.Scope, target *models.T
 }
 
 // TagList implements [store.TagsStore].
-func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int, error) {
+func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Tag, 0)
@@ -98,7 +98,7 @@ func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOp
 		tags[i] = *entity.TagToModel(&e)
 	}
 
-	return tags, int(count), nil
+	return tags, count, nil
 }
 
 // TagResolve implements [store.TagsStore].

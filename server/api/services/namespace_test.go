@@ -30,7 +30,7 @@ func TestListNamespaces(t *testing.T) {
 
 	type Expected struct {
 		namespaces []models.Namespace
-		count      int
+		count      int64
 		err        error
 	}
 
@@ -60,7 +60,7 @@ func TestListNamespaces(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, 0, errors.New("error")).
+					Return(nil, int64(0), errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -140,7 +140,7 @@ func TestListNamespaces(t *testing.T) {
 								},
 							},
 						},
-						2,
+						int64(2),
 						nil,
 					).
 					Once()
@@ -240,7 +240,7 @@ func TestListNamespaces(t *testing.T) {
 								},
 							},
 						},
-						1,
+						int64(1),
 						nil,
 					).
 					Once()
@@ -332,7 +332,7 @@ func TestListNamespaces(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Namespace{}, 0, nil).
+					Return([]models.Namespace{}, int64(0), nil).
 					Once()
 			},
 			expected: Expected{
@@ -1464,7 +1464,7 @@ func TestEditSSHAccessMode(t *testing.T) {
 
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{}, 0, nil).
+					Return([]models.AccessPolicy{}, int64(0), nil).
 					Once()
 				storeMock.
 					On("AccessPolicyCreate", ctx, models.NewOwnerAccessPolicy(tenantID, ownerID)).
@@ -1499,7 +1499,7 @@ func TestEditSSHAccessMode(t *testing.T) {
 
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{{ID: "existing"}}, 1, nil).
+					Return([]models.AccessPolicy{{ID: "existing"}}, int64(1), nil).
 					Once()
 			},
 			expected: nil,

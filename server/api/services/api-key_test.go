@@ -390,7 +390,7 @@ func TestCreateAPIKey(t *testing.T) {
 func TestListAPIKey(t *testing.T) {
 	type Expected struct {
 		apiKeys []models.APIKey
-		count   int
+		count   int64
 		err     error
 	}
 
@@ -423,7 +423,7 @@ func TestListAPIKey(t *testing.T) {
 					Once()
 				storeMock.
 					On("APIKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, 0, errors.New("error")).
+					Return(nil, int64(0), errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -457,7 +457,7 @@ func TestListAPIKey(t *testing.T) {
 								Name:      "nameAPIKey",
 							},
 						},
-						1,
+						int64(1),
 						nil,
 					).
 					Once()
@@ -496,7 +496,7 @@ func TestListAPIKey(t *testing.T) {
 							{Name: "legacy", Role: authorizer.RoleOwner},
 							{Name: "dev", Role: authorizer.RoleOperator},
 						},
-						2,
+						int64(2),
 						nil,
 					).
 					Once()

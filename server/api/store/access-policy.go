@@ -18,7 +18,7 @@ const (
 // AccessPolicyStore persists the rules that decide who may reach which device as whom.
 type AccessPolicyStore interface {
 	// AccessPolicyList retrieves a list of access policies scoped to a namespace.
-	AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.AccessPolicy, int, error)
+	AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.AccessPolicy, int64, error)
 	// AccessPolicyResolve retrieves an access policy by the given resolver type and value, scoped to a namespace.
 	AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver AccessPolicyResolver, value string, opts ...QueryOption) (*models.AccessPolicy, error)
 	// AccessPolicyCreate creates a new access policy and returns its ID.

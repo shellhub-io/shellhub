@@ -37,7 +37,7 @@ type APIKeyStore interface {
 
 	// APIKeyList retrieves a list of API keys within the given namespace scope.
 	// Returns the list of API keys, the total count of matched documents, and an error if any.
-	APIKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (apiKeys []models.APIKey, count int, err error)
+	APIKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (apiKeys []models.APIKey, count int64, err error)
 
 	// APIKeyUpdate updates an API key. It returns an error if any.
 	APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) (err error)

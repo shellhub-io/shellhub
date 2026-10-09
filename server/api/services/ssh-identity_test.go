@@ -281,7 +281,7 @@ func TestListSSHIdentitiesWidensOnlyForAManager(t *testing.T) {
 			}
 
 			storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
-				Return([]models.SSHIdentity{}, 0, nil).Once()
+				Return([]models.SSHIdentity{}, int64(0), nil).Once()
 
 			service := NewService(storeMock, privateKey, publicKey, nil)
 
@@ -333,7 +333,7 @@ func TestListAPIKeySSHIdentities(t *testing.T) {
 		queryOptionsMock.On("WithAPIKeyID", keyID).Return(filter).Once()
 
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: keyID}}, 1, nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: keyID}}, int64(1), nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
@@ -762,7 +762,7 @@ func TestListSSHIdentities(t *testing.T) {
 		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
 		queryOptionsMock.On("WithUserID", userID).Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, 1, nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, int64(1), nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 
@@ -779,7 +779,7 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
 		queryOptionsMock.On("WithoutAPIKeyOwner").Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, 2, nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, int64(2), nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil)
 

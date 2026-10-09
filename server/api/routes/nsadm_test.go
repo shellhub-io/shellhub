@@ -700,7 +700,7 @@ func TestGetNamespaceList(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
-					Return([]models.Namespace{}, 5, nil).
+					Return([]models.Namespace{}, int64(5), nil).
 					Once()
 			},
 			expectedStatus:     http.StatusOK,
@@ -722,7 +722,7 @@ func TestGetNamespaceList(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListNamespaces", gomock.Anything, namespaceListHasFilterName("type")).
-					Return([]models.Namespace{}, 2, nil).
+					Return([]models.Namespace{}, int64(2), nil).
 					Once()
 			},
 			expectedStatus:     http.StatusOK,
@@ -735,7 +735,7 @@ func TestGetNamespaceList(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
-					Return([]models.Namespace{}, 3, nil).
+					Return([]models.Namespace{}, int64(3), nil).
 					Once()
 			},
 			expectedStatus:     http.StatusOK,
@@ -748,7 +748,7 @@ func TestGetNamespaceList(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
-					Return([]models.Namespace{{Name: "namespace", Members: []models.Member{memberHuman}}}, 1, nil).
+					Return([]models.Namespace{{Name: "namespace", Members: []models.Member{memberHuman}}}, int64(1), nil).
 					Once()
 			},
 			expectedStatus:     http.StatusOK,

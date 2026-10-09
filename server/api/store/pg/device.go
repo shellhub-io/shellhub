@@ -67,7 +67,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *model
 }
 
 // DeviceList implements [store.DeviceStore].
-func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
+func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Device, 0)
@@ -100,7 +100,7 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 		devices[i] = *entity.DeviceToModel(&e)
 	}
 
-	return devices, int(count), nil
+	return devices, count, nil
 }
 
 // DeviceListExpiredEphemeral implements [store.DeviceStore].

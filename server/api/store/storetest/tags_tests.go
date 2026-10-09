@@ -109,7 +109,7 @@ func (s *Suite) TestTagList(t *testing.T) {
 
 		tags, count, err := st.TagList(ctx, scope.NewUnbounded("test: asserting that an unbounded scope really does span namespaces"))
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, int64(3), count)
 		assert.Len(t, tags, 3)
 
 		sortTags(tags)
@@ -129,7 +129,7 @@ func (s *Suite) TestTagList(t *testing.T) {
 
 		tags, count, err := st.TagList(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, int64(2), count)
 		assert.Len(t, tags, 2)
 
 		sortTags(tags)

@@ -101,7 +101,7 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	}
 
 	res, count, err := h.service.ListDevices(c.Ctx(), sc, req)
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	if err != nil {
 		return err
