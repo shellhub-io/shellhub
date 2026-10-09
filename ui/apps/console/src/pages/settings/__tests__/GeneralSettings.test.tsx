@@ -77,6 +77,7 @@ beforeEach(() => {
         rejected_devices: 0,
       }),
     ),
+    http.get("*/api/devices", () => jsonWithTotal([])),
   );
 });
 

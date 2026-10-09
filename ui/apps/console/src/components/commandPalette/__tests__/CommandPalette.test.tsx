@@ -81,6 +81,9 @@ describe("CommandPalette", () => {
     useAuthStore.setState({ logout: logoutSpy });
     server.use(
       http.get("*/api/devices", () => jsonWithTotal([device])),
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([mockNamespace({ name: "dev" })]),
+      ),
       http.get("*/api/namespaces/:tenant", () =>
         HttpResponse.json(mockNamespace({ name: "dev" })),
       ),

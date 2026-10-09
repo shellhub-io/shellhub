@@ -6,6 +6,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockWebEndpoint } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { defaultHandlers } from "@/tests/handlers";
 import WebEndpoints from "../WebEndpoints";
 
 vi.mock("@/hooks/useResetOnOpen");
@@ -44,6 +45,7 @@ beforeEach(() => {
   lastRequestUrl = null;
   seedAuthStore();
   setEndpoints([]);
+  server.use(...defaultHandlers);
   server.use(
     http.delete(
       "*/api/web-endpoints/:address",

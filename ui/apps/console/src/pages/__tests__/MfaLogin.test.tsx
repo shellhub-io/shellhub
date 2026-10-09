@@ -24,6 +24,7 @@ function renderMfaLogin(initialEntry = "/login-mfa") {
         <Route path="/login-mfa" element={<MfaLogin />} />
         <Route path="/login" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
+        <Route path="/devices" element={<div>Devices</div>} />
         <Route path="/accept-device" element={<div>Accept Device</div>} />
       </Routes>
     </MemoryRouter>,
@@ -237,9 +238,8 @@ describe("MfaLogin", () => {
       fillCode();
       submitCode();
 
-      await waitFor(() => {
-        expect(mockLoginWithMfa).toHaveBeenCalledWith("123456");
-      });
+      expect(await screen.findByText("Devices")).toBeInTheDocument();
+      expect(mockLoginWithMfa).toHaveBeenCalledWith("123456");
       expect(hasPendingDeviceCode()).toBe(true);
     });
   });

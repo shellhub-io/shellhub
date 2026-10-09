@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
+import { defaultHandlers } from "@/tests/handlers";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
@@ -58,12 +59,13 @@ beforeEach(() => {
   useTerminalStore.setState({ sessions: [], recordings: [] });
   mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
+  server.use(...defaultHandlers);
   server.use(
     http.get("*/api/namespaces", () => jsonWithTotal([])),
-    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: "jwt-token", role: "owner" }),
     ),
+    http.get("*/api/devices", () => jsonWithTotal([])),
   );
 });
 

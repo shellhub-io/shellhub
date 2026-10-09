@@ -46,8 +46,9 @@ beforeEach(() => {
   server.use(
     http.get("*/api/namespaces", () => jsonWithTotal([])),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json(mockUserAuth({ token: "jwt-token" })),
+      HttpResponse.json(mockUserAuth()),
     ),
+    http.get("*/api/vault", () => new HttpResponse(null, { status: 404 })),
   );
   useConnectivityStore.getState().markUp();
 });

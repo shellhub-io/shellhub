@@ -28,6 +28,10 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("authStore", () => {
   describe("login", () => {
     it("sets token and user data on success", async () => {
@@ -311,6 +315,7 @@ describe("authStore", () => {
     });
 
     it("silently ignores errors (interceptor handles redirect)", async () => {
+      vi.stubGlobal("location", { href: "", search: "" });
       server.use(
         http.get("*/api/auth/user", () =>
           HttpResponse.json({}, { status: 401 }),
@@ -318,6 +323,8 @@ describe("authStore", () => {
       );
 
       await useAuthStore.getState().fetchUser();
+
+      expect(window.location.href).toBe("/login");
     });
   });
 
