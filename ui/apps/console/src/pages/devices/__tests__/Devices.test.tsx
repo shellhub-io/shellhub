@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice, mockNamespace, mockStats } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import Devices from "../index";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
@@ -107,7 +107,7 @@ beforeEach(() => {
     http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
     http.get("*/api/stats", () => HttpResponse.json(mockStats())),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.post("*/api/tags", () => new HttpResponse(null, { status: 204 })),
     http.post(

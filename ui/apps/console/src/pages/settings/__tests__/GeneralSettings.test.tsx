@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { getConfig, defaultConfig } from "@/env";
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -66,7 +66,7 @@ beforeEach(() => {
       () => new HttpResponse(null, { status: 204 }),
     ),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token" }),
+      HttpResponse.json({ token: VALID_JWT }),
     ),
     http.get("*/api/stats", () =>
       HttpResponse.json({

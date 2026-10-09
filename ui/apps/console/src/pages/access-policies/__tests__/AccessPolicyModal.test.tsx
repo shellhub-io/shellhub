@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { server } from "@/tests/msw";
 import { defaultHandlers } from "@/tests/handlers";
 import AccessPolicyModal from "../AccessPolicyModal";
@@ -23,7 +23,7 @@ beforeEach(() => {
       HttpResponse.json(mockNamespace()),
     ),
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/namespaces/api-key", () => HttpResponse.json([])),
     http.get("*/api/tags", () => HttpResponse.json([])),

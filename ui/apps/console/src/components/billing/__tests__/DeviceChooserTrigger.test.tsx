@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockStats, mockNamespace } from "@/tests/factories";
-import { seedAuthStore } from "@/tests/seedAuthStore";
+import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import type { Edition } from "@/env";
 
 import { getConfig } from "@/env";
@@ -95,7 +95,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   server.use(
     http.get("*/api/auth/token/:tenant", () =>
-      HttpResponse.json({ token: "jwt-token", role: "owner" }),
+      HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
   );
   setupMocks();
