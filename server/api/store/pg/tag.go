@@ -113,6 +113,8 @@ func (pg *Pg) TagResolve(ctx context.Context, sc scope.Scope, resolver store.Tag
 	tag := new(entity.Tag)
 	query := db.NewSelect().Model(tag).Column("tag.*").Relation("Namespace").Where("tag.? = ?", bun.Ident(column), value)
 
+	ctx = context.WithValue(ctx, CtxTableAlias, "tag")
+
 	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
