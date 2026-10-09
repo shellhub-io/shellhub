@@ -6,6 +6,7 @@ import { shots } from "../../../src/lib/shots/integration.ts";
 export default defineConfig({
   integrations: [mdx(), shots()],
   vite: {
+    css: { postcss: {} },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("../../../src", import.meta.url)),
