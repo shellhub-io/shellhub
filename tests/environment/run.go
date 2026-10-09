@@ -44,9 +44,10 @@ type Run struct {
 // ctx; [Run.Close] releases it.
 //
 // A non-nil issuer makes the run compile issuer's public key into its enterprise server in place
-// of the production license key, and start every enterprise stack under a license issuer signs
-// rather than the one SHELLHUB_LICENSE_FILE names. A stack then picks its license with
-// [Config.License] and runs without one under [Config.Unlicensed].
+// of the production license key, and start every enterprise stack under a license issuer signs. A
+// stack then picks its license with [Config.License] and runs without one under
+// [Config.Unlicensed]. A run with a nil issuer brings up an enterprise or cloud stack only under
+// [Config.Unlicensed].
 func StartRun(ctx context.Context, issuer *LicenseIssuer) (*Run, error) {
 	return startRun(ctx, newRunID(), false, issuer)
 }
@@ -95,8 +96,8 @@ func newRunID() string {
 // ID returns the run's ID, valid as an image tag and as a compose project name.
 func (r *Run) ID() string { return r.id }
 
-// LicenseIssuer returns the issuer [StartRun] or [StartStackRun] gave the run, or nil when the
-// run's stacks run under the license SHELLHUB_LICENSE_FILE names.
+// LicenseIssuer returns the issuer [StartRun] or [StartStackRun] gave the run, or nil when the run
+// issues no licenses.
 func (r *Run) LicenseIssuer() *LicenseIssuer { return r.issuer }
 
 // Labels returns the labels every container the run starts must carry. A stack run's include
