@@ -145,9 +145,13 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		return err
 	}
 
+	stopSignals := forwardSignals(session, foregroundGroup(sspty, scmd))
+
 	if err := scmd.Wait(); err != nil {
 		log.Warn(err)
 	}
+
+	stopSignals()
 
 	log.WithFields(log.Fields{
 		"user":       session.User(),
@@ -218,6 +222,8 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command started")
 
+	startInOwnProcessGroup(cmd)
+
 	if err := cmd.Start(); err != nil {
 		log.Warn(err)
 		_ = session.Exit(1)
@@ -228,6 +234,8 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	if err := reapOnDisconnect(session, cmd); err != nil {
 		return err
 	}
+
+	stopSignals := forwardSignals(session, processGroup(cmd))
 
 	go func() {
 		if _, err := io.Copy(stdin, session); err != nil {
@@ -245,6 +253,8 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
 	}
+
+	stopSignals()
 
 	_ = session.Exit(cmd.ProcessState.ExitCode())
 
@@ -332,15 +342,26 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 
 			return fmt.Errorf("failed to init pty: %w", err)
 		}
-	} else if err := cmd.Start(); err != nil {
-		_ = session.Exit(1)
+	} else {
+		startInOwnProcessGroup(cmd)
 
-		return err
+		if err := cmd.Start(); err != nil {
+			_ = session.Exit(1)
+
+			return err
+		}
 	}
 
 	if err := reapOnDisconnect(session, cmd); err != nil {
 		return err
 	}
+
+	group := processGroup(cmd)
+	if sIsPty {
+		group = foregroundGroup(sPty, cmd)
+	}
+
+	stopSignals := forwardSignals(session, group)
 
 	if !sIsPty {
 		wg.Wait()
@@ -349,6 +370,8 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
 	}
+
+	stopSignals()
 
 	log.WithFields(log.Fields{
 		"user":        session.User(),
