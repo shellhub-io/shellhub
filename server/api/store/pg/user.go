@@ -154,6 +154,37 @@ func (pg *Pg) UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID
 	return nil
 }
 
+// UserRevokeTokens implements [store.UserStore].
+func (pg *Pg) UserRevokeTokens(ctx context.Context, userID string) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("token_version = token_version + 1").
+		Where("id = ?", userID).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+// UserUpdateRevokingTokens implements [store.UserStore].
+func (pg *Pg) UserUpdateRevokingTokens(ctx context.Context, user *models.User) error {
+	return pg.WithTransaction(ctx, func(ctx context.Context) error {
+		if err := pg.UserUpdate(ctx, user); err != nil {
+			return err
+		}
+
+		return pg.UserRevokeTokens(ctx, user.ID)
+	})
+}
+
 // UserDelete implements [store.UserStore].
 func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 	db := pg.GetConnection(ctx)

@@ -44,6 +44,19 @@ type UserStore interface {
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)
 
+	// UserRevokeTokens advances the user's token version, invalidating every user token issued
+	// before it. It joins the transaction ctx carries, if any. Returns [ErrNoDocuments] if no user
+	// is found, and the database error otherwise.
+	UserRevokeTokens(ctx context.Context, userID string) error
+
+	// UserUpdateRevokingTokens saves user as UserUpdate does and revokes every token the user
+	// holds as UserRevokeTokens does, in one transaction of its own, so a changed credential never
+	// lands while the tokens issued under the old one still work. It begins that transaction under
+	// ctx and does not join one ctx already carries. It returns the error of whichever step fails:
+	// beginning the transaction (a cancelled ctx included), either write ([ErrNoDocuments] and
+	// [ErrDuplicate] included) or the commit. Neither write is kept when it fails.
+	UserUpdateRevokingTokens(ctx context.Context, user *models.User) error
+
 	UserDelete(ctx context.Context, user *models.User) error
 }
 
