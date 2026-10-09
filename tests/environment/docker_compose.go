@@ -111,6 +111,14 @@ func (dc *DockerCompose) NewMember(t *testing.T, username, namespace, role strin
 	require.NoError(t, dc.stack.NewMember(t.Context(), username, namespace, role))
 }
 
+// SetUserPassword sets username's password through the server's "admin user password" command,
+// failing t immediately if it fails.
+func (dc *DockerCompose) SetUserPassword(t *testing.T, username, password string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.SetUserPassword(t.Context(), username, password))
+}
+
 // RemoveMember removes username from namespace through the server's "admin namespace member remove"
 // command, failing t immediately if it fails.
 func (dc *DockerCompose) RemoveMember(t *testing.T, username, namespace string) {
