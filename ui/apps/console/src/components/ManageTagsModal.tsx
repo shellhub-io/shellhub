@@ -1,5 +1,5 @@
 import { useState, useRef, FormEvent } from "react";
-import { isSdkError } from "../api/errors";
+import { apiErrorFields, isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTags } from "../hooks/useTags";
 import {
@@ -23,6 +23,16 @@ import PageLoader from "@/components/common/PageLoader";
 import ObjectName from "@/components/common/ObjectName";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
+
+function deleteFailure(name: string, err: unknown) {
+  const holders =
+    isSdkError(err) && err.status === 409
+      ? apiErrorFields(err).name
+      : undefined;
+  if (!holders) return `Failed to delete "${name}".`;
+
+  return `"${name}" is used in the device filter of ${holders}. Remove it from there before deleting the tag.`;
+}
 
 /**
  * Renames and deletes the namespace's tags. Both change every device carrying the tag, so the
@@ -48,6 +58,7 @@ export default function ManageTagsModal({
   const [editName, setEditName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingTag, setDeletingTag] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const skipBlurRef = useRef(false);
 
@@ -122,16 +133,21 @@ export default function ManageTagsModal({
 
   const handleDelete = async (name: string) => {
     setSubmitting(true);
-    setError(null);
+    setDeleteError(null);
     try {
       await deleteTag.mutateAsync({ path: { name } });
       setDeletingTag(null);
       onTagDeleted?.(name);
-    } catch {
-      setError(`Failed to delete "${name}".`);
+    } catch (err: unknown) {
+      setDeleteError(deleteFailure(name, err));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const openDelete = (name: string) => {
+    setDeleteError(null);
+    setDeletingTag(name);
   };
 
   return (
@@ -247,7 +263,12 @@ export default function ManageTagsModal({
                           void handleRename(tag.name, true);
                         }}
 
-                        className={cn("w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all", editNameChanged && !editNameValid ? "border-accent-red/50 focus:ring-accent-red/20" : "border-primary/50 focus:ring-primary/20")}
+                        className={cn(
+                          "w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all",
+                          editNameChanged && !editNameValid
+                            ? "border-accent-red/50 focus:ring-accent-red/20"
+                            : "border-primary/50 focus:ring-primary/20",
+                        )}
                       />
                       {editNameChanged && !editNameValid && (
                         <p className="mt-1 text-2xs text-accent-red">
@@ -282,7 +303,7 @@ export default function ManageTagsModal({
                       <IconButton
                         variant="danger"
                         title="Delete"
-                        onClick={() => setDeletingTag(tag.name)}
+                        onClick={() => openDelete(tag.name)}
                       >
                         <TrashIcon className="w-3.5 h-3.5" />
                       </IconButton>
@@ -308,6 +329,7 @@ export default function ManageTagsModal({
           </>
         }
         confirmLabel="Delete tag"
+        errorMessage={deleteError}
       />
     </>
   );
