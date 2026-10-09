@@ -29,6 +29,9 @@ func TestService_RegisterUser(t *testing.T) {
 	hashMock.On("Do", "secret123").Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil)
 
 	runTx := func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }
+	isAccepted := func(invitation *models.UserInvitation) bool {
+		return invitation.Status == models.UserInvitationStatusAccepted
+	}
 
 	type Expected struct {
 		hasToken bool
@@ -79,7 +82,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(runTx).Once()
 				storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
 					Return("invitee", nil).Once()
-				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
+				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
 			},
 			expected: Expected{false, nil},
@@ -103,7 +106,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(runTx).Once()
 				storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
 					Return("invitee", nil).Once()
-				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
+				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
@@ -139,7 +142,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(runTx).Once()
 				storeMock.On("UserCreate", ctx, mock.MatchedBy(func(u *models.User) bool { return u.AwaitingApproval })).
 					Return("invitee", nil).Once()
-				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
+				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
