@@ -33,6 +33,7 @@ type fakeSession struct {
 	ctx        gliderssh.Context
 	command    []string
 	rawCommand string
+	signals    chan chan<- gliderssh.Signal
 
 	exitCalled int32 // atomic: 0 = not called, 1 = called
 	exitCode   int32 // atomic: last code passed to Exit()
@@ -91,7 +92,11 @@ func (f *fakeSession) Pty() (gliderssh.Pty, <-chan gliderssh.Window, bool) {
 
 func (f *fakeSession) EmulatedPty() bool { return false }
 
-func (f *fakeSession) Signals(c chan<- gliderssh.Signal) {}
+func (f *fakeSession) Signals(c chan<- gliderssh.Signal) {
+	if f.signals != nil && c != nil {
+		f.signals <- c
+	}
+}
 
 func (f *fakeSession) Break(c chan<- bool) {}
 
