@@ -1,6 +1,8 @@
 import { type Page, expect, test } from "@playwright/test";
+import { getMembershipInvitationList } from "@/client";
 import { isCloud } from "./env";
 import {
+  confirmAccount,
   consoleAccountDeletionReason,
   createTeam,
   createTeamWithMember,
@@ -11,8 +13,8 @@ import {
   signInAndOpen,
   signUpUser,
 } from "./helpers";
-import { buildUserIdentity, password, readUserInvitationStatus } from "./seed";
-import { expectLoginStatus, invite } from "./api";
+import { buildUserIdentity, password } from "./seed";
+import { buildRequestContext, expectLoginStatus, invite, loginAs } from "./api";
 import { readEmailLink } from "./mail";
 
 const openSignUpReason = "only the cloud has open sign-up";
@@ -52,7 +54,7 @@ test.describe("registration", () => {
     await expectLoginStatus(account.username, password, 403);
   });
 
-  test("signing up with an invited email completes the user invitation", async ({
+  test("signing up with an invited email inherits the namespace invitation", async ({
     page,
   }) => {
     const { owner, tenant } = await createTeam();
@@ -61,7 +63,14 @@ test.describe("registration", () => {
 
     await signUp(page, account);
 
-    expect(readUserInvitationStatus(account.email)).toBe("accepted");
+    await confirmAccount(account.email);
+    const { token } = await loginAs(account.username, password);
+    const { data: invitations } = await getMembershipInvitationList(
+      buildRequestContext({ token }),
+    );
+    expect(invitations.map(({ namespace }) => namespace.tenant_id)).toEqual([
+      tenant,
+    ]);
   });
 });
 

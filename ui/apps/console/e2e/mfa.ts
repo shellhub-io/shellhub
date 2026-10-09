@@ -1,7 +1,13 @@
 import { type Page, expect } from "@playwright/test";
-import { createHmac } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
+import { enableMfa, updateUser } from "@/client";
+import { buildRequestContext } from "./api";
 import { dismissWizard, signIn } from "./helpers";
-import { mfaSecret, password } from "./seed";
+import { buildRandomEmail, password } from "./seed";
+
+export const mfaSecret = "JBSWY3DPEHPK3PXP";
+
+const recoveryCodeCount = 6;
 
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
@@ -43,4 +49,48 @@ export async function signInWithMFA(page: Page, username: string) {
   await page.getByRole("button", { name: "Verify" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await dismissWizard(page);
+}
+
+export const buildRecoveryCode = () =>
+  randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase();
+
+export async function setRecoveryEmail(token: string, recoveryEmail: string) {
+  await updateUser({
+    ...buildRequestContext({ token }),
+    body: { recovery_email: recoveryEmail },
+  });
+}
+
+export async function enableMFA(
+  token: string,
+  {
+    recoveryEmail = buildRandomEmail("recovery"),
+    recoveryCodes = [] as string[],
+  } = {},
+) {
+  await setRecoveryEmail(token, recoveryEmail);
+  const codes = [
+    ...recoveryCodes,
+    ...Array.from(
+      { length: recoveryCodeCount - recoveryCodes.length },
+      buildRecoveryCode,
+    ),
+  ];
+  const enable = async () => {
+    const { response } = await enableMfa({
+      ...buildRequestContext({ token }),
+      throwOnError: false,
+      body: {
+        secret: mfaSecret,
+        code: totp(mfaSecret, -1),
+        recovery_codes: codes,
+      },
+    });
+    return response?.status;
+  };
+
+  let status = await enable();
+  if (status === 403) status = await enable();
+  expect(status, "enabling MFA").toBe(200);
+  return { recoveryEmail, recoveryCodes: codes };
 }

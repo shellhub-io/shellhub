@@ -32,15 +32,8 @@ export function required(value: string | null | undefined, what: string) {
   return value;
 }
 
-export async function signUpUser(prefix: string, { confirm = true } = {}) {
-  const user = buildUserIdentity(prefix);
-  await registerUser({
-    ...buildRequestContext(),
-    body: { ...user, name: user.username, password, email_marketing: false },
-  });
-  if (!confirm) return user;
-
-  const { link } = await readLatestEmail(user.email, "/validation-account");
+export async function confirmAccount(address: string) {
+  const { link } = await readLatestEmail(address, "/validation-account");
   const email = link.params.get("email");
   const token = link.params.get("token");
   if (!email || !token) {
@@ -50,6 +43,15 @@ export async function signUpUser(prefix: string, { confirm = true } = {}) {
     ...buildRequestContext(),
     query: { email, token },
   });
+}
+
+export async function signUpUser(prefix: string, { confirm = true } = {}) {
+  const user = buildUserIdentity(prefix);
+  await registerUser({
+    ...buildRequestContext(),
+    body: { ...user, name: user.username, password, email_marketing: false },
+  });
+  if (confirm) await confirmAccount(user.email);
   return user;
 }
 

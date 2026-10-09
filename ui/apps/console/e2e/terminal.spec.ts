@@ -1,8 +1,10 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
 import { type ChildProcess, execFileSync, spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import sshpk from "sshpk";
 import {
   createAccessPolicy,
+  createNamespace,
   createPublicKey,
   createSshIdentity,
   deleteAccessPolicy,
@@ -15,6 +17,7 @@ import {
   getSessions,
   listAccessPolicies,
   listSshIdentities,
+  setSshAccessMode,
   updateDeviceStatus,
 } from "@/client";
 import { buildRequestContext } from "./api";
@@ -29,23 +32,16 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
-import { fillDigits, signInWithMFA, totp } from "./mfa";
-import {
-  buildShortId,
-  composeExec,
-  enableMFA,
-  markSamlOrigin,
-  mfaSecret,
-  password,
-  runInGateway,
-  startAgent,
-} from "./seed";
+import { enableMFA, fillDigits, mfaSecret, signInWithMFA, totp } from "./mfa";
+import { buildShortId, password, runInGateway, startAgent } from "./seed";
 import {
   type AnswerOptions,
   answerSignOn,
+  buildSamlUser,
   disableSaml,
   enableSaml,
   samlReason,
+  signInThroughApi,
   signInWithSso,
 } from "./saml";
 import { addKey, buildPrivateKey, setUpVault } from "./vault";
@@ -56,7 +52,8 @@ const deviceLogin = "root";
 const devicePassword = "password";
 const keyPassphrase = "e2e-key-passphrase";
 
-type Team = Awaited<ReturnType<typeof createTeam>>;
+type Team = { owner: { token: string }; namespace: string; tenant: string };
+type LocalTeam = Team & { owner: { username: string } };
 
 function docker(args: string[]) {
   return execFileSync("docker", args, {
@@ -164,7 +161,7 @@ async function createContainer(team: Team) {
   };
 }
 
-async function createDeviceAndSignIn(page: Page, team: Team) {
+async function createDeviceAndSignIn(page: Page, team: LocalTeam) {
   const device = await createDevice(team);
   await signInAndOpen(page, team.owner.username, "/devices");
   return device;
@@ -417,16 +414,29 @@ async function requireReauth(team: Team) {
   });
 }
 
+async function createSamlTeam() {
+  const user = buildSamlUser();
+  const first = await signInThroughApi(user);
+  const namespace = `e2e-team-${buildShortId()}`;
+  const { data } = await createNamespace({
+    ...buildRequestContext({ token: first }),
+    body: { name: namespace },
+  });
+  const token = await signInThroughApi(user);
+  await setSshAccessMode({
+    ...buildRequestContext({ token }),
+    path: { tenant: data.tenant_id },
+    body: { ssh_access_mode: "identity" },
+  });
+  const team: Team = { owner: { token }, namespace, tenant: data.tenant_id };
+  return { user, team };
+}
+
 async function signInAsSamlOwner(page: Page, options?: AnswerOptions) {
-  const team = await createTeam({ sshAccessMode: "identity" });
+  const { user, team } = await createSamlTeam();
   await requireReauth(team);
-  markSamlOrigin(team.owner.username);
   const device = await createDevice(team);
-  const requests = await answerSignOn(
-    page.context(),
-    { email: team.owner.email, name: team.owner.username },
-    options,
-  );
+  const requests = await answerSignOn(page.context(), user, options);
   await signInWithSso(page);
   await expect(page).toHaveURL(/\/dashboard$/);
   await dismissWizard(page);
@@ -438,19 +448,6 @@ async function reauthenticateWithSso(page: Page) {
   await dialog.getByRole("button", { name: "Continue" }).click();
   await dialog.getByRole("button", { name: "Re-authenticate" }).click();
   return dialog;
-}
-
-function expireSamlRelayToken(token: string) {
-  const out = composeExec("redis", [
-    "valkey-cli",
-    "DEL",
-    `saml-stepup/${token}`,
-  ]);
-  if (out !== "1") {
-    throw new Error(
-      `expected to expire SAML relay token ${token}, got "${out}"`,
-    );
-  }
 }
 
 const reauthDialog = (page: Page) =>
@@ -483,7 +480,7 @@ test.describe("Re-authentication", () => {
     const team = await createTeam({ sshAccessMode: "identity" });
     await requireReauth(team);
     const device = await createDevice(team);
-    enableMFA(team.owner.username);
+    await enableMFA(team.owner.token);
     await signInWithMFA(page, team.owner.username);
 
     await connectWithBrowserKey(page, device.name);
@@ -574,15 +571,15 @@ test.describe("Re-authentication", () => {
       expect(await readDeviceSessions(team, device.uid)).toEqual([]);
     });
 
-    test("an expired relay token refuses the SAML re-authentication", async ({
+    test("a relay token the server never issued refuses the SAML re-authentication", async ({
       page,
     }) => {
-      let expiredRelayState = "";
+      let replaced = false;
       const { team, device } = await signInAsSamlOwner(page, {
-        beforeAnswer: ({ relayState }) => {
-          if (!relayState || expiredRelayState) return;
-          expireSamlRelayToken(relayState);
-          expiredRelayState = relayState;
+        replaceRelayState: (relayState) => {
+          if (!relayState || replaced) return relayState;
+          replaced = true;
+          return randomUUID();
         },
       });
 
@@ -935,7 +932,7 @@ function countBrowserCasts(page: Page) {
   });
 }
 
-async function recordInBrowserAndPlayBack(page: Page, team: Team) {
+async function recordInBrowserAndPlayBack(page: Page, team: LocalTeam) {
   const device = await createDeviceAndSignIn(page, team);
 
   const dialog = await openConnect(page, device.name);

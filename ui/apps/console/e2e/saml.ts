@@ -4,10 +4,11 @@ import { inflateRawSync } from "node:zlib";
 import sshpk from "sshpk";
 import { DOMParser } from "@xmldom/xmldom";
 import { SignedXml } from "xml-crypto";
-import { configureSamlAuthentication } from "@/client";
+import { configureSamlAuthentication, getSamlAuthUrl } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { adminUser, requireEnv } from "./env";
 import { required } from "./helpers";
+import { buildRandomEmail } from "./seed";
 import { buildPrivateKey } from "./vault";
 
 export const samlReason = "only enterprise signs users in with SAML";
@@ -27,6 +28,11 @@ const defaultAttributes: AttributeNames = {
 };
 
 export type SamlUser = { email: string; name: string };
+
+export function buildSamlUser(): SamlUser {
+  const email = buildRandomEmail("saml");
+  return { email, name: `E2E ${email}` };
+}
 
 export type SignOnRequest = {
   url: URL;
@@ -219,13 +225,13 @@ export function answerSignOnRequest(
 
 export type AnswerOptions = {
   attributes?: AttributeNames;
-  beforeAnswer?: (request: SignOnRequest) => void;
+  replaceRelayState?: (relayState: string) => string;
 };
 
 export async function answerSignOn(
   context: BrowserContext,
   user: SamlUser,
-  { attributes, beforeAnswer }: AnswerOptions = {},
+  { attributes, replaceRelayState }: AnswerOptions = {},
 ) {
   const requests: SignOnRequest[] = [];
   await context.route(`${identityProvider}/sso/**`, async (route) => {
@@ -235,13 +241,32 @@ export async function answerSignOn(
       attributes,
     );
     requests.push(request);
-    beforeAnswer?.(request);
+    const relayState =
+      replaceRelayState?.(request.relayState) ?? request.relayState;
     await route.fulfill({
       contentType: "text/html",
-      body: `<form method="post" action="${action}"><input type="hidden" name="SAMLResponse" value="${samlResponse}"><input type="hidden" name="RelayState" value="${request.relayState}"></form><script>document.forms[0].submit()</script>`,
+      body: `<form method="post" action="${action}"><input type="hidden" name="SAMLResponse" value="${samlResponse}"><input type="hidden" name="RelayState" value="${relayState}"></form><script>document.forms[0].submit()</script>`,
     });
   });
   return requests;
+}
+
+export async function signInThroughApi(user: SamlUser) {
+  const { data } = await getSamlAuthUrl(buildRequestContext());
+  const { action, samlResponse } = answerSignOnRequest(new URL(data.url), user);
+  const response = await fetch(action, {
+    method: "POST",
+    redirect: "manual",
+    body: new URLSearchParams({ SAMLResponse: samlResponse }),
+  });
+  const location = required(
+    response.headers.get("location"),
+    `a redirect from the assertion consumer, got ${response.status}`,
+  );
+  return required(
+    new URL(location).searchParams.get("token"),
+    `a session token in ${location}`,
+  );
 }
 
 export async function waitForSessionToken(context: BrowserContext) {

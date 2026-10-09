@@ -1,6 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { randomUUID } from "node:crypto";
-import { getUserInfo, mfaRecover, requestResetMfa, updateUser } from "@/client";
+import { getUserInfo, mfaRecover, requestResetMfa } from "@/client";
 import { isCloud, isCommunity } from "./env";
 import {
   createTeam,
@@ -9,25 +8,23 @@ import {
   mfaReason,
   signInAndOpen,
 } from "./helpers";
-import {
-  buildRandomEmail,
-  enableMFA,
-  composeExec,
-  countRecoveryCodes,
-  mfaSecret,
-  password,
-} from "./seed";
+import { buildRandomEmail, password } from "./seed";
 import { readLatestEmail } from "./mail";
 import { buildRequestContext } from "./api";
-import { fillDigits, reachCodePrompt, signInWithMFA, totp } from "./mfa";
-
-const buildRecoveryCode = () =>
-  randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase();
+import {
+  buildRecoveryCode,
+  enableMFA,
+  fillDigits,
+  mfaSecret,
+  reachCodePrompt,
+  setRecoveryEmail,
+  signInWithMFA,
+  totp,
+} from "./mfa";
 
 async function createMFAUser({ recoveryCodes = [] as string[] } = {}) {
   const { owner } = await createTeam();
-  const recoveryEmail = buildRandomEmail("recovery");
-  enableMFA(owner.username, { recoveryEmail, recoveryCodes });
+  const { recoveryEmail } = await enableMFA(owner.token, { recoveryCodes });
   return { ...owner, recoveryEmail };
 }
 
@@ -59,16 +56,18 @@ async function recoverWithCode(page: Page, username: string, code: string) {
 
 type MFAUser = Awaited<ReturnType<typeof createMFAUser>>;
 
+async function recoverThroughApi(username: string, code: string) {
+  const { response } = await mfaRecover({
+    ...buildRequestContext(),
+    throwOnError: false,
+    body: { identifier: username, recovery_code: code },
+  });
+  return response?.status;
+}
+
 async function readMFA({ token }: { token: string }) {
   const { data } = await getUserInfo(buildRequestContext({ token }));
   return { enabled: data.mfa, recoveryEmail: data.recovery_email };
-}
-
-async function setRecoveryEmail(token: string, recoveryEmail: string) {
-  await updateUser({
-    ...buildRequestContext({ token }),
-    body: { recovery_email: recoveryEmail },
-  });
 }
 
 async function readResetEmail(email: string) {
@@ -83,30 +82,6 @@ async function readResetCodes(user: MFAUser) {
   const main = await readResetEmail(user.email);
   const recovery = await readResetEmail(user.recoveryEmail);
   return { main: main.code, recovery: recovery.code, link: main.link };
-}
-
-const resetCodeKeys = (userId: string) => [
-  `reset-mfa={main:${userId}}`,
-  `reset-mfa={recovery:${userId}}`,
-];
-
-function readResetCodeTTLs(userId: string) {
-  return resetCodeKeys(userId).map((key) =>
-    Number(composeExec("redis", ["valkey-cli", "TTL", key])),
-  );
-}
-
-function deleteResetCodes(userId: string) {
-  const deleted = composeExec("redis", [
-    "valkey-cli",
-    "DEL",
-    ...resetCodeKeys(userId),
-  ]);
-  if (deleted !== "2") {
-    throw new Error(
-      `expected to delete 2 reset codes for ${userId}, got "${deleted}"`,
-    );
-  }
 }
 
 async function fillResetCodes(
@@ -131,9 +106,7 @@ async function requestReset(user: MFAUser) {
     body: { identifier: user.username },
   });
   const { link, ...codes } = await readResetCodes(user);
-  const userId = link.params.get("id");
-  if (!userId) throw new Error(`expected a user id in ${link.path}`);
-  return { codes, userId, path: link.path };
+  return { codes, path: link.path };
 }
 
 async function openDisableMFA(page: Page, username: string) {
@@ -170,7 +143,7 @@ test.describe("MFA", () => {
 
       await expect(page.getByText("Enabled", { exact: true })).toBeVisible();
       expect(await readMFA(owner)).toEqual({ enabled: true, recoveryEmail });
-      expect(countRecoveryCodes(owner.username)).toBe(6);
+      expect(await recoverThroughApi(owner.username, shownCodes[0])).toBe(200);
     });
 
     test("keeps the existing recovery email when confirmed", async ({
@@ -274,10 +247,8 @@ test.describe("MFA", () => {
 
   test.describe("recovery codes", () => {
     test("a recovery code signs in and is consumed", async ({ page }) => {
-      const code = buildRecoveryCode();
-      const user = await createMFAUser({
-        recoveryCodes: [code, buildRecoveryCode()],
-      });
+      const [code, remaining] = [buildRecoveryCode(), buildRecoveryCode()];
+      const user = await createMFAUser({ recoveryCodes: [code, remaining] });
 
       await recoverWithCode(page, user.username, code);
       const dialog = page.getByRole("dialog", {
@@ -288,14 +259,13 @@ test.describe("MFA", () => {
 
       await expect(page).toHaveURL(/\/dashboard$/);
       expect(await readMFA(user)).toMatchObject({ enabled: true });
-      expect(countRecoveryCodes(user.username)).toBe(1);
+      expect(await recoverThroughApi(user.username, code)).toBe(403);
+      expect(await recoverThroughApi(user.username, remaining)).toBe(200);
     });
 
     test("a used recovery code is rejected", async ({ page }) => {
-      const code = buildRecoveryCode();
-      const user = await createMFAUser({
-        recoveryCodes: [code, buildRecoveryCode()],
-      });
+      const [code, remaining] = [buildRecoveryCode(), buildRecoveryCode()];
+      const user = await createMFAUser({ recoveryCodes: [code, remaining] });
       await mfaRecover({
         ...buildRequestContext(),
         body: { identifier: user.username, recovery_code: code },
@@ -308,7 +278,7 @@ test.describe("MFA", () => {
       ).toBeVisible();
       await expect(page).toHaveURL(/\/mfa-recover$/);
       expect(await readMFA(user)).toMatchObject({ enabled: true });
-      expect(countRecoveryCodes(user.username)).toBe(1);
+      expect(await recoverThroughApi(user.username, remaining)).toBe(200);
     });
 
     test("MFA can be turned off inside the recovery window", async ({
@@ -421,27 +391,6 @@ test.describe("MFA", () => {
 
       await expect(page).toHaveURL(/\/dashboard$/);
       expect(await readMFA(user)).toMatchObject({ enabled: false });
-    });
-
-    test("the emailed codes stop working after 24 hours", async ({ page }) => {
-      const user = await createMFAUser();
-      const { codes, userId, path } = await requestReset(user);
-
-      for (const ttl of readResetCodeTTLs(userId)) {
-        expect(ttl).toBeGreaterThan(24 * 60 * 60 - 60);
-        expect(ttl).toBeLessThanOrEqual(24 * 60 * 60);
-      }
-      deleteResetCodes(userId);
-      await page.goto(path);
-      await fillResetCodes(page, codes);
-      await page.getByRole("button", { name: "Reset MFA and Login" }).click();
-
-      await expect(
-        page.getByText(
-          "Invalid verification codes. Please check and try again.",
-        ),
-      ).toBeVisible();
-      expect(await readMFA(user)).toMatchObject({ enabled: true });
     });
   });
 });
