@@ -39,6 +39,23 @@ type UserService interface {
 	// Every store call runs under ctx, so a cancelled ctx surfaces as [ErrUserNotFound] or
 	// [ErrUserUpdate], depending on the call it interrupts.
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
+
+	// RevokeUserTokens revokes every token the user holds, the caller's own included, in one write
+	// bounded by ctx. It returns [ErrUserNotFound] when the user does not exist and [ErrUserUpdate]
+	// when the tokens cannot be revoked, a cancelled ctx included.
+	RevokeUserTokens(ctx context.Context, userID string) error
+}
+
+func (s *service) RevokeUserTokens(ctx context.Context, userID string) error {
+	if err := s.store.UserRevokeTokens(ctx, userID); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrUserNotFound(userID, err)
+		}
+
+		return NewErrUserUpdate(&models.User{ID: userID}, err)
+	}
+
+	return nil
 }
 
 func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) error {

@@ -1,0 +1,24 @@
+delete:
+  operationId: revokeUserTokens
+  summary: Revoke user tokens
+  description: |
+    Revoke every token the authenticated user holds, including the one used to call this
+    endpoint. Every session signed in with them must sign in again.
+  tags:
+    - community
+    - users
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
