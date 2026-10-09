@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Routes, Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -58,6 +58,10 @@ describe("SSHApproval", () => {
         () => new HttpResponse(null, { status: 204 }),
       ),
     );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("asks to add the key, and names the account and namespace it lands in", async () => {
@@ -205,6 +209,43 @@ describe("SSHApproval", () => {
     await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
 
     expect(await screen.findByText(/re-authenticated/i)).toBeInTheDocument();
+  });
+
+  it("tells a SAML user the provider failed, and opens a new popup on retry", async () => {
+    const user = userEvent.setup();
+    seedAuthStore({ origin: "saml" });
+    setApproval({ kind: "reauth" });
+    server.use(
+      http.get("*/api/user/saml/reauth", () =>
+        HttpResponse.json({ url: "https://idp.test/sso" }),
+      ),
+    );
+    const popup = vi.spyOn(window, "open").mockReturnValue({} as Window);
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+    await screen.findByText(/re-authenticate to continue/i);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(
+      await screen.findByRole("button", { name: /re-authenticate/i }),
+    );
+    await vi.waitFor(() => expect(popup).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: { type: "sso-reauth-error" },
+          origin: window.location.origin,
+        }),
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        "Re-authentication with your provider failed. Please try again.",
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
+    await vi.waitFor(() => expect(popup).toHaveBeenCalledTimes(2));
   });
 
   it("leaves the add-key flow at a single step", async () => {
