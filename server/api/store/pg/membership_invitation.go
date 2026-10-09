@@ -154,7 +154,7 @@ func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, o
 		invitations[i] = *entity.MembershipInvitationToModel(&e)
 	}
 
-	return invitations, int64(count), nil
+	return invitations, count, nil
 }
 
 // NamespaceMembershipInvitationList implements [store.MembershipInvitationStore].
@@ -191,5 +191,5 @@ func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Sc
 		invitations[i] = *entity.MembershipInvitationToModel(&e)
 	}
 
-	return invitations, int64(count), nil
+	return invitations, count, nil
 }

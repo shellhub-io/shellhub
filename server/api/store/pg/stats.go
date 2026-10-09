@@ -78,7 +78,7 @@ func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (
 		return 0, fromSQLError(err)
 	}
 
-	return count, nil
+	return int(count), nil
 }
 
 func buildOnlineDevicesQuery(db bun.IDB) *bun.SelectQuery {

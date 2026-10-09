@@ -24,7 +24,7 @@ func Log(level string, verbose bool) Option {
 			Level:     level,
 		}
 
-		db.AddQueryHook(internal.NewQueryHook(
+		*db = *db.WithQueryHook(internal.NewQueryHook(
 			internal.WithEnabled(true),
 			internal.WithVerbose(verbose),
 			internal.WithQueryHookOptions(internal.QueryHookOptions{

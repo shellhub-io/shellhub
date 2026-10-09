@@ -96,7 +96,7 @@ func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.Quer
 		apiKeys[i] = *entity.APIKeyToModel(&e)
 	}
 
-	return apiKeys, count, nil
+	return apiKeys, int(count), nil
 }
 
 // APIKeyResolve implements [store.APIKeyStore].

@@ -170,7 +170,7 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 		namespaces[i] = *entity.NamespaceToModel(&e)
 	}
 
-	return namespaces, count, nil
+	return namespaces, int(count), nil
 }
 
 // NamespaceResolve implements [store.NamespaceStore].
@@ -246,7 +246,7 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...s
 		members[i] = *entity.MembershipToMemberView(&entities[i])
 	}
 
-	return members, count, nil
+	return members, int(count), nil
 }
 
 // NamespaceGetPreferred implements [store.NamespaceStore].

@@ -68,7 +68,7 @@ func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...stor
 		accessPolicies[i] = *entity.AccessPolicyToModel(&e)
 	}
 
-	return accessPolicies, count, nil
+	return accessPolicies, int(count), nil
 }
 
 // AccessPolicyResolve implements [store.AccessPolicyStore].

@@ -68,7 +68,7 @@ func (pg *Pg) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption)
 		apiKeys[i] = *entity.InstanceAPIKeyToModel(&e)
 	}
 
-	return apiKeys, count, nil
+	return apiKeys, int(count), nil
 }
 
 // InstanceAPIKeyDelete implements [store.InstanceAPIKeyStore].

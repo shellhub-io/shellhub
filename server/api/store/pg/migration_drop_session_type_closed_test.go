@@ -82,7 +82,7 @@ func TestDropSessionTypeClosedMigration(t *testing.T) {
 	t.Run("keeps every session and its active-session membership", func(t *testing.T) {
 		sessions, err := db.NewSelect().Table("sessions").Count(ctx)
 		require.NoError(t, err)
-		assert.Equal(t, 2, sessions, "dropping a column must take no session with it")
+		assert.Equal(t, int64(2), sessions, "dropping a column must take no session with it")
 
 		var live []string
 		require.NoError(t, db.NewSelect().

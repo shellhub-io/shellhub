@@ -109,7 +109,7 @@ func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...s
 		provisioningKeys[i] = *entity.ProvisioningKeyToModel(&e)
 	}
 
-	return provisioningKeys, count, nil
+	return provisioningKeys, int(count), nil
 }
 
 // ProvisioningKeyResolve implements [store.ProvisioningKeyStore].
@@ -276,7 +276,7 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 		events[i] = *entity.ProvisioningKeyEventToModel(&e)
 	}
 
-	return events, count, nil
+	return events, int(count), nil
 }
 
 // EnrollmentCallbackRedeem implements [store.ProvisioningKeyStore].
