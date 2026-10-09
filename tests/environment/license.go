@@ -37,8 +37,7 @@ const (
 )
 
 var (
-	errNoLicense             = errors.New("enterprise and cloud accept devices and open the admin panel only under a license")
-	errRunIssuesNoLicense    = errors.New("the stack asks for a license of its own, but its run issues none")
+	errRunIssuesNoLicense    = errors.New("the stack runs under a license, but its run issues none")
 	errLicensedAndUnlicensed = errors.New("the stack asks for a license and for none")
 	errNotLicenseIssuer      = errors.New("the license issuer's key file holds no PEM-encoded RSA private key")
 )
@@ -214,31 +213,4 @@ func (i *LicenseIssuer) ldflags() (string, error) {
 	public := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 
 	return fmt.Sprintf("-X '%s=%s'", licensePublicKeySymbol, public), nil
-}
-
-func licenseEnvs(overridePath string) (map[string]string, error) {
-	values, err := shellOrOverride(overridePath, licenseFileEnv)
-	if err != nil {
-		return nil, err
-	}
-
-	path := values[licenseFileEnv]
-	if path == "" {
-		return nil, fmt.Errorf("%w: set %s in the shell or %s", errNoLicense, licenseFileEnv, overridePath)
-	}
-
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(filepath.Dir(overridePath), path)
-	}
-
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("resolving %s: %w", licenseFileEnv, err)
-	}
-
-	if _, err := os.Stat(abs); err != nil {
-		return nil, fmt.Errorf("%s: %w", licenseFileEnv, err)
-	}
-
-	return map[string]string{licenseFileEnv: abs}, nil
 }

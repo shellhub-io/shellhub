@@ -27,12 +27,8 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 		envs, err := mergeEnvs(nil, ldflags, map[string]string{licenseFileEnv: ""})
 
 		return envs, nil, err
-	case issuer == nil && cfg.License != nil:
-		return nil, nil, errRunIssuesNoLicense
 	case issuer == nil:
-		envs, err := licenseEnvs(envOverridePath)
-
-		return envs, nil, err
+		return nil, nil, errRunIssuesNoLicense
 	}
 
 	license := FullLicense()

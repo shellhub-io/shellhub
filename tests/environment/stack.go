@@ -84,15 +84,13 @@ type Stack struct {
 // returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
 // SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
 // Stripe returns no webhook secret for the key. An enterprise or cloud stack with Unlicensed set
-// loads no license file; otherwise one whose run issues licenses loads the one cfg names, and one
-// whose run does not loads the license at SHELLHUB_LICENSE_FILE, erroring when neither the shell
-// nor .env.override sets it, or when the file does not exist. A relative path resolves against the
-// repository root. Up returns an error when an enterprise or cloud stack finds no cloud source (a
-// go.mod) in CloudDir, when a cloud stack finds no docker-compose.yml there, when cfg names a
-// license its run cannot issue or asks for a license and for none, when the run's issuer cannot
-// encode its public key or sign the license, when a license or GeoIP path cannot be resolved or its
-// file written, and when a community stack asks for a license, for no license, or for a GeoIP
-// database. A stack that fails to come up leaves no license or GeoIP file behind.
+// loads no license file; otherwise it loads the one cfg names, signed by its run's issuer. Up returns
+// an error when an enterprise or cloud stack finds no cloud source (a go.mod) in CloudDir, when a
+// cloud stack finds no docker-compose.yml there, when an enterprise or cloud stack without
+// Unlicensed has a run that issues no licenses, when cfg asks for a license and for none, when the
+// run's issuer cannot encode its public key or sign the license, when a license or GeoIP path
+// cannot be resolved or its file written, and when a community stack asks for a license, for no
+// license, or for a GeoIP database. A stack that fails to come up leaves no license or GeoIP file behind.
 func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if cfg.Run == nil {
 		return nil, errors.New("the stack config has no run to own its images")

@@ -119,14 +119,12 @@ func (dc *DockerCompose) BreakLicenseStore(t *testing.T) {
 }
 
 // WriteLicenseFile replaces the contents of the license file the server loads on startup with
-// contents, failing t when the stack has no license file, when the file is the one
-// SHELLHUB_LICENSE_FILE names rather than one the run issued, or when it cannot be written. It rewrites the
-// file rather than replacing it, because the server's container mounts the file itself, not its
-// directory. The server reads it on its next start, see [DockerCompose.RestartServer].
+// contents, failing t when the stack has no license file, or when it cannot be written. It
+// rewrites the file rather than replacing it, because the server's container mounts the file
+// itself, not its directory. The server reads it on its next start, see
+// [DockerCompose.RestartServer].
 func (dc *DockerCompose) WriteLicenseFile(t *testing.T, contents []byte) {
 	t.Helper()
-
-	require.NotNil(t, dc.stack.run.LicenseIssuer(), "the license file is SHELLHUB_LICENSE_FILE's, not the run's to rewrite")
 
 	path := dc.stack.envs[licenseFileEnv]
 	require.NotEmpty(t, path, "the stack runs without a license file")
