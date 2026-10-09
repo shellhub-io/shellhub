@@ -8,6 +8,8 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
+import Login from "@/pages/Login";
 
 const viewport = await vi.hoisted(async () =>
   (await import("@/tests/viewport")).installViewport(),
@@ -25,11 +27,14 @@ function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/account" element={<AccountLayout />}>
-          <Route path="profile" element={<AccountProfile />} />
-          <Route path="security" element={<AccountSecurity />} />
-          <Route path="danger-zone" element={<AccountDangerZone />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/account" element={<AccountLayout />}>
+            <Route path="profile" element={<AccountProfile />} />
+            <Route path="security" element={<AccountSecurity />} />
+            <Route path="danger-zone" element={<AccountDangerZone />} />
+          </Route>
         </Route>
+        <Route path="/login" element={<Login />} />
       </Routes>
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
@@ -60,7 +65,9 @@ describe("Account", () => {
     it("shows the section menu alone on a narrow window", () => {
       viewport.wide = false;
       renderAt("/account");
-      expect(screen.getByRole("link", { name: "Security" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Security" }),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole("heading", { name: "Profile" }),
       ).not.toBeInTheDocument();
@@ -174,7 +181,17 @@ describe("Account", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows success message after a successful password change", async () => {
+    it("signs out and asks to sign in with the new password after a successful change", async () => {
+      server.use(
+        http.get("*/info", () =>
+          HttpResponse.json({
+            version: "0.0.0",
+            endpoints: null,
+            setup: true,
+            authentication: { local: true, saml: false },
+          }),
+        ),
+      );
       const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");
@@ -186,8 +203,11 @@ describe("Account", () => {
       await user.click(getModalSubmitButton());
 
       expect(
-        await screen.findByText(/password changed successfully/i),
+        await screen.findByText(
+          "Password changed. Sign in with your new password.",
+        ),
       ).toBeInTheDocument();
+      expect(useAuthStore.getState().token).toBeNull();
     });
 
     it("resets the form when the modal is reopened", async () => {
