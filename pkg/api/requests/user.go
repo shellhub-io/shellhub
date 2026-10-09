@@ -15,6 +15,11 @@ type UpdateUser struct {
 	CurrentPassword string `json:"current_password"`
 }
 
+// RevokeUserTokens is the request of the endpoint that revokes every token the caller holds.
+type RevokeUserTokens struct {
+	UserID string `header:"X-ID" validate:"required"`
+}
+
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
 type UserPasswordUpdate struct {
 	UserID          string `header:"X-ID" validate:"required"`
