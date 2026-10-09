@@ -759,6 +759,35 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		assert.Nil(t, fresh.DisconnectedAt, "a beat newer than the disconnect must bring the device back online")
 	})
 
+	t.Run("clears a disconnect for a beat at the same instant", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateDevice(t)
+
+		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		require.NoError(t, st.DeviceOffline(ctx, string(uid), disconnectedAt))
+
+		_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: disconnectedAt}})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+		assert.Nil(t, device.DisconnectedAt)
+	})
+
+	t.Run("keeps a device that never disconnected online", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid := s.CreateDevice(t)
+
+		_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: clock.Now()}})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+		assert.Nil(t, device.DisconnectedAt)
+	})
+
 	t.Run("reports a device deleted with its namespace as gone", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
