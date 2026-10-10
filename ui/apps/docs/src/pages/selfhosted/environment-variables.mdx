@@ -57,7 +57,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
 | `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
 
-`SHELLHUB_PROXY_TRUSTED_IPS` is what login lockout and access policy source IPs are keyed on. The
+`SHELLHUB_PROXY_TRUSTED_IPS` is what password lockout and access policy source IPs are keyed on. The
 default trusts everyone, which is fine only if nothing but your balancer can reach the port.
 
 ## Database
@@ -92,7 +92,7 @@ default trusts everyone, which is fine only if nothing but your balancer can rea
 | `SHELLHUB_VERSION` | the release you checked out | Which image tag to run |
 | `SHELLHUB_METRICS` | `false` | Metrics endpoint |
 | `SHELLHUB_PAYWALL` | `true` | Show Cloud/Enterprise features to Community users |
-| `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Lockout minutes after failed sign-ins; 0 disables |
+| `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Maximum lockout minutes after repeated failed sign-ins, 0 disables |
 | `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Agent-side |
 | `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | 0 means the driver default |
 | `SHELLHUB_WORKER_SCHEDULE` | `@daily` | Cron format |
