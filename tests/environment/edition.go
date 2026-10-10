@@ -77,10 +77,6 @@ func (e Edition) composeFiles(cloudDir string) ([]string, error) {
 		base = append(base, "../docker-compose.enterprise.test.yml")
 	}
 
-	if e == EditionCloud {
-		base = append(base, "../docker-compose.cloud.test.yml")
-	}
-
 	return base, nil
 }
 
@@ -129,7 +125,6 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 
 	if e == EditionCloud {
 		envs["SHELLHUB_BILLING"] = "stripe"
-		envs["COMPOSE_PROFILES"] = "stripe"
 	}
 
 	return envs, nil

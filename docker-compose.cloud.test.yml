@@ -1,7 +1,0 @@
-x-e2e-labels: &e2e-labels
-  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
-  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
-
-services:
-  stripe-cli:
-    labels: *e2e-labels
