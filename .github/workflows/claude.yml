@@ -118,7 +118,7 @@ jobs:
 
       - name: Run Claude
         timeout-minutes: 60
-        uses: anthropics/claude-code-action@fd1c128679612beff4ca259c78021c506e8aa7a7 # v1.0.237
+        uses: anthropics/claude-code-action@cab360f6565aa35a51d6ce9e43f1f4287c0a32ea # v1.0.241
         env:
           CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
           ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
