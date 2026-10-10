@@ -120,6 +120,8 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 		{"/metrics", true},
 		{"/internal/auth", true},
 		{routes.InternalMetricsURL, true},
+		{"/mcp", true},
+		{"/mcp/session", true},
 		{web.WebSessionRoute, false},
 		{"/api/devices", false},
 		{"/api/namespaces", false},
