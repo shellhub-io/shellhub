@@ -16,13 +16,21 @@ const (
 	unreachableGeoIPMirror = "http://geoip.invalid"
 )
 
+// Location is where a test GeoIP database places an address: Country, an ISO 3166 code such as
+// "BR", and a position in degrees.
+type Location struct {
+	Country   string
+	Latitude  float64
+	Longitude float64
+}
+
 func (cfg Config) geoIPEnvs() (map[string]string, string, error) {
 	dir, err := geoIPDir(cfg.Name)
 	if err != nil {
 		return nil, "", err
 	}
 
-	if err := writeGeoIPDatabases(dir, cfg.LocatedCountry); err != nil {
+	if err := writeGeoIPDatabases(dir, *cfg.Located); err != nil {
 		return nil, dir, err
 	}
 
@@ -36,18 +44,21 @@ func geoIPDir(stack string) (string, error) {
 	return filepath.Abs(filepath.Join(stackArtifactsDir, "geoip", stack))
 }
 
-func writeGeoIPDatabases(dir, country string) error {
+func writeGeoIPDatabases(dir string, location Location) error {
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return err
 	}
 
-	located := mmdbtype.Map{"iso_code": mmdbtype.String(country)}
+	located := mmdbtype.Map{"iso_code": mmdbtype.String(location.Country)}
 
 	databases := map[string]mmdbtype.Map{
 		"GeoLite2-Country": {"country": located},
 		"GeoLite2-City": {
-			"country":  located,
-			"location": mmdbtype.Map{"latitude": mmdbtype.Float64(0), "longitude": mmdbtype.Float64(0)},
+			"country": located,
+			"location": mmdbtype.Map{
+				"latitude":  mmdbtype.Float64(location.Latitude),
+				"longitude": mmdbtype.Float64(location.Longitude),
+			},
 		},
 	}
 

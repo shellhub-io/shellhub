@@ -16,7 +16,7 @@ func TestStackArtifactsCoverWhatUpWrites(t *testing.T) {
 	issuer, err := LoadLicenseIssuer(filepath.Join(t.TempDir(), "issuer.pem"))
 	require.NoError(t, err)
 
-	cfg := Config{Name: "shellhub-e2e-a", LocatedCountry: "BR", Run: &Run{issuer: issuer}}
+	cfg := Config{Name: "shellhub-e2e-a", Located: &Location{Country: "BR"}, Run: &Run{issuer: issuer}}
 
 	_, written, err := cfg.licensingEnvs()
 	require.NoError(t, err)
