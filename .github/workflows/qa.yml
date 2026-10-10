@@ -83,7 +83,7 @@ jobs:
             race_args: "-race"
           - project: tests
             extra_args: ""
-            test_args: "-skip ^TestEnterprise"
+            test_args: "-skip '^(TestEnterprise|TestCloud)'"
             lint_args: ""
             database: postgres
             test_timeout: "60m"
@@ -152,10 +152,19 @@ jobs:
         working-directory: ${{ matrix.project }}
         run: go build -v ${{ matrix.extra_args }} ./...
 
-  enterprise-tests:
-    name: validate (tests - enterprise)
+  edition-tests:
+    name: validate (tests - ${{ matrix.edition }})
     needs: changes
     if: ${{ needs.changes.outputs.go == 'true' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - edition: enterprise
+            tests: ^TestEnterprise
+          - edition: cloud
+            tests: ^TestCloud
 
     runs-on: ubuntu-latest
 
@@ -172,9 +181,9 @@ jobs:
           || github.event.pull_request.head.repo.full_name == github.repository
         run: echo "granted=true" >> "$GITHUB_OUTPUT"
 
-      - name: Report the enterprise tests skipped for a fork
+      - name: Report the ${{ matrix.edition }} tests skipped for a fork
         if: steps.cloud-access.outputs.granted != 'true'
-        run: echo "::notice title=Enterprise tests skipped::a pull request from a fork cannot check out the private cloud source"
+        run: echo "::notice title=${{ matrix.edition }} tests skipped::a pull request from a fork cannot check out the private cloud source"
 
       - name: Generate cloud repo token
         id: cloud-token
@@ -219,12 +228,15 @@ jobs:
         working-directory: shellhub
         run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
 
-      - name: Run the enterprise tests
+      - name: Run the ${{ matrix.edition }} tests
         if: steps.cloud-access.outputs.granted == 'true'
         working-directory: shellhub/tests
-        run: go test -run ^TestEnterprise -timeout 60m ./...
+        run: go test -run '${{ matrix.tests }}' -timeout 60m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
+          STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
+          STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
+          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}
 
   mocks:
     name: generated mocks
@@ -303,7 +315,7 @@ jobs:
 
   qa:
     name: qa
-    needs: [changes, validate, enterprise-tests, mocks, cross-compile]
+    needs: [changes, validate, edition-tests, mocks, cross-compile]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
