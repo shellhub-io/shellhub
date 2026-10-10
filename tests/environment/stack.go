@@ -37,18 +37,27 @@ import (
 // that issues licenses, see [StartRun]. Unlicensed starts the server with no license file at all.
 // LocatedCountry, an ISO 3166 code, gives the server a GeoIP database that locates every address in
 // that country.
+//
+// SuppliedCertificate and ACME turn the gateway's automatic HTTPS on and publish its HTTPS port on
+// HTTPSPort, random when empty. SuppliedCertificate is the certificate the gateway serves instead of
+// obtaining one. ACME starts a Pebble ACME server in the stack and points the gateway's ACME CA at
+// it. Pebble validates every challenge without reaching the gateway, so SHELLHUB_DOMAIN only has to
+// be a name the gateway asks a public CA for, which localhost is not.
 type Config struct {
-	Edition        Edition
-	Name           string
-	HTTPPort       string
-	SSHPort        string
-	Network        string
-	CloudDir       string
-	Envs           map[string]string
-	Run            *Run
-	License        *License
-	Unlicensed     bool
-	LocatedCountry string
+	Edition             Edition
+	Name                string
+	HTTPPort            string
+	HTTPSPort           string
+	SSHPort             string
+	Network             string
+	CloudDir            string
+	Envs                map[string]string
+	Run                 *Run
+	License             *License
+	Unlicensed          bool
+	LocatedCountry      string
+	SuppliedCertificate *Certificate
+	ACME                bool
 }
 
 type imageBuild struct {
@@ -90,7 +99,10 @@ type Stack struct {
 // Unlicensed has a run that issues no licenses, when cfg asks for a license and for none, when the
 // run's issuer cannot encode its public key or sign the license, when a license or GeoIP path
 // cannot be resolved or its file written, and when a community stack asks for a license, for no
-// license, or for a GeoIP database. A stack that fails to come up leaves no license or GeoIP file behind.
+// license, or for a GeoIP database. It returns an error when cfg asks for both a supplied
+// certificate and ACME, when a certificate cannot be generated, and when a certificate or Pebble
+// configuration path cannot be resolved or its file written. A stack that fails to come up leaves
+// no license, GeoIP, certificate or Pebble file behind.
 func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if cfg.Run == nil {
 		return nil, errors.New("the stack config has no run to own its images")
@@ -117,7 +129,12 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		}
 	}
 
-	for _, port := range []*string{&cfg.HTTPPort, &cfg.SSHPort} {
+	ports := []*string{&cfg.HTTPPort, &cfg.SSHPort}
+	if cfg.SuppliedCertificate != nil || cfg.ACME {
+		ports = append(ports, &cfg.HTTPSPort)
+	}
+
+	for _, port := range ports {
 		if *port != "" {
 			continue
 		}
@@ -173,7 +190,18 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, errors.New("the community edition loads no license and locates no address")
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, billingEnvs, map[string]string{
+	https, err := cfg.httpsLayer()
+	artifacts = append(artifacts, https.artifacts...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if https.composeFile != "" {
+		files = append(files, https.composeFile)
+	}
+
+	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, https.envs, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 	}, cfg.Envs, map[string]string{
@@ -294,7 +322,7 @@ func mergeEnvs(files []string, layers ...map[string]string) (map[string]string, 
 
 // Attach reconnects to an existing compose project by name without starting it. It is used
 // to tear down a stack from a different process than the one that brought it up, so the stack it
-// returns owns the license and GeoIP files [Up] writes for a stack of that name. It returns an
+// returns owns the license, GeoIP, certificate and Pebble files [Up] writes for a stack of that name. It returns an
 // error when the compose project cannot be loaded or those files' paths cannot be resolved.
 func Attach(ctx context.Context, name string, files []string, envs map[string]string) (*Stack, error) {
 	tcDc, err := newComposeStack(name, files)
@@ -333,7 +361,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 }
 
 // Down removes the stack's containers and volumes, and keeps its images. Once compose is down, it
-// also removes the stack's license and GeoIP files, and the network of a stack [Up] started; a
+// also removes the stack's license, GeoIP, certificate and Pebble files, and the network of a stack [Up] started; a
 // stack from [Attach] leaves its network to [Run.Close]. It returns the compose error alone,
 // stopping there, or the errors from removing the network and the files, joined. ctx bounds
 // compose and the network.
@@ -364,6 +392,10 @@ func (s *Stack) SSHPort() string { return s.envs["SHELLHUB_SSH_PORT"] }
 
 // BaseURL returns the HTTP base URL for the running stack.
 func (s *Stack) BaseURL() string { return "http://localhost:" + s.HTTPPort() }
+
+// HTTPSAddress returns the host:port the gateway publishes HTTPS on. Only a stack started with
+// [Config.SuppliedCertificate] or [Config.ACME] publishes it.
+func (s *Stack) HTTPSAddress() string { return "localhost:" + s.envs["SHELLHUB_HTTPS_PORT"] }
 
 // SSHAddress returns the host:port the gateway's SSH listener is reachable at.
 func (s *Stack) SSHAddress() string { return "localhost:" + s.SSHPort() }
@@ -686,7 +718,17 @@ func stackArtifacts(stack string) ([]string, error) {
 		return nil, err
 	}
 
-	return []string{license, geoIP}, nil
+	tls, err := tlsDir(stack)
+	if err != nil {
+		return nil, err
+	}
+
+	acme, err := acmeDir(stack)
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{license, geoIP, tls, acme}, nil
 }
 
 func removeArtifacts(paths []string) error {

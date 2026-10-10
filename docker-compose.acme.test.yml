@@ -1,0 +1,23 @@
+x-e2e-labels: &e2e-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+
+services:
+  pebble:
+    image: ghcr.io/letsencrypt/pebble:2.10.1
+    labels: *e2e-labels
+    command: -config /etc/pebble/pebble.json
+    environment:
+      - PEBBLE_VA_ALWAYS_VALID=1
+      - PEBBLE_WFE_NONCEREJECT=0
+    volumes:
+      - ${SHELLHUB_TEST_ACME_DIR:?}:/etc/pebble:ro
+    networks:
+      - shellhub
+  gateway:
+    depends_on:
+      - pebble
+    ports:
+      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTPS_PORT}:443
+    volumes:
+      - ${SHELLHUB_TEST_ACME_DIR:?}/cert.pem:/etc/ssl/certs/shellhub-e2e-acme.pem:ro

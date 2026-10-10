@@ -1,0 +1,6 @@
+services:
+  gateway:
+    ports:
+      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTPS_PORT}:443
+    volumes:
+      - ${SHELLHUB_TEST_TLS_DIR:?}:/etc/shellhub/tls:ro

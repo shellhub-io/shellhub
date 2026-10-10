@@ -23,12 +23,26 @@ func (dc *DockerCompose) ServerLogMark(t *testing.T) int {
 	return len(logs)
 }
 
-// AwaitServerLogLine waits until a single line the server logged after mark holds every one of
-// substrs, failing t if none does within 30 seconds. It is how a test reads a decision the server
-// reports nowhere else, such as why an SSH login was refused, and ties the fields of that decision
-// to one another.
-func (dc *DockerCompose) AwaitServerLogLine(t *testing.T, mark int, substrs ...string) {
+// ServerLogSince returns what the server logged after mark, failing t when the log cannot be read
+// or holds less than mark.
+func (dc *DockerCompose) ServerLogSince(t *testing.T, mark int) string {
 	t.Helper()
+
+	logs, err := readServerLog(t.Context(), dc.Service(ServiceServer))
+	require.NoError(t, err)
+	require.LessOrEqual(t, mark, len(logs))
+
+	return logs[mark:]
+}
+
+// AwaitServerLogLine waits until a single line the server logged after mark holds every one of
+// substrs and returns the first such line, failing t if none does within 30 seconds. It is how a
+// test reads a decision the server reports nowhere else, such as why an SSH login was refused, and
+// ties the fields of that decision to one another.
+func (dc *DockerCompose) AwaitServerLogLine(t *testing.T, mark int, substrs ...string) string {
+	t.Helper()
+
+	var found string
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		logs, err := readServerLog(t.Context(), dc.Service(ServiceServer))
@@ -36,9 +50,13 @@ func (dc *DockerCompose) AwaitServerLogLine(t *testing.T, mark int, substrs ...s
 			return
 		}
 
-		assert.True(tt, anyLineHoldsAll(logs[mark:], substrs),
-			"no line the server logged after the mark holds all of %q", substrs)
+		line, ok := firstLineHoldingAll(logs[mark:], substrs)
+		if assert.True(tt, ok, "no line the server logged after the mark holds all of %q", substrs) {
+			found = line
+		}
 	}, 30*time.Second, time.Second)
+
+	return found
 }
 
 func readServerLog(ctx context.Context, source LogSource) (string, error) {
@@ -54,7 +72,7 @@ func readServerLog(ctx context.Context, source LogSource) (string, error) {
 	return string(logs), err
 }
 
-func anyLineHoldsAll(logs string, substrs []string) bool {
+func firstLineHoldingAll(logs string, substrs []string) (string, bool) {
 	for line := range strings.Lines(logs) {
 		holdsAll := true
 
@@ -67,9 +85,9 @@ func anyLineHoldsAll(logs string, substrs []string) bool {
 		}
 
 		if holdsAll {
-			return true
+			return line, true
 		}
 	}
 
-	return false
+	return "", false
 }
