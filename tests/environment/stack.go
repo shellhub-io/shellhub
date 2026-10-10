@@ -42,7 +42,10 @@ import (
 // HTTPSPort, random when empty. SuppliedCertificate is the certificate the gateway serves instead of
 // obtaining one. ACME starts a Pebble ACME server in the stack and points the gateway's ACME CA at
 // it. Pebble validates every challenge without reaching the gateway, so SHELLHUB_DOMAIN only has to
-// be a name the gateway asks a public CA for, which localhost is not.
+// be a name the gateway asks a public CA for, which localhost is not. AutoSSL turns the gateway's
+// automatic HTTPS on with neither, so the gateway gets its certificates on its own; the gateway then
+// redirects a plain HTTP request to the instance's domain to HTTPS on port 443, which the stack
+// does not publish.
 type Config struct {
 	Edition             Edition
 	Name                string
@@ -58,6 +61,7 @@ type Config struct {
 	LocatedCountry      string
 	SuppliedCertificate *Certificate
 	ACME                bool
+	AutoSSL             bool
 }
 
 type imageBuild struct {
@@ -130,7 +134,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	ports := []*string{&cfg.HTTPPort, &cfg.SSHPort}
-	if cfg.SuppliedCertificate != nil || cfg.ACME {
+	if cfg.SuppliedCertificate != nil || cfg.ACME || cfg.AutoSSL {
 		ports = append(ports, &cfg.HTTPSPort)
 	}
 
@@ -394,7 +398,7 @@ func (s *Stack) SSHPort() string { return s.envs["SHELLHUB_SSH_PORT"] }
 func (s *Stack) BaseURL() string { return "http://localhost:" + s.HTTPPort() }
 
 // HTTPSAddress returns the host:port the gateway publishes HTTPS on. Only a stack started with
-// [Config.SuppliedCertificate] or [Config.ACME] publishes it.
+// [Config.SuppliedCertificate], [Config.ACME] or [Config.AutoSSL] publishes it.
 func (s *Stack) HTTPSAddress() string { return "localhost:" + s.envs["SHELLHUB_HTTPS_PORT"] }
 
 // SSHAddress returns the host:port the gateway's SSH listener is reachable at.
