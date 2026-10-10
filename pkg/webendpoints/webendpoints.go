@@ -36,6 +36,10 @@ func Domain(preferred, fallback string) string {
 	return fallback
 }
 
+// ProxyPath is the server route a request addressed to a web endpoint is rewritten to before it
+// is carried into the device. The response is the device's own, so no API schema describes it.
+const ProxyPath = "/http/proxy"
+
 var address = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 // AddressFromHost is the inverse of Host: it takes the Host of an inbound
