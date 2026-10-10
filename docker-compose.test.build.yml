@@ -9,6 +9,13 @@ services:
       dockerfile: server/Dockerfile
       target: production
       args:
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        AIR_VERSION: ${AIR_VERSION}
+        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
+        MOCKERY_VERSION: ${MOCKERY_VERSION}
+        DOCKER_VERSION: ${DOCKER_VERSION}
+        MJML_VERSION: ${MJML_VERSION}
         EDITION: ${SHELLHUB_BUILD_EDITION:-community}
         GO_LDFLAGS: ${SHELLHUB_TEST_GO_LDFLAGS:-}
       additional_contexts:
@@ -20,6 +27,11 @@ services:
       context: .
       dockerfile: gateway/Dockerfile
       target: production
+      args:
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        AIR_VERSION: ${AIR_VERSION}
+        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
       labels: *e2e-build-labels
   ui:
     pull_policy: build
@@ -27,4 +39,9 @@ services:
       context: .
       dockerfile: ui/Dockerfile
       target: production
+      args:
+        NODE_VERSION: ${NODE_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        SWS_VERSION: ${SWS_VERSION}
+        REDOCLY_VERSION: ${REDOCLY_VERSION}
       labels: *e2e-build-labels

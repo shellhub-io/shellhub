@@ -38,7 +38,7 @@ jobs:
             gen-config:
               - 'ui/scripts/gen-config.sh'
               - 'tests/ui/**'
-              - 'ui/Dockerfile'
+              - 'versions.env'
               - '.github/workflows/script-tests.yml'
             comment-scan:
               - 'devscripts/comment-scan'
@@ -78,12 +78,12 @@ jobs:
 
       - name: Run gen-config tests on busybox
         run: |
-          image=$(sed -n 's/^FROM \(alpine:[^[:space:]]*\) AS production$/\1/p' ui/Dockerfile)
-          if [ -z "$image" ]; then
-            echo "could not read the production alpine image from ui/Dockerfile" >&2
+          version=$(sed -n 's/^ALPINE_VERSION=//p' versions.env)
+          if [ -z "$version" ]; then
+            echo "could not read ALPINE_VERSION from versions.env" >&2
             exit 1
           fi
-          docker run --rm -v "$PWD:/src" -w /src "$image" \
+          docker run --rm -v "$PWD:/src" -w /src "alpine:$version" \
             sh -c 'apk add --no-cache bats jq >/dev/null && bats tests/ui/gen-config.bats'
 
   comment-scan:
@@ -143,9 +143,9 @@ jobs:
 
       - name: Run install.sh tests on busybox
         run: |
-          version=$(sed -n 's/^ARG ALPINE_VERSION=\(.*\)$/\1/p' agent/Dockerfile)
+          version=$(sed -n 's/^ALPINE_VERSION=//p' versions.env)
           if [ -z "$version" ]; then
-            echo "could not read ALPINE_VERSION from agent/Dockerfile" >&2
+            echo "could not read ALPINE_VERSION from versions.env" >&2
             exit 1
           fi
           docker run --rm -v "$PWD:/src" -w /src "alpine:$version" \

@@ -5,11 +5,13 @@ on:
     branches: [master]
     paths:
       - "**Dockerfile"
+      - "versions.env"
 
   pull_request:
     branches: [master]
     paths:
       - "**Dockerfile"
+      - "versions.env"
 
 jobs:
   build:
@@ -26,10 +28,20 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Read the build versions
+        id: versions
+        run: |
+          {
+            echo 'build-args<<EOF'
+            cat versions.env
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build '${{ matrix.project }}' Docker container
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           tags: shellhubio/${{ matrix.project }}:latest
           push: false
           file: ${{ matrix.project }}/Dockerfile
+          build-args: ${{ steps.versions.outputs.build-args }}
 

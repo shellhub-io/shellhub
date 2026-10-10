@@ -1,0 +1,115 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabledManagers": ["custom.regex"],
+  "minimumReleaseAge": "7 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "dependencyDashboard": false,
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["golang"],
+      "matchUpdateTypes": ["major", "minor"],
+      "minimumReleaseAge": "7 days",
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["node"],
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "7 days",
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/static-web-server/static-web-server"],
+      "minimumReleaseAge": "7 days",
+      "prBodyNotes": ["ui/sws.toml relies on header blocks applying in file order. Check that order against this release before merging."]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)GOLANG_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "golang",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)ALPINE_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "alpine",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)NODE_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "node",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)AIR_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "cosmtrek/air",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)GOLANGCI_LINT_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "golangci/golangci-lint",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)MOCKERY_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "vektra/mockery",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)DOCKER_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "docker",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)SWS_VERSION=(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[0-9a-f]+)"],
+      "depNameTemplate": "ghcr.io/static-web-server/static-web-server",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)MJML_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "mjml",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)REDOCLY_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "@redocly/cli",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)PRISM_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "@stoplight/prism-cli",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)PRETTIER_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "prettier",
+      "datasourceTemplate": "npm"
+    }
+  ]
+}

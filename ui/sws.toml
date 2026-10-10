@@ -33,8 +33,6 @@ cache-control-headers = false
 # that matches, in file order, each overwriting the last. So the catch-all goes
 # FIRST, to be overridden. Swapping these two turns every hashed asset back
 # into no-cache with no symptom beyond a slower load.
-#
-# Verified by request against 2.44.0, which is why ui/Dockerfile pins it.
 
 [[advanced.headers]]
 source = "**"

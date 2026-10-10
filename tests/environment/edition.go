@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 )
 
 // Edition selects which ShellHub compose overlays and environment a stack runs.
@@ -83,7 +85,7 @@ func (e Edition) composeFiles(cloudDir string) ([]string, error) {
 }
 
 func (e Edition) envFiles(cloudDir string) []string {
-	files := []string{"../.env"}
+	files := []string{"../.env", "../" + testimage.FileName}
 
 	if e == EditionCommunity {
 		return files
@@ -160,10 +162,17 @@ func (e Edition) OpenAPIPath() string {
 }
 
 // BundleOpenAPI runs redocly to bundle the edition's OpenAPI spec into [Edition.OpenAPIPath].
-// repoRoot is the path to the repository root (e.g. ".." from tests/).
+// repoRoot is the path to the repository root (e.g. ".." from tests/). It returns an error when
+// versions.env there cannot be read, has a line that is not KEY=VALUE or does not pin
+// REDOCLY_VERSION, or the error redocly exits with; cancelling ctx kills redocly.
 func BundleOpenAPI(ctx context.Context, edition Edition, repoRoot string) error {
-	cmd := exec.CommandContext(ctx, //nolint:gosec // args are string literals
-		"npx", "-y", "@redocly/cli@2.31.5", "bundle",
+	redocly, err := testimage.Version(repoRoot, "REDOCLY_VERSION")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.CommandContext(ctx, //nolint:gosec // the arguments are literals and a version read from versions.env
+		"npx", "-y", "@redocly/cli@"+redocly, "bundle",
 		filepath.Join("openapi", "spec", edition.openapiSpec()),
 		"-o", edition.OpenAPIPath(),
 	)

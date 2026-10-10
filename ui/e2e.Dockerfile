@@ -1,6 +1,7 @@
+ARG DOCKER_VERSION
 ARG PLAYWRIGHT_VERSION
 
-FROM docker:29.8.1-cli AS docker
+FROM docker:${DOCKER_VERSION}-cli AS docker
 
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
 

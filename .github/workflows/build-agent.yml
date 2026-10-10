@@ -7,12 +7,14 @@ on:
       - v*
     paths:
     - 'agent/**'
+    - 'versions.env'
     - '.github/workflows/build-agent.yml'
 
   pull_request:
     branches: [ master ]
     paths:
     - 'agent/**'
+    - 'versions.env'
     - '.github/workflows/build-agent.yml'
 
 jobs:
@@ -45,17 +47,18 @@ jobs:
 
       - name: Set image tag
         run: |
+          BUILD_ARGS=$(sed -n 's/^\([A-Z_][A-Z0-9_]*=.*\)$/--build-arg \1/p' versions.env | tr '\n' ' ')
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
               echo "IMAGE_TAG=${RELEASE_VERSION},latest" >> "$GITHUB_ENV"
             else
               echo "IMAGE_TAG=${RELEASE_VERSION}" >> "$GITHUB_ENV"
             fi
-            echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${RELEASE_VERSION}" >> "$GITHUB_ENV"
+            BUILD_ARGS="$BUILD_ARGS --build-arg SHELLHUB_VERSION=${RELEASE_VERSION}"
           else
             echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
-            echo "BUILD_ARGS=" >> "$GITHUB_ENV"
           fi
+          echo "BUILD_ARGS=$BUILD_ARGS" >> "$GITHUB_ENV"
 
       - name: Build amd64 image (load only, no push)
         run: |

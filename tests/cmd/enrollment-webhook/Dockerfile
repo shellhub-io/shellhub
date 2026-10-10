@@ -1,4 +1,6 @@
-FROM golang:1.26.9-alpine3.24
+ARG GOLANG_VERSION
+
+FROM golang:${GOLANG_VERSION}
 
 WORKDIR /src
 

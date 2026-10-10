@@ -43,8 +43,13 @@ func dockerClient(t *testing.T) *client.Client {
 }
 
 func newRunImage(ctx context.Context, cli *client.Client, id string) (string, error) {
+	image, err := leaseImage()
+	if err != nil {
+		return "", err
+	}
+
 	source, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{
-		Image:  leaseImage,
+		Image:  image,
 		Config: &container.Config{Labels: map[string]string{runLabel: id}},
 	})
 	if err != nil {

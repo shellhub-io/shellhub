@@ -7,6 +7,11 @@ services:
       dockerfile: agent/Dockerfile
       target: development
       args:
+        - GOLANG_VERSION=${GOLANG_VERSION}
+        - ALPINE_VERSION=${ALPINE_VERSION}
+        - AIR_VERSION=${AIR_VERSION}
+        - GOLANGCI_LINT_VERSION=${GOLANGCI_LINT_VERSION}
+        - MOCKERY_VERSION=${MOCKERY_VERSION}
         - SHELLHUB_VERSION=latest
         - USERNAME=${SHELLHUB_DEV_AGENT_USERNAME:-shellhub}
         - PASSWORD=${SHELLHUB_DEV_AGENT_PASSWORD:-shellhub}

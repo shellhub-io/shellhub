@@ -5,10 +5,12 @@ on:
     branches: [master]
     paths:
       - 'openapi/**'
+      - 'versions.env'
   pull_request:
     branches: [master]
     paths:
       - 'openapi/**'
+      - 'versions.env'
 
   workflow_dispatch:
 
@@ -25,13 +27,19 @@ jobs:
         with:
           node-version: "24.20.0"
       - name: Setup Prettier
-        run: npm install -g prettier@3.9.9
+        run: |
+          VERSION=$(sed -n 's/^PRETTIER_VERSION=//p' versions.env)
+          [ -n "$VERSION" ] || { echo "could not read PRETTIER_VERSION from versions.env"; exit 1; }
+          npm install -g "prettier@$VERSION"
 
       - name: Run Prettier lint on project
         run: prettier -c 'openapi/spec/**/*.yaml'
 
       - name: Setup Redocly
-        run: npm install -g @redocly/cli@2.31.5
+        run: |
+          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' versions.env)
+          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npm install -g "@redocly/cli@$VERSION"
 
       - name: Run Redocly lint
         working-directory: openapi

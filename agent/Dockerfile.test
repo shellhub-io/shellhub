@@ -1,4 +1,6 @@
-FROM golang:1.26.9-alpine3.24
+ARG GOLANG_VERSION
+
+FROM golang:${GOLANG_VERSION}
 
 RUN apk add --update ca-certificates util-linux setpriv bash openssh
 
@@ -27,7 +29,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 RUN go build -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
-ARG USERNAME 
+ARG USERNAME
 ARG PASSWORD
 
 RUN echo "${USERNAME}:${PASSWORD}" | chpasswd

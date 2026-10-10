@@ -44,6 +44,7 @@ jobs:
               - 'openapi/**'
               - 'devscripts/prepare-release'
               - 'docker-compose*.yml'
+              - 'versions.env'
               - '.github/workflows/qa.yml'
             agent:
               - 'go.mod'
@@ -116,11 +117,21 @@ jobs:
       - name: Code format [Go]
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
+      - name: Read the golangci-lint version from versions.env [Go]
+        id: golangci-lint
+        run: |
+          VERSION=$(sed -n 's/^GOLANGCI_LINT_VERSION=//p' versions.env)
+          if [ -z "$VERSION" ]; then
+              echo "could not read GOLANGCI_LINT_VERSION from versions.env"
+              exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Code linting [Go]
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           working-directory: ${{ matrix.project }}
-          version: v2.14.0
+          version: ${{ steps.golangci-lint.outputs.version }}
           args: --timeout 2m ${{ matrix.lint_args }} ./...
           verify: false
 
@@ -233,9 +244,9 @@ jobs:
 
       - name: Ensure generated mocks match the pinned generator
         run: |
-          VERSION=$(sed -n 's|.*mockery/v3/\.\.\.@\(v[0-9][0-9.]*\).*|\1|p' server/Dockerfile | head -1)
+          VERSION=$(sed -n 's/^MOCKERY_VERSION=//p' versions.env)
           if [ -z "$VERSION" ]; then
-              echo "could not read the mockery version from server/Dockerfile"
+              echo "could not read MOCKERY_VERSION from versions.env"
               exit 1
           fi
 

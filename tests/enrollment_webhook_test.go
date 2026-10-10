@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -298,6 +299,9 @@ func startEnrollmentWebhook(t *testing.T, compose *environment.DockerCompose) *e
 
 	server := compose.Service(environment.ServiceServer).GetContainerID()
 
+	buildArgs, err := testimage.BuildArgs("..")
+	require.NoError(t, err)
+
 	c, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			FromDockerfile: testcontainers.FromDockerfile{
@@ -305,6 +309,7 @@ func startEnrollmentWebhook(t *testing.T, compose *environment.DockerCompose) *e
 				Tag:       "test",
 				Context:   "cmd/enrollment-webhook",
 				KeepImage: true,
+				BuildArgs: buildArgs,
 			},
 			Env: map[string]string{"ADDRESS": ":" + enrollmentWebhookPort},
 			HostConfigModifier: func(hc *container.HostConfig) {

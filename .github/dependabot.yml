@@ -14,42 +14,6 @@ updates:
       patterns:
         - "*"
 
-- package-ecosystem: docker
-  directories:
-    - "/agent"
-    - "/gateway"
-    - "/openapi"
-    - "/server"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker"
-  open-pull-requests-limit: 5
-  groups:
-    images:
-      applies-to: version-updates
-      group-by: dependency-name
-      patterns:
-        - "*"
-  ignore:
-    - dependency-name: "golang"
-      update-types: ["version-update:semver-major", "version-update:semver-minor"]
-- package-ecosystem: docker
-  directory: "/ui"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker"
-  open-pull-requests-limit: 5
-  ignore:
-    - dependency-name: "node"
-      update-types: ["version-update:semver-major"]
-      versions: [">=25"]
-
 - package-ecosystem: npm
   directory: "/ui"
   schedule:

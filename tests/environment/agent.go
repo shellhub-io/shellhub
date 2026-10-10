@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/moby/moby/client"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	tc "github.com/testcontainers/testcontainers-go"
 )
 
@@ -35,8 +36,10 @@ type AgentBuild struct {
 // [AgentPassword], labelled with run and tagged with the run's ID in build's repository, followed
 // by -<version> when build sets a Version, so a versioned agent never replaces the default one. It
 // talks to the daemon through its API, so it needs no docker CLI. It returns the tag, an error
-// when the Docker host cannot be resolved or the provider cannot be created, or the error the
-// daemon reports for the build; cancelling ctx aborts the build.
+// when the Docker host cannot be resolved, the provider cannot be created, the working directory
+// cannot be resolved, no versions.env is found at or above it, the file cannot be read or has a
+// line that is not KEY=VALUE, or the error the daemon reports for the build; cancelling ctx aborts
+// the build.
 func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, error) {
 	if build.Repository == "" {
 		build.Repository = defaultAgentRepository
@@ -57,9 +60,20 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 
 	defer provider.Close() //nolint:errcheck // the image is built; closing the provider's client changes nothing
 
+	root, err := testimage.Root()
+	if err != nil {
+		return "", err
+	}
+
+	buildArgs, err := testimage.BuildArgs(root)
+	if err != nil {
+		return "", err
+	}
+
 	username, password := AgentUsername, AgentPassword
 	tag := run.ID()
-	buildArgs := map[string]*string{"USERNAME": &username, "PASSWORD": &password}
+	buildArgs["USERNAME"] = &username
+	buildArgs["PASSWORD"] = &password
 
 	if build.Version != "" {
 		tag += "-" + build.Version
