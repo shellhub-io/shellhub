@@ -295,6 +295,30 @@ func testRecordingRetention(t *testing.T, fixture *recordingFixture) {
 
 		assert.Empty(t, compose.RecordingObjects(t, uid), "the recording goes with the session")
 	})
+
+	t.Run("a session whose recording cannot be purged outlives the retention window until it can", func(t *testing.T) {
+		recorded := fixture.archived(t, "unpurged")
+		unrecorded := finishSession(t, t.Context(), compose, fixture.device, fixture.signer, "true")
+
+		compose.StopObjectStorage(t)
+
+		compose.AgeSession(t, recorded, 48*time.Hour)
+		compose.AgeSession(t, unrecorded, 48*time.Hour)
+
+		compose.RunCron(t, sessionRetentionCron)
+
+		awaitSessionDeleted(t, t.Context(), compose, unrecorded)
+
+		assert.True(t, getSession(t, t.Context(), compose, recorded).Recorded,
+			"a session whose recording is still stored is kept")
+
+		compose.StartObjectStorage(t)
+		compose.RunCron(t, sessionRetentionCron)
+
+		awaitSessionDeleted(t, t.Context(), compose, recorded)
+
+		assert.Empty(t, compose.RecordingObjects(t, recorded), "the recording goes with the session")
+	})
 }
 
 func stopRecording(t *testing.T, compose *environment.DockerCompose) {
