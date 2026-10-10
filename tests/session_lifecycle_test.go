@@ -98,6 +98,14 @@ func finishSession(t *testing.T, ctx context.Context, compose *environment.Docke
 func openWebTerminal(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device) string {
 	t.Helper()
 
+	_, session := dialWebTerminal(t, ctx, compose, device)
+
+	return session
+}
+
+func dialWebTerminal(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device) (*websocket.Conn, string) {
+	t.Helper()
+
 	issued := struct {
 		Token string `json:"token"`
 	}{}
@@ -143,7 +151,7 @@ func openWebTerminal(t *testing.T, ctx context.Context, compose *environment.Doc
 		require.NotEqual(t, webMessageKindError, message.Kind, "the web terminal refused: %s", message.Data)
 
 		if message.Kind == webMessageKindSession {
-			return message.Data
+			return conn, message.Data
 		}
 	}
 }
