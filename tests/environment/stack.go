@@ -83,8 +83,10 @@ type Stack struct {
 // service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up
 // returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
 // SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
-// Stripe returns no webhook secret for the key. An enterprise or cloud stack with Unlicensed set
-// loads no license file; otherwise it loads the one cfg names, signed by its run's issuer. Up returns
+// Stripe returns no webhook secret for the key. Stripe's own events never reach a cloud stack: a
+// test delivers the events it needs, see [DockerCompose.StripeSignature]. An enterprise or cloud
+// stack with Unlicensed set loads no license file; otherwise it loads the one cfg names, signed by
+// its run's issuer. Up returns
 // an error when an enterprise or cloud stack finds no cloud source (a go.mod) in CloudDir, when a
 // cloud stack finds no docker-compose.yml there, when an enterprise or cloud stack without
 // Unlicensed has a run that issues no licenses, when cfg asks for a license and for none, when the
