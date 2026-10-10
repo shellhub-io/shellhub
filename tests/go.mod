@@ -11,7 +11,7 @@ require (
 	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moby/moby/api v1.56.0
 	github.com/moby/moby/client v0.5.0
-	github.com/oschwald/maxminddb-golang/v2 v2.1.1
+	github.com/oschwald/maxminddb-golang/v2 v2.7.0
 	github.com/pkg/sftp v1.13.11
 	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.10.2
