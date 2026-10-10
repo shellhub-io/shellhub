@@ -74,10 +74,16 @@ func (dcc *DockerComposeConfigurator) WithoutLicense() *DockerComposeConfigurato
 }
 
 // WithEveryAddressIn gives the server a GeoIP database that locates every address, private ones
-// included, in country, an ISO 3166 code such as "BR". It needs an enterprise or cloud stack; Up
-// fails the test otherwise.
+// included, in country, an ISO 3166 code such as "BR", at latitude and longitude zero. It needs an
+// enterprise or cloud stack; Up fails the test otherwise.
 func (dcc *DockerComposeConfigurator) WithEveryAddressIn(country string) *DockerComposeConfigurator {
-	dcc.cfg.LocatedCountry = country
+	return dcc.WithEveryAddressAt(Location{Country: country})
+}
+
+// WithEveryAddressAt gives the server a GeoIP database that places every address, private ones
+// included, at location. It needs an enterprise or cloud stack; Up fails the test otherwise.
+func (dcc *DockerComposeConfigurator) WithEveryAddressAt(location Location) *DockerComposeConfigurator {
+	dcc.cfg.Located = &location
 
 	return dcc
 }
