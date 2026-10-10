@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/moby/moby/api/types/container"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -244,8 +245,69 @@ func (s *Stack) RemoveRecordingObject(ctx context.Context, uid string, seat int)
 	return err
 }
 
+// StopObjectStorage stops the stack's object storage, so every call the server makes to it fails,
+// until [DockerCompose.StartObjectStorage] starts it again. It starts it again when t ends if the
+// test has not, even when stopping it failed, so a failed test leaves the next one a stack that
+// stores recordings. t's context bounds the stop. It fails t when the stack runs no object storage
+// or the container does not stop, and, when t ends with the storage stopped, in each case
+// [DockerCompose.StartObjectStorage] fails it.
+func (dc *DockerCompose) StopObjectStorage(t *testing.T) {
+	t.Helper()
+
+	storage := dc.Service(ServiceObjectStorage)
+	require.NotNil(t, storage, "the stack runs no object storage")
+
+	t.Cleanup(func() {
+		state, err := storage.State(context.WithoutCancel(t.Context()))
+		if err == nil && state.Running {
+			return
+		}
+
+		dc.StartObjectStorage(t)
+	})
+
+	timeout := 30 * time.Second
+	require.NoError(t, storage.Stop(t.Context(), &timeout))
+}
+
+// StartObjectStorage starts the stack's object storage again after
+// [DockerCompose.StopObjectStorage], keeping the objects it held, and waits until its health check
+// passes and it lists the stack's bucket. It fails t when the stack runs no object storage, when
+// the container does not start, and when it is not healthy or does not list the bucket within a
+// minute. It outlives t's context, so a t.Cleanup can start the storage with it.
+func (dc *DockerCompose) StartObjectStorage(t *testing.T) {
+	t.Helper()
+
+	ctx := context.WithoutCancel(t.Context())
+	storage := dc.Service(ServiceObjectStorage)
+	require.NotNil(t, storage, "the stack runs no object storage")
+
+	require.NoError(t, storage.Start(ctx))
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		state, err := storage.State(ctx)
+		if !assert.NoError(tt, err) || !assert.NotNil(tt, state.Health, "the object storage has no health check") ||
+			!assert.Equal(tt, container.Healthy, state.Health.Status) {
+
+			return
+		}
+
+		assert.NoError(tt, dc.stack.listBucket(ctx), "the object storage does not list the bucket yet")
+	}, time.Minute, time.Second)
+}
+
 func (s *Stack) recordingPrefix(uid string) string {
-	return "store/" + path.Join(s.envs[objectStorageBucketEnv], uid) + "/"
+	return path.Join(s.bucketPath(), uid) + "/"
+}
+
+func (s *Stack) bucketPath() string {
+	return "store/" + s.envs[objectStorageBucketEnv]
+}
+
+func (s *Stack) listBucket(ctx context.Context) error {
+	_, err := s.objectStorage(ctx, "ls", s.bucketPath())
+
+	return err
 }
 
 func (s *Stack) objectStorage(ctx context.Context, args ...string) (string, error) {
