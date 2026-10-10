@@ -32,11 +32,10 @@ import (
 // community edition, random ports, random network, cloudDir at ../../cloud. Run is required:
 // the stack's images, containers and network belong to it.
 //
-// License, Unlicensed and LocatedCountry apply to the enterprise and cloud editions. License is the
+// License, Unlicensed and Located apply to the enterprise and cloud editions. License is the
 // license the server loads from its license file on startup, [FullLicense] when nil, and needs a run
 // that issues licenses, see [StartRun]. Unlicensed starts the server with no license file at all.
-// LocatedCountry, an ISO 3166 code, gives the server a GeoIP database that locates every address in
-// that country.
+// Located gives the server a GeoIP database that places every address at that location.
 //
 // SuppliedCertificate and ACME turn the gateway's automatic HTTPS on and publish its HTTPS port on
 // HTTPSPort, random when empty. SuppliedCertificate is the certificate the gateway serves instead of
@@ -58,7 +57,7 @@ type Config struct {
 	Run                 *Run
 	License             *License
 	Unlicensed          bool
-	LocatedCountry      string
+	Located             *Location
 	SuppliedCertificate *Certificate
 	ACME                bool
 	AutoSSL             bool
@@ -178,7 +177,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 			return nil, err
 		}
 
-		if cfg.LocatedCountry != "" {
+		if cfg.Located != nil {
 			var dir string
 
 			geoIPVars, dir, err = cfg.geoIPEnvs()
@@ -190,7 +189,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 
 			files = append(files, "../docker-compose.geoip.test.yml")
 		}
-	} else if cfg.License != nil || cfg.Unlicensed || cfg.LocatedCountry != "" {
+	} else if cfg.License != nil || cfg.Unlicensed || cfg.Located != nil {
 		return nil, errors.New("the community edition loads no license and locates no address")
 	}
 
