@@ -10,13 +10,13 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
 	runLabel   = "io.shellhub.e2e.run"
 	leaseLabel = "io.shellhub.e2e.lease"
-	leaseImage = "alpine:3.24.2"
 
 	composeProjectLabel = "com.docker.compose.project"
 	composeServiceLabel = "com.docker.compose.service"
@@ -40,8 +40,10 @@ type Run struct {
 // StartRun starts a run for the calling process. Its lease is a container whose stdin the
 // process holds open, so the daemon releases the lease however the process ends. It sweeps the
 // dead runs on the daemon once the lease exists, logging what it cannot remove. It returns an
-// error when the daemon cannot be reached or the lease cannot be created. The lease outlives
-// ctx; [Run.Close] releases it.
+// error when the working directory cannot be resolved, no versions.env is found at or above it,
+// the file cannot be read, has a line that is not KEY=VALUE or does not pin ALPINE_VERSION, the
+// daemon cannot be reached, or the lease cannot be created. The lease outlives ctx; [Run.Close]
+// releases it.
 //
 // A non-nil issuer makes the run compile issuer's public key into its enterprise server in place
 // of the production license key, and start every enterprise stack under a license issuer signs. A
@@ -134,20 +136,39 @@ func (r *Run) composeEnvs() map[string]string {
 	}
 }
 
+func leaseImage() (string, error) {
+	root, err := testimage.Root()
+	if err != nil {
+		return "", err
+	}
+
+	alpine, err := testimage.Version(root, "ALPINE_VERSION")
+	if err != nil {
+		return "", err
+	}
+
+	return "alpine:" + alpine, nil
+}
+
 func (r *Run) holdLease(ctx context.Context) error {
-	if _, err := r.client.ImageInspect(ctx, leaseImage); err != nil {
-		pull, err := r.client.ImagePull(ctx, leaseImage, client.ImagePullOptions{})
+	image, err := leaseImage()
+	if err != nil {
+		return err
+	}
+
+	if _, err := r.client.ImageInspect(ctx, image); err != nil {
+		pull, err := r.client.ImagePull(ctx, image, client.ImagePullOptions{})
 		if err != nil {
-			return fmt.Errorf("pulling %s: %w", leaseImage, err)
+			return fmt.Errorf("pulling %s: %w", image, err)
 		}
 
 		if err := pull.Wait(ctx); err != nil {
-			return fmt.Errorf("pulling %s: %w", leaseImage, err)
+			return fmt.Errorf("pulling %s: %w", image, err)
 		}
 	}
 
 	created, err := r.client.ContainerCreate(ctx, client.ContainerCreateOptions{
-		Image: leaseImage,
+		Image: image,
 		Config: &container.Config{
 			Cmd:         []string{"cat"},
 			AttachStdin: true,

@@ -1,11 +1,22 @@
 # syntax=docker/dockerfile:1
 
+ARG GOLANG_VERSION
+ARG ALPINE_VERSION
+ARG AIR_VERSION
+ARG GOLANGCI_LINT_VERSION
+ARG MOCKERY_VERSION
+ARG DOCKER_VERSION
+ARG MJML_VERSION
 ARG EDITION=community
-ARG MJML_VERSION=4.10.1
 
 FROM scratch AS cloud-src
 
-FROM golang:1.26.9-alpine3.24 AS toolchain
+FROM cosmtrek/air:${AIR_VERSION} AS air
+FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
+FROM vektra/mockery:${MOCKERY_VERSION} AS mockery
+FROM docker:${DOCKER_VERSION}-cli AS docker-cli
+
+FROM golang:${GOLANG_VERSION} AS toolchain
 
 RUN apk add --no-cache git ca-certificates curl build-base openssh-client
 
@@ -28,7 +39,7 @@ ARG EDITION=community
 ARG MJML_VERSION
 
 RUN if [ "$EDITION" = "enterprise" ]; then \
-        apk add --no-cache npm && npm install -g mjml@${MJML_VERSION}; \
+        apk add --no-cache npm && npm install -g mjml@${MJML_VERSION:?}; \
     fi
 
 COPY ./pkg     /go/src/github.com/shellhub-io/shellhub/pkg
@@ -60,13 +71,12 @@ FROM toolchain AS tools
 ARG MJML_VERSION
 
 RUN apk add --no-cache openssl npm
-COPY --from=docker:29.8.1-cli /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker:29.8.1-cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
-RUN npm install -g mjml@${MJML_VERSION}
-RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
-    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 && \
-    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.8.0 && \
-    go clean -cache -modcache
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
+COPY --from=air /go/bin/air /usr/local/bin/air
+COPY --from=golangci-lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
+COPY --from=mockery /usr/local/bin/mockery /usr/local/bin/mockery
+RUN npm install -g mjml@${MJML_VERSION:?}
 
 FROM tools AS development
 
@@ -82,7 +92,7 @@ COPY ./install.sh /templates/install.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM alpine:3.24.2 AS production
+FROM alpine:${ALPINE_VERSION} AS production
 
 RUN apk add --no-cache curl openssh-client && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix

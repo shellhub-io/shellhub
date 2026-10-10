@@ -5,6 +5,14 @@ services:
       context: .
       dockerfile: server/Dockerfile
       target: development
+      args:
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        AIR_VERSION: ${AIR_VERSION}
+        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
+        MOCKERY_VERSION: ${MOCKERY_VERSION}
+        DOCKER_VERSION: ${DOCKER_VERSION}
+        MJML_VERSION: ${MJML_VERSION}
     volumes:
       - ./server:/go/src/github.com/shellhub-io/shellhub/server
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -26,9 +34,15 @@ services:
       context: .
       dockerfile: ui/Dockerfile
       target: development
+      args:
+        NODE_VERSION: ${NODE_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        SWS_VERSION: ${SWS_VERSION}
+        REDOCLY_VERSION: ${REDOCLY_VERSION}
     environment:
       - PUBLIC_SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - PUBLIC_SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
+      - REDOCLY_VERSION=${REDOCLY_VERSION}
     volumes:
       - ./ui:/src
       - ./openapi:/openapi:ro
@@ -38,6 +52,11 @@ services:
       context: .
       dockerfile: gateway/Dockerfile
       target: development
+      args:
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        AIR_VERSION: ${AIR_VERSION}
+        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
     volumes:
       - ./gateway:/go/src/github.com/shellhub-io/shellhub/gateway
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -53,6 +72,13 @@ services:
       context: .
       dockerfile: openapi/Dockerfile
       target: development
+      args:
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        AIR_VERSION: ${AIR_VERSION}
+        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
+        REDOCLY_VERSION: ${REDOCLY_VERSION}
+        PRISM_VERSION: ${PRISM_VERSION}
+        PRETTIER_VERSION: ${PRETTIER_VERSION}
     volumes:
       - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -88,6 +114,7 @@ services:
       context: ui
       dockerfile: e2e.Dockerfile
       args:
+        - DOCKER_VERSION=${DOCKER_VERSION}
         - PLAYWRIGHT_VERSION=${E2E_PLAYWRIGHT_VERSION:-}
     profiles:
       - tools

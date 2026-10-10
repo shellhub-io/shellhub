@@ -35,7 +35,7 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.test.yml",
 				"../docker-compose.postgres.test.yml",
 			},
-			envFiles:    []string{"../.env"},
+			envFiles:    []string{"../.env", "../versions.env"},
 			editionEnvs: map[string]string{},
 		},
 		{
@@ -48,7 +48,7 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.postgres.test.yml",
 				"../docker-compose.enterprise.test.yml",
 			},
-			envFiles: []string{"../.env", "../.env.enterprise", cloudEnv},
+			envFiles: []string{"../.env", "../versions.env", "../.env.enterprise", cloudEnv},
 			editionEnvs: map[string]string{
 				"SHELLHUB_EMAIL_PROVIDER": "dummy",
 				"SHELLHUB_MAXMIND_MIRROR": "",
@@ -66,7 +66,7 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.enterprise.test.yml",
 				"../docker-compose.cloud.test.yml",
 			},
-			envFiles: []string{"../.env", "../.env.enterprise", cloudEnv},
+			envFiles: []string{"../.env", "../versions.env", "../.env.enterprise", cloudEnv},
 			editionEnvs: map[string]string{
 				"SHELLHUB_BILLING":        "stripe",
 				"COMPOSE_PROFILES":        "stripe",
@@ -121,7 +121,7 @@ func TestEdition(t *testing.T) {
 	})
 
 	t.Run("cloud without .env", func(t *testing.T) {
-		assert.Equal(t, []string{"../.env", "../.env.enterprise"}, EditionCloud.envFiles(t.TempDir()))
+		assert.Equal(t, []string{"../.env", "../versions.env", "../.env.enterprise"}, EditionCloud.envFiles(t.TempDir()))
 	})
 
 	t.Run("parse", func(t *testing.T) {

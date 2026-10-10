@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,12 +18,16 @@ import (
 func TestMain_smoke(t *testing.T) {
 	ctx := context.Background()
 
+	buildArgs, err := testimage.BuildArgs("..")
+	require.NoError(t, err)
+
 	container, err := testcontainers.Run(ctx, "",
 		testcontainers.WithDockerfile(testcontainers.FromDockerfile{
 			Context:    "..",
 			Dockerfile: "gateway/Dockerfile",
 			Repo:       "gateway",
 			Tag:        "smoke",
+			BuildArgs:  buildArgs,
 		}),
 		testcontainers.WithExposedPorts("80/tcp"),
 		testcontainers.WithEnv(map[string]string{

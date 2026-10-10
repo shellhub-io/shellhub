@@ -105,7 +105,9 @@ jobs:
         if: matrix.app == 'console'
         working-directory: ui
         run: |
-          npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
+          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w "$WORKSPACE"
 
       - name: Astro sync [${{ matrix.app }}]
@@ -161,7 +163,9 @@ jobs:
       - name: Generate OpenAPI client
         working-directory: ui
         run: |
-          npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
+          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
 
       - name: knip

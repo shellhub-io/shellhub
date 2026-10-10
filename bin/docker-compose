@@ -74,7 +74,7 @@ if [ "$SHELLHUB_ENV" = "development" ] && daemon_is_rootless; then
     [ -z "$socket" ] || export SHELLHUB_DEV_DOCKER_SOCKET="$socket"
 fi
 
-COMPOSE_ENV_FILES="./.env"
+COMPOSE_ENV_FILES="./.env,./versions.env"
 [ "$SHELLHUB_EDITION" != "community" ] && [ -f ./.env.enterprise ] \
     && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,./.env.enterprise"
 [ "$SHELLHUB_EDITION" != "community" ] && [ -f "$cloud_dir/.env" ] \

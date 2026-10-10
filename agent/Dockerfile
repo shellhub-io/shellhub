@@ -1,7 +1,14 @@
-ARG GOLANG_VERSION=1.26.9
-ARG ALPINE_VERSION=3.24
+ARG GOLANG_VERSION
+ARG ALPINE_VERSION
+ARG AIR_VERSION
+ARG GOLANGCI_LINT_VERSION
+ARG MOCKERY_VERSION
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.26}-alpine${ALPINE_VERSION:-3.24} AS toolchain
+FROM --platform=$BUILDPLATFORM cosmtrek/air:${AIR_VERSION} AS air
+FROM --platform=$BUILDPLATFORM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
+FROM --platform=$BUILDPLATFORM vektra/mockery:${MOCKERY_VERSION} AS mockery
+
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS toolchain
 
 RUN apk add --no-cache ca-certificates git
 
@@ -38,17 +45,16 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
-FROM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
+FROM alpine:${ALPINE_VERSION} AS runtime-utils
 
 RUN apk add --no-cache util-linux setpriv ca-certificates
 
 FROM toolchain AS tools
 
 RUN apk add --no-cache openssl openssh-client util-linux setpriv
-RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
-    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 && \
-    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.8.0 && \
-    go clean -cache -modcache
+COPY --from=air /go/bin/air /usr/local/bin/air
+COPY --from=golangci-lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
+COPY --from=mockery /usr/local/bin/mockery /usr/local/bin/mockery
 
 FROM tools AS development
 

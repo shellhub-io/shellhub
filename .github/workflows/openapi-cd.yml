@@ -21,7 +21,9 @@ jobs:
 
       - name: Setup bundler
         run: |
-          npm install -g @redocly/cli@2.31.5
+          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' versions.env)
+          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npm install -g "@redocly/cli@$VERSION"
           mkdir bundled/
 
       - name: Bundle customer documentation

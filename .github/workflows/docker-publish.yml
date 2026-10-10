@@ -69,6 +69,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
+      - name: Read the build versions
+        id: versions
+        run: |
+          {
+            echo 'build-args<<EOF'
+            cat shellhub/versions.env
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Login to Docker Hub (community images)
         if: matrix.project != 'server-enterprise'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
@@ -93,6 +102,7 @@ jobs:
           tags: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
           file: shellhub/${{ matrix.project }}/Dockerfile
           context: shellhub
+          build-args: ${{ steps.versions.outputs.build-args }}
           cache-from: type=gha,scope=${{ matrix.project }}
           cache-to: type=gha,scope=${{ matrix.project }},mode=max
 
@@ -105,7 +115,9 @@ jobs:
           tags: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
           file: shellhub/server/Dockerfile
           context: shellhub
-          build-args: EDITION=enterprise
+          build-args: |
+            ${{ steps.versions.outputs.build-args }}
+            EDITION=enterprise
           build-contexts: cloud-src=./cloud
           cache-from: type=gha,scope=${{ matrix.project }}
           cache-to: type=gha,scope=${{ matrix.project }},mode=max
