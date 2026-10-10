@@ -287,11 +287,12 @@ func main() {
 			}
 
 			cfg := environment.Config{
-				Edition:  edition,
-				Name:     projectName,
-				HTTPPort: httpPort,
-				CloudDir: cloudDir,
-				Run:      run,
+				Edition:      edition,
+				Name:         projectName,
+				HTTPPort:     httpPort,
+				CloudDir:     cloudDir,
+				Run:          run,
+				StripeEvents: edition == environment.EditionCloud,
 			}
 
 			cmd.PrintErrf("Starting stack %q (edition=%s)...\n", projectName, edition)
