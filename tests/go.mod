@@ -9,7 +9,7 @@ require (
 	github.com/hibiken/asynq v0.26.0
 	github.com/joho/godotenv v1.5.1
 	github.com/maxmind/mmdbwriter v1.2.0
-	github.com/moby/moby/api v1.56.0
+	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.5.0
 	github.com/oschwald/maxminddb-golang/v2 v2.7.0
 	github.com/pkg/sftp v1.13.11
