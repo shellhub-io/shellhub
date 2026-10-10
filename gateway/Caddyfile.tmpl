@@ -241,12 +241,20 @@ http://healthcheck.internal {
 	}
 {{- end }}
 
+	@address vars_regexp {http.request.host} (?i)^[0-9a-f]{32}\.
+
 	# The path belongs to the device's own HTTP server and is not ours to
 	# interpret. Caddy forwards it as the client wrote it, escaping intact.
-	reverse_proxy {{ $cfg.APIBackend }} {
-		header_up Host {host}
-		header_up X-Request-ID {http.request.uuid}
-		header_up X-Real-IP {remote_host}
+	handle @address {
+		reverse_proxy {{ $cfg.APIBackend }} {
+			header_up Host {host}
+			header_up X-Request-ID {http.request.uuid}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle {
+		respond 404
 	}
 }
 {{- end }}

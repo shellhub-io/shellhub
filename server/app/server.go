@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	"github.com/shellhub-io/shellhub/server/api/routes"
@@ -447,7 +448,8 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 	case sshhttp.HandleConnectionV1Path,
 		sshhttp.HandleConnectionV2Path,
 		sshhttp.HandleRevdialPath,
-		web.WebsocketSSHBridgeRoute:
+		web.WebsocketSSHBridgeRoute,
+		webendpoints.ProxyPath:
 		return true
 	}
 
