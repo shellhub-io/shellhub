@@ -65,6 +65,12 @@ enter_wsl() {
     stub_bin wsl.exe "echo \"WSL version: ${1:-2.0.0.0}\""
 }
 
+discover_version() {
+    unset AGENT_VERSION
+    printf '{"version":"%s","endpoints":{"ssh":"localhost:22"}}\n' "$1" > "$BATS_TEST_TMPDIR/info"
+    stub_bin curl "echo \"curl \$*\" >> \"\$CALLS\"; case \"\$*\" in */info*) cat '$BATS_TEST_TMPDIR/info' ;; esac"
+}
+
 @test "check_podman_boot_restart aborts when systemctl is missing" {
     call_install check_podman_boot_restart
 
@@ -875,6 +881,116 @@ enter_wsl() {
 
     [ "$status" -eq 0 ]
     assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
+}
+
+@test "the installer discovers the agent version from the server" {
+    discover_version v0.27.0-rc.17
+    unset AGENT_IMAGE
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_called "docker pull -q docker.io/shellhubio/agent:v0.27.0-rc.17"
+}
+
+@test "the installer refuses a server whose certificate it cannot verify" {
+    discover_version v0.27.0-rc.17
+    stub_bin curl "echo \"curl \$*\" >> \"\$CALLS\"; for a; do case \"\$a\" in --insecure|-k*|-[!-]*k*) cat '$BATS_TEST_TMPDIR/info'; exit 0 ;; esac; done; exit 60"
+    unset AGENT_IMAGE
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "did not report an agent version"
+    assert_output_contains "trust the certificate"
+    refute_called "docker pull"
+}
+
+@test "the installer refuses a server version that points the download at another repository" {
+    discover_version "../../../../audit-owner/audit-repo/releases/download/v1"
+    export INSTALL_METHOD=standalone
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "not a ShellHub release tag"
+    refute_called "releases/download"
+}
+
+@test "the installer refuses a server version that is not a valid image tag" {
+    discover_version 'v0.27.0$(id)'
+    unset AGENT_IMAGE
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "not a ShellHub release tag"
+    refute_called "docker pull"
+}
+
+@test "the installer refuses an agent version that is not a release tag" {
+    export INSTALL_METHOD=standalone
+    stub_bin curl
+
+    for version in "" "v1.2" "v0.27.0/../../x" $'v0.27.0\nv0.27.1' 'v0.27.0$(id)' "v0.27.0 x"; do
+        echo "AGENT_VERSION=$version"
+        AGENT_VERSION="$version" run_install
+
+        [ "$status" -eq 1 ]
+        if [ -z "$version" ]; then
+            assert_output_contains "did not report an agent version"
+        else
+            assert_output_contains "not a ShellHub release tag"
+            refute_output_contains "certificate"
+        fi
+    done
+
+    refute_called "releases/download"
+}
+
+@test "the installer accepts latest as the agent version" {
+    export AGENT_VERSION=latest
+    unset AGENT_IMAGE
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_called "docker pull -q docker.io/shellhubio/agent:latest"
+}
+
+@test "the installer needs no server version when the agent image is given" {
+    discover_version ""
+    stub_bin docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_called "docker run -d"
+}
+
+@test "the installer needs no server version when the agent binary is given" {
+    discover_version ""
+    export INSTALL_METHOD=standalone
+    fake_agent_binary
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_called "agent install --server-address=$SERVER_ADDRESS"
+}
+
+@test "uninstall does not depend on the server reporting a release version" {
+    discover_version "not a version"
+    stub_bin docker
+
+    run_install uninstall
+
+    [ "$status" -eq 0 ]
+    assert_called "docker rm -f shellhub"
 }
 
 @test "uninstall dispatches to the detected method" {
