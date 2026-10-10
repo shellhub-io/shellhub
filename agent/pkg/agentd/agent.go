@@ -204,7 +204,7 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 // [Agent.Listen] to serve.
 type Agent struct {
 	config     *Config
-	pubKey     *rsa.PublicKey
+	key        *rsa.PrivateKey
 	Identity   *models.DeviceIdentity
 	Info       *models.DeviceInfo
 	authData   *models.DeviceAuthResponse
@@ -324,8 +324,8 @@ func (a *Agent) Setup() error {
 		return errors.Wrap(err, "failed to ensure private key")
 	}
 
-	if err := a.readPublicKey(); err != nil {
-		return errors.Wrap(err, "failed to read public key")
+	if err := a.readKey(); err != nil {
+		return errors.Wrap(err, "failed to read the device key")
 	}
 
 	if err := a.probeServerInfo(); err != nil {
@@ -425,16 +425,16 @@ func (a *Agent) ensurePrivateKey() error {
 	return err
 }
 
-func (a *Agent) readPublicKey() error {
+func (a *Agent) readKey() error {
 	keyPath, err := cleanKeyPath(a.config.PrivateKey)
 	if err != nil {
-		a.pubKey = nil
+		a.key = nil
 
 		return err
 	}
 
-	key, err := keygen.ReadPublicKey(keyPath)
-	a.pubKey = key
+	key, err := keygen.ReadPrivateKey(keyPath)
+	a.key = key
 
 	return err
 }
@@ -497,7 +497,7 @@ func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 		Hostname:        a.config.PreferredHostname,
 		Identity:        a.Identity,
 		TenantID:        a.config.TenantID,
-		PublicKey:       string(keygen.EncodePublicKeyToPem(a.pubKey)),
+		PublicKey:       string(keygen.EncodePublicKeyToPem(&a.key.PublicKey)),
 		ProvisioningKey: a.config.ProvisioningKey,
 	}
 
@@ -522,7 +522,7 @@ func (a *Agent) authorize() error {
 	a.authMu.Lock()
 	defer a.authMu.Unlock()
 
-	data, err := a.cli.AuthDevice(req)
+	data, err := a.cli.AuthDevice(req, a.key)
 	if errors.Is(err, client.ErrUnauthorized) {
 		return ErrDeviceRemoved
 	}

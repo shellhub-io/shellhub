@@ -45,6 +45,7 @@ type Device struct {
 	OwnerID           string            `bun:"owner_id,type:uuid,nullzero,skipupdate"`
 
 	LastEnrollmentAttemptAt *time.Time `bun:"last_enrollment_attempt_at,nullzero"`
+	KeyProvenAt             *time.Time `bun:"key_proven_at,nullzero,skipupdate"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
@@ -77,6 +78,7 @@ func DeviceFromModel(model *models.Device) *Device {
 		OwnerID:           model.OwnerID,
 
 		LastEnrollmentAttemptAt: model.LastEnrollmentAttemptAt,
+		KeyProvenAt:             model.KeyProvenAt,
 
 		Tags: []*Tag{},
 	}
@@ -141,6 +143,7 @@ func DeviceToModel(entity *Device) *models.Device {
 		OwnerID:           entity.OwnerID,
 
 		LastEnrollmentAttemptAt: entity.LastEnrollmentAttemptAt,
+		KeyProvenAt:             entity.KeyProvenAt,
 
 		Taggable: models.Taggable{
 			Tags: []models.Tag{},

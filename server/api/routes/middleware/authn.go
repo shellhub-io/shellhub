@@ -22,6 +22,7 @@ type AuthnService interface {
 	AuthInstanceAPIKey(ctx context.Context, key string) (*models.InstanceAPIKey, error)
 	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error)
 	GetUserAdmin(ctx context.Context, userID string) (bool, error)
+	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
 	PublicKey() *rsa.PublicKey
 }
 
@@ -191,6 +192,14 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 
 	switch claims := claims.(type) {
 	case *authorizer.DeviceClaims:
+		if err := a.service.AuthDeviceToken(c.Request().Context(), claims); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"device_uid": claims.UID, "tenant_id": claims.TenantID}).
+				Warn("refused a device token")
+
+			return nil, nil
+		}
+
 		return &gateway.Identity{
 			DeviceUID: claims.UID,
 			TenantID:  claims.TenantID,

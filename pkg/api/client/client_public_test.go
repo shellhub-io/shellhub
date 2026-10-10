@@ -2,13 +2,19 @@ package client
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
 	mock "github.com/jarcoal/httpmock"
 	reversermock "github.com/shellhub-io/shellhub/pkg/api/client/reverser/mocks"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/stretchr/testify/assert"
@@ -291,7 +297,7 @@ func TestAuthDevice(t *testing.T) {
 
 			test.requiredMocks()
 
-			response, err := cli.AuthDevice(test.request)
+			response, err := cli.AuthDevice(test.request, nil)
 			assert.Equal(t, test.expected, Expected{response, err})
 		})
 	}
@@ -365,7 +371,7 @@ func TestAuthDeviceRetriesOnlyWhatAnOperatorCanResolve(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					PublicKey: "",
 				},
-			})
+			}, nil)
 
 			if test.recovers {
 				require.NoError(t, err)
@@ -564,4 +570,106 @@ func TestReverseListener(t *testing.T) {
 			assert.Equal(t, test.expected, err)
 		})
 	}
+}
+
+func TestAuthDeviceProvesTheKeyOnEveryAttempt(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	request := func() *models.DeviceAuthRequest {
+		return &models.DeviceAuthRequest{
+			Info: &models.DeviceInfo{ID: "debian"},
+			DeviceAuth: &models.DeviceAuth{
+				Hostname:  "device",
+				TenantID:  tenant,
+				PublicKey: string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey)})),
+			},
+		}
+	}
+
+	setup := func(t *testing.T) Client {
+		t.Helper()
+
+		cli, err := NewClient("https://www.cloud.shellhub.io/", withImmediateRetries())
+		require.NoError(t, err)
+
+		client, ok := cli.(*client)
+		require.True(t, ok)
+
+		mock.ActivateNonDefault(client.http.GetClient())
+		t.Cleanup(mock.DeactivateAndReset)
+
+		return cli
+	}
+
+	sent := func(t *testing.T, bodies *[]models.DeviceAuthRequest, responder mock.Responder) mock.Responder {
+		t.Helper()
+
+		return func(r *http.Request) (*http.Response, error) {
+			var body models.DeviceAuthRequest
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+			*bodies = append(*bodies, body)
+
+			return responder(r)
+		}
+	}
+
+	accepted, err := mock.NewJsonResponder(http.StatusOK, models.DeviceAuthResponse{UID: "uid", Token: "token"})
+	require.NoError(t, err)
+
+	for _, refused := range []int{http.StatusNotFound, http.StatusForbidden} {
+		t.Run(fmt.Sprintf("signs a fresh challenge on the retry after a %d", refused), func(t *testing.T) {
+			cli := setup(t)
+
+			first, err := mock.NewJsonResponder(http.StatusOK, models.DeviceAuthChallenge{Challenge: "first", ExpiresIn: 60})
+			require.NoError(t, err)
+
+			second, err := mock.NewJsonResponder(http.StatusOK, models.DeviceAuthChallenge{Challenge: "second", ExpiresIn: 60})
+			require.NoError(t, err)
+
+			mock.RegisterResponder("POST", "/api/devices/auth/challenge", first.Then(second))
+
+			var bodies []models.DeviceAuthRequest
+			mock.RegisterResponder("POST", "/api/devices/auth", sent(t, &bodies, mock.NewStringResponder(refused, `{"message":"refused"}`).Then(accepted)))
+
+			_, err = cli.AuthDevice(request(), key)
+			require.NoError(t, err)
+
+			require.Len(t, bodies, 2)
+			for i, challenge := range []string{"first", "second"} {
+				assert.Equal(t, challenge, bodies[i].Challenge)
+				assert.NoError(t, devicekey.Verify(devicekey.Statement{Challenge: challenge, TenantID: tenant, PublicKey: bodies[i].PublicKey}, bodies[i].Signature))
+			}
+		})
+	}
+
+	for _, status := range []int{http.StatusNotFound, http.StatusMethodNotAllowed, http.StatusUnauthorized} {
+		t.Run(fmt.Sprintf("authenticates without a proof when the server answers %d for a challenge", status), func(t *testing.T) {
+			cli := setup(t)
+
+			mock.RegisterResponder("POST", "/api/devices/auth/challenge", mock.NewStringResponder(status, ""))
+
+			var bodies []models.DeviceAuthRequest
+			mock.RegisterResponder("POST", "/api/devices/auth", sent(t, &bodies, accepted))
+
+			_, err := cli.AuthDevice(request(), key)
+			require.NoError(t, err)
+
+			require.Len(t, bodies, 1)
+			assert.Empty(t, bodies[0].Challenge)
+			assert.Empty(t, bodies[0].Signature)
+		})
+	}
+
+	t.Run("stops when the challenge cannot be fetched", func(t *testing.T) {
+		cli := setup(t)
+
+		mock.RegisterResponder("POST", "/api/devices/auth/challenge", mock.NewStringResponder(http.StatusBadRequest, ""))
+
+		_, err := cli.AuthDevice(request(), key)
+		require.ErrorIs(t, err, ErrBadRequest)
+		assert.Zero(t, mock.GetCallCountInfo()["POST https://www.cloud.shellhub.io/api/devices/auth"])
+	})
 }

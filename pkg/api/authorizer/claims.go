@@ -17,6 +17,7 @@ type UserClaims struct {
 
 // DeviceClaims represents the attributes needed to authenticate a device.
 type DeviceClaims struct {
-	UID      string `json:"uid"`
-	TenantID string `json:"tenant"`
+	UID       string `json:"uid"`
+	TenantID  string `json:"tenant"`
+	KeyProven bool   `json:"key_proven,omitempty"`
 }

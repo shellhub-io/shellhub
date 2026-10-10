@@ -1,0 +1,18 @@
+FROM alpine:3.22
+
+ARG SHELLHUB_VERSION
+ARG USERNAME
+ARG PASSWORD
+
+RUN apk add --no-cache ca-certificates \
+    && case "$(uname -m)" in \
+        x86_64) arch=amd64 ;; \
+        aarch64) arch=arm64 ;; \
+        *) echo "no released agent for $(uname -m)" >&2 && exit 1 ;; \
+    esac \
+    && wget -qO- "https://github.com/shellhub-io/shellhub/releases/download/${SHELLHUB_VERSION}/shellhub-agent-linux-${arch}.gz" \
+        | gunzip > /usr/local/bin/agent \
+    && chmod +x /usr/local/bin/agent \
+    && echo "${USERNAME}:${PASSWORD}" | chpasswd
+
+ENTRYPOINT ["/usr/local/bin/agent"]

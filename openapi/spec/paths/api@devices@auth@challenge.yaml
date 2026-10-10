@@ -1,0 +1,32 @@
+post:
+  operationId: createDeviceAuthChallenge
+  summary: Create a device auth challenge
+  description: |
+    Issue a single-use challenge that a ShellHub agent signs with its device key and sends
+    back to the device auth route, proving it holds the private half of the public key it
+    authenticates with. A challenge expires after a minute and is consumed by its first use.
+  tags:
+    - internal
+    - devices
+  security: []
+  responses:
+    '200':
+      description: Success to create a device auth challenge.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              challenge:
+                description: The challenge to sign.
+                type: string
+                example: K3VZQ7WJ2M5XN4RTB6Y8CPDHFA
+              expires_in:
+                description: Seconds until the challenge expires.
+                type: integer
+                example: 60
+            required:
+              - challenge
+              - expires_in
+    '500':
+      $ref: ../components/responses/500.yaml

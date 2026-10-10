@@ -482,10 +482,10 @@ func TestAgent_ensurePrivateKey_PathContainment(t *testing.T) {
 	}
 }
 
-// TestAgent_readPublicKey_PathContainment verifies that the production
-// readPublicKey method rejects PrivateKey paths that contain raw ".."
+// TestAgent_readKey_PathContainment verifies that the production
+// readKey method rejects PrivateKey paths that contain raw ".."
 // traversal sequences.
-func TestAgent_readPublicKey_PathContainment(t *testing.T) {
+func TestAgent_readKey_PathContainment(t *testing.T) {
 	t.Parallel()
 
 	baseDir := t.TempDir()
@@ -514,7 +514,7 @@ func TestAgent_readPublicKey_PathContainment(t *testing.T) {
 			t.Parallel()
 
 			a := &Agent{config: &Config{PrivateKey: tt.privateKey}}
-			err := a.readPublicKey()
+			err := a.readKey()
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)

@@ -98,9 +98,37 @@ func TestConnectFailsWhenTheDeviceCannotBeDialled(t *testing.T) {
 
 	stub := &dialertest.Stub{Err: dialer.ErrNoConnection} //nolint:exhaustruct // the recording field starts empty and is appended to under the mutex
 	sess := newTestSession(nil, stub)
+	sess.Device.PublicKey = dialertest.NewAgent(t).PublicKey()
 
 	err := sess.connect(newStubContext(), noAuth)
 
 	require.ErrorIs(t, err, ErrDial, "a device that cannot be reached must fail the login")
 	assert.Nil(t, sess.agent.client, "a failed dial must leave no client behind")
+}
+
+func TestConnectRefusesAnAgentPresentingAnotherHostKey(t *testing.T) {
+	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct // only the handshake timeout matters to this test
+
+	impostor := dialertest.NewAgent(t)
+	sess := newTestSession(nil, impostor)
+	sess.Device.PublicKey = dialertest.NewAgent(t).PublicKey()
+
+	err := sess.connect(newStubContext(), noAuth)
+
+	require.Error(t, err, "an agent presenting a key other than the device's must not be connected to")
+	assert.Nil(t, sess.agent.client, "a refused handshake must leave no client behind")
+	assert.False(t, impostor.Serving(time.Second), "the impostor must never get past the key exchange")
+}
+
+func TestConnectRefusesADeviceWithoutAUsableKey(t *testing.T) {
+	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct // only the handshake timeout matters to this test
+
+	for _, key := range []string{"", "not a key"} {
+		agent := dialertest.NewAgent(t)
+		sess := newTestSession(nil, agent)
+		sess.Device.PublicKey = key
+
+		require.ErrorIs(t, sess.connect(newStubContext(), noAuth), ErrHostKey)
+		assert.Empty(t, agent.Dials(), "a device that cannot be verified must not be dialled")
+	}
 }

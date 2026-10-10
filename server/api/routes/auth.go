@@ -16,6 +16,7 @@ import (
 // because deployed agents and scripts still call them.
 const (
 	AuthDeviceURL          = "/devices/auth"
+	AuthDeviceChallengeURL = "/devices/auth/challenge"
 	AuthDeviceURLV2        = "/auth/device"
 	AuthLocalUserURL       = "/login"
 	AuthLocalUserURLV2     = "/auth/user"
@@ -40,6 +41,17 @@ func (h *Handler) AuthDevice(c *gateway.Context) error {
 	}
 
 	res, err := h.service.AuthDevice(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
+// CreateDeviceAuthChallenge issues the challenge an agent signs with its device key before
+// authenticating.
+func (h *Handler) CreateDeviceAuthChallenge(c *gateway.Context) error {
+	res, err := h.service.CreateDeviceAuthChallenge(c.Ctx())
 	if err != nil {
 		return err
 	}

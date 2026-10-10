@@ -29,6 +29,8 @@ type service struct {
 	firewallEvaluator FirewallEvaluator
 	recordingPruner   SessionRecordingPruner
 	issuer            string
+
+	requireDeviceKeyProof bool
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -105,6 +107,15 @@ func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
 func WithIssuer(issuer string) Option {
 	return func(service *APIService) {
 		service.issuer = issuer
+	}
+}
+
+// WithDeviceKeyProofRequired refuses every device authentication that does not prove possession
+// of the device's key, which agents released before the proof existed cannot send. Without it
+// such an authentication is still accepted for a device that has never proven its key.
+func WithDeviceKeyProofRequired() Option {
+	return func(service *APIService) {
+		service.requireDeviceKeyProof = true
 	}
 }
 

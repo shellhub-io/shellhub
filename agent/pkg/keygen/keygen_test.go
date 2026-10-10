@@ -19,7 +19,7 @@ func TestEnsurePrivateKeyCreatesAMissingKeyReadableOnlyByItsOwner(t *testing.T) 
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 
-	_, err = ReadPublicKey(path)
+	_, err = ReadPrivateKey(path)
 	assert.NoError(t, err)
 }
 

@@ -25,24 +25,31 @@ func dialClientWithin(t *testing.T, ctx context.Context, addr string, config *ss
 	var client *ssh.Client
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		dialer := net.Dialer{} //nolint:exhaustruct // the zero dialer is what ssh.Dial uses
+		var err error
 
-		conn, err := dialer.DialContext(ctx, "tcp", addr)
-		if !assert.NoError(tt, err) {
-			return
-		}
-
-		sshConn, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-		if !assert.NoError(tt, err) {
-			_ = conn.Close()
-
-			return
-		}
-
-		client = ssh.NewClient(sshConn, chans, reqs)
+		client, err = dialClientOnce(ctx, addr, config)
+		assert.NoError(tt, err)
 	}, timeout, 1*time.Second)
 
 	return client
+}
+
+func dialClientOnce(ctx context.Context, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	dialer := net.Dialer{} //nolint:exhaustruct // the zero dialer is what ssh.Dial uses
+
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	sshConn, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		_ = conn.Close()
+
+		return nil, err
+	}
+
+	return ssh.NewClient(sshConn, chans, reqs), nil
 }
 
 func dialDevice(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device, signer ssh.Signer) *ssh.Client {

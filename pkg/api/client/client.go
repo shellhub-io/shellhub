@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -23,7 +24,7 @@ import (
 
 type publicAPI interface {
 	GetInfo(agentVersion string) (*models.Info, error)
-	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
+	AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
 	GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error)
@@ -105,6 +106,14 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		}
 
 		return nil
+	})
+	client.http.OnBeforeRequest(func(_ *resty.Client, r *resty.Request) error {
+		proof, ok := r.Body.(*deviceKeyProof)
+		if !ok {
+			return nil
+		}
+
+		return client.proveDeviceKey(proof)
 	})
 	client.http.AddRetryHook(func(r *resty.Response, err error) {
 		if r == nil {

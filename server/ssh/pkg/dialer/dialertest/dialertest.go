@@ -10,6 +10,8 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/x509"
+	"encoding/pem"
 	"io"
 	"net"
 	"sync"
@@ -36,8 +38,9 @@ type Dial struct {
 type Agent struct {
 	t *testing.T
 
-	signer gossh.Signer
-	speaks bool
+	publicKey string
+	signer    gossh.Signer
+	speaks    bool
 
 	broken chan struct{}
 	once   sync.Once
@@ -67,17 +70,21 @@ func NewSilentAgent(t *testing.T) *Agent {
 func newAgent(t *testing.T, speaks bool) *Agent {
 	t.Helper()
 
-	_, key, err := ed25519.GenerateKey(rand.Reader)
+	pub, key, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 
 	signer, err := gossh.NewSignerFromKey(key)
 	require.NoError(t, err)
 
+	der, err := x509.MarshalPKIXPublicKey(pub)
+	require.NoError(t, err)
+
 	return &Agent{ //nolint:exhaustruct // the recording fields start empty and are appended to under the mutex
-		t:      t,
-		signer: signer,
-		speaks: speaks,
-		broken: make(chan struct{}),
+		t:         t,
+		publicKey: string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})),
+		signer:    signer,
+		speaks:    speaks,
+		broken:    make(chan struct{}),
 	}
 }
 
@@ -146,6 +153,11 @@ func (a *Agent) serve(device net.Conn) {
 
 func (a *Agent) breakDown() {
 	a.once.Do(func() { close(a.broken) })
+}
+
+// PublicKey returns the agent's host key in the PEM form a device enrols with.
+func (a *Agent) PublicKey() string {
+	return a.publicKey
 }
 
 // Dials returns the dials the agent was asked for, in order.

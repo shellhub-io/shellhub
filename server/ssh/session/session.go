@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
@@ -549,9 +550,18 @@ func (s *Session) Recorded(seat int) error {
 }
 
 func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
+	hostKey, err := devicekey.ParsePublicKey(s.Device.PublicKey)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID, "device": s.Device.UID}).
+			Error("refusing to connect to a device whose host key cannot be verified")
+
+		return ErrHostKey
+	}
+
 	config := &gossh.ClientConfig{
 		User:            s.Target.Username,
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
+		HostKeyCallback: gossh.FixedHostKey(hostKey),
 		Timeout:         sshconf.ConnectTimeout,
 	}
 
