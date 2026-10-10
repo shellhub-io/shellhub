@@ -451,7 +451,7 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 		return true
 	}
 
-	for _, prefix := range []string{"/metrics", "/internal"} {
+	for _, prefix := range []string{"/metrics", "/internal", "/mcp"} {
 		if strings.HasPrefix(path, prefix) {
 			return true
 		}
