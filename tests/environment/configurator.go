@@ -82,6 +82,17 @@ func (dcc *DockerComposeConfigurator) WithEveryAddressIn(country string) *Docker
 	return dcc
 }
 
+// WithAutoSSL serves the gateway over HTTPS too, on a port reserved for it, which
+// [DockerCompose.HTTPSAddress] names. The gateway then redirects a plain HTTP request to the
+// instance's domain to HTTPS on port 443, which the stack does not publish, so a client of
+// [DockerCompose.R] reaches no API route.
+func (dcc *DockerComposeConfigurator) WithAutoSSL() *DockerComposeConfigurator {
+	dcc.cfg.AutoSSL = true
+	dcc.cfg.HTTPSPort = ReservePort(dcc.t)
+
+	return dcc
+}
+
 // WithCronTrigger publishes the stack's redis on a port reserved for it, so [DockerCompose.RunCron]
 // can reach the queue the server schedules its cron jobs on. Without it redis takes whatever port
 // the daemon picks, which the test neither knows nor, under rootless Docker, can reach.

@@ -37,10 +37,15 @@ import (
 // that issues licenses, see [StartRun]. Unlicensed starts the server with no license file at all.
 // LocatedCountry, an ISO 3166 code, gives the server a GeoIP database that locates every address in
 // that country.
+//
+// AutoSSL serves the gateway over HTTPS on HTTPSPort, a port reserved when empty. The gateway then
+// redirects a plain HTTP request to the instance's domain to HTTPS on port 443, which the stack
+// does not publish.
 type Config struct {
 	Edition        Edition
 	Name           string
 	HTTPPort       string
+	HTTPSPort      string
 	SSHPort        string
 	Network        string
 	CloudDir       string
@@ -49,6 +54,7 @@ type Config struct {
 	License        *License
 	Unlicensed     bool
 	LocatedCountry string
+	AutoSSL        bool
 }
 
 type imageBuild struct {
@@ -117,7 +123,13 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		}
 	}
 
-	for _, port := range []*string{&cfg.HTTPPort, &cfg.SSHPort} {
+	ports := []*string{&cfg.HTTPPort, &cfg.SSHPort}
+	if cfg.AutoSSL {
+		ports = append(ports, &cfg.HTTPSPort)
+		files = append(files, "../docker-compose.autossl.yml")
+	}
+
+	for _, port := range ports {
 		if *port != "" {
 			continue
 		}
@@ -176,7 +188,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, billingEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
-	}, cfg.Envs, map[string]string{
+	}, cfg.autoSSLEnvs(), cfg.Envs, map[string]string{
 		"SHELLHUB_NETWORK":          cfg.Network,
 		"SHELLHUB_NETWORK_EXTERNAL": "true",
 	}, cfg.Run.composeEnvs())
@@ -256,6 +268,17 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	return stack, nil
+}
+
+func (cfg Config) autoSSLEnvs() map[string]string {
+	if !cfg.AutoSSL {
+		return nil
+	}
+
+	return map[string]string{
+		"SHELLHUB_AUTO_SSL":   "true",
+		"SHELLHUB_HTTPS_PORT": cfg.HTTPSPort,
+	}
 }
 
 func newComposeStack(name string, files []string) (*compose.DockerCompose, error) {
@@ -358,6 +381,16 @@ func (s *Stack) Envs() map[string]string { return maps.Clone(s.envs) }
 
 // HTTPPort returns the host port the gateway publishes HTTP on.
 func (s *Stack) HTTPPort() string { return s.envs["SHELLHUB_HTTP_PORT"] }
+
+// HTTPSPort returns the host port the gateway publishes HTTPS on, empty for a stack started without
+// AutoSSL.
+func (s *Stack) HTTPSPort() string {
+	if s.envs["SHELLHUB_AUTO_SSL"] != "true" {
+		return ""
+	}
+
+	return s.envs["SHELLHUB_HTTPS_PORT"]
+}
 
 // SSHPort returns the host port the gateway publishes SSH on.
 func (s *Stack) SSHPort() string { return s.envs["SHELLHUB_SSH_PORT"] }
