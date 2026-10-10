@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sessionFilter(t *testing.T, name, operator string, value any) string {
+func propertyFilter(t *testing.T, name, operator string, value any) string {
 	t.Helper()
 
 	encoded, err := json.Marshal([]query.Filter{{
@@ -61,19 +61,19 @@ func TestSessionList(t *testing.T) {
 	requireSessionActive(t, ctx, compose, live, true)
 
 	t.Run("by device_uid", func(t *testing.T) {
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "device_uid", "eq", first.UID), oldest, live)
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "device_uid", "eq", second.UID), onSecond)
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "device_uid", "ne", first.UID), onSecond)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "device_uid", "eq", first.UID), oldest, live)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "device_uid", "eq", second.UID), onSecond)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "device_uid", "ne", first.UID), onSecond)
 	})
 
 	t.Run("by active status", func(t *testing.T) {
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "active", "bool", true), live)
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "active", "bool", false), oldest, onSecond)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "active", "bool", true), live)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "active", "bool", false), oldest, onSecond)
 	})
 
 	t.Run("by closed status", func(t *testing.T) {
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "closed", "bool", true), oldest, onSecond)
-		requireSessionsListed(t, ctx, compose, sessionFilter(t, "closed", "bool", false), live)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "closed", "bool", true), oldest, onSecond)
+		requireSessionsListed(t, ctx, compose, propertyFilter(t, "closed", "bool", false), live)
 	})
 
 	t.Run("newest started first", func(t *testing.T) {
