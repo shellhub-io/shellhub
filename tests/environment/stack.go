@@ -45,6 +45,10 @@ import (
 // automatic HTTPS on with neither, so the gateway gets its certificates on its own; the gateway then
 // redirects a plain HTTP request to the instance's domain to HTTPS on port 443, which the stack
 // does not publish.
+//
+// StripeEvents applies to the cloud edition. It runs stripe-cli, which forwards every event on the
+// Stripe test account to the stack's webhook, asynchronously and in no fixed order. Without it the
+// stack receives none of Stripe's own events.
 type Config struct {
 	Edition             Edition
 	Name                string
@@ -61,6 +65,7 @@ type Config struct {
 	SuppliedCertificate *Certificate
 	ACME                bool
 	AutoSSL             bool
+	StripeEvents        bool
 }
 
 type imageBuild struct {
@@ -95,20 +100,26 @@ type Stack struct {
 // service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up
 // returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
 // SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
-// Stripe returns no webhook secret for the key. An enterprise or cloud stack with Unlicensed set
-// loads no license file; otherwise it loads the one cfg names, signed by its run's issuer. Up returns
-// an error when an enterprise or cloud stack finds no cloud source (a go.mod) in CloudDir, when a
-// cloud stack finds no docker-compose.yml there, when an enterprise or cloud stack without
-// Unlicensed has a run that issues no licenses, when cfg asks for a license and for none, when the
-// run's issuer cannot encode its public key or sign the license, when a license or GeoIP path
-// cannot be resolved or its file written, and when a community stack asks for a license, for no
-// license, or for a GeoIP database. It returns an error when cfg asks for both a supplied
-// certificate and ACME, when a certificate cannot be generated, and when a certificate or Pebble
-// configuration path cannot be resolved or its file written. A stack that fails to come up leaves
-// no license, GeoIP, certificate or Pebble file behind.
+// Stripe returns no webhook secret for the key. Stripe's own events reach a cloud stack only with
+// StripeEvents set, and Up returns an error when a stack of another edition sets it; without it a
+// test delivers the events it needs, see [DockerCompose.StripeSignature]. An enterprise or cloud
+// stack with Unlicensed set loads no license file; otherwise it loads the one cfg names, signed by
+// its run's issuer. Up returns an error when an enterprise or cloud stack finds no cloud source (a
+// go.mod) in CloudDir, when a cloud stack finds no docker-compose.yml there, when an enterprise or
+// cloud stack without Unlicensed has a run that issues no licenses, when cfg asks for a license
+// and for none, when the run's issuer cannot encode its public key or sign the license, when a
+// license or GeoIP path cannot be resolved or its file written, and when a community stack asks
+// for a license, for no license, or for a GeoIP database. It returns an error when cfg asks for
+// both a supplied certificate and ACME, when a certificate cannot be generated, and when a
+// certificate or Pebble configuration path cannot be resolved or its file written. A stack that
+// fails to come up leaves no license, GeoIP, certificate or Pebble file behind.
 func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if cfg.Run == nil {
 		return nil, errors.New("the stack config has no run to own its images")
+	}
+
+	if cfg.StripeEvents && cfg.Edition != EditionCloud {
+		return nil, errStripeEventsOutsideCloud
 	}
 
 	if cfg.CloudDir == "" {
@@ -130,6 +141,12 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		if billingEnvs, err = stripeEnvs(ctx, cfg.CloudDir); err != nil {
 			return nil, err
 		}
+	}
+
+	var stripeEventsEnvs map[string]string
+	if cfg.StripeEvents {
+		files = append(files, "../docker-compose.cloud.test.yml")
+		stripeEventsEnvs = map[string]string{"COMPOSE_PROFILES": "stripe"}
 	}
 
 	ports := []*string{&cfg.HTTPPort, &cfg.SSHPort}
@@ -204,7 +221,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		files = append(files, https.composeFile)
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, https.envs, billingEnvs, map[string]string{
+	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 	}, cfg.Envs, map[string]string{

@@ -15,6 +15,8 @@ import (
 var (
 	errNoStripeCLIImage = errors.New("declares no stripe-cli image")
 	errNoWebhookSecret  = errors.New("reading the Stripe webhook secret: stripe listen printed none")
+
+	errStripeEventsOutsideCloud = errors.New("only a cloud stack receives Stripe's events")
 )
 
 var stripeKeyNames = []string{"STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "SHELLHUB_STRIPE_PUBLISHABLE_KEY"}

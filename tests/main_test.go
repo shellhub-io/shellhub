@@ -20,7 +20,7 @@ func runSuite(m *testing.M) int {
 
 	ctx := context.Background()
 
-	for _, edition := range []environment.Edition{environment.EditionCommunity, environment.EditionEnterprise} {
+	for _, edition := range []environment.Edition{environment.EditionCommunity, environment.EditionEnterprise, environment.EditionCloud} {
 		if err := environment.BundleOpenAPI(ctx, edition, ".."); err != nil {
 			log.WithError(err).WithField("edition", edition).Error("failed to bundle the OpenAPI schema")
 

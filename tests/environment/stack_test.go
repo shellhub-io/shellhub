@@ -35,3 +35,12 @@ func TestStackArtifactsCoverWhatUpWrites(t *testing.T) {
 		assert.ErrorIs(t, err, fs.ErrNotExist, path)
 	}
 }
+
+func TestOnlyACloudStackReceivesStripeEvents(t *testing.T) {
+	for _, edition := range []Edition{EditionCommunity, EditionEnterprise} {
+		t.Run(string(edition), func(t *testing.T) {
+			_, err := Up(t.Context(), Config{Edition: edition, StripeEvents: true, Run: &Run{}})
+			require.ErrorIs(t, err, errStripeEventsOutsideCloud)
+		})
+	}
+}
