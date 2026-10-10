@@ -111,6 +111,8 @@ func (cfg Config) httpsLayer() (httpsLayer, error) {
 		layer, err = cfg.suppliedCertificateLayer()
 	case cfg.ACME:
 		layer, err = cfg.acmeLayer()
+	case cfg.AutoSSL:
+		layer = httpsLayer{envs: map[string]string{}, composeFile: "../docker-compose.autossl.yml"}
 	default:
 		return httpsLayer{}, nil
 	}
