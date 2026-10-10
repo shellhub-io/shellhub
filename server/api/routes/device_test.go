@@ -580,31 +580,49 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 	}
 }
 
-func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
+func TestGetDeviceListConnectorParameter(t *testing.T) {
 	cases := []struct {
-		description string
-		connector   string
-		userFilter  []query.Filter
+		description       string
+		target            string
+		body              string
+		expectedConnector bool
 	}{
 		{
-			description: "connector filter has AND before property when user filter is present",
-			connector:   "",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
+			description:       "lists devices other than containers without the parameter",
+			target:            "/api/devices",
+			expectedConnector: false,
 		},
 		{
-			description: "connector=true filter has AND before property when user filter is present",
-			connector:   "true",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
+			description:       "lists containers with connector=true",
+			target:            "/api/devices?connector=true",
+			expectedConnector: true,
+		},
+		{
+			description:       "lists devices other than containers with connector=false",
+			target:            "/api/devices?connector=false",
+			expectedConnector: false,
+		},
+		{
+			description:       "lists containers through /api/containers",
+			target:            "/api/containers",
+			expectedConnector: true,
+		},
+		{
+			description:       "lists containers through /api/containers with connector=false",
+			target:            "/api/containers?connector=false",
+			expectedConnector: true,
+		},
+		{
+			description:       "lists containers through /api/containers whatever the body says",
+			target:            "/api/containers",
+			body:              `{"connector":false}`,
+			expectedConnector: true,
+		},
+		{
+			description:       "lists devices other than containers with connector=false whatever the body says",
+			target:            "/api/devices?connector=false",
+			body:              `{"connector":true}`,
+			expectedConnector: false,
 		},
 	}
 
@@ -623,45 +641,40 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 				Return([]models.Device{}, int64(0), nil).
 				Once()
 
-			filterJSON, err := json.Marshal(tc.userFilter)
-			require.NoError(t, err)
-
-			filterB64 := base64.StdEncoding.EncodeToString(filterJSON)
-
-			urlVal := &url.Values{}
-			urlVal.Set("page", "1")
-			urlVal.Set("per_page", "10")
-			urlVal.Set("sort_by", "name")
-			urlVal.Set("order_by", "asc")
-			urlVal.Set("status", "accepted")
-			urlVal.Set("filter", filterB64)
-			if tc.connector != "" {
-				urlVal.Set("connector", tc.connector)
+			var body io.Reader
+			if tc.body != "" {
+				body = strings.NewReader(tc.body)
 			}
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, body)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			if tc.body != "" {
+				req.Header.Set("Content-Type", "application/json")
+			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
+			NewRouter(mock).ServeHTTP(rec, req)
 
 			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 			require.NotNil(t, captured)
-
-			data := captured.Data
-			require.GreaterOrEqual(t, len(data), 3)
-
-			lastTwo := data[len(data)-2:]
-			require.Equal(t, query.FilterTypeOperator, lastTwo[0].Type, "AND operator must precede the platform property filter")
-			require.Equal(t, query.FilterTypeProperty, lastTwo[1].Type, "platform property filter must follow the AND operator")
-
-			op, ok := lastTwo[0].Params.(*query.FilterOperator)
-			require.True(t, ok)
-			require.Equal(t, "and", op.Name)
+			assert.Equal(t, tc.expectedConnector, captured.Connector)
 		})
 	}
+
+	t.Run("refuses a connector value that is not a boolean", func(t *testing.T) {
+		mock := mocks.NewMockService(t)
+
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?connector=yes", nil)
+		req.Header.Set("X-Role", authorizer.RoleOwner.String())
+		req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+		rec := httptest.NewRecorder()
+		NewRouter(mock).ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, rec.Result().StatusCode)
+		mock.AssertNotCalled(t, "ListDevices")
+	})
 }
 
 func TestUpdateDevice(t *testing.T) {

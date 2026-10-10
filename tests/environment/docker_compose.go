@@ -3,6 +3,8 @@ package environment
 import (
 	"context"
 	"crypto/rsa"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -497,18 +500,64 @@ func (dc *DockerCompose) AwaitDeviceOnline(t *testing.T, uid string) models.Devi
 	return *device
 }
 
-// ListDevices returns the namespace's devices with the given status, every status when it is
-// [models.DeviceStatusEmpty]. It reads a single page of the maximum size, so a namespace holding
-// more devices than that is listed only in part.
+// ListDevices returns the namespace's devices whose platform is not connector, with the given
+// status, every status when it is [models.DeviceStatusEmpty]. It reads a single page of the maximum
+// size, so a namespace holding more devices than that is listed only in part. It fails t unless the
+// server answers 200.
 func (dc *DockerCompose) ListDevices(t *testing.T, status models.DeviceStatus) []models.Device {
+	t.Helper()
+
+	return dc.listDevicesAt(t, "/api/devices", map[string]string{"status": string(status)})
+}
+
+// ListDevicesMatching returns the namespace's devices whose platform is not connector and that
+// match filters, sent as the list's filter parameter, whatever their status. It reads one page as
+// [DockerCompose.ListDevices] does, and fails t unless the server answers 200.
+func (dc *DockerCompose) ListDevicesMatching(t *testing.T, filters []query.Filter) []models.Device {
+	t.Helper()
+
+	return dc.listDevicesAt(t, "/api/devices", map[string]string{"filter": encodeFilters(t, filters)})
+}
+
+// ListContainers returns, through /api/containers, the namespace's devices whose platform is
+// connector, with the given status, every status when it is [models.DeviceStatusEmpty]. It reads a
+// single page of the maximum size, so a namespace holding more containers than that is listed only
+// in part. It fails t unless the server answers 200.
+func (dc *DockerCompose) ListContainers(t *testing.T, status models.DeviceStatus) []models.Device {
+	t.Helper()
+
+	return dc.listDevicesAt(t, "/api/containers", map[string]string{"status": string(status)})
+}
+
+// ListContainersMatching returns, through /api/containers, the namespace's devices whose platform
+// is connector and that match filters, sent as the list's filter parameter, whatever their status.
+// It reads one page as [DockerCompose.ListContainers] does, and fails t unless the server answers
+// 200.
+func (dc *DockerCompose) ListContainersMatching(t *testing.T, filters []query.Filter) []models.Device {
+	t.Helper()
+
+	return dc.listDevicesAt(t, "/api/containers", map[string]string{"filter": encodeFilters(t, filters)})
+}
+
+func encodeFilters(t *testing.T, filters []query.Filter) string {
+	t.Helper()
+
+	encoded, err := json.Marshal(filters)
+	require.NoError(t, err)
+
+	return base64.StdEncoding.EncodeToString(encoded)
+}
+
+func (dc *DockerCompose) listDevicesAt(t *testing.T, path string, params map[string]string) []models.Device {
 	t.Helper()
 
 	devices := []models.Device{}
 
 	resp, err := dc.R(t.Context()).
-		SetQueryParams(map[string]string{"status": string(status), "per_page": "100"}).
+		SetQueryParams(params).
+		SetQueryParam("per_page", "100").
 		SetResult(&devices).
-		Get("/api/devices")
+		Get(path)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode(), resp.String())
 
