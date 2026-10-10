@@ -65,6 +65,19 @@ enter_wsl() {
     stub_bin wsl.exe "echo \"WSL version: ${1:-2.0.0.0}\""
 }
 
+serve_release() {
+    export BINARY_ARCH=amd64
+    RELEASE_DIR="$BATS_TEST_TMPDIR/release"
+    mkdir -p "$RELEASE_DIR"
+    printf '#!/bin/sh\necho "agent $*" >> "$CALLS"\n' | gzip > "$RELEASE_DIR/shellhub-agent-linux-amd64.gz"
+    (cd "$RELEASE_DIR" && sha256sum shellhub-agent-linux-amd64.gz > checksums.txt)
+
+    case "${1:-curl}" in
+    curl) stub_bin curl "echo \"curl \$*\" >> \"\$CALLS\"; cp '$RELEASE_DIR'/\"\${2##*/}\" \"\$4\" 2>/dev/null || exit 22" ;;
+    wget) stub_bin wget "echo \"wget \$*\" >> \"\$CALLS\"; cp '$RELEASE_DIR'/\"\${4##*/}\" \"\$3\" 2>/dev/null || exit 8" ;;
+    esac
+}
+
 discover_version() {
     unset AGENT_VERSION
     printf '{"version":"%s","endpoints":{"ssh":"localhost:22"}}\n' "$1" > "$BATS_TEST_TMPDIR/info"
@@ -617,6 +630,75 @@ discover_version() {
 
     [ "$status" -eq 1 ]
     assert_output_contains "Failed to install ShellHub agent service"
+    [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+}
+
+@test "standalone_install installs the agent binary that matches the release checksum" {
+    with_tenant
+    serve_release
+
+    call_install standalone_install
+
+    [ "$status" -eq 0 ]
+    assert_called "https://github.com/shellhub-io/shellhub/releases/download/v0.0.0-test/shellhub-agent-linux-amd64.gz"
+    assert_called "https://github.com/shellhub-io/shellhub/releases/download/v0.0.0-test/checksums.txt"
+    assert_called "agent install --server-address=$SERVER_ADDRESS"
+}
+
+@test "standalone_install installs the agent binary that matches the release checksum with wget" {
+    with_tenant
+    serve_release wget
+
+    call_install standalone_install
+
+    [ "$status" -eq 0 ]
+    assert_called "wget"
+    assert_called "agent install --server-address=$SERVER_ADDRESS"
+}
+
+@test "standalone_install refuses an agent binary that does not match the release checksum" {
+    with_tenant
+
+    for tool in curl wget; do
+        echo "downloading with $tool"
+        rm -f "$STUB_DIR/curl" "$STUB_DIR/wget"
+        mkdir -p "$TMP_DIR"
+        serve_release "$tool"
+        printf '#!/bin/sh\necho "tampered $*" >> "$CALLS"\n' | gzip > "$RELEASE_DIR/shellhub-agent-linux-amd64.gz"
+
+        call_install standalone_install
+
+        [ "$status" -eq 1 ]
+        assert_called "$tool"
+        assert_output_contains "does not match the checksum published with release v0.0.0-test"
+        refute_called "tampered"
+        [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+    done
+}
+
+@test "standalone_install refuses a release whose checksums do not list the agent binary" {
+    with_tenant
+    serve_release
+    sed -i 's/linux-amd64/linux-arm64/' "$RELEASE_DIR/checksums.txt"
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "does not match the checksum published with release v0.0.0-test"
+    refute_called "agent install"
+    [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+}
+
+@test "standalone_install refuses a release whose checksums it cannot download" {
+    with_tenant
+    serve_release
+    rm "$RELEASE_DIR/checksums.txt"
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Could not download the checksums published with release v0.0.0-test"
+    refute_called "agent install"
     [ ! -e "$INSTALL_DIR/shellhub-agent" ]
 }
 
