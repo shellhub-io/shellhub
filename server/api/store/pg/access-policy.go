@@ -14,8 +14,6 @@ import (
 
 // AccessPolicyCreate implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error) {
-	db := pg.GetConnection(ctx)
-
 	now := clock.Now()
 	accessPolicy.CreatedAt = now
 	accessPolicy.UpdatedAt = now
@@ -26,20 +24,29 @@ func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.Acces
 
 	e := entity.AccessPolicyFromModel(accessPolicy)
 
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
-	}
+	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
 
-	for _, tag := range e.Tags {
-		apTag := entity.NewAccessPolicyTag(tag.ID, e.ID)
-		apTag.CreatedAt = now
-
-		if _, err := db.NewInsert().
-			Model(apTag).
-			On("CONFLICT (access_policy_id, tag_id) DO NOTHING").
-			Exec(ctx); err != nil {
-			return "", fromSQLError(err)
+		if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+			return fromSQLError(err)
 		}
+
+		for _, tag := range e.Tags {
+			apTag := entity.NewAccessPolicyTag(tag.ID, e.ID)
+			apTag.CreatedAt = now
+
+			if _, err := db.NewInsert().
+				Model(apTag).
+				On("CONFLICT (access_policy_id, tag_id) DO NOTHING").
+				Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
 	}
 
 	return e.ID, nil

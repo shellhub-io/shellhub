@@ -2,6 +2,7 @@ package services
 
 import (
 	stderrors "errors"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -101,6 +102,7 @@ var (
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrTagNameNotFound                 = errors.New("tag not found", ErrLayer, ErrCodeNotFound)
 	ErrNoTags                          = errors.New("no tags has found", ErrLayer, ErrCodeNotFound)
+	ErrTagInUse                        = errors.New("tag in use", ErrLayer, ErrCodeConflict)
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceNotOwned                  = errors.New("device not owned by the member", ErrLayer, ErrCodeInvalid)
 	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
@@ -297,6 +299,13 @@ func NewErrTagNotFound(tag string, next error) error {
 // field(s) already taken, e.g. ["name"].
 func NewErrTagDuplicated(conflicts []string, next error) error {
 	return NewErrDuplicated(ErrDuplicateTagName, conflicts, next)
+}
+
+// NewErrTagInUse returns the conflict a tag delete gets while the device filters of selectors, each
+// described as `public key "name"` or `access policy "name"`, hold the tag. The name field carries
+// only that comma-separated list, so the client writes the sentence around it.
+func NewErrTagInUse(selectors []string) error {
+	return NewErrInvalidFields(ErrTagInUse, map[string]string{"name": strings.Join(selectors, ", ")})
 }
 
 // NewErrUserNotFound returns an error when the user is not found.

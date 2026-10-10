@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
@@ -64,9 +67,14 @@ type TagsService interface {
 	// is nil whenever the error is not.
 	UpdateTag(ctx context.Context, req *requests.UpdateTag) (tag *models.Tag, err error)
 
-	// DeleteTag deletes a tag with the specified name in the specified namespace.
+	// DeleteTag deletes a tag with the specified name in the specified namespace and detaches it from
+	// every device carrying it.
 	//
-	// It returns an error if any.
+	// It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace cannot
+	// be resolved, [ErrTagNameNotFound] when the tag cannot, and [ErrTagInUse], naming them, while the
+	// device filter of a public key or an access policy holds the tag: a filter left without its
+	// only tag would select every device. Any other failure listing those, detaching the tag or
+	// deleting it, or of the transaction itself, is returned unchanged and deletes nothing.
 	DeleteTag(ctx context.Context, req *requests.DeleteTag) (err error)
 }
 
@@ -234,9 +242,18 @@ func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb
 			return NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
+		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name, s.store.Options().ForUpdate())
 		if err != nil {
 			return NewErrTagNotFound(req.Name, err)
+		}
+
+		selectors, err := s.tagSelectors(ctx, sc, tag.ID)
+		if err != nil {
+			return err
+		}
+
+		if len(selectors) > 0 {
+			return NewErrTagInUse(selectors)
 		}
 
 		for _, target := range store.TagTargets() {
@@ -247,4 +264,32 @@ func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb
 
 		return s.store.TagDelete(ctx, tag)
 	}
+}
+
+func (s *service) tagSelectors(ctx context.Context, sc scope.Scope, tagID string) ([]string, error) {
+	selectors := []string{}
+
+	keys, _, err := s.store.PublicKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range keys {
+		if slices.Contains(key.Filter.TagIDs, tagID) {
+			selectors = append(selectors, fmt.Sprintf("public key %q", key.Name))
+		}
+	}
+
+	policies, _, err := s.store.AccessPolicyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, policy := range policies {
+		if slices.Contains(policy.Filter.TagIDs, tagID) {
+			selectors = append(selectors, fmt.Sprintf("access policy %q", policy.Name))
+		}
+	}
+
+	return selectors, nil
 }

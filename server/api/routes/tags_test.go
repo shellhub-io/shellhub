@@ -176,6 +176,25 @@ func TestDeleteTag(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
+			description: "fails with 409 when a device filter holds the tag",
+			url:         "/api/tags/production",
+			headers: map[string]string{
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+				"X-Role":      authorizer.RoleOwner.String(),
+				"X-ID":        "000000000000000000000000",
+			},
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "production",
+					}).
+					Return(svc.NewErrTagInUse([]string{`public key "deploy"`})).
+					Once()
+			},
+			expectedStatus: http.StatusConflict,
+		},
+		{
 			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/tags/production",
 			headers: map[string]string{

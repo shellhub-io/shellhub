@@ -13,16 +13,16 @@ import (
 
 // PublicKeyCreate implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) (string, error) {
-	db := pg.GetConnection(ctx)
-
 	publicKey.CreatedAt = clock.Now()
 	e := entity.PublicKeyFromModel(publicKey)
 
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
-	}
+	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
 
-	if len(e.Tags) > 0 {
+		if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
 		now := clock.Now()
 		for _, tag := range e.Tags {
 			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint, e.NamespaceID)
@@ -32,9 +32,14 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 				Model(pkTag).
 				On("CONFLICT (public_key_fingerprint, public_key_namespace_id, tag_id) DO NOTHING").
 				Exec(ctx); err != nil {
-				return "", fromSQLError(err)
+				return fromSQLError(err)
 			}
 		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
 	}
 
 	return e.Fingerprint, nil

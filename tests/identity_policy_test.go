@@ -214,9 +214,7 @@ func createTag(t *testing.T, compose *environment.DockerCompose, name string) {
 func tagDevice(t *testing.T, compose *environment.DockerCompose, uid, tag string) {
 	t.Helper()
 
-	resp, err := compose.R(t.Context()).Post("/api/devices/" + uid + "/tags/" + tag)
-	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	attachTag(t, compose, uid, tag)
 
 	t.Cleanup(func() {
 		resp, err := compose.R(context.WithoutCancel(t.Context())).Delete("/api/devices/" + uid + "/tags/" + tag)
