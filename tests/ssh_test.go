@@ -57,6 +57,12 @@ func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption
 	}
 }
 
+func NewAgentContainerWithTenant(tenant string) NewAgentContainerOption {
+	return func(envs map[string]string) {
+		envs["SHELLHUB_TENANT_ID"] = tenant
+	}
+}
+
 func NewAgentContainerWithHostname(hostname string) NewAgentContainerOption {
 	return func(envs map[string]string) {
 		envs["SHELLHUB_PREFERRED_HOSTNAME"] = hostname
