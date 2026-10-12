@@ -23,6 +23,7 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/static-web-server/static-web-server"],
       "minimumReleaseAge": "7 days",
+      "commitMessageTopic": "static-web-server docker tag",
       "prBodyNotes": ["ui/sws.toml relies on header blocks applying in file order. Check that order against this release before merging."]
     }
   ],
