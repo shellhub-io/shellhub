@@ -289,7 +289,7 @@ test.describe("Billing", () => {
     await page.goto("/settings/general");
 
     const { dialog, deletion } = await submitNamespaceDeletion(page, owner);
-    expect(deletion.ok()).toBe(false);
+    expect(deletion.status()).toBe(402);
 
     await expect(
       dialog.getByText("Couldn't delete the namespace."),
@@ -302,7 +302,7 @@ test.describe("Billing", () => {
       .toBe("canceled");
     await page.reload();
     const { deletion: retried } = await submitNamespaceDeletion(page, owner);
-    expect(retried.ok()).toBe(true);
+    expect(retried.status()).toBe(200);
 
     expect(await readTenants(owner)).toEqual([]);
   });
