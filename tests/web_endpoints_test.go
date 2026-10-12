@@ -28,6 +28,9 @@ import (
 
 const (
 	deviceServiceHost      = "127.0.0.1"
+	intruderUsername       = "intruder"
+	intruderNamespaceName  = "intruderspace"
+	intruderNamespace      = "00000000-0000-4000-0000-000000000022"
 	deviceTLSDomain        = "device.example.com"
 	webEndpointDomain      = "localhost"
 	unknownAddress         = "0123456789abcdef0123456789abcdef"
@@ -89,6 +92,7 @@ func TestEnterpriseWebEndpoints(t *testing.T) {
 		testWebEndpointLifetime(t, compose, first.plain(device.UID, -1), second.plain(device.UID, -1))
 	})
 	t.Run("deprecated tunnel API", func(t *testing.T) { testTunnelAPI(t, compose, device, second) })
+	t.Run("another namespace", func(t *testing.T) { testWebEndpointAnotherNamespace(t, ctx, compose, device, first) })
 	t.Run("device merge", func(t *testing.T) { testWebEndpointDeviceMerge(t, ctx, compose, first) })
 }
 
@@ -405,6 +409,36 @@ func testTunnelAPI(t *testing.T, compose *environment.DockerCompose, device *mod
 
 	assert.Empty(t, compose.ListTunnels(t, device.UID))
 	requireEndpointRefused(t, compose, tunnel.FullAddress)
+}
+
+func testWebEndpointAnotherNamespace(t *testing.T, ctx context.Context, compose *environment.DockerCompose, device *models.Device, service deviceService) {
+	t.Helper()
+
+	endpoint := compose.CreateWebEndpoint(t, service.plain(device.UID, -1))
+	requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
+
+	owner := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
+
+	compose.NewUser(t, intruderUsername, "intruder@ossystems.com.br", ShellHubPassword)
+	compose.NewNamespace(t, intruderUsername, intruderNamespaceName, intruderNamespace, "")
+	compose.JWT(compose.AuthUser(t, intruderUsername, ShellHubPassword).Token)
+	t.Cleanup(func() { compose.JWT(owner.Token) })
+
+	_, foreign := startAcceptedAgent(t, ctx, compose,
+		NewAgentContainerWithTenant(intruderNamespace),
+		NewAgentContainerWithIdentity("020000002203"),
+		NewAgentContainerWithHostname("intruding"),
+	)
+
+	resp, err := compose.DeleteTunnel(t.Context(), foreign.UID, endpoint.Address)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode(), "deleting through a device of its own: %s", resp.String())
+
+	resp, err = compose.DeleteWebEndpoint(t.Context(), endpoint.Address)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode(), "deleting by address: %s", resp.String())
+
+	assert.Equal(t, service.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
 }
 
 func testWebEndpointDeviceMerge(t *testing.T, ctx context.Context, compose *environment.DockerCompose, service deviceService) {
