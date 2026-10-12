@@ -73,6 +73,8 @@ delete:
       description: Success to delete a namespace.
     '401':
       $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
     '403':
       $ref: ../components/responses/403.yaml
     '404':
