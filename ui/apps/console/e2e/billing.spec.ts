@@ -189,8 +189,13 @@ async function submitNamespaceDeletion(page: Page, owner: Owner) {
   await dialog
     .getByLabel(`Type "${owner.namespace}" to confirm`)
     .fill(owner.namespace);
+  const answered = page.waitForResponse(
+    (r) =>
+      r.request().method() === "DELETE" &&
+      r.url().endsWith(`/api/namespaces/${owner.tenant}`),
+  );
   await dialog.getByRole("button", { name: "Delete namespace" }).click();
-  return dialog;
+  return { dialog, deletion: await answered };
 }
 
 test.describe("Billing", () => {
@@ -283,7 +288,8 @@ test.describe("Billing", () => {
     owner.customer = subscription.customer;
     await page.goto("/settings/general");
 
-    const dialog = await submitNamespaceDeletion(page, owner);
+    const { dialog, deletion } = await submitNamespaceDeletion(page, owner);
+    expect(deletion.ok()).toBe(false);
 
     await expect(
       dialog.getByText("Couldn't delete the namespace."),
@@ -295,8 +301,9 @@ test.describe("Billing", () => {
       .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
       .toBe("canceled");
     await page.reload();
-    await submitNamespaceDeletion(page, owner);
+    const { deletion: retried } = await submitNamespaceDeletion(page, owner);
+    expect(retried.ok()).toBe(true);
 
-    await expect.poll(() => readTenants(owner)).toEqual([]);
+    expect(await readTenants(owner)).toEqual([]);
   });
 });
