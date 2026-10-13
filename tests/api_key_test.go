@@ -211,13 +211,13 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 
 		resp, err := withAPIKey(t, compose, key.Key).SetBody(map[string]string{"name": "staging"}).Post("/api/tags")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusCreated, resp.StatusCode(), resp.String())
 
 		assert.Contains(t, namespaceTags(t, withAPIKey(t, compose, key.Key)), "staging")
 
 		resp, err = withAPIKey(t, compose, key.Key).Post("/api/devices/" + device.UID + "/tags/staging")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 		assert.Equal(t, []string{"staging"}, deviceTags(t))
 
 		renamed := new(models.Tag)
@@ -238,7 +238,7 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 
 		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/devices/" + device.UID + "/tags/production")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 		assert.Empty(t, deviceTags(t))
 
 		resp, err = withAPIKey(t, compose, key.Key).Delete("/api/tags/production")
@@ -260,8 +260,8 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 			devices, tags, policies int
 		}{
 			{role: authorizer.RoleObserver, devices: http.StatusOK, tags: http.StatusForbidden, policies: http.StatusForbidden},
-			{role: authorizer.RoleOperator, devices: http.StatusOK, tags: http.StatusOK, policies: http.StatusForbidden},
-			{role: authorizer.RoleAdministrator, devices: http.StatusOK, tags: http.StatusOK, policies: http.StatusOK},
+			{role: authorizer.RoleOperator, devices: http.StatusOK, tags: http.StatusCreated, policies: http.StatusForbidden},
+			{role: authorizer.RoleAdministrator, devices: http.StatusOK, tags: http.StatusCreated, policies: http.StatusOK},
 		}
 
 		for _, tc := range cases {

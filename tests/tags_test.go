@@ -199,11 +199,11 @@ func TestTagsAreNamespaceScoped(t *testing.T) {
 	t.Run("another namespace keeps its own tag of that name through the first one's rename and delete", func(t *testing.T) {
 		resp, err := asNeighbour(t.Context()).SetBody(map[string]string{"name": "shared"}).Post("/api/tags")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusCreated, resp.StatusCode(), resp.String())
 
 		resp, err = asNeighbour(t.Context()).Post("/api/devices/" + theirs + "/tags/shared")
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 
 		renameTag(t, compose, "shared", "renamed")
 		deleteTag(t, compose, "renamed")
@@ -223,7 +223,7 @@ func attachTag(t *testing.T, compose *environment.DockerCompose, uid, tag string
 
 	resp, err := compose.R(t.Context()).Post("/api/devices/" + uid + "/tags/" + tag)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 }
 
 func renameTag(t *testing.T, compose *environment.DockerCompose, from, to string) {
