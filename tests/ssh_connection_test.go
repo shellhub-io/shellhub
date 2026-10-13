@@ -139,6 +139,10 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 
 		go func() { ended <- sess.Wait() }()
 
+		disconnected := make(chan error, 1)
+
+		go func() { disconnected <- conn.Wait() }()
+
 		resp, err := compose.R(ctx).
 			SetBody(map[string]string{"device": device.UID}).
 			Post("/api/sessions/" + session.UID + "/close")
@@ -155,6 +159,14 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 		case <-time.After(30 * time.Second):
 			t.Fatal("the session the server was asked to close is still open on the client")
 		}
+
+		select {
+		case <-disconnected:
+		case <-time.After(30 * time.Second):
+			t.Fatal("the server ended the session but kept the client's connection open")
+		}
+
+		requireSessionActive(t, ctx, compose, session.UID, false)
 	})
 }
 

@@ -119,6 +119,7 @@ func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	conn, session := openShellSession(t, ctx, compose, device)
+	defer conn.Close() //nolint:errcheck // close fails once the gateway has closed the connection, which is the expected outcome
 
 	resp, err := compose.R(ctx).
 		SetBody(map[string]string{"device": device.UID}).
@@ -126,8 +127,6 @@ func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 202, resp.StatusCode(),
 		"a session the gateway still owns is delivered to the device, not closed by the endpoint")
-
-	_ = conn.Close()
 
 	requireSessionActive(t, ctx, compose, session.UID, false)
 }
