@@ -39,6 +39,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 
 	service := serviceMocks.NewMockService(t)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Maybe()
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(nil).Maybe()
 
 	authn := routesmiddleware.NewAuthenticator(service)
 

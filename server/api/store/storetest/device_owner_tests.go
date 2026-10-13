@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -235,6 +236,36 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		require.NoError(t, err)
 		_, stillMember := ns.FindMember(memberID)
 		assert.True(t, stillMember)
+	})
+
+	t.Run("forgets the key verification of the devices it removes, not of those it keeps", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID, memberID := s.ownedDeviceFixture(t)
+		sc := scope.MustBounded(tenantID)
+		kept := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(memberID))
+		gone := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(memberID))
+
+		verifiedAt := clock.Now()
+		for _, uid := range []models.UID{kept, gone} {
+			device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
+			require.NoError(t, err)
+			device.KeyVerifiedAt = &verifiedAt
+			require.NoError(t, st.DeviceUpdate(ctx, device))
+		}
+
+		_, err := st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{KeepDevices: []string{string(kept)}})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(gone))
+		require.NoError(t, err)
+		assert.Equal(t, models.DeviceStatusRemoved, device.Status)
+		assert.Nil(t, device.KeyVerifiedAt)
+
+		device, err = st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(kept))
+		require.NoError(t, err)
+		assert.Equal(t, models.DeviceStatusAccepted, device.Status)
+		assert.NotNil(t, device.KeyVerifiedAt)
 	})
 
 	t.Run("keeps the listed devices as team devices", func(t *testing.T) {

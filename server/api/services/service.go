@@ -1,7 +1,10 @@
 package services
 
 import (
+	"crypto/hkdf"
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
@@ -29,6 +32,9 @@ type service struct {
 	firewallEvaluator FirewallEvaluator
 	recordingPruner   SessionRecordingPruner
 	issuer            string
+	challengeKey      []byte
+
+	requireVerifiedDeviceKey bool
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -108,6 +114,15 @@ func WithIssuer(issuer string) Option {
 	}
 }
 
+// WithVerifiedDeviceKeyRequired refuses every device authentication that does not prove possession
+// of the device's key, which agents released before device key verification cannot send. Without it
+// such an authentication is still accepted for a device that has never verified its key.
+func WithVerifiedDeviceKeyRequired() Option {
+	return func(service *APIService) {
+		service.requireVerifiedDeviceKey = true
+	}
+}
+
 // NewService builds the service layer over store, signing tokens with the given key pair. A
 // nil pair is loaded from the configured files, which is how the server normally starts.
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
@@ -138,5 +153,16 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		option(service)
 	}
 
+	service.challengeKey = deviceAuthChallengeKey(privKey)
+
 	return service
+}
+
+func deviceAuthChallengeKey(privKey *rsa.PrivateKey) []byte {
+	key, err := hkdf.Key(sha256.New, x509.MarshalPKCS1PrivateKey(privKey), nil, "shellhub-device-auth-challenge-v1", sha256.Size)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
 }

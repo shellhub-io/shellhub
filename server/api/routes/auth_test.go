@@ -33,6 +33,32 @@ func TestAuthDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
+			title: "success when the request carries a challenge the server issued and its signature",
+			requestBody: &requests.DeviceAuth{
+				Info: &requests.DeviceInfo{
+					ID:         "device_id",
+					PrettyName: "Device Name",
+					Version:    "1.0",
+					Arch:       "amd64",
+					Platform:   "Linux",
+				},
+				Hostname:  "test",
+				PublicKey: "your_public_key",
+				TenantID:  "your_tenant_id",
+				Challenge: strings.Repeat("c", 75),
+				Signature: strings.Repeat("s", 3000),
+			},
+			requiredMocks: func() {
+				mock.On("AuthDevice", gomock.Anything, gomock.MatchedBy(func(req requests.DeviceAuth) bool {
+					return req.Challenge == strings.Repeat("c", 75) && req.Signature == strings.Repeat("s", 3000)
+				})).Return(&models.DeviceAuthResponse{}, nil).Once()
+			},
+			expected: Expected{
+				expectedResponse: &models.DeviceAuthResponse{},
+				expectedStatus:   http.StatusOK,
+			},
+		},
+		{
 			title: "success when device has a preferred hostname and it is uppercase",
 			requestBody: &requests.DeviceAuth{
 				Info: &requests.DeviceInfo{
@@ -669,4 +695,22 @@ func TestRenewalCarriesTheBearerTokenVersion(t *testing.T) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 		})
 	}
+}
+
+func TestCreateDeviceAuthChallengeIsAnonymous(t *testing.T) {
+	router, _, service := authenticatedRouter(t)
+
+	service.On("CreateDeviceAuthChallenge", gomock.Anything).
+		Return(&models.DeviceAuthChallenge{Challenge: "challenge", ExpiresIn: 60}, nil).
+		Once()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/devices/auth/challenge", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var res models.DeviceAuthChallenge
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&res))
+	assert.Equal(t, models.DeviceAuthChallenge{Challenge: "challenge", ExpiresIn: 60}, res)
 }

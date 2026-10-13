@@ -1,0 +1,33 @@
+post:
+  operationId: createDeviceAuthChallenge
+  summary: Create a device auth challenge
+  description: |
+    Issue a challenge that a ShellHub agent signs with its device key and sends back to the
+    device auth route, proving it holds the private half of the public key it authenticates
+    with. The server keeps no record of it: the challenge carries the time it was issued and
+    a MAC only the server can produce, and it is accepted for a minute after it was issued.
+  tags:
+    - internal
+    - devices
+  security: []
+  responses:
+    '200':
+      description: Success to create a device auth challenge.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              challenge:
+                description: The challenge to sign.
+                type: string
+                example: AAAAAGrOVYB1DRY3wFYwXjPChAsHP5H2zNkT5BERpe7X_bDzU8jjneOFDCY-QY_r6_mGQ3-kl_Y
+              expires_in:
+                description: Seconds until the challenge expires.
+                type: integer
+                example: 60
+            required:
+              - challenge
+              - expires_in
+    '500':
+      $ref: ../components/responses/500.yaml

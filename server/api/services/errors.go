@@ -152,6 +152,7 @@ var (
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErrAuthDeviceNoIdentity            = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
+	ErrDeviceKeyVerificationRefused    = errors.New("device key verification refused", ErrLayer, ErrCodeForbidden)
 )
 
 // NewErrAuthMethodNotAllowed reports that method is not among those the instance accepts.
@@ -593,4 +594,11 @@ func NewErrAuthDeviceNoIdentityAndHostname() error {
 // NewErrAuthDeviceNoIdentity reports that a device offered no MAC address.
 func NewErrAuthDeviceNoIdentity() error {
 	return NewErrInvalid(ErrAuthDeviceNoIdentity, map[string]any{"identity": true}, nil)
+}
+
+// NewErrDeviceKeyVerificationRefused reports a device authentication refused for its device key: a
+// signature or challenge that is missing or sent alone, a challenge this server did not issue or
+// that is malformed, one outside its window, or a signature that does not verify.
+func NewErrDeviceKeyVerificationRefused() error {
+	return NewErrForbidden(ErrDeviceKeyVerificationRefused, nil)
 }

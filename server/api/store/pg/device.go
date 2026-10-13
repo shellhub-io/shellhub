@@ -192,6 +192,42 @@ func (pg *Pg) deviceUpdate(ctx context.Context, device *models.Device, unlessRem
 		return store.ErrNoDocuments
 	}
 
+	if device.Status == models.DeviceStatusRemoved {
+		return pg.deviceForgetKeyVerification(ctx, d.ID, d.NamespaceID)
+	}
+
+	if d.KeyVerifiedAt == nil {
+		return nil
+	}
+
+	return pg.deviceRecordKeyVerification(ctx, d.ID, d.NamespaceID, d.KeyVerifiedAt)
+}
+
+func (pg *Pg) deviceRecordKeyVerification(ctx context.Context, id, namespaceID string, at *time.Time) error {
+	if _, err := pg.GetConnection(ctx).NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("key_verified_at = ?", at).
+		Where("id = ?", id).
+		Where("namespace_id = ?", namespaceID).
+		Where("key_verified_at IS NULL").
+		Where("removed_at IS NULL").
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
+func (pg *Pg) deviceForgetKeyVerification(ctx context.Context, id, namespaceID string) error {
+	if _, err := pg.GetConnection(ctx).NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("key_verified_at = NULL").
+		Where("id = ?", id).
+		Where("namespace_id = ?", namespaceID).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
 	return nil
 }
 

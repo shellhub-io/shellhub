@@ -590,6 +590,28 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		assert.Equal(t, "updated-name", device.Name)
 	})
 
+	t.Run("does not record a verification on a device that is removed", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t, WithDeviceName("removed-device"), WithTenantID(tenantID))
+		removedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		verifiedAt := time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)
+
+		require.NoError(t, st.DeviceUpdate(ctx, &models.Device{
+			UID:           string(deviceUID),
+			TenantID:      tenantID,
+			Name:          "removed-device",
+			Status:        models.DeviceStatusAccepted,
+			RemovedAt:     &removedAt,
+			KeyVerifiedAt: &verifiedAt,
+		}))
+
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Nil(t, device.KeyVerifiedAt)
+	})
+
 	t.Run("succeeds clearing removed_at on removed device", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

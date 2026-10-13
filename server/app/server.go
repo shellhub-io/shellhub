@@ -91,6 +91,8 @@ type Env struct {
 	// vacuum, on a decision a user sees on screen. A value below the two-minute floor is raised
 	// to it rather than honoured.
 	SessionKeepAliveTimeout time.Duration `env:"SHELLHUB_SESSION_KEEPALIVE_TIMEOUT,default=5m"`
+
+	RequireVerifiedDeviceKey bool `env:"SHELLHUB_REQUIRE_VERIFIED_DEVICE_KEY,default=false"`
 }
 
 type sshEnv struct {
@@ -203,6 +205,13 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	servicesOptions = append(servicesOptions, services.WithIssuer(s.instanceIssuer()))
+
+	verifiedKeyOpts, err := s.verifiedDeviceKeyOption(ctx, store)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, verifiedKeyOpts...)
 
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 
@@ -381,6 +390,24 @@ func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) 
 	}
 
 	return opts, nil
+}
+
+func (s *Server) verifiedDeviceKeyOption(ctx context.Context, st store.Store) ([]services.Option, error) {
+	required := s.env.RequireVerifiedDeviceKey
+	if !required {
+		system, err := st.SystemGet(ctx)
+		if err != nil {
+			return nil, errors.Join(errors.New("init device key verification"), err)
+		}
+
+		required = system.Authentication.RequiresVerifiedDeviceKey()
+	}
+
+	if !required {
+		return nil, nil
+	}
+
+	return []services.Option{services.WithVerifiedDeviceKeyRequired()}, nil
 }
 
 func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
