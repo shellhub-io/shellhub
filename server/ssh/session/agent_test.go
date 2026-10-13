@@ -90,12 +90,14 @@ func TestCloseAgentWrite(t *testing.T) {
 			seat, err := sess.NewSeat()
 			require.NoError(t, err)
 			sess.SetSeatType(seat, tt.seatType)
-			sess.agent.channels[seat] = &AgentChannel{Channel: channel}
+			agentChannel := &AgentChannel{Channel: channel} //nolint:exhaustruct // CloseAgentWrite never reads Requests, and the closed flag starts false
+			sess.agent.channels[seat] = agentChannel
 
 			require.NoError(t, sess.CloseAgentWrite(seat))
 
 			assert.Equal(t, tt.expectClose, channel.closed, "full close")
 			assert.Equal(t, !tt.expectClose, channel.closedWrite, "write-side close")
+			assert.Equal(t, tt.expectClose, agentChannel.ClosedByGateway(), "closed by the gateway")
 		})
 	}
 }

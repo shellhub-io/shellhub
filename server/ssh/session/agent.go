@@ -33,7 +33,13 @@ func (s *Session) DialAgent(ctx context.Context, network, addr string) (net.Conn
 // Agents older than [agentExecCloseFloor] hang after an exec when only the
 // write side is closed, so for those the whole channel is closed instead. A
 // version that does not parse is treated as new: closing the write side is the
-// lesser failure, since a full close would truncate a live shell.
+// lesser failure, since a full close would truncate a live shell. A full close
+// goes through [AgentChannel.Close], so the channel reports
+// [AgentChannel.ClosedByGateway] from then on.
+//
+// It returns [ErrSeatNotFound] for a seat with no agent channel, and otherwise
+// the error from closing the channel, which a channel already closed also
+// returns.
 func (s *Session) CloseAgentWrite(seat int) error {
 	s.agent.mu.Lock()
 	channel, ok := s.agent.channels[seat]
@@ -44,7 +50,7 @@ func (s *Session) CloseAgentWrite(seat int) error {
 	}
 
 	if s.closesAgentOnExec(seat) {
-		return channel.Channel.Close()
+		return channel.Close()
 	}
 
 	return channel.Channel.CloseWrite()

@@ -18,6 +18,7 @@ var (
 	ErrEvaluatePublicKey       = errors.New("failed to evaluate the provided public key")
 	ErrSeatAlreadySet          = errors.New("this seat was already set")
 	ErrSeatNotFound            = errors.New("this seat has no agent channel")
+	ErrClientClosing           = errors.New("the client connection is closing")
 	ErrWebData                 = errors.New("failed to parse the web session data")
 	ErrLicenseBlock            = fmt.Errorf("Connection blocked: your ShellHub instance has exceeded the maximum number of devices allowed by your license. Please contact support or remove unused devices.") //nolint:all
 )

@@ -8,8 +8,12 @@ import (
 	"slices"
 	"sync"
 	"testing"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -30,6 +34,10 @@ type fakeSession struct {
 	forwards chan gossh.NewChannel
 
 	agentChannel gossh.Channel
+
+	agent             *session.AgentChannel
+	client            *session.ClientChannel
+	onCloseAgentWrite func()
 }
 
 func (f *fakeSession) record(name string) {
@@ -61,6 +69,10 @@ func (f *fakeSession) NewAgentChannel(_ string, _ int) (*session.AgentChannel, e
 		return nil, f.agentChanErr
 	}
 
+	if f.agent != nil {
+		return f.agent, nil
+	}
+
 	return &session.AgentChannel{Channel: &nopChannel{}, Requests: closedRequests()}, nil
 }
 
@@ -69,6 +81,10 @@ func (f *fakeSession) NewClientChannel(_ gossh.NewChannel, _ int) (*session.Clie
 
 	if f.clientChanErr != nil {
 		return nil, f.clientChanErr
+	}
+
+	if f.client != nil {
+		return f.client, nil
 	}
 
 	return &session.ClientChannel{Channel: &nopChannel{}, Requests: closedRequests()}, nil
@@ -93,6 +109,12 @@ func (f *fakeSession) DialAgent(context.Context, string, string) (net.Conn, erro
 
 func (f *fakeSession) CloseAgentWrite(int) error {
 	f.record("CloseAgentWrite")
+
+	if f.onCloseAgentWrite != nil {
+		f.onCloseAgentWrite()
+
+		return nil
+	}
 
 	if f.agentChannel == nil {
 		return nil
@@ -288,4 +310,87 @@ func TestDirectTCPIPChannelRejectsWhenTheAgentCannotDial(t *testing.T) {
 	assert.True(t, newChan.rejected, "the channel must be rejected")
 	assert.Equal(t, gossh.ConnectionFailed, newChan.reason)
 	assert.False(t, newChan.accepted, "the client channel must not be accepted")
+}
+
+func TestSessionChannelEndsWhenItsChannelsEndBeforeAShellOrExecStarts(t *testing.T) {
+	ended := make(chan struct{})
+
+	go func() {
+		defer close(ended)
+
+		sessionChannel(newStubContext(), &fakeSession{}, new(rejectingNewChannel))
+	}()
+
+	select {
+	case <-ended:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the session channel outlived both of its ends")
+	}
+}
+
+type clientEnd struct {
+	*fakeChannel
+
+	mu        sync.Mutex
+	sent      []string
+	requests  chan *gossh.Request
+	closeOnce sync.Once
+}
+
+func (c *clientEnd) SendRequest(name string, _ bool, _ []byte) (bool, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.sent = append(c.sent, name)
+
+	return true, nil
+}
+
+func (c *clientEnd) Close() error {
+	c.closeOnce.Do(func() { close(c.requests) })
+
+	return c.fakeChannel.Close()
+}
+
+func (c *clientEnd) received(name string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return slices.Contains(c.sent, name)
+}
+
+func TestSessionChannelDoesNotReportTheDeviceEndingAChannelTheGatewayClosed(t *testing.T) {
+	envstest.SetEdition(t, envs.Community)
+
+	agentRequests := make(chan *gossh.Request)
+	agent := &session.AgentChannel{Channel: newFakeChannel(), Requests: agentRequests}
+
+	client := &clientEnd{fakeChannel: newFakeChannel(), requests: make(chan *gossh.Request, 1)} //nolint:exhaustruct // mu, sent and closeOnce start at their zero values
+	client.quiet()
+	client.requests <- &gossh.Request{Type: ExecRequestType, Payload: gossh.Marshal(models.SSHCommand{Command: "sleep 5"})} //nolint:exhaustruct // the exec wants no reply
+
+	sess := &fakeSession{ //nolint:exhaustruct // only the agent and client fakes matter here
+		agent:  agent,
+		client: &session.ClientChannel{Channel: client, Requests: client.requests},
+		onCloseAgentWrite: func() {
+			_ = agent.Close()
+			close(agentRequests)
+		},
+	}
+
+	ended := make(chan struct{})
+
+	go func() {
+		defer close(ended)
+
+		sessionChannel(newStubContext(), sess, new(rejectingNewChannel))
+	}()
+
+	select {
+	case <-ended:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the session channel did not end after the gateway closed its agent channel")
+	}
+
+	assert.False(t, client.received(ExitSignalRequest), "the client was told the device ended a channel the gateway closed")
 }

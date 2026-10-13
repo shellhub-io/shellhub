@@ -76,11 +76,23 @@ type AgentChannel struct {
 	Channel gossh.Channel
 	// Requests is the channel to handle SSH requests.
 	Requests <-chan *gossh.Request
+
+	closedByGateway atomic.Bool
 }
 
-// Close closes the underlying agent channel connection.
+// Close closes the underlying agent channel connection. It records that the gateway closed it
+// before closing, so [AgentChannel.ClosedByGateway] already reports true by the time Requests
+// closes. It returns the error from closing the underlying channel, which a channel already
+// closed also returns, and records the close either way.
 func (a *AgentChannel) Close() error {
+	a.closedByGateway.Store(true)
+
 	return a.Channel.Close()
+}
+
+// ClosedByGateway reports whether the gateway has closed this channel through [AgentChannel.Close].
+func (a *AgentChannel) ClosedByGateway() bool {
+	return a.closedByGateway.Load()
 }
 
 // Agent represents a connection to an agent.
@@ -108,31 +120,66 @@ type ClientChannel struct {
 	Channel gossh.Channel
 	// Requests is the channel to handle SSH requests.
 	Requests <-chan *gossh.Request
+
+	release func()
 }
 
-// Close closes the underlying client channel connection.
+// Close closes the client channel and, the first time it is called, stops counting it as open, so
+// a session whose device side has ended can close the client's connection once every channel has
+// closed. It returns the error from closing the underlying channel, which a channel already closed
+// also returns, and stops counting the channel either way.
 func (c *ClientChannel) Close() error {
-	return c.Channel.Close()
+	err := c.Channel.Close()
+
+	if c.release != nil {
+		c.release()
+	}
+
+	return err
 }
 
 // Client represents a connection to a client.
 type Client struct {
 	mu       sync.Mutex
 	channels map[int]*ClientChannel
+	open     int
+	closing  bool
+	drained  chan struct{}
 }
 
-// Close closes a connection to client and all its channels.
-func (c *Client) Close() error {
+func (c *Client) release() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	for _, channel := range c.channels {
-		if err := channel.Close(); err != nil {
-			return err
-		}
+	c.open--
+
+	if c.open == 0 && c.drained != nil {
+		close(c.drained)
+	}
+}
+
+func (c *Client) awaitChannels(timeout time.Duration) bool {
+	c.mu.Lock()
+
+	c.closing = true
+
+	if c.open == 0 {
+		c.mu.Unlock()
+
+		return true
 	}
 
-	return nil
+	c.drained = make(chan struct{})
+	drained := c.drained
+
+	c.mu.Unlock()
+
+	select {
+	case <-drained:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
 }
 
 // Session is one SSH connection from a client to a device, and everything the server needs to
@@ -387,9 +434,17 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 }
 
 // NewClientChannel accepts a new channel from a client and set a seat for it.
+//
+// It returns [ErrSeatAlreadySet] when the seat already has a client channel,
+// [ErrClientClosing] once the device side of the session has ended and the client's connection
+// is being closed, and the error from accepting newChannel when that fails.
 func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*ClientChannel, error) {
 	s.client.mu.Lock()
 	defer s.client.mu.Unlock()
+
+	if s.client.closing {
+		return nil, ErrClientClosing
+	}
 
 	if _, ok := s.client.channels[seat]; ok {
 		return nil, ErrSeatAlreadySet
@@ -400,9 +455,12 @@ func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*Clie
 		return nil, err
 	}
 
+	s.client.open++
+
 	c := &ClientChannel{
 		Channel:  channel,
 		Requests: requests,
+		release:  sync.OnceFunc(s.client.release),
 	}
 
 	s.client.channels[seat] = c
@@ -632,17 +690,21 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 	s.agent.client = gossh.NewClient(conn, chans, ch)
 
-	go s.drainAgentRequests(ctx, reqs)
+	clientConn, _ := ctx.Value(connCtxKey{}).(net.Conn)
+
+	go s.drainAgentRequests(ctx, reqs, clientConn)
 
 	return nil
 }
 
 const keepAliveRequestPrefix = "keepalive"
 
+const clientChannelsCloseTimeout = 5 * time.Second
+
 // KeepAliveRequestType is the keepalive the gateway forwards to the client.
 const KeepAliveRequestType = keepAliveRequestPrefix + "@shellhub.io"
 
-func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.Request) {
+func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.Request, clientConn net.Conn) {
 	logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
 
 	defer logger.Trace("agent global requests drained")
@@ -672,6 +734,16 @@ func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.R
 			if _, _, err := conn.SendRequest(KeepAliveRequestType, false, req.Payload); err != nil {
 				logger.WithError(err).Warn("failed to forward the keepalive to the client")
 			}
+		}
+	}
+
+	if clientConn != nil {
+		if !s.client.awaitChannels(clientChannelsCloseTimeout) {
+			logger.Warn("closing the client connection before its channels were told the session ended")
+		}
+
+		if err := clientConn.Close(); err != nil {
+			logger.WithError(err).Debug("failed to close the client connection after the agent connection ended")
 		}
 	}
 }

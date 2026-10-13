@@ -100,8 +100,9 @@ func advance(ctx gliderssh.Context, session *Session, state State) {
 }
 
 // StoreConn records the connection underlying this SSH context, so a handler
-// that must refuse a login can drop it. The SSH server owns the connection; the
-// auth handlers only ever reach it through [AuthenticableSessionOrDrop].
+// that must refuse a login can drop it, and so the session can close it once
+// the device has ended it. The SSH server owns the connection; the auth handlers
+// only ever reach it through [AuthenticableSessionOrDrop].
 func StoreConn(ctx gliderssh.Context, conn net.Conn) {
 	ctx.SetValue(connCtxKey{}, conn)
 }
