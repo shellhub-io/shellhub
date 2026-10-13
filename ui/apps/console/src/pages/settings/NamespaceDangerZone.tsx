@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
   TrashIcon,
@@ -29,21 +30,33 @@ function DeleteDialog({
 }) {
   const deleteNs = useDeleteNamespace();
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ReactNode>(null);
 
   return (
     <ConfirmDialog
       open
       onClose={onClose}
       onConfirm={async () => {
-        setError("");
+        setError(null);
         try {
           await deleteNs.mutateAsync(tenantId);
         } catch (err) {
+          const status = isSdkError(err) ? err.status : undefined;
           setError(
-            isSdkError(err) && err.status === 409
+            status === 409
               ? "This namespace is bound to the instance and can't be deleted."
-              : "Couldn't delete the namespace.",
+              : status === 402
+                ? (
+                    <>
+                      Billing couldn't approve this deletion. If the namespace has an active
+                      subscription or an unpaid invoice, resolve it in{" "}
+                      <Link to="/settings/billing" className="underline hover:no-underline">
+                        billing settings
+                      </Link>
+                      ; otherwise try again later.
+                    </>
+                  )
+                : "Couldn't delete the namespace.",
           );
           throw new Error();
         }
