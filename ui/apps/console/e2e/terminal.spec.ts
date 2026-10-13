@@ -36,6 +36,7 @@ import { enableMFA, fillDigits, mfaSecret, signInWithMFA, totp } from "./mfa";
 import { buildShortId, password, runInGateway, startAgent } from "./seed";
 import {
   type AnswerOptions,
+  type SamlOptions,
   answerSignOn,
   buildSamlUser,
   disableSaml,
@@ -43,6 +44,7 @@ import {
   samlReason,
   signInThroughApi,
   signInWithSso,
+  signOnURLs,
 } from "./saml";
 import { addKey, buildPrivateKey, setUpVault } from "./vault";
 
@@ -432,8 +434,13 @@ async function createSamlTeam() {
   return { user, team };
 }
 
-async function signInAsSamlOwner(page: Page, options?: AnswerOptions) {
+async function signInAsSamlOwner(
+  page: Page,
+  options?: AnswerOptions,
+  saml?: SamlOptions,
+) {
   const { user, team } = await createSamlTeam();
+  if (saml) await enableSaml(saml);
   await requireReauth(team);
   const device = await createDevice(team);
   const requests = await answerSignOn(page.context(), user, options);
@@ -528,6 +535,38 @@ test.describe("Re-authentication", () => {
           ({ document }) => document.getAttributeNode("ForceAuthn")?.value,
         ),
       ).toEqual([undefined, "true"]);
+      await expectAuthenticatedWebSession(team, device.uid);
+    });
+
+    test("a SAML user re-authenticates through the POST binding", async ({
+      page,
+    }) => {
+      const { team, device, requests } = await signInAsSamlOwner(
+        page,
+        undefined,
+        {
+          binding: {
+            post: signOnURLs.post,
+            redirect: signOnURLs.redirect,
+            preferred: "post",
+          },
+        },
+      );
+
+      await connectWithBrowserKey(page, device.name);
+      await reauthenticateWithSso(page);
+
+      await expectShell(page, device.name);
+      expect(
+        requests.map(({ url, document, relayState }) => ({
+          url: url.href,
+          forceAuthn: document.getAttributeNode("ForceAuthn")?.value,
+          relayed: relayState !== "",
+        })),
+      ).toEqual([
+        { url: signOnURLs.post, forceAuthn: undefined, relayed: false },
+        { url: signOnURLs.post, forceAuthn: "true", relayed: true },
+      ]);
       await expectAuthenticatedWebSession(team, device.uid);
     });
 

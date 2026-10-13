@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Page, Request } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
 import sshpk from "sshpk";
@@ -192,32 +192,66 @@ function buildResponse(
   return { consumer: fields.consumer, xml: signAssertion(response) };
 }
 
-function parseSignOnRequest(url: URL): SignOnRequest {
-  const encoded = required(
-    url.searchParams.get("SAMLRequest"),
-    `a SAMLRequest in ${url}`,
-  );
-  const xml = inflateRawSync(Buffer.from(encoded, "base64")).toString();
+function buildSignOnRequest(
+  url: URL,
+  xml: string,
+  relayState: string | null,
+): SignOnRequest {
   return {
     url,
     document: new DOMParser().parseFromString(xml, "text/xml").documentElement,
     xml,
-    relayState: url.searchParams.get("RelayState") ?? "",
+    relayState: relayState ?? "",
   };
+}
+
+function parseRedirectRequest(url: URL): SignOnRequest {
+  const encoded = required(
+    url.searchParams.get("SAMLRequest"),
+    `a SAMLRequest in ${url}`,
+  );
+  return buildSignOnRequest(
+    url,
+    inflateRawSync(Buffer.from(encoded, "base64")).toString(),
+    url.searchParams.get("RelayState"),
+  );
+}
+
+function parsePostRequest(url: URL, body: string): SignOnRequest {
+  const form = new URLSearchParams(body);
+  const encoded = required(
+    form.get("SAMLRequest"),
+    `a SAMLRequest in the form posted to ${url}`,
+  );
+  return buildSignOnRequest(
+    url,
+    Buffer.from(encoded, "base64").toString(),
+    form.get("RelayState"),
+  );
+}
+
+function readSignOnRequest(request: Request) {
+  const url = new URL(request.url());
+  const endpoint = `${url.origin}${url.pathname}`;
+  if (endpoint === signOnURLs.post && request.method() === "POST") {
+    return parsePostRequest(url, request.postData() ?? "");
+  }
+  if (endpoint === signOnURLs.redirect && request.method() === "GET") {
+    return parseRedirectRequest(url);
+  }
+  return undefined;
 }
 
 const consumerURL = (consumer: string) =>
   new URL(new URL(consumer).pathname, requireEnv("E2E_BASE_URL"));
 
 export function answerSignOnRequest(
-  url: URL,
+  request: SignOnRequest,
   user: SamlUser,
   attributes = defaultAttributes,
 ) {
-  const request = parseSignOnRequest(url);
   const { consumer, xml } = buildResponse(request.document, user, attributes);
   return {
-    request,
     action: consumerURL(consumer),
     samlResponse: Buffer.from(xml).toString("base64"),
   };
@@ -235,8 +269,16 @@ export async function answerSignOn(
 ) {
   const requests: SignOnRequest[] = [];
   await context.route(`${identityProvider}/sso/**`, async (route) => {
-    const { request, action, samlResponse } = answerSignOnRequest(
-      new URL(route.request().url()),
+    const request = readSignOnRequest(route.request());
+    if (!request) {
+      await route.fulfill({
+        status: 405,
+        body: `${route.request().method()} is not the binding of ${route.request().url()}`,
+      });
+      return;
+    }
+    const { action, samlResponse } = answerSignOnRequest(
+      request,
       user,
       attributes,
     );
@@ -253,7 +295,10 @@ export async function answerSignOn(
 
 export async function signInThroughApi(user: SamlUser) {
   const { data } = await getSamlAuthUrl(buildRequestContext());
-  const { action, samlResponse } = answerSignOnRequest(new URL(data.url), user);
+  const { action, samlResponse } = answerSignOnRequest(
+    parseRedirectRequest(new URL(data.url)),
+    user,
+  );
   const response = await fetch(action, {
     method: "POST",
     redirect: "manual",
