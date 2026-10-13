@@ -40,6 +40,8 @@ get:
         application/json:
           schema:
             $ref: ../components/schemas/subscription.yaml
+    '400':
+      $ref: ../components/schemas/billingError.yaml
     '402':
       $ref: ../components/schemas/billingError.yaml
     '403':
