@@ -1,13 +1,68 @@
-import { generateKeyPairSync, randomBytes } from "node:crypto";
-import { authDevice } from "@/client";
+import {
+  generateKeyPairSync,
+  randomBytes,
+  sign,
+  type KeyObject,
+} from "node:crypto";
+import { authDevice, createDeviceAuthChallenge } from "@/client";
 import { buildRequestContext } from "./api";
 import { buildShortId } from "./seed";
 
+const devicePrivateKeys = new Map<string, KeyObject>();
+
+function sshString(value: Buffer | string) {
+  const bytes = typeof value === "string" ? Buffer.from(value) : value;
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(bytes.length);
+  return Buffer.concat([length, bytes]);
+}
+
+interface SignableDeviceAuth {
+  public_key: string;
+  tenant_id?: string;
+  provisioning_key?: string;
+}
+
+export async function signDeviceAuth<T extends SignableDeviceAuth>(body: T) {
+  const privateKey = devicePrivateKeys.get(body.public_key);
+  if (!privateKey) {
+    throw new Error(
+      "the request's public key was not made by buildDeviceAuthRequest, so nothing can sign it",
+    );
+  }
+
+  const { data } = await createDeviceAuthChallenge({
+    ...buildRequestContext(),
+  });
+  if (!data.challenge) {
+    throw new Error("expected the server to issue a device auth challenge");
+  }
+
+  const statement = Buffer.concat([
+    sshString("shellhub-device-auth-v1"),
+    sshString(data.challenge),
+    sshString(body.tenant_id ?? ""),
+    sshString(body.provisioning_key ?? ""),
+    sshString(body.public_key),
+  ]);
+  const signature = Buffer.concat([
+    sshString("rsa-sha2-256"),
+    sshString(sign("sha256", statement, privateKey)),
+  ]);
+
+  return {
+    ...body,
+    challenge: data.challenge,
+    signature: signature.toString("base64"),
+  };
+}
+
 export function buildDeviceAuthRequest() {
-  const { publicKey } = generateKeyPairSync("rsa", {
+  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
     publicKeyEncoding: { type: "spki", format: "pem" },
   });
+  devicePrivateKeys.set(publicKey, privateKey);
   return {
     hostname: `e2e-device-${buildShortId()}`,
     identity: {
@@ -27,7 +82,10 @@ export function buildDeviceAuthRequest() {
 }
 
 export async function enrollDevice(tenant: string) {
-  const body = { ...buildDeviceAuthRequest(), tenant_id: tenant };
+  const body = await signDeviceAuth({
+    ...buildDeviceAuthRequest(),
+    tenant_id: tenant,
+  });
   const { data } = await authDevice({ ...buildRequestContext(), body });
   if (!data.uid || !data.token) {
     throw new Error(`expected ${body.hostname} to enroll into ${tenant}`);

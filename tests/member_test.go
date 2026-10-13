@@ -61,6 +61,7 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired())
 		uid := pairAgent(t, compose, agent, member.Token)
+		awaitAgentConnected(t, agent)
 		compose.AwaitDeviceOnline(t, uid)
 
 		compose.RemoveMember(t, departingUsername, ShellHubNamespaceName)

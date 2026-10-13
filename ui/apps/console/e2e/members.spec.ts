@@ -30,7 +30,7 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
-import { buildDeviceAuthRequest } from "./devices";
+import { buildDeviceAuthRequest, signDeviceAuth } from "./devices";
 import { password, buildShortId, buildRandomEmail, addMember } from "./seed";
 import {
   type Endpoint,
@@ -341,7 +341,7 @@ async function authenticateAgent(device: PairedDevice) {
   const { response } = await authDevice({
     ...buildRequestContext(),
     throwOnError: false,
-    body: device,
+    body: await signDeviceAuth(device),
   });
   return response?.status;
 }
