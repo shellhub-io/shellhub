@@ -1,18 +1,22 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -45,7 +49,7 @@ func TestDeviceAuth(t *testing.T) {
 
 		claims, err := jwttoken.ClaimsFromBearerToken(compose.APIPublicKey(t), res.Token)
 		require.NoError(t, err)
-		assert.Equal(t, &authorizer.DeviceClaims{UID: res.UID, TenantID: ShellHubNamespace}, claims)
+		assert.Equal(t, &authorizer.DeviceClaims{UID: res.UID, TenantID: ShellHubNamespace, KeyVerified: true}, claims)
 	})
 
 	t.Run("the uid is derived from the identity", func(t *testing.T) {
@@ -247,20 +251,77 @@ func newDeviceAuthRequest(t *testing.T, hostname, mac string) requests.DeviceAut
 	}
 }
 
+var devicePrivateKeys sync.Map
+
 func newDevicePublicKey(t *testing.T) string {
 	t.Helper()
 
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	return string(pem.EncodeToMemory(&pem.Block{
+	publicKey := string(pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey),
 	}))
+	devicePrivateKeys.Store(publicKey, key)
+
+	return publicKey
+}
+
+func signDeviceAuth(ctx context.Context, compose *environment.DockerCompose, req requests.DeviceAuth) (requests.DeviceAuth, error) {
+	if req.Challenge != "" || req.Signature != "" {
+		return req, nil
+	}
+
+	key, ok := devicePrivateKeys.Load(req.PublicKey)
+	if !ok {
+		return req, errors.New("the request's public key was not made by newDevicePublicKey, so nothing can sign it")
+	}
+
+	challenge, err := requestDeviceAuthChallenge(ctx, compose)
+	if err != nil {
+		return req, err
+	}
+
+	return signDeviceAuthWith(key.(*rsa.PrivateKey), req, challenge) //nolint:forcetypeassert // devicePrivateKeys holds nothing but device keys
+}
+
+func requestDeviceAuthChallenge(ctx context.Context, compose *environment.DockerCompose) (string, error) {
+	challenge := new(models.DeviceAuthChallenge)
+
+	resp, err := compose.Anonymous(ctx).SetResult(challenge).Post("/api/devices/auth/challenge")
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("issuing a device auth challenge: %s", resp.String())
+	}
+
+	return challenge.Challenge, nil
+}
+
+func signDeviceAuthWith(key *rsa.PrivateKey, req requests.DeviceAuth, challenge string) (requests.DeviceAuth, error) {
+	signature, err := devicekey.Sign(key, devicekey.Statement{
+		Challenge:       challenge,
+		TenantID:        req.TenantID,
+		ProvisioningKey: req.ProvisioningKey,
+		PublicKey:       req.PublicKey,
+	})
+	if err != nil {
+		return req, err
+	}
+
+	req.Challenge, req.Signature = challenge, signature
+
+	return req, nil
 }
 
 func authDevice(t *testing.T, compose *environment.DockerCompose, req requests.DeviceAuth) *models.DeviceAuthResponse {
 	t.Helper()
+
+	req, err := signDeviceAuth(t.Context(), compose, req)
+	require.NoError(t, err)
 
 	res := new(models.DeviceAuthResponse)
 

@@ -3,7 +3,7 @@ import { authDevice, getDevices, provisioningKeyCreate } from "@/client";
 import { createTeam, signInAndOpen } from "./helpers";
 import { buildShortId } from "./seed";
 import { buildRequestContext } from "./api";
-import { buildDeviceAuthRequest } from "./devices";
+import { buildDeviceAuthRequest, signDeviceAuth } from "./devices";
 
 test.describe("Provisioning key plaintext", () => {
   test("a key's page reveals the plaintext an agent enrolls with", async ({
@@ -41,7 +41,10 @@ test.describe("Provisioning key plaintext", () => {
     const device = buildDeviceAuthRequest();
     const { data: enrolled } = await authDevice({
       ...buildRequestContext(),
-      body: { ...device, provisioning_key: await revealed.innerText() },
+      body: await signDeviceAuth({
+        ...device,
+        provisioning_key: await revealed.innerText(),
+      }),
     });
     expect(enrolled.tenant_id).toBe(tenant);
     const { data: pending } = await getDevices({

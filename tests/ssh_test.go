@@ -108,20 +108,24 @@ var agentImages struct {
 }
 
 func buildAgentImage(ctx context.Context, version string) (string, error) {
-	agentImages.Lock()
-	defer agentImages.Unlock()
-
-	if tag, ok := agentImages.tags[version]; ok {
-		return tag, nil
-	}
-
-	tag, err := environment.BuildAgentImage(ctx, run, environment.AgentBuild{
+	return cachedAgentImage(ctx, version, environment.AgentBuild{
 		Repository: os.Getenv("SHELLHUB_E2E_AGENT_IMAGE"),
 		Context:    envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
 		Dockerfile: os.Getenv("SHELLHUB_E2E_AGENT_DOCKERFILE"),
 		Version:    version,
 		Output:     agentBuildLog(),
 	})
+}
+
+func cachedAgentImage(ctx context.Context, key string, build environment.AgentBuild) (string, error) {
+	agentImages.Lock()
+	defer agentImages.Unlock()
+
+	if tag, ok := agentImages.tags[key]; ok {
+		return tag, nil
+	}
+
+	tag, err := environment.BuildAgentImage(ctx, run, build)
 	if err != nil {
 		return "", err
 	}
@@ -130,7 +134,7 @@ func buildAgentImage(ctx context.Context, version string) (string, error) {
 		agentImages.tags = make(map[string]string)
 	}
 
-	agentImages.tags[version] = tag
+	agentImages.tags[key] = tag
 
 	return tag, nil
 }
@@ -144,6 +148,15 @@ func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentCo
 // so the agent every other test starts keeps its tag; an empty version builds that default agent.
 // It returns the error of a build or a container creation that fails, both bounded by ctx.
 func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	image, err := buildAgentImage(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return newAgentContainer(ctx, gatewayID, image, opts...)
+}
+
+func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	raw := make([]byte, 6)
 	if _, err := rand.Read(raw); err != nil {
 		return nil, err
@@ -165,11 +178,6 @@ func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, 
 
 	for _, opt := range opts {
 		opt(envs)
-	}
-
-	image, err := buildAgentImage(ctx, version)
-	if err != nil {
-		return nil, err
 	}
 
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -1805,6 +1813,12 @@ func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCo
 
 	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), opts...)
 	require.NoError(t, err)
+
+	return runAgent(t, ctx, agent)
+}
+
+func runAgent(t *testing.T, ctx context.Context, agent testcontainers.Container) testcontainers.Container {
+	t.Helper()
 
 	require.NoError(t, agent.Start(ctx))
 

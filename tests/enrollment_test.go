@@ -59,6 +59,11 @@ func requireDevice(t *testing.T, compose *environment.DockerCompose, uid string)
 }
 
 func postDeviceAuth(ctx context.Context, compose *environment.DockerCompose, req requests.DeviceAuth) (*resty.Response, error) {
+	req, err := signDeviceAuth(ctx, compose, req)
+	if err != nil {
+		return nil, err
+	}
+
 	return compose.Anonymous(ctx).SetBody(req).Post("/api/devices/auth")
 }
 

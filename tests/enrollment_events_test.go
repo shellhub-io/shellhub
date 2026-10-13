@@ -6,23 +6,12 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	eventedPublicKey = `-----BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEAwb2v98Gh0bKThSWcNBP/l2o7VQzWlCffrXFV5S8KUllTufZVmf1t
-30gLBkW40scbfYHzgvvBTh/skPJLQNyRCu3ks+mSywT+dn5zES78i7uyMNPxzVso
-tLNh+5DfUlyzhE+rt/eE9B44gf3OOJp/dibxpqLd4jVFIGsqFU9UAC+6miRCDS7o
-i97/IevRDfkIfTBYnkw58d6cbCrniHxgzBi1AzWNdPl7JxKVc4VvfaqJJdaEvOFb
-b19C8A/sfVFzf3HzUK+JPgoObr8e4EnAKRMwnCrG6Qla3HzYgvPeTPd7SDnUAQLX
-qBXQ/u3v3+yI8LXihvNEvuaI1JW8XVHh7QIDAQAB
------END RSA PUBLIC KEY-----
-`
-	eventedPublicKeyFingerprint = "SHA256:pPJ4qUrhmqHC5+kSyI7rWsiwXnMllKxi1zEobSeqnXY"
+	"golang.org/x/crypto/ssh"
 )
 
 func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
@@ -35,7 +24,8 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 
 	t.Run("an enrollment records the device as it enrolled", func(t *testing.T) {
 		req := newKeyedDeviceAuthRequest(t, key.Key, "evented", "02:00:00:00:70:01")
-		req.PublicKey = eventedPublicKey
+		presented, err := devicekey.ParsePublicKey(req.PublicKey)
+		require.NoError(t, err)
 		before := clock.Now()
 
 		device := enroll(t, compose, req)
@@ -56,8 +46,8 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 			Platform:   req.Info.Platform,
 		}, event.Info)
 		assert.NotEmpty(t, event.SourceIP)
-		assert.Equal(t, eventedPublicKey, event.PublicKey)
-		assert.Equal(t, eventedPublicKeyFingerprint, event.Fingerprint)
+		assert.Equal(t, req.PublicKey, event.PublicKey)
+		assert.Equal(t, ssh.FingerprintSHA256(presented), event.Fingerprint)
 		assert.False(t, event.Ephemeral)
 		assert.False(t, event.ReRegistration)
 		assert.WithinRange(t, event.Timestamp, before.Add(-time.Minute), clock.Now().Add(time.Minute))
