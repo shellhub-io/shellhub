@@ -43,6 +43,9 @@ const (
 	// ErrCodeLocked is the error code for when the resource exists but is inert and can't be
 	// acted on yet (mapped to HTTP 423), e.g. an account awaiting administrator approval.
 	ErrCodeLocked
+	// ErrCodeInternal is the error code for a failure on the server's side that the caller can't
+	// fix, such as billing failing to answer (mapped to HTTP 500).
+	ErrCodeInternal
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -131,7 +134,8 @@ var (
 	ErrNamespaceLimitReached           = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
 	ErrNamespaceCreationIsForbidden    = errors.New("namespace creation not permitted for user", ErrLayer, ErrCodeForbidden)
 	ErrBillingReportNamespaceDelete    = errors.New("billing report namespace delete", ErrLayer, ErrCodePayment)
-	ErrBillingEvaluate                 = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
+	ErrBillingReportFailed             = errors.New("billing report failed", ErrLayer, ErrCodeInternal)
+	ErrBillingEvaluate                 = errors.New("billing evaluate", ErrLayer, ErrCodeInternal)
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInstanceAPIKeyNotFound          = errors.New("InstanceAPIKey not found", ErrLayer, ErrCodeNotFound)
@@ -537,8 +541,15 @@ func NewErrNamespaceCreationIsForbidden(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceCreationIsForbidden, limit, err)
 }
 
-// NewErrBillingReportNamespaceDelete reports that billing refused a namespace deletion.
+// NewErrBillingReportNamespaceDelete wraps a failed billing report. It returns
+// ErrBillingReportNamespaceDelete (HTTP 402) when billing refused the action, i.e. next is
+// ErrPaymentRequired, and ErrBillingReportFailed (HTTP 500) when billing failed to answer, such as
+// a payment gateway error or a missing billing provider.
 func NewErrBillingReportNamespaceDelete(next error) error {
+	if !errors.Is(next, ErrPaymentRequired) {
+		return NewErrInvalid(ErrBillingReportFailed, nil, next)
+	}
+
 	return NewErrInvalid(ErrBillingReportNamespaceDelete, nil, next)
 }
 
