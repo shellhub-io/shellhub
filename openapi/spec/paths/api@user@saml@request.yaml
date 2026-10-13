@@ -1,0 +1,37 @@
+get:
+  operationId: getSamlAuthRequest
+  summary: Send a SAML authentication request over the HTTP-POST binding
+  description: |
+    Returns an HTML page that posts a SAML authentication request to the
+    Identity Provider as soon as the browser loads it. When the Identity
+    Provider is configured for the HTTP-POST binding, `/api/user/saml/auth`
+    and `/api/user/saml/reauth` return this endpoint's URL instead of the
+    Identity Provider's.
+
+    Without `relay_state`, the request signs the user in. With it, the request
+    is the re-authentication started at `/api/user/saml/reauth` under that
+    token.
+  tags:
+    - cloud
+    - users
+  security: []
+  parameters:
+    - name: relay_state
+      in: query
+      required: false
+      schema:
+        type: string
+      description: The re-authentication token returned by `/api/user/saml/reauth`
+  responses:
+    '200':
+      description: The page that posts the authentication request to the Identity Provider
+      content:
+        text/html: {}
+    '403':
+      $ref: '../components/responses/403.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'
+    '501':
+      $ref: ../components/responses/501.yaml
+    '503':
+      $ref: ../components/responses/503.yaml

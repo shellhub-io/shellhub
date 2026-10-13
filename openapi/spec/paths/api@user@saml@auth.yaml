@@ -2,8 +2,13 @@ get:
   operationId: getSamlAuthUrl
   summary: Get SAML authentication URL
   description: |
-    Retrieves the Identity Provider (IdP) URL for authentication within ShellHub.
+    Retrieves the URL that starts a sign-in at the Identity Provider (IdP).
     After successful authentication, users are automatically redirected to the ShellHub dashboard.
+
+    Under the HTTP-Redirect binding, the URL is the IdP's own, carrying the
+    request in its query. Under the HTTP-POST binding, it is the path of
+    `/api/user/saml/request` on ShellHub, whose page posts the request to the
+    IdP.
 
     To access this endpoint, SAML authentication must be enabled and the
     instance must be running the Enterprise edition. If not, the endpoint
@@ -24,7 +29,10 @@ get:
             properties:
               url:
                 type: string
-                description: The complete URL to the Identity Provider's login page
+                description: |
+                  The Identity Provider's login URL under the HTTP-Redirect binding, or the
+                  `/api/user/saml/request` path, relative to ShellHub's origin, under the
+                  HTTP-POST binding
                 example: 'https://login.microsoftonline.com/tenant-id/saml2?SAMLRequest=encoded-request'
     '400':
       $ref: '../components/responses/400.yaml'
