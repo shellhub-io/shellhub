@@ -10,8 +10,7 @@ import {
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import type { Info } from "@/client";
-import { mockUserAuth } from "@/tests/factories";
+import { mockInfo, mockUserAuth } from "@/tests/factories";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { getConfig, defaultConfig } from "@/env";
@@ -24,16 +23,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 const mockGetConfig = vi.mocked(getConfig);
-
-function mockInfo(overrides: Partial<Info> = {}): Info {
-  return {
-    version: "0.0.0",
-    endpoints: null,
-    setup: true,
-    authentication: { local: true, saml: false },
-    ...overrides,
-  };
-}
 
 function renderLogin() {
   return render(

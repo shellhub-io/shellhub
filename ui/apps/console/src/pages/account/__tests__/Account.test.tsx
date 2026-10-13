@@ -7,6 +7,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { mockInfo } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import Login from "@/pages/Login";
@@ -182,16 +183,7 @@ describe("Account", () => {
     });
 
     it("signs out and asks to sign in with the new password after a successful change", async () => {
-      server.use(
-        http.get("*/info", () =>
-          HttpResponse.json({
-            version: "0.0.0",
-            endpoints: null,
-            setup: true,
-            authentication: { local: true, saml: false },
-          }),
-        ),
-      );
+      server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
       const user = await openChangePasswordModal();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");

@@ -5,6 +5,7 @@ import type {
   GetLicenseResponse,
   GetSshApprovalResponses,
   GetStatusDevicesResponse,
+  Info,
   MembershipInvitation,
   ProvisioningKey,
   ProvisioningKeyEvent,
@@ -58,6 +59,20 @@ export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
     admin: false,
     max_namespaces: -1,
     auth_methods: ["local"],
+    ...overrides,
+  };
+}
+
+/**
+ * Builds the instance info for a test: set up, with local sign-in and without SAML, so a case names
+ * only what it is about.
+ */
+export function mockInfo(overrides: Partial<Info> = {}): Info {
+  return {
+    version: "0.0.0",
+    endpoints: null,
+    setup: true,
+    authentication: { local: true, saml: false },
     ...overrides,
   };
 }

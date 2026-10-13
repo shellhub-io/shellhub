@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { mockInfo } from "@/tests/factories";
 import Login from "@/pages/Login";
 import MfaDisableDialog from "../MfaDisableDialog";
 
@@ -249,16 +250,7 @@ describe("MfaDisableDialog", () => {
 
     it("submits email codes, then signs out on the sign-in page", async () => {
       seedAuthStore();
-      server.use(
-        http.get("*/info", () =>
-          HttpResponse.json({
-            version: "0.0.0",
-            endpoints: null,
-            setup: true,
-            authentication: { local: true, saml: false },
-          }),
-        ),
-      );
+      server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
       const user = renderDialog();
 
       await navigateToEmailReset(user);
