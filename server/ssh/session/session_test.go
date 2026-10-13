@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -63,6 +64,11 @@ var tenantScope = scope.MustBounded("tenant-id")
 func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
+	var hostKey string
+	if agent, ok := tunnel.(*dialertest.Agent); ok {
+		hostKey = agent.PublicKey()
+	}
+
 	return &Session{
 		UID:      "test-uid",
 		service:  service,
@@ -73,9 +79,10 @@ func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Sessi
 			IPAddress: "127.0.0.1",
 			SSHID:     "user@namespace.device",
 			Device: &models.Device{
-				UID:      "device-uid",
-				Name:     "device",
-				TenantID: "tenant-id",
+				UID:       "device-uid",
+				Name:      "device",
+				TenantID:  "tenant-id",
+				PublicKey: hostKey,
 			},
 			Namespace: &models.Namespace{
 				Name:     "namespace",

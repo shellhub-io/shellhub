@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
@@ -549,10 +550,27 @@ func (s *Session) Recorded(seat int) error {
 }
 
 func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
+	hostKey, err := devicekey.ParsePublicKey(s.Device.PublicKey)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID, "device": s.Device.UID}).
+			Error("refusing to connect to a device whose host key cannot be verified")
+
+		return ErrHostKey
+	}
+
+	pinned := gossh.FixedHostKey(hostKey)
+
 	config := &gossh.ClientConfig{
-		User:            s.Target.Username,
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
-		Timeout:         sshconf.ConnectTimeout,
+		User: s.Target.Username,
+		HostKeyCallback: func(hostname string, remote net.Addr, key gossh.PublicKey) error {
+			if err := pinned(hostname, remote, key); err != nil {
+				return errors.Join(ErrHostKey, err)
+			}
+
+			return nil
+		},
+		Timeout: sshconf.ConnectTimeout,
 	}
 
 	if err := authOpt(s, config); err != nil {

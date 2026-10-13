@@ -12,6 +12,7 @@ var (
 	ErrFirewallUnknown         = errors.New("failed to evaluate the firewall rule")
 	ErrHost                    = errors.New("failed to get the device address")
 	ErrDial                    = errors.New("failed to connect to device agent, please check the device connection")
+	ErrHostKey                 = errors.New("failed to verify the device identity")
 	ErrInvalidVersion          = errors.New("failed to parse device version")
 	ErrUnsuportedPublicKeyAuth = errors.New("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 	ErrEvaluatePublicKey       = errors.New("failed to evaluate the provided public key")
