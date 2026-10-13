@@ -2,8 +2,14 @@ get:
   operationId: getSamlReauthUrl
   summary: Get SAML re-authentication URL
   description: |
-    Returns a ForceAuthn Identity Provider URL for re-authenticating the
-    logged-in SSO user during a web-terminal step-up approval.
+    Returns the URL that starts a ForceAuthn re-authentication of the
+    logged-in SSO user at the Identity Provider during a web-terminal step-up
+    approval.
+
+    Under the HTTP-Redirect binding, the URL is the Identity Provider's own.
+    Under the HTTP-POST binding, it is the path of `/api/user/saml/request` on
+    ShellHub with a `relay_state` query parameter, whose page posts the request
+    to the Identity Provider.
 
     Requires an active JWT session; API keys are rejected.
   security:
@@ -36,7 +42,10 @@ get:
             properties:
               url:
                 type: string
-                description: The complete URL to the Identity Provider's ForceAuthn login page
+                description: |
+                  The Identity Provider's ForceAuthn login URL under the HTTP-Redirect
+                  binding, or the `/api/user/saml/request` path with its `relay_state`,
+                  relative to ShellHub's origin, under the HTTP-POST binding
     '401':
       $ref: '../components/responses/401.yaml'
     '500':
