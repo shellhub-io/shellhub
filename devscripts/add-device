@@ -17,42 +17,58 @@ usage() {
     echo "  $0 --agent 00000000-0000-4000-0000-000000000000"
 }
 
+ssh_uint32() {
+    printf "$(printf '\\%03o\\%03o\\%03o\\%03o' $(($1 >> 24 & 255)) $(($1 >> 16 & 255)) $(($1 >> 8 & 255)) $(($1 & 255)))"
+}
+
+ssh_string_file() {
+    ssh_uint32 "$(wc -c < "$1" | tr -d ' ')"
+    cat "$1"
+}
+
+ssh_string() {
+    printf %s "$1" > "$WORK_DIR/field"
+    ssh_string_file "$WORK_DIR/field"
+}
+
 add_fake_device() {
     TENANT_ID=$1
     ID=$(echo "raspbian ubuntucore arch debian ubuntu" | cut -d' ' -f$(shuf -i1-5 -n1))
     PRETTY_NAME=$ID
     MACADDR=$(echo -n 02; dd bs=1 count=5 if=/dev/random 2>/dev/null | hexdump -v -e '/1 ":%02X"')
 
-    PRIVATE_KEY_FILE=$(mktemp -u)
-    PUBLIC_KEY_FILE=$(mktemp -u)
+    WORK_DIR=$(mktemp -d)
+    trap 'rm -rf "$WORK_DIR"' EXIT
 
-    openssl genpkey -algorithm RSA -out $PRIVATE_KEY_FILE -pkeyopt rsa_keygen_bits:2048 2> /dev/null
-    openssl rsa -in $PRIVATE_KEY_FILE -out $PUBLIC_KEY_FILE -pubout 2> /dev/null
+    openssl genpkey -algorithm RSA -out "$WORK_DIR/key" -pkeyopt rsa_keygen_bits:2048 2> /dev/null
+    openssl rsa -in "$WORK_DIR/key" -out "$WORK_DIR/key.pub" -pubout 2> /dev/null
 
-    PUBLIC_KEY=$(cat $PUBLIC_KEY_FILE)
+    CHALLENGE=$(http --ignore-stdin --check-status --body post "$SHELLHUB_URL/api/devices/auth/challenge" | sed -n 's/.*"challenge" *: *"\([^"]*\)".*/\1/p')
+    [ -z "$CHALLENGE" ] && echo "Error: the server issued no device auth challenge" && exit 1
 
-    rm -f $PRIVATE_KEY_FILE
-    rm -f $PUBLIC_KEY_FILE
+    {
+        ssh_string "shellhub-device-auth-v1"
+        ssh_string "$CHALLENGE"
+        ssh_string "$TENANT_ID"
+        ssh_string ""
+        ssh_string_file "$WORK_DIR/key.pub"
+    } > "$WORK_DIR/statement"
 
-    JSON=$(cat <<EOF
-{
-  "sessions": [],
-  "info": {
-    "id": "$ID",
-    "pretty_name": "$PRETTY_NAME",
-    "version": "latest",
-    "platform": "native"
-  },
-  "identity": {
-    "mac": "$MACADDR"
-  },
-  "public_key": "$PUBLIC_KEY",
-  "tenant_id": "$TENANT_ID"
-}
-EOF
-)
+    openssl dgst -sha256 -sign "$WORK_DIR/key" -out "$WORK_DIR/signature" "$WORK_DIR/statement"
 
-    echo $JSON | http --check-status post "$SHELLHUB_URL/api/devices/auth" && echo "Device added!"
+    SIGNATURE=$({
+        ssh_string "rsa-sha2-256"
+        ssh_string_file "$WORK_DIR/signature"
+    } | base64 | tr -d '\n')
+
+    http --ignore-stdin --check-status post "$SHELLHUB_URL/api/devices/auth" \
+        sessions:='[]' \
+        info:="{\"id\": \"$ID\", \"pretty_name\": \"$PRETTY_NAME\", \"version\": \"latest\", \"platform\": \"native\"}" \
+        identity:="{\"mac\": \"$MACADDR\"}" \
+        public_key=@"$WORK_DIR/key.pub" \
+        tenant_id="$TENANT_ID" \
+        challenge="$CHALLENGE" \
+        signature="$SIGNATURE" && echo "Device added!"
 }
 
 add_agent_device() {
