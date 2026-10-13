@@ -13,22 +13,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    name: changes
+  validate:
+    name: validate
     if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
-
-    outputs:
-      apps: ${{ steps.apps.outputs.changes }}
-      ui: ${{ steps.ui.outputs.ui }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: apps
+        id: changes
         with:
           filters: |
             console:
@@ -57,110 +53,32 @@ jobs:
             design-system:
               - 'ui/packages/design-system/**'
               - '.github/workflows/validate-ui.yml'
-
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: ui
-        with:
-          filters: |
             ui:
               - 'ui/**'
               - 'openapi/spec/**'
               - '.github/workflows/validate-ui.yml'
 
-  validate:
-    name: validate (${{ matrix.app }})
-    needs: changes
-    if: ${{ needs.changes.outputs.apps != '[]' }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        app: ${{ fromJSON(needs.changes.outputs.apps) }}
-
-    runs-on: ubuntu-latest
-
-    env:
-      WORKSPACE: "@shellhub/${{ matrix.app }}"
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set up Node.js [${{ matrix.app }}]
+      - name: Set up Node.js
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.20.0"
 
-      - name: Cache node modules [${{ matrix.app }}]
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ui/node_modules
-          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
-
-      - name: Install Node Dependencies [${{ matrix.app }}]
-        working-directory: ui
-        run: npm install
-
-      - name: Generate OpenAPI client [${{ matrix.app }}]
-        if: matrix.app == 'console'
-        working-directory: ui
-        run: |
-          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
-          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
-          npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
-          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w "$WORKSPACE"
-
-      - name: Astro sync [${{ matrix.app }}]
-        if: matrix.app == 'docs'
-        working-directory: ui
-        run: npm run sync -w @shellhub/docs
-
-      - name: Unit test [${{ matrix.app }}]
-        working-directory: ui
-        run: npm run test -w "$WORKSPACE"
-
-      - name: Install Vale [docs]
-        if: matrix.app == 'docs'
-        run: |
-          ./ui/scripts/install-vale.sh "$RUNNER_TEMP/bin"
-          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
-
-      - name: Code linting [${{ matrix.app }}]
-        working-directory: ui
-        run: npm run lint -w "$WORKSPACE"
-
-      - name: Build [${{ matrix.app }}]
-        if: matrix.app != 'design-system'
-        working-directory: ui
-        run: npm run build -w "$WORKSPACE"
-
-  unused:
-    name: unused files, exports and dependencies
-    needs: changes
-    if: ${{ needs.changes.outputs.ui == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set up Node.JS 24.13.0
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "24.13.0"
-
       - name: Cache node modules
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
 
-      - name: Install Node Dependencies
+      - name: Install Node dependencies
+        if: steps.changes.outputs.ui == 'true'
+        id: install
         working-directory: ui
         run: npm install
 
       - name: Generate OpenAPI client
+        if: steps.install.outcome == 'success'
         working-directory: ui
         run: |
           VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
@@ -168,13 +86,80 @@ jobs:
           npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
 
-      - name: knip
+      - name: Unused files, exports and dependencies
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: ui
         run: npm run knip
 
+      - name: Unit test console
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
+        working-directory: ui
+        run: npm run test -w @shellhub/console
+
+      - name: Lint console
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
+        working-directory: ui
+        run: npm run lint -w @shellhub/console
+
+      - name: Build console
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
+        working-directory: ui
+        run: npm run build -w @shellhub/console
+
+      - name: Astro sync docs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        working-directory: ui
+        run: npm run sync -w @shellhub/docs
+
+      - name: Install Vale
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        run: |
+          ./ui/scripts/install-vale.sh "$RUNNER_TEMP/bin"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Unit test docs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        working-directory: ui
+        run: npm run test -w @shellhub/docs
+
+      - name: Lint docs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        working-directory: ui
+        run: npm run lint -w @shellhub/docs
+
+      - name: Build docs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        working-directory: ui
+        run: npm run build -w @shellhub/docs
+
+      - name: Unit test website
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
+        working-directory: ui
+        run: npm run test -w @shellhub/website
+
+      - name: Lint website
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
+        working-directory: ui
+        run: npm run lint -w @shellhub/website
+
+      - name: Build website
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
+        working-directory: ui
+        run: npm run build -w @shellhub/website
+
+      - name: Unit test design-system
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.design-system == 'true' }}
+        working-directory: ui
+        run: npm run test -w @shellhub/design-system
+
+      - name: Lint design-system
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.design-system == 'true' }}
+        working-directory: ui
+        run: npm run lint -w @shellhub/design-system
+
   ui:
     name: ui
-    needs: [changes, validate, unused]
+    needs: [validate]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
