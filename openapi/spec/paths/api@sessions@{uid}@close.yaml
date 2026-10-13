@@ -25,8 +25,9 @@ post:
       description: The session is closed. No gateway was still holding it, so it was retired on the spot.
     '202':
       description: >-
-        The close request reached the device. A gateway still holds this session and closes it when
-        the client's connection drops, so it may show as active for a moment longer.
+        The close request reached the device. A gateway still holds this session. It closes the
+        client's connection within five seconds of the device ending it and then deactivates the
+        session, so the session may show as active until then.
     '400':
       $ref: ../components/responses/400.yaml
     '401':

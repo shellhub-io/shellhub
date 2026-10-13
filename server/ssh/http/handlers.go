@@ -97,11 +97,15 @@ const (
 // there, choosing the correct transport version, and then answers according to whether this
 // process still owns the session.
 //
-// It returns 200 when the session is closed, which is the case for a session no gateway holds:
-// nothing else would ever deactivate it, so this call does. It returns 202 when a gateway still
-// holds the session, because that gateway's teardown is what closes it, and ErrDeviceTunnelDial
-// when the device backing such a session cannot be reached. It returns 404 for a session no
-// gateway holds that is not in the caller's namespace, which it leaves untouched.
+// It returns the binding error for a malformed request, and 403 when the caller's role may not
+// close sessions. It returns 202 when a gateway still holds the session, because that gateway sees
+// the device end it, closes the client's connection within five seconds and then deactivates it,
+// and ErrDeviceTunnelDial when the device backing such a session cannot be reached.
+//
+// Nothing else would ever deactivate a session no gateway holds, so for one this call does. It
+// returns 200 once the session is deactivated, 403 when the caller's tenant does not form a
+// scope, the lookup's error, which is 404 for a session not in the caller's namespace and leaves
+// it untouched, and the error from deactivating it.
 //
 // The device's answer never decides this. A device ignores a close for a session it does not
 // have, so the dial succeeding says nothing about whether the session existed.

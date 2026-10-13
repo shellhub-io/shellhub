@@ -133,7 +133,7 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 			require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{}))
 			require.NoError(t, sess.Shell())
 		})
-		defer conn.Close() //nolint:errcheck // the server ends the session, not the connection
+		defer conn.Close() //nolint:errcheck // only a failed run reaches this with the connection still open
 
 		ended := make(chan error, 1)
 
@@ -147,9 +147,11 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 
 		select {
 		case err := <-ended:
-			var missing *ssh.ExitMissingError
+			var exit *ssh.ExitError
 
-			require.ErrorAs(t, err, &missing, "the shell was ended under the client, not exited")
+			require.ErrorAs(t, err, &exit, "the shell ended without the client being told how")
+			assert.Equal(t, "HUP", exit.Signal())
+			assert.Equal(t, "shellhub: the session was ended on the device", exit.Msg())
 		case <-time.After(30 * time.Second):
 			t.Fatal("the session the server was asked to close is still open on the client")
 		}

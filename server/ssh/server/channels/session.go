@@ -170,18 +170,31 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 	done := make(chan bool, 1)
 
-	oncePipe := sync.OnceFunc(func() {
-		go pipe(sess, client.Channel, agent.Channel, seat, done)
-	})
+	var pipeClaimed sync.Once
+
+	startPipe := func() {
+		pipeClaimed.Do(func() {
+			go pipe(sess, client.Channel, agent.Channel, seat, done)
+		})
+	}
 
 	wg.Add(2)
 
 	go func() {
+		var agentEnded, exited, closedByGateway bool
+
 		defer wg.Done()
 		defer func() {
 			logger.Debug("agent waiting for data done to close client")
 
+			pipeClaimed.Do(func() { done <- true })
+
 			<-done
+
+			if agentEnded && !exited && !closedByGateway {
+				signalEndedOnTheDevice(logger, client.Channel)
+			}
+
 			_ = client.Close()
 		}()
 
@@ -195,13 +208,20 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 				if !ok {
 					logger.Trace("agent requests is closed")
 
+					agentEnded = true
+					closedByGateway = agent.ClosedByGateway()
+
 					return
 				}
 
 				switch req.Type {
 				case ExitStatusRequest:
+					exited = true
+
 					session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
 				case ExitSignalRequest:
+					exited = true
+
 					session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
 				default:
 					sess.Event(req.Type, req.Payload, seat)
@@ -370,7 +390,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 				}
 
 				if startsDataPipe(req.Type) {
-					oncePipe()
+					startPipe()
 				}
 			}
 		}
@@ -379,4 +399,20 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 	wg.Wait()
 
 	logger.Debug("session done after waiting")
+}
+
+const endedOnTheDeviceMessage = "shellhub: the session was ended on the device"
+
+type exitSignal struct {
+	Signal     string
+	CoreDumped bool
+	Error      string
+	Lang       string
+}
+
+func signalEndedOnTheDevice(logger *log.Entry, client gossh.Channel) {
+	signal := gossh.Marshal(exitSignal{Signal: "HUP", CoreDumped: false, Error: endedOnTheDeviceMessage, Lang: ""})
+	if _, err := client.SendRequest(ExitSignalRequest, false, signal); err != nil {
+		logger.WithError(err).Debug("failed to send the exit signal for a session ended on the device")
+	}
 }
