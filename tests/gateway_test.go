@@ -135,6 +135,8 @@ func requestLogged(t *testing.T, compose *environment.DockerCompose, mark int, p
 // The API reports the address and request ID the gateway forwards in its request log, which is
 // where these cases read them.
 func TestGateway(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, "legacy")

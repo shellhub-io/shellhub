@@ -109,6 +109,8 @@ var approvalCodePattern = regexp.MustCompile(`/ssh-identities/new/([2-9A-Z]{8})`
 // namespace stripped of every policy admits nobody. Password refusal and a pre-enrolled identity
 // connecting are covered by [TestSSHIdentityMode].
 func TestIdentityAccessPolicy(t *testing.T) {
+	t.Parallel()
+
 	t.Run("an unknown key is held for approval and let in once confirmed", func(t *testing.T) {
 		ctx := context.Background()
 		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)

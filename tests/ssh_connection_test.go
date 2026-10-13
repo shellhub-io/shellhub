@@ -18,6 +18,8 @@ const sessionReaperCron = "* * * * *"
 // than of the session it runs: the cipher it negotiates, the banner that explains a refusal, and
 // how the session ends when either side ends it.
 func TestSSHConnectionBehaviour(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
@@ -174,6 +176,8 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 // rebuilt against the new process, and the sessions it was serving, which only the reaper can
 // retire once their keep-alive stops. A session still served is kept alive past the same window.
 func TestSSHServerRestart(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newConfiguredSSHEnvironment(t, ctx,

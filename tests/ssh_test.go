@@ -205,6 +205,8 @@ func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...New
 //
 // The access mode is orthogonal to the transport, so this runs on the default version only.
 func TestSSHIdentityMode(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
@@ -250,6 +252,8 @@ func TestSSHIdentityMode(t *testing.T) {
 }
 
 func TestSSH(t *testing.T) {
+	t.Parallel()
+
 	for _, version := range []int{1, 2} {
 		t.Run(fmt.Sprintf("connection_v%d", version), func(t *testing.T) {
 			testSSHWithVersion(t, version)

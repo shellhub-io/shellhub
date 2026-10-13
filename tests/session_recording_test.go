@@ -29,6 +29,8 @@ const recordingArchiveCron = "* * * * *"
 // recordings with the sessions. The cases share one stack, one device and one namespace that
 // records, and a case that turns recording off turns it back on.
 func TestEnterpriseSessionRecording(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newEnterpriseEnvironment(t, ctx,

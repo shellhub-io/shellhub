@@ -78,6 +78,8 @@ type deviceSeen struct {
 // endpoints to the device it merged into. The device's services listen in the agents' network
 // namespace and answer with the name they were started with and what they received.
 func TestEnterpriseWebEndpoints(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newEnterpriseEnvironment(t, ctx, environment.New(t, run).WithEnv("SHELLHUB_WEB_ENDPOINTS", "true"))
@@ -99,6 +101,8 @@ func TestEnterpriseWebEndpoints(t *testing.T) {
 // TestEnterpriseWebEndpointsDisabled covers an enterprise instance that leaves web endpoints off,
 // as it does by default: neither the API nor the gateway serves them.
 func TestEnterpriseWebEndpointsDisabled(t *testing.T) {
+	t.Parallel()
+
 	compose := newEnterpriseEnvironment(t, context.Background(), environment.New(t, run))
 
 	t.Run("the API serves no web endpoint route", func(t *testing.T) {
@@ -132,6 +136,8 @@ func TestEnterpriseWebEndpointsDisabled(t *testing.T) {
 // public authority signs for: it presents a certificate its own authority issued for the address,
 // and carries the request to the server.
 func TestEnterpriseWebEndpointsTLS(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).
 		WithEdition(environment.EditionEnterprise).
 		WithEnv("SHELLHUB_WEB_ENDPOINTS", "true").

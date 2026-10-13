@@ -36,6 +36,8 @@ const (
 // case controls exactly which part of the device's identity changes. The provisioning-key paths
 // are covered by [TestProvisioningKeyEnrollment].
 func TestDeviceAuth(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 	compose.NewNamespace(t, ShellHubUsername, otherNamespaceName, otherNamespace, "")
 
@@ -125,6 +127,8 @@ func TestDeviceAuth(t *testing.T) {
 // request: the hostname the agent reports, the tunnel it keeps open, and the enrollment it repeats
 // after the device is removed.
 func TestDeviceAuthAgent(t *testing.T) {
+	t.Parallel()
+
 	t.Run("an agent's hostname has its dots replaced by underscores", func(t *testing.T) {
 		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 

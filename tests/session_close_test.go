@@ -113,6 +113,8 @@ func requireSessionActive(t *testing.T, ctx context.Context, compose *environmen
 }
 
 func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, "legacy")
@@ -132,6 +134,8 @@ func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {
 }
 
 func TestSessionCloseRetiresASessionNoGatewayOwns(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, "legacy")

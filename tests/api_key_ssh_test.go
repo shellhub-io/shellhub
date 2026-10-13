@@ -19,6 +19,8 @@ import (
 // [TestSSHIdentityConnection], and that a key is never asked to re-authenticate by
 // [TestAccessPolicyReauth].
 func TestAPIKeySSHAccess(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)

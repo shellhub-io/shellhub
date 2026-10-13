@@ -12,6 +12,8 @@ import (
 )
 
 func TestSetup(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 

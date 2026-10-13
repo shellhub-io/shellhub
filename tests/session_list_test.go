@@ -46,6 +46,8 @@ func requireSessionsListed(t *testing.T, ctx context.Context, compose *environme
 }
 
 func TestSessionList(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, "legacy")

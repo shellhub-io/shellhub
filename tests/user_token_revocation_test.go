@@ -11,6 +11,8 @@ import (
 )
 
 func TestPasswordChangeRevokesTokens(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	cases := []struct {
@@ -72,6 +74,8 @@ func TestPasswordChangeRevokesTokens(t *testing.T) {
 }
 
 func TestRevokeUserTokens(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	first := signInto(t, compose, ShellHubUsername, ShellHubPassword)

@@ -27,6 +27,8 @@ var anyDevice = environment.FirewallRuleFilter{Hostname: anyValue}
 // policies instead, never reading its firewall rules. The cases share one stack and one device,
 // and each removes the rules it adds.
 func TestEnterpriseFirewall(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newEnterpriseEnvironment(t, ctx, environment.New(t, run))

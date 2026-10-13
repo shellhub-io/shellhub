@@ -25,6 +25,8 @@ import (
 // exports, the instance-wide statistics, and the token that signs an administrator in as another
 // user. The cases share one stack; each creates the users, namespaces and devices it reads.
 func TestEnterpriseAdmin(t *testing.T) {
+	t.Parallel()
+
 	compose := newEnterpriseEnvironment(t, context.Background(), environment.New(t, run))
 
 	t.Run("instance API keys", func(t *testing.T) { testInstanceAPIKeys(t, compose) })

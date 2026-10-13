@@ -18,6 +18,8 @@ import (
 )
 
 func TestRoutesThatRefuseAPIKeys(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 
@@ -171,6 +173,8 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 // honours only on the admin API, being refused on a namespace route. The routes that refuse a key whatever its role are covered by
 // [TestRoutesThatRefuseAPIKeys].
 func TestNamespaceAPIKeyAuthentication(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 
@@ -321,6 +325,8 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 }
 
 func TestAPIKeyRoleCap(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 

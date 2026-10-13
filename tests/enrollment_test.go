@@ -20,6 +20,8 @@ import (
 // accepting a device merges it into any accepted device with the same MAC. What an agent does with
 // a refusal is covered by [TestProvisioningKeyEnrollment].
 func TestEnrollmentPolicy(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("automatic", func(t *testing.T) { testAutomaticEnrollment(t, compose) })

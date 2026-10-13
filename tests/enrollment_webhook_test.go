@@ -38,6 +38,8 @@ const (
 // logs every call it receives. The server reaches it on loopback, which the stack allows the
 // webhook to call; every other private address stays behind the SSRF guard.
 func TestEnrollmentWebhook(t *testing.T) {
+	t.Parallel()
+
 	compose := newConfiguredSSHEnvironment(t, t.Context(),
 		environment.New(t, run).WithEnv("SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS", "127.0.0.0/8"),
 		models.SSHAccessModeLegacy)

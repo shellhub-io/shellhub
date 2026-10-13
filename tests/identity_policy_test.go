@@ -23,6 +23,8 @@ const unroutableCIDR = "203.0.113.0/24"
 // owner's starter policy never decides it. Default-deny, deny-over-allow and a member with no grant
 // are covered by [TestIdentityAccessPolicy].
 func TestAccessPolicyEvaluation(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)

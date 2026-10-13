@@ -31,6 +31,8 @@ const (
 // no longer belong to. Leaving any other namespace leaves that token valid, so there is nothing
 // to send back and the route says so with its own status rather than an empty 200.
 func TestLeaveNamespace(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).Up(ctx)
@@ -82,6 +84,8 @@ func TestLeaveNamespace(t *testing.T) {
 // the server closed the tunnel itself. The admin CLI runs apart from the server that holds the
 // tunnel.
 func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		description     string
 		deleteNamespace func(t *testing.T, compose *environment.DockerCompose)
@@ -135,6 +139,8 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 // TestDeleteNamespaceRefusesItsAPIKeys uses a key once, so the server caches it, then deletes the
 // key's namespace. Deleting the namespace evicts nothing from that cache.
 func TestDeleteNamespaceRefusesItsAPIKeys(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 

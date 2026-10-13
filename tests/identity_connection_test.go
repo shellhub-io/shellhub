@@ -20,6 +20,8 @@ const deadIdentityLog = "failed to resolve the identity for the public key"
 // and it authenticates as the principal it is bound to and nobody else. Enrolling a key and the
 // first connection with it are covered by [TestSSHIdentityMode] and [TestIdentityAccessPolicy].
 func TestSSHIdentityConnection(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)
