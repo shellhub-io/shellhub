@@ -7,7 +7,12 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { decodeB64url } from "@/tests/decodeB64url";
 import { setEdition } from "@/tests/edition";
-import { mockAdminUser, mockLicense, mockNamespace } from "@/tests/factories";
+import {
+  mockAdminUser,
+  mockInfo,
+  mockLicense,
+  mockNamespace,
+} from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 import type { GetLicenseResponse, UserAdminResponse } from "@/client";
 import AdminInstance from "../Instance";
@@ -123,12 +128,16 @@ beforeEach(() => {
   server.use(
     http.get("*/admin/api/stats", () => HttpResponse.json(stats)),
     http.get("*/info", () =>
-      HttpResponse.json({
-        version: "v0.27.0",
-        endpoints: { ssh: "shellhub.example:22", api: "shellhub.example:443" },
-        setup: true,
-        authentication: { local: true, saml: true },
-      }),
+      HttpResponse.json(
+        mockInfo({
+          version: "v0.27.0",
+          endpoints: {
+            ssh: "shellhub.example:22",
+            api: "shellhub.example:443",
+          },
+          authentication: { local: true, saml: true },
+        }),
+      ),
     ),
     http.get("*/admin/api/namespaces", () =>
       jsonWithTotal([mockNamespace({ name: "acme", tenant_id: "t-acme" })], 7),
