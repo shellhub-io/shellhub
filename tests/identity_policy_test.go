@@ -295,7 +295,7 @@ func createTag(t *testing.T, compose *environment.DockerCompose, name string) {
 
 	resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": name}).Post("/api/tags")
 	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode(), resp.String())
+	require.Equal(t, 201, resp.StatusCode(), resp.String())
 }
 
 func tagDevice(t *testing.T, compose *environment.DockerCompose, uid, tag string) {
@@ -306,6 +306,6 @@ func tagDevice(t *testing.T, compose *environment.DockerCompose, uid, tag string
 	t.Cleanup(func() {
 		resp, err := compose.R(context.WithoutCancel(t.Context())).Delete("/api/devices/" + uid + "/tags/" + tag)
 		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode(), resp.String())
+		require.Equal(t, 204, resp.StatusCode(), resp.String())
 	})
 }

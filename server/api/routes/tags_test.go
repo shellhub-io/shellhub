@@ -337,7 +337,7 @@ func TestCreateTag(t *testing.T) {
 			expected: Expected{status: http.StatusNotFound},
 		},
 		{
-			description: "succeeds with 200 and X-Inserted-ID header (new URL)",
+			description: "succeeds with 201 and X-Inserted-ID header (new URL)",
 			url:         "/api/tags",
 			headers: map[string]string{
 				"Content-Type": "application/json",
@@ -358,7 +358,7 @@ func TestCreateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				status:     http.StatusOK,
+				status:     http.StatusCreated,
 				insertedID: "000000000000000000000001",
 			},
 		},
@@ -406,7 +406,7 @@ func TestCreateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				status:     http.StatusOK,
+				status:     http.StatusCreated,
 				insertedID: "000000000000000000000002",
 			},
 		},
@@ -706,7 +706,7 @@ func TestPushTagToDevice(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "succeeds with 200 and no body (new URL)",
+			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
 			headers: map[string]string{
 				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
@@ -723,7 +723,7 @@ func TestPushTagToDevice(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusNoContent,
 		},
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
@@ -742,7 +742,7 @@ func TestPushTagToDevice(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusNoContent,
 		},
 	}
 
@@ -831,7 +831,7 @@ func TestPullTagFromDevice(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "succeeds with 200 and no body (new URL)",
+			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
 			headers: map[string]string{
 				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
@@ -848,7 +848,7 @@ func TestPullTagFromDevice(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusNoContent,
 		},
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
@@ -867,7 +867,7 @@ func TestPullTagFromDevice(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusNoContent,
 		},
 	}
 

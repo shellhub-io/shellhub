@@ -30,7 +30,9 @@ const (
 	URLOldPullTagFromDevice = "/namespaces/:tenant/devices/:uid/tags/:name"
 )
 
-// CreateTag adds a tag to the namespace.
+// CreateTag adds a tag to the namespace and answers 201 with the new tag's ID in X-Inserted-ID.
+// It returns the binding or validation error for a malformed request, ErrNamespaceNotFound,
+// ErrDuplicateTagName for a name the namespace already has, and the store's error.
 func (h *Handler) CreateTag(c *gateway.Context) error {
 	req := new(requests.CreateTag)
 
@@ -49,7 +51,7 @@ func (h *Handler) CreateTag(c *gateway.Context) error {
 
 	c.Response().Header().Add("X-Inserted-ID", insertedID)
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusCreated)
 }
 
 // GetTags serves the namespace's tags.
@@ -131,7 +133,9 @@ func (h *Handler) DeleteTag(c *gateway.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// PushTagToDevice attaches an existing tag to a device.
+// PushTagToDevice attaches an existing tag to a device and answers 204. It returns the binding or
+// validation error for a malformed request, ErrNamespaceNotFound, ErrTagNameNotFound,
+// store.ErrNoDocuments when the device does not exist, and the store's error from attaching the tag.
 func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 	req := new(requests.PushTag)
 
@@ -149,10 +153,13 @@ func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
-// PullTagFromDevice detaches a tag from a device, leaving the tag itself in place.
+// PullTagFromDevice detaches a tag from a device, leaving the tag itself in place, and answers 204.
+// It returns the binding or validation error for a malformed request, ErrNamespaceNotFound,
+// ErrTagNameNotFound, store.ErrNoDocuments when the device does not exist or does not carry the
+// tag, and the store's error from detaching the tag.
 func (h *Handler) PullTagFromDevice(c *gateway.Context) error {
 	req := new(requests.PullTag)
 
@@ -170,5 +177,5 @@ func (h *Handler) PullTagFromDevice(c *gateway.Context) error {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
