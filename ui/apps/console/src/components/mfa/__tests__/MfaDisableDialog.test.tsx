@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import Login from "@/pages/Login";
 import MfaDisableDialog from "../MfaDisableDialog";
 
 describe("MfaDisableDialog", () => {
@@ -13,7 +16,21 @@ describe("MfaDisableDialog", () => {
   function renderDialog(open = true) {
     const user = userEvent.setup();
     render(
-      <MfaDisableDialog open={open} onClose={onClose} onSuccess={onSuccess} />,
+      <MemoryRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <MfaDisableDialog
+                open={open}
+                onClose={onClose}
+                onSuccess={onSuccess}
+              />
+            }
+          />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </MemoryRouter>,
     );
     return user;
   }
@@ -230,7 +247,18 @@ describe("MfaDisableDialog", () => {
       }
     }
 
-    it("submits email codes and calls onSuccess/onClose", async () => {
+    it("submits email codes, then signs out on the sign-in page", async () => {
+      seedAuthStore();
+      server.use(
+        http.get("*/info", () =>
+          HttpResponse.json({
+            version: "0.0.0",
+            endpoints: null,
+            setup: true,
+            authentication: { local: true, saml: false },
+          }),
+        ),
+      );
       const user = renderDialog();
 
       await navigateToEmailReset(user);
@@ -239,10 +267,12 @@ describe("MfaDisableDialog", () => {
 
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
-      await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
-      });
+      expect(
+        await screen.findByText("MFA disabled. Sign in again."),
+      ).toBeInTheDocument();
+      expect(useAuthStore.getState().token).toBeNull();
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
     });
 
     it("shows error and resets OTP inputs on failure", async () => {

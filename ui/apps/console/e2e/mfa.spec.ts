@@ -10,7 +10,7 @@ import {
 } from "./helpers";
 import { buildRandomEmail, password } from "./seed";
 import { readLatestEmail } from "./mail";
-import { buildRequestContext } from "./api";
+import { buildRequestContext, expectStatus, loginAs } from "./api";
 import {
   buildRecoveryCode,
   enableMFA,
@@ -68,6 +68,11 @@ async function recoverThroughApi(username: string, code: string) {
 async function readMFA({ token }: { token: string }) {
   const { data } = await getUserInfo(buildRequestContext({ token }));
   return { enabled: data.mfa, recoveryEmail: data.recovery_email };
+}
+
+async function readMFAAfterReset(user: MFAUser) {
+  await expectStatus(getUserInfo, { token: user.token }, 401);
+  return readMFA(await loginAs(user.username, password));
 }
 
 async function readResetEmail(email: string) {
@@ -354,10 +359,11 @@ test.describe("MFA", () => {
       await fillResetCodes(page, await readResetCodes(user));
       await page.getByRole("button", { name: "Disable MFA" }).click();
 
+      await expect(page).toHaveURL(/\/login$/);
       await expect(
-        page.getByRole("button", { name: "Enable MFA" }),
+        page.getByText("MFA disabled. Sign in again."),
       ).toBeVisible();
-      expect(await readMFA(user)).toMatchObject({ enabled: false });
+      expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
     });
 
     test("emails a code to each address, and both codes reset MFA", async ({
@@ -378,7 +384,7 @@ test.describe("MFA", () => {
       await page.getByRole("button", { name: "Verify and Reset MFA" }).click();
 
       await expect(page).toHaveURL(/\/dashboard$/);
-      expect(await readMFA(user)).toMatchObject({ enabled: false });
+      expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
     });
 
     test("the emailed link resets MFA and signs in", async ({ page }) => {
@@ -390,7 +396,7 @@ test.describe("MFA", () => {
       await page.getByRole("button", { name: "Reset MFA and Login" }).click();
 
       await expect(page).toHaveURL(/\/dashboard$/);
-      expect(await readMFA(user)).toMatchObject({ enabled: false });
+      expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
     });
   });
 });

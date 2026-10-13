@@ -1,10 +1,12 @@
 import { useState, FormEvent, useId } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { disableMfa } from "@/client";
 import { Button, Callout } from "@shellhub/design-system/primitives";
+import { disableMfa } from "@/client";
+import { signOutLoginState } from "@/components/auth/loginState";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
@@ -21,7 +23,8 @@ type Mode = "totp" | "recovery" | "email-reset";
 
 /**
  * Turns MFA off, after re-authenticating. It lowers the account's protection, so it asks for a
- * current factor rather than accepting the existing session as proof.
+ * current factor rather than accepting the existing session as proof. The emailed-code path
+ * leaves for the sign-in page instead of calling onSuccess and onClose.
  */
 export default function MfaDisableDialog({
   open,
@@ -41,6 +44,7 @@ export default function MfaDisableDialog({
   const otpRecoveryEmail = useOtpInput(5, true);
   const { user, username } = useAuthStore();
   const { requestMfaReset } = useMfaResetStore();
+  const navigate = useNavigate();
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
@@ -88,6 +92,10 @@ export default function MfaDisableDialog({
           },
           throwOnError: true,
         });
+        void navigate("/login", {
+          state: signOutLoginState("MFA disabled. Sign in again."),
+        });
+        return;
       }
 
       onSuccess();
