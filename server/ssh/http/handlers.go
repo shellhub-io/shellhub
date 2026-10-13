@@ -129,7 +129,8 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 
 	owned := h.Sessions.Has(data.UID)
 
-	if _, err := h.Dialer.DialTo(ctx, tenant, data.Device, dialer.SSHCloseTarget{SessionID: data.UID}); err != nil {
+	conn, err := h.Dialer.DialTo(ctx, tenant, data.Device, dialer.SSHCloseTarget{SessionID: data.UID})
+	if err != nil {
 		logger := log.WithError(err).
 			WithFields(log.Fields{"session": data.UID, "device": data.Device})
 
@@ -142,6 +143,10 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		if owned {
 			return ErrDeviceTunnelDial
 		}
+	} else if err := conn.Close(); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": data.UID, "device": data.Device}).
+			Warning("failed to close the connection the session close was sent over")
 	}
 
 	if owned {
