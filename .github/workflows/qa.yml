@@ -13,24 +13,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    name: changes
+  go:
+    name: go
     if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
 
-    outputs:
-      go: ${{ steps.filter.outputs.go }}
-      agent: ${{ steps.filter.outputs.agent }}
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: true
 
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
+        id: changes
         with:
-          filters: |
+          filters: &qa-filters |
             go:
               - 'go.mod'
               - 'go.sum'
@@ -53,118 +52,150 @@ jobs:
               - 'pkg/**'
               - '.github/workflows/qa.yml'
 
-  validate:
-    name: validate (${{ matrix.project }}${{ matrix.database && format(' - {0}', matrix.database) || '' }})
-    needs: changes
-    if: ${{ needs.changes.outputs.go == 'true' }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [server, agent, pkg, gateway]
-        database: ['']  # Empty by default
-        include:
-          - project: server
-            extra_args: ""
-            lint_args: ""
-            race_args: "-race -shuffle=on"
-            test_timeout: "40m"
-          - project: gateway
-            extra_args: ""
-            lint_args: ""
-            race_args: "-race"
-          - project: agent
-            extra_args: "-tags docker"
-            lint_args: "--build-tags docker"
-            race_args: "-race"
-          - project: pkg
-            extra_args: ""
-            lint_args: ""
-            race_args: "-race"
-          - project: tests
-            extra_args: ""
-            test_args: "-skip '^(TestEnterprise|TestCloud)'"
-            lint_args: ""
-            database: postgres
-            test_timeout: "60m"
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set up Go 1.x [Go]
+      - name: Set up Go
+        if: steps.changes.outputs.go == 'true'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-          cache-dependency-path: ${{ matrix.project == 'pkg' && 'go.sum' || format('{0}/go.sum', matrix.project) }}
-        id: go
+          cache-dependency-path: '**/go.sum'
 
-      - name: Get Go dependencies [Go]
-        working-directory: ${{ matrix.project }}
-        run: go mod download
-
-      - name: Ensure Go dependencies are complete [Go]
-        working-directory: ${{ matrix.project }}
+      - name: Download the Go modules of every module
+        if: steps.changes.outputs.go == 'true'
         run: |
-          ../devscripts/prepare-release
+          for module in $(git ls-files '*go.mod' | xargs dirname); do
+              (cd "$module" && { go mod download || go mod download; })
+          done
+
+      - name: Ensure Go dependencies are complete
+        if: steps.changes.outputs.go == 'true'
+        run: |
+          devscripts/prepare-release
           if [ -n "$(git status --porcelain)" ]; then
               echo "Missing dependencies on 'go.mod'"
+              git --no-pager diff --stat
               exit 1
           fi
 
-      - name: Code format [Go]
+      - name: Code format
+        if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
-      - name: Read the golangci-lint version from versions.env [Go]
-        id: golangci-lint
+      - name: Read the tool versions from versions.env
+        if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}
+        id: versions
         run: |
-          VERSION=$(sed -n 's/^GOLANGCI_LINT_VERSION=//p' versions.env)
-          if [ -z "$VERSION" ]; then
-              echo "could not read GOLANGCI_LINT_VERSION from versions.env"
-              exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          for name in GOLANGCI_LINT MOCKERY; do
+              VERSION=$(sed -n "s/^${name}_VERSION=//p" versions.env)
+              if [ -z "$VERSION" ]; then
+                  echo "could not read ${name}_VERSION from versions.env"
+                  exit 1
+              fi
+              echo "$(echo "$name" | tr 'A-Z_' 'a-z-')=$VERSION" >> "$GITHUB_OUTPUT"
+          done
 
-      - name: Code linting [Go]
+      - name: Lint pkg
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          working-directory: ${{ matrix.project }}
-          version: ${{ steps.golangci-lint.outputs.version }}
-          args: --timeout 2m ${{ matrix.lint_args }} ./...
+          working-directory: pkg
+          version: ${{ steps.versions.outputs.golangci-lint }}
+          args: --timeout 2m ./...
           verify: false
 
-      - name: Set SHELLHUB_DATABASE for integration tests
-        if: matrix.project == 'tests' && matrix.database != ''
-        run: |
-          sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=${{ matrix.database }}/' .env
-          echo "Running integration tests with database: ${{ matrix.database }}"
+      - name: Lint server
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          working-directory: server
+          version: ${{ steps.versions.outputs.golangci-lint }}
+          args: --timeout 2m ./...
+          verify: false
 
-      - name: Unit test [Go]
-        working-directory: ${{ matrix.project }}
-        run: go test ${{ matrix.extra_args }} ${{ matrix.test_args }} ${{ matrix.race_args }} -timeout ${{ matrix.test_timeout || '25m' }} ./...
+      - name: Lint gateway
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          working-directory: gateway
+          version: ${{ steps.versions.outputs.golangci-lint }}
+          args: --timeout 2m ./...
+          verify: false
+
+      - name: Lint agent
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          working-directory: agent
+          version: ${{ steps.versions.outputs.golangci-lint }}
+          args: --timeout 2m --build-tags docker ./...
+          verify: false
+
+      - name: Lint tests
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          working-directory: tests
+          version: ${{ steps.versions.outputs.golangci-lint }}
+          args: --timeout 2m ./...
+          verify: false
+
+      - name: Ensure generated mocks match the pinned generator
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
         env:
-          TESTCONTAINERS_RYUK_DISABLED: true
+          VERSION: ${{ steps.versions.outputs.mockery }}
+        run: |
+          go install github.com/vektra/mockery/v3/...@"$VERSION"
 
-      - name: Go build [Go]
-        if: matrix.project != 'tests'
-        working-directory: ${{ matrix.project }}
-        run: go build -v ${{ matrix.extra_args }} ./...
+          for module in . server agent; do
+              (cd "$module" && "$(go env GOPATH)/bin/mockery")
+          done
 
-  edition-tests:
-    name: validate (tests - ${{ matrix.edition }})
-    needs: changes
-    if: ${{ needs.changes.outputs.go == 'true' }}
+          if [ -n "$(git status --porcelain -- . ':!*go.mod' ':!*go.sum')" ]; then
+              echo "generated mocks do not match mockery $VERSION: run mockery in ., server and agent"
+              git --no-pager diff --stat -- . ':!*go.mod' ':!*go.sum'
+              exit 1
+          fi
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - edition: enterprise
-            tests: ^TestEnterprise
-          - edition: cloud
-            tests: ^TestCloud
+      - name: Test pkg
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        working-directory: pkg
+        run: go test -race -timeout 25m ./...
+
+      - name: Test server
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        working-directory: server
+        run: go test -race -shuffle=on -timeout 40m ./...
+
+      - name: Test gateway
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        working-directory: gateway
+        run: go test -race -timeout 25m ./...
+
+      - name: Test agent
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        working-directory: agent
+        run: go test -tags docker -race -timeout 25m ./...
+
+      - name: Build
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        run: |
+          (cd pkg && go build ./...)
+          (cd server && go build ./...)
+          (cd gateway && go build ./...)
+          (cd agent && go build -tags docker ./...)
+
+      - name: Build and vet the agent for FreeBSD
+        if: ${{ !cancelled() && steps.changes.outputs.agent == 'true' }}
+        working-directory: agent
+        env:
+          GOOS: freebsd
+          CGO_ENABLED: 0
+        run: |
+          go build ./...
+          go vet ./...
+
+  integration:
+    name: integration
+    if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
 
@@ -174,16 +205,23 @@ jobs:
         with:
           path: shellhub
 
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: changes
+        with:
+          working-directory: shellhub
+          filters: *qa-filters
+
       - name: Decide whether the cloud source can be checked out
         id: cloud-access
         if: >-
-          github.event_name != 'pull_request'
-          || github.event.pull_request.head.repo.full_name == github.repository
+          steps.changes.outputs.go == 'true'
+          && (github.event_name != 'pull_request'
+          || github.event.pull_request.head.repo.full_name == github.repository)
         run: echo "granted=true" >> "$GITHUB_OUTPUT"
 
-      - name: Report the ${{ matrix.edition }} tests skipped for a fork
-        if: steps.cloud-access.outputs.granted != 'true'
-        run: echo "::notice title=${{ matrix.edition }} tests skipped::a pull request from a fork cannot check out the private cloud source"
+      - name: Report the enterprise and cloud tests skipped for a fork
+        if: steps.changes.outputs.go == 'true' && steps.cloud-access.outputs.granted != 'true'
+        run: echo "::notice title=enterprise and cloud tests skipped::a pull request from a fork cannot check out the private cloud source"
 
       - name: Generate cloud repo token
         id: cloud-token
@@ -217,105 +255,30 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        if: steps.cloud-access.outputs.granted == 'true'
+        if: steps.changes.outputs.go == 'true'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: shellhub/tests/go.mod
           cache-dependency-path: shellhub/tests/go.sum
 
       - name: Set SHELLHUB_DATABASE for integration tests
-        if: steps.cloud-access.outputs.granted == 'true'
+        if: steps.changes.outputs.go == 'true'
         working-directory: shellhub
         run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
 
-      - name: Run the ${{ matrix.edition }} tests
-        if: steps.cloud-access.outputs.granted == 'true'
+      - name: Run the integration tests
+        if: steps.changes.outputs.go == 'true'
         working-directory: shellhub/tests
-        run: go test -run '${{ matrix.tests }}' -timeout 60m ./...
+        run: go test ${{ steps.cloud-access.outputs.granted != 'true' && '-skip ''^(TestEnterprise|TestCloud)''' || '' }} -parallel 4 -timeout 60m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
-          STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
-          STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
-          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}
-
-  mocks:
-    name: generated mocks
-    needs: changes
-    if: ${{ needs.changes.outputs.go == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version-file: go.mod
-
-      - name: Ensure generated mocks match the pinned generator
-        run: |
-          VERSION=$(sed -n 's/^MOCKERY_VERSION=//p' versions.env)
-          if [ -z "$VERSION" ]; then
-              echo "could not read MOCKERY_VERSION from versions.env"
-              exit 1
-          fi
-
-          go install github.com/vektra/mockery/v3/...@"$VERSION"
-
-          for module in . server agent; do
-              (cd "$module" && "$(go env GOPATH)/bin/mockery")
-          done
-
-          if [ -n "$(git status --porcelain)" ]; then
-              echo "generated mocks do not match mockery $VERSION: run mockery in ., server and agent"
-              git --no-pager diff --stat
-              exit 1
-          fi
-
-  cross-compile:
-    name: cross-compile (${{ matrix.goos }})
-    needs: changes
-    if: ${{ needs.changes.outputs.agent == 'true' }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        goos: [freebsd]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set up Go 1.x [Go]
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version-file: go.mod
-
-      - name: Get Go dependencies [Go]
-        working-directory: agent
-        run: go mod download
-
-      - name: Go build [Go]
-        working-directory: agent
-        env:
-          GOOS: ${{ matrix.goos }}
-          CGO_ENABLED: 0
-        run: go build -v ./...
-
-      - name: Go vet [Go]
-        working-directory: agent
-        env:
-          GOOS: ${{ matrix.goos }}
-          CGO_ENABLED: 0
-        run: go vet ./...
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
+          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
 
   qa:
     name: qa
-    needs: [changes, validate, edition-tests, mocks, cross-compile]
+    needs: [go, integration]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
