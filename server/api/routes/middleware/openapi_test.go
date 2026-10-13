@@ -227,6 +227,14 @@ func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredPropertyBesideAType
 	requireRejected(t, rec, `property "extra" is unsupported`)
 }
 
+func TestStrictValidatorReplacesAResponseCarryingAnUndeclaredStatus(t *testing.T) {
+	rec := serveThings(t, true, "/api/things", func(c *echo.Context) error {
+		return c.JSON(http.StatusTeapot, map[string]string{"id": "thing-1"})
+	})
+
+	requireRejected(t, rec, "status is not supported")
+}
+
 func TestStrictValidatorReplacesAResponseNoRouteDeclares(t *testing.T) {
 	rec := serveThings(t, true, "/api/nothing", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"id": "thing-1"})
@@ -255,6 +263,15 @@ func TestReportingValidatorAnswersAsTheHandlerDidWhenTheResponseMismatches(t *te
 
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.JSONEq(t, `{"count":1}`, rec.Body.String())
+}
+
+func TestReportingValidatorAnswersAsTheHandlerDidWhenTheStatusIsUndeclared(t *testing.T) {
+	rec := serveThings(t, false, "/api/things", func(c *echo.Context) error {
+		return c.JSON(http.StatusTeapot, map[string]string{"id": "thing-1"})
+	})
+
+	require.Equal(t, http.StatusTeapot, rec.Code)
+	require.JSONEq(t, `{"id":"thing-1"}`, rec.Body.String())
 }
 
 func TestLoadOpenAPIValidatorFailsWithoutASchema(t *testing.T) {

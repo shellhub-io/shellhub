@@ -29,9 +29,12 @@ type OpenAPIValidator struct {
 type ValidationOutcome string
 
 const (
-	// OutcomePassed means the response matched the schema its route declares.
+	// OutcomePassed means the response matched the schema its route declares, or is one kin-openapi
+	// does not check: a HEAD request, a 301, 304, 307 or 308, or an operation with no responses.
 	OutcomePassed ValidationOutcome = "passed"
-	// OutcomeFailed means the response did not match the schema its route declares.
+	// OutcomeFailed means the route does not declare the response's status or Content-Type, a
+	// declared header failed validation, the body did not match the schema its route declares, or
+	// the declared response is a reference the loader left unresolved.
 	OutcomeFailed ValidationOutcome = "failed"
 	// OutcomeUndeclared means no route in the schema matches the request.
 	OutcomeUndeclared ValidationOutcome = "undeclared"
@@ -153,7 +156,13 @@ func closable(schema *openapi3.Schema) bool {
 		schema.AdditionalProperties.Has == nil && schema.AdditionalProperties.Schema == nil
 }
 
-// ValidateResponse validates an HTTP response against the OpenAPI schema
+// ValidateResponse validates an HTTP response against the OpenAPI schema. The result is
+// OutcomeSkipped for a path outside the enabled paths, OutcomeUndeclared when no operation matches
+// the request, and OutcomeFailed when the operation does not declare the response's status or
+// Content-Type, a declared header fails validation, the body does not match the schema, or the
+// declared response is a reference the loader left unresolved. It is OutcomePassed, unchecked, for
+// a HEAD request, a 301, 304, 307 or 308, and an operation that declares no responses, because
+// kin-openapi validates none of them.
 func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Response, responseBody []byte) *ValidationResult {
 	result := &ValidationResult{
 		Outcome:    OutcomePassed,
@@ -190,6 +199,7 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 		Status:                 response.StatusCode,
 		Header:                 response.Header,
 		Body:                   io.NopCloser(bytes.NewReader(responseBody)),
+		Options:                &openapi3filter.Options{IncludeResponseStatus: true},
 	}
 
 	ctx := context.Background()
