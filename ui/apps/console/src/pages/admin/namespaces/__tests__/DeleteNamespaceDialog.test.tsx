@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
+import { setEdition } from "@/tests/edition";
 import DeleteNamespaceDialog from "../DeleteNamespaceDialog";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -21,6 +22,7 @@ const deleteSpy = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setEdition("community");
   deleteSpy.mockReset();
   server.use(
     http.delete("*/admin/api/namespaces/:tenant", ({ params }) => {
@@ -110,6 +112,41 @@ describe("DeleteNamespaceDialog", () => {
           screen.getByText(/failed to delete namespace/i),
         ).toBeInTheDocument();
       });
+    });
+
+    it("explains a deletion that billing blocks", async () => {
+      setEdition("cloud");
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 402 }),
+        ),
+      );
+      renderDialog();
+
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "This namespace has an active subscription or an unpaid invoice, which blocks its deletion.",
+          ),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("does not blame billing for a 402 outside cloud, where only the license answers it", async () => {
+      setEdition("enterprise");
+      server.use(
+        http.delete("*/admin/api/namespaces/:tenant", () =>
+          HttpResponse.json({}, { status: 402 }),
+        ),
+      );
+      renderDialog();
+
+      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
+
+      await waitFor(() => screen.getByText(/failed to delete namespace/i));
+      expect(screen.queryByText(/active subscription/i)).not.toBeInTheDocument();
     });
 
     it("does not call onDeleted when deletion fails", async () => {
