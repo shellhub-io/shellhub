@@ -17,6 +17,8 @@ import (
 // an API key, and at the shortest period when several policies ask. What the re-authentication
 // approval itself does is covered by [TestSSHApprovalReauth].
 func TestAccessPolicyReauth(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)

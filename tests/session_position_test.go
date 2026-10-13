@@ -10,6 +10,8 @@ import (
 )
 
 func TestEnterpriseSessionPosition(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	florianopolis := environment.Location{Country: "BR", Latitude: -27.5954, Longitude: -48.548}

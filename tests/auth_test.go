@@ -17,6 +17,8 @@ import (
 // rejects is replaced by a 500. Decoding into a map rather than [models.UserAuthResponse] keeps a
 // dropped key from reading as a null one.
 func TestLoginWithoutANamespace(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).Up(ctx)

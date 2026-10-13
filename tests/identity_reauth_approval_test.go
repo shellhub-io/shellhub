@@ -15,6 +15,8 @@ import (
 // enrolls keys cannot stand in for it, and a lapsed window refuses the login without refreshing
 // anything. When a policy asks for one is covered by [TestAccessPolicyReauth].
 func TestSSHApprovalReauth(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)

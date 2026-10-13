@@ -18,8 +18,6 @@ import (
 //   - absent namespace flags are excluded
 //   - the setpriv/nsenter prefix ordering is unchanged
 //   - the user command appears at the end
-//
-//nolint:paralleltest
 func TestNsenterCommandWrapper(t *testing.T) {
 	origStatFn := statFn
 
@@ -162,7 +160,6 @@ func TestNsenterArgs(t *testing.T) {
 	})
 }
 
-//nolint:paralleltest
 func TestNsenterCommandWrapperIDsAboveMaxInt32(t *testing.T) {
 	origStatFn := statFn
 

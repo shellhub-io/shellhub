@@ -16,6 +16,8 @@ import (
 // digest, as accounts created before bcrypt were: the right password logs in and the login rehashes
 // it with bcrypt, and a wrong one leaves the digest as it was.
 func TestLegacyPasswordDigest(t *testing.T) {
+	t.Parallel()
+
 	compose := environment.New(t, run).Up(t.Context())
 	t.Cleanup(compose.Down)
 

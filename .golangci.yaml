@@ -29,6 +29,12 @@ linters:
       - path: _test\.go$
         linters:
           - unparam
+      - path: ^tests/[^/]+_test\.go$
+        linters:
+          - tparallel
+      - path-except: ^tests/[^/]+_test\.go$
+        linters:
+          - paralleltest
   enable:
     - errcheck
     - revive
@@ -79,6 +85,7 @@ linters:
     - mirror
     - exptostd
     - tparallel
+    - paralleltest
     - unparam
 
   settings:
@@ -141,6 +148,8 @@ linters:
           deny:
             - pkg: testing
               desc: "only _test.go files and *test helper packages import testing; a file that needs it is a test and must end in _test.go"
+    paralleltest:
+      ignore-missing-subtests: true
     whitespace:
       multi-if: true
       multi-func: true

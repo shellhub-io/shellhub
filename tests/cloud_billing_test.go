@@ -56,6 +56,8 @@ const (
 // a case delivers the event it needs, signed with the webhook secret the server verifies. Before
 // the cases run, it deletes the customers and test clocks an earlier run left on the account.
 func TestCloudBilling(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)

@@ -67,6 +67,8 @@ func servedCertificate(ctx context.Context, address string, config *tls.Config) 
 // TestGatewaySuppliedCertificate runs the gateway with automatic HTTPS on and a certificate it is
 // given, which is how TLS runs on a name no public CA signs.
 func TestGatewaySuppliedCertificate(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	certificate, err := environment.SelfSignedCertificate("localhost")
@@ -119,6 +121,8 @@ func TestGatewaySuppliedCertificate(t *testing.T) {
 // TestGatewayACME runs the gateway with automatic HTTPS on and its ACME CA pointed at a Pebble
 // server in the stack, in place of Let's Encrypt's production directory.
 func TestGatewayACME(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose, name := upGatewayStack(t, ctx, environment.Config{ACME: true, Envs: map[string]string{"SHELLHUB_DOMAIN": acmeDomain}})

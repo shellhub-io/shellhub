@@ -25,6 +25,8 @@ const (
 // TestRemoveMemberThroughTheAdminCLI removes a member with the admin CLI, a process apart from the
 // server that caches the member's API keys and holds the tunnels of the devices they paired.
 func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
+	t.Parallel()
+
 	t.Run("refuses their token and API keys at once", func(t *testing.T) {
 		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 		member := signInDepartingMember(t, compose)

@@ -23,6 +23,8 @@ const (
 // names the namespace, and its mode decides whether the device still needs a decision. The legacy
 // tenant-only path is covered by [TestSSH].
 func TestProvisioningKeyEnrollment(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		mode       models.ProvisioningKeyMode

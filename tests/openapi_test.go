@@ -133,6 +133,8 @@ func sweepOperations(t *testing.T) []sweepOperation {
 // when a handler returns an error, and pkgmiddleware.Log renders outside the capture. The source
 // ratchet in server/api/routes is what catches a regression to c.NoContent.
 func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).Up(ctx)

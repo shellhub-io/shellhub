@@ -14,6 +14,8 @@ import (
 const sessionRetentionCron = "0 1 * * *"
 
 func TestSessionRetention(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newConfiguredSSHEnvironment(t, ctx,

@@ -12,6 +12,8 @@ import (
 // addresses. A client inside the gateway's container connects from loopback, so it is trusted; the
 // test process reaches the published port through Docker's forwarding, so it is not.
 func TestGatewayProxyProtocol(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).

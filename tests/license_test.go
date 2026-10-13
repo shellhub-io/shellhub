@@ -20,6 +20,8 @@ import (
 // cases share one stack whose GeoIP database locates every address in Brazil, so a case changes
 // the installed license and leaves the full one behind for the next.
 func TestEnterpriseLicensing(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	startup := environment.FullLicense()
@@ -35,6 +37,8 @@ func TestEnterpriseLicensing(t *testing.T) {
 // TestEnterpriseWithoutLicenseFile starts an enterprise instance with no license file configured:
 // the server starts, stores no license, and so accepts no device until one is installed.
 func TestEnterpriseWithoutLicenseFile(t *testing.T) {
+	t.Parallel()
+
 	compose := newEnterpriseEnvironment(t, context.Background(), environment.New(t, run).WithoutLicense())
 
 	assert.Zero(t, compose.LicenseRows(t))

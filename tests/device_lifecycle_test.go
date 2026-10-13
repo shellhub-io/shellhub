@@ -14,6 +14,8 @@ import (
 // TestDeviceLifecycle drives a device's status and name through the API, with devices enrolled by
 // hand so no agent container is needed.
 func TestDeviceLifecycle(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("status transitions", func(t *testing.T) {

@@ -22,6 +22,8 @@ const strayConfirmationCode = "23456789"
 // the one the console shows. Holding an unknown key and confirming it are covered by
 // [TestIdentityAccessPolicy].
 func TestSSHApprovalIdentity(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
 	_, device := startAcceptedAgent(t, ctx, compose)

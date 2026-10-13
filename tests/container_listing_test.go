@@ -15,6 +15,8 @@ import (
 // agent does, then reads back where the API lists each: /api/containers serves the connector's
 // devices alone, and /api/devices every device but those.
 func TestContainerListing(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	containerReq := newDeviceAuthRequest(t, "listed-container", "02:00:00:00:a1:01")

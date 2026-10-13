@@ -19,8 +19,6 @@ var _ = CheckCredentialSwitch
 // TestSetgroupsDenied verifies the setgroupsDenied helper across all documented
 // scenarios.  Tests do NOT call t.Parallel() because they mutate package-level
 // seam variables.
-//
-//nolint:paralleltest
 func TestSetgroupsDenied(t *testing.T) {
 	origGeteuidFn := geteuidFn
 	origReadSetgroupsPolicyFn := readSetgroupsPolicyFn
@@ -82,8 +80,6 @@ func TestSetgroupsDenied(t *testing.T) {
 // TestCheckCredentialSwitch verifies CheckCredentialSwitch across its four
 // documented scenarios.  Tests do NOT call t.Parallel() because they mutate
 // package-level seam variables.
-//
-//nolint:paralleltest
 func TestCheckCredentialSwitch(t *testing.T) {
 	origGeteuidFn := geteuidFn
 	origReadSetgroupsPolicyFn := readSetgroupsPolicyFn

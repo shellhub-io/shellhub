@@ -35,6 +35,8 @@ var (
 // a MAC address no other case uses. What a running agent makes of a pairing is covered by
 // [TestDevicePairingAgent].
 func TestDevicePairing(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("pairing", func(t *testing.T) { testPairingCode(t, compose) })
@@ -46,6 +48,8 @@ func TestDevicePairing(t *testing.T) {
 // TestDevicePairingAgent runs a real agent with no tenant, for what it does with a pairing: the code
 // it asks for, the status it polls, and the tenant it joins once someone accepts the code.
 func TestDevicePairingAgent(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("an agent without a tenant starts a pairing and waits on its code", func(t *testing.T) {

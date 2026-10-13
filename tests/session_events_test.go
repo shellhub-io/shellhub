@@ -132,6 +132,8 @@ func commandsBySeat(events []models.SessionEvent) map[int]string {
 }
 
 func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, "legacy")
@@ -352,6 +354,8 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 }
 
 func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)

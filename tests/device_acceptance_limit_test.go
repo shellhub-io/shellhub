@@ -15,6 +15,8 @@ import (
 // provisioning keys reach the same limit through their own routes, in [TestDevicePairing] and
 // [TestEnrollmentPolicy].
 func TestDeviceAcceptanceLimit(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("a namespace at its device limit refuses accepting a device until the limit is lifted", func(t *testing.T) {

@@ -23,6 +23,8 @@ const (
 // its rule names and is refused, with the reason in the server's log, by the device or user it
 // does not.
 func TestSSHPublicKeyRules(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
@@ -74,6 +76,8 @@ func TestSSHPublicKeyRules(t *testing.T) {
 // older than 0.6.0, which do not check the key the server asks them to accept. A password still
 // logs in to such an agent.
 func TestSSHPublicKeyRefusedBelowAgent060(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)

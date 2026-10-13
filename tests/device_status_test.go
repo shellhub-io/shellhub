@@ -16,6 +16,8 @@ import (
 // rows. Before the status parameter declared its values the server answered 500 and reported the
 // cast to Sentry, so the assertion that matters is the status code, not the body.
 func TestDeviceListRefusesAStatusThePostgresEnumCannotHold(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := environment.New(t, run).Up(ctx)
