@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -280,6 +281,9 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			service := new(mocks.MockService)
 			service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+			service.On("AuthDeviceToken", mock.Anything, mock.MatchedBy(func(claims *authorizer.DeviceClaims) bool {
+				return claims.UID == deviceUID
+			})).Return(nil).Once()
 
 			c, rec := authenticatedRequest(echo.New(), bearer)
 			c.Request().Header.Set("X-Device-UID", "forged")
@@ -330,4 +334,54 @@ func TestAuthenticatorUnregisteredRoutes(t *testing.T) {
 		[]string{"GET /api/devices/auth", "* /api/sessions"},
 		authenticator.UnregisteredRoutes(routes),
 	)
+}
+
+func TestAuthenticatorMiddlewareRefusesADeviceTokenTheServiceNoLongerHonours(t *testing.T) {
+	const deviceUID = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
+	require.NoError(t, err)
+
+	service := mocks.NewMockService(t)
+	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(services.NewErrAuthUnathorized(nil)).Once()
+
+	c, rec := authenticatedRequest(echo.New(), bearer)
+
+	authenticator := NewAuthenticator(service)
+	authenticator.AllowDevice(http.MethodGet, "/api/namespaces")
+
+	next := func(c *echo.Context) error { return c.NoContent(http.StatusOK) }
+	renderRefusal(t, c, authenticator.Middleware(next)(c))
+
+	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
+	assert.Empty(t, c.Request().Header.Get("X-Device-UID"))
+}
+
+func TestAuthenticatorMiddlewareRefusesADeviceTokenItCannotCheck(t *testing.T) {
+	const deviceUID = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
+	require.NoError(t, err)
+
+	service := mocks.NewMockService(t)
+	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(errors.New("store down")).Once()
+
+	c, rec := authenticatedRequest(echo.New(), bearer)
+
+	authenticator := NewAuthenticator(service)
+	authenticator.AllowDevice(http.MethodGet, "/api/namespaces")
+
+	next := func(c *echo.Context) error { return c.NoContent(http.StatusOK) }
+	renderRefusal(t, c, authenticator.Middleware(next)(c))
+
+	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
+	assert.Empty(t, c.Request().Header.Get("X-Device-UID"))
 }

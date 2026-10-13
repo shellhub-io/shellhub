@@ -1,3 +1,6 @@
+spec/paths/api@devices@auth@challenge.yaml:
+  operation-4xx-response:
+    - '#/post/responses'
 spec/paths/api@healthcheck.yaml:
   operation-4xx-response:
     - '#/get/responses'

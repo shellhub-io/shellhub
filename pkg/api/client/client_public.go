@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto"
 	"errors"
 	"net"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/hashicorp/yamux"
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
@@ -34,16 +36,28 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 }
 
 // AuthDevice registers the device on the server and returns the token the agent authenticates the
-// rest of its calls with.
+// rest of its calls with. With key, the private half of req's public key, every attempt, retries
+// included, fetches a fresh challenge and signs it, since a challenge expires a minute after it is
+// issued and a retry may come later; a nil key sends no signature, and so does a server answering 404, 405 or 401 for the
+// challenge, which predates device key verification. The call fails with the challenge request's transport
+// error, the server's refusal of the challenge, ErrEmptyResponse for a challenge answered without
+// a body, or the error from a key that cannot sign.
 //
-// Of the refusals the server can answer with, it retries only the three an operator resolves
-// without touching the device: 404 for a namespace that does not exist yet, and 402 or 403 for a
-// device limit that has been reached. Every other refusal is returned to the caller, whose device
-// is misconfigured in a way that repeating the same request cannot settle. Transport failures, 429
-// and 5xx are left to the client-wide retry condition, which reports them as a server that cannot
-// answer rather than one that refuses the device.
-func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
+// Of the refusals the server can answer with, it retries 404 for a namespace that does not exist
+// yet and 402 or 403, which cover both a device limit that has been reached and a key
+// verification the device failed; retrying the latter signs a fresh challenge, so a stale or
+// expired one heals on its own instead of unpairing the device. Every other refusal is returned
+// to the caller, whose device is misconfigured in a way that repeating the same request cannot
+// settle. Transport failures, 429 and 5xx are left to the client-wide retry condition, which
+// reports them as a server that cannot answer rather than one that refuses the device.
+func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
+
+	var body any = req
+	if key != nil {
+		signed := *req
+		body = &signedDeviceAuth{DeviceAuthRequest: &signed, key: key}
+	}
 
 	response, err := c.http.R().
 		AddRetryCondition(func(r *resty.Response, err error) bool {
@@ -53,7 +67,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 
 			return r.IsError() && operatorCanResolve(r.StatusCode())
 		}).
-		SetBody(req).
+		SetBody(body).
 		SetResult(&res).
 		Post("/api/devices/auth")
 	if err != nil {
@@ -65,6 +79,50 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 	}
 
 	return requireBody(res)
+}
+
+type signedDeviceAuth struct {
+	*models.DeviceAuthRequest
+	key crypto.Signer
+}
+
+func (c *client) signDeviceAuth(signed *signedDeviceAuth) error {
+	var challenge *models.DeviceAuthChallenge
+
+	response, err := c.http.R().
+		SetResult(&challenge).
+		Post("/api/devices/auth/challenge")
+	if err != nil {
+		return err
+	}
+
+	err = ErrorFromResponse(response)
+	switch {
+	case errors.Is(err, ErrNotFound), errors.Is(err, ErrMethodNotAllowed), errors.Is(err, ErrUnauthorized):
+		signed.Challenge, signed.Signature = "", ""
+
+		return nil
+	case err != nil:
+		return err
+	}
+
+	if challenge, err = requireBody(challenge); err != nil {
+		return err
+	}
+
+	signature, err := devicekey.Sign(signed.key, devicekey.Statement{
+		Challenge:       challenge.Challenge,
+		TenantID:        signed.TenantID,
+		ProvisioningKey: signed.ProvisioningKey,
+		PublicKey:       signed.PublicKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	signed.Challenge, signed.Signature = challenge.Challenge, signature
+
+	return nil
 }
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {

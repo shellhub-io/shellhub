@@ -28,14 +28,14 @@ func removalTestAgent(t *testing.T, cli *client_mocks.MockClient, tenant string)
 	keyPath := filepath.Join(t.TempDir(), "shellhub.key")
 	require.NoError(t, keygen.GeneratePrivateKey(keyPath))
 
-	pubKey, err := keygen.ReadPublicKey(keyPath)
+	key, err := keygen.ReadPrivateKey(keyPath)
 	require.NoError(t, err)
 
 	return &Agent{
 		config:     &Config{TenantID: tenant, PrivateKey: keyPath, TransportVersion: TransportV2, MaxRetryConnectionTimeout: 60},
 		mode:       idleMode{},
 		cli:        cli,
-		pubKey:     pubKey,
+		key:        key,
 		Identity:   &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:01"},
 		Info:       &models.DeviceInfo{},
 		serverInfo: &models.Info{Endpoints: models.Endpoints{SSH: "localhost:22", API: "localhost:80"}},
@@ -44,7 +44,7 @@ func removalTestAgent(t *testing.T, cli *client_mocks.MockClient, tenant string)
 
 func TestAuthorizeReportsARemovedDevice(t *testing.T) {
 	cli := client_mocks.NewMockClient(t)
-	cli.On("AuthDevice", mock.Anything).Return(nil, client.ErrUnauthorized).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
 
 	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
 
@@ -53,12 +53,12 @@ func TestAuthorizeReportsARemovedDevice(t *testing.T) {
 
 func TestListenStopsWhenTheDeviceIsRemoved(t *testing.T) {
 	cli := client_mocks.NewMockClient(t)
-	cli.On("AuthDevice", mock.Anything).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token", Name: "dev", Namespace: "ns"}, nil).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token", Name: "dev", Namespace: "ns"}, nil).Once()
 
 	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
 	require.NoError(t, ag.Authorize())
 
-	cli.On("AuthDevice", mock.Anything).Return(nil, client.ErrUnauthorized).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -85,4 +85,13 @@ func TestUnpairRefusesATenantFromTheEnvironment(t *testing.T) {
 
 	require.ErrorIs(t, ag.Unpair(), ErrTenantFromEnvironment)
 	assert.Equal(t, "00000000-0000-4000-0000-000000000000", ag.config.TenantID)
+}
+
+func TestAuthorizeProvesTheDeviceKey(t *testing.T) {
+	cli := client_mocks.NewMockClient(t)
+	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
+
+	cli.On("AuthDevice", mock.Anything, ag.key).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token"}, nil).Once()
+
+	require.NoError(t, ag.Authorize())
 }

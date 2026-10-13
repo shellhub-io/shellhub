@@ -67,7 +67,12 @@ type DeviceStore interface {
 	// Only accepted devices are considered conflicting, within the given namespace scope.
 	DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...QueryOption) (conflicts []string, has bool, err error)
 
-	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
+	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found, and the
+	// store's error when the update fails or, after the row is written, when the follow-up write of
+	// KeyVerifiedAt fails. It writes KeyVerifiedAt only while the stored one is unset and the device
+	// is not removed, so a snapshot read before a verification cannot undo it and a removal racing a
+	// verification wins, and clears it when the device is written as removed, so a removed device
+	// accepts unsigned authentication again until the instance requires verification.
 	DeviceUpdate(ctx context.Context, device *models.Device) error
 	// DeviceUpdateUnlessRemoved updates a device the way DeviceUpdate does, but only while it is not
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so

@@ -165,6 +165,7 @@ func (pg *Pg) removeOwnedDevices(ctx context.Context, sc scope.Scope, tenantID, 
 		Set("removed_at = ?", now).
 		Set("updated_at = ?", now).
 		Set("owner_id = NULL").
+		Set("key_verified_at = NULL").
 		Where("namespace_id = ?", tenantID).
 		Where("owner_id = ?", memberID).
 		Where("status = ?", models.DeviceStatusAccepted).

@@ -19,7 +19,8 @@ type System struct {
 // SystemAuthentication is embedded into the systems row, so the login methods are read with the
 // rest of the instance state.
 type SystemAuthentication struct {
-	Local SystemAuthenticationLocal `bun:"embed:local_"`
+	Local  SystemAuthenticationLocal  `bun:"embed:local_"`
+	Device SystemAuthenticationDevice `bun:"embed:device_"`
 }
 
 // SystemAuthenticationLocal is whether password login is offered.
@@ -27,16 +28,25 @@ type SystemAuthenticationLocal struct {
 	Enabled bool `bun:"enabled"`
 }
 
-// SystemFromModel projects instance state into its row form, tolerating a nil model.
+// SystemAuthenticationDevice is whether device authentication must sign a server challenge.
+type SystemAuthenticationDevice struct {
+	RequireVerifiedKey bool `bun:"require_verified_key"`
+}
+
+// SystemFromModel projects instance state into its row form, tolerating a nil model. A model
+// without device authentication settings, a nil one included, requires verified device keys, as a
+// new instance does: a caller that writes the row without reading it first is creating it.
 func SystemFromModel(model *models.System) *System {
 	if model == nil {
-		return &System{}
+		model = &models.System{}
 	}
 
 	entity := &System{
 		Setup:            model.Setup,
 		InstanceTenantID: model.InstanceTenantID,
 	}
+
+	entity.Authentication.Device.RequireVerifiedKey = model.Authentication.RequiresVerifiedDeviceKey()
 
 	if model.Authentication != nil {
 		if model.Authentication.Local != nil {
@@ -59,6 +69,9 @@ func SystemToModel(entity *System) *models.System {
 		Authentication: &models.SystemAuthentication{
 			Local: &models.SystemAuthenticationLocal{
 				Enabled: entity.Authentication.Local.Enabled,
+			},
+			Device: &models.SystemAuthenticationDevice{
+				RequireVerifiedKey: entity.Authentication.Device.RequireVerifiedKey,
 			},
 		},
 	}
