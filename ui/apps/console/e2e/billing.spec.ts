@@ -292,15 +292,18 @@ test.describe("Billing", () => {
     expect(deletion.status()).toBe(402);
 
     await expect(
-      dialog.getByText("Couldn't delete the namespace."),
+      dialog.getByText(/Billing is blocking this deletion:/),
     ).toBeVisible();
     expect(await readTenants(owner)).toEqual([owner.tenant]);
+
+    await dialog.getByRole("link", { name: "billing settings" }).click();
+    await expect(page).toHaveURL(/\/settings\/billing$/);
 
     cancelStripeSubscription(subscription.id);
     await expect
       .poll(() => readSubscriptionStatus(owner), { timeout: 30_000 })
       .toBe("canceled");
-    await page.reload();
+    await page.goto("/settings/general");
     const { deletion: retried } = await submitNamespaceDeletion(page, owner);
     expect(retried.status()).toBe(200);
 

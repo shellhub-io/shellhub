@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
   TrashIcon,
@@ -18,6 +19,34 @@ import DepartingDevices from "@/components/common/DepartingDevices";
 import InputField from "@/components/common/fields/InputField";
 import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
 
+type DeleteFailure = "bound" | "billing" | "other";
+
+function deleteFailure(err: unknown): DeleteFailure {
+  if (!isSdkError(err)) return "other";
+  if (err.status === 409) return "bound";
+  if (err.status === 402) return "billing";
+  return "other";
+}
+
+function DeleteFailureMessage({ failure }: { failure: DeleteFailure }) {
+  if (failure === "bound") {
+    return "This namespace is bound to the instance and can't be deleted.";
+  }
+  if (failure === "billing") {
+    return (
+      <>
+        Billing is blocking this deletion: the namespace has an active
+        subscription or an unpaid invoice. Resolve it in{" "}
+        <Link to="/settings/billing" className="underline hover:no-underline">
+          billing settings
+        </Link>
+        , then try again.
+      </>
+    );
+  }
+  return "Couldn't delete the namespace.";
+}
+
 function DeleteDialog({
   namespaceName,
   tenantId,
@@ -29,22 +58,18 @@ function DeleteDialog({
 }) {
   const deleteNs = useDeleteNamespace();
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
+  const [failure, setFailure] = useState<DeleteFailure | null>(null);
 
   return (
     <ConfirmDialog
       open
       onClose={onClose}
       onConfirm={async () => {
-        setError("");
+        setFailure(null);
         try {
           await deleteNs.mutateAsync(tenantId);
         } catch (err) {
-          setError(
-            isSdkError(err) && err.status === 409
-              ? "This namespace is bound to the instance and can't be deleted."
-              : "Couldn't delete the namespace.",
-          );
+          setFailure(deleteFailure(err));
           throw new Error();
         }
       }}
@@ -63,7 +88,11 @@ function DeleteDialog({
           placeholder={namespaceName}
         />
       </div>
-      {error && <p className="text-2xs text-accent-red mb-3">{error}</p>}
+      {failure && (
+        <p className="text-2xs text-accent-red mb-3">
+          <DeleteFailureMessage failure={failure} />
+        </p>
+      )}
     </ConfirmDialog>
   );
 }
