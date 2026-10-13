@@ -2,6 +2,8 @@ import { useState } from "react";
 import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { isSdkError } from "@/api/errors";
+import { isCloud } from "@/env";
 import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
@@ -42,8 +44,12 @@ export default function DeleteNamespaceDialog({
           });
           onClose();
           onDeleted?.();
-        } catch {
-          setError("Failed to delete namespace. Please try again.");
+        } catch (err) {
+          setError(
+            isCloud() && isSdkError(err) && err.status === 402
+              ? "This namespace has an active subscription or an unpaid invoice, which blocks its deletion."
+              : "Failed to delete namespace. Please try again.",
+          );
         }
       }}
       icon={<TrashIcon />}
