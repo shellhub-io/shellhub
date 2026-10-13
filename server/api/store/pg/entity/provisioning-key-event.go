@@ -1,10 +1,9 @@
 package entity
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/uptrace/bun"
 	"golang.org/x/crypto/ssh"
@@ -15,33 +14,12 @@ func fingerprintFromPEM(pemKey string) string {
 		return ""
 	}
 
-	block, _ := pem.Decode([]byte(pemKey))
-	if block == nil {
-		return ""
-	}
-
-	var (
-		pub any
-		err error
-	)
-
-	switch block.Type {
-	case "RSA PUBLIC KEY":
-		pub, err = x509.ParsePKCS1PublicKey(block.Bytes)
-	default:
-		pub, err = x509.ParsePKIXPublicKey(block.Bytes)
-	}
-
+	pub, err := devicekey.ParsePublicKey(pemKey)
 	if err != nil {
 		return ""
 	}
 
-	sshPub, err := ssh.NewPublicKey(pub)
-	if err != nil {
-		return ""
-	}
-
-	return ssh.FingerprintSHA256(sshPub)
+	return ssh.FingerprintSHA256(pub)
 }
 
 // ProvisioningKeyEvent is a row of provisioning_key_events, recording one use of a provisioning key and what
