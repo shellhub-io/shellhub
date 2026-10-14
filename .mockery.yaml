@@ -14,10 +14,6 @@ packages:
     interfaces:
       Clock:
 
-  github.com/shellhub-io/shellhub/pkg/envs:
-    interfaces:
-      Backend:
-
   github.com/shellhub-io/shellhub/pkg/hash:
     interfaces:
       Hasher:
