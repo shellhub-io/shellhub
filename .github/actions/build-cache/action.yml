@@ -1,0 +1,121 @@
+name: Build cache
+description: >-
+  Restore the Go build, Go module and npm caches the server, gateway and UI Dockerfiles mount
+  into the builder of the Docker daemon, before the job builds those images. With save set, a
+  job running on master also saves them, once a day: the cache is extracted from the builder and
+  saved at the end of the job, after prune has dropped the Go build entries the job did not use.
+  Pull requests only restore, which keeps them from filling the repository's cache quota.
+
+inputs:
+  save:
+    description: >-
+      true for the one job that saves the cache on master. It still restores first; the cache is
+      saved when the job ends successfully.
+    required: false
+    default: 'false'
+  prune:
+    description: >-
+      true, near the end of the job that set save, to drop the Go build entries the job did not
+      use before the cache is extracted and saved.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Compute the cache key
+      id: key
+      if: inputs.prune != 'true'
+      shell: bash
+      env:
+        PREFIX: build-${{ runner.os }}-
+        SUMS: ${{ hashFiles('shellhub/**/go.sum', 'shellhub/ui/package-lock.json') }}
+        SAVE: ${{ inputs.save == 'true' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
+      run: |
+        echo "prefix=$PREFIX" >> "$GITHUB_OUTPUT"
+        echo "sums=$PREFIX$SUMS-" >> "$GITHUB_OUTPUT"
+        echo "key=$PREFIX$SUMS-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+        echo "save=$SAVE" >> "$GITHUB_OUTPUT"
+        echo "dir=$RUNNER_TEMP/build-cache" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the build cache
+      if: inputs.prune != 'true' && steps.key.outputs.save != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: ${{ steps.key.outputs.dir }}
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: |
+          ${{ steps.key.outputs.sums }}
+          ${{ steps.key.outputs.prefix }}
+
+    - name: Restore the build cache and save it when the job ends
+      id: restore-save
+      if: inputs.prune != 'true' && steps.key.outputs.save == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: ${{ steps.key.outputs.dir }}
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: |
+          ${{ steps.key.outputs.sums }}
+          ${{ steps.key.outputs.prefix }}
+
+    - name: Decide whether the job extracts the build cache
+      id: extract
+      if: inputs.prune != 'true'
+      shell: bash
+      env:
+        EXTRACT: ${{ steps.key.outputs.save == 'true' && steps.restore-save.outputs.cache-hit != 'true' }}
+        DIR: ${{ steps.key.outputs.dir }}
+      run: |
+        echo "extract=$EXTRACT" >> "$GITHUB_OUTPUT"
+        if [ "$EXTRACT" = true ]; then
+            restored=$(date -u +%s)
+            mkdir -p "$DIR/go-build"
+            find "$DIR/go-build" -type f -exec touch -d "@$(( restored - 7200 ))" {} +
+            echo "$restored" > "$RUNNER_TEMP/build-cache-restored"
+        fi
+
+    - name: Read the utility image version from versions.env
+      id: versions
+      shell: bash
+      run: |
+        VERSION=$(sed -n 's/^ALPINE_VERSION=//p' shellhub/versions.env)
+        if [ -z "$VERSION" ]; then
+            echo "could not read ALPINE_VERSION from versions.env"
+            exit 1
+        fi
+        echo "alpine=alpine:$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Inject the build cache into the builder
+      if: inputs.prune != 'true'
+      uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
+      with:
+        utility-image: ${{ steps.versions.outputs.alpine }}
+        skip-extraction: ${{ steps.extract.outputs.extract != 'true' }}
+        cache-map: |
+          {
+            "${{ steps.key.outputs.dir }}/go-build": {"id": "shellhub-go-build", "target": "/var/cache-target"},
+            "${{ steps.key.outputs.dir }}/go-mod": {"id": "shellhub-go-mod", "target": "/var/cache-target"},
+            "${{ steps.key.outputs.dir }}/npm": {"id": "shellhub-npm", "target": "/var/cache-target"}
+          }
+
+    - name: Drop the Go build cache entries this job did not use
+      if: inputs.prune == 'true'
+      shell: bash
+      env:
+        IMAGE: ${{ steps.versions.outputs.alpine }}
+      run: |
+        if [ ! -f "$RUNNER_TEMP/build-cache-restored" ]; then
+            exit 0
+        fi
+        context=$(mktemp -d)
+        cat > "$context/Dockerfile" <<'EOF'
+        ARG IMAGE
+        FROM ${IMAGE}
+        ARG RESTORED
+        RUN --mount=type=cache,id=shellhub-go-build,target=/go-build,sharing=shared \
+            touch -d "@${RESTORED}" /restored && \
+            find /go-build -type f ! -newer /restored -delete
+        EOF
+        docker buildx build --build-arg IMAGE="$IMAGE" \
+            --build-arg RESTORED="$(cat "$RUNNER_TEMP/build-cache-restored")" "$context"

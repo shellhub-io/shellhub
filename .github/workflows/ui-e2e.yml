@@ -167,6 +167,9 @@ jobs:
           name: ui-e2e
           sum-files: shellhub/tests/go.sum
 
+      - name: Restore the image build cache
+        uses: ./shellhub/.github/actions/build-cache
+
       - name: Run E2E tests
         working-directory: shellhub/ui
         timeout-minutes: 60
