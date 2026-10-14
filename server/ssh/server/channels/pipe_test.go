@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -137,14 +136,6 @@ func (f *fakeChannel) quiet() {
 	f.stderrIn.close()
 }
 
-func newPipeSession(t *testing.T) *fakeSession {
-	t.Helper()
-
-	envstest.SetEdition(t, envs.Community)
-
-	return new(fakeSession)
-}
-
 func captureLogs(t *testing.T) *test.Hook {
 	t.Helper()
 
@@ -210,8 +201,7 @@ func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			hook := captureLogs(t)
 
-			sess := newPipeSession(t)
-			envstest.SetEdition(t, envs.Enterprise)
+			sess := &fakeSession{edition: envs.Enterprise}
 
 			sess.recordedErr = tt.recordedErr
 
@@ -242,7 +232,7 @@ func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 // io.MultiReader meant stderr was only read after stdout reached EOF, so it
 // arrived out of order and tagged as ordinary data.
 func TestPipeKeepsStreamsApart(t *testing.T) {
-	sess := newPipeSession(t)
+	sess := new(fakeSession)
 	client, agent := newFakeChannel(), newFakeChannel()
 
 	_, err := agent.dataIn.Write([]byte("to stdout"))
@@ -264,7 +254,7 @@ func TestPipeKeepsStreamsApart(t *testing.T) {
 // in x/crypto's buffer and consumes the channel window, so a chatty stderr
 // stalls the whole session if nothing reads it until stdout is done.
 func TestPipeDrainsAgentStderrBeforeStdoutEOF(t *testing.T) {
-	sess := newPipeSession(t)
+	sess := new(fakeSession)
 	client, agent := newFakeChannel(), newFakeChannel()
 
 	_, err := agent.stderrIn.Write([]byte("early stderr"))
@@ -287,7 +277,7 @@ func TestPipeDrainsAgentStderrBeforeStdoutEOF(t *testing.T) {
 // later write return EOF, so firing it when only stdout is drained truncates
 // stderr.
 func TestPipeClosesWriteAfterBothStreams(t *testing.T) {
-	sess := newPipeSession(t)
+	sess := new(fakeSession)
 	client, agent := newFakeChannel(), newFakeChannel()
 
 	client.quiet()

@@ -9,7 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -36,6 +35,7 @@ func TestNamespaceCreate(t *testing.T) {
 		username      string
 		tenant        string
 		typeNamespace string
+		edition       envs.Edition
 		requiredMocks func()
 		expected      Expected
 		cause         error
@@ -46,8 +46,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-4000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Community,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Community)
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
@@ -58,8 +58,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Community,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Community)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -98,8 +98,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Community,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Community)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -139,8 +139,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Community,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Community)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -197,8 +197,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
+			edition:       envs.Cloud,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Cloud)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -255,8 +255,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Cloud,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Cloud)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -313,8 +313,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
+			edition:       envs.Enterprise,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Enterprise)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -371,8 +371,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:      "john_doe",
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
+			edition:       envs.Enterprise,
 			requiredMocks: func() {
-				envstest.SetEdition(t, envs.Enterprise)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -429,7 +429,7 @@ func TestNamespaceCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock))
+			s := NewService(store.Store(mock), WithEdition(tc.edition))
 			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant, Type: tc.typeNamespace})
 			assert.Equal(t, tc.expected.namespace, ns)
 			require.ErrorIs(t, err, tc.expected.err)

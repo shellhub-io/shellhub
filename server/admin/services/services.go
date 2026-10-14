@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -45,7 +46,7 @@ type Services interface {
 	UserResolve(ctx context.Context, id string) (*models.User, error)
 	// NamespaceCreate initializes a new namespace, making the specified user its owner.
 	// The tenant defaults to a UUID if not provided.
-	// Max device limit is based on the envs.IsCloud() setting.
+	// Max device limit is based on the service's edition.
 	NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error)
 	// NamespaceDelete deletes a namespace based on the provided namespace name.
 	NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error
@@ -62,10 +63,28 @@ type Services interface {
 }
 
 type service struct {
-	store store.Store
+	store   store.Store
+	edition envs.Edition
 }
 
-// NewService creates and returns a new instance of the service with the provided store.
-func NewService(store store.Store) Services {
-	return &service{store}
+// Option configures the service at construction.
+type Option func(*service)
+
+// WithEdition sets the edition the namespace device limit and the connection announcement follow.
+// Without it the service runs as Community.
+func WithEdition(edition envs.Edition) Option {
+	return func(s *service) {
+		s.edition = edition
+	}
+}
+
+// NewService builds the admin services over store. Without WithEdition the services run as
+// envs.Community.
+func NewService(store store.Store, options ...Option) Services {
+	s := &service{store: store, edition: envs.Community}
+	for _, option := range options {
+		option(s)
+	}
+
+	return s
 }

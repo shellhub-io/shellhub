@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -51,4 +52,6 @@ type Session interface {
 
 	Recorded(seat int) error
 	Announce(client gossh.Channel) error
+
+	Edition() envs.Edition
 }

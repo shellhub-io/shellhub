@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -40,8 +39,6 @@ var (
 )
 
 func TestCreateNamespace(t *testing.T) {
-	envstest.SetEdition(t, envs.Enterprise)
-
 	mock := mocks.NewMockService(t)
 
 	type Expected struct {
@@ -91,7 +88,7 @@ func TestCreateNamespace(t *testing.T) {
 			req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000000")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, WithEdition(envs.Enterprise))
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -592,8 +589,6 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 }
 
 func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
-	envstest.SetEdition(t, envs.Enterprise)
-
 	mock := mocks.NewMockService(t)
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
@@ -602,7 +597,7 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 	rec := httptest.NewRecorder()
-	NewRouter(mock).ServeHTTP(rec, req)
+	NewRouter(mock, WithEdition(envs.Enterprise)).ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
 	mock.AssertExpectations(t)

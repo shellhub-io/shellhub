@@ -5,7 +5,6 @@ import (
 	"io"
 	"sync"
 
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
@@ -78,7 +77,7 @@ func pipe(sess Session, client gossh.Channel, agent gossh.Channel, seat int, don
 		defer client.CloseWrite() //nolint:errcheck
 
 		writers := []io.Writer{client}
-		if envs.IsEnterpriseOrCloud() {
+		if sess.Edition().IsEnterpriseOrCloud() {
 			recorder, err := NewRecorder(sess, seat)
 			if err != nil {
 				log.WithError(err).

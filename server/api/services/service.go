@@ -5,8 +5,10 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"net/netip"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -35,6 +37,12 @@ type service struct {
 	challengeKey      []byte
 
 	requireVerifiedDeviceKey bool
+
+	edition      envs.Edition
+	version      string
+	sshPort      string
+	development  bool
+	webhookCIDRs []netip.Prefix
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -123,6 +131,38 @@ func WithVerifiedDeviceKeyRequired() Option {
 	}
 }
 
+// WithEdition sets the edition the service gates its features on. Without it the service runs as
+// Community.
+func WithEdition(edition envs.Edition) Option {
+	return func(service *APIService) {
+		service.edition = edition
+	}
+}
+
+// WithSystemInfo sets the version and the SSH port the service reports in the system info.
+func WithSystemInfo(version, sshPort string) Option {
+	return func(service *APIService) {
+		service.version = version
+		service.sshPort = sshPort
+	}
+}
+
+// WithDevelopmentMode makes setup give the dev namespace its fixed tenant ID. Never pass it to
+// relax a security decision; it exists for developer conveniences only.
+func WithDevelopmentMode(development bool) Option {
+	return func(service *APIService) {
+		service.development = development
+	}
+}
+
+// WithEnrollmentWebhookCIDRs lets a provisioning key webhook reach the given prefixes, which the
+// SSRF guard refuses otherwise. See ParseEnrollmentWebhookCIDRs.
+func WithEnrollmentWebhookCIDRs(prefixes []netip.Prefix) Option {
+	return func(service *APIService) {
+		service.webhookCIDRs = prefixes
+	}
+}
+
 // NewService builds the service layer over store, signing tokens with the given key pair, which
 // the caller loads with LoadKeys. It panics when privKey is nil.
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
@@ -138,6 +178,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			licenseEvaluator:  nil, // injected via WithLicenseEvaluator option
 			firewallEvaluator: nil, // injected via WithFirewallEvaluator option
 			recordingPruner:   nil, // injected via WithSessionRecordingPruner option
+			edition:           envs.Community,
 		},
 	}
 

@@ -99,7 +99,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	namespaceName := strings.ToLower(req.Namespace)
 
 	tenantID := uuid.Generate()
-	if envs.IsDevelopment() && namespaceName == devNamespace {
+	if s.development && namespaceName == devNamespace {
 		tenantID = devTenantID
 	}
 
@@ -119,7 +119,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		CreatedAt: clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
-			ConnectionAnnouncement: envs.AnnouncementFor(envs.CurrentEdition()),
+			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
 		},
 	}
 

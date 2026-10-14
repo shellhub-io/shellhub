@@ -7,17 +7,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,15 +57,11 @@ func TestEvaluateEnrollment(t *testing.T) {
 }
 
 func TestEvaluateEnrollmentWebhook(t *testing.T) {
-	env := envmock.NewMockBackend(t)
-	env.On("Get", enrollmentWebhookAllowedCIDRsEnv).Return("127.0.0.0/8,::1/128").Maybe()
-	env.On("Get", mock.Anything).Return("").Maybe()
-	envs.Set(t, env)
-
 	clock.Freeze(t, now)
 
 	storeMock := storemock.NewMockStore(t)
-	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(),
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")))
 
 	req := requests.DeviceAuth{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -161,29 +155,46 @@ func TestEnrollmentWebhookClientSSRF(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	withEnv := func(t *testing.T, allowedCIDRs string) {
-		t.Helper()
-
-		env := envmock.NewMockBackend(t)
-		env.On("Get", enrollmentWebhookAllowedCIDRsEnv).Return(allowedCIDRs).Maybe()
-		env.On("Get", mock.Anything).Return("").Maybe()
-		envs.Set(t, env)
-	}
-
 	t.Run("blocks a loopback webhook target by default", func(t *testing.T) {
-		withEnv(t, "")
-
 		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
-		_, err := enrollmentWebhookClient().Get(srv.URL)
+		_, err := enrollmentWebhookClient(nil).Get(srv.URL)
 		require.Error(t, err, "a webhook to loopback must be refused so it can't reach the host's own services")
 	})
 
 	t.Run("allows a target the operator explicitly permits", func(t *testing.T) {
-		withEnv(t, "127.0.0.0/8,::1/128")
-
 		//nolint:noctx // exercising the dial path in a test
-		resp, err := enrollmentWebhookClient().Get(srv.URL)
+		resp, err := enrollmentWebhookClient(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")).Get(srv.URL)
 		require.NoError(t, err)
 		require.NoError(t, resp.Body.Close())
 	})
+}
+
+func TestParseEnrollmentWebhookCIDRs(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		description string
+		raw         string
+		expected    []netip.Prefix
+	}{
+		{description: "empty is no prefix", raw: "", expected: nil},
+		{
+			description: "trims and splits on commas",
+			raw:         " 10.0.0.0/8 , ::1/128 ",
+			expected:    []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("::1/128")},
+		},
+		{
+			description: "skips empty and invalid entries",
+			raw:         "10.0.0.0/8,,not-a-cidr,192.168.0.0/16",
+			expected:    []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("192.168.0.0/16")},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.expected, ParseEnrollmentWebhookCIDRs(tc.raw))
+		})
+	}
 }

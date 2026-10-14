@@ -10,7 +10,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	log "github.com/sirupsen/logrus"
@@ -59,14 +58,12 @@ func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo
 	}
 
 	apiHost, _, _ := strings.Cut(req.Host, ":")
-	sshPort := envs.Get("SHELLHUB_SSH_PORT")
-
 	resp := &responses.SystemInfo{
-		Version: envs.Get("SHELLHUB_VERSION"),
+		Version: s.version,
 		Setup:   system.Setup,
 		Endpoints: &responses.SystemEndpointsInfo{
 			API: apiHost,
-			SSH: fmt.Sprintf("%s:%s", apiHost, sshPort),
+			SSH: fmt.Sprintf("%s:%s", apiHost, s.sshPort),
 		},
 		Authentication: &responses.SystemAuthenticationInfo{
 			Local: system.Authentication.Local.Enabled,

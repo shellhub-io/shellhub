@@ -11,7 +11,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
@@ -34,11 +33,6 @@ func TestSetup(t *testing.T) {
 
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	clock.Freeze(t, now)
-
-	envMock := envmock.NewMockBackend(t)
-	envMock.On("Get", "SHELLHUB_ENV").Return("")
-	envMock.On("Get", "SHELLHUB_EDITION").Return("")
-	envs.Set(t, envMock)
 
 	ctx := context.TODO()
 

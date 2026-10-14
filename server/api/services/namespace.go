@@ -87,7 +87,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
-			ConnectionAnnouncement: envs.AnnouncementFor(envs.CurrentEdition()),
+			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
 		},
 		TenantID: req.TenantID,
 		Type:     models.NewDefaultType(),
@@ -103,7 +103,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		ns.TenantID = uuid.Generate()
 	}
 
-	if envs.IsCloud() {
+	if s.edition.IsCloud() {
 		ns.MaxDevices = 3
 	} else {
 		ns.MaxDevices = -1
@@ -212,7 +212,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 		return !ns.Billing.IsNil() && ns.Billing.HasCustomer() && ns.Billing.HasSubscription()
 	}
 
-	if envs.IsCloud() && ableToReportDeleteNamespace(n) {
+	if s.edition.IsCloud() && ableToReportDeleteNamespace(n) {
 		if err := s.reportBilling(ctx, tenantID, BillingActionNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}

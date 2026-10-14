@@ -9,7 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -666,7 +665,7 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 
 func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace, licensed bool) error {
 	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
+		if s.edition.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
 			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
 				Error("namespace's limit reached - cannot accept another device")
 
@@ -676,7 +675,7 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 		return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 	}
 
-	if envs.IsCloud() && s.billing != nil {
+	if s.edition.IsCloud() && s.billing != nil {
 		if err := s.validateBillingForDeviceAcceptance(ctx, namespace); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"tenant":         namespace.TenantID,

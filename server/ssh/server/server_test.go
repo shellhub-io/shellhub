@@ -11,6 +11,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -82,7 +83,7 @@ func bannerKind(message string) banner.Kind {
 }
 
 func TestBannerHandlerInvalidSSHID(t *testing.T) {
-	h := newBannerHandler(nil, nil, nil, session.NewRegistry())
+	h := newBannerHandler(nil, nil, nil, session.NewRegistry(), envs.Community)
 	result := h(newStubCtx("not-a-valid-sshid"))
 
 	assert.Equal(t, banner.KindInvalidSSHID, bannerKind(result),
@@ -91,11 +92,11 @@ func TestBannerHandlerInvalidSSHID(t *testing.T) {
 
 func TestBannerHandlerNewSessionFailure(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store, _ *session.Registry) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store, _ *session.Registry, _ envs.Edition) (*session.Session, error) {
 		return nil, errors.New("api unreachable")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, session.NewRegistry(), deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, session.NewRegistry(), envs.Community, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
@@ -117,7 +118,7 @@ func offlineDevice(t *testing.T) *servicemocks.MockService {
 func TestBannerHandlerOfflineDevice(t *testing.T) {
 	agent := dialertest.NewAgent(t)
 
-	h := newBannerHandlerWithDeps(agent, offlineDevice(t), nil, session.NewRegistry(), stubDeps())
+	h := newBannerHandlerWithDeps(agent, offlineDevice(t), nil, session.NewRegistry(), envs.Community, stubDeps())
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
@@ -132,7 +133,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 		return errors.New("firewall block")
 	}
 
-	h := newBannerHandlerWithDeps(dialertest.NewAgent(t), reachableDevice(t), nil, session.NewRegistry(), deps)
+	h := newBannerHandlerWithDeps(dialertest.NewAgent(t), reachableDevice(t), nil, session.NewRegistry(), envs.Community, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindAccessDenied, bannerKind(result),
@@ -142,7 +143,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 func TestBannerHandlerSuccess(t *testing.T) {
 	agent := dialertest.NewAgent(t)
 
-	h := newBannerHandlerWithDeps(agent, reachableDevice(t), nil, session.NewRegistry(), stubDeps())
+	h := newBannerHandlerWithDeps(agent, reachableDevice(t), nil, session.NewRegistry(), envs.Community, stubDeps())
 	result := h(newStubCtx(validSSHID))
 
 	assert.Empty(t, result,
@@ -153,11 +154,11 @@ func TestBannerHandlerSuccess(t *testing.T) {
 
 func TestBannerHandlerRecoversFromPanic(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store, _ *session.Registry) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store, _ *session.Registry, _ envs.Edition) (*session.Session, error) {
 		panic("boom")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, session.NewRegistry(), deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, session.NewRegistry(), envs.Community, deps)
 
 	var result string
 	require.NotPanics(t, func() {

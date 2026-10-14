@@ -10,6 +10,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
@@ -54,6 +55,9 @@ type Options struct {
 	// AutoSSL reports whether the console is served over HTTPS; it selects the
 	// scheme of that approval URL.
 	AutoSSL bool
+	// Edition is the edition each session evaluates its licence, firewall and billing checks
+	// against, and whether it records the session. The zero value behaves as Community.
+	Edition envs.Edition
 }
 
 var keepAlive = net.KeepAliveConfig{
@@ -74,7 +78,7 @@ type Server struct {
 }
 
 type bannerDeps struct {
-	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry) (*session.Session, error)
+	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, edition envs.Edition) (*session.Session, error)
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
 
@@ -85,11 +89,11 @@ func defaultBannerDeps() bannerDeps {
 	}
 }
 
-func newBannerHandler(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry) gliderssh.BannerHandler {
-	return newBannerHandlerWithDeps(d, service, handoff, sessions, defaultBannerDeps())
+func newBannerHandler(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, edition envs.Edition) gliderssh.BannerHandler {
+	return newBannerHandlerWithDeps(d, service, handoff, sessions, edition, defaultBannerDeps())
 }
 
-func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, deps bannerDeps) gliderssh.BannerHandler {
+func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, edition envs.Edition, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
@@ -114,7 +118,7 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 			return banner.Message(banner.KindInvalidSSHID)
 		}
 
-		sess, err := deps.newSession(ctx, d, service, handoff, sessions)
+		sess, err := deps.newSession(ctx, d, service, handoff, sessions, edition)
 		if err != nil {
 			logger.WithError(err).Error("failed to create the session")
 
@@ -218,7 +222,7 @@ func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *we
 			return wrapped
 		},
 		ServerConfigCallback: newServerConfigCallback,
-		BannerHandler:        newBannerHandler(dialer, service, handoff, sessions),
+		BannerHandler:        newBannerHandler(dialer, service, handoff, sessions, opts.Edition),
 		PasswordHandler:      auth.PasswordHandler,
 		PublicKeyHandler:     auth.PublicKeyOffer,
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{

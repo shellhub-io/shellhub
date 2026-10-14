@@ -18,12 +18,9 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 )
@@ -50,11 +47,6 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	clock.Freeze(t, now)
 
-	localEnv := envmock.NewMockBackend(t)
-	localEnv.On("Get", "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS").Return("127.0.0.0/8,::1/128").Maybe()
-	localEnv.On("Get", mock.Anything).Return("").Maybe() // community edition: not cloud, not enterprise
-	envs.Set(t, localEnv)
-
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,
 		Status:        models.UserStatusConfirmed,
@@ -73,7 +65,8 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	})
 	require.NoError(t, err)
 
-	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache())
+	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")))
 
 	return &enrollmentE2E{svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }

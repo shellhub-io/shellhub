@@ -16,8 +16,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-func getMaxDevices() int {
-	if envs.IsCloud() {
+func (s *service) maxDevices() int {
+	if s.edition.IsCloud() {
 		return MaxNumberDevicesLimited
 	}
 
@@ -26,7 +26,7 @@ func getMaxDevices() int {
 
 // NamespaceCreate initializes a new namespace, making the specified user its owner.
 // The tenant defaults to a UUID if not provided.
-// Max device limit is based on the envs.IsCloud() setting.
+// Max device limit is based on the service's edition.
 func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error) {
 	if input.TenantID == "" {
 		input.TenantID = uuid.Generate()
@@ -41,7 +41,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		Name:                 input.Namespace,
 		Owner:                user.ID,
 		TenantID:             input.TenantID,
-		MaxDevices:           getMaxDevices(),
+		MaxDevices:           s.maxDevices(),
 		DevicesAcceptedCount: 0,
 		DevicesPendingCount:  0,
 		DevicesRejectedCount: 0,
@@ -55,7 +55,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
-			ConnectionAnnouncement: envs.AnnouncementFor(envs.CurrentEdition()),
+			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
 			SSHAccessMode:          input.SSHAccessMode,
 		},
 		CreatedAt: clock.Now(),

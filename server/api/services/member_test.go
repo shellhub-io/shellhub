@@ -12,8 +12,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -212,11 +210,8 @@ func TestService_AddNamespaceMember(t *testing.T) {
 }
 
 func TestService_UpdateNamespaceMember(t *testing.T) {
-	envMock := envmock.NewMockBackend(t)
 	storeMock := storemock.NewMockStore(t)
 	cacheMock := cachemock.NewMockCache(t)
-
-	envs.Set(t, envMock)
 
 	cases := []struct {
 		description   string
@@ -680,10 +675,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 		err       error
 	}
 
-	envMock := envmock.NewMockBackend(t)
 	storeMock := storemock.NewMockStore(t)
-
-	envs.Set(t, envMock)
 
 	cases := []struct {
 		description   string
