@@ -23,10 +23,10 @@ RUN apk add --no-cache git ca-certificates curl build-base openssh-client
 FROM toolchain AS base
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub
-COPY ./go.mod ./
+COPY ./go.mod ./go.sum ./
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub/openapi
-COPY ./openapi/go.mod ./
+COPY ./openapi/go.mod ./openapi/go.sum ./
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub/server
 COPY ./server/go.mod ./server/go.sum ./
