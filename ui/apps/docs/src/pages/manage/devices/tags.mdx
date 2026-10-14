@@ -63,15 +63,15 @@ Tags are namespace-scoped, so renaming one changes it everywhere at once — inc
 policies that select on it. Check what selects a tag before renaming it; a policy pointing at a
 tag that no longer exists grants nothing, silently.
 
-Deleting a tag detaches it from everything attached to it, then removes it. No device and no
-policy is deleted with it.
+Deleting a tag detaches it from every device carrying it, then removes it. No device is deleted
+with it.
 
-<Callout variant="danger" title="Deleting a tag widens the policies that filtered on it">
-The tag is dropped from the policy along with everything else, and a policy left with no tags
-has an empty device filter — which matches **every device in the namespace**. An allow that
-covered one group of machines now covers all of them, silently, with
-no edit to the policy and nothing in the list to show it. Before deleting a tag, open
-[Access Policies](/manage/access-control/access-policies) and check which ones filter on it.
+<Callout variant="warning" title="A tag a filter holds cannot be deleted">
+While an access policy or a public key filters on the tag, deleting it is refused with `409`,
+naming what holds it. Dropping the tag silently would change what those filters select: a deny
+policy would block fewer devices, and a public key filter left with no tags would match every
+device. Remove the tag from those filters in
+[Access Policies](/manage/access-control/access-policies) first, then delete it.
 </Callout>
 
 ## Where to go next

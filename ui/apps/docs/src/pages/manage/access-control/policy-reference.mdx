@@ -44,14 +44,15 @@ consulted at all.
 
 ### `filter`
 
-Which devices the policy covers:
+Which devices the policy covers. Give exactly one of the two forms:
 
 | Form | Behavior |
 |---|---|
-| `tags` | Matches a device carrying any of the listed tags |
-| *(empty)* | **Matches every device** |
+| `"all": true` | Matches every device, including ones enrolled later |
+| `"tags": [...]` | Matches a device carrying any of the listed tags, one to three |
 
-An empty filter is how you write "all devices".
+A filter with neither, or with both, is refused with `400`. "All devices" is always written
+out, so a policy never reaches every device because its tag list ended up empty.
 
 ### `logins`
 
@@ -120,7 +121,7 @@ Between two matching policies, the shorter window wins, and "always" beats any n
 |---|---|
 | `user is not a member of the namespace` | The connecting account does not belong to this namespace |
 | `denied by policy "<name>"` | A deny matched |
-| `denied: policy "<name>" could not be evaluated` | A deny had an unparsable filter or source IP, and failed closed |
+| `denied: policy "<name>" could not be evaluated` | A deny had a source IP it could not parse, and failed closed |
 | `no policy grants "<login>" on this device` | No allow covered this device and login |
 
 <Callout variant="info">
@@ -138,7 +139,7 @@ Every namespace in identity mode is seeded with:
 | `name` | `Owner access` |
 | `action` | `allow` |
 | `subject` | `user` = the namespace owner |
-| `filter` | empty — all devices |
+| `filter` | `"all": true` — all devices |
 | `logins` | `["*"]` |
 | `source_ip` | empty — any address |
 
