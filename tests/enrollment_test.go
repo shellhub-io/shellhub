@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -81,22 +80,22 @@ func requireAuthRefused(t *testing.T, compose *environment.DockerCompose, req re
 	}
 }
 
-func awaitStatusOnReauth(t *testing.T, compose *environment.DockerCompose, req requests.DeviceAuth, uid string, status models.DeviceStatus) {
+func requireStatusOnReauth(t *testing.T, compose *environment.DockerCompose, req requests.DeviceAuth, uid string, status models.DeviceStatus) {
 	t.Helper()
 
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := postDeviceAuth(t.Context(), compose, req)
-		if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
-			return
-		}
+	reauthDevice(t, compose, req, uid)
 
-		current, resp, err := compose.GetDevice(t.Context(), uid)
-		if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
-			return
-		}
+	require.Equal(t, status, requireDevice(t, compose, uid).Status)
+}
 
-		assert.Equal(tt, status, current.Status)
-	}, deviceAuthCacheTTL+30*time.Second, 2*time.Second)
+func reauthDevice(t *testing.T, compose *environment.DockerCompose, req requests.DeviceAuth, uid string) {
+	t.Helper()
+
+	compose.DropDeviceAuthCache(t, uid)
+
+	resp, err := postDeviceAuth(t.Context(), compose, req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 }
 
 func tagNames(tags []models.Tag) []string {

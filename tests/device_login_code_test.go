@@ -50,16 +50,13 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code-expired", "02:00:00:00:91:03"))
 		code := createLoginCode(t, compose, device.Token)
 
-		compose.ExpireCacheEntryIn(t, loginCodeCacheKey(code.Code), codeLifetimeLeft)
-
 		require.Equal(t, device.UID, requireLoginCodePreview(t, compose, code.Code).UID, "the code was gone before its lifetime ran out")
 
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			_, resp, err := resolveLoginCode(t.Context(), compose, code.Code)
-			if assert.NoError(tt, err) {
-				assert.Equal(tt, http.StatusNotFound, resp.StatusCode(), resp.String())
-			}
-		}, codeLifetimeLeft+10*time.Second, time.Second)
+		compose.ExpireCacheEntryIn(t, loginCodeCacheKey(code.Code), 0)
+
+		_, resp, err := resolveLoginCode(t.Context(), compose, code.Code)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode(), resp.String())
 	})
 
 	t.Run("the device polls its own status until it is accepted", func(t *testing.T) {

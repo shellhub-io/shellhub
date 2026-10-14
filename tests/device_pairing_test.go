@@ -21,8 +21,6 @@ import (
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
 
-const codeLifetimeLeft = 5 * time.Second
-
 var (
 	agentPairingLink   = regexp.MustCompile(`accept-device\?code=([` + pairingcode.Alphabet + `]+)`)
 	agentConnectedLine = regexp.MustCompile(`msg="Server connection established".* tenant_id=(\S+)`)
@@ -134,19 +132,16 @@ func testPairingCode(t *testing.T, compose *environment.DockerCompose) {
 		req := newPairingRequest(t, "pairing-expired", "02:00:00:00:90:03")
 		pairing := startPairing(t, compose, req)
 
-		compose.ExpireCacheEntryIn(t, pairingCodeCacheKey(pairing.Code), codeLifetimeLeft)
-
 		status, resp, err := getPairingStatus(t.Context(), compose, pairing.Code)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), "the code was gone before its lifetime ran out: %s", resp.String())
 		require.Equal(t, models.DeviceStatusPending, status.Status)
 
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			_, resp, err := getPairingStatus(t.Context(), compose, pairing.Code)
-			if assert.NoError(tt, err) {
-				assert.Equal(tt, http.StatusNotFound, resp.StatusCode(), resp.String())
-			}
-		}, codeLifetimeLeft+10*time.Second, time.Second)
+		compose.ExpireCacheEntryIn(t, pairingCodeCacheKey(pairing.Code), 0)
+
+		_, resp, err = getPairingStatus(t.Context(), compose, pairing.Code)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode(), resp.String())
 
 		_, resp, err = postPairingAccept(compose.R(t.Context()), pairing.Code)
 		require.NoError(t, err)

@@ -58,9 +58,9 @@ func TestAccessPolicyReauth(t *testing.T) {
 		require.NotNil(t, reauthedAt)
 
 		requireStraightThrough(t, compose, sshid, signer)
+		require.Equal(t, reauthedAt, identityByFingerprint(t, compose, fingerprint).LastReauthAt, "a login inside the window renewed it")
 
-		time.Sleep(time.Until(reauthedAt.Add(period*time.Second + time.Second)))
-
+		compose.AgeSSHIdentityReauth(t, fingerprint, (period+1)*time.Second)
 		loginThroughReauth(t, compose, sshid, signer)
 	})
 

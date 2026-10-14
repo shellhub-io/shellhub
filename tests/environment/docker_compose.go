@@ -392,6 +392,26 @@ func (dc *DockerCompose) ExpireCacheEntryIn(t *testing.T, key string, ttl time.D
 	require.NoError(t, dc.stack.ExpireCacheEntryIn(t.Context(), key, ttl))
 }
 
+// DropDeviceAuthCache deletes the cached authentication of the device uid, so the device's next
+// authentication reads the database and reconciles a pending enrollment. It fails t on any error
+// [Stack.DropCacheEntry] returns, so not when the entry already expired.
+func (dc *DockerCompose) DropDeviceAuthCache(t *testing.T, uid string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.DropCacheEntry(t.Context(), "auth_device/"+uid))
+}
+
+// AgeLastEnrollmentAttempt sets the last enrollment attempt of the device uid to age ago, failing t
+// unless exactly that device changed. It stands in for the interval a pending device waits before
+// its next authentication asks the enrollment policy again.
+func (dc *DockerCompose) AgeLastEnrollmentAttempt(t *testing.T, uid string, age time.Duration) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE devices SET last_enrollment_attempt_at = now() - :'age'::interval WHERE id = :'uid'",
+		map[string]string{"uid": uid, "age": interval(age)})
+}
+
 // CopyCacheEntry stores a copy of the cache entry from under the key to, failing t unless the cache
 // holds from and does not hold to. See [Stack.CopyCacheEntry].
 func (dc *DockerCompose) CopyCacheEntry(t *testing.T, from, to string) {

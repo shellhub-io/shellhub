@@ -100,6 +100,28 @@ func (dc *DockerCompose) CreateWebEndpoint(t *testing.T, req WebEndpointCreate) 
 	return endpoint
 }
 
+// AgeWebEndpoint sets the creation of the web endpoint address to age ago and drops the cached copy
+// of the endpoint, so the next visit measures its lifetime from the aged creation. Its last access
+// stays cached, and while it lasts the lifetime runs from it instead. It fails t unless exactly that
+// endpoint changed, and on any error [Stack.DropCacheEntry] returns.
+func (dc *DockerCompose) AgeWebEndpoint(t *testing.T, address string, age time.Duration) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE tunnels SET created_at = now() - :'age'::interval WHERE address = :'address'",
+		map[string]string{"address": address, "age": interval(age)})
+	require.NoError(t, dc.stack.DropCacheEntry(t.Context(), "web_endpoints/"+address))
+}
+
+// MoveWebEndpointLastAccessBack moves the cached last access of the web endpoint address back by
+// age, standing in for the time the endpoint sits idle. It fails t on any error
+// [Stack.MoveCachedTimeBack] returns, which includes an endpoint never visited.
+func (dc *DockerCompose) MoveWebEndpointLastAccessBack(t *testing.T, address string, age time.Duration) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.MoveCachedTimeBack(t.Context(), "web_endpoints_last_access/"+address, age))
+}
+
 // ListWebEndpoints returns the authenticated namespace's web endpoints, expired ones included, a
 // single page of the maximum size, failing t unless the server answers 200.
 func (dc *DockerCompose) ListWebEndpoints(t *testing.T) []WebEndpoint {

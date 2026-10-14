@@ -16,7 +16,6 @@ import (
 const (
 	unissuedProvisioningKey      = "3f2b1c44-0000-4000-8000-9a7d5e1c0b22"
 	unreachableEnrollmentWebhook = "http://127.0.0.1:1/enroll"
-	deviceAuthCacheTTL           = 30 * time.Second
 )
 
 // TestProvisioningKeyEnrollment enrolls a device with a provisioning key instead of a tenant id: the key
@@ -119,10 +118,10 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 		agent := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(key.Key))
 
-		compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
+		pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
 
 		require.NoError(t, agent.Stop(ctx, nil))
-		time.Sleep(deviceAuthCacheTTL)
+		compose.DropDeviceAuthCache(t, pending.UID)
 		require.NoError(t, agent.Start(ctx))
 
 		devices := []models.Device{}

@@ -35,7 +35,7 @@ const (
 	unknownAddress         = "0123456789abcdef0123456789abcdef"
 	webEndpointNotFound    = "web endpoint not found"
 	gatewayRootCertificate = "/data/pki/authorities/local/root.crt"
-	shortTTL               = 3
+	finiteTTL              = 60
 )
 
 var (
@@ -327,9 +327,8 @@ func testWebEndpointLifetime(t *testing.T, compose *environment.DockerCompose, e
 		const ttl = 3600
 
 		endpoint := compose.CreateWebEndpoint(t, withTTL(ttl))
+		compose.AgeWebEndpoint(t, endpoint.Address, 2*time.Second)
 		created := listedWebEndpoint(t, compose, endpoint.Address)
-
-		time.Sleep(2 * time.Second)
 
 		before := wallClock.Now()
 		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
@@ -341,40 +340,38 @@ func testWebEndpointLifetime(t *testing.T, compose *environment.DockerCompose, e
 	})
 
 	t.Run("an endpoint answers until its TTL runs out and is refused after it", func(t *testing.T) {
-		endpoint := compose.CreateWebEndpoint(t, withTTL(shortTTL))
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
 
 		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
-		requireRefusedOnceIdleFor(t, compose, endpoint.FullAddress, shortTTL)
+		compose.MoveWebEndpointLastAccessBack(t, endpoint.Address, (finiteTTL+1)*time.Second)
+
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
 	})
 
 	t.Run("an endpoint accessed within its TTL keeps answering past it", func(t *testing.T) {
-		const ttl = 5
-
-		endpoint := compose.CreateWebEndpoint(t, withTTL(ttl))
-		pastFirstExpiry := endpoint.CreatedAt.Add(ttl*time.Second + time.Second)
-
-		for wallClock.Now().Before(pastFirstExpiry) {
-			requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
-			time.Sleep(time.Second)
-		}
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
 
 		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
-		requireRefusedOnceIdleFor(t, compose, endpoint.FullAddress, ttl)
+		compose.AgeWebEndpoint(t, endpoint.Address, (finiteTTL+1)*time.Second)
+		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
+
+		compose.MoveWebEndpointLastAccessBack(t, endpoint.Address, (finiteTTL+1)*time.Second)
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
 	})
 
 	t.Run("an endpoint with a TTL of -1 keeps answering after one with a TTL has expired", func(t *testing.T) {
-		finite := compose.CreateWebEndpoint(t, withTTL(shortTTL))
+		finite := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
 		infinite := compose.CreateWebEndpoint(t, elsewhere)
 
-		requireRefusedOnceIdleFor(t, compose, finite.FullAddress, shortTTL)
+		requireRefusedOnceCreatedPastTTL(t, compose, finite)
 
 		requireDeviceAnswer(t, compose, infinite.FullAddress, "/")
 		assert.True(t, listedWebEndpoint(t, compose, infinite.Address).ExpiresIn.IsZero())
 	})
 
 	t.Run("an expired endpoint can be deleted", func(t *testing.T) {
-		endpoint := compose.CreateWebEndpoint(t, withTTL(shortTTL))
-		requireRefusedOnceIdleFor(t, compose, endpoint.FullAddress, shortTTL)
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+		requireRefusedOnceCreatedPastTTL(t, compose, endpoint)
 
 		resp, err := compose.DeleteWebEndpoint(t.Context(), endpoint.Address)
 		require.NoError(t, err)
@@ -585,10 +582,10 @@ func requireEndpointRefused(t *testing.T, compose *environment.DockerCompose, ho
 	assert.Contains(t, resp.Body, webEndpointNotFound)
 }
 
-func requireRefusedOnceIdleFor(t *testing.T, compose *environment.DockerCompose, host string, ttl int) {
+func requireRefusedOnceCreatedPastTTL(t *testing.T, compose *environment.DockerCompose, endpoint environment.WebEndpoint) {
 	t.Helper()
 
-	time.Sleep(time.Duration(ttl)*time.Second + time.Second)
+	compose.AgeWebEndpoint(t, endpoint.Address, time.Duration(endpoint.TTL+1)*time.Second)
 
-	requireEndpointRefused(t, compose, host)
+	requireEndpointRefused(t, compose, endpoint.FullAddress)
 }

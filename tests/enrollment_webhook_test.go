@@ -199,7 +199,7 @@ func TestEnrollmentWebhook(t *testing.T) {
 
 		compose.UpdateProvisioningKey(t, "webhook-reconciled", map[string]any{"webhook_url": webhookURL("/accept")})
 
-		awaitStatusOnReauth(t, compose, req, device.UID, models.DeviceStatusAccepted)
+		requireStatusOnReauth(t, compose, req, device.UID, models.DeviceStatusAccepted)
 
 		calls := webhook.awaitCalls(t, device.UID, 2)
 		assert.Equal(t, "/accept", calls[1].Path)
@@ -210,24 +210,35 @@ func TestEnrollmentWebhook(t *testing.T) {
 		req := newKeyedDeviceAuthRequest(t, key, "webhook-throttled", "02:00:00:00:80:11")
 
 		device := enroll(t, compose, req)
+		webhook.awaitCalls(t, device.UID, 1)
 
-		var calls []enrollmentWebhookCall
+		lastAttempt := func() time.Time {
+			t.Helper()
 
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			resp, err := postDeviceAuth(t.Context(), compose, req)
-			if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
-				return
-			}
+			attempt := requireDevice(t, compose, device.UID).LastEnrollmentAttemptAt
+			require.NotNil(t, attempt)
 
-			calls, err = webhook.calls(t.Context(), device.UID)
-			assert.NoError(tt, err)
-			assert.Len(tt, calls, 3)
-		}, deviceAuthCacheTTL+2*models.EnrollmentReconcileInterval, 2*time.Second)
+			return *attempt
+		}
 
-		reconciled, again := calls[1].payload(t).Timestamp, calls[2].payload(t).Timestamp
-		assert.GreaterOrEqual(t, again.Sub(reconciled), models.EnrollmentReconcileInterval,
-			"re-authenticating every 2 seconds past a %s cache asked the integrator again after only %s",
-			deviceAuthCacheTTL, again.Sub(reconciled))
+		reauthDevice(t, compose, req, device.UID)
+		webhook.awaitCalls(t, device.UID, 2)
+
+		reconciled := lastAttempt()
+		reauthDevice(t, compose, req, device.UID)
+		require.Equal(t, reconciled, lastAttempt(), "authenticating right after a reconcile asked the integrator again")
+
+		compose.AgeLastEnrollmentAttempt(t, device.UID, models.EnrollmentReconcileInterval-5*time.Second)
+		almost := lastAttempt()
+		reauthDevice(t, compose, req, device.UID)
+		require.Equal(t, almost, lastAttempt(), "authenticating before the interval ran out asked the integrator again")
+
+		compose.AgeLastEnrollmentAttempt(t, device.UID, models.EnrollmentReconcileInterval+time.Second)
+		past := lastAttempt()
+		reauthDevice(t, compose, req, device.UID)
+		require.True(t, lastAttempt().After(past), "authenticating past the interval did not ask the integrator again")
+		webhook.awaitCalls(t, device.UID, 3)
+
 		assert.Equal(t, models.DeviceStatusPending, requireDevice(t, compose, device.UID).Status)
 	})
 
@@ -244,7 +255,7 @@ func TestEnrollmentWebhook(t *testing.T) {
 			calls, err := webhook.calls(t.Context(), device.UID)
 
 			return err != nil || len(calls) > 0
-		}, 5*time.Second, time.Second, "the server called the integrator at the server's own network address")
+		}, time.Second, 250*time.Millisecond, "the server called the integrator at the server's own network address")
 	})
 }
 

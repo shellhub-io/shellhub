@@ -304,7 +304,7 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 	})
 
 	t.Run("a key is refused once its expiry passes", func(t *testing.T) {
-		const ttl = 10 * time.Second
+		const ttl = 3 * time.Second
 
 		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "expiring", ExpiresAt: 30})
 		compose.ExpireAPIKeyIn(t, key.Name, ttl)
@@ -320,7 +320,7 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 			}
 
 			assert.Equal(tt, http.StatusUnauthorized, resp.StatusCode(), resp.String())
-		}, 3*ttl, time.Second)
+		}, 3*ttl, 250*time.Millisecond)
 	})
 }
 
