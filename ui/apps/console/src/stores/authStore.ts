@@ -36,6 +36,7 @@ interface AuthState {
   mfaEnabled: boolean;
   mfaToken: string | null;
   mfaRecoveryExpiry: number | null;
+  signOutHandedOver: boolean;
   login: (username: string, password: string) => Promise<void>;
   loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
@@ -60,6 +61,8 @@ interface AuthState {
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
+  handOverSignOut: () => void;
+  isFromAbandonedSession: (sentToken: string | null) => boolean;
 }
 
 const initialState = {
@@ -79,12 +82,17 @@ const initialState = {
   mfaEnabled: false,
   mfaToken: null,
   mfaRecoveryExpiry: null,
+  signOutHandedOver: false,
 };
 
 /**
  * Who is signed in, and the transitions in and out of that state — sign-in, MFA, namespace
  * switching, sign-out. Persisted, so a reload does not sign the user out; the token is the
  * part that matters and everything else is derived from it.
+ *
+ * Every request is from an abandoned session from the moment its sign-out is handed over to the
+ * sign-in page until logout. Otherwise, only a request that carried a token the store no longer
+ * holds is; one that carried none is not.
  */
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -240,7 +248,8 @@ export const useAuthStore = create<AuthState>()(
           if (isSdkError(err) && err.status === 429) {
             set({
               loading: false,
-              error: "Too many failed attempts. Please wait before trying again.",
+              error:
+                "Too many failed attempts. Please wait before trying again.",
             });
             throw err;
           }
@@ -297,6 +306,16 @@ export const useAuthStore = create<AuthState>()(
 
       setMfaToken: (token: string) => {
         set({ mfaToken: token });
+      },
+
+      handOverSignOut: () => {
+        set({ signOutHandedOver: true });
+      },
+
+      isFromAbandonedSession: (sentToken: string | null) => {
+        const { token, signOutHandedOver } = get();
+        if (signOutHandedOver) return true;
+        return sentToken !== null && sentToken !== token;
       },
     }),
     {

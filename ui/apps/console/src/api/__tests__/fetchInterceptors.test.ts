@@ -17,12 +17,21 @@ function futureExp() {
   return Math.floor(Date.now() / 1000) + 3600;
 }
 
+function anotherJwt(): string {
+  return makeJwt(futureExp() + 60);
+}
+
 function pastExp() {
   return Math.floor(Date.now() / 1000) - 60;
 }
 
-function respondWith(status: number, headers: Record<string, string> = {}) {
+function respondWith(
+  status: number,
+  headers: Record<string, string> = {},
+  onRequest?: () => void,
+) {
   const fetchMock = vi.fn().mockImplementation((request: Request) => {
+    onRequest?.();
     const response = new Response(JSON.stringify({}), {
       status,
       headers: { "Content-Type": "application/json", ...headers },
@@ -59,6 +68,7 @@ beforeEach(() => {
     loading: false,
     error: null,
     mfaToken: null,
+    signOutHandedOver: false,
   });
 
   useConnectivityStore.getState().markUp();
@@ -96,17 +106,22 @@ describe("request interceptor", () => {
   it.each([
     ["expired", () => makeJwt(pastExp())],
     ["malformed", () => "not-a-jwt"],
-  ])("rejects a %s token before it reaches the network, and logs out", async (_label, makeToken) => {
-    vi.useFakeTimers();
-    useAuthStore.setState({ token: makeToken() });
-    const fetchMock = respondWith(200);
+  ])(
+    "rejects a %s token before it reaches the network, and logs out",
+    async (_label, makeToken) => {
+      vi.useFakeTimers();
+      useAuthStore.setState({ token: makeToken() });
+      const fetchMock = respondWith(200);
 
-    await expect(client.get({ url: "/test", throwOnError: true })).rejects.toThrow("Token expired");
+      await expect(
+        client.get({ url: "/test", throwOnError: true }),
+      ).rejects.toThrow("Token expired");
 
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(useAuthStore.getState().token).toBeNull();
-    expect(window.location.href).toBe("/login");
-  });
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().token).toBeNull();
+      expect(window.location.href).toBe("/login");
+    },
+  );
 
   it("keeps the session on an expired token during a token login", async () => {
     vi.useFakeTimers();
@@ -114,7 +129,9 @@ describe("request interceptor", () => {
     useAuthStore.setState({ token: makeJwt(pastExp()) });
     respondWith(200);
 
-    await expect(client.get({ url: "/test", throwOnError: true })).rejects.toThrow("Token expired");
+    await expect(
+      client.get({ url: "/test", throwOnError: true }),
+    ).rejects.toThrow("Token expired");
 
     expect(useAuthStore.getState().token).not.toBeNull();
     expect(window.location.href).toBe("");
@@ -141,6 +158,35 @@ describe("response interceptor", () => {
 
     expect(useAuthStore.getState().token).toBeNull();
     expect(window.location.href).toBe("/login");
+  });
+
+  it.each([
+    ["signed out", () => null],
+    ["signed in again", anotherJwt],
+  ])(
+    "leaves the session alone on 401 for a token the store gave up, once %s",
+    async (_label, makeCurrent) => {
+      useAuthStore.setState({ token: makeJwt(futureExp()) });
+      const current = makeCurrent();
+      respondWith(401, {}, () => useAuthStore.setState({ token: current }));
+
+      await client.get({ url: "/test" });
+
+      expect(useAuthStore.getState().token).toBe(current);
+      expect(window.location.href).toBe("");
+    },
+  );
+
+  it("leaves the session to the sign-in page on 401 once a sign-out is handed over", async () => {
+    const token = makeJwt(futureExp());
+    useAuthStore.setState({ token });
+    useAuthStore.getState().handOverSignOut();
+    respondWith(401);
+
+    await client.get({ url: "/test" });
+
+    expect(useAuthStore.getState().token).toBe(token);
+    expect(window.location.href).toBe("");
   });
 
   it("keeps the session on 401 from the login route", async () => {
@@ -197,15 +243,18 @@ describe("connectivity tracking", () => {
     expect(useConnectivityStore.getState().apiReachable).toBe(false);
   });
 
-  it.each([502, 503, 504])("marks the API down after the grace period on %i", async (status) => {
-    vi.useFakeTimers();
-    respondWith(status);
+  it.each([502, 503, 504])(
+    "marks the API down after the grace period on %i",
+    async (status) => {
+      vi.useFakeTimers();
+      respondWith(status);
 
-    await client.get({ url: "/test" });
+      await client.get({ url: "/test" });
 
-    vi.advanceTimersByTime(GRACE_PERIOD_MS);
-    expect(useConnectivityStore.getState().apiReachable).toBe(false);
-  });
+      vi.advanceTimersByTime(GRACE_PERIOD_MS);
+      expect(useConnectivityStore.getState().apiReachable).toBe(false);
+    },
+  );
 
   it.each([400, 404, 422])("leaves the API marked up on %i", async (status) => {
     vi.useFakeTimers();
@@ -241,6 +290,8 @@ describe("error interceptor", () => {
 
     expect(isSdkError(error)).toBe(true);
     expect((error as { status: number }).status).toBe(409);
-    expect((error as { headers: Headers }).headers.get("x-account-lockout")).toBe("60");
+    expect(
+      (error as { headers: Headers }).headers.get("x-account-lockout"),
+    ).toBe("60");
   });
 });

@@ -39,6 +39,15 @@ function isApiDown(status: number): boolean {
   return status === 502 || status === 503 || status === 504;
 }
 
+const BEARER = "Bearer ";
+
+function sentToken(request: Request): string | null {
+  const authorization = request.headers.get("Authorization");
+  return authorization?.startsWith(BEARER)
+    ? authorization.slice(BEARER.length)
+    : null;
+}
+
 client.interceptors.request.use((request) => {
   const token = useAuthStore.getState().token;
   if (token) {
@@ -52,12 +61,12 @@ client.interceptors.request.use((request) => {
       }
       throw new ExpiredTokenError("Token expired");
     }
-    request.headers.set("Authorization", `Bearer ${token}`);
+    request.headers.set("Authorization", `${BEARER}${token}`);
   }
   return request;
 });
 
-client.interceptors.response.use((response) => {
+client.interceptors.response.use((response, request) => {
   if (!isApiDown(response.status)) {
     cancelMarkDown();
     if (!useConnectivityStore.getState().apiReachable) {
@@ -76,8 +85,10 @@ client.interceptors.response.use((response) => {
       const isTokenLogin = new URLSearchParams(window.location.search).has(
         "token",
       );
-      if (!isSignInStep && !isTokenLogin) {
-        useAuthStore.getState().logout();
+      const { isFromAbandonedSession, logout } = useAuthStore.getState();
+      const abandoned = isFromAbandonedSession(sentToken(request));
+      if (!isSignInStep && !isTokenLogin && !abandoned) {
+        logout();
         window.location.href = "/login";
       }
     }

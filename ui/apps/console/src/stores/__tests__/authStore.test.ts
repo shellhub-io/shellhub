@@ -176,6 +176,18 @@ describe("authStore", () => {
       expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
     });
 
+    it("clears a handed-over sign-out, so the next session's 401s end it again", () => {
+      useAuthStore.setState({ token: "jwt" });
+      useAuthStore.getState().handOverSignOut();
+
+      useAuthStore.getState().logout();
+      useAuthStore.setState({ token: "next-jwt" });
+
+      expect(
+        useAuthStore.getState().isFromAbandonedSession("next-jwt"),
+      ).toBe(false);
+    });
+
     it("closes the open recordings, whose output belongs to the user leaving", () => {
       useTerminalStore.getState().openRecording({
         id: "session-1",
@@ -364,6 +376,7 @@ describe("authStore", () => {
         mfaEnabled: true,
         mfaToken: "mfa-temp-token",
         mfaRecoveryExpiry: "1234567890",
+        signOutHandedOver: true,
       };
 
       const persisted = partialize(full) as Record<string, unknown>;
@@ -386,6 +399,7 @@ describe("authStore", () => {
 
       expect(persisted).not.toHaveProperty("mfaToken");
       expect(persisted).not.toHaveProperty("mfaRecoveryExpiry");
+      expect(persisted).not.toHaveProperty("signOutHandedOver");
     });
   });
 
