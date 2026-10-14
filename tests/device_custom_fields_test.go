@@ -17,6 +17,8 @@ const maxDeviceCustomFields = 20
 // cap refuses a new key and keeps its fields, while overwriting a key it holds still works, and
 // removing a key makes room for another.
 func TestDeviceCustomFieldLimit(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	uid := enrollDevice(t, compose, "customfields", "02:00:00:00:15:01")

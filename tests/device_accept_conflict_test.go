@@ -16,6 +16,8 @@ import (
 // merge it into a disconnected one, since the merge would still leave two devices answering to
 // the name. Either accept goes through once the other device lets the name go.
 func TestDeviceAcceptNameConflicts(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)

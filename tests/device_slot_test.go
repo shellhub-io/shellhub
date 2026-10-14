@@ -14,6 +14,8 @@ import (
 // at once: the namespace counts one accepted device fewer, the pending device is offered as
 // acceptable again, and accepting it succeeds.
 func TestRemovedDeviceFreesItsSlot(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	t.Run("removing an accepted device frees its slot", func(t *testing.T) {
