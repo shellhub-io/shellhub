@@ -272,7 +272,7 @@ func publicKey(t *testing.T, compose *environment.DockerCompose, signer ssh.Sign
 	keys := []models.PublicKey{}
 
 	resp, err := compose.R(t.Context()).
-		SetQueryParam("filter", sessionFilter(t, "fingerprint", "eq", ssh.FingerprintLegacyMD5(signer.PublicKey()))).
+		SetQueryParam("filter", propertyFilter(t, "fingerprint", "eq", ssh.FingerprintLegacyMD5(signer.PublicKey()))).
 		SetResult(&keys).
 		Get("/api/sshkeys/public-keys")
 	require.NoError(t, err)
