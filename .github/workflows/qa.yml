@@ -57,7 +57,13 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Restore the Go caches
+        if: steps.changes.outputs.go == 'true'
+        uses: ./.github/actions/go-cache
+        with:
+          name: qa-go
 
       - name: Download the Go modules of every module
         if: steps.changes.outputs.go == 'true'
@@ -101,6 +107,7 @@ jobs:
           version: ${{ steps.versions.outputs.golangci-lint }}
           args: --timeout 2m ./...
           verify: false
+          skip-cache: true
 
       - name: Lint server
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -110,6 +117,7 @@ jobs:
           version: ${{ steps.versions.outputs.golangci-lint }}
           args: --timeout 2m ./...
           verify: false
+          skip-cache: true
 
       - name: Lint gateway
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -119,6 +127,7 @@ jobs:
           version: ${{ steps.versions.outputs.golangci-lint }}
           args: --timeout 2m ./...
           verify: false
+          skip-cache: true
 
       - name: Lint agent
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -128,6 +137,7 @@ jobs:
           version: ${{ steps.versions.outputs.golangci-lint }}
           args: --timeout 2m --build-tags docker ./...
           verify: false
+          skip-cache: true
 
       - name: Lint tests
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -137,6 +147,7 @@ jobs:
           version: ${{ steps.versions.outputs.golangci-lint }}
           args: --timeout 2m ./...
           verify: false
+          skip-cache: true
 
       - name: Ensure generated mocks match the pinned generator
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -192,6 +203,13 @@ jobs:
         run: |
           go build ./...
           go vet ./...
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}
+        uses: ./.github/actions/go-cache
+        with:
+          name: qa-go
+          save: true
 
   integration:
     name: integration
@@ -259,7 +277,14 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: shellhub/tests/go.mod
-          cache-dependency-path: shellhub/tests/go.sum
+          cache: false
+
+      - name: Restore the Go caches
+        if: steps.changes.outputs.go == 'true'
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: qa-integration
+          sum-files: shellhub/tests/go.sum
 
       - name: Set SHELLHUB_DATABASE for integration tests
         if: steps.changes.outputs.go == 'true'
@@ -289,6 +314,14 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
           SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: qa-integration
+          sum-files: shellhub/tests/go.sum
+          save: true
 
   qa:
     name: qa
