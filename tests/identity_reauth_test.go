@@ -69,6 +69,7 @@ func TestAccessPolicyReauth(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:          "unattended",
 			Subject:       apiKeySubject(key.ID),
+			Filter:        requests.AccessPolicyFilter{All: true},
 			Logins:        []string{"*"},
 			RequireReauth: true,
 		})
@@ -107,6 +108,7 @@ func requireReauth(t *testing.T, compose *environment.DockerCompose, name string
 	grant(t, compose, &requests.AccessPolicyCreate{
 		Name:          name,
 		Subject:       requests.AccessPolicySubject{Type: string(models.PolicySubjectAllMembers)},
+		Filter:        requests.AccessPolicyFilter{All: true},
 		Logins:        []string{"*"},
 		RequireReauth: true,
 		ReauthPeriod:  period,

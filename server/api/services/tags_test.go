@@ -836,8 +836,8 @@ func TestService_DeleteTag(t *testing.T) {
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
-						{Name: "operators", Filter: models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}},
-						{Name: "admins", Filter: models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}},
+						{Name: "operators", Filter: models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}},
+						{Name: "admins", Filter: models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}},
 					}, int64(2), nil).
 					Once()
 			},

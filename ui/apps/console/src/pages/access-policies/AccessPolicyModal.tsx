@@ -389,7 +389,7 @@ function AccessPolicyModal({
 
   useResetOnOpen(open, () => {
     const filterInit: FilterOption =
-      editPolicy && editPolicy.filter.tags.length > 0 ? "tags" : "all";
+      !editPolicy || editPolicy.filter.all ? "all" : "tags";
     const editValue = editPolicy?.subject.value ?? "";
 
     const subjInit: SubjectType = editPolicy?.subject.type ?? "all-members";
@@ -429,11 +429,8 @@ function AccessPolicyModal({
       return { type: "api-key", value: apiKeyValue };
     return { type: "all-members", value: "" };
   };
-  const buildFilter = (): AccessPolicyRequest["filter"] => {
-    if (filterOption === "tags" && selectedTags.length > 0)
-      return { tags: selectedTags };
-    return {};
-  };
+  const buildFilter = (): AccessPolicyRequest["filter"] =>
+    filterOption === "all" ? { all: true } : { tags: selectedTags };
   const canReauthenticate = (type: typeof subjectType) => type !== "api-key";
   const reauthApplies = canReauthenticate(subjectType);
 

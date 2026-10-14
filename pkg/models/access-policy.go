@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"slices"
 	"time"
 )
 
@@ -39,6 +40,31 @@ const (
 	PolicyActionDeny PolicyAction = "deny"
 )
 
+// AccessPolicyFilter selects the devices an Access Policy applies to: every device when All is
+// set, or the devices carrying any of the tags. A filter with neither selects no device, so an
+// emptied tag list never widens a policy to every device.
+type AccessPolicyFilter struct {
+	All      bool `json:"all"`
+	Taggable `json:",inline"`
+}
+
+// Matches reports whether the filter selects device. The device must already carry its tag ids
+// (Taggable.TagIDs); callers resolving a device from an agent-sent payload must populate them
+// first, since the agent does not send tag ids.
+func (f AccessPolicyFilter) Matches(device *Device) bool {
+	if f.All {
+		return true
+	}
+
+	for _, tagID := range f.TagIDs {
+		if slices.Contains(device.TagIDs, tagID) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // AccessPolicy is a namespace-scoped authorization rule for the identity-based
 // SSH access mode: for a subject (user, role, or all members) reaching the
 // devices selected by Filter as the unix logins listed in Logins, it either
@@ -46,11 +72,11 @@ const (
 // default-deny and deny-first: a matching deny wins over any allow, and access
 // is authorized iff some allow grants it and no deny blocks it.
 type AccessPolicy struct {
-	ID       string          `json:"id"`
-	TenantID string          `json:"-"`
-	Name     string          `json:"name"`
-	Subject  PolicySubject   `json:"subject"`
-	Filter   PublicKeyFilter `json:"filter"`
+	ID       string             `json:"id"`
+	TenantID string             `json:"-"`
+	Name     string             `json:"name"`
+	Subject  PolicySubject      `json:"subject"`
+	Filter   AccessPolicyFilter `json:"filter"`
 	// Logins are the unix logins this policy covers: exact names, or ["*"] for
 	// any login.
 	Logins []string `json:"logins"`
@@ -94,7 +120,7 @@ func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
 		TenantID: tenantID,
 		Name:     "Owner access",
 		Subject:  PolicySubject{Type: PolicySubjectUser, Value: ownerID},
-		Filter:   PublicKeyFilter{},
+		Filter:   AccessPolicyFilter{All: true},
 		Logins:   []string{"*"},
 		SourceIP: []string{},
 		Action:   PolicyActionAllow,

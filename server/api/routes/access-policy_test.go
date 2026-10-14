@@ -37,10 +37,10 @@ func TestAccessPolicyFilterTagLimit(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			description:    "fails with more than 3 tags",
-			filter:         map[string]any{"tags": []string{"tag1", "tag2", "tag3", "tag4"}},
-			reachesService: false,
-			expectedStatus: http.StatusBadRequest,
+			description:    "succeeds with every device",
+			filter:         map[string]any{"all": true},
+			reachesService: true,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			description:    "succeeds with 3 tags",
@@ -49,16 +49,10 @@ func TestAccessPolicyFilterTagLimit(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			description:    "succeeds with an empty tag list",
-			filter:         map[string]any{"tags": []string{}},
-			reachesService: true,
-			expectedStatus: http.StatusOK,
-		},
-		{
-			description:    "succeeds without a filter",
-			filter:         nil,
-			reachesService: true,
-			expectedStatus: http.StatusOK,
+			description:    "fails with more than 3 tags",
+			filter:         map[string]any{"tags": []string{"tag1", "tag2", "tag3", "tag4"}},
+			reachesService: false,
+			expectedStatus: http.StatusBadRequest,
 		},
 	}
 

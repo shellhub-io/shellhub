@@ -41,6 +41,7 @@ func TestAPIKeySSHAccess(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "allowed",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -49,6 +50,7 @@ func TestAPIKeySSHAccess(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "denied",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 			Action:  string(models.PolicyActionDeny),
 		})
@@ -64,6 +66,7 @@ func TestAPIKeySSHAccess(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "expiring",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -83,6 +86,7 @@ func TestAPIKeySSHAccess(t *testing.T) {
 		policy := compose.CreateAccessPolicy(t, &requests.AccessPolicyCreate{
 			Name:    "revoked",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 

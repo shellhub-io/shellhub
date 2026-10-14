@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockAccessPolicy, mockNamespace } from "@/tests/factories";
+import { mockAccessPolicy, mockNamespace, mockTag } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import type { AccessPolicy } from "@/client";
 import AccessPolicies from "../index";
@@ -42,6 +42,32 @@ beforeEach(() => {
 });
 
 describe("AccessPolicies", () => {
+  it.each([
+    {
+      devices: "All devices",
+      filter: { all: true, tags: [] },
+      hidden: [],
+    },
+    {
+      devices: "production",
+      filter: { all: false, tags: [mockTag({ name: "production" })] },
+      hidden: ["All devices"],
+    },
+    {
+      devices: "No devices",
+      filter: { all: false, tags: [] },
+      hidden: ["All devices"],
+    },
+  ])("shows $devices for its filter", async ({ devices, filter, hidden }) => {
+    renderList([mockAccessPolicy({ name: "rule", filter })]);
+
+    const row = await screen.findByRole("row", { name: /rule/ });
+    expect(within(row).getByText(devices)).toBeInTheDocument();
+    for (const text of hidden) {
+      expect(within(row).queryByText(text)).not.toBeInTheDocument();
+    }
+  });
+
   it("puts the row actions in a menu without opening the policy behind it", async () => {
     const user = userEvent.setup();
     renderList([mockAccessPolicy({ id: "p1", name: "all" })]);

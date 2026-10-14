@@ -49,10 +49,18 @@ type AccessPolicyService interface {
 	// GetAccessPolicy returns a single access policy by id within the namespace.
 	GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error)
 
-	// CreateAccessPolicy creates a new access policy in the namespace.
+	// CreateAccessPolicy creates an access policy in the namespace and returns it as stored.
+	//
+	// It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace
+	// cannot be resolved, [ErrAccessPolicyInvalidField] for a subject that names no one who could
+	// connect or a filter that gives neither every device nor a tag, or both, [ErrTagEmpty] when the
+	// namespace's tags cannot be listed and [ErrTagNotFound] for a tag name it does not hold. Any
+	// other store failure is returned unchanged.
 	CreateAccessPolicy(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error)
 
-	// UpdateAccessPolicy updates an existing access policy in the namespace.
+	// UpdateAccessPolicy replaces an access policy in the namespace and returns it as stored. It
+	// returns [ErrAccessPolicyNotFound] when the policy does not exist, and otherwise fails as
+	// [AccessPolicyService.CreateAccessPolicy] does.
 	UpdateAccessPolicy(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error)
 
 	// DeleteAccessPolicy removes an access policy from the namespace.
@@ -177,12 +185,7 @@ func policyApplies(policy models.AccessPolicy, dev *models.Device, principal mod
 		return false, nil
 	}
 
-	matched, err := policy.Filter.Matches(dev)
-	if err != nil {
-		return false, err
-	}
-
-	if !matched || !loginMatches(policy.Logins, login) {
+	if !policy.Filter.Matches(dev) || !loginMatches(policy.Logins, login) {
 		return false, nil
 	}
 
@@ -552,10 +555,16 @@ func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPo
 	return s.store.AccessPolicyDelete(ctx, &models.AccessPolicy{ID: req.ID, TenantID: req.TenantID})
 }
 
-func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.PublicKeyFilter, error) {
-	var filter models.PublicKeyFilter
+func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.AccessPolicyFilter, error) {
+	filter := models.AccessPolicyFilter{All: reqFilter.All}
 
-	if len(reqFilter.Tags) == 0 {
+	if reqFilter.All != (len(reqFilter.Tags) == 0) {
+		return filter, NewErrAccessPolicyInvalidField(map[string]string{
+			"filter": "must select every device or name at least one tag, not both",
+		})
+	}
+
+	if reqFilter.All {
 		return filter, nil
 	}
 

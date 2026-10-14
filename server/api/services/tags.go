@@ -72,8 +72,9 @@ type TagsService interface {
 	//
 	// It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace cannot
 	// be resolved, [ErrTagNameNotFound] when the tag cannot, and [ErrTagInUse], naming them, while the
-	// device filter of a public key or an access policy holds the tag: a filter left without its
-	// only tag would select every device. Any other failure listing those, detaching the tag or
+	// device filter of a public key or an access policy holds the tag: a public key filter left
+	// without its only tag would select every device, and a deny policy that loses a tag blocks
+	// fewer devices and so widens access. Any other failure listing those, detaching the tag or
 	// deleting it, or of the transaction itself, is returned unchanged and deletes nothing.
 	DeleteTag(ctx context.Context, req *requests.DeleteTag) (err error)
 }

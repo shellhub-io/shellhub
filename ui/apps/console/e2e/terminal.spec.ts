@@ -405,7 +405,7 @@ async function requireReauth(team: Team) {
     body: {
       name: `e2e-reauth-${buildShortId()}`,
       subject: { type: "all-members", value: "" },
-      filter: {},
+      filter: { all: true },
       logins: ["*"],
       action: "allow",
       require_reauth: true,

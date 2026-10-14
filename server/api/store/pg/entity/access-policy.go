@@ -26,6 +26,7 @@ type AccessPolicy struct {
 	RequireReauth bool      `bun:"require_reauth"`
 	ReauthPeriod  *int      `bun:"reauth_period"`
 	Action        string    `bun:"action"`
+	AllDevices    bool      `bun:"all_devices"`
 
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
 }
@@ -65,6 +66,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		RequireReauth: model.RequireReauth,
 		ReauthPeriod:  model.ReauthPeriod,
 		Action:        string(model.Action),
+		AllDevices:    model.Filter.All,
 		Tags:          []*Tag{},
 	}
 
@@ -95,7 +97,8 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 			Type:  models.PolicySubjectType(entity.SubjectType),
 			Value: subjectValue(entity),
 		},
-		Filter: models.PublicKeyFilter{
+		Filter: models.AccessPolicyFilter{
+			All: entity.AllDevices,
 			Taggable: models.Taggable{
 				Tags: []models.Tag{},
 			},

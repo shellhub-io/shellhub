@@ -262,6 +262,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 				compose.CreateAccessPolicy(t, &requests.AccessPolicyCreate{
 					Name:    "no root",
 					Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectAllMembers)},
+					Filter:  requests.AccessPolicyFilter{All: true},
 					Logins:  []string{ShellHubAgentUsername},
 					Action:  string(models.PolicyActionDeny),
 				})

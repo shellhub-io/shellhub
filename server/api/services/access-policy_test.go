@@ -126,7 +126,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -146,7 +146,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"deploy"},
 						},
 					}, int64(1), nil).Once()
@@ -168,7 +168,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"deploy"},
 						},
 					}, int64(1), nil).Once()
@@ -188,7 +188,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "administrator"},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -210,7 +210,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "administrator"},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -230,7 +230,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -250,7 +250,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-db"}}},
+							Filter:  models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-db"}}},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -272,7 +272,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-web"}}},
+							Filter:  models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-web"}}},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -292,7 +292,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:        models.PublicKeyFilter{},
+							Filter:        models.AccessPolicyFilter{All: true},
 							Logins:        []string{"*"},
 							RequireReauth: true,
 						},
@@ -314,13 +314,13 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:        models.PublicKeyFilter{},
+							Filter:        models.AccessPolicyFilter{All: true},
 							Logins:        []string{"deploy"},
 							Action:        models.PolicyActionAllow,
 							RequireReauth: true,
@@ -343,14 +343,14 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:        models.PublicKeyFilter{},
+							Filter:        models.AccessPolicyFilter{All: true},
 							Logins:        []string{"deploy"},
 							Action:        models.PolicyActionAllow,
 							RequireReauth: true,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
@@ -372,13 +372,13 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:        models.PublicKeyFilter{},
+							Filter:        models.AccessPolicyFilter{All: true},
 							Logins:        []string{"deploy"},
 							Action:        models.PolicyActionAllow,
 							RequireReauth: true,
@@ -390,7 +390,7 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     false,
 		},
 		{
-			description: "skips a policy with a broken hostname regexp and stays default-deny",
+			description: "an allow whose filter names neither every device nor a tag grants no device",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
@@ -401,7 +401,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{Hostname: "["},
+							Filter:  models.AccessPolicyFilter{},
 							Logins:  []string{"*"},
 						},
 					}, int64(1), nil).Once()
@@ -423,14 +423,14 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Name:    "block root",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
@@ -453,13 +453,13 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
@@ -480,14 +480,14 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Name:    "block everything",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionDeny,
 						},
@@ -499,7 +499,7 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     false,
 		},
 		{
-			description: "deny with a broken hostname regexp fails closed",
+			description: "a deny whose filter names neither every device nor a tag blocks no device",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
@@ -510,22 +510,20 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
-							Name:    "broken deny",
+							Name:    "empty deny",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{Hostname: "["},
+							Filter:  models.AccessPolicyFilter{},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionDeny,
 						},
 					}, int64(2), nil).Once()
 			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonPolicyUnevaluable,
-			expectedPolicy:  "broken deny",
+			expectedAllowed: true,
 			expectedErr:     false,
 		},
 		{
@@ -541,7 +539,7 @@ func TestAuthorize(t *testing.T) {
 						{
 							Name:    "block root",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"root"},
 							Action:  models.PolicyActionDeny,
 						},
@@ -565,13 +563,13 @@ func TestAuthorize(t *testing.T) {
 						{
 							Name:    "deny all",
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionDeny,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"teste"},
 							Action:  models.PolicyActionAllow,
 						},
@@ -595,7 +593,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionAllow,
@@ -618,7 +616,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionAllow,
@@ -643,7 +641,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
@@ -665,14 +663,14 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Name:     "block office range",
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.0/24"},
 							Action:   models.PolicyActionDeny,
@@ -697,13 +695,13 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.0/24"},
 							Action:   models.PolicyActionDeny,
@@ -726,7 +724,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.9/32"},
 							Action:   models.PolicyActionAllow,
@@ -749,7 +747,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8", "192.168.0.0/16"},
 							Action:   models.PolicyActionAllow,
@@ -772,14 +770,14 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.PublicKeyFilter{},
+							Filter:  models.AccessPolicyFilter{All: true},
 							Logins:  []string{"*"},
 							Action:  models.PolicyActionAllow,
 						},
 						{
 							Name:     "block office range",
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
 							Action:   models.PolicyActionDeny,
@@ -804,7 +802,7 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.PublicKeyFilter{},
+							Filter:   models.AccessPolicyFilter{All: true},
 							Logins:   []string{"*"},
 							SourceIP: []string{"garbage"},
 							Action:   models.PolicyActionAllow,
@@ -1039,6 +1037,7 @@ func TestCreateAccessPolicyValidatesTheSubject(t *testing.T) {
 				TenantID: tenantID,
 				Name:     "rule",
 				Subject:  tc.subject,
+				Filter:   requests.AccessPolicyFilter{All: true},
 				Logins:   []string{"root"},
 			})
 
@@ -1082,6 +1081,7 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 		TenantID:            tenantID,
 		Name:                "rule",
 		Subject:             requests.AccessPolicySubject{Type: "user", Value: strangerID},
+		Filter:              requests.AccessPolicyFilter{All: true},
 		Logins:              []string{"root"},
 	})
 
@@ -1102,11 +1102,93 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 			TenantID:            tenantID,
 			Name:                "rule",
 			Subject:             requests.AccessPolicySubject{Type: "role", Value: "observer"},
+			Filter:              requests.AccessPolicyFilter{All: true},
 			Logins:              []string{"root"},
 		})
 
 		require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
 	})
+}
+
+func TestCreateAccessPolicyStoresTheFilter(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	cases := []struct {
+		description string
+		filter      requests.AccessPolicyFilter
+		stored      models.AccessPolicyFilter
+		rejected    bool
+	}{
+		{
+			description: "every device is stored as every device",
+			filter:      requests.AccessPolicyFilter{All: true},
+			stored:      models.AccessPolicyFilter{All: true},
+		},
+		{
+			description: "every device with the empty tag list a response carries is stored as every device",
+			filter:      requests.AccessPolicyFilter{All: true, Tags: []string{}},
+			stored:      models.AccessPolicyFilter{All: true},
+		},
+		{
+			description: "tag names are stored as the tags' ids",
+			filter:      requests.AccessPolicyFilter{Tags: []string{"production"}},
+			stored:      models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-production"}}},
+		},
+		{
+			description: "a filter with neither every device nor a tag is refused",
+			filter:      requests.AccessPolicyFilter{},
+			rejected:    true,
+		},
+		{
+			description: "an empty tag list is refused",
+			filter:      requests.AccessPolicyFilter{Tags: []string{}},
+			rejected:    true,
+		},
+		{
+			description: "a filter with every device and a tag is refused",
+			filter:      requests.AccessPolicyFilter{All: true, Tags: []string{"production"}},
+			rejected:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+				Return(&models.Namespace{TenantID: tenantID}, nil).Once()
+			storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Once()
+			storeMock.On("TagList", ctx, mock.Anything).
+				Return([]models.Tag{{ID: "tag-production", Name: "production"}}, int64(1), nil).Maybe()
+
+			if !tc.rejected {
+				storeMock.On("AccessPolicyCreate", ctx, mock.MatchedBy(func(policy *models.AccessPolicy) bool {
+					return assert.ObjectsAreEqual(tc.stored, policy.Filter)
+				})).Return("policy-1", nil).Once()
+				storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, "policy-1").
+					Return(&models.AccessPolicy{ID: "policy-1"}, nil).Once()
+			}
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+			_, err := service.CreateAccessPolicy(ctx, &requests.AccessPolicyCreate{
+				TenantID: tenantID,
+				Name:     "rule",
+				Subject:  requests.AccessPolicySubject{Type: "all-members"},
+				Filter:   tc.filter,
+				Logins:   []string{"root"},
+			})
+
+			if tc.rejected {
+				require.ErrorIs(t, err, ErrAccessPolicyInvalidField)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
@@ -1224,6 +1306,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					TenantID: tenantID,
 					Name:     "rule",
 					Subject:  requests.AccessPolicySubject{Type: "role", Value: role},
+					Filter:   requests.AccessPolicyFilter{All: true},
 					Logins:   []string{"root"},
 				})
 			},
@@ -1244,6 +1327,7 @@ func TestAccessPolicyReadPathsReportASubjectThatMatchesNobody(t *testing.T) {
 					TenantID:            tenantID,
 					Name:                "rule",
 					Subject:             requests.AccessPolicySubject{Type: "role", Value: role},
+					Filter:              requests.AccessPolicyFilter{All: true},
 					Logins:              []string{"root"},
 				})
 			},
@@ -1326,7 +1410,7 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 	grant := func(subject models.PolicySubject, reauth bool) []models.AccessPolicy {
 		return []models.AccessPolicy{{
 			Subject:       subject,
-			Filter:        models.PublicKeyFilter{},
+			Filter:        models.AccessPolicyFilter{All: true},
 			Logins:        []string{"*"},
 			Action:        models.PolicyActionAllow,
 			RequireReauth: reauth,
