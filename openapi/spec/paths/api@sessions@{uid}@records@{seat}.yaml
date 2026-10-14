@@ -79,10 +79,30 @@ get:
         text/plain:
           schema:
             type: string
+    '206':
+      description: The requested byte ranges of a session's record.
+      content:
+        text/plain:
+          schema:
+            type: string
+        multipart/byteranges:
+          schema:
+            type: string
+            format: binary
+    '304':
+      description: The record has not changed since the If-Modified-Since date.
     '400':
       $ref: ../components/responses/400.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '412':
+      description: The If-Match or If-Unmodified-Since precondition failed.
+    '416':
+      description: The Range header is malformed or outside the record.
+      content:
+        text/plain:
+          schema:
+            type: string
     '500':
       $ref: ../components/responses/500.yaml
     '503':
