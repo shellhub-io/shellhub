@@ -10,7 +10,6 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -297,12 +296,11 @@ func TestEvaluate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			envstest.SetEdition(t, tt.edition)
-
 			serviceMock := servicemocks.NewMockService(t)
 			tt.setupMock(serviceMock)
 
 			sess := newTestSession(serviceMock, nil)
+			sess.edition = tt.edition
 			ctx := newStubContext()
 
 			snap := getSnapshot(ctx)

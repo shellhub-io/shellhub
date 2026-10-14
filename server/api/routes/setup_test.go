@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -18,8 +16,6 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	envstest.SetEdition(t, envs.Community)
-
 	servicesMock := serviceMocks.NewMockService(t)
 
 	tests := []struct {

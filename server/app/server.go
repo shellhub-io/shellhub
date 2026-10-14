@@ -251,7 +251,13 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
-	servicesOptions = append(servicesOptions, services.WithIssuer(s.instanceIssuer()))
+	servicesOptions = append(servicesOptions,
+		services.WithIssuer(s.instanceIssuer()),
+		services.WithEdition(s.env.Edition),
+		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
+		services.WithDevelopmentMode(s.env.Development()),
+		services.WithEnrollmentWebhookCIDRs(services.ParseEnrollmentWebhookCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
+	)
 
 	verifiedKeyOpts, err := s.verifiedDeviceKeyOption(ctx, store)
 	if err != nil {
@@ -371,6 +377,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		HostKeyFile:                  env.HostKeyFile,
 		Domain:                       s.env.Domain,
 		AutoSSL:                      s.env.AutoSSL,
+		Edition:                      s.env.Edition,
 	})
 
 	return err
@@ -541,7 +548,7 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 }
 
 func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
-	opts := []routes.Option{}
+	opts := []routes.Option{routes.WithEdition(s.env.Edition)}
 
 	if s.env.SentryDSN != "" {
 		log.Info("Initializing Sentry error reporting")

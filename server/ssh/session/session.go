@@ -200,6 +200,7 @@ type Session struct {
 	service  services.Service
 	dialer   dialer.TunnelDialer
 	sessions *Registry
+	edition  envs.Edition
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -335,7 +336,7 @@ func (s *seats) SetType(seat int, kind string) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *Registry) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *Registry, edition envs.Edition) (*Session, error) {
 	sshid := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
@@ -408,6 +409,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 		service:  service,
 		dialer:   dialer,
 		sessions: sessions,
+		edition:  edition,
 		Events:   NewEvents(ctx.SessionID(), scope.MustBounded(namespace.TenantID), service),
 		Data: Data{
 			IPAddress: hos.Host,
@@ -828,23 +830,28 @@ func (s *Session) checkLicense(ctx context.Context) error {
 	return err
 }
 
+// Edition is the edition of the server that accepted the session.
+func (s *Session) Edition() envs.Edition {
+	return s.edition
+}
+
 // Evaluate decides whether the session is allowed to proceed, applying the licence, the
 // firewall rules and the namespace's own restrictions. It runs before the client has
 // authenticated, and needs no tunnel to the device.
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
-	if envs.IsEnterprise() {
+	if s.edition.IsEnterprise() {
 		if err := s.checkLicense(ctx); err != nil {
 			return err
 		}
 	}
 
-	if envs.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
+	if s.edition.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
 		if err := s.checkFirewall(ctx); err != nil {
 			return err
 		}
 	}
 
-	if envs.IsCloud() {
+	if s.edition.IsCloud() {
 		if err := s.checkBilling(ctx); err != nil {
 			return err
 		}

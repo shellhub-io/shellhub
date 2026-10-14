@@ -11,7 +11,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
@@ -662,13 +661,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
-			if tc.edition != "" {
-				envstest.SetEdition(tt, tc.edition)
-			}
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
 
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
@@ -2172,8 +2167,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
-
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
@@ -2181,9 +2174,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			if tc.edition != "" {
-				envstest.SetEdition(t, tc.edition)
-			}
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
 
 			tc.requiredMocks()
 
@@ -2494,8 +2485,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(licenseEvaluator))
-
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
@@ -2503,9 +2492,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			if tc.edition != "" {
-				envstest.SetEdition(t, tc.edition)
-			}
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(licenseEvaluator), WithEdition(tc.edition))
 
 			tc.requiredMocks()
 
@@ -2522,8 +2509,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
-	envstest.SetEdition(t, envs.Community)
-
 	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)

@@ -106,6 +106,16 @@ func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 	}
 }
 
+// WithEdition sets the edition that decides which routes the router registers. Without it the
+// router registers the Community routes.
+func WithEdition(edition envs.Edition) Option {
+	return func(_ *echo.Echo, handler *Handler) error {
+		handler.edition = edition
+
+		return nil
+	}
+}
+
 // NewRouter builds the API router over service, applying each option in turn.
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	router, ok := DefaultHTTPHandler().(*echo.Echo)
@@ -208,7 +218,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
 	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
 
-	if envs.IsEnterpriseOrCloud() {
+	if handler.edition.IsEnterpriseOrCloud() {
 		publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), routesmiddleware.BlockAPIKey)
 	}
 	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
@@ -238,7 +248,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	publicAPI.POST(WebReauthURL, gateway.Handler(handler.WebReauthVerify))
 
-	if !envs.IsCloud() {
+	if !handler.edition.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
@@ -247,7 +257,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	registerInternalMetrics(router, handler.authn)
 
 	if handler.authn != nil {
-		registerAnonymousRoutes(handler.authn)
+		registerAnonymousRoutes(handler.authn, handler.edition)
 		registerDeviceRoutes(handler.authn)
 	}
 

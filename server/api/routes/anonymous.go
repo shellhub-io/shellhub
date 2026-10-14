@@ -9,7 +9,7 @@ import (
 
 const publicAPIPrefix = "/api"
 
-func registerAnonymousRoutes(authn *routesmiddleware.Authenticator) {
+func registerAnonymousRoutes(authn *routesmiddleware.Authenticator, edition envs.Edition) {
 	allow := func(method, path string) {
 		authn.AllowAnonymous(method, publicAPIPrefix+path)
 	}
@@ -31,7 +31,7 @@ func registerAnonymousRoutes(authn *routesmiddleware.Authenticator) {
 	allow(http.MethodGet, GetSystemInfoURL)
 	allow(http.MethodGet, GetSystemDownloadInstallScriptURL)
 
-	if !envs.IsCloud() {
+	if !edition.IsCloud() {
 		allow(http.MethodPost, SetupEndpoint)
 	}
 }

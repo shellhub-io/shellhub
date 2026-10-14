@@ -24,6 +24,8 @@ type env struct {
 	PostgresDatabase   string `env:"POSTGRES_DATABASE,default=main"`
 	PostgresLogLevel   string `env:"POSTGRES_LOG_LEVEL,default=INFO"`
 	PostgresLogVerbose bool   `env:"POSTGRES_LOG_VERBOSE,default=false"`
+
+	Edition envs.Edition `env:"SHELLHUB_EDITION"`
 }
 
 type serviceFunc func() services.Services
@@ -78,5 +80,5 @@ func connect(ctx context.Context) (services.Services, error) {
 		return nil, err
 	}
 
-	return services.NewService(store), nil
+	return services.NewService(store, services.WithEdition(cfg.Edition)), nil
 }

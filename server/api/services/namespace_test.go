@@ -12,7 +12,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -1052,13 +1051,9 @@ func TestCreateNamespace(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			if tc.edition != "" {
-				envstest.SetEdition(t, tc.edition)
-			}
-
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
 			returnedNamespace, err := service.CreateNamespace(ctx, tc.req)
 
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
@@ -1607,13 +1602,9 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			if tc.edition != "" {
-				envstest.SetEdition(t, tc.edition)
-			}
+			s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
 
 			tc.requiredMocks()
 

@@ -21,32 +21,41 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
 
-const enrollmentWebhookAllowedCIDRsEnv = "SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"
+// ParseEnrollmentWebhookCIDRs parses the comma-separated prefixes a provisioning key webhook may
+// reach, for WithEnrollmentWebhookCIDRs. It logs and skips an invalid prefix rather than failing.
+func ParseEnrollmentWebhookCIDRs(raw string) []netip.Prefix {
+	var prefixes []netip.Prefix
 
-func enrollmentWebhookClient() *http.Client {
+	for cidr := range strings.SplitSeq(raw, ",") {
+		cidr = strings.TrimSpace(cidr)
+		if cidr == "" {
+			continue
+		}
+
+		prefix, err := netip.ParsePrefix(cidr)
+		if err != nil {
+			log.WithError(err).WithField("cidr", cidr).Warn("ignoring invalid webhook allowed CIDR")
+
+			continue
+		}
+
+		prefixes = append(prefixes, prefix)
+	}
+
+	return prefixes
+}
+
+func enrollmentWebhookClient(allowed []netip.Prefix) *http.Client {
 	opts := []ssrf.Option{ssrf.WithAnyPort()}
 
 	var v4, v6 []netip.Prefix
 
-	for raw := range strings.SplitSeq(envs.Get(enrollmentWebhookAllowedCIDRsEnv), ",") {
-		raw = strings.TrimSpace(raw)
-		if raw == "" {
-			continue
-		}
-
-		prefix, err := netip.ParsePrefix(raw)
-		if err != nil {
-			log.WithError(err).WithField("cidr", raw).Warn("ignoring invalid webhook allowed CIDR")
-
-			continue
-		}
-
+	for _, prefix := range allowed {
 		if prefix.Addr().Is4() {
 			v4 = append(v4, prefix)
 		} else {
@@ -357,7 +366,7 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("X-ShellHub-Signature", signEnrollmentWebhook(key.WebhookSecret, body))
 
-	resp, err := enrollmentWebhookClient().Do(httpReq)
+	resp, err := enrollmentWebhookClient(s.webhookCIDRs).Do(httpReq)
 	if err != nil {
 		return "", err
 	}

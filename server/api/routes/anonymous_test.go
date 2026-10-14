@@ -12,8 +12,6 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -31,8 +29,6 @@ var testSigningKey = sync.OnceValues(func() (*rsa.PrivateKey, error) {
 
 func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authenticator, *serviceMocks.MockService) {
 	t.Helper()
-
-	envstest.SetEdition(t, envs.Community)
 
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)

@@ -14,7 +14,6 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
@@ -40,6 +39,12 @@ type fakeSession struct {
 	agent             *session.AgentChannel
 	client            *session.ClientChannel
 	onCloseAgentWrite func()
+
+	edition envs.Edition
+}
+
+func (f *fakeSession) Edition() envs.Edition {
+	return f.edition
 }
 
 func (f *fakeSession) record(name string) {
@@ -362,8 +367,6 @@ func (c *clientEnd) received(name string) bool {
 }
 
 func TestSessionChannelDoesNotReportTheDeviceEndingAChannelTheGatewayClosed(t *testing.T) {
-	envstest.SetEdition(t, envs.Community)
-
 	agentRequests := make(chan *gossh.Request)
 	agent := &session.AgentChannel{Channel: newFakeChannel(), Requests: agentRequests}
 
@@ -515,8 +518,6 @@ func serveDeviceEndingOnExec(chans <-chan gossh.NewChannel, output string) {
 
 func TestSessionChannelDeliversTheReplyAndOutputOfACommandTheDeviceEndsAtOnce(t *testing.T) {
 	const deviceOutput = "command output"
-
-	envstest.SetEdition(t, envs.Community)
 
 	sshClient, gatewayChannels := sshClientOverLoopback(t)
 	agentClient, deviceChannels := sshClientOverLoopback(t)

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 )
@@ -11,6 +12,8 @@ type Handler struct {
 	service svc.Service
 
 	authn *routesmiddleware.Authenticator
+
+	edition envs.Edition
 }
 
 // NewHandler returns a handler over s with no authenticator. Until WithAuthenticator sets one,
@@ -18,6 +21,7 @@ type Handler struct {
 func NewHandler(s svc.Service) *Handler {
 	return &Handler{
 		service: s,
+		edition: envs.Community,
 	}
 }
 
