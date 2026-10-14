@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { signOutLoginState } from "@/components/auth/loginState";
+import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
@@ -33,7 +32,7 @@ function ChangePasswordModal({
   onClose: () => void;
 }) {
   const updatePw = useAuthStore((s) => s.updatePassword);
-  const navigate = useNavigate();
+  const handOverSignOut = useHandOverSignOut();
 
   const form = useDrawerForm(open, changePasswordSchema, {
     current: "",
@@ -52,11 +51,7 @@ function ChangePasswordModal({
     clearErrors("root");
     try {
       await updatePw(values.current, values.newPw);
-      void navigate("/login", {
-        state: signOutLoginState(
-          "Password changed. Sign in with your new password.",
-        ),
-      });
+      handOverSignOut("Password changed. Sign in with your new password.");
     } catch (err) {
       const errorMessage =
         isSdkError(err) && err.status === 403

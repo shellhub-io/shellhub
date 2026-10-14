@@ -1,12 +1,11 @@
 import { useState, FormEvent, useId } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { disableMfa } from "@/client";
-import { signOutLoginState } from "@/components/auth/loginState";
+import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
@@ -44,7 +43,7 @@ export default function MfaDisableDialog({
   const otpRecoveryEmail = useOtpInput(5, true);
   const { user, username } = useAuthStore();
   const { requestMfaReset } = useMfaResetStore();
-  const navigate = useNavigate();
+  const handOverSignOut = useHandOverSignOut();
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
@@ -92,9 +91,7 @@ export default function MfaDisableDialog({
           },
           throwOnError: true,
         });
-        void navigate("/login", {
-          state: signOutLoginState("MFA disabled. Sign in again."),
-        });
+        handOverSignOut("MFA disabled. Sign in again.");
         return;
       }
 
