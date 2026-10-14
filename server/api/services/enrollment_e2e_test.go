@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
@@ -29,6 +28,7 @@ func plaintextFor(b byte) string { return fmt.Sprintf("provisioning-key-%02x", b
 func digest(b byte) string       { return hashProvisioningKey(plaintextFor(b)) }
 
 type enrollmentE2E struct {
+	clock    *clock.Fixed
 	svc      *APIService
 	st       store.Store
 	db       *bun.DB
@@ -45,7 +45,8 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	st := provider.Store()
 
-	clock.Freeze(t, now)
+	provider.Clock().Set(now)
+	clock.Set(t, provider.Clock())
 
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,
@@ -68,7 +69,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
 		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")))
 
-	return &enrollmentE2E{svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
+	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }
 
 func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode models.ProvisioningKeyMode, keyType models.ProvisioningKeyType, opts func(*models.ProvisioningKey)) {
@@ -476,10 +477,6 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	base := now
-	cur := base
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
 
 	decision := "defer"
 	hits := 0
@@ -508,7 +505,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
 
 	decision = "accept"
-	cur = base.Add(models.EnrollmentReconcileInterval + time.Minute)
+	e.clock.Set(base.Add(models.EnrollmentReconcileInterval + time.Minute))
 	e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 	require.Equal(t, 3, hits, "past the window the integrator is consulted again")
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid), "a recovered integrator resolves the device")
@@ -517,7 +514,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	require.Len(t, e.events(t, "webhook"), 1, "reconcile must not append history events")
 
 	t.Run("a terminal device is never reconciled", func(t *testing.T) {
-		cur = base.Add(10 * models.EnrollmentReconcileInterval)
+		e.clock.Set(base.Add(10 * models.EnrollmentReconcileInterval))
 		e.enroll(t, "aa:bb:cc:dd:ee:60", plaintextFor(0x60))
 		require.Equal(t, 3, hits, "an accepted device must not re-consult the integrator")
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
@@ -527,11 +524,6 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 func TestEnrollmentE2E_ReconcileALegacyKeyInWebhookMode(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 	ctx := context.Background()
-
-	cur := now
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
 
 	decision := "defer"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -550,7 +542,7 @@ func TestEnrollmentE2E_ReconcileALegacyKeyInWebhookMode(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "the integrator deferred")
 
 	decision = "accept"
-	cur = now.Add(models.EnrollmentReconcileInterval + time.Minute)
+	e.clock.Set(now.Add(models.EnrollmentReconcileInterval + time.Minute))
 	e.enroll(t, "aa:bb:cc:dd:ee:68", "")
 
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid), "a legacy key a user switched to webhook is retried like any webhook key")
@@ -563,10 +555,6 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	base := now
-	cur := base
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
 
 	decision := "defer"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -589,7 +577,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	require.NoError(t, e.st.ProvisioningKeyUpdate(context.Background(), key))
 
 	decision = "accept"
-	cur = base.Add(models.EnrollmentReconcileInterval + time.Minute)
+	e.clock.Set(base.Add(models.EnrollmentReconcileInterval + time.Minute))
 	e.enroll(t, "aa:bb:cc:dd:ee:61", plaintextFor(0x61))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "a revoked key must not reconcile a pending device to accepted")
 }
@@ -663,10 +651,6 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	e.provisioningKey(t, digest(0x70), "man", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	base := now
-	cur := base
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
 
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:70", plaintextFor(0x70))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
@@ -679,7 +663,7 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	require.Nil(t, evs[0].DecidedAt)
 	enrolledAt := evs[0].Timestamp
 
-	cur = base.Add(time.Hour)
+	e.clock.Set(base.Add(time.Hour))
 	require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
 		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
 	}))
@@ -707,10 +691,6 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	e.provisioningKey(t, digest(0x80), "man2", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	base := now
-	cur := base
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
 
 	accept := func(uid string) {
 		require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
@@ -719,17 +699,17 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	}
 
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:80", plaintextFor(0x80))
-	cur = base.Add(time.Hour)
+	e.clock.Set(base.Add(time.Hour))
 	accept(uid)
-	firstDecidedAt := cur
+	firstDecidedAt := e.clock.Now()
 	require.NoError(t, e.svc.DeleteDevice(context.Background(), models.UID(uid), e.tenantID))
 
-	cur = base.Add(3 * time.Hour)
+	e.clock.Set(base.Add(3 * time.Hour))
 	uid2 := e.enroll(t, "aa:bb:cc:dd:ee:80", plaintextFor(0x80))
 	require.Equal(t, uid, uid2, "the same identity re-enrolls as the same device")
-	cur = base.Add(4 * time.Hour)
+	e.clock.Set(base.Add(4 * time.Hour))
 	accept(uid2)
-	secondDecidedAt := cur
+	secondDecidedAt := e.clock.Now()
 
 	evs := e.events(t, "man2")
 	require.Len(t, evs, 2, "re-enrollment adds a second event for the same device")
@@ -800,11 +780,6 @@ func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) 
 	e := setupEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:ee:70"
 
-	cur := now
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
-
 	e.provisioningKey(t, digest(0x70), "auto-twin", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 
 	first := e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
@@ -818,7 +793,7 @@ func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) 
 
 	t.Run("both agents keep authenticating and nothing flips", func(t *testing.T) {
 		for range 3 {
-			cur = cur.Add(models.EnrollmentReconcileInterval + time.Second)
+			e.clock.Advance(models.EnrollmentReconcileInterval + time.Second)
 			e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
 			e.enrollAs(t, "second-box", mac, "pk-second", plaintextFor(0x70))
 		}
@@ -926,11 +901,6 @@ func TestEnrollmentE2E_AutomaticKeyMergesOnceTheTwinDisconnects(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:ee:71"
 
-	cur := now
-	clk := clockmock.NewMockClock(t)
-	clk.On("Now").Return(func() time.Time { return cur }).Maybe()
-	clock.Set(t, clk)
-
 	e.provisioningKey(t, digest(0x71), "auto-reflash", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 
 	old := e.enrollAs(t, "field-box", mac, "pk-old", plaintextFor(0x71))
@@ -938,7 +908,7 @@ func TestEnrollmentE2E_AutomaticKeyMergesOnceTheTwinDisconnects(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, reflashed))
 
 	e.disconnect(t, old)
-	cur = now.Add(models.EnrollmentReconcileInterval + time.Second)
+	e.clock.Set(now.Add(models.EnrollmentReconcileInterval + time.Second))
 
 	e.enrollAs(t, "fresh-image", mac, "pk-reflashed", plaintextFor(0x71))
 

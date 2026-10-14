@@ -2,6 +2,7 @@ package internal
 
 import (
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/stretchr/testify/assert"
@@ -114,7 +115,7 @@ func TestParseFilterProperty_CustomFields(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			sql, args, ok, err := ParseFilterProperty(tc.fp, "device")
+			sql, args, ok, err := ParseFilterProperty(tc.fp, "device", time.Time{})
 			assert.Equal(t, tc.wantOk, ok)
 			assert.Equal(t, tc.wantSQL, sql)
 			assert.Equal(t, tc.wantArgs, args)

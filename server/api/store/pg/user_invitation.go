@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -15,7 +14,7 @@ import (
 func (pg *Pg) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	now := clock.Now()
+	now := pg.clock.Now()
 	normalizedEmail := strings.ToLower(email)
 
 	invitation := &entity.UserInvitation{

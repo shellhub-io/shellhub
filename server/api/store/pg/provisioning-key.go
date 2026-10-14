@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -16,8 +15,8 @@ import (
 func (pg *Pg) ProvisioningKeyCreate(ctx context.Context, provisioningKey *models.ProvisioningKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	provisioningKey.CreatedAt = clock.Now()
-	provisioningKey.UpdatedAt = clock.Now()
+	provisioningKey.CreatedAt = pg.clock.Now()
+	provisioningKey.UpdatedAt = pg.clock.Now()
 	if _, err := db.NewInsert().Model(entity.ProvisioningKeyFromModel(provisioningKey)).Exec(ctx); err != nil {
 		return "", fromSQLError(err)
 	}
@@ -163,7 +162,7 @@ func (pg *Pg) ProvisioningKeyUpdate(ctx context.Context, provisioningKey *models
 	db := pg.GetConnection(ctx)
 
 	s := entity.ProvisioningKeyFromModel(provisioningKey)
-	s.UpdatedAt = clock.Now()
+	s.UpdatedAt = pg.clock.Now()
 
 	r, err := db.NewUpdate().Model(s).WherePK().Exec(ctx)
 	if err != nil {
@@ -184,8 +183,8 @@ func (pg *Pg) ProvisioningKeyIncrementUsage(ctx context.Context, provisioningKey
 	r, err := db.NewUpdate().
 		Model((*entity.ProvisioningKey)(nil)).
 		Set("used_times = used_times + 1").
-		Set("last_used_at = ?", clock.Now()).
-		Set("updated_at = ?", clock.Now()).
+		Set("last_used_at = ?", pg.clock.Now()).
+		Set("updated_at = ?", pg.clock.Now()).
 		Where("key_digest = ? AND namespace_id = ?", provisioningKey.ID, provisioningKey.TenantID).
 		Where("usage_limit = 0 OR used_times < usage_limit").
 		Exec(ctx)
@@ -206,7 +205,7 @@ func (pg *Pg) ProvisioningKeyEventCreate(ctx context.Context, event *models.Prov
 
 	e := entity.ProvisioningKeyEventFromModel(event)
 	e.ID = uuid.Generate()
-	e.CreatedAt = clock.Now()
+	e.CreatedAt = pg.clock.Now()
 
 	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
 		return fromSQLError(err)

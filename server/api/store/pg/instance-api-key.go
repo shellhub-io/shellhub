@@ -3,7 +3,6 @@ package pg
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -14,8 +13,8 @@ import (
 func (pg *Pg) InstanceAPIKeyCreate(ctx context.Context, apiKey *models.InstanceAPIKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	apiKey.CreatedAt = clock.Now()
-	apiKey.UpdatedAt = clock.Now()
+	apiKey.CreatedAt = pg.clock.Now()
+	apiKey.UpdatedAt = pg.clock.Now()
 
 	if _, err := db.NewInsert().Model(entity.InstanceAPIKeyFromModel(apiKey)).Exec(ctx); err != nil {
 		return "", fromSQLError(err)

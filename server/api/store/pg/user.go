@@ -3,7 +3,6 @@ package pg
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -15,7 +14,7 @@ import (
 func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	user.CreatedAt = clock.Now()
+	user.CreatedAt = pg.clock.Now()
 	if user.ID == "" {
 		user.ID = uuid.Generate()
 	}
@@ -115,7 +114,7 @@ func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 	db := pg.GetConnection(ctx)
 
 	u := entity.UserFromModel(user)
-	u.UpdatedAt = clock.Now()
+	u.UpdatedAt = pg.clock.Now()
 
 	r, err := db.NewUpdate().Model(u).WherePK().Exec(ctx)
 	if err != nil {

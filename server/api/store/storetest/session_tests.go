@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -527,7 +526,7 @@ func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
 
 		err := st.ActiveSessionUpdate(ctx, &models.ActiveSession{
 			UID:      "nonexistent",
-			LastSeen: clock.Now(),
+			LastSeen: s.Clock().Now(),
 		})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -559,7 +558,7 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 		event := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: clock.Now(),
+			Timestamp: s.Clock().Now(),
 			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
@@ -577,7 +576,7 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: clock.Now(),
+				Timestamp: s.Clock().Now(),
 				Data:      map[string]any{"output": "test output"},
 				Seat:      i,
 			}
@@ -611,7 +610,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: clock.Now(),
+				Timestamp: s.Clock().Now(),
 				Data:      map[string]any{"output": "test output"},
 				Seat:      1,
 			}
@@ -636,7 +635,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 				event := &models.SessionEvent{
 					Session:   string(sessionUID),
 					Type:      models.SessionEventTypePtyOutput,
-					Timestamp: clock.Now(),
+					Timestamp: s.Clock().Now(),
 					Data:      map[string]any{"output": "test output"},
 					Seat:      seat,
 				}
@@ -660,7 +659,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		event1 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: clock.Now(),
+			Timestamp: s.Clock().Now(),
 			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
@@ -668,7 +667,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		event2 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
-			Timestamp: clock.Now(),
+			Timestamp: s.Clock().Now(),
 			Data:      map[string]any{"request": "test request"},
 			Seat:      1,
 		}
@@ -707,7 +706,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: clock.Now(),
+				Timestamp: s.Clock().Now(),
 				Data:      map[string]any{"output": "test output"},
 				Seat:      1,
 			}
@@ -734,7 +733,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: clock.Now(),
+				Timestamp: s.Clock().Now(),
 				Data:      map[string]any{"output": "test output"},
 				Seat:      seat,
 			}
@@ -765,7 +764,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		event1 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: clock.Now(),
+			Timestamp: s.Clock().Now(),
 			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
@@ -773,7 +772,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		event2 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
-			Timestamp: clock.Now(),
+			Timestamp: s.Clock().Now(),
 			Data:      map[string]any{"request": "test request"},
 			Seat:      1,
 		}
@@ -849,9 +848,9 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("finds nothing when every session is newer than the cutoff", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, 1))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, 1))
 		uid := s.CreateSession(t, WithSessionActive(false))
-		clk.now = now
+		clk.Set(now)
 
 		assert.Equal(t, int64(0), prune(t, 100))
 		assert.Equal(t, []string{string(uid)}, listUIDs(t))
@@ -860,15 +859,15 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("deletes only the sessions started before the cutoff", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -10))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -10))
 		device := s.CreateDevice(t)
 		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = cutoff.AddDate(0, 0, 10)
+		clk.Set(cutoff.AddDate(0, 0, 10))
 		kept := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = now
+		clk.Set(now)
 
 		assert.Equal(t, int64(2), prune(t, 100))
 		assert.Equal(t, []string{string(kept)}, listUIDs(t))
@@ -877,17 +876,17 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("lists the oldest first and stops at the limit", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		device := s.CreateDevice(t)
 		oldest := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = cutoff.AddDate(0, 0, -20)
+		clk.Set(cutoff.AddDate(0, 0, -20))
 		middle := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = cutoff.AddDate(0, 0, -10)
+		clk.Set(cutoff.AddDate(0, 0, -10))
 		newest := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = now
+		clk.Set(now)
 
 		expired, err := st.SessionListExpired(ctx, cutoff, 2)
 		require.NoError(t, err)
@@ -905,15 +904,15 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("reports whether each expired session was recorded", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		device := s.CreateDevice(t)
 		plain := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = cutoff.AddDate(0, 0, -20)
+		clk.Set(cutoff.AddDate(0, 0, -20))
 		recorded := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 		require.NoError(t, st.SessionUpdate(ctx, s.sessionScope(t, recorded), &models.Session{UID: string(recorded), Recorded: true}))
 
-		clk.now = now
+		clk.Set(now)
 
 		expired, err := st.SessionListExpired(ctx, cutoff, 100)
 		require.NoError(t, err)
@@ -926,12 +925,12 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("leaves an active session in place however old it is", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		device := s.CreateDevice(t)
 		active := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
 
-		clk.now = now
+		clk.Set(now)
 
 		assert.Equal(t, int64(1), prune(t, 100))
 		assert.Equal(t, []string{string(active)}, listUIDs(t))
@@ -940,18 +939,18 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("takes the session's events with it", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		uid := s.CreateSession(t, WithSessionActive(false))
 
 		require.NoError(t, st.SessionEventsCreate(ctx, &models.SessionEvent{
 			Session:   string(uid),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: clk.now,
+			Timestamp: clk.Now(),
 			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}))
 
-		clk.now = now
+		clk.Set(now)
 
 		assert.Equal(t, int64(1), prune(t, 100))
 
@@ -963,9 +962,9 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("lists nothing when the limit is not positive", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		uid := s.CreateSession(t, WithSessionActive(false))
-		clk.now = now
+		clk.Set(now)
 
 		expired, err := st.SessionListExpired(ctx, cutoff, 0)
 		require.NoError(t, err)
@@ -976,9 +975,9 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 	t.Run("deleting none is a no-op", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		clk := s.pinClock(t, cutoff.AddDate(0, 0, -30))
 		uid := s.CreateSession(t, WithSessionActive(false))
-		clk.now = now
+		clk.Set(now)
 
 		deleted, err := st.SessionDeleteMany(ctx, []string{})
 		require.NoError(t, err)
@@ -996,7 +995,7 @@ func (s *Suite) TestSessionKeepAlive(t *testing.T) {
 	t.Run("fails when the session is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.SessionKeepAlive(ctx, scope.MustBounded(s.CreateNamespace(t)), "nonexistent", clock.Now())
+		err := st.SessionKeepAlive(ctx, scope.MustBounded(s.CreateNamespace(t)), "nonexistent", s.Clock().Now())
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -1158,7 +1157,7 @@ func (s *Suite) TestSessionEventsFirst(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	base := clock.Now()
+	base := s.Clock().Now()
 
 	seed := func(t *testing.T, uid models.UID, event models.SessionEventType, offset time.Duration) {
 		t.Helper()
@@ -1251,7 +1250,7 @@ func (s *Suite) TestSessionEventsTimeline(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	base := clock.Now()
+	base := s.Clock().Now()
 
 	seed := func(t *testing.T, uid models.UID, event models.SessionEventType, offset time.Duration) {
 		t.Helper()

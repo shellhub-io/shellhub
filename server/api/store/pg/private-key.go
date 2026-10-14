@@ -3,7 +3,6 @@ package pg
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
@@ -12,7 +11,7 @@ import (
 func (pg *Pg) PrivateKeyCreate(ctx context.Context, privateKey *models.PrivateKey) error {
 	db := pg.GetConnection(ctx)
 
-	privateKey.CreatedAt = clock.Now()
+	privateKey.CreatedAt = pg.clock.Now()
 
 	if _, err := db.NewInsert().Model(entity.PrivateKeyFromModel(privateKey)).Exec(ctx); err != nil {
 		return fromSQLError(err)

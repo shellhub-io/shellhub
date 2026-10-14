@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -34,8 +33,8 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 				Info:      &models.DeviceInfo{},
 				PublicKey: "-",
 				Status:    models.DeviceStatusAccepted,
-				CreatedAt: clock.Now(),
-				LastSeen:  clock.Now(),
+				CreatedAt: s.Clock().Now(),
+				LastSeen:  s.Clock().Now(),
 			}
 
 			_, err := st.DeviceCreate(txCtx, device)
@@ -67,8 +66,8 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 				Info:      &models.DeviceInfo{},
 				PublicKey: "-",
 				Status:    models.DeviceStatusAccepted,
-				CreatedAt: clock.Now(),
-				LastSeen:  clock.Now(),
+				CreatedAt: s.Clock().Now(),
+				LastSeen:  s.Clock().Now(),
 			}
 
 			_, err := st.DeviceCreate(txCtx, device)

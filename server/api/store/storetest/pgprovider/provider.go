@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/dbtest"
@@ -20,6 +21,7 @@ import (
 // Provider implements storetest.StoreProvider for PostgreSQL
 type Provider struct {
 	srv     *dbtest.Server
+	clock   *clock.Fixed
 	store   store.Store
 	driver  *bun.DB
 	version int
@@ -136,13 +138,13 @@ func headVersion() (int, error) {
 }
 
 func migrateThrough(version int) options.Option {
-	return func(ctx context.Context, db *bun.DB) error {
+	return func(ctx context.Context, store *options.Store) error {
 		through, err := migrationsThrough(version)
 		if err != nil {
 			return err
 		}
 
-		return apply(ctx, db, through, version)
+		return apply(ctx, store.DB, through, version)
 	}
 }
 
@@ -192,7 +194,9 @@ func newProvider(ctx context.Context, migrateOption options.Option) (*Provider, 
 		return nil, err
 	}
 
-	st, err := pg.New(ctx, connString, migrateOption)
+	fixed := clock.NewFixed(clock.New().Now())
+
+	st, err := pg.New(ctx, connString, migrateOption, options.WithClock(fixed))
 	if err != nil {
 		_ = srv.Down(ctx)
 
@@ -210,9 +214,16 @@ func newProvider(ctx context.Context, migrateOption options.Option) (*Provider, 
 
 	return &Provider{
 		srv:    srv,
+		clock:  fixed,
 		store:  st,
 		driver: driver,
 	}, nil
+}
+
+// Clock returns the clock the store reads. It starts at the wall-clock time the provider was
+// created and moves only when a test sets or advances it.
+func (p *Provider) Clock() *clock.Fixed {
+	return p.clock
 }
 
 // Store returns the store instance

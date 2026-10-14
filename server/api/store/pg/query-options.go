@@ -81,7 +81,7 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 	}
 }
 
-func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
+func (o *queryOptions) Match(filters *query.Filters) store.QueryOption {
 	return func(ctx context.Context) error {
 		if len(filters.Data) < 1 {
 			return nil
@@ -122,7 +122,7 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 						return nil
 					}
 
-					condition, args, valid, err := internal.ParseFilterProperty(param, tableAlias)
+					condition, args, valid, err := internal.ParseFilterProperty(param, tableAlias, OnlineCutoff(o.clock))
 					if err != nil || !valid {
 						filterErr = err
 

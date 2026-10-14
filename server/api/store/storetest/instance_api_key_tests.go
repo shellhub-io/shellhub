@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +32,7 @@ func (s *Suite) TestInstanceAPIKeyCreate(t *testing.T) {
 			ID:        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 			Name:      "billing-export",
 			CreatedBy: s.CreateUser(t),
-			ExpiresAt: clock.Now().AddDate(0, 0, 30),
+			ExpiresAt: s.Clock().Now().AddDate(0, 0, 30),
 		}
 
 		_, err := st.InstanceAPIKeyCreate(ctx, duplicated)
@@ -66,7 +65,7 @@ func (s *Suite) TestInstanceAPIKeyResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		userID := s.CreateUser(t)
-		expiresAt := clock.Now().AddDate(0, 0, 90).UTC().Truncate(time.Second)
+		expiresAt := s.Clock().Now().AddDate(0, 0, 90).UTC().Truncate(time.Second)
 		digest := s.CreateInstanceAPIKey(t,
 			WithInstanceAPIKeyName("license-sync"),
 			WithInstanceAPIKeyCreatedBy(userID),

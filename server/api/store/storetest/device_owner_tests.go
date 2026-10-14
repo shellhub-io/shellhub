@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -246,7 +245,7 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		kept := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(memberID))
 		gone := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(memberID))
 
-		verifiedAt := clock.Now()
+		verifiedAt := s.Clock().Now()
 		for _, uid := range []models.UID{kept, gone} {
 			device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 			require.NoError(t, err)

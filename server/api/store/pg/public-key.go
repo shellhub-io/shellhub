@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -13,7 +12,7 @@ import (
 
 // PublicKeyCreate implements [store.PublicKeyStore].
 func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) (string, error) {
-	publicKey.CreatedAt = clock.Now()
+	publicKey.CreatedAt = pg.clock.Now()
 	e := entity.PublicKeyFromModel(publicKey)
 
 	err := pg.inTransaction(ctx, func(ctx context.Context) error {
@@ -23,7 +22,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 			return fromSQLError(err)
 		}
 
-		now := clock.Now()
+		now := pg.clock.Now()
 		for _, tag := range e.Tags {
 			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint, e.NamespaceID)
 			pkTag.CreatedAt = now
@@ -77,7 +76,7 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 		db := pg.GetConnection(ctx)
 
 		a := entity.PublicKeyFromModel(publicKey)
-		a.UpdatedAt = clock.Now()
+		a.UpdatedAt = pg.clock.Now()
 
 		r, err := db.NewUpdate().
 			Model(a).

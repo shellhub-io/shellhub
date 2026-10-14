@@ -6,12 +6,11 @@ import (
 
 	"github.com/shellhub-io/shellhub/server/api/store/pg/options/internal"
 	"github.com/sirupsen/logrus"
-	"github.com/uptrace/bun"
 )
 
 // Log installs query logging at the given logrus level.
 func Log(level string, verbose bool) Option {
-	return func(ctx context.Context, db *bun.DB) error {
+	return func(_ context.Context, store *Store) error {
 		level, err := logrus.ParseLevel(level)
 		if err != nil {
 			return err
@@ -24,7 +23,7 @@ func Log(level string, verbose bool) Option {
 			Level:     level,
 		}
 
-		*db = *db.WithQueryHook(internal.NewQueryHook(
+		*store.DB = *store.DB.WithQueryHook(internal.NewQueryHook(
 			internal.WithEnabled(true),
 			internal.WithVerbose(verbose),
 			internal.WithQueryHookOptions(internal.QueryHookOptions{

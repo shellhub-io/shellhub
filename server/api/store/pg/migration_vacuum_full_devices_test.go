@@ -34,7 +34,7 @@ func TestMigration022SurvivesItsLockTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	done := make(chan error, 1)
-	go func() { done <- options.Migrate()(ctx, db) }()
+	go func() { done <- options.Migrate()(ctx, &options.Store{DB: db}) }()
 
 	recorded := assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		var recorded bool

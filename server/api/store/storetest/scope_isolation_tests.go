@@ -7,7 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -567,14 +566,14 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventStampDecision(t *testing.T
 		Hostname:          "enrolled",
 	}))
 
-	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(other), string(deviceUID), models.DeviceStatusRejected, clock.Now()))
+	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(other), string(deviceUID), models.DeviceStatusRejected, s.Clock().Now()))
 
 	events, _, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.Empty(t, events[0].DecidedStatus)
 
-	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(owner), string(deviceUID), models.DeviceStatusAccepted, clock.Now()))
+	require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(owner), string(deviceUID), models.DeviceStatusAccepted, s.Clock().Now()))
 
 	events, _, err = st.ProvisioningKeyEventList(ctx, scope.MustBounded(owner), digest)
 	require.NoError(t, err)
@@ -582,7 +581,7 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventStampDecision(t *testing.T
 	assert.Equal(t, models.DeviceStatusAccepted, events[0].DecidedStatus)
 
 	assert.ErrorIs(t,
-		st.ProvisioningKeyEventStampDecision(ctx, scope.NewUnbounded(reasonTestQueryMechanics), string(deviceUID), models.DeviceStatusRejected, clock.Now()),
+		st.ProvisioningKeyEventStampDecision(ctx, scope.NewUnbounded(reasonTestQueryMechanics), string(deviceUID), models.DeviceStatusRejected, s.Clock().Now()),
 		store.ErrInvalidScope)
 }
 
@@ -839,7 +838,7 @@ func (s *Suite) TestScopeIsolationSSHIdentityList(t *testing.T) {
 		Data:        []byte("ssh-ed25519 AAAA fake-key"),
 		Name:        "test-key",
 		Source:      models.SSHIdentitySourceManual,
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.Clock().Now(),
 	})
 	require.NoError(t, err)
 
@@ -875,7 +874,7 @@ func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 		Data:        []byte("ssh-ed25519 BBBB fake-key"),
 		Name:        "test-key",
 		Source:      models.SSHIdentitySourceManual,
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.Clock().Now(),
 	})
 	require.NoError(t, err)
 
@@ -960,10 +959,10 @@ func (s *Suite) TestScopeIsolationSessionKeepAlive(t *testing.T) {
 	assert.True(t, before.Equal(s.sessionLastSeen(t, owner, uid)), "a keep-alive bounded to another namespace leaves seen_at as it was")
 
 	require.ErrorIs(t,
-		st.SessionKeepAlive(ctx, scope.NewUnbounded(reasonTestQueryMechanics), uid, clock.Now()),
+		st.SessionKeepAlive(ctx, scope.NewUnbounded(reasonTestQueryMechanics), uid, s.Clock().Now()),
 		store.ErrInvalidScope)
 
-	require.NoError(t, st.SessionKeepAlive(ctx, scope.MustBounded(owner), uid, clock.Now()))
+	require.NoError(t, st.SessionKeepAlive(ctx, scope.MustBounded(owner), uid, s.Clock().Now()))
 	_, err = st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
 	require.NoError(t, err)
 }
@@ -1010,7 +1009,7 @@ func (s *Suite) TestScopeIsolationSessionEventsCreateMany(t *testing.T) {
 	otherSession := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithTenantID(other), WithDeviceName("dev"))))
 
 	event := func(uid models.UID) models.SessionEvent {
-		return models.SessionEvent{Session: string(uid), Type: models.SessionEventTypePtyRequest, Timestamp: clock.Now()}
+		return models.SessionEvent{Session: string(uid), Type: models.SessionEventTypePtyRequest, Timestamp: s.Clock().Now()}
 	}
 
 	count := func(uid models.UID) int64 {

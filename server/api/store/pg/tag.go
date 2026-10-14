@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -16,8 +15,8 @@ import (
 func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	tag.CreatedAt = clock.Now()
-	tag.UpdatedAt = clock.Now()
+	tag.CreatedAt = pg.clock.Now()
+	tag.UpdatedAt = pg.clock.Now()
 
 	e := entity.TagFromModel(tag)
 	e.ID = uuid.Generate()
@@ -132,7 +131,7 @@ func (pg *Pg) TagUpdate(ctx context.Context, tag *models.Tag) error {
 	db := pg.GetConnection(ctx)
 
 	t := entity.TagFromModel(tag)
-	t.UpdatedAt = clock.Now()
+	t.UpdatedAt = pg.clock.Now()
 
 	r, err := db.NewUpdate().Model(t).WherePK().Exec(ctx)
 	if err != nil {
@@ -166,7 +165,7 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 		}
 
 		deviceTag := entity.NewDeviceTag(tag.ID, targetID)
-		deviceTag.CreatedAt = clock.Now()
+		deviceTag.CreatedAt = pg.clock.Now()
 
 		if _, err := db.NewInsert().Model(deviceTag).On("CONFLICT (device_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
 			return fromSQLError(err)
@@ -182,7 +181,7 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 		}
 
 		publickeyTag := entity.NewPublicKeyTag(tag.ID, pk.Fingerprint, pk.NamespaceID)
-		publickeyTag.CreatedAt = clock.Now()
+		publickeyTag.CreatedAt = pg.clock.Now()
 
 		if _, err := db.NewInsert().Model(publickeyTag).On("CONFLICT (public_key_fingerprint, public_key_namespace_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
 			return fromSQLError(err)

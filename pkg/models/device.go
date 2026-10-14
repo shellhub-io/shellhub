@@ -26,6 +26,10 @@ const (
 	DeviceStatusEmpty DeviceStatus = ""
 )
 
+// DeviceOnlineWindow is how recently a device must have been seen, without disconnecting since,
+// to count as online.
+const DeviceOnlineWindow = 2 * time.Minute
+
 // Device is an enrolled machine. Its UID is derived from the identity the agent presents, so two
 // agents presenting the same identity are the same device rather than two of them.
 type Device struct {

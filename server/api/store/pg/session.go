@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -45,7 +44,7 @@ func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.Que
 		return nil, 0, fromSQLError(err)
 	}
 
-	threshold := clock.Now().Add(-2 * DeviceOnlineThreshold)
+	threshold := OnlineCutoff(pg.clock)
 	sessions := make([]models.Session, len(entities))
 	for i, e := range entities {
 		if e.Device != nil {
@@ -86,7 +85,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store
 	}
 
 	if e.Device != nil {
-		e.Device.Online = DeviceIsOnline(e.Device, clock.Now().Add(-2*DeviceOnlineThreshold))
+		e.Device.Online = DeviceIsOnline(e.Device, OnlineCutoff(pg.clock))
 	}
 
 	return entity.SessionToModel(e), nil
@@ -96,7 +95,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store
 func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	session.StartedAt = clock.Now()
+	session.StartedAt = pg.clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
 
@@ -113,8 +112,8 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 
 	session.TenantID = device.TenantID
 
-	e := entity.SessionFromModel(&session)
-	e.CreatedAt = clock.Now()
+	e := entity.SessionFromModel(&session, pg.clock.Now())
+	e.CreatedAt = pg.clock.Now()
 	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
 		return "", fromSQLError(err)
 	}
@@ -131,7 +130,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, sc scope.Scope, session *models
 
 	db := pg.GetConnection(ctx)
 
-	e := entity.SessionFromModel(session)
+	e := entity.SessionFromModel(session, pg.clock.Now())
 	result, err := db.NewUpdate().
 		Model(e).
 		OmitZero().
@@ -200,7 +199,7 @@ func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) 
 	db := pg.GetConnection(ctx)
 
 	activeSession := &models.ActiveSession{UID: models.UID(session.UID), LastSeen: session.StartedAt, TenantID: session.TenantID}
-	e := entity.ActiveSessionFromModel(activeSession)
+	e := entity.ActiveSessionFromModel(activeSession, pg.clock.Now())
 	if _, err := db.NewInsert().Model(e).
 		On("CONFLICT (session_id) DO UPDATE").
 		Set("seen_at = NOW()").
@@ -235,7 +234,7 @@ func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionRe
 func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
 	db := pg.GetConnection(ctx)
 
-	e := entity.ActiveSessionFromModel(activeSession)
+	e := entity.ActiveSessionFromModel(activeSession, pg.clock.Now())
 	result, err := db.NewUpdate().Model(e).Where("session_id = ?", e.SessionID).Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
@@ -265,7 +264,7 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, sc scope.Scope, uid model
 
 		result, err := db.NewUpdate().
 			Model((*entity.Session)(nil)).
-			Set("seen_at = ?", clock.Now()).
+			Set("seen_at = ?", pg.clock.Now()).
 			Where("id = ?", string(uid)).
 			Where("namespace_id = ?", tenantID).
 			Exec(ctx)

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -107,7 +106,7 @@ func (s *Suite) TestSSHIdentityBelongsToAnAPIKey(t *testing.T) {
 		Data:          authorized,
 		Name:          "deploy",
 		Source:        models.SSHIdentitySourceManual,
-		CreatedAt:     clock.Now(),
+		CreatedAt:     s.Clock().Now(),
 	})
 	require.NoError(t, err)
 
@@ -127,7 +126,7 @@ func (s *Suite) TestSSHIdentityBelongsToAnAPIKey(t *testing.T) {
 			Data:        other,
 			Name:        "ownerless",
 			Source:      models.SSHIdentitySourceManual,
-			CreatedAt:   clock.Now(),
+			CreatedAt:   s.Clock().Now(),
 		})
 		assert.Error(t, err)
 	})
@@ -142,7 +141,7 @@ func (s *Suite) TestSSHIdentityBelongsToAnAPIKey(t *testing.T) {
 			Data:          personal,
 			Name:          "laptop",
 			Source:        models.SSHIdentitySourceManual,
-			CreatedAt:     clock.Now(),
+			CreatedAt:     s.Clock().Now(),
 		})
 		require.NoError(t, err)
 
@@ -194,7 +193,7 @@ func seedSSHIdentityOwners(t *testing.T, ctx context.Context, s *Suite) sshIdent
 			Data:          authorized,
 			Name:          name,
 			Source:        models.SSHIdentitySourceManual,
-			CreatedAt:     clock.Now(),
+			CreatedAt:     s.Clock().Now(),
 		})
 		require.NoError(t, err)
 	}
@@ -279,7 +278,7 @@ func (s *Suite) TestSSHIdentityGoesWithTheMembership(t *testing.T) {
 			Data:        []byte("ssh-ed25519 AAAA key"),
 			Name:        "laptop",
 			Source:      models.SSHIdentitySourceManual,
-			CreatedAt:   clock.Now(),
+			CreatedAt:   s.Clock().Now(),
 		})
 		require.NoError(t, err)
 	}
