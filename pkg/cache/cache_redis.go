@@ -10,21 +10,20 @@ import (
 	rediscache "github.com/go-redis/cache/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	log "github.com/sirupsen/logrus"
 )
 
 type redisCache struct {
 	cache  *rediscache.Cache
 	client *redis.Client
-	cfg    *config
+	cfg    Config
 }
 
 var _ Cache = &redisCache{}
 
-// NewRedisCache connects to Redis and returns a cache backed by it. It fails rather than falling
-// back: a misconfigured URI should surface at startup, not as silent cache misses forever.
-func NewRedisCache(uri string, pool int) (Cache, error) {
+// NewRedisCache connects to Redis and returns a cache backed by it, configured by cfg. It fails
+// rather than falling back: a misconfigured URI should surface at startup, not as silent cache
+// misses forever.
+func NewRedisCache(uri string, pool int, cfg Config) (Cache, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
 		return nil, err
@@ -32,11 +31,6 @@ func NewRedisCache(uri string, pool int) (Cache, error) {
 
 	if pool > 0 {
 		opt.PoolSize = pool
-	}
-
-	cfg, err := envs.ParseWithPrefix[config]("API_")
-	if err != nil {
-		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
 	client := redis.NewClient(opt)

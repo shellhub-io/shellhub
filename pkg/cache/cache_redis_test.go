@@ -14,12 +14,11 @@ import (
 )
 
 func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
-	t.Setenv("API_MAXIMUM_ACCOUNT_LOCKOUT", "60")
 	ctx := context.Background()
 
 	uri := startValkey(t)
 
-	c, err := cache.NewRedisCache(uri, 0)
+	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60})
 	require.NoError(t, err)
 
 	lockedMidSecond := time.Unix(1_700_000_000, 600_000_000)
@@ -53,7 +52,7 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 
 	uri := startValkey(t)
 
-	c, err := cache.NewRedisCache(uri, 0)
+	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60})
 	require.NoError(t, err)
 
 	taken, err := c.SetNX(ctx, "guard", "owner", time.Minute)

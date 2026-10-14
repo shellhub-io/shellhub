@@ -161,14 +161,17 @@ func (c *Config) HasNamespaceCredential() bool {
 	return c.TenantID != "" || c.ProvisioningKey != ""
 }
 
-// LoadConfigFromEnv reads the agent's configuration from SHELLHUB_-prefixed environment
-// variables, falling back to the .env file next to the binary when one is present.
+// LoadConfigFromEnv reads the agent's configuration from the SHELLHUB_-prefixed variables backend
+// holds. The .env file next to the binary, when one is present, fills the process environment
+// first, so it reaches backend only when backend is [envs.OS].
 //
-// The second return value carries the environment as parsed, for callers that log it.
-func LoadConfigFromEnv() (*Config, map[string]any, error) {
+// It returns envs.ErrParseWithPrefix, joined with the cause, when backend does not parse, and
+// validator.ErrStructureInvalid, with the invalid fields as the second value, when the parsed
+// config fails validation. On success the second value is nil.
+func LoadConfigFromEnv(backend envs.Backend) (*Config, map[string]any, error) {
 	applyEnvFileFallback(defaultEnvFilePath)
 
-	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+	cfg, err := envs.ParseWithPrefix[Config](backend, "SHELLHUB_")
 	if err != nil {
 		log.Error("failed to parse the configuration")
 

@@ -7,10 +7,10 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
-// LoadKeys reads the RSA key pair the API signs its tokens with, from the paths named by
-// PRIVATE_KEY and PUBLIC_KEY.
-func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	signBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY")) //nolint:gosec // G703: path comes from trusted env var
+// LoadKeys reads the RSA key pair the API signs its tokens with from the PEM files at privatePath
+// and publicPath. It returns the error of the first file it cannot read or parse.
+func LoadKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	signBytes, err := os.ReadFile(privatePath) //nolint:gosec // G304: the path comes from the operator's configuration
 	if err != nil {
 		return nil, nil, err
 	}
@@ -20,7 +20,7 @@ func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 		return nil, nil, err
 	}
 
-	verifyBytes, err := os.ReadFile(os.Getenv("PUBLIC_KEY")) //nolint:gosec // G703: path comes from trusted env var
+	verifyBytes, err := os.ReadFile(publicPath) //nolint:gosec // G304: the path comes from the operator's configuration
 	if err != nil {
 		return nil, nil, err
 	}

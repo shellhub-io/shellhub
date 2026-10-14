@@ -31,9 +31,9 @@ func main() {
 	rootCmd := &cobra.Command{ //nolint:exhaustruct
 		Use: "agent",
 		Run: func(cmd *cobra.Command, _ []string) {
-			loglevel.SetLogLevel()
+			loglevel.SetLogLevel(envs.OS())
 
-			cfg, fields, err := agentd.LoadConfigFromEnv()
+			cfg, fields, err := agentd.LoadConfigFromEnv(envs.OS())
 			if err != nil {
 				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
 			}
@@ -231,7 +231,7 @@ func main() {
 				}
 			}
 
-			cfg, fields, err := LoadConfigConnectorFromEnv()
+			cfg, fields, err := LoadConfigConnectorFromEnv(envs.OS())
 			if err != nil {
 				log.WithError(err).
 					WithFields(fields).
@@ -304,9 +304,9 @@ func main() {
 		Use:   "info",
 		Short: "Show information about the agent",
 		Run: func(cmd *cobra.Command, _ []string) {
-			loglevel.SetLogLevel()
+			loglevel.SetLogLevel(envs.OS())
 
-			cfg, err := envs.ParseWithPrefix[agentd.Config]("SHELLHUB_")
+			cfg, err := envs.ParseWithPrefix[agentd.Config](envs.OS(), "SHELLHUB_")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -347,9 +347,9 @@ func main() {
 browser, sign in to the console, review the device and click Accept. The command
 waits until the device is accepted, rejected, or the code expires.`,
 		Run: func(cmd *cobra.Command, _ []string) {
-			loglevel.SetLogLevel()
+			loglevel.SetLogLevel(envs.OS())
 
-			cfg, fields, err := agentd.LoadConfigFromEnv()
+			cfg, fields, err := agentd.LoadConfigFromEnv(envs.OS())
 			if err != nil {
 				log.WithError(err).WithFields(fields).Fatal("Failed to load the configuration from the environmental variables")
 			}

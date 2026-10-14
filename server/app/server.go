@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"os"
+	"net/url"
 	"runtime"
 	"strings"
 	"time"
@@ -93,6 +93,52 @@ type Env struct {
 	SessionKeepAliveTimeout time.Duration `env:"SHELLHUB_SESSION_KEEPALIVE_TIMEOUT,default=5m"`
 
 	RequireVerifiedDeviceKey bool `env:"SHELLHUB_REQUIRE_VERIFIED_DEVICE_KEY,default=false"`
+
+	// Edition is the edition the instance runs as. A value outside the three editions fails the
+	// parse, so a misconfigured instance stops at boot.
+	Edition envs.Edition `env:"SHELLHUB_EDITION"`
+
+	Environment string `env:"SHELLHUB_ENV"`
+
+	Version string `env:"SHELLHUB_VERSION"`
+
+	// SSHPort is the SSH port the instance reports to its clients.
+	SSHPort string `env:"SHELLHUB_SSH_PORT"`
+
+	// OpenAPIValidation is the raw response validation mode; see envs.OpenAPIValidationMode.
+	OpenAPIValidation string `env:"SHELLHUB_OPENAPI_VALIDATION"`
+
+	// OpenAPISchema overrides the address the openapi service serves the schema at, so a
+	// deployment without that service can point the validator at a file it already carries.
+	OpenAPISchema string `env:"SHELLHUB_OPENAPI_SCHEMA"`
+
+	// EnrollmentWebhookAllowedCIDRs is the comma-separated list of prefixes a provisioning key
+	// webhook may reach although they are private.
+	EnrollmentWebhookAllowedCIDRs string `env:"SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"`
+
+	// PrivateKey and PublicKey are the paths of the RSA key pair the API signs its tokens with.
+	PrivateKey string `env:"PRIVATE_KEY"`
+	PublicKey  string `env:"PUBLIC_KEY"`
+
+	Cache cache.Config
+}
+
+// Development reports whether SHELLHUB_ENV is "development". It gates developer conveniences
+// only; never use it to relax a security decision, as the variable is attacker-controlled in
+// any deployment that passes the environment through.
+func (e *Env) Development() bool {
+	return e.Environment == "development"
+}
+
+const defaultOpenAPISchema = "http://openapi:8080/openapi/openapi.json"
+
+func (e *Env) openAPISchema() (*url.URL, error) {
+	raw := strings.TrimSpace(e.OpenAPISchema)
+	if raw == "" {
+		raw = defaultOpenAPISchema
+	}
+
+	return url.Parse(raw)
 }
 
 type sshEnv struct {
@@ -106,6 +152,7 @@ type sshEnv struct {
 // services they share. One [Server] serves both the REST API and the admin surface.
 type Server struct {
 	env         *Env
+	sshEnv      *sshEnv
 	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
 	http        *http.Server
 	authn       *middleware.Authenticator
@@ -125,7 +172,7 @@ const (
 func (s *Server) Setup(ctx context.Context) error {
 	log.Info("Setting up server components")
 
-	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize)
+	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize, s.env.Cache)
 	if err != nil {
 		return err
 	}
@@ -213,7 +260,12 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, verifiedKeyOpts...)
 
-	service := services.NewService(store, nil, nil, cache, servicesOptions...)
+	privKey, pubKey, err := services.LoadKeys(s.env.PrivateKey, s.env.PublicKey)
+	if err != nil {
+		return errors.Join(errors.New("failed to load the token key pair"), err)
+	}
+
+	service := services.NewService(store, privKey, pubKey, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
 	routerOptions = append(routerOptions, routes.WithAuthentication(s.authn))
@@ -282,10 +334,7 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 }
 
 func (s *Server) setupSSH(service services.Service) error {
-	env, err := envs.ParseWithPrefix[sshEnv]("SSH_")
-	if err != nil {
-		return err
-	}
+	env := s.sshEnv
 
 	d := dialer.NewDialer(service, s.heartbeater)
 	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
@@ -309,10 +358,12 @@ func (s *Server) setupSSH(service services.Service) error {
 		return err
 	}
 
-	if envs.IsDevelopment() {
+	if s.env.Development() {
 		runtime.SetBlockProfileRate(1)
 		pprof.Register(s.router)
 	}
+
+	var err error
 
 	s.ssh, err = sshserver.NewServer(d, service, handoff, sessions, &sshserver.Options{
 		ConnectTimeout:               env.ConnectTimeout,
@@ -497,7 +548,7 @@ func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
 
 		sentryOpts := sentry.ClientOptions{ //nolint:exhaustruct
 			Dsn:              s.env.SentryDSN,
-			Release:          os.Getenv("SHELLHUB_VERSION"),
+			Release:          s.env.Version,
 			EnableTracing:    true,
 			TracesSampleRate: 1,
 		}
@@ -518,12 +569,18 @@ func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
 		opts = append(opts, routes.WithMetrics())
 	}
 
-	if mode := envs.OpenAPIValidationMode(); mode != envs.OpenAPIValidationOff {
+	if mode := envs.OpenAPIValidationMode(s.env.OpenAPIValidation, s.env.Development()); mode != envs.OpenAPIValidationOff {
 		log.Info("Enabling OpenAPI response validation in " + string(mode) + " mode")
 
+		schema, err := s.env.openAPISchema()
+		if err != nil && mode == envs.OpenAPIValidationStrict {
+			return nil, errors.Join(errors.New("invalid SHELLHUB_OPENAPI_SCHEMA"), err)
+		}
+
 		opts = append(opts, routes.WithOpenAPIValidator(ctx, &middleware.OpenAPIValidatorConfig{
-			Skipper: openAPIValidationSkipper,
-			Strict:  mode == envs.OpenAPIValidationStrict,
+			SchemaPath: schema,
+			Skipper:    openAPIValidationSkipper,
+			Strict:     mode == envs.OpenAPIValidationStrict,
 		}))
 	}
 

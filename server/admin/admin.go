@@ -60,7 +60,7 @@ through the API. Intended for operators administering a ShellHub instance.`,
 }
 
 func connect(ctx context.Context) (services.Services, error) {
-	cfg, err := envs.ParseWithPrefix[env]("ADMIN_")
+	cfg, err := envs.ParseWithPrefix[env](envs.OS(), "ADMIN_")
 	if err != nil {
 		return nil, err
 	}

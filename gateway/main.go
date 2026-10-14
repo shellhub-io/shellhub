@@ -7,12 +7,13 @@ import (
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	loglevel.UseEnvs()
+	loglevel.UseEnvs(envs.OS())
 
 	config, err := loadGatewayConfig()
 	if err != nil {

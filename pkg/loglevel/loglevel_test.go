@@ -4,55 +4,37 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetLevels(t *testing.T) {
-	mocks := envMocks.NewMockBackend(t)
-	envs.Set(t, mocks)
-
 	cases := []struct {
-		description   string
-		requiredMocks func()
-		expected      logrus.Level
+		description string
+		values      map[string]string
+		expected    logrus.Level
 	}{
 		{
 			description: "Set to info when variable SHELLHUB_ENV value is empty",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_ENV").Return("").Once()
-				mocks.On("Get", "SHELLHUB_LOG_LEVEL").Return("").Once()
-			},
-			expected: logrus.InfoLevel,
+			values:      map[string]string{},
+			expected:    logrus.InfoLevel,
 		}, {
 			description: "Set loglevel to trace when SHELLHUB_ENV is set to development",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_ENV").Return("development").Once()
-				mocks.On("Get", "SHELLHUB_LOG_LEVEL").Return("").Once()
-			},
-			expected: logrus.TraceLevel,
+			values:      map[string]string{"SHELLHUB_ENV": "development"},
+			expected:    logrus.TraceLevel,
 		}, {
 			description: "Set loglevel to debug when SHELLHUB_LOG_LEVEL is set to debug ",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_ENV").Return("").Once()
-				mocks.On("Get", "SHELLHUB_LOG_LEVEL").Return("debug").Once()
-			},
-			expected: logrus.DebugLevel,
+			values:      map[string]string{"SHELLHUB_LOG_LEVEL": "debug"},
+			expected:    logrus.DebugLevel,
 		}, {
 			description: "Set loglevel to error when SHELLHUB_LOG_LEVEL is set to error ",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_ENV").Return("").Once()
-				mocks.On("Get", "SHELLHUB_LOG_LEVEL").Return("error").Once()
-			},
-			expected: logrus.ErrorLevel,
+			values:      map[string]string{"SHELLHUB_LOG_LEVEL": "error"},
+			expected:    logrus.ErrorLevel,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-
-			SetLogLevel()
+			SetLogLevel(envs.Map(tc.values))
 			assert.Equal(t, tc.expected, logrus.GetLevel())
 		})
 	}
@@ -70,41 +52,30 @@ func formatterToString(formatter logrus.Formatter) LogFormat {
 }
 
 func TestSetFormat(t *testing.T) {
-	mocks := envMocks.NewMockBackend(t)
-	envs.Set(t, mocks)
-
 	cases := []struct {
-		description   string
-		requiredMocks func()
-		expected      LogFormat
+		description string
+		values      map[string]string
+		expected    LogFormat
 	}{
 		{
 			description: "Set log format to json when SHELLHUB_LOG_FORMAT is set to json",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("json").Once()
-			},
-			expected: LogFormatJSON,
+			values:      map[string]string{"SHELLHUB_LOG_FORMAT": "json"},
+			expected:    LogFormatJSON,
 		},
 		{
 			description: "Set log format to text when SHELLHUB_LOG_FORMAT is set to text",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("text").Once()
-			},
-			expected: LogFormatText,
+			values:      map[string]string{"SHELLHUB_LOG_FORMAT": "text"},
+			expected:    LogFormatText,
 		},
 		{
 			description: "Set log format to text when SHELLHUB_LOG_FORMAT is invalid",
-			requiredMocks: func() {
-				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("invalid").Once()
-			},
-			expected: LogFormatText,
+			values:      map[string]string{"SHELLHUB_LOG_FORMAT": "invalid"},
+			expected:    LogFormatText,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-
-			SetLogFormat()
+			SetLogFormat(envs.Map(tc.values))
 			assert.Equal(t, tc.expected, formatterToString(logrus.StandardLogger().Formatter))
 		})
 	}
