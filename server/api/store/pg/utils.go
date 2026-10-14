@@ -127,6 +127,18 @@ func resolveUnique[E any](ctx context.Context, db bun.IDB, sc scope.Scope, colum
 	}
 }
 
+// ScanThenCount scans query into its model, then counts the rows query matches without its
+// limit, offset and order, one statement after the other on ctx. It returns the scan's error
+// without counting, or the count's error, unwrapped as bun's SelectQuery.ScanAndCount returns
+// them.
+func ScanThenCount(ctx context.Context, query *bun.SelectQuery) (int64, error) {
+	if err := query.Scan(ctx); err != nil {
+		return 0, err
+	}
+
+	return query.Count(ctx)
+}
+
 // ApplyOptions is the exported version of applyOptions, allowing external packages
 // (e.g. cloud store) to reuse the same query-option mechanism.
 func ApplyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) (*bun.SelectQuery, error) {

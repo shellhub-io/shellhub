@@ -88,7 +88,7 @@ func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOp
 		return nil, 0, err
 	}
 
-	count, err := query.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, query)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}

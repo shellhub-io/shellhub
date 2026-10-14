@@ -90,7 +90,7 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 		return nil, 0, err
 	}
 
-	count, err := query.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, query)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}
