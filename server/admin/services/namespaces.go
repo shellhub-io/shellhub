@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -50,7 +49,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 			{
 				ID:      user.ID,
 				Role:    authorizer.RoleOwner,
-				AddedAt: clock.Now(),
+				AddedAt: s.clock.Now(),
 			},
 		},
 		Settings: &models.NamespaceSettings{
@@ -58,7 +57,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
 			SSHAccessMode:          input.SSHAccessMode,
 		},
-		CreatedAt: clock.Now(),
+		CreatedAt: s.clock.Now(),
 		Type:      models.NewDefaultType(),
 	}
 
@@ -97,7 +96,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 	if err = s.store.NamespaceCreateMembership(ctx, scope.MustBounded(ns.TenantID), &models.Member{
 		ID:      user.ID,
 		Role:    input.Role,
-		AddedAt: clock.Now(),
+		AddedAt: s.clock.Now(),
 	}); err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}

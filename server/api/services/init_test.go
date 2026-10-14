@@ -21,7 +21,7 @@ var (
 func TestMain(m *testing.M) {
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
 	publicKey = &privateKey.PublicKey
-	now = clock.Now()
+	now = clock.New().Now()
 	code := m.Run()
 	os.Exit(code)
 }

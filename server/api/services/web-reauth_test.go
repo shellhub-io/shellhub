@@ -105,13 +105,12 @@ func TestWebReauthVerify(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			clock.Freeze(t, now)
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache))
+			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache), WithClock(clock.NewFixed(now)))
 
 			_, err := service.WebReauthVerify(ctx, tc.req)
 			if tc.wantErr == nil {
@@ -199,7 +198,6 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			clock.Freeze(t, now)
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -221,7 +219,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				UserID:       userID,
 				Fingerprint:  fingerprint,
 				ApprovalCode: code,
-			})
+			}, now)
 
 			if tc.wantErr == nil {
 				require.NoError(t, err)
@@ -249,7 +247,6 @@ func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
 		code        = "WXYZ2K7Q"
 	)
 
-	clock.Freeze(t, now)
 	storeMock := new(storemock.MockStore)
 	queryOptionsMock := new(storemock.MockQueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -278,7 +275,7 @@ func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
 		UserID:       userID,
 		Fingerprint:  fingerprint,
 		ApprovalCode: code,
-	})
+	}, now)
 
 	require.Error(t, err)
 	assert.Empty(t, confirmationCode, "a code minted inside a transaction that did not commit must not reach the caller")

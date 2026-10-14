@@ -11,7 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"golang.org/x/crypto/ssh"
@@ -129,7 +128,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 	model := models.PublicKey{
 		Data:        ssh.MarshalAuthorizedKey(pubKey),
 		Fingerprint: req.Fingerprint,
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.clock.Now(),
 		TenantID:    req.TenantID,
 		PublicKeyFields: models.PublicKeyFields{
 			Name:     req.Name,
@@ -252,7 +251,7 @@ func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, err
 			Bytes: x509.MarshalPKCS1PrivateKey(key),
 		}),
 		Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.clock.Now(),
 	}
 
 	if err := s.store.PrivateKeyCreate(ctx, privateKey); err != nil {

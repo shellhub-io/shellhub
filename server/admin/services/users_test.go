@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -29,10 +30,8 @@ func TestUserCreate(t *testing.T) {
 	hashMock := &hashmock.MockHasher{}
 	hash.Set(t, hashMock)
 	ctx := context.TODO()
-	now := clock.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	errStoreDown := errors.New("connection refused")
-
-	clock.Freeze(t, now)
 
 	cases := []struct {
 		description   string
@@ -95,7 +94,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -133,7 +132,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -171,7 +170,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -211,7 +210,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -251,7 +250,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -291,7 +290,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -315,7 +314,7 @@ func TestUserCreate(t *testing.T) {
 					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 				},
 				Status:        models.UserStatusConfirmed,
-				CreatedAt:     clock.Now(),
+				CreatedAt:     now,
 				MaxNamespaces: MaxNumberNamespacesCommunity,
 				Preferences: models.UserPreferences{
 					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -351,7 +350,7 @@ func TestUserCreate(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					Status:        models.UserStatusConfirmed,
-					CreatedAt:     clock.Now(),
+					CreatedAt:     now,
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -381,7 +380,7 @@ func TestUserCreate(t *testing.T) {
 					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 				},
 				Status:        models.UserStatusConfirmed,
-				CreatedAt:     clock.Now(),
+				CreatedAt:     now,
 				MaxNamespaces: MaxNumberNamespacesCommunity,
 				Preferences: models.UserPreferences{
 					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -395,7 +394,7 @@ func TestUserCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock))
+			service := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
 			user, err := service.UserCreate(ctx, &inputs.UserCreate{Username: tc.username, Password: tc.password, Email: tc.email})
 
 			assert.Equal(t, tc.expected.user, user)
@@ -410,6 +409,8 @@ func TestUserCreate(t *testing.T) {
 }
 
 func TestUserDelete(t *testing.T) {
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+
 	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
@@ -467,7 +468,7 @@ func TestUserDelete(t *testing.T) {
 						Settings: &models.NamespaceSettings{
 							SessionRecord: true,
 						},
-						CreatedAt: clock.Now(),
+						CreatedAt: now,
 					},
 					{
 						Name:     "namespace2",
@@ -477,7 +478,7 @@ func TestUserDelete(t *testing.T) {
 						Settings: &models.NamespaceSettings{
 							SessionRecord: true,
 						},
-						CreatedAt: clock.Now(),
+						CreatedAt: now,
 					},
 				}
 				namespaceMember := []models.Namespace{
@@ -492,7 +493,7 @@ func TestUserDelete(t *testing.T) {
 						Settings: &models.NamespaceSettings{
 							SessionRecord: true,
 						},
-						CreatedAt: clock.Now(),
+						CreatedAt: now,
 					},
 					{
 						Name:     "namespace1",
@@ -505,7 +506,7 @@ func TestUserDelete(t *testing.T) {
 						Settings: &models.NamespaceSettings{
 							SessionRecord: true,
 						},
-						CreatedAt: clock.Now(),
+						CreatedAt: now,
 					},
 				}
 
@@ -532,7 +533,7 @@ func TestUserDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock))
+			service := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
 			err := service.UserDelete(ctx, &inputs.UserDelete{Username: tc.username})
 			assert.Equal(t, tc.expected, err)
 		})

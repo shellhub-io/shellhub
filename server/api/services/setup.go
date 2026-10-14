@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -75,7 +74,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		UserData:      data,
 		Password:      password,
 		Status:        models.UserStatusConfirmed,
-		CreatedAt:     clock.Now(),
+		CreatedAt:     s.clock.Now(),
 		MaxNamespaces: -1,
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
@@ -113,10 +112,10 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 			{
 				ID:      insertedID,
 				Role:    authorizer.RoleOwner,
-				AddedAt: clock.Now(),
+				AddedAt: s.clock.Now(),
 			},
 		},
-		CreatedAt: clock.Now(),
+		CreatedAt: s.clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
 			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),

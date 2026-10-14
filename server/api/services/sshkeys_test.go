@@ -248,15 +248,15 @@ func TestListPublicKeys(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	ctx := context.TODO()
 
 	keys := []models.PublicKey{
-		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
-		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clock.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
+		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clk.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
+		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clk.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
 	}
 
 	type Expected struct {
@@ -335,9 +335,9 @@ func TestGetPublicKeys(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	ctx := context.TODO()
 
@@ -398,13 +398,13 @@ func TestGetPublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				namespace := models.Namespace{TenantID: "tenant1"}
 				key := models.PublicKey{
-					Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+					Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clk.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 				}
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(&namespace, nil).Once()
 				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(&key, nil).Once()
 			},
 			expected: Expected{&models.PublicKey{
-				Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+				Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clk.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 			}, nil},
 		},
 	}
@@ -649,9 +649,9 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	type Expected struct {
 		err error
@@ -699,7 +699,7 @@ func TestDeletePublicKeys(t *testing.T) {
 				publicKey := &models.PublicKey{
 					Data:            []byte("teste"),
 					Fingerprint:     "fingerprint",
-					CreatedAt:       clock.Now(),
+					CreatedAt:       clk.Now(),
 					TenantID:        "tenant1",
 					PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 				}
@@ -722,7 +722,7 @@ func TestDeletePublicKeys(t *testing.T) {
 				publicKey := &models.PublicKey{
 					Data:            []byte("teste"),
 					Fingerprint:     "fingerprint",
-					CreatedAt:       clock.Now(),
+					CreatedAt:       clk.Now(),
 					TenantID:        "tenant1",
 					PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 				}
@@ -755,9 +755,9 @@ func TestCreatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	pubKey, _ := ssh.NewPublicKey(publicKey)
 
@@ -887,7 +887,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				keyWithHostnameModel := models.PublicKey{
 					Data:        ssh.MarshalAuthorizedKey(pubKey),
 					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clock.Now(),
+					CreatedAt:   clk.Now(),
 					TenantID:    "tenant",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
@@ -915,7 +915,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				keyWithHostnameModel := models.PublicKey{
 					Data:        ssh.MarshalAuthorizedKey(pubKey),
 					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clock.Now(),
+					CreatedAt:   clk.Now(),
 					TenantID:    "tenant",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
@@ -954,7 +954,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				keyWithHostnameModel := models.PublicKey{
 					Data:        ssh.MarshalAuthorizedKey(pubKey),
 					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clock.Now(),
+					CreatedAt:   clk.Now(),
 					TenantID:    "tenant",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
@@ -1017,7 +1017,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				keyWithTagsModel := models.PublicKey{
 					Data:        ssh.MarshalAuthorizedKey(pubKey),
 					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clock.Now(),
+					CreatedAt:   clk.Now(),
 					TenantID:    "tenant",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
@@ -1061,7 +1061,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				keyWithTagsModel := models.PublicKey{
 					Data:        ssh.MarshalAuthorizedKey(pubKey),
 					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clock.Now(),
+					CreatedAt:   clk.Now(),
 					TenantID:    "tenant",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{

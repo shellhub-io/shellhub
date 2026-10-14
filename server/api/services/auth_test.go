@@ -36,7 +36,7 @@ func TestAuthDevice(t *testing.T) {
 	cacheMock := mockcache.NewMockCache(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	toUID := func(tenantID, hostname, mac, publicKey string) string {
@@ -53,7 +53,7 @@ func TestAuthDevice(t *testing.T) {
 	}
 
 	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey, now)
 		require.NoError(t, err)
 
 		return token
@@ -323,7 +323,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = clock.Now()
+				expectedDevice.LastSeen = clk.Now()
 
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
@@ -384,7 +384,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = clock.Now()
+				expectedDevice.LastSeen = clk.Now()
 
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
@@ -1113,7 +1113,7 @@ func TestAuthDevice(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -1656,7 +1656,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-				clock.Freeze(t, now)
 
 				mock.
 					On("UserUpdate", ctx, updatedUser).
@@ -1772,7 +1771,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -1867,7 +1865,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -1989,7 +1986,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
-				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2113,7 +2109,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
-				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2209,7 +2204,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
-				clock.Freeze(t, now)
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2250,7 +2244,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2269,7 +2263,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 }
 
 func TestCreateUserToken(t *testing.T) {
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := mocks.NewMockStore(t)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
@@ -2565,7 +2559,7 @@ func TestCreateUserToken(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2705,7 +2699,7 @@ const (
 )
 
 func TestAuthAPIKey(t *testing.T) {
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	type Expected struct {
 		apiKey *models.APIKey
@@ -2935,7 +2929,7 @@ func TestAuthAPIKey(t *testing.T) {
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -3004,14 +2998,14 @@ func (f *fakeAPIKeyCache) Delete(_ context.Context, key string) error {
 func newAPIKeyAuthFixture(t *testing.T, cache storecache.Cache) (*mocks.MockStore, *APIService) {
 	t.Helper()
 
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := mocks.NewMockStore(t)
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	return storeMock, NewService(storeMock, privKey, &privKey.PublicKey, cache, WithIssuer(testIssuer))
+	return storeMock, NewService(storeMock, privKey, &privKey.PublicKey, cache, WithIssuer(testIssuer), WithClock(clk))
 }
 
 func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
@@ -3173,7 +3167,7 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 // the previously stored address untouched on reconnect, while a valid IP refreshes it.
 func TestAuthDevice_RemoteAddr(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	toUID := func(tenantID, hostname, mac, publicKey string) string {
@@ -3190,7 +3184,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 	}
 
 	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, testIssuer, privateKey, now)
 		require.NoError(t, err)
 
 		return token
@@ -3253,7 +3247,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -3315,7 +3309,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -3370,7 +3364,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,

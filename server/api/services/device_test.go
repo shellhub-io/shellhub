@@ -917,7 +917,7 @@ func TestResolveDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -1114,7 +1114,7 @@ func TestDeleteDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 			err := service.DeleteDevice(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1439,7 +1439,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestOfflineDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 
@@ -1484,7 +1484,7 @@ func TestOfflineDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1501,7 +1501,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -2174,7 +2174,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition), WithClock(clk))
 
 			tc.requiredMocks()
 
@@ -2194,7 +2194,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -2492,7 +2492,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(licenseEvaluator), WithEdition(tc.edition))
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(licenseEvaluator), WithEdition(tc.edition), WithClock(clk))
 
 			tc.requiredMocks()
 
@@ -2512,7 +2512,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
@@ -2569,7 +2569,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	require.NoError(t, service.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 		TenantID: tenantID, UID: "keyless", Status: "accepted",

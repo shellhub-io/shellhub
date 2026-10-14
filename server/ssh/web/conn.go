@@ -8,7 +8,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
@@ -222,7 +221,7 @@ func (c *Conn) KeepAlive() {
 	}
 
 	for {
-		if err := socket.SetDeadline(clock.Now().Add((time.Second * 30) * 2)); err != nil {
+		if err := socket.SetDeadline(time.Now().Add((time.Second * 30) * 2)); err != nil { //nolint:forbidigo // a network deadline needs the wall clock
 			return
 		}
 

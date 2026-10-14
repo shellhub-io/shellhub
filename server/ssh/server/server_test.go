@@ -57,7 +57,7 @@ const validSSHID = "user@namespace.device"
 
 func stubDeps() bannerDeps {
 	return bannerDeps{
-		newSession: session.NewSession,
+		newSession: defaultBannerDeps(clock.New()).newSession,
 		evaluate: func(_ *session.Session, _ gliderssh.Context) error {
 			return nil
 		},
@@ -83,7 +83,7 @@ func bannerKind(message string) banner.Kind {
 }
 
 func TestBannerHandlerInvalidSSHID(t *testing.T) {
-	h := newBannerHandler(nil, nil, nil, session.NewRegistry(), envs.Community)
+	h := newBannerHandler(nil, nil, nil, session.NewRegistry(), envs.Community, clock.New())
 	result := h(newStubCtx("not-a-valid-sshid"))
 
 	assert.Equal(t, banner.KindInvalidSSHID, bannerKind(result),
@@ -197,7 +197,7 @@ func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	proxy := newProxyListener(raw)
 	defer proxy.Close() //nolint:errcheck
 
-	deadline := clock.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(5 * time.Second) //nolint:forbidigo // a deadline
 
 	done := make(chan error, 1)
 	go func() {

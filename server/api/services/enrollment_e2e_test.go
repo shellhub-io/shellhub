@@ -46,7 +46,6 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	st := provider.Store()
 
 	provider.Clock().Set(now)
-	clock.Set(t, provider.Clock())
 
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,
@@ -67,7 +66,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	require.NoError(t, err)
 
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")))
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()))
 
 	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }

@@ -24,6 +24,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+var identityNow = time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
+
 func newIdentitySession(service services.Service, mode string) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
@@ -31,6 +33,7 @@ func newIdentitySession(service services.Service, mode string) *Session {
 		UID:      "test-uid",
 		service:  service,
 		sessions: NewRegistry(),
+		clock:    clock.NewFixed(identityNow),
 		Data: Data{
 			Target:       tgt,
 			IPAddress:    "127.0.0.1",
@@ -89,7 +92,7 @@ func TestResolveKeyAuth(t *testing.T) {
 	})
 
 	t.Run("dead key is rejected, not sent to enrollment", func(t *testing.T) {
-		consumedAt := clock.Now()
+		consumedAt := identityNow
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
@@ -106,7 +109,7 @@ func TestResolveKeyAuth(t *testing.T) {
 	})
 
 	t.Run("an expired key is rejected too", func(t *testing.T) {
-		expiredAt := clock.Now().Add(-time.Hour)
+		expiredAt := identityNow.Add(-time.Hour)
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
@@ -248,7 +251,7 @@ func TestResolveKeyAuth(t *testing.T) {
 	t.Run("an unenrolled key does not inherit the identity of a key offered before it", func(t *testing.T) {
 		otherKey := newTestSSHKey(t)
 		otherFingerprint := gossh.FingerprintSHA256(otherKey)
-		lastReauthAt := clock.Now()
+		lastReauthAt := identityNow
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().

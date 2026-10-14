@@ -18,11 +18,11 @@ func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
 
 	uri := startValkey(t)
 
-	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60})
-	require.NoError(t, err)
-
 	lockedMidSecond := time.Unix(1_700_000_000, 600_000_000)
-	clock.Freeze(t, lockedMidSecond)
+	clk := clock.NewFixed(lockedMidSecond)
+
+	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60}, clk)
+	require.NoError(t, err)
 
 	var deadline int64
 	for range 3 {
@@ -32,12 +32,12 @@ func TestRedisCacheLockoutEndsAtAnnouncedDeadline(t *testing.T) {
 
 	require.Equal(t, int64(1_700_000_060), deadline)
 
-	clock.Freeze(t, time.Unix(deadline-1, 0))
+	clk.Set(time.Unix(deadline-1, 0))
 	lockout, _, err := c.HasAccountLockout(ctx, "10.0.0.1", "user")
 	require.NoError(t, err)
 	assert.Equal(t, deadline, lockout)
 
-	clock.Freeze(t, time.Unix(deadline, 0))
+	clk.Set(time.Unix(deadline, 0))
 	lockout, _, err = c.HasAccountLockout(ctx, "10.0.0.1", "user")
 	require.NoError(t, err)
 	assert.Zero(t, lockout)
@@ -52,7 +52,7 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 
 	uri := startValkey(t)
 
-	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60})
+	c, err := cache.NewRedisCache(uri, 0, cache.Config{MaximumAccountLockout: 60}, clock.New())
 	require.NoError(t, err)
 
 	taken, err := c.SetNX(ctx, "guard", "owner", time.Minute)

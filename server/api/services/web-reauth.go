@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -32,7 +32,7 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 		return "", NewErrUserPasswordNotMatch(nil)
 	}
 
-	return StampWebReauth(ctx, s.store, req)
+	return StampWebReauth(ctx, s.store, req, s.clock.Now())
 }
 
 // StampWebReauth records a successful step-up on the identity that presented the
@@ -48,8 +48,9 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 // It returns [ErrSSHIdentityNotFound] when the key is not one of the caller's
 // identities, and [ErrSSHApprovalCodeNotFound] when the approval code is not a
 // pending re-auth approval for that key in the caller's tenant. Neither is a
-// forbidden error, so a 403 from the step-up only ever means a failed factor.
-func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify) (string, error) {
+// forbidden error, so a 403 from the step-up only ever means a failed factor. now is the instant
+// the approval's expiry is checked against.
+func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify, now time.Time) (string, error) {
 	sc, err := scope.NewBounded(req.TenantID)
 	if err != nil {
 		return "", NewErrSSHIdentityNotFound(req.Fingerprint, err)
@@ -71,7 +72,7 @@ func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauth
 			return nil
 		}
 
-		code, err := releaseSSHApproval(ctx, st, req)
+		code, err := releaseSSHApproval(ctx, st, req, now)
 		if err != nil {
 			return err
 		}
@@ -87,9 +88,7 @@ func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauth
 	return confirmationCode, nil
 }
 
-func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebReauthVerify) (string, error) {
-	now := clock.Now()
-
+func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebReauthVerify, now time.Time) (string, error) {
 	approval, err := st.SSHApprovalGet(ctx, pairingcode.Normalize(req.ApprovalCode), now)
 	if err != nil {
 		return "", NewErrSSHApprovalCodeNotFound(req.ApprovalCode, err)

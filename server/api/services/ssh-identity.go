@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -32,12 +31,12 @@ func defaultSSHIdentityName(fingerprint string, data []byte) string {
 	return fmt.Sprintf("%s (%s)", algo, short)
 }
 
-func sshIdentityExpiry(days *int) *time.Time {
+func sshIdentityExpiry(now time.Time, days *int) *time.Time {
 	if days == nil {
 		return nil
 	}
 
-	at := clock.Now().AddDate(0, 0, *days)
+	at := now.AddDate(0, 0, *days)
 
 	return &at
 }
@@ -224,7 +223,7 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		Data:        data,
 		Name:        req.Name,
 		Source:      req.Source,
-		ExpiresAt:   sshIdentityExpiry(req.ExpiresIn),
+		ExpiresAt:   sshIdentityExpiry(s.clock.Now(), req.ExpiresIn),
 	})
 }
 
@@ -279,7 +278,7 @@ func (s *service) CreateAPIKeySSHIdentity(ctx context.Context, req *requests.API
 		Data:          ssh.MarshalAuthorizedKey(pubKey),
 		Name:          req.Name,
 		Source:        models.SSHIdentitySourceManual,
-		ExpiresAt:     sshIdentityExpiry(req.ExpiresIn),
+		ExpiresAt:     sshIdentityExpiry(s.clock.Now(), req.ExpiresIn),
 		SingleUse:     req.SingleUse,
 	})
 }

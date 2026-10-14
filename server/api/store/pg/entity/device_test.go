@@ -4,14 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceFromModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	disconnectedAt := now.Add(-time.Hour)
 	statusUpdatedAt := now.Add(-30 * time.Minute)
 	removedAt := now.Add(-2 * time.Hour)
@@ -164,7 +163,7 @@ func TestDeviceFromModel(t *testing.T) {
 }
 
 func TestDeviceToModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	disconnectedAt := now.Add(-time.Hour)
 	statusUpdatedAt := now.Add(-30 * time.Minute)
 	removedAt := now.Add(-2 * time.Hour)

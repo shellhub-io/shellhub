@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 // InstanceAPIKeyPrefix marks a plaintext key as an instance API key. Authentication branches on it
@@ -34,7 +32,7 @@ type InstanceAPIKey struct {
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
-// IsValid reports whether the key has not expired yet.
-func (a *InstanceAPIKey) IsValid() bool {
-	return clock.Now().Before(a.ExpiresAt)
+// IsValid reports whether the key has not expired at now.
+func (a *InstanceAPIKey) IsValid(now time.Time) bool {
+	return now.Before(a.ExpiresAt)
 }

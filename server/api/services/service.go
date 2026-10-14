@@ -8,6 +8,7 @@ import (
 	"net/netip"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -35,6 +36,7 @@ type service struct {
 	recordingPruner   SessionRecordingPruner
 	issuer            string
 	challengeKey      []byte
+	clock             clock.Clock
 
 	requireVerifiedDeviceKey bool
 
@@ -114,6 +116,13 @@ func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
 	}
 }
 
+// WithClock makes the service read the time from c. Without it the service reads the wall clock.
+func WithClock(c clock.Clock) Option {
+	return func(service *APIService) {
+		service.clock = c
+	}
+}
+
 // WithIssuer sets the identifier written to the iss claim of every token the service signs.
 // Without it tokens are signed with an empty issuer.
 func WithIssuer(issuer string) Option {
@@ -179,6 +188,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			firewallEvaluator: nil, // injected via WithFirewallEvaluator option
 			recordingPruner:   nil, // injected via WithSessionRecordingPruner option
 			edition:           envs.Community,
+			clock:             clock.New(),
 		},
 	}
 

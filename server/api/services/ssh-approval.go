@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -51,7 +50,7 @@ type SSHApprovalService interface {
 func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error) {
 	code := pairingcode.New(pairingcode.DeviceCodeLength)
 
-	now := clock.Now()
+	now := s.clock.Now()
 	if err := s.store.SSHApprovalCreate(ctx, &models.SSHApproval{
 		Code:         code,
 		TenantID:     req.TenantID,
@@ -81,7 +80,7 @@ func (s *service) CreateSSHApproval(ctx context.Context, req *requests.SSHApprov
 func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApprovalStatus) (*models.SSHApprovalStatus, error) {
 	code := pairingcode.Normalize(req.Code)
 
-	approval, err := s.store.SSHApprovalGet(ctx, code, clock.Now())
+	approval, err := s.store.SSHApprovalGet(ctx, code, s.clock.Now())
 	if err != nil {
 		return nil, NewErrSSHApprovalCodeNotFound(code, err)
 	}
@@ -96,7 +95,7 @@ func (s *service) GetSSHApprovalStatus(ctx context.Context, req *requests.SSHApp
 func (s *service) GetSSHApproval(ctx context.Context, userID, code string) (*models.SSHApprovalRequest, error) {
 	code = pairingcode.Normalize(code)
 
-	now := clock.Now()
+	now := s.clock.Now()
 
 	approval, err := s.store.SSHApprovalGet(ctx, code, now)
 	if err != nil {
@@ -148,7 +147,7 @@ func (s *service) decideSSHApproval(ctx context.Context, userID, code string, de
 		return NewErrSSHApprovalCodeNotFound(code, nil)
 	}
 
-	now := clock.Now()
+	now := s.clock.Now()
 
 	approval, err := s.store.SSHApprovalGet(ctx, code, now)
 	if err != nil {
@@ -208,7 +207,7 @@ func (s *service) applySSHApproval(ctx context.Context, userID string, approval 
 		Fingerprint: approval.Fingerprint,
 		Data:        approval.Data,
 		Source:      models.SSHIdentitySourceApproval,
-		ExpiresAt:   sshIdentityExpiry(expiresIn),
+		ExpiresAt:   sshIdentityExpiry(s.clock.Now(), expiresIn),
 	}); err != nil {
 		return err
 	}

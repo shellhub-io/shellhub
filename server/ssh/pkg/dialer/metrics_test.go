@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -72,7 +73,7 @@ func TestCollectorReportsTheStoreSize(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
-			m := NewManager()
+			m := NewManager(clock.New())
 			tc.setup(m)
 
 			expected := strings.NewReader(expositionOf(tc.connections, tc.devices))
@@ -90,7 +91,7 @@ func TestCollectorReportsTheStoreSize(t *testing.T) {
 func TestCollectorCountsDisplacedConnections(t *testing.T) {
 	key := NewKey("tenant", "uid")
 
-	m := NewManager()
+	m := NewManager(clock.New())
 	collector := NewCollector(m)
 
 	reconnect := func() {
@@ -110,7 +111,7 @@ func TestCollectorCountsDisplacedConnections(t *testing.T) {
 }
 
 func TestCollectorCountsEvictedConnections(t *testing.T) {
-	m := NewManager()
+	m := NewManager(clock.New())
 	collector := NewCollector(m)
 
 	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))

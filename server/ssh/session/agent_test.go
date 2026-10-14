@@ -4,6 +4,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -116,6 +117,7 @@ func newAgentSession(t *testing.T, version string) *Session {
 	t.Helper()
 
 	return &Session{
+		clock: clock.New(),
 		seats: newSeats(),
 		agent: &Agent{channels: make(map[int]*AgentChannel)},
 		Data: Data{

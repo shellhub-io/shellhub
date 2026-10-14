@@ -32,7 +32,7 @@ func TestSetup(t *testing.T) {
 	uuid.Fix(t, tenant)
 
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	ctx := context.TODO()
 
@@ -668,7 +668,7 @@ func TestSetup(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 			res, err := service.Setup(ctx, tc.req)
 			assert.Equal(t, tc.expected, err)

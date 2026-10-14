@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
@@ -126,12 +125,12 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 	}
 
 	invitation, err := s.store.MembershipInvitationResolve(ctx, scope.MustBounded(n.TenantID), req.UserID)
-	if err != nil || !invitation.IsPending() || invitation.IsExpired() {
+	if err != nil || !invitation.IsPending() || invitation.IsExpired(s.clock.Now()) {
 		return NewErrNamespaceMemberNotFound(req.UserID, err)
 	}
 
 	err = s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		member := &models.Member{ID: req.UserID, AddedAt: clock.Now(), Role: invitation.Role}
+		member := &models.Member{ID: req.UserID, AddedAt: s.clock.Now(), Role: invitation.Role}
 
 		return s.admitMember(ctx, scope.MustBounded(n.TenantID), member, invitation)
 	})
@@ -251,9 +250,9 @@ func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.
 		return NewErrRoleForbidden()
 	}
 
-	invitation.UpdatedAt = clock.Now()
+	invitation.UpdatedAt = s.clock.Now()
 	invitation.Status = models.MembershipInvitationStatusCancelled
-	invitation.StatusUpdatedAt = clock.Now()
+	invitation.StatusUpdatedAt = s.clock.Now()
 	if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
 		log.WithError(err).WithField("tenant-id", req.TenantID).WithField("invited-user-id", req.InvitedUserID).
 			Error("unable to cancel membership invitation")

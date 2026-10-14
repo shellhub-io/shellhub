@@ -4,13 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNeedsReauth(t *testing.T) {
 	now := time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
 
 	ptr := func(v int) *int { return &v }
 	at := func(d time.Duration) *time.Time {
@@ -35,7 +33,7 @@ func TestNeedsReauth(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.Equal(t, tc.expected, needsReauth(tc.lastReauthAt, tc.period))
+			assert.Equal(t, tc.expected, needsReauth(now, tc.lastReauthAt, tc.period))
 		})
 	}
 }

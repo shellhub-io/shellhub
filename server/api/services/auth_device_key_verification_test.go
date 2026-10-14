@@ -45,7 +45,6 @@ func TestCreateDeviceAuthChallenge(t *testing.T) {
 
 func TestAuthDeviceKeyVerification(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
 
 	const (
 		tenantID      = "00000000-0000-4000-0000-000000000000"
@@ -63,10 +62,10 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 	otherServerKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	issue := func(t *testing.T, serverKey *rsa.PrivateKey) string {
+	issue := func(t *testing.T, serverKey *rsa.PrivateKey, at time.Time) string {
 		t.Helper()
 
-		issued, err := NewService(mocks.NewMockStore(t), serverKey, &serverKey.PublicKey, mockcache.NewMockCache(t)).
+		issued, err := NewService(mocks.NewMockStore(t), serverKey, &serverKey.PublicKey, mockcache.NewMockCache(t), WithClock(clock.NewFixed(at))).
 			CreateDeviceAuthChallenge(context.TODO())
 		require.NoError(t, err)
 
@@ -83,8 +82,8 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		return base64.RawURLEncoding.EncodeToString(raw)
 	}
 
-	challenge := issue(t, privateKey)
-	otherChallenge := issue(t, privateKey)
+	challenge := issue(t, privateKey, now)
+	otherChallenge := issue(t, privateKey, now)
 
 	publicKey := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&deviceKey.PublicKey)}))
 
@@ -138,7 +137,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(ctx, sign(t, deviceKey, challenge, tenantID))
 		require.NoError(t, err)
@@ -179,7 +178,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(ctx, sign(t, deviceKey, challenge, tenantID))
 		require.NoError(t, err)
@@ -197,7 +196,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(&models.Device{UID: uid, Name: hostname, TenantID: tenantID, Status: models.DeviceStatusAccepted, KeyVerifiedAt: &now}, nil).Once()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(ctx, unsigned)
 		assert.Nil(t, res)
@@ -221,7 +220,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 			}).
 			Return(nil).Once()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(ctx, unsigned)
 		assert.Nil(t, res)
@@ -246,7 +245,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(&models.Device{UID: uid, Name: hostname, TenantID: tenantID, Status: models.DeviceStatusAccepted, KeyVerifiedAt: &now}, nil).Once()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(ctx, unsigned)
 		require.NoError(t, err)
@@ -261,7 +260,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 	})
 
 	t.Run("an unsigned request is refused when the instance requires verification", func(t *testing.T) {
-		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithVerifiedDeviceKeyRequired())
+		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithVerifiedDeviceKeyRequired(), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(context.TODO(), unsigned)
 		assert.Nil(t, res)
@@ -285,7 +284,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 			}).
 			Return(nil).Twice()
 
-		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 		req := sign(t, deviceKey, challenge, tenantID)
 
 		for range 2 {
@@ -330,7 +329,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 			challenge: func(t *testing.T) string {
 				t.Helper()
 
-				return issue(t, otherServerKey)
+				return issue(t, otherServerKey, now)
 			},
 			tenant: tenantID,
 		},
@@ -385,7 +384,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 
 	for _, tc := range refusedSignatures {
 		t.Run("refuses "+tc.description, func(t *testing.T) {
-			service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer))
+			service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 			req := sign(t, tc.key, tc.challenge(t), tc.tenant)
 			if tc.alter != nil {
@@ -399,9 +398,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 	}
 
 	t.Run("refuses a challenge older than the window", func(t *testing.T) {
-		clock.Freeze(t, now.Add(61*time.Second))
-
-		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer))
+		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithClock(clock.NewFixed(now.Add(61*time.Second))))
 
 		res, err := service.AuthDevice(context.TODO(), sign(t, deviceKey, challenge, tenantID))
 		assert.Nil(t, res)
@@ -409,11 +406,9 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 	})
 
 	t.Run("refuses a challenge stamped further ahead than the clock skew", func(t *testing.T) {
-		clock.Freeze(t, now.Add(6*time.Second))
-		ahead := issue(t, privateKey)
-		clock.Freeze(t, now)
+		ahead := issue(t, privateKey, now.Add(6*time.Second))
 
-		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer))
+		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithClock(clock.NewFixed(now)))
 
 		res, err := service.AuthDevice(context.TODO(), sign(t, deviceKey, ahead, tenantID))
 		assert.Nil(t, res)

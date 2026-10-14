@@ -2,16 +2,16 @@ package entity
 
 import (
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNamespaceFromModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name     string
@@ -164,7 +164,7 @@ func TestNamespaceFromModel(t *testing.T) {
 }
 
 func TestNamespaceToModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name     string

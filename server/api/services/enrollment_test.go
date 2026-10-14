@@ -57,11 +57,11 @@ func TestEvaluateEnrollment(t *testing.T) {
 }
 
 func TestEvaluateEnrollmentWebhook(t *testing.T) {
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")))
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(clk))
 
 	req := requests.DeviceAuth{
 		TenantID: "00000000-0000-4000-0000-000000000000",

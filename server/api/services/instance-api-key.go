@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -60,9 +59,9 @@ func (s *service) CreateInstanceAPIKey(ctx context.Context, req *requests.Create
 	var expiresAt time.Time
 	switch req.ExpiresAt {
 	case 30, 60, 90:
-		expiresAt = clock.Now().AddDate(0, 0, req.ExpiresAt)
+		expiresAt = s.clock.Now().AddDate(0, 0, req.ExpiresAt)
 	case 365:
-		expiresAt = clock.Now().AddDate(1, 0, 0)
+		expiresAt = s.clock.Now().AddDate(1, 0, 0)
 	default:
 		return nil, NewErrBadRequest(errors.New("expires_at must be one of 30, 60, 90 or 365 days"))
 	}
@@ -119,7 +118,7 @@ func (s *service) AuthInstanceAPIKey(ctx context.Context, key string) (*models.I
 		return nil, NewErrInstanceAPIKeyNotFound("", err)
 	}
 
-	if !apiKey.IsValid() {
+	if !apiKey.IsValid(s.clock.Now()) {
 		return nil, NewErrInstanceAPIKeyInvalid(apiKey.Name)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -50,7 +51,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 func TestAllowlistsMatchRegisteredRoutes(t *testing.T) {
 	router, authn, service := authenticatedRouter(t)
 
-	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil), service, session.NewRegistry(), &sshhttp.Config{})
+	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil, clock.New()), service, session.NewRegistry(), &sshhttp.Config{})
 
 	assert.Empty(t, authn.UnregisteredRoutes(router.Router().Routes()))
 }
@@ -61,7 +62,7 @@ func TestRouterRefusesDeviceTokenOnManagementRoutes(t *testing.T) {
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, "http://localhost", privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, "http://localhost", privateKey, clock.New().Now())
 	require.NoError(t, err)
 
 	paths := []string{

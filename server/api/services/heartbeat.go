@@ -47,17 +47,19 @@ type deviceHeartbeat struct {
 // process or replica, which no hook in this one saw.
 type DeviceHeartbeater struct {
 	store   store.Store
+	clock   clock.Clock
 	queue   chan deviceHeartbeat
 	done    chan struct{}
 	wg      sync.WaitGroup
 	dropped atomic.Uint64
 }
 
-// NewDeviceHeartbeater returns a running heartbeater. Call Shutdown to flush
-// what is pending and stop it.
-func NewDeviceHeartbeater(s store.Store) *DeviceHeartbeater {
+// NewDeviceHeartbeater returns a running heartbeater that stamps each beat with c's time. Call
+// Shutdown to flush what is pending and stop it.
+func NewDeviceHeartbeater(s store.Store, c clock.Clock) *DeviceHeartbeater {
 	h := &DeviceHeartbeater{
 		store: s,
+		clock: c,
 		queue: make(chan deviceHeartbeat, deviceHeartbeatQueueSize),
 		done:  make(chan struct{}),
 	}
@@ -75,7 +77,7 @@ func (h *DeviceHeartbeater) Submit(tenantID, uid string) {
 	}
 
 	select {
-	case h.queue <- deviceHeartbeat{tenantID: tenantID, uid: uid, at: clock.Now()}:
+	case h.queue <- deviceHeartbeat{tenantID: tenantID, uid: uid, at: h.clock.Now()}:
 	default:
 		if dropped := h.dropped.Add(1); dropped%1000 == 1 {
 			log.WithField("dropped", dropped).

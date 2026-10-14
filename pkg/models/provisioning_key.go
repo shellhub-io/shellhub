@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 // ProvisioningKeyMode is the per-key enrollment policy: it decides a device's initial status when the
@@ -187,14 +185,14 @@ func (s *ProvisioningKey) IsPairing() bool {
 	return s.Type == ProvisioningKeyTypePairing
 }
 
-// IsValid reports whether the provisioning key can still enroll a device: it must not be revoked, disabled,
-// expired, or overused.
-func (s *ProvisioningKey) IsValid() bool {
-	return !s.Revoked && !s.Disabled && !s.isExpired() && !s.isOverused()
+// IsValid reports whether the provisioning key can still enroll a device at now: it must not be revoked,
+// disabled, expired, or overused.
+func (s *ProvisioningKey) IsValid(now time.Time) bool {
+	return !s.Revoked && !s.Disabled && !s.isExpired(now) && !s.isOverused()
 }
 
-func (s *ProvisioningKey) isExpired() bool {
-	return s.ExpiresAt != nil && clock.Now().After(*s.ExpiresAt)
+func (s *ProvisioningKey) isExpired(now time.Time) bool {
+	return s.ExpiresAt != nil && now.After(*s.ExpiresAt)
 }
 
 func (s *ProvisioningKey) isOverused() bool {

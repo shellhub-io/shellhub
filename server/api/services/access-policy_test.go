@@ -1233,9 +1233,9 @@ func TestListAccessPoliciesReportsASubjectThatMatchesNobody(t *testing.T) {
 		Return(namespace, nil).Once()
 	storeMock.On("APIKeyList", ctx, mock.Anything).Return(apiKeys, int64(len(apiKeys)), nil).Maybe()
 	storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(stored, int64(len(stored)), nil).Once()
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
-	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 
 	policies, err := service.ListAccessPolicies(ctx, tenantID)
 	require.NoError(t, err)
@@ -1400,11 +1400,11 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyUUIDResolver, keyID).
 			Return(apiKey, apiKeyErr).Once()
 
-		if apiKeyErr == nil && apiKey.IsValid() {
+		if apiKeyErr == nil && apiKey.IsValid(now) {
 			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(policies, int64(len(policies)), nil).Once()
 		}
 
-		return NewService(storeMock, privateKey, publicKey, nil)
+		return NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 	}
 
 	grant := func(subject models.PolicySubject, reauth bool) []models.AccessPolicy {
@@ -1444,8 +1444,6 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 	})
 
 	t.Run("is refused once the key expires", func(t *testing.T) {
-		clock.Freeze(t, now)
-
 		expired := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: now.Add(-time.Hour).Unix()}
 		service := newService(t, nil, expired, nil)
 

@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -51,12 +50,12 @@ var ProvisioningKeyEventSortFields = query.NewFieldSet(
 	"created_at",
 )
 
-func provisioningKeyExpiry(days *int) *time.Time {
+func provisioningKeyExpiry(now time.Time, days *int) *time.Time {
 	if days == nil {
 		return nil
 	}
 
-	at := clock.Now().AddDate(0, 0, *days)
+	at := now.AddDate(0, 0, *days)
 
 	return &at
 }
@@ -250,7 +249,7 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 		Ephemeral:          req.Ephemeral,
 		EphemeralTimeout:   ephemeralTimeout,
 		Tags:               req.Tags,
-		ExpiresAt:          provisioningKeyExpiry(req.ExpiresIn),
+		ExpiresAt:          provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn),
 		CreatedBy:          req.UserID,
 		KeyEncrypted:       encryptedKey,
 		KeyHint:            provisioningKeyHint(key),
@@ -407,7 +406,7 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 			})
 		}
 
-		provisioningKey.ExpiresAt = provisioningKeyExpiry(req.ExpiresIn.Value)
+		provisioningKey.ExpiresAt = provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn.Value)
 	}
 
 	if err := s.store.ProvisioningKeyUpdate(ctx, provisioningKey); err != nil {
@@ -477,7 +476,7 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 		return NewErrAuthUnathorized(err)
 	}
 
-	redeemed, err := s.store.EnrollmentCallbackRedeem(ctx, jti, clock.Now())
+	redeemed, err := s.store.EnrollmentCallbackRedeem(ctx, jti, s.clock.Now())
 	if err != nil {
 		return err
 	}
@@ -509,7 +508,7 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 	}
 
 	key, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyIDResolver, claims.ProvisioningKeyID)
-	if err != nil || !key.IsValid() {
+	if err != nil || !key.IsValid(s.clock.Now()) {
 		return NewErrProvisioningKeyForbidden()
 	}
 

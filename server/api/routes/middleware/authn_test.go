@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
@@ -43,6 +44,7 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 		authorizer.UserClaims{ID: testUserID, TenantID: testTenant, Username: "john"},
 		"http://localhost",
 		privateKey,
+		clock.New().Now(),
 	)
 	require.NoError(t, err)
 
@@ -172,6 +174,7 @@ func TestAuthenticatorResolveForwardsTokenVersion(t *testing.T) {
 		authorizer.UserClaims{ID: testUserID, Username: "john", TokenVersion: 2},
 		"http://localhost",
 		privateKey,
+		clock.New().Now(),
 	)
 	require.NoError(t, err)
 
@@ -238,7 +241,7 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey, clock.New().Now())
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -342,7 +345,7 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenTheServiceNoLongerHonours(t *
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey, clock.New().Now())
 	require.NoError(t, err)
 
 	service := mocks.NewMockService(t)
@@ -367,7 +370,7 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenItCannotCheck(t *testing.T) {
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
 
-	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey)
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: deviceUID, TenantID: testTenant}, "http://localhost", privateKey, clock.New().Now())
 	require.NoError(t, err)
 
 	service := mocks.NewMockService(t)

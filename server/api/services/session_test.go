@@ -536,7 +536,7 @@ func TestKeepAliveSession(t *testing.T) {
 	ctx := context.TODO()
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 	sc := scope.MustBounded("00000000-0000-4000-0000-000000000000")
 
 	cases := []struct {
@@ -568,7 +568,7 @@ func TestKeepAliveSession(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
 			err := service.KeepAliveSession(ctx, sc, tc.uid)
 			assert.Equal(t, tc.expected, err)
 

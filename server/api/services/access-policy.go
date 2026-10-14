@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/netip"
 	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -92,7 +93,7 @@ func (s *service) Authorize(ctx context.Context, tenantID string, principal mode
 			return nil, err
 		}
 
-		if apiKey == nil || !apiKey.IsValid() {
+		if apiKey == nil || !apiKey.IsValid(s.clock.Now()) {
 			return &models.Decision{Allowed: false, Reason: models.ReasonKeyExpired}, nil
 		}
 	case models.PrincipalUser:
@@ -376,13 +377,13 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 	}
 
 	for i := range policies {
-		policies[i].SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policies[i].Subject)
+		policies[i].SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policies[i].Subject, s.clock.Now())
 	}
 
 	return policies, nil
 }
 
-func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject) bool {
+func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.APIKey, subject models.PolicySubject, now time.Time) bool {
 	for _, member := range namespace.Members {
 		if !member.Role.HasPermission(authorizer.DeviceConnect) {
 			continue
@@ -395,7 +396,7 @@ func subjectMatchesAnyPrincipal(namespace *models.Namespace, apiKeys []models.AP
 	}
 
 	for _, key := range apiKeys {
-		if !key.IsValid() {
+		if !key.IsValid(now) {
 			continue
 		}
 
@@ -429,7 +430,7 @@ func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolic
 		return nil, err
 	}
 
-	policy.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policy.Subject)
+	policy.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, policy.Subject, s.clock.Now())
 
 	return policy, nil
 }
@@ -481,7 +482,7 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	created.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, created.Subject)
+	created.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, created.Subject, s.clock.Now())
 
 	return created, nil
 }
@@ -537,7 +538,7 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	updated.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, updated.Subject)
+	updated.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, updated.Subject, s.clock.Now())
 
 	return updated, nil
 }

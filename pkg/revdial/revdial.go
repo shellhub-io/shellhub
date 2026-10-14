@@ -59,6 +59,7 @@ type Dialer struct {
 	donec        chan struct{}
 	closeOnce    sync.Once
 	logger       *log.Entry
+	clock        clock.Clock
 }
 
 var dialers = sync.Map{}
@@ -68,8 +69,8 @@ var dialers = sync.Map{}
 // Hijack. The connection is (typically) the hijacked HTTP client
 // connection. The connPath is the HTTP path and optional query (but
 // without scheme or host) on the dialer where the ConnHandler is
-// mounted.
-func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
+// mounted. The dialer reads clk to set its write deadlines.
+func NewDialer(logger *log.Entry, c net.Conn, connPath string, clk clock.Clock) *Dialer {
 	d := &Dialer{
 		path:         connPath,
 		uniqID:       newUniqID(),
@@ -79,6 +80,7 @@ func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
 		incomingConn: new(sync.Map),
 		pickupFailed: make(chan error),
 		logger:       logger,
+		clock:        clk,
 	}
 
 	join := "?"
@@ -281,7 +283,7 @@ func (d *Dialer) serve() error {
 }
 
 func (d *Dialer) sendMessage(m controlMsg) error {
-	if err := d.conn.SetWriteDeadline(clock.Now().Add(10 * time.Second)); err != nil {
+	if err := d.conn.SetWriteDeadline(d.clock.Now().Add(10 * time.Second)); err != nil {
 		d.logger.WithError(err).Debug("failed to set the write dead line to device")
 
 		return err

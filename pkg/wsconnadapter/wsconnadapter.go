@@ -42,6 +42,7 @@ type Adapter struct {
 
 	pingInterval time.Duration
 	pongTimeout  time.Duration
+	clock        clock.Clock
 }
 
 // Option configures an Adapter during New.
@@ -52,6 +53,14 @@ type Option func(*Adapter)
 func WithID(id string) Option {
 	return func(a *Adapter) {
 		a.UUID = id
+	}
+}
+
+// WithClock makes the adapter read the time from c, which stamps CreatedAt and measures the
+// connection's lifetime. Without it the adapter reads the wall clock.
+func WithClock(c clock.Clock) Option {
+	return func(a *Adapter) {
+		a.clock = c
 	}
 }
 
@@ -78,14 +87,16 @@ func New(conn *websocket.Conn, options ...Option) *Adapter {
 			Hooks:     log.StandardLogger().Hooks,
 			Level:     log.StandardLogger().Level,
 		}),
-		CreatedAt:    clock.Now(),
 		pingInterval: defaultPingInterval,
 		pongTimeout:  defaultPongTimeout,
+		clock:        clock.New(),
 	}
 
 	for _, option := range options {
 		option(adapter)
 	}
+
+	adapter.CreatedAt = adapter.clock.Now()
 
 	return adapter
 }
@@ -132,7 +143,7 @@ func (a *Adapter) Ping() chan bool {
 					if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil { //nolint:forbidigo // a deadline or an elapsed-time measurement needs the wall clock
 						a.Logger.
 							WithError(err).
-							WithField("lifetime", clock.Now().Sub(a.CreatedAt).String()).
+							WithField("lifetime", a.clock.Now().Sub(a.CreatedAt).String()).
 							Warn("reverse connection ping failed, tearing down connection")
 
 						_ = a.Close()

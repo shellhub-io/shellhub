@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,14 +33,14 @@ func TestEncodedClaimsCarryTheIssuer(t *testing.T) {
 	}
 
 	t.Run("user claims", func(t *testing.T) {
-		token, err := jwttoken.EncodeUserClaims(authorizer.UserClaims{ID: "000000000000000000000000"}, issuer, key)
+		token, err := jwttoken.EncodeUserClaims(authorizer.UserClaims{ID: "000000000000000000000000"}, issuer, key, clock.New().Now())
 		require.NoError(t, err)
 
 		assert.Equal(t, issuer, issuerOf(t, token))
 	})
 
 	t.Run("device claims", func(t *testing.T) {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "uid"}, issuer, key)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "uid"}, issuer, key, clock.New().Now())
 		require.NoError(t, err)
 
 		assert.Equal(t, issuer, issuerOf(t, token))
@@ -47,7 +48,7 @@ func TestEncodedClaimsCarryTheIssuer(t *testing.T) {
 
 	t.Run("enrollment decision claims", func(t *testing.T) {
 		claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", ProvisioningKeyID: "key"}
-		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, issuer, key)
+		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, issuer, key, clock.New().Now())
 		require.NoError(t, err)
 
 		assert.Equal(t, issuer, issuerOf(t, token))

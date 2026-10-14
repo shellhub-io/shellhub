@@ -34,7 +34,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 	cacheMock := mockcache.NewMockCache(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
@@ -47,7 +47,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 	}
 
 	toToken := func(uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey, now)
 		require.NoError(t, err)
 
 		return token
@@ -134,7 +134,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -218,7 +218,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 	cacheMock := mockcache.NewMockCache(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 	uuid.Fix(t, "00000000-0000-0000-0000-000000000000")
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
@@ -231,7 +231,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 	}
 
 	toToken := func(uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey)
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenant}, testIssuer, privateKey, now)
 		require.NoError(t, err)
 
 		return token
@@ -315,7 +315,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {

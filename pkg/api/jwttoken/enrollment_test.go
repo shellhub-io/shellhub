@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +20,7 @@ func TestEnrollmentDecisionClaims(t *testing.T) {
 	claims := jwttoken.EnrollmentDecisionClaims{DeviceUID: "uid", TenantID: "tenant", ProvisioningKeyID: "digest"}
 
 	t.Run("round-trips a valid token", func(t *testing.T) {
-		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, "http://localhost", key)
+		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, "http://localhost", key, clock.New().Now())
 		require.NoError(t, err)
 
 		got, jti, err := jwttoken.DecodeEnrollmentDecisionClaims(&key.PublicKey, token)
@@ -29,7 +30,7 @@ func TestEnrollmentDecisionClaims(t *testing.T) {
 	})
 
 	t.Run("rejects an expired token", func(t *testing.T) {
-		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, -time.Hour, "http://localhost", key)
+		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, -time.Hour, "http://localhost", key, clock.New().Now())
 		require.NoError(t, err)
 
 		_, _, err = jwttoken.DecodeEnrollmentDecisionClaims(&key.PublicKey, token)
@@ -37,7 +38,7 @@ func TestEnrollmentDecisionClaims(t *testing.T) {
 	})
 
 	t.Run("rejects a token of another kind", func(t *testing.T) {
-		deviceToken, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "uid", TenantID: "tenant"}, "http://localhost", key)
+		deviceToken, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "uid", TenantID: "tenant"}, "http://localhost", key, clock.New().Now())
 		require.NoError(t, err)
 
 		_, _, err = jwttoken.DecodeEnrollmentDecisionClaims(&key.PublicKey, deviceToken)
@@ -48,7 +49,7 @@ func TestEnrollmentDecisionClaims(t *testing.T) {
 		other, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, "http://localhost", key)
+		token, err := jwttoken.EncodeEnrollmentDecisionClaims(claims, time.Hour, "http://localhost", key, clock.New().Now())
 		require.NoError(t, err)
 
 		_, _, err = jwttoken.DecodeEnrollmentDecisionClaims(&other.PublicKey, token)
