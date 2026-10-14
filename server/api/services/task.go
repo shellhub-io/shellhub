@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -58,7 +57,7 @@ func (s *service) EphemeralCleanup() worker.CronHandler {
 // that actually needs a browser step.
 func (s *service) SSHApprovalCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		deleted, err := s.store.SSHApprovalCleanup(ctx, clock.Now())
+		deleted, err := s.store.SSHApprovalCleanup(ctx, s.clock.Now())
 		if err != nil {
 			return err
 		}
@@ -86,7 +85,7 @@ func (s *service) ActiveSessionCleanup(timeout time.Duration) worker.CronHandler
 	}
 
 	return func(ctx context.Context) error {
-		reaped, err := s.store.ActiveSessionCleanup(ctx, clock.Now().Add(-timeout))
+		reaped, err := s.store.ActiveSessionCleanup(ctx, s.clock.Now().Add(-timeout))
 		if err != nil {
 			return err
 		}
@@ -116,7 +115,7 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 		return nil
 	}
 
-	cutoff := clock.Now().Add(-retention)
+	cutoff := s.clock.Now().Add(-retention)
 
 	total := int64(0)
 	batches := 0
@@ -181,7 +180,7 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 // row per resolved deferred webhook, so this keeps its growth bounded.
 func (s *service) EnrollmentCallbackCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		cutoff := clock.Now().Add(-time.Duration(models.ProvisioningKeyWebhookMaxCallbackTTL) * time.Second)
+		cutoff := s.clock.Now().Add(-time.Duration(models.ProvisioningKeyWebhookMaxCallbackTTL) * time.Second)
 
 		deleted, err := s.store.EnrollmentCallbackCleanup(ctx, cutoff)
 		if err != nil {
@@ -204,7 +203,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Data: []query.Filter{
 				{
 					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "removed_at", Operator: "lt", Value: clock.Now().AddDate(0, 0, -30)},
+					Params: &query.FilterProperty{Name: "removed_at", Operator: "lt", Value: s.clock.Now().AddDate(0, 0, -30)},
 				},
 			},
 		}

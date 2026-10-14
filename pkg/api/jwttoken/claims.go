@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
@@ -63,10 +62,9 @@ func claimKindFromString(str string) claimKind {
 // EncodeUserClaims encodes the provided user claims into a signed JWT token. It returns
 // the encoded token and an error, if any.
 //
-// The token is valid for 72 hours; tenantID is optional. issuer names the instance signing
-// the token and is written to the iss claim verbatim.
-func EncodeUserClaims(claims authorizer.UserClaims, issuer string, privateKey *rsa.PrivateKey) (string, error) {
-	now := clock.Now()
+// The token is issued at now and valid for 72 hours from it; tenantID is optional. issuer names
+// the instance signing the token and is written to the iss claim verbatim.
+func EncodeUserClaims(claims authorizer.UserClaims, issuer string, privateKey *rsa.PrivateKey, now time.Time) (string, error) {
 	jwtClaims := userClaims{
 		Kind:       kindUserClaims,
 		UserClaims: claims,
@@ -90,9 +88,9 @@ func EncodeUserClaims(claims authorizer.UserClaims, issuer string, privateKey *r
 // EncodeDeviceClaims encodes the provided device claims into a signed JWT token. It returns
 // the encoded token and an error, if any.
 //
-// issuer names the instance signing the token and is written to the iss claim verbatim.
-func EncodeDeviceClaims(claims authorizer.DeviceClaims, issuer string, privateKey *rsa.PrivateKey) (string, error) {
-	now := clock.Now()
+// The token is issued at now. issuer names the instance signing the token and is written to the
+// iss claim verbatim.
+func EncodeDeviceClaims(claims authorizer.DeviceClaims, issuer string, privateKey *rsa.PrivateKey, now time.Time) (string, error) {
 	jwtClaims := deviceClaims{
 		Kind:         kindDeviceClaims,
 		DeviceClaims: claims,
@@ -112,11 +110,11 @@ func EncodeDeviceClaims(claims authorizer.DeviceClaims, issuer string, privateKe
 	return token, nil
 }
 
-// EncodeEnrollmentDecisionClaims signs a deferred enrollment-decision callback token, valid for ttl.
+// EncodeEnrollmentDecisionClaims signs a deferred enrollment-decision callback token, issued at now
+// and valid for ttl from it.
 //
 // issuer names the instance signing the token and is written to the iss claim verbatim.
-func EncodeEnrollmentDecisionClaims(claims EnrollmentDecisionClaims, ttl time.Duration, issuer string, privateKey *rsa.PrivateKey) (string, error) {
-	now := clock.Now()
+func EncodeEnrollmentDecisionClaims(claims EnrollmentDecisionClaims, ttl time.Duration, issuer string, privateKey *rsa.PrivateKey, now time.Time) (string, error) {
 	jwtClaims := enrollmentDecisionClaims{
 		Kind:                     kindEnrollmentDecisionClaims,
 		EnrollmentDecisionClaims: claims,

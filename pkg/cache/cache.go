@@ -46,7 +46,7 @@ type Cache interface {
 
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp
-	// in seconds representing the end of the lockout while clock.Now() is before it, or 0
+	// in seconds representing the end of the lockout while the cache's clock is before it, or 0
 	// once that second is reached or no lockout was found; the attempt number and an error
 	// if any.
 	HasAccountLockout(ctx context.Context, source, userID string) (lockout int64, attempt int, err error)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -31,6 +32,16 @@ type Config struct {
 	// RequireAcceptedTunnel refuses the reverse tunnel for a device that is not accepted (pending or
 	// rejected). Off by default; opt-in per instance.
 	RequireAcceptedTunnel bool
+	// Clock is what the tunnels the server accepts read the time from. Nil means the wall clock.
+	Clock clock.Clock
+}
+
+func (c *Config) clock() clock.Clock {
+	if c == nil || c.Clock == nil {
+		return clock.New()
+	}
+
+	return c.Clock
 }
 
 // ErrDeviceTunnelDial is returned when the device holds a tunnel but the connection over it

@@ -16,14 +16,15 @@ type redisCache struct {
 	cache  *rediscache.Cache
 	client *redis.Client
 	cfg    Config
+	clock  clock.Clock
 }
 
 var _ Cache = &redisCache{}
 
-// NewRedisCache connects to Redis and returns a cache backed by it, configured by cfg. It fails
-// rather than falling back: a misconfigured URI should surface at startup, not as silent cache
-// misses forever.
-func NewRedisCache(uri string, pool int, cfg Config) (Cache, error) {
+// NewRedisCache connects to Redis and returns a cache backed by it, configured by cfg and reading c
+// to time account lockouts. It fails rather than falling back: a misconfigured URI should surface
+// at startup, not as silent cache misses forever.
+func NewRedisCache(uri string, pool int, cfg Config, c clock.Clock) (Cache, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
 		return nil, err
@@ -38,6 +39,7 @@ func NewRedisCache(uri string, pool int, cfg Config) (Cache, error) {
 	return &redisCache{
 		cfg:    cfg,
 		client: client,
+		clock:  c,
 		cache: rediscache.New(&rediscache.Options{
 			Redis: client,
 		}),
@@ -111,7 +113,7 @@ func (c *redisCache) HasAccountLockout(ctx context.Context, source, id string) (
 	lockout, _ := strconv.ParseInt(lockoutDeadline, 10, 0)
 	attempt, _ := strconv.Atoi(attemptSTR)
 
-	if clock.Now().Unix() >= lockout {
+	if c.clock.Now().Unix() >= lockout {
 		return 0, attempt, nil
 	}
 
@@ -131,7 +133,7 @@ func (c *redisCache) StoreLoginAttempt(ctx context.Context, source, id string) (
 	attempt, _ := strconv.Atoi(attemptSTR)
 	attempt++
 
-	now := clock.Now()
+	now := c.clock.Now()
 	tmp := math.Min(math.Pow(4, float64(attempt-3)), float64(c.cfg.MaximumAccountLockout))
 
 	attemptTTL := time.Duration(math.Max(math.Min(tmp*2.5, float64(c.cfg.MaximumAccountLockout)), 2)) * time.Minute

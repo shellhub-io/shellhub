@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -82,7 +81,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			{
 				ID:      user.ID,
 				Role:    authorizer.RoleOwner,
-				AddedAt: clock.Now(),
+				AddedAt: s.clock.Now(),
 			},
 		},
 		Settings: &models.NamespaceSettings{

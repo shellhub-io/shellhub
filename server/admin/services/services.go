@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
@@ -65,6 +66,7 @@ type Services interface {
 type service struct {
 	store   store.Store
 	edition envs.Edition
+	clock   clock.Clock
 }
 
 // Option configures the service at construction.
@@ -78,10 +80,17 @@ func WithEdition(edition envs.Edition) Option {
 	}
 }
 
+// WithClock makes the service read the time from c. Without it the service reads the wall clock.
+func WithClock(c clock.Clock) Option {
+	return func(s *service) {
+		s.clock = c
+	}
+}
+
 // NewService builds the admin services over store. Without WithEdition the services run as
-// envs.Community.
+// envs.Community, and without WithClock they read the wall clock.
 func NewService(store store.Store, options ...Option) Services {
-	s := &service{store: store, edition: envs.Community}
+	s := &service{store: store, edition: envs.Community, clock: clock.New()}
 	for _, option := range options {
 		option(s)
 	}

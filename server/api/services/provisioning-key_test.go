@@ -28,7 +28,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
@@ -217,7 +217,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -273,7 +273,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 	namespace := &models.Namespace{Name: "namespace", TenantID: tenant}
@@ -540,7 +540,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

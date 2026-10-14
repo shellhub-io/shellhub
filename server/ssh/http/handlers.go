@@ -227,6 +227,7 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 			conn,
 			wsconnadapter.WithID(requestID),
 			wsconnadapter.WithDevice(tenant, uid),
+			wsconnadapter.WithClock(h.Config.clock()),
 		),
 		HandleRevdialPath,
 	)
@@ -291,6 +292,7 @@ func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 			conn,
 			wsconnadapter.WithID(data.RequestID),
 			wsconnadapter.WithDevice(data.Tenant, data.UID),
+			wsconnadapter.WithClock(h.Config.clock()),
 		),
 	); err != nil {
 		logger.WithError(err).Error("failed to bind the connection")

@@ -489,7 +489,7 @@ func TestCreateNamespace(t *testing.T) {
 	storeMock.On("ProvisioningKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	ctx := context.TODO()
 
@@ -1053,7 +1053,7 @@ func TestCreateNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition), WithClock(clk))
 			returnedNamespace, err := service.CreateNamespace(ctx, tc.req)
 
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})

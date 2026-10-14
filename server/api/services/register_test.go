@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -183,11 +184,11 @@ func TestService_RegisterUser(t *testing.T) {
 			override(t, &openSignupEnabled, tc.openSignup)
 			override(t, &nonAdminProvisioningEnabled, tc.nonAdminProvisioning)
 
-			freezeClockAndUUID(t, now)
+			fixUUID(t)
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 			res, err := s.RegisterUser(ctx, tc.req, "shellhub.test", "")
 			assert.Equal(t, tc.expected.err, err)

@@ -35,7 +35,7 @@ func recordDeviceRemovals(t *testing.T) *[]removedDevice {
 
 func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 	at := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, at)
+	clk := clock.NewFixed(at)
 
 	ctx := context.Background()
 	sc := scope.MustBounded("tenant")
@@ -80,7 +80,7 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 			cacheMock := cachemock.NewMockCache(t)
 			cacheMock.On("Delete", ctx, "auth_device/uid").Return(nil).Once()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock, WithClock(clk))
 			require.NoError(t, service.DeleteDevice(ctx, "uid", "tenant"))
 
 			assert.Equal(t, []removedDevice{{tenantID: "tenant", uid: "uid"}}, *removals)

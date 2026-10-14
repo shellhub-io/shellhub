@@ -20,7 +20,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -191,7 +190,7 @@ func (s *service) presentedProvisioningKey(ctx context.Context, sc scope.Scope, 
 		return nil, err
 	}
 
-	if key.IsSystem() || !key.IsValid() {
+	if key.IsSystem() || !key.IsValid(s.clock.Now()) {
 		return nil, errProvisioningKeyUnusable
 	}
 
@@ -236,7 +235,7 @@ func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, 
 }
 
 func (s *service) decideEnrollment(ctx context.Context, device *models.Device, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, record bool) {
-	now := clock.Now()
+	now := s.clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
 	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, device, hostname, "", false, record)
@@ -245,7 +244,7 @@ func (s *service) decideEnrollment(ctx context.Context, device *models.Device, k
 	}
 
 	device.Status = status
-	device.StatusUpdatedAt = clock.Now()
+	device.StatusUpdatedAt = s.clock.Now()
 }
 
 func (s *service) reloadName(ctx context.Context, device *models.Device) {
@@ -264,12 +263,12 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 		return
 	}
 
-	if device.LastEnrollmentAttemptAt != nil && clock.Now().Sub(*device.LastEnrollmentAttemptAt) < models.EnrollmentReconcileInterval {
+	if device.LastEnrollmentAttemptAt != nil && s.clock.Now().Sub(*device.LastEnrollmentAttemptAt) < models.EnrollmentReconcileInterval {
 		return
 	}
 
 	key, err := s.store.ProvisioningKeyResolve(ctx, scope.MustBounded(device.TenantID), store.ProvisioningKeyIDResolver, device.ProvisioningKeyID)
-	if err != nil || key == nil || !key.IsValid() || !key.ReconcilableOnAuth() {
+	if err != nil || key == nil || !key.IsValid(s.clock.Now()) || !key.ReconcilableOnAuth() {
 		return
 	}
 
@@ -318,7 +317,7 @@ func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req request
 		DeviceUID:         uid,
 		TenantID:          key.TenantID,
 		ProvisioningKeyID: key.ID,
-	}, ttl, s.issuer, s.privKey)
+	}, ttl, s.issuer, s.privKey, s.clock.Now())
 	if err != nil {
 		log.WithError(err).Warn("failed to mint enrollment callback token")
 
@@ -346,7 +345,7 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 		Hostname:            hostname,
 		Info:                req.Info,
 		SourceIP:            req.RealIP,
-		Timestamp:           clock.Now(),
+		Timestamp:           s.clock.Now(),
 		CallbackURL:         callbackURL,
 	}
 

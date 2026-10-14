@@ -25,7 +25,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -370,7 +370,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), WithClock(clk))
 
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -432,7 +432,7 @@ func TestService_SessionCleanup(t *testing.T) {
 	cutoff := now.Add(-retention)
 
 	storeMock := storemock.NewMockStore(t)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	expired := func(n int) []store.ExpiredSession {
 		batch := make([]store.ExpiredSession, n)
@@ -669,7 +669,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			tt.Cleanup(func() { pruner.AssertExpectations(tt) })
 			tc.requiredMocks(ctx, pruner)
 
-			opts := []Option{}
+			opts := []Option{WithClock(clk)}
 			if tc.withPruner {
 				opts = append(opts, WithSessionRecordingPruner(pruner))
 			}
@@ -680,7 +680,7 @@ func TestService_SessionCleanup(t *testing.T) {
 	}
 
 	t.Run("the cron handler prunes nothing when retention is not positive", func(tt *testing.T) {
-		s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
+		s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), WithClock(clk))
 		require.NoError(tt, s.SessionCleanup(0)(context.Background()))
 	})
 }
@@ -700,7 +700,7 @@ func (m *mockSessionRecordingPruner) DeleteRecordings(ctx context.Context, uids 
 func TestService_ActiveSessionCleanup(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	cases := []struct {
 		description    string
@@ -746,7 +746,7 @@ func TestService_ActiveSessionCleanup(t *testing.T) {
 			storeMock.On("ActiveSessionCleanup", ctx, tc.expectedCutoff).
 				Return(tc.reaped, tc.storeErr).Once()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache())
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache(), WithClock(clk))
 
 			err := service.ActiveSessionCleanup(tc.timeout)(ctx)
 			assert.Equal(t, tc.expected, err)

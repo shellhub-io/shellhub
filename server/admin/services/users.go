@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -37,7 +36,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		UserData:      userData,
 		Password:      password,
 		Status:        models.UserStatusConfirmed,
-		CreatedAt:     clock.Now(),
+		CreatedAt:     s.clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},

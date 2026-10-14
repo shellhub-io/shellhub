@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -127,7 +126,7 @@ func (s *service) DeactivateSession(ctx context.Context, sc scope.Scope, uid mod
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
-	err := s.store.SessionKeepAlive(ctx, sc, uid, clock.Now())
+	err := s.store.SessionKeepAlive(ctx, sc, uid, s.clock.Now())
 	switch {
 	case err == nil:
 		return nil

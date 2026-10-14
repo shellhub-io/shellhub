@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/yamux"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
@@ -26,6 +27,8 @@ type Manager struct {
 	Connections             *SyncSliceMap
 	DialerDoneCallback      func(string)
 	DialerKeepAliveCallback func(string)
+
+	clock clock.Clock
 
 	displaced atomic.Uint64
 	evicted   atomic.Uint64
@@ -59,9 +62,11 @@ func (m *Manager) Stats() Stats {
 	}
 }
 
-// NewManager returns an empty [Manager] whose callbacks do nothing until a caller sets them.
-func NewManager() *Manager {
+// NewManager returns an empty [Manager] whose callbacks do nothing until a caller sets them. The
+// tunnels it holds read clk for their write deadlines.
+func NewManager(clk clock.Clock) *Manager {
 	return &Manager{
+		clock:                   clk,
 		Connections:             &SyncSliceMap{},
 		DialerDoneCallback:      func(string) {},
 		DialerKeepAliveCallback: func(string) {},
@@ -72,7 +77,7 @@ func NewManager() *Manager {
 // The displacement is counted, because a device that reconnects in a loop shows up as a
 // rising displaced count rather than as an error.
 func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) {
-	dialer := revdial.NewDialer(conn.Logger, conn, connPath)
+	dialer := revdial.NewDialer(conn.Logger, conn, connPath, m.clock)
 
 	m.evict(key, m.Connections.Store(key, dialer))
 	m.DialerKeepAliveCallback(key)

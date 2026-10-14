@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/ssh/web/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -233,7 +232,7 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 
 	defer client.Close() //nolint:errcheck
 
-	require.NoError(t, client.SetDeadline(clock.Now().Add(30*time.Second)))
+	require.NoError(t, client.SetDeadline(time.Now().Add(30*time.Second))) //nolint:forbidigo // a network deadline
 
 	binary := 0
 	control := 0

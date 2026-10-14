@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +41,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	select {
 	case err := <-done:
 		require.Error(t, err, "a silent agent must not authenticate")
-		assert.WithinDuration(t, start.Add(2*time.Second), clock.Now(), 3*time.Second,
+		assert.WithinDuration(t, start.Add(2*time.Second), time.Now(), 3*time.Second, //nolint:forbidigo // an elapsed-time measurement
 			"the handshake should give up at the configured timeout")
 	case <-time.After(30 * time.Second):
 		t.Fatal("the handshake against a silent agent never gave up")

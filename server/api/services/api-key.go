@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -67,9 +66,9 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	var expiresIn int64
 	switch req.ExpiresAt {
 	case 30, 60, 90:
-		expiresIn = clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
+		expiresIn = s.clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
 	case 365:
-		expiresIn = clock.Now().AddDate(1, 0, 0).Unix()
+		expiresIn = s.clock.Now().AddDate(1, 0, 0).Unix()
 	case -1:
 		expiresIn = -1
 	default:

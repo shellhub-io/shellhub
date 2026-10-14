@@ -4,13 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTagFromModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name     string
@@ -62,7 +61,7 @@ func TestTagFromModel(t *testing.T) {
 }
 
 func TestTagToModel(t *testing.T) {
-	now := clock.Now()
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name     string

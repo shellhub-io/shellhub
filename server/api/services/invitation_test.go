@@ -22,9 +22,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func freezeClockAndUUID(t *testing.T, now time.Time) {
+func fixUUID(t *testing.T) {
 	t.Helper()
-	clock.Freeze(t, now)
 	uuid.Fix(t, "00000000-0000-4000-0000-000000000000")
 }
 
@@ -217,11 +216,11 @@ func TestService_AcceptInvite(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			freezeClockAndUUID(t, now)
+			fixUUID(t)
 			tc.requiredMocks()
 
 			err := s.AcceptInvite(ctx, req)
@@ -385,10 +384,10 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			override(t, &directMembershipEnabled, tc.directMembership)
 
-			freezeClockAndUUID(t, now)
+			fixUUID(t)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 			link, err := s.GenerateInvitationLink(ctx, req)
 			assert.Equal(t, tc.expected.err, err)
@@ -683,10 +682,10 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			freezeClockAndUUID(t, now)
+			fixUUID(t)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 			err := s.CancelMembershipInvitation(ctx, req)
 			assert.Equal(t, tc.expected, err)

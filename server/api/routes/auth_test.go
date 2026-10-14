@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -634,6 +635,7 @@ func TestRenewalCarriesTheBearerTokenVersion(t *testing.T) {
 		authorizer.UserClaims{ID: userID, TenantID: tenant, Username: "john", TokenVersion: 2},
 		"http://localhost",
 		privateKey,
+		clock.New().Now(),
 	)
 	require.NoError(t, err)
 

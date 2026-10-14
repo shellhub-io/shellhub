@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/yamux"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,7 @@ import (
 func newDialerWith(t *testing.T, key string, tunnel any) *Dialer {
 	t.Helper()
 
-	d := &Dialer{Manager: NewManager()}
+	d := &Dialer{Manager: NewManager(clock.New())}
 
 	if tunnel != nil {
 		d.Manager.Connections.Store(key, tunnel)

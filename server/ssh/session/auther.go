@@ -10,7 +10,6 @@ import (
 	"github.com/Masterminds/semver/v3"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
@@ -285,7 +284,7 @@ func (a *identityAuth) Evaluate(session *Session) error {
 		return err
 	}
 
-	if !dec.RequireReauth || !needsReauth(session.LastReauthAt, dec.ReauthPeriod) {
+	if !dec.RequireReauth || !needsReauth(session.clock.Now(), session.LastReauthAt, dec.ReauthPeriod) {
 		return nil
 	}
 
@@ -300,7 +299,7 @@ func (*identityAuth) Approved(*Session, string) error {
 	return nil
 }
 
-func needsReauth(lastReauthAt *time.Time, period *int) bool {
+func needsReauth(now time.Time, lastReauthAt *time.Time, period *int) bool {
 	if period == nil || *period == 0 {
 		return true
 	}
@@ -309,7 +308,7 @@ func needsReauth(lastReauthAt *time.Time, period *int) bool {
 		return true
 	}
 
-	return clock.Now().Sub(*lastReauthAt) >= time.Duration(*period)*time.Second
+	return now.Sub(*lastReauthAt) >= time.Duration(*period)*time.Second
 }
 
 type preAuthConnCtxKey struct{}
@@ -344,7 +343,7 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 	}
 
 	if found {
-		if !identity.Active(clock.Now()) {
+		if !identity.Active(s.clock.Now()) {
 			return nil, ErrAccessDenied
 		}
 

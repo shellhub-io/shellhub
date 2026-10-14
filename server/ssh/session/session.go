@@ -201,6 +201,7 @@ type Session struct {
 	dialer   dialer.TunnelDialer
 	sessions *Registry
 	edition  envs.Edition
+	clock    clock.Clock
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -335,8 +336,9 @@ func (s *seats) SetType(seat int, kind string) {
 // NewSession creates a new Session but differs from [New] as it only creates
 // the session without registering, connecting to the agent, etc.
 //
-// It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *Registry, edition envs.Edition) (*Session, error) {
+// It's designed to be used within New. The session reads clk to stamp its events and to check the
+// identity it authenticates with.
+func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *Registry, edition envs.Edition, clk clock.Clock) (*Session, error) {
 	sshid := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
@@ -410,6 +412,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 		dialer:   dialer,
 		sessions: sessions,
 		edition:  edition,
+		clock:    clk,
 		Events:   NewEvents(ctx.SessionID(), scope.MustBounded(namespace.TenantID), service),
 		Data: Data{
 			IPAddress: hos.Host,
@@ -646,7 +649,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	}
 
 	if config.Timeout > 0 {
-		if err := s.agent.conn.SetDeadline(clock.Now().Add(config.Timeout)); err != nil {
+		if err := s.agent.conn.SetDeadline(time.Now().Add(config.Timeout)); err != nil { //nolint:forbidigo // a network deadline needs the wall clock
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
@@ -1175,7 +1178,7 @@ func (s *Session) Event(t string, data any, seat int) {
 	s.Events.Write(models.SessionEvent{
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
-		Timestamp: clock.Now(),
+		Timestamp: s.clock.Now(),
 		Data:      data,
 		Seat:      seat,
 	})

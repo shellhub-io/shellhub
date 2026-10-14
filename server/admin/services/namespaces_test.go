@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -26,8 +27,7 @@ func TestNamespaceCreate(t *testing.T) {
 	ctx := context.TODO()
 	errStoreDown := errors.New("connection refused")
 
-	now := clock.Now()
-	clock.Freeze(t, now)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	cases := []struct {
 		description   string
@@ -429,7 +429,7 @@ func TestNamespaceCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock), WithEdition(tc.edition))
+			s := NewService(store.Store(mock), WithEdition(tc.edition), WithClock(clock.NewFixed(now)))
 			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant, Type: tc.typeNamespace})
 			assert.Equal(t, tc.expected.namespace, ns)
 			require.ErrorIs(t, err, tc.expected.err)
@@ -450,8 +450,7 @@ func TestNamespaceAddMember(t *testing.T) {
 
 	mock := new(mocks.MockStore)
 	ctx := context.TODO()
-	now := clock.Now()
-	clock.Freeze(t, now)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	cases := []struct {
 		description   string
@@ -539,7 +538,7 @@ func TestNamespaceAddMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock))
+			s := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
 			ns, err := s.NamespaceAddMember(ctx, &inputs.MemberAdd{Username: tc.username, Namespace: tc.namespace, Role: tc.role})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
@@ -557,7 +556,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	mock := new(mocks.MockStore)
 
 	ctx := context.TODO()
-	now := clock.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	cases := []struct {
 		description   string
@@ -703,7 +702,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock))
+			s := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
 			ns, err := s.NamespaceRemoveMember(ctx, &inputs.MemberRemove{Username: tc.username, Namespace: tc.namespace})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
@@ -713,6 +712,8 @@ func TestNamespaceRemoveMember(t *testing.T) {
 }
 
 func TestNamespaceDelete(t *testing.T) {
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+
 	mock := new(mocks.MockStore)
 
 	ctx := context.TODO()
@@ -744,7 +745,7 @@ func TestNamespaceDelete(t *testing.T) {
 						SessionRecord: true,
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
-					CreatedAt:  clock.Now(),
+					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace).Return(errors.New("error")).Once()
@@ -764,7 +765,7 @@ func TestNamespaceDelete(t *testing.T) {
 						SessionRecord: true,
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
-					CreatedAt:  clock.Now(),
+					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace).Return(nil).Once()
@@ -777,7 +778,7 @@ func TestNamespaceDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock))
+			s := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
 			err := s.NamespaceDelete(ctx, &inputs.NamespaceDelete{Namespace: tc.namespace})
 			assert.Equal(t, tc.expected, err)
 		})

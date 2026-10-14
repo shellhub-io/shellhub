@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 // APIKey is used to authenticate a request. It is similar to [UserAuthClaims] but only for
@@ -38,13 +37,13 @@ type APIKey struct {
 	ExpiresIn int64 `json:"expires_in"`
 }
 
-// IsValid reports whether an API key is valid or not.
-func (a *APIKey) IsValid() bool {
+// IsValid reports whether the API key has not expired at now, compared to the second.
+func (a *APIKey) IsValid(now time.Time) bool {
 	if a.ExpiresIn <= 0 {
 		return true
 	}
 
-	now := time.Unix(clock.Now().Unix(), 0)
+	now = time.Unix(now.Unix(), 0)
 	expiresIn := time.Unix(a.ExpiresIn, 0)
 
 	return now.Before(expiresIn)

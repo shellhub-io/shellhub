@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
@@ -72,7 +72,7 @@ func (f *keyDigestFixture) apiKey(tenant, name string) *models.APIKey {
 	return &models.APIKey{
 		Digest: collidingDigest, Name: name, TenantID: tenant,
 		Role: authorizer.RoleOwner, CreatedBy: f.users[tenant],
-		CreatedAt: clock.Now(), UpdatedAt: clock.Now(), ExpiresIn: -1,
+		CreatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC), ExpiresIn: -1,
 	}
 }
 

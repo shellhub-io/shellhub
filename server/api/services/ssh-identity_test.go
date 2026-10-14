@@ -395,7 +395,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: keyID, PrincipalType: models.PrincipalAPIKey}, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		identity, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
 			TenantID: tenantID, KeyName: keyName, Name: "deploy", Data: authorized, SingleUse: true,
@@ -418,7 +418,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: keyID}, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
 			TenantID: tenantID, KeyName: keyName, Name: "rotated", Data: authorized,
@@ -436,7 +436,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, keyName).
 			Return(apiKey, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
 			TenantID: tenantID, KeyName: keyName, Name: "planted", Data: authorized,
@@ -448,8 +448,6 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 	})
 
 	t.Run("computes the expiry the request asked for", func(t *testing.T) {
-		clock.Freeze(t, now)
-
 		storeMock := new(storemock.MockStore)
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
@@ -463,7 +461,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1"}, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		days := 7
 		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
@@ -481,7 +479,7 @@ func TestCreateAPIKeySSHIdentity(t *testing.T) {
 		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "ghost").
 			Return(nil, store.ErrNoDocuments).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		_, err := service.CreateAPIKeySSHIdentity(ctx, &requests.APIKeySSHIdentityCreate{
 			TenantID: tenantID, KeyName: "ghost", Data: authorized,
@@ -579,7 +577,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
-		require.NoError(t, run(NewService(storeMock, privateKey, publicKey, nil)))
+		require.NoError(t, run(NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))))
 		storeMock.AssertExpectations(t)
 
 		return got
@@ -629,8 +627,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
-		clock.Freeze(t, now)
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		days := 30
 		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{
@@ -659,7 +656,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, "id1").
 			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil)
+		service := NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 
 		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{
 			TenantID: tenantID, UserID: userID, Name: "laptop", Data: authorized,

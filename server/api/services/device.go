@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -236,7 +235,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	}
 
 	if device.Status == models.DeviceStatusAccepted {
-		now := clock.Now()
+		now := s.clock.Now()
 
 		deviceCopy := *device
 		deviceCopy.Status = models.DeviceStatusRemoved
@@ -358,7 +357,7 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceOffline(ctx, string(uid), clock.Now()); err != nil {
+	if err := s.store.DeviceOffline(ctx, string(uid), s.clock.Now()); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}
@@ -387,7 +386,7 @@ func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.D
 			return err
 		}
 
-		if err := s.store.ProvisioningKeyEventStampDecision(ctx, sc, req.UID, status, clock.Now()); err != nil {
+		if err := s.store.ProvisioningKeyEventStampDecision(ctx, sc, req.UID, status, s.clock.Now()); err != nil {
 			log.WithError(err).WithFields(log.Fields{"device_uid": req.UID, "status": req.Status}).
 				Warn("failed to stamp the enrollment decision on the history event")
 		}
@@ -536,7 +535,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 		}
 
 		device.Status = newStatus
-		device.StatusUpdatedAt = clock.Now()
+		device.StatusUpdatedAt = s.clock.Now()
 		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			if newStatus == models.DeviceStatusAccepted && errors.Is(err, store.ErrDuplicate) {
 				return NewErrDeviceDuplicated(device.Name, err)

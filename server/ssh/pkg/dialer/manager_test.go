@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/hashicorp/yamux"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func TestManagerDialFailsWhenTheStreamCannotBeOpened(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, session.Close())
 
-	m := NewManager()
+	m := NewManager(clock.New())
 	m.Connections.Store("tenant:uid", session)
 
 	conn, version, err := m.Dial(context.Background(), "tenant:uid")
@@ -66,7 +67,7 @@ func TestManagerBindClosesTheConnectionItDisplaced(t *testing.T) {
 
 	offline := make(chan string, 1)
 
-	m := NewManager()
+	m := NewManager(clock.New())
 	m.DialerDoneCallback = func(key string) { offline <- key }
 
 	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
@@ -103,7 +104,7 @@ func TestManagerReportsTheDeviceOfflineWhenItsLastConnectionGoes(t *testing.T) {
 
 	offline := make(chan string, 1)
 
-	m := NewManager()
+	m := NewManager(clock.New())
 	m.DialerDoneCallback = func(key string) { offline <- key }
 
 	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
@@ -129,7 +130,7 @@ func TestManagerEvictClosesTheDevicesConnections(t *testing.T) {
 
 	offline := make(chan string, 1)
 
-	m := NewManager()
+	m := NewManager(clock.New())
 	m.DialerDoneCallback = func(key string) { offline <- key }
 
 	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
@@ -157,7 +158,7 @@ func TestManagerEvictClosesTheDevicesConnections(t *testing.T) {
 }
 
 func TestManagerEvictOfADeviceWithoutATunnelDoesNothing(t *testing.T) {
-	m := NewManager()
+	m := NewManager(clock.New())
 
 	m.Evict("tenant", "uid")
 

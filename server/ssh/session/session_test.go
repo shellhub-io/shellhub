@@ -9,6 +9,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -69,6 +70,7 @@ func newTestSession(service services.Service, tunnel dialer.TunnelDialer) *Sessi
 	}
 
 	return &Session{
+		clock:    clock.New(),
 		UID:      "test-uid",
 		service:  service,
 		dialer:   tunnel,

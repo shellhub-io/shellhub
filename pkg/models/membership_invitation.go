@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 // MembershipInvitationStatus is where an invitation sits. Expiry is not one of the values: an
@@ -50,10 +49,10 @@ type MembershipInvitation struct {
 	UserEmail string `json:"-"`
 }
 
-// IsExpired reports whether the invitation is past its deadline. An invitation with no ExpiresAt
-// never expires.
-func (m MembershipInvitation) IsExpired() bool {
-	return m.ExpiresAt != nil && m.ExpiresAt.Before(clock.Now())
+// IsExpired reports whether the invitation is past its deadline at now. An invitation with no
+// ExpiresAt never expires.
+func (m MembershipInvitation) IsExpired(now time.Time) bool {
+	return m.ExpiresAt != nil && m.ExpiresAt.Before(now)
 }
 
 // IsPending reports whether the invitation is unanswered, which is not the same as usable — an

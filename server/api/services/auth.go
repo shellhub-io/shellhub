@@ -23,7 +23,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -227,7 +226,7 @@ func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope,
 	}
 
 	if legacy, err := s.store.ProvisioningKeyResolveSystem(ctx, sc); err == nil {
-		if !legacy.IsValid() {
+		if !legacy.IsValid(s.clock.Now()) {
 			return nil, NewErrAuthInvalid(map[string]any{"provisioning_key": "required"}, nil)
 		}
 
@@ -301,7 +300,7 @@ const (
 
 func (s *service) CreateDeviceAuthChallenge(_ context.Context) (*models.DeviceAuthChallenge, error) {
 	challenge := make([]byte, deviceAuthChallengePayload, deviceAuthChallengePayload+sha256.Size)
-	binary.BigEndian.PutUint64(challenge, uint64(clock.Now().Unix())) //nolint:gosec // a Unix time after 1970 fits in a uint64
+	binary.BigEndian.PutUint64(challenge, uint64(s.clock.Now().Unix())) //nolint:gosec // a Unix time after 1970 fits in a uint64
 	if _, err := rand.Read(challenge[deviceAuthChallengeStampSize:]); err != nil {
 		return nil, err
 	}
@@ -333,7 +332,7 @@ func (s *service) deviceAuthChallengeIssued(challenge string) bool {
 	}
 
 	issuedAt := time.Unix(int64(binary.BigEndian.Uint64(payload)), 0) //nolint:gosec // the MAC proves this server wrote the stamp from a Unix time
-	now := clock.Now()
+	now := s.clock.Now()
 
 	return !issuedAt.Before(now.Add(-deviceAuthChallengeTTL)) && !issuedAt.After(now.Add(deviceAuthChallengeSkew))
 }
@@ -443,9 +442,9 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
 	uid := hex.EncodeToString(uidSHA[:])
 
-	keyVerifiedAt := clock.Now()
+	keyVerifiedAt := s.clock.Now()
 
-	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID, KeyVerified: enrollment.verification == keyVerified}, s.issuer, s.privKey)
+	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID, KeyVerified: enrollment.verification == keyVerified}, s.issuer, s.privKey, s.clock.Now())
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -493,13 +492,13 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		device = &models.Device{
-			CreatedAt:       clock.Now(),
+			CreatedAt:       s.clock.Now(),
 			UID:             uid,
 			TenantID:        req.TenantID,
-			LastSeen:        clock.Now(),
+			LastSeen:        s.clock.Now(),
 			DisconnectedAt:  nil,
 			Status:          models.DeviceStatusPending,
-			StatusUpdatedAt: clock.Now(),
+			StatusUpdatedAt: s.clock.Now(),
 			Name:            strings.ToLower(hostname),
 			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
 			PublicKey:       req.PublicKey,
@@ -548,7 +547,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 		revived := device.RemovedAt != nil
 
-		device.LastSeen = clock.Now()
+		device.LastSeen = s.clock.Now()
 		device.DisconnectedAt = nil
 
 		if ip := net.ParseIP(req.RealIP); ip != nil {
@@ -574,7 +573,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 			device.RemovedAt = nil
 			device.Status = models.DeviceStatusPending
-			device.StatusUpdatedAt = clock.Now()
+			device.StatusUpdatedAt = s.clock.Now()
 			device.EnrollWith(provisioningKey)
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
 				return nil, err
@@ -598,7 +597,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment.ownerID, true, true)
 			if status != models.DeviceStatusPending {
 				device.Status = status
-				device.StatusUpdatedAt = clock.Now()
+				device.StatusUpdatedAt = s.clock.Now()
 			}
 		} else if device.Status == models.DeviceStatusPending {
 			if !s.adoptPresentedKey(ctx, device, req, uid, hostname) {
@@ -646,7 +645,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			continue
 		}
 
-		session.LastSeen = clock.Now()
+		session.LastSeen = s.clock.Now()
 		if err := s.store.SessionUpdate(ctx, sc, session); err != nil {
 			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot set session's last seen")
 
@@ -783,12 +782,12 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		TokenVersion: user.TokenVersion,
 	}
 
-	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey, s.clock.Now())
 	if err != nil {
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
 
-	user.LastLogin = clock.Now()
+	user.LastLogin = s.clock.Now()
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
 			user.Password = neo
@@ -893,7 +892,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		TokenVersion: tokenVersion,
 	}
 
-	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey, s.clock.Now())
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -956,7 +955,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		}
 	}
 
-	if !apiKey.IsValid() {
+	if !apiKey.IsValid(s.clock.Now()) {
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)
 	}
 

@@ -110,7 +110,6 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 
 				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
-				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyCreate", ctx, &models.InstanceAPIKey{
 						ID:        instanceKeyDigest(models.InstanceAPIKeyPrefix + "cdfd3cb0-c44e-4e54-b931-6d57713ad159"),
@@ -141,7 +140,6 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 
 				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
 
-				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyCreate", ctx, &models.InstanceAPIKey{
 						ID:        instanceKeyDigest(models.InstanceAPIKeyPrefix + "cdfd3cb0-c44e-4e54-b931-6d57713ad159"),
@@ -164,7 +162,7 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -213,7 +211,6 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "fails when the key has expired",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{
@@ -233,7 +230,6 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "fails when the creator is no longer an instance administrator",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{
@@ -257,7 +253,6 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 			description: "succeeds when the key is valid and its creator is still an administrator",
 			key:         plain,
 			requiredMocks: func(ctx context.Context) {
-				clock.Freeze(t, now)
 				storeMock.
 					On("InstanceAPIKeyResolve", ctx, store.InstanceAPIKeyIDResolver, digest).
 					Return(&models.InstanceAPIKey{
@@ -284,7 +279,7 @@ func TestAuthInstanceAPIKey(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

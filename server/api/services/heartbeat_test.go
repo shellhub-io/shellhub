@@ -3,11 +3,11 @@ package services
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -15,26 +15,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func fixedClock(t *testing.T, instants ...time.Time) {
-	t.Helper()
+type sequenceClock struct {
+	mu       sync.Mutex
+	instants []time.Time
+}
 
-	clockMock := clockmock.NewMockClock(t)
-	clock.Set(t, clockMock)
+func (c *sequenceClock) Now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	i := 0
-	clockMock.On("Now").Return(func() time.Time {
-		if i < len(instants)-1 {
-			i++
+	head := c.instants[0]
+	if len(c.instants) > 1 {
+		c.instants = c.instants[1:]
+	}
 
-			return instants[i-1]
-		}
+	return head
+}
 
-		return instants[len(instants)-1]
-	})
+func sequence(instants ...time.Time) *sequenceClock {
+	return &sequenceClock{instants: instants}
 }
 
 func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
-	fixedClock(t, now)
+	clk := sequence(now)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -42,7 +45,7 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-b")
@@ -58,7 +61,7 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 	second := now.Add(time.Second)
 	third := now.Add(2 * time.Second)
 
-	fixedClock(t, first, second, third)
+	clk := sequence(first, second, third)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -66,7 +69,7 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-b")
@@ -80,7 +83,7 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *testing.T) {
 	later := now.Add(time.Second)
 
-	fixedClock(t, later, now)
+	clk := sequence(later, now)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -88,7 +91,7 @@ func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *tes
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-a")
@@ -99,7 +102,7 @@ func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *tes
 }
 
 func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
-	fixedClock(t, now)
+	clk := sequence(now)
 	removed := recordDeviceRemovals(t)
 
 	storeMock := storemock.NewMockStore(t)
@@ -108,7 +111,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 		Return([]string{"device-b"}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	h.Submit("tenant-a", "device-a")
 	h.Submit("tenant-b", "device-b")
@@ -120,7 +123,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 }
 
 func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
-	fixedClock(t, now)
+	clk := sequence(now)
 	removed := recordDeviceRemovals(t)
 
 	storeMock := storemock.NewMockStore(t)
@@ -129,7 +132,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 		Return(nil, errors.New("error")).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	h.Submit("tenant", "device-a")
 
@@ -143,7 +146,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 func TestDeviceHeartbeater_ignoresEmptyUID(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clock.New())
 
 	h.Submit("tenant", "")
 
@@ -151,7 +154,7 @@ func TestDeviceHeartbeater_ignoresEmptyUID(t *testing.T) {
 }
 
 func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
-	fixedClock(t, now)
+	clk := sequence(now)
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -159,7 +162,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 		Return([]string{}, nil).
 		Maybe()
 
-	h := NewDeviceHeartbeater(storeMock)
+	h := NewDeviceHeartbeater(storeMock, clk)
 
 	done := make(chan struct{})
 	go func() {

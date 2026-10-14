@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -159,6 +160,7 @@ type Server struct {
 	worker      worker.Server
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
+	clock       clock.Clock
 }
 
 const (
@@ -172,7 +174,9 @@ const (
 func (s *Server) Setup(ctx context.Context) error {
 	log.Info("Setting up server components")
 
-	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize, s.env.Cache)
+	s.clock = clock.New()
+
+	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize, s.env.Cache, s.clock)
 	if err != nil {
 		return err
 	}
@@ -183,7 +187,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
 
-	store, err := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate())
+	store, err := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate(), pgoptions.WithClock(s.clock))
 	if err != nil {
 		log.
 			WithError(err).
@@ -271,6 +275,8 @@ func (s *Server) Setup(ctx context.Context) error {
 		return errors.Join(errors.New("failed to load the token key pair"), err)
 	}
 
+	servicesOptions = append(servicesOptions, services.WithClock(s.clock))
+
 	service := services.NewService(store, privKey, pubKey, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
@@ -299,7 +305,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
 
-	s.heartbeater = services.NewDeviceHeartbeater(store)
+	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock)
 
 	if err := s.setupSSH(service); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
@@ -342,7 +348,7 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 func (s *Server) setupSSH(service services.Service) error {
 	env := s.sshEnv
 
-	d := dialer.NewDialer(service, s.heartbeater)
+	d := dialer.NewDialer(service, s.heartbeater, s.clock)
 	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
 		d.Manager.Evict(tenantID, uid)
 	})
@@ -355,6 +361,7 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	sshhttp.Register(s.router, s.authn, d, service, sessions, &sshhttp.Config{
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
+		Clock:                 s.clock,
 	})
 
 	handoff := webhandoff.NewStore()
@@ -378,6 +385,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		Domain:                       s.env.Domain,
 		AutoSSL:                      s.env.AutoSSL,
 		Edition:                      s.env.Edition,
+		Clock:                        s.clock,
 	})
 
 	return err

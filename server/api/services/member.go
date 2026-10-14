@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -140,7 +139,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 		}
 
 		if userExists && directMembershipAllowed() {
-			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: role}
+			member := &models.Member{ID: passiveUser.ID, AddedAt: s.clock.Now(), Role: role}
 
 			return s.admitMember(ctx, scope.MustBounded(namespace.TenantID), member, nil)
 		}
@@ -156,7 +155,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 			invitation = inv
 
 			return err
-		case existing.IsExpired():
+		case existing.IsExpired(s.clock.Now()):
 			if err := s.resendMembershipInvitation(ctx, existing, role); err != nil {
 				return err
 			}
@@ -189,7 +188,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 }
 
 func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invitedBy, userID string, role authorizer.Role) (*models.MembershipInvitation, error) {
-	now := clock.Now()
+	now := s.clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
 	sig := pairingcode.New(pairingcode.InviteCodeLength)
@@ -216,7 +215,7 @@ func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invi
 }
 
 func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, role authorizer.Role) error {
-	now := clock.Now()
+	now := s.clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
 	sig := pairingcode.New(pairingcode.InviteCodeLength)

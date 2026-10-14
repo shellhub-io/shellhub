@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -53,7 +52,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 			Username: strings.ToLower(req.Username),
 		},
 		Password:       password,
-		CreatedAt:      clock.Now(),
+		CreatedAt:      s.clock.Now(),
 		MaxNamespaces:  1,
 		EmailMarketing: req.EmailMarketing,
 		Status:         models.UserStatusNotConfirmed,
@@ -76,7 +75,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		return nil, NewErrUserCreate(err)
 	}
 
-	validUntil := clock.Now().Add(24 * time.Hour)
+	validUntil := s.clock.Now().Add(24 * time.Hour)
 
 	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
@@ -108,7 +107,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 			Username: strings.ToLower(req.Username),
 			Name:     req.Name,
 		},
-		CreatedAt: clock.Now(),
+		CreatedAt: s.clock.Now(),
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
@@ -142,7 +141,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		}
 
 		if membership != nil {
-			member := &models.Member{ID: user.ID, AddedAt: clock.Now(), Role: membership.Role}
+			member := &models.Member{ID: user.ID, AddedAt: s.clock.Now(), Role: membership.Role}
 			if err := s.admitMember(ctx, scope.MustBounded(membership.TenantID), member, membership); err != nil {
 				return err
 			}
@@ -178,7 +177,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return res, nil
 	case models.UserStatusNotConfirmed:
-		validUntil := clock.Now().Add(24 * time.Hour)
+		validUntil := s.clock.Now().Add(24 * time.Hour)
 		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}

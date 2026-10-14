@@ -84,7 +84,7 @@ func setupOwnershipE2E(t *testing.T) *ownershipE2E {
 	t.Helper()
 
 	e := setupEnrollmentE2E(t)
-	e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache())
+	e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
 
 	ns, err := e.st.NamespaceResolve(context.Background(), store.NamespaceTenantIDResolver, e.tenantID)
 	require.NoError(t, err)
@@ -370,7 +370,7 @@ func setupDepartureE2E(t *testing.T) *departureE2E {
 
 	e := setupOwnershipE2E(t)
 	cache := newMemoryCache()
-	e.svc = NewService(e.st, privateKey, publicKey, cache)
+	e.svc = NewService(e.st, privateKey, publicKey, cache, WithClock(e.clock))
 
 	return &departureE2E{ownershipE2E: e, cache: cache, removals: recordDeviceRemovals(t)}
 }
@@ -617,7 +617,7 @@ func TestADepartureDuringAuthenticationIsNotUndone(t *testing.T) {
 				_, err := e.st.NamespaceDepartMember(ctx, scope.MustBounded(e.tenantID), member, departure)
 				require.NoError(t, err)
 			}}
-			svc := NewService(racing, privateKey, publicKey, newMemoryCache())
+			svc := NewService(racing, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
 
 			_, err := svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:01", "pk-1"))
 			require.Error(t, err, "the stale read must not be written back")

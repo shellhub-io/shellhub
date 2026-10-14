@@ -194,12 +194,12 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
-			freezeClockAndUUID(t, now)
+			fixUUID(t)
 			tc.requiredMocks(ctx)
 			ns, err := s.AddNamespaceMember(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{ns, err})
@@ -1155,7 +1155,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 }
 
 func TestService_LeaveNamespace(t *testing.T) {
-	clock.Freeze(t, now)
+	clk := clock.NewFixed(now)
 
 	type Expected struct {
 		res *models.UserAuthResponse
@@ -1445,7 +1445,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cacheMock)
+	s := NewService(storeMock, privateKey, publicKey, cacheMock, WithClock(clk))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1471,7 +1471,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	freezeClockAndUUID(t, now)
+	fixUUID(t)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1488,7 +1488,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded(ns.TenantID), "placeholder").Return(nil, store.ErrNoDocuments).Once()
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).Return(nil).Once()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",
@@ -1510,7 +1510,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	freezeClockAndUUID(t, now)
+	fixUUID(t)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1541,7 +1541,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 		return nil
 	})
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost:  "localhost",
 		ForwardedProto: "https",
@@ -1574,7 +1574,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	freezeClockAndUUID(t, now)
+	fixUUID(t)
 
 	ns := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1598,7 +1598,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 		return nil
 	})
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",
