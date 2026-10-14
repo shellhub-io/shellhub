@@ -140,7 +140,7 @@ func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, o
 		return nil, 0, err
 	}
 
-	count, err := q.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, q)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}
@@ -177,7 +177,7 @@ func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Sc
 		return nil, 0, err
 	}
 
-	count, err := q.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, q)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}

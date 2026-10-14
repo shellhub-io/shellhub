@@ -95,6 +95,9 @@ linters:
   settings:
     forbidigo:
       forbid:
+        - pattern: \.ScanAndCount$
+          msg: bun runs the scan and the count in two goroutines that race on nested relation
+            joins. Use pg.ScanThenCount, which runs them one after the other.
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
         - pattern: ^time\.Now$
           msg: use clock.Now() so a test can control it. If this is an elapsed-time

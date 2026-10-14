@@ -58,7 +58,7 @@ func (pg *Pg) InstanceAPIKeyList(ctx context.Context, opts ...store.QueryOption)
 		return nil, 0, err
 	}
 
-	count, err := query.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, query)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}

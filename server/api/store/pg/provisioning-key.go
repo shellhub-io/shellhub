@@ -99,7 +99,7 @@ func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...s
 		return nil, 0, err
 	}
 
-	count, err := query.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, query)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}
@@ -266,7 +266,7 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 		return nil, 0, err
 	}
 
-	count, err := query.ScanAndCount(ctx)
+	count, err := ScanThenCount(ctx, query)
 	if err != nil {
 		return nil, 0, fromSQLError(err)
 	}
