@@ -117,7 +117,13 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Restore the Go caches
+        if: ${{ !cancelled() && steps.scans.outputs.run == 'true' }}
+        uses: ./.github/actions/go-cache
+        with:
+          name: security
 
       - name: Run govulncheck on every module
         if: ${{ !cancelled() && steps.scans.outputs.run == 'true' }}
@@ -314,3 +320,10 @@ jobs:
         with:
           sarif_file: trivy-agent.sarif
           category: trivy-agent
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() && steps.scans.outputs.run == 'true' }}
+        uses: ./.github/actions/go-cache
+        with:
+          name: security
+          save: true

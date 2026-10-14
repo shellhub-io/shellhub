@@ -1,0 +1,74 @@
+name: Go cache
+description: >-
+  Restore the Go module, build and golangci-lint caches the newest run of a job on master saved,
+  or, with save set, save them at the end of a job running on master. Each job names its own
+  cache, so no two jobs write the same key, and master saves one cache a day per job, dropping
+  the build entries the job did not use first: pull requests only restore, which keeps them from
+  filling the repository's cache quota with copies of their own.
+
+inputs:
+  name:
+    description: Name of the cache, unique to the job (and matrix leg) that uses it.
+    required: true
+  sum-files:
+    description: >-
+      Glob of the go.sum files a change to which starts a fresh key instead of restoring a cache
+      built on other dependencies.
+    required: false
+    default: '**/go.sum'
+  save:
+    description: true to save the caches instead of restoring them.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Compute the cache key
+      id: key
+      shell: bash
+      env:
+        PREFIX: go-${{ runner.os }}-${{ inputs.name }}-
+        SUMS: ${{ hashFiles(inputs.sum-files) }}
+        SAVE: ${{ inputs.save == 'true' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
+      run: |
+        echo "prefix=$PREFIX" >> "$GITHUB_OUTPUT"
+        echo "sums=$PREFIX$SUMS-" >> "$GITHUB_OUTPUT"
+        echo "key=$PREFIX$SUMS-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+        echo "save=$SAVE" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the Go caches
+      if: inputs.save != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+          ~/.cache/golangci-lint
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: |
+          ${{ steps.key.outputs.sums }}
+          ${{ steps.key.outputs.prefix }}
+
+    - name: Mark when the Go caches were restored
+      if: inputs.save != 'true'
+      shell: bash
+      run: touch "$RUNNER_TEMP/go-cache-restored"
+
+    - name: Drop the build cache entries this job did not use
+      if: steps.key.outputs.save == 'true'
+      shell: bash
+      run: |
+        if [ -f "$RUNNER_TEMP/go-cache-restored" ]; then
+            find ~/.cache/go-build -type f ! -newer "$RUNNER_TEMP/go-cache-restored" -delete
+        fi
+
+    - name: Save the Go caches
+      if: steps.key.outputs.save == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+          ~/.cache/golangci-lint
+        key: ${{ steps.key.outputs.key }}

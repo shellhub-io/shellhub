@@ -159,7 +159,13 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: shellhub/tests/go.mod
-          cache-dependency-path: shellhub/tests/go.sum
+          cache: false
+
+      - name: Restore the Go caches
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: ui-e2e
+          sum-files: shellhub/tests/go.sum
 
       - name: Run E2E tests
         working-directory: shellhub/ui
@@ -210,6 +216,14 @@ jobs:
           done
 
           exit "$failed"
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() }}
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: ui-e2e
+          sum-files: shellhub/tests/go.sum
+          save: true
 
       - name: Upload Playwright report
         if: ${{ failure() || cancelled() }}
