@@ -81,68 +81,6 @@ type Backend interface {
 	Process(prefix string, spec any) error
 }
 
-// DefaultBackend is the backend Get and the edition helpers read from. Read through Get, and
-// swap it in a test with Set, which puts the previous one back when the test ends.
-var DefaultBackend = OS()
-
-// Get returns the value of key from the package's backend, or "" when it is unset. Use it rather
-// than os.Getenv, so a test can control what the environment holds.
-func Get(key string) string {
-	return DefaultBackend.Get(key)
-}
-
-// Set serves Get and the edition helpers from b until t and its subtests finish, then puts back
-// the backend it replaced. Calls nest: an inner Set gives back the outer one when its test ends.
-// The backend is process-global, so a test that calls Set must not run in parallel with one that
-// reads the environment.
-func Set(t interface{ Cleanup(func()) }, b Backend) {
-	previous := DefaultBackend
-	t.Cleanup(func() { DefaultBackend = previous })
-	DefaultBackend = b
-}
-
-// ResolveEdition parses SHELLHUB_EDITION from the package's backend with ParseEdition.
-func ResolveEdition() (Edition, error) {
-	return ParseEdition(DefaultBackend.Get("SHELLHUB_EDITION"))
-}
-
-// CurrentEdition returns the resolved edition, panicking on an unrecognized value.
-func CurrentEdition() Edition {
-	edition, err := ResolveEdition()
-	if err != nil {
-		panic(err)
-	}
-
-	return edition
-}
-
-// IsCommunity reports whether the package's backend holds the community edition.
-func IsCommunity() bool {
-	return CurrentEdition().IsCommunity()
-}
-
-// IsEnterprise reports whether the package's backend holds the enterprise edition.
-func IsEnterprise() bool {
-	return CurrentEdition().IsEnterprise()
-}
-
-// IsCloud reports whether the package's backend holds the hosted edition.
-func IsCloud() bool {
-	return CurrentEdition().IsCloud()
-}
-
-// IsEnterpriseOrCloud reports whether the package's backend holds a paid edition.
-func IsEnterpriseOrCloud() bool {
-	return CurrentEdition().IsEnterpriseOrCloud()
-}
-
-// IsDevelopment reports whether SHELLHUB_ENV is "development". It gates developer conveniences
-// only; never use it to relax a security decision, as the variable is attacker-controlled in
-// any deployment that passes the environment through.
-func IsDevelopment() bool {
-	return DefaultBackend.Get("SHELLHUB_ENV") == "development"
-}
-
 // OpenAPIValidation is how the server treats a response that does not match its schema.
 type OpenAPIValidation string
 

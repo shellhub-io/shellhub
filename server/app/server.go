@@ -556,6 +556,7 @@ func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
 		sentryOpts := sentry.ClientOptions{ //nolint:exhaustruct
 			Dsn:              s.env.SentryDSN,
 			Release:          s.env.Version,
+			Tags:             map[string]string{"domain": s.env.Domain},
 			EnableTracing:    true,
 			TracesSampleRate: 1,
 		}

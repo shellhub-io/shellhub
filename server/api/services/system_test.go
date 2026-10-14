@@ -293,7 +293,7 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 			//nolint:gosec // G204: running the generated prologue under a shell is the assertion
 			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req)+probe)
 			cmd.Dir = dir
-			cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
+			cmd.Env = []string{"PATH=" + os.Getenv("PATH")} //nolint:forbidigo // the shell under test needs the runner's PATH to find its tools
 
 			out, err := cmd.CombinedOutput()
 			require.NoError(tt, err, "the generated prologue must be a valid script: %s", out)
