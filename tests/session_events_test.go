@@ -408,6 +408,7 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 		compose.CreateAccessPolicy(t, &requests.AccessPolicyCreate{ //nolint:exhaustruct // the remaining fields keep their defaults
 			Name:    "automation",
 			Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectAPIKey), Value: key.ID},
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{ShellHubAgentUsername},
 			Action:  string(models.PolicyActionAllow),
 		})

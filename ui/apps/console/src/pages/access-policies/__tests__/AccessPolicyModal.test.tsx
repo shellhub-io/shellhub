@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockNamespace } from "@/tests/factories";
+import { mockAccessPolicy, mockNamespace, mockTag } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { server } from "@/tests/msw";
 import { defaultHandlers } from "@/tests/handlers";
@@ -14,9 +14,11 @@ vi.mock("@/components/common/Modal", async () => ({
 }));
 
 let createBody: unknown = null;
+let updateBody: unknown = null;
 
 beforeEach(() => {
   createBody = null;
+  updateBody = null;
   server.use(
     ...defaultHandlers,
     http.get("*/api/namespaces/:tenant", () =>
@@ -31,11 +33,62 @@ beforeEach(() => {
       createBody = await request.json();
       return HttpResponse.json({ id: "p1" });
     }),
+    http.put("*/api/access-policies/:id", async ({ request }) => {
+      updateBody = await request.json();
+      return HttpResponse.json({ id: "p1" });
+    }),
   );
   seedAuthStore();
 });
 
 describe("AccessPolicyModal", () => {
+  it("saves All devices as an explicit all", async () => {
+    const user = userEvent.setup();
+
+    render(<AccessPolicyModal open editPolicy={null} onClose={vi.fn()} />, {
+      wrapper: createTestWrapper({ initialEntries: ["/"] }),
+    });
+
+    await user.type(screen.getByLabelText(/name/i), "everywhere");
+    await user.click(screen.getByRole("button", { name: /create|save/i }));
+
+    await waitFor(() => expect(createBody).not.toBeNull());
+
+    expect((createBody as Record<string, unknown>).filter).toEqual({
+      all: true,
+    });
+  });
+
+  it.each([
+    {
+      option: "All devices",
+      filter: { all: true, tags: [] },
+      sent: { all: true },
+    },
+    {
+      option: "its tags",
+      filter: { all: false, tags: [mockTag({ name: "production" })] },
+      sent: { tags: ["production"] },
+    },
+  ])("reopens a policy on $option", async ({ filter, sent }) => {
+    const user = userEvent.setup();
+
+    render(
+      <AccessPolicyModal
+        open
+        editPolicy={mockAccessPolicy({ filter })}
+        onClose={vi.fn()}
+      />,
+      { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+    );
+
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => expect(updateBody).not.toBeNull());
+
+    expect((updateBody as Record<string, unknown>).filter).toEqual(sent);
+  });
+
   it("saves an API key as the subject, by id", async () => {
     const user = userEvent.setup();
 
@@ -61,7 +114,9 @@ describe("AccessPolicyModal", () => {
     });
 
     await user.type(screen.getByLabelText(/name/i), "ci reaches prod");
-    await user.click(await screen.findByRole("button", { name: /all members/i }));
+    await user.click(
+      await screen.findByRole("button", { name: /all members/i }),
+    );
     await user.click(await screen.findByRole("button", { name: /api keys/i }));
     await user.click(await screen.findByText("ci-deploy"));
     await user.click(screen.getByRole("button", { name: /create|save/i }));

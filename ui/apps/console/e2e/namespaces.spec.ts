@@ -93,7 +93,7 @@ test.describe("Namespaces", () => {
         body: {
           name,
           subject: { type: "all-members", value: "" },
-          filter: {},
+          filter: { all: true },
           logins: ["*"],
         },
       });

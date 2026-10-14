@@ -60,9 +60,9 @@ func TestTagsSelectPublicKeyDevices(t *testing.T) {
 
 // TestTagsSelectAccessPolicyDevices covers a tag as the device filter of an access policy. The
 // policy holds the tag itself, not its name, so a rename keeps it granting the devices carrying the
-// tag. A filter left without its only tag would grant every device, so the tag cannot be deleted
-// while a policy's filter holds it. Each case logs in as a member only its own policy grants, so the
-// owner's starter policy never decides it.
+// tag. A deny left without a tag it holds would block fewer devices and so widen access, so the
+// tag cannot be deleted while a policy's filter holds it. Each case logs in as a member only its
+// own policy grants, so the owner's starter policy never decides it.
 func TestTagsSelectAccessPolicyDevices(t *testing.T) {
 	t.Parallel()
 

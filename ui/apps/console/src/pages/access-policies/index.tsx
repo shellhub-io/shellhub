@@ -150,6 +150,13 @@ function SubjectCell({
 }
 
 function DevicesCell({ policy }: { policy: AccessPolicy }) {
+  if (policy.filter.all) {
+    return (
+      <Chip icon={<GlobeAltIcon className={CHIP_ICON} strokeWidth={2} />}>
+        All devices
+      </Chip>
+    );
+  }
   if (policy.filter.tags.length > 0) {
     const tags = policy.filter.tags;
     const shown = tags.slice(0, 2);
@@ -172,11 +179,7 @@ function DevicesCell({ policy }: { policy: AccessPolicy }) {
       </span>
     );
   }
-  return (
-    <Chip icon={<GlobeAltIcon className={CHIP_ICON} strokeWidth={2} />}>
-      All devices
-    </Chip>
-  );
+  return <Chip>No devices</Chip>;
 }
 
 function LoginsCell({ policy }: { policy: AccessPolicy }) {

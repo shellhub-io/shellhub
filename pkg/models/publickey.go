@@ -20,8 +20,8 @@ type PublicKeyFilter struct {
 // Matches reports whether the given device satisfies the filter. A filter is
 // either a hostname pattern matched against the whole device name (see
 // MatchPattern), or a tag set matched by intersection against the device's tag
-// ids; an empty filter matches every device. It is the shared device-selector
-// matcher used by both the public-key ACL and Access Policies.
+// ids; an empty filter matches every device. Access Policies select devices
+// with their own AccessPolicyFilter, which never treats empty as every device.
 //
 // The device must already carry its tag ids (Taggable.TagIDs) for the tag
 // branch; callers resolving a device from an agent-sent payload must populate

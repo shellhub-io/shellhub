@@ -1,8 +1,14 @@
-description: Access policy's device filter. Empty or omitted matches every device.
+description: |
+  Access policy's device filter. Exactly one of `all: true` or one to three
+  `tags` must be given; a filter with neither, or with both, is refused.
 type: object
 properties:
+  all:
+    description: Selects every device.
+    type: boolean
+    default: false
   tags:
-    description: Tags the policy matches devices by.
+    description: Tags the policy selects devices by.
     type: array
     items:
       type: string

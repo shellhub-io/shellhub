@@ -28,7 +28,7 @@ func (s *Suite) TestAccessPolicyTagFilterRoundTrip(t *testing.T) {
 		TenantID: tenantID,
 		Name:     "ops on production",
 		Subject:  models.PolicySubject{Type: models.PolicySubjectUser, Value: ownerID},
-		Filter:   models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
+		Filter:   models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
 		Logins:   []string{"root"},
 		SourceIP: []string{},
 		Action:   models.PolicyActionAllow,
@@ -53,8 +53,56 @@ func (s *Suite) TestAccessPolicyTagFilterRoundTrip(t *testing.T) {
 	assert.Equal(t, []string{tagID}, policy.Filter.TagIDs)
 }
 
+// TestAccessPolicyAllDevicesRoundTrip verifies "every device" is stored as said, and that an update
+// can switch a policy between every device and a tag list in both directions.
+func (s *Suite) TestAccessPolicyAllDevicesRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	tenantID := s.CreateNamespace(t)
+	sc := scope.MustBounded(tenantID)
+	production := s.CreateTag(t, WithTagTenant(tenantID), WithTagName("production"))
+
+	policy := &models.AccessPolicy{
+		TenantID: tenantID,
+		Name:     "everywhere",
+		Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+		Filter:   models.AccessPolicyFilter{All: true},
+		Logins:   []string{"*"},
+		SourceIP: []string{},
+		Action:   models.PolicyActionAllow,
+	}
+
+	id, err := st.AccessPolicyCreate(ctx, policy)
+	require.NoError(t, err)
+
+	stored, err := st.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+	require.NoError(t, err)
+	assert.True(t, stored.Filter.All)
+	assert.Empty(t, stored.Filter.Tags)
+
+	policy.Filter = models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{production}}}
+	require.NoError(t, st.AccessPolicyUpdate(ctx, policy))
+
+	stored, err = st.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+	require.NoError(t, err)
+	assert.False(t, stored.Filter.All)
+	require.Len(t, stored.Filter.Tags, 1)
+	assert.Equal(t, "production", stored.Filter.Tags[0].Name)
+
+	policy.Filter = models.AccessPolicyFilter{All: true}
+	require.NoError(t, st.AccessPolicyUpdate(ctx, policy))
+
+	stored, err = st.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+	require.NoError(t, err)
+	assert.True(t, stored.Filter.All)
+	assert.Empty(t, stored.Filter.Tags)
+}
+
 // TestAccessPolicyCreateLeavesNothingWhenATagIsGone verifies a policy whose tag link cannot be
-// written is not kept: without the link its filter would grant every device.
+// written is not kept: without the link its filter would select no device at all.
 func (s *Suite) TestAccessPolicyCreateLeavesNothingWhenATagIsGone(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -75,7 +123,7 @@ func (s *Suite) TestAccessPolicyCreateLeavesNothingWhenATagIsGone(t *testing.T) 
 		TenantID: tenantID,
 		Name:     "ops on a gone tag",
 		Subject:  models.PolicySubject{Type: models.PolicySubjectUser, Value: ownerID},
-		Filter:   models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
+		Filter:   models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{tagID}}},
 		Logins:   []string{"root"},
 		SourceIP: []string{},
 		Action:   models.PolicyActionAllow,
@@ -86,7 +134,7 @@ func (s *Suite) TestAccessPolicyCreateLeavesNothingWhenATagIsGone(t *testing.T) 
 	require.NoError(t, err)
 
 	for _, policy := range policies {
-		assert.NotEqual(t, "ops on a gone tag", policy.Name, "a policy whose tag link failed was kept with a filter granting every device")
+		assert.NotEqual(t, "ops on a gone tag", policy.Name, "a policy whose tag link failed was kept without the tag it names")
 	}
 }
 
@@ -106,7 +154,7 @@ func (s *Suite) TestAccessPolicyUpdateReplacesTheTagFilter(t *testing.T) {
 		TenantID: tenantID,
 		Name:     "everywhere",
 		Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-		Filter:   models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{staging, production}}},
+		Filter:   models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{staging, production}}},
 		Logins:   []string{"*"},
 		SourceIP: []string{},
 		Action:   models.PolicyActionAllow,
@@ -120,7 +168,7 @@ func (s *Suite) TestAccessPolicyUpdateReplacesTheTagFilter(t *testing.T) {
 		TenantID: tenantID,
 		Name:     "production only",
 		Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-		Filter:   models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{production}}},
+		Filter:   models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{production}}},
 		Logins:   []string{"*"},
 		SourceIP: []string{},
 		Action:   models.PolicyActionDeny,

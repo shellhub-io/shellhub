@@ -35,7 +35,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 
 	t.Run("a person approved as a member and removed before the login resumes is refused as a non-member", func(t *testing.T) {
 		member := newMember(t, compose, "leaver", authorizer.RoleOperator)
-		grant(t, compose, &requests.AccessPolicyCreate{Name: "everyone", Subject: everyone, Logins: []string{"*"}})
+		grant(t, compose, &requests.AccessPolicyCreate{Name: "everyone", Subject: everyone, Filter: requests.AccessPolicyFilter{All: true}, Logins: []string{"*"}})
 
 		signer, _ := newSigner(t)
 		parked := startLogin(t, compose, sshid, signer)
@@ -74,6 +74,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:     "elsewhere",
 			Subject:  userSubject(member.ID),
+			Filter:   requests.AccessPolicyFilter{All: true},
 			Logins:   []string{"*"},
 			SourceIP: []string{unroutableCIDR},
 		})
@@ -85,6 +86,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:     "here",
 			Subject:  userSubject(member.ID),
+			Filter:   requests.AccessPolicyFilter{All: true},
 			Logins:   []string{"*"},
 			SourceIP: []string{netip.PrefixFrom(client.Unmap(), client.Unmap().BitLen()).String()},
 		})
@@ -98,6 +100,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "root only",
 			Subject: userSubject(member.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{ShellHubAgentUsername},
 		})
 
@@ -135,6 +138,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "administrators",
 			Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectRole), Value: string(authorizer.RoleAdministrator)},
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -145,6 +149,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "operators",
 			Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectRole), Value: string(authorizer.RoleOperator)},
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -155,7 +160,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		_, memberSigner := memberWithKey(t, compose, "everyone", authorizer.RoleOperator)
 		key, keySigner := newAPIKeyIdentity(t, compose, "automation", false)
 
-		grant(t, compose, &requests.AccessPolicyCreate{Name: "everyone", Subject: everyone, Logins: []string{"*"}})
+		grant(t, compose, &requests.AccessPolicyCreate{Name: "everyone", Subject: everyone, Filter: requests.AccessPolicyFilter{All: true}, Logins: []string{"*"}})
 
 		requireStraightThrough(t, compose, sshid, memberSigner)
 
@@ -166,6 +171,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "automation",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -178,6 +184,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		deny := grant(t, compose, &requests.AccessPolicyCreate{
 			Name:     "unreadable",
 			Subject:  everyone,
+			Filter:   requests.AccessPolicyFilter{All: true},
 			Logins:   []string{"*"},
 			SourceIP: []string{unroutableCIDR},
 			Action:   string(models.PolicyActionDeny),
@@ -203,6 +210,84 @@ func memberWithKey(t *testing.T, compose *environment.DockerCompose, username st
 	compose.EnrollIdentityAs(t, member.Token, username, data)
 
 	return member, signer
+}
+
+func TestAccessPolicyFilterSaysWhichDevices(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+
+	createTag(t, compose, "filtered")
+	t.Cleanup(func() { deleteTag(t, compose, "filtered") })
+
+	refused := []struct {
+		description string
+		filter      map[string]any
+	}{
+		{"no filter", nil},
+		{"an empty filter", map[string]any{}},
+		{"an empty tag list", map[string]any{"tags": []string{}}},
+		{"every device and a tag", map[string]any{"all": true, "tags": []string{"filtered"}}},
+	}
+
+	body := func(filter map[string]any) map[string]any {
+		body := map[string]any{
+			"name":    "filtered",
+			"subject": map[string]any{"type": string(models.PolicySubjectAllMembers)},
+			"logins":  []string{"*"},
+		}
+
+		if filter != nil {
+			body["filter"] = filter
+		}
+
+		return body
+	}
+
+	for _, tc := range refused {
+		t.Run("create refuses "+tc.description, func(t *testing.T) {
+			resp, err := compose.R(t.Context()).SetBody(body(tc.filter)).Post("/api/access-policies")
+			require.NoError(t, err)
+			assert.Equal(t, 400, resp.StatusCode(), resp.String())
+		})
+	}
+
+	policy := grant(t, compose, &requests.AccessPolicyCreate{
+		Name:    "filtered",
+		Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectAllMembers)},
+		Filter:  requests.AccessPolicyFilter{All: true},
+		Logins:  []string{"*"},
+	})
+
+	assert.True(t, policy.Filter.All, "the response says every device instead of leaving it to an empty tag list")
+	assert.Empty(t, policy.Filter.Tags)
+
+	for _, tc := range refused {
+		t.Run("update refuses "+tc.description, func(t *testing.T) {
+			resp, err := compose.R(t.Context()).SetBody(body(tc.filter)).Put("/api/access-policies/" + policy.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 400, resp.StatusCode(), resp.String())
+		})
+	}
+
+	t.Run("update narrows every device to a tag and widens it back", func(t *testing.T) {
+		resp, err := compose.R(t.Context()).SetBody(body(map[string]any{"tags": []string{"filtered"}})).Put("/api/access-policies/" + policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+		narrowed := accessPolicy(t, compose, policy.ID)
+		assert.False(t, narrowed.Filter.All)
+		assert.Equal(t, []string{"filtered"}, tagNames(narrowed.Filter.Tags))
+
+		resp, err = compose.R(t.Context()).SetBody(body(map[string]any{"all": true})).Put("/api/access-policies/" + policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode(), resp.String())
+
+		widened := accessPolicy(t, compose, policy.ID)
+		assert.True(t, widened.Filter.All)
+		assert.Empty(t, widened.Filter.Tags)
+	})
 }
 
 func createTag(t *testing.T, compose *environment.DockerCompose, name string) {

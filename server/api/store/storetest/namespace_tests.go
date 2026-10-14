@@ -354,6 +354,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.Equal(t, models.PolicySubjectUser, policies[0].Subject.Type)
 		assert.Equal(t, userID, policies[0].Subject.Value)
 		assert.Equal(t, []string{"*"}, policies[0].Logins)
+		assert.True(t, policies[0].Filter.All, "the owner reaches every device because the seed says so")
 		assert.Equal(t, models.PolicyActionAllow, policies[0].Action)
 	})
 

@@ -53,6 +53,7 @@ func TestSSHIdentityConnection(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "oneshot",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
@@ -70,6 +71,7 @@ func TestSSHIdentityConnection(t *testing.T) {
 		grant(t, compose, &requests.AccessPolicyCreate{
 			Name:    "burnt",
 			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
 			Logins:  []string{"*"},
 		})
 
