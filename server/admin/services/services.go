@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -32,7 +33,15 @@ type Services interface {
 	// UserCreate adds a new user based on the provided user's data. This method validates data and
 	// checks for conflicts.
 	UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error)
-	// UserDelete removes a user and cleans up related data based on the provided username.
+	// UserDelete removes a user and cleans up related data based on the provided username, deleting
+	// the namespaces the user owns and evicting the cached authorization of every device they held.
+	// A failed eviction is logged and does not fail the call. It returns ErrUserNotFound,
+	// ErrNamespaceNotFound when the user's namespaces cannot be read, ErrFailedDeleteUser when the
+	// user row cannot be deleted, the API services' ErrForbidden for an owned tenant ID that is not a
+	// valid scope, and the store's error when an owned namespace's devices cannot be listed, the namespaces cannot be
+	// deleted or the user cannot depart an associated namespace, evicting nothing on any of them. ctx
+	// bounds the listing, the deletion and the evictions, so a ctx cancelled after the deletion leaves
+	// the cached authorizations to expire on their own.
 	UserDelete(ctx context.Context, input *inputs.UserDelete) error
 	// UserUpdate sets the password of the user named by the provided username and revokes every
 	// token the user holds. It returns ErrUserNotFound, ErrUserPasswordInvalid, and
@@ -49,7 +58,12 @@ type Services interface {
 	// The tenant defaults to a UUID if not provided.
 	// Max device limit is based on the service's edition.
 	NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error)
-	// NamespaceDelete deletes a namespace based on the provided namespace name.
+	// NamespaceDelete deletes the namespace of the provided name and evicts the cached authorization
+	// of every device it held. It returns ErrNamespaceNotFound, ErrNamespaceInstanceProtected for
+	// the instance's namespace, and ErrFailedDeleteNamespace when its devices cannot be listed or
+	// the store fails to delete it. A failed eviction is logged and does not fail the call. ctx bounds
+	// the listing, the deletion and the evictions, so a ctx cancelled after the deletion leaves the
+	// cached authorizations to expire on their own.
 	NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error
 	// NamespaceList retrieves all namespaces available to the user
 	NamespaceList(ctx context.Context) ([]models.Namespace, error)
@@ -65,6 +79,7 @@ type Services interface {
 
 type service struct {
 	store   store.Store
+	cache   cache.Cache
 	edition envs.Edition
 	clock   clock.Clock
 }
@@ -87,10 +102,20 @@ func WithClock(c clock.Clock) Option {
 	}
 }
 
+// WithCache sets the cache the services evict a deleted namespace's device authorizations from.
+// Without it they evict from a no-op cache, so an agent of a deleted namespace keeps authorizing
+// from the server's cache until its entry expires.
+func WithCache(c cache.Cache) Option {
+	return func(s *service) {
+		s.cache = c
+	}
+}
+
 // NewService builds the admin services over store. Without WithEdition the services run as
-// envs.Community, and without WithClock they read the wall clock.
+// envs.Community, without WithClock they read the wall clock, and without WithCache they evict
+// from a no-op cache.
 func NewService(store store.Store, options ...Option) Services {
-	s := &service{store: store, edition: envs.Community, clock: clock.New()}
+	s := &service{store: store, cache: cache.NewNullCache(), edition: envs.Community, clock: clock.New()}
 	for _, option := range options {
 		option(s)
 	}

@@ -136,6 +136,14 @@ func (dc *DockerCompose) RemoveMember(t *testing.T, username, namespace string) 
 	require.NoError(t, dc.stack.RemoveMember(t.Context(), username, namespace))
 }
 
+// ServerMetric returns the value of the unlabelled Prometheus series name the server publishes, as
+// [Stack.ServerMetric] reads it, with t's context bounding the read.
+func (dc *DockerCompose) ServerMetric(t *testing.T, name string) (float64, error) {
+	t.Helper()
+
+	return dc.stack.ServerMetric(t.Context(), name)
+}
+
 // DeleteNamespace deletes the namespace named name through the server's "admin namespace delete"
 // command, failing t immediately if it fails.
 func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {

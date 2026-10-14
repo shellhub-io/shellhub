@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
@@ -412,6 +413,7 @@ func TestUserDelete(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	mock := new(mocks.MockStore)
+	cacheMock := cachemock.NewMockCache(t)
 	ctx := context.TODO()
 
 	cases := []struct {
@@ -444,6 +446,42 @@ func TestUserDelete(t *testing.T) {
 				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
+		},
+		{
+			description: "fails without deleting when an owned namespace's devices cannot be listed",
+			username:    "john_doe",
+			requiredMocks: func() {
+				user := &models.User{ID: "507f191e810c19729de860ea", UserData: models.UserData{Username: "john_doe"}}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(&models.UserInfo{
+					OwnedNamespaces: []models.Namespace{{TenantID: "10000000-0000-0000-0000-000000000000"}},
+				}, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("10000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return(nil, int64(0), errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			description: "deletes the user when evicting a device's authorization fails",
+			username:    "john_doe",
+			requiredMocks: func() {
+				user := &models.User{ID: "507f191e810c19729de860ea", UserData: models.UserData{Username: "john_doe"}}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(&models.UserInfo{
+					OwnedNamespaces: []models.Namespace{{TenantID: "10000000-0000-0000-0000-000000000000"}},
+				}, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("10000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}}, int64(1), nil).
+					Once()
+				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000"}).Return(int64(1), nil).Once()
+				mock.On("UserDelete", ctx, user).Return(nil).Once()
+				cacheMock.On("Delete", ctx, "auth_device/uid-1").Return(errors.New("error")).Once()
+			},
+			expected: nil,
 		},
 		{
 			description: "successfully delete the user and associated data",
@@ -515,6 +553,12 @@ func TestUserDelete(t *testing.T) {
 					AssociatedNamespaces: namespaceMember,
 				}, nil)
 
+				mock.On("DeviceList", ctx, scope.MustBounded("10000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}}, int64(1), nil).
+					Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("20000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-2"}}, int64(1), nil).
+					Once()
 				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
@@ -523,7 +567,9 @@ func TestUserDelete(t *testing.T) {
 					mock.On("NamespaceDepartMember", ctx, scope.MustBounded(v.TenantID), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(&models.MemberDeparted{}, nil).Once()
 				}
 
-				mock.On("UserDelete", ctx, user).Return(nil).Once()
+				deleted := mock.On("UserDelete", ctx, user).Return(nil).Once()
+				cacheMock.On("Delete", ctx, "auth_device/uid-1").Return(nil).Once().NotBefore(deleted)
+				cacheMock.On("Delete", ctx, "auth_device/uid-2").Return(nil).Once().NotBefore(deleted)
 			},
 			expected: nil,
 		},
@@ -533,7 +579,7 @@ func TestUserDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
+			service := NewService(store.Store(mock), WithClock(clock.NewFixed(now)), WithCache(cacheMock))
 			err := service.UserDelete(ctx, &inputs.UserDelete{Username: tc.username})
 			assert.Equal(t, tc.expected, err)
 		})

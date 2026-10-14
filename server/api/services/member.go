@@ -410,7 +410,7 @@ func (s *service) SettleMemberDeparture(ctx context.Context, departed *models.Me
 	fields := log.Fields{"tenant_id": departed.TenantID, "user_id": departed.MemberID}
 
 	for _, uid := range departed.RemovedDevices {
-		s.endRemovedDevice(ctx, departed.TenantID, uid)
+		endRemovedDevice(ctx, s.cache, departed.TenantID, uid)
 	}
 
 	if err := s.AuthUncacheToken(ctx, departed.TenantID, departed.MemberID); err != nil {

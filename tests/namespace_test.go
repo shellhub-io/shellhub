@@ -78,17 +78,21 @@ func TestLeaveNamespace(t *testing.T) {
 	})
 }
 
-// TestDeleteNamespaceClosesItsTunnels deletes a namespace whose device is online and creates it
-// again under the same tenant. The agent answers a deleted namespace with a 404 it never treats as
-// a removal, and pings only every 8 to 12 minutes, so it re-enrolls within a heartbeat only when
-// the server closed the tunnel itself. The admin CLI runs apart from the server that holds the
-// tunnel.
+// TestDeleteNamespaceClosesItsTunnels deletes a namespace whose device is online and reads the
+// server's count of tunnels closed because their device was removed. The API deletes in the
+// process that holds the tunnel, which counts the eviction before the delete answers. The admin CLI
+// runs apart from that process, so its deletion reaches the tunnel on the device's next heartbeat.
+// A second device authorizes by hand before the deletion, so its authorization is cached, and again
+// once the namespace is created anew: it comes back pending only if the deletion evicted that entry.
 func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 	t.Parallel()
+
+	const evictedTunnels = "shellhub_ssh_dialer_connections_evicted_total"
 
 	cases := []struct {
 		description     string
 		deleteNamespace func(t *testing.T, compose *environment.DockerCompose)
+		onHeartbeat     bool
 	}{
 		{
 			description: "through the API",
@@ -107,6 +111,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 
 				compose.DeleteNamespace(t, ShellHubNamespaceName)
 			},
+			onHeartbeat: true,
 		},
 	}
 
@@ -114,24 +119,40 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
-			_, device := startAcceptedAgent(t, t.Context(), compose)
+			startAcceptedAgent(t, t.Context(), compose)
+
+			cached := newDeviceAuthRequest(t, "cached", "02:00:00:00:03:24")
+			uid := authDevice(t, compose, cached).UID
+
+			evicted, err := compose.ServerMetric(t, evictedTunnels)
+			require.NoError(t, err)
+			require.Zero(t, evicted)
 
 			tc.deleteNamespace(t, compose)
 
+			if tc.onHeartbeat {
+				require.EventuallyWithT(t, func(tt *assert.CollectT) {
+					evicted, err := compose.ServerMetric(t, evictedTunnels)
+					if !assert.NoError(tt, err) {
+						return
+					}
+
+					assert.InDelta(tt, 1, evicted, 0)
+				}, tunnelPingTimeout, time.Second)
+			} else {
+				evicted, err := compose.ServerMetric(t, evictedTunnels)
+				require.NoError(t, err)
+				assert.InDelta(t, 1, evicted, 0)
+			}
+
 			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, models.SSHAccessModeLegacy)
 
-			require.EventuallyWithT(t, func(tt *assert.CollectT) {
-				current, resp, err := compose.GetDevice(t.Context(), device.UID)
-				if !assert.NoError(tt, err) {
-					return
-				}
+			authDevice(t, compose, cached)
 
-				if !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
-					return
-				}
-
-				assert.Equal(tt, models.DeviceStatusPending, current.Status)
-			}, tunnelPingTimeout, time.Second)
+			device, resp, err := compose.GetDevice(t.Context(), uid)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+			assert.Equal(t, models.DeviceStatusPending, device.Status)
 		})
 	}
 }

@@ -9,7 +9,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -18,6 +20,7 @@ import (
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestListNamespaces(t *testing.T) {
@@ -1543,38 +1546,42 @@ func TestEditSSHAccessMode(t *testing.T) {
 }
 
 func TestDeleteNamespace(t *testing.T) {
-	storeMock := storemock.NewMockStore(t)
-
 	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
 
 	cases := []struct {
 		description   string
 		edition       envs.Edition
 		tenantID      string
-		requiredMocks func()
+		requiredMocks func(storeMock *storemock.MockStore, cacheMock *cachemock.MockCache)
 		expected      error
 	}{
 		{
 			description: "fails when namespace does not exist",
 			edition:     envs.Community,
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
+			tenantID:    tenantID,
+			requiredMocks: func(storeMock *storemock.MockStore, _ *cachemock.MockCache) {
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(nil, errors.New("error")).
 					Once()
 			},
-			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", errors.New("error")),
+			expected: NewErrNamespaceNotFound(tenantID, errors.New("error")),
 		},
 		{
-			description: "fails when store delete fails",
+			description: "fails without evicting when store delete fails",
 			edition:     envs.Community,
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				namespace := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}
+			tenantID:    tenantID,
+			requiredMocks: func(storeMock *storemock.MockStore, _ *cachemock.MockCache) {
+				namespace := &models.Namespace{TenantID: tenantID}
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}}, int64(1), nil).
 					Once()
 				storeMock.
 					On("NamespaceDelete", ctx, namespace).
@@ -1584,17 +1591,60 @@ func TestDeleteNamespace(t *testing.T) {
 			expected: errors.New("error"),
 		},
 		{
-			description: "succeeds",
+			description: "succeeds and evicts each device's authorization after the delete",
 			edition:     envs.Community,
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				namespace := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}
+			tenantID:    tenantID,
+			requiredMocks: func(storeMock *storemock.MockStore, cacheMock *cachemock.MockCache) {
+				namespace := &models.Namespace{TenantID: tenantID}
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespace, nil).
 					Once()
 				storeMock.
+					On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}, {UID: "uid-2"}}, int64(2), nil).
+					Once()
+				deleted := storeMock.
 					On("NamespaceDelete", ctx, namespace).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "auth_device/uid-1").
+					Return(nil).
+					Once().
+					NotBefore(deleted)
+				cacheMock.
+					On("Delete", ctx, "auth_device/uid-2").
+					Return(nil).
+					Once().
+					NotBefore(deleted)
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when evicting a device's authorization fails",
+			edition:     envs.Community,
+			tenantID:    tenantID,
+			requiredMocks: func(storeMock *storemock.MockStore, cacheMock *cachemock.MockCache) {
+				namespace := &models.Namespace{TenantID: tenantID}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}, {UID: "uid-2"}}, int64(2), nil).
+					Once()
+				storeMock.
+					On("NamespaceDelete", ctx, namespace).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "auth_device/uid-1").
+					Return(errors.New("error")).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "auth_device/uid-2").
 					Return(nil).
 					Once()
 			},
@@ -1604,16 +1654,16 @@ func TestDeleteNamespace(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition))
+			storeMock := storemock.NewMockStore(t)
+			cacheMock := cachemock.NewMockCache(t)
+			s := NewService(storeMock, privateKey, publicKey, cacheMock, WithEdition(tc.edition))
 
-			tc.requiredMocks()
+			tc.requiredMocks(storeMock, cacheMock)
 
 			err := s.DeleteNamespace(ctx, tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
-
-	storeMock.AssertExpectations(t)
 }
 
 func TestNamespaceFilterFields(t *testing.T) {
@@ -1643,4 +1693,67 @@ func TestNamespaceFilterFields(t *testing.T) {
 	t.Run("namespaceFilterColumns has exactly one entry", func(t *testing.T) {
 		assert.Len(t, namespaceFilterColumns, 1)
 	})
+}
+
+func TestDeleteNamespaceFiresNoHookWhenItsDevicesCannotBeListed(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	var fired bool
+	override(t, &namespaceDeleteHooks, []NamespaceDeleteHookFn{func(context.Context, *models.Namespace) error {
+		fired = true
+
+		return nil
+	}})
+	override(t, &deviceRemovedHooks, []DeviceRemovedHookFn{func(context.Context, string, string) {
+		fired = true
+	}})
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID}, nil).
+		Once()
+	storeMock.
+		On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+		Return(nil, int64(0), errors.New("error")).
+		Once()
+
+	s := NewService(storeMock, privateKey, publicKey, cachemock.NewMockCache(t))
+
+	assert.Equal(t, errors.New("error"), s.DeleteNamespace(ctx, tenantID))
+	assert.False(t, fired)
+}
+
+func TestDeleteNamespaceEndsEachDeviceItHeld(t *testing.T) {
+	ctx := context.TODO()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	var removed []string
+	override(t, &deviceRemovedHooks, []DeviceRemovedHookFn{func(_ context.Context, tenant, uid string) {
+		assert.Equal(t, tenantID, tenant)
+		removed = append(removed, uid)
+	}})
+
+	namespace := &models.Namespace{TenantID: tenantID}
+	storeMock := storemock.NewMockStore(t)
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(namespace, nil).
+		Once()
+	storeMock.
+		On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+		Return([]models.Device{{UID: "uid-1"}, {UID: "uid-2"}}, int64(2), nil).
+		Once()
+	storeMock.
+		On("NamespaceDelete", ctx, namespace).
+		Return(nil).
+		Once()
+
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+
+	require.NoError(t, s.DeleteNamespace(ctx, tenantID))
+	assert.Equal(t, []string{"uid-1", "uid-2"}, removed)
 }

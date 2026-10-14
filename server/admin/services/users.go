@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
+	apiservices "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -72,7 +73,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	return user, nil
 }
 
-// UserDelete removes a user and cleans up related data based on the provided username.
+// UserDelete implements [Services].
 func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
@@ -89,6 +90,12 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		ownedNamespaces[i] = namespace.TenantID
 	}
 
+	return apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, ownedNamespaces, func(ctx context.Context) error {
+		return s.deleteUser(ctx, user, userInfo, ownedNamespaces)
+	})
+}
+
+func (s *service) deleteUser(ctx context.Context, user *models.User, userInfo *models.UserInfo, ownedNamespaces []string) error {
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		if _, err := s.store.NamespaceDeleteMany(ctx, ownedNamespaces); err != nil {
 			return err

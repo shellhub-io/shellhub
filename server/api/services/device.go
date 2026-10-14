@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -263,18 +264,63 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return err
 	}
 
-	s.endRemovedDevice(ctx, tenant, device.UID)
+	endRemovedDevice(ctx, s.cache, tenant, device.UID)
 
 	return nil
 }
 
-func (s *service) endRemovedDevice(ctx context.Context, tenantID, uid string) {
-	if err := s.cache.Delete(ctx, deviceAuthCacheKey(uid)); err != nil {
-		log.WithError(err).WithFields(log.Fields{"tenant_id": tenantID, "device_uid": uid}).
-			Warn("failed to invalidate the removed device's authentication cache")
-	}
+func endRemovedDevice(ctx context.Context, c cache.Cache, tenantID, uid string) {
+	evictDeviceAuthorization(ctx, c, tenantID, uid)
 
 	fireDeviceRemoved(ctx, tenantID, uid)
+}
+
+// DeleteNamespacesEndingDevices lists the devices of the namespaces of tenantIDs through st, runs
+// deleteNamespaces, which deletes those namespaces, and then ends every device listed as a device
+// removal does: it evicts from c the device's cached authorization, so its agent's next
+// authorization reads the database instead of getting a token for a namespace that is gone, and
+// fires the device removed hooks, which close the device's tunnel when this process holds it. A
+// process without those hooks, such as the admin CLI, leaves the tunnel to close on its next
+// beat. It returns ErrForbidden for a tenant ID
+// that is not a valid scope, and the store's error when a namespace's devices cannot be listed, both before
+// deleteNamespaces runs; deleteNamespaces's error is returned unchanged with nothing evicted. A
+// failed eviction is logged with the tenant and the device UID and does not fail the call. ctx
+// bounds the listing, is handed to deleteNamespaces and bounds the evictions, so a ctx cancelled
+// after the deletion leaves every entry to expire on its own.
+func DeleteNamespacesEndingDevices(ctx context.Context, st store.DeviceStore, c cache.Cache, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
+	devices := make(map[string][]models.Device, len(tenantIDs))
+	for _, tenantID := range tenantIDs {
+		sc, err := BoundTo(tenantID)
+		if err != nil {
+			return err
+		}
+
+		held, _, err := st.DeviceList(ctx, sc, store.DeviceAcceptableAsFalse)
+		if err != nil {
+			return err
+		}
+
+		devices[tenantID] = held
+	}
+
+	if err := deleteNamespaces(ctx); err != nil {
+		return err
+	}
+
+	for tenantID, held := range devices {
+		for _, device := range held {
+			endRemovedDevice(ctx, c, tenantID, device.UID)
+		}
+	}
+
+	return nil
+}
+
+func evictDeviceAuthorization(ctx context.Context, c cache.Cache, tenantID, uid string) {
+	if err := c.Delete(ctx, deviceAuthCacheKey(uid)); err != nil {
+		log.WithError(err).WithFields(log.Fields{"tenant_id": tenantID, "device_uid": uid}).
+			Warn("failed to evict the device's authorization cache")
+	}
 }
 
 func (s *service) MakeTeamDevice(ctx context.Context, tenantID, uid string) error {
