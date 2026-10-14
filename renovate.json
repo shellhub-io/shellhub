@@ -80,6 +80,13 @@
     {
       "customType": "regex",
       "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)GOVULNCHECK_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "golang.org/x/vuln",
+      "datasourceTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
       "matchStrings": ["(?:^|\\n)DOCKER_VERSION=(?<currentValue>\\S+)"],
       "depNameTemplate": "docker",
       "datasourceTemplate": "docker"
