@@ -14,7 +14,7 @@ FROM toolchain AS base
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY ./go.mod ./
+COPY ./go.mod ./go.sum ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 

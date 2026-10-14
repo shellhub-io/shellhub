@@ -31,11 +31,11 @@ FROM base AS development
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY ./go.mod ./
+COPY ./go.mod ./go.sum ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/openapi
 
-COPY ./openapi/go.mod ./
+COPY ./openapi/go.mod ./openapi/go.sum ./
 
 RUN go mod download
 
