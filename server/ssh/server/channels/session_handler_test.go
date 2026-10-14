@@ -2,6 +2,8 @@ package channels
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"errors"
 	"io"
 	"net"
@@ -393,4 +395,177 @@ func TestSessionChannelDoesNotReportTheDeviceEndingAChannelTheGatewayClosed(t *t
 	}
 
 	assert.False(t, client.received(ExitSignalRequest), "the client was told the device ended a channel the gateway closed")
+}
+
+func sshClientOverLoopback(t *testing.T) (*gossh.Client, <-chan gossh.NewChannel) {
+	t.Helper()
+
+	_, key, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	signer, err := gossh.NewSignerFromKey(key)
+	require.NoError(t, err)
+
+	serverConfig := &gossh.ServerConfig{NoClientAuth: true} //nolint:exhaustruct // a test server needs only a host key and no client auth
+	serverConfig.AddHostKey(signer)
+
+	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0") //nolint:exhaustruct // the zero ListenConfig is the default one
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = listener.Close() })
+
+	type handshake struct {
+		conn  *gossh.ServerConn
+		chans <-chan gossh.NewChannel
+		err   error
+	}
+
+	accepted := make(chan handshake, 1)
+
+	go func() {
+		serverSide, err := listener.Accept()
+		if err != nil {
+			accepted <- handshake{err: err} //nolint:exhaustruct // a failed accept has no connection
+
+			return
+		}
+
+		conn, chans, requests, err := gossh.NewServerConn(serverSide, serverConfig)
+		if err == nil {
+			go gossh.DiscardRequests(requests)
+		}
+
+		accepted <- handshake{conn: conn, chans: chans, err: err}
+	}()
+
+	clientSide, err := (&net.Dialer{}).DialContext(t.Context(), "tcp", listener.Addr().String()) //nolint:exhaustruct // the zero Dialer is the default one
+	require.NoError(t, err)
+
+	clientConfig := &gossh.ClientConfig{User: "user", HostKeyCallback: gossh.InsecureIgnoreHostKey()} //nolint:exhaustruct,gosec // a loopback client to a NoClientAuth server needs only a user, and the server's host key is throwaway
+	conn, chans, requests, err := gossh.NewClientConn(clientSide, listener.Addr().String(), clientConfig)
+	require.NoError(t, err)
+
+	server := <-accepted
+	require.NoError(t, server.err)
+
+	client := gossh.NewClient(conn, chans, requests)
+
+	t.Cleanup(func() {
+		_ = client.Close()
+		_ = server.conn.Close()
+	})
+
+	return client, server.chans
+}
+
+type closeSignallingChannel struct {
+	gossh.Channel
+
+	closed    chan struct{}
+	closeOnce sync.Once
+}
+
+func (c *closeSignallingChannel) Close() error {
+	c.closeOnce.Do(func() { close(c.closed) })
+
+	return c.Channel.Close()
+}
+
+type replyHoldingChannel struct {
+	gossh.Channel
+
+	release <-chan struct{}
+}
+
+func (c *replyHoldingChannel) SendRequest(name string, wantReply bool, payload []byte) (bool, error) {
+	ok, err := c.Channel.SendRequest(name, wantReply, payload)
+
+	select {
+	case <-c.release:
+	case <-time.After(500 * time.Millisecond):
+	}
+
+	return ok, err
+}
+
+func serveDeviceEndingOnExec(chans <-chan gossh.NewChannel, output string) {
+	newChannel, ok := <-chans
+	if !ok {
+		return
+	}
+
+	channel, requests, err := newChannel.Accept()
+	if err != nil {
+		return
+	}
+
+	for req := range requests {
+		if req.Type != ExecRequestType {
+			_ = req.Reply(false, nil)
+
+			continue
+		}
+
+		_ = req.Reply(true, nil)
+		_, _ = channel.Write([]byte(output))
+		_, _ = channel.SendRequest(ExitStatusRequest, false, gossh.Marshal(models.SSHExitStatus{Status: 0}))
+		_ = channel.Close()
+	}
+}
+
+func TestSessionChannelDeliversTheReplyAndOutputOfACommandTheDeviceEndsAtOnce(t *testing.T) {
+	const deviceOutput = "command output"
+
+	envstest.SetEdition(t, envs.Community)
+
+	sshClient, gatewayChannels := sshClientOverLoopback(t)
+	agentClient, deviceChannels := sshClientOverLoopback(t)
+
+	go serveDeviceEndingOnExec(deviceChannels, deviceOutput)
+
+	type opened struct {
+		session *gossh.Session
+		err     error
+	}
+
+	sessions := make(chan opened, 1)
+
+	go func() {
+		sess, err := sshClient.NewSession()
+		sessions <- opened{session: sess, err: err}
+	}()
+
+	accepted, clientRequests, err := (<-gatewayChannels).Accept()
+	require.NoError(t, err)
+
+	opening := <-sessions
+	require.NoError(t, opening.err)
+
+	agentChannel, agentRequests, err := agentClient.OpenChannel(SessionChannel, nil)
+	require.NoError(t, err)
+
+	client := &closeSignallingChannel{Channel: accepted, closed: make(chan struct{})} //nolint:exhaustruct // closeOnce starts at its zero value
+
+	sess := &fakeSession{ //nolint:exhaustruct // only the agent and client channels matter here
+		agent:  &session.AgentChannel{Channel: &replyHoldingChannel{Channel: agentChannel, release: client.closed}, Requests: agentRequests},
+		client: &session.ClientChannel{Channel: client, Requests: clientRequests},
+	}
+
+	ended := make(chan struct{})
+
+	go func() {
+		defer close(ended)
+
+		sessionChannel(newStubContext(), sess, new(rejectingNewChannel))
+	}()
+
+	output, err := opening.session.Output("a command serveDeviceEndingOnExec ignores")
+	require.NoError(t, err, "the client did not get the reply and exit status of its exec")
+	assert.Equal(t, deviceOutput, string(output))
+
+	select {
+	case <-ended:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the session channel did not end after the device ended the command")
+	}
 }
