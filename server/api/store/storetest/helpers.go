@@ -95,8 +95,8 @@ func (s *Suite) CreateUser(t *testing.T, opts ...UserOption) string {
 		Password:      models.UserPassword{Hash: "hashedpassword"},
 		Status:        models.UserStatusConfirmed,
 		MaxNamespaces: 3,
-		CreatedAt:     clock.Now(),
-		LastLogin:     clock.Now(),
+		CreatedAt:     s.Clock().Now(),
+		LastLogin:     s.Clock().Now(),
 	}
 
 	for _, opt := range opts {
@@ -144,7 +144,7 @@ func (s *Suite) CreateNamespace(t *testing.T, opts ...NamespaceOption) string {
 			SessionRecord:          true,
 			ConnectionAnnouncement: "",
 		},
-		CreatedAt: clock.Now(),
+		CreatedAt: s.Clock().Now(),
 	}
 
 	for _, opt := range opts {
@@ -240,17 +240,21 @@ func nextDeviceMAC() string {
 	return fmt.Sprintf("00:00:%02x:%02x:%02x:%02x", (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF)
 }
 
-type fixedClock struct{ now time.Time }
-
-func (c *fixedClock) Now() time.Time { return c.now }
-
-func pinClock(t *testing.T, at time.Time) *fixedClock {
+func (s *Suite) pinClock(t *testing.T, at time.Time) *clock.Fixed {
 	t.Helper()
 
-	clk := &fixedClock{now: at}
-	clock.Set(t, clk)
+	clk := s.Clock()
+	previous := clk.Now()
+	clk.Set(at)
+	t.Cleanup(func() { clk.Set(previous) })
 
 	return clk
+}
+
+func (s *Suite) advanceClock(t *testing.T, d time.Duration) {
+	t.Helper()
+
+	s.pinClock(t, s.Clock().Now().Add(d))
 }
 
 // CreateDevice creates a device with default or customized values
@@ -269,8 +273,8 @@ func (s *Suite) CreateDevice(t *testing.T, opts ...DeviceOption) models.UID {
 		Info:      &models.DeviceInfo{},
 		PublicKey: "-",
 		Status:    models.DeviceStatusAccepted,
-		CreatedAt: clock.Now(),
-		LastSeen:  clock.Now(),
+		CreatedAt: s.Clock().Now(),
+		LastSeen:  s.Clock().Now(),
 	}
 
 	for _, opt := range opts {
@@ -333,8 +337,8 @@ func (s *Suite) CreateSession(t *testing.T, opts ...SessionOption) models.UID {
 		DeviceUID:     "", // Will be set below if not provided via options
 		Username:      "user_" + uniqueHex(t, 16),
 		IPAddress:     "127.0.0.1",
-		StartedAt:     clock.Now(),
-		LastSeen:      clock.Now(),
+		StartedAt:     s.Clock().Now(),
+		LastSeen:      s.Clock().Now(),
 		Active:        true,
 		Authenticated: true,
 	}
@@ -490,8 +494,8 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 		TenantID:  "", // Will be set below if not provided via options
 		Role:      authorizer.RoleAdministrator,
 		CreatedBy: "", // Will be set below if not provided via options
-		CreatedAt: clock.Now(),
-		UpdatedAt: clock.Now(),
+		CreatedAt: s.Clock().Now(),
+		UpdatedAt: s.Clock().Now(),
 		ExpiresIn: 0, // no expiration
 	}
 
@@ -559,7 +563,7 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 		Data:        []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."),
 		Fingerprint: fingerprint,
 		TenantID:    "", // Will be set below if not provided via options
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.Clock().Now(),
 		PublicKeyFields: models.PublicKeyFields{
 			Name:     "key_" + uniqueHex(t, 16),
 			Username: "",
@@ -607,7 +611,7 @@ func (s *Suite) CreatePrivateKey(t *testing.T, opts ...PrivateKeyOption) string 
 	key := &models.PrivateKey{
 		Data:        []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA..."),
 		Fingerprint: fingerprint,
-		CreatedAt:   clock.Now(),
+		CreatedAt:   s.Clock().Now(),
 	}
 
 	for _, opt := range opts {
@@ -660,9 +664,9 @@ func (s *Suite) CreateInstanceAPIKey(t *testing.T, opts ...InstanceAPIKeyOption)
 		ID:        hashedKey,
 		Name:      "instance_apikey_" + uniqueHex(t, 16),
 		CreatedBy: "",
-		CreatedAt: clock.Now(),
-		UpdatedAt: clock.Now(),
-		ExpiresAt: clock.Now().AddDate(0, 0, 30),
+		CreatedAt: s.Clock().Now(),
+		UpdatedAt: s.Clock().Now(),
+		ExpiresAt: s.Clock().Now().AddDate(0, 0, 30),
 	}
 
 	for _, opt := range opts {

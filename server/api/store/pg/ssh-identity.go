@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -21,7 +20,7 @@ func (pg *Pg) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentit
 	}
 
 	if identity.CreatedAt.IsZero() {
-		identity.CreatedAt = clock.Now()
+		identity.CreatedAt = pg.clock.Now()
 	}
 
 	e := entity.SSHIdentityFromModel(identity)
@@ -133,7 +132,7 @@ func (pg *Pg) SSHIdentityDelete(ctx context.Context, identity *models.SSHIdentit
 func (pg *Pg) SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprint string) error {
 	db := pg.GetConnection(ctx)
 
-	now := clock.Now()
+	now := pg.clock.Now()
 
 	if _, err := db.NewUpdate().
 		Model((*entity.SSHIdentity)(nil)).
@@ -151,7 +150,7 @@ func (pg *Pg) SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprin
 func (pg *Pg) SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint string) error {
 	db := pg.GetConnection(ctx)
 
-	now := clock.Now()
+	now := pg.clock.Now()
 
 	if _, err := db.NewUpdate().
 		Model((*entity.SSHIdentity)(nil)).
@@ -171,7 +170,7 @@ func (pg *Pg) SSHIdentityConsume(ctx context.Context, tenantID, fingerprint stri
 
 	res, err := db.NewUpdate().
 		Model((*entity.SSHIdentity)(nil)).
-		Set("consumed_at = ?", clock.Now()).
+		Set("consumed_at = ?", pg.clock.Now()).
 		Where("namespace_id = ?", tenantID).
 		Where("fingerprint = ?", fingerprint).
 		Where("consumed_at IS NULL").

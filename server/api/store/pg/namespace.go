@@ -7,7 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -17,7 +16,7 @@ import (
 
 // NamespaceCreate implements [store.NamespaceStore].
 func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
-	namespace.CreatedAt = clock.Now()
+	namespace.CreatedAt = pg.clock.Now()
 
 	system, err := pg.SystemGet(ctx)
 	if err != nil {
@@ -49,7 +48,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			namespace.Members = append(namespace.Members, models.Member{
 				ID:      namespace.Owner,
 				Role:    authorizer.RoleOwner,
-				AddedAt: clock.Now(),
+				AddedAt: pg.clock.Now(),
 			})
 		}
 	}
@@ -282,7 +281,7 @@ func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) 
 	}
 
 	n := entity.NamespaceFromModel(namespace)
-	n.UpdatedAt = clock.Now()
+	n.UpdatedAt = pg.clock.Now()
 
 	r, err := db.NewUpdate().Model(n).WherePK().Exec(ctx)
 	if err != nil {

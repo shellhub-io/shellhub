@@ -3,6 +3,7 @@ package storetest
 import (
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -15,6 +16,9 @@ import (
 type StoreProvider interface {
 	// Store returns the store.Store instance to be tested
 	Store() store.Store
+
+	// Clock returns the clock the store reads, which a test moves instead of the wall clock.
+	Clock() *clock.Fixed
 
 	// CleanDatabase removes all data from the database.
 	// This should be called before each test to ensure isolation.

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -85,7 +84,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	snapshot, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 
-	heartbeat := clock.Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
+	heartbeat := s.Clock().Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
 	gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: heartbeat}})
 	require.NoError(t, err)
 	require.Empty(t, gone)
@@ -116,7 +115,7 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 		require.NoError(t, err)
 		require.Nil(t, before.DisconnectedAt)
 
-		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		disconnectedAt := s.Clock().Now().UTC().Add(-time.Minute).Truncate(time.Second)
 		require.NoError(t, st.DeviceOffline(ctx, string(uid), disconnectedAt))
 
 		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
@@ -129,7 +128,7 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 	t.Run("fails for non-existent device", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.DeviceOffline(ctx, "0000000000000000000000000000000000000000000000000000000000000000", clock.Now())
+		err := st.DeviceOffline(ctx, "0000000000000000000000000000000000000000000000000000000000000000", s.Clock().Now())
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
@@ -243,7 +242,7 @@ func (s *Suite) TestUserInvitationUpdateDoesNotClobberInvitations(t *testing.T) 
 }
 
 // TestActiveSessionUpdatePreservesCreatedAt ensures ActiveSessionUpdate no longer resets the row's
-// creation timestamp to "now" (ActiveSessionFromModel always stamps clock.Now()).
+// creation timestamp to the store's now (ActiveSessionFromModel always stamps the now it is given).
 func (s *Suite) TestActiveSessionUpdatePreservesCreatedAt(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -266,7 +265,7 @@ func (s *Suite) TestActiveSessionUpdatePreservesCreatedAt(t *testing.T) {
 		Exec(ctx)
 	require.NoError(t, err)
 
-	require.NoError(t, st.ActiveSessionUpdate(ctx, &models.ActiveSession{UID: sessionUID, LastSeen: clock.Now()}))
+	require.NoError(t, st.ActiveSessionUpdate(ctx, &models.ActiveSession{UID: sessionUID, LastSeen: s.Clock().Now()}))
 
 	var got time.Time
 	require.NoError(t, db.NewSelect().

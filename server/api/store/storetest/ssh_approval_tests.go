@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +40,7 @@ func (s *Suite) TestSSHApprovalExpiryHidesTheRow(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	tenantID := s.CreateNamespace(t)
-	now := clock.Now().UTC().Truncate(time.Second)
+	now := s.Clock().Now().UTC().Truncate(time.Second)
 
 	s.newPendingApproval(t, tenantID, "AAAA1111", now.Add(time.Minute))
 
@@ -64,7 +63,7 @@ func (s *Suite) TestSSHApprovalDecideIsClaimedOnce(t *testing.T) {
 
 	tenantID := s.CreateNamespace(t)
 	userID := s.CreateUser(t)
-	now := clock.Now().UTC().Truncate(time.Second)
+	now := s.Clock().Now().UTC().Truncate(time.Second)
 
 	s.newPendingApproval(t, tenantID, "BBBB2222", now.Add(time.Minute))
 
@@ -94,7 +93,7 @@ func (s *Suite) TestSSHApprovalCleanupRemovesOnlyTheExpired(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	tenantID := s.CreateNamespace(t)
-	now := clock.Now().UTC().Truncate(time.Second)
+	now := s.Clock().Now().UTC().Truncate(time.Second)
 
 	s.newPendingApproval(t, tenantID, "CCCC3333", now.Add(-time.Hour))
 	s.newPendingApproval(t, tenantID, "DDDD4444", now.Add(time.Hour))

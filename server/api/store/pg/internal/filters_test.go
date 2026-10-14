@@ -2,6 +2,7 @@ package internal
 
 import (
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func TestParseFilterProperty_DeviceUID(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			fp := &query.FilterProperty{Name: "device_uid", Operator: "eq", Value: "abc"}
-			sqlCond, args, ok, err := ParseFilterProperty(fp, tc.tableAlias)
+			sqlCond, args, ok, err := ParseFilterProperty(fp, tc.tableAlias, time.Time{})
 			require.NoError(t, err)
 			assert.True(t, ok)
 			assert.Equal(t, "? = ?", sqlCond)
@@ -115,7 +116,7 @@ func TestParseFilterProperty_LegacyDeviceFieldAliases(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			fp := &query.FilterProperty{Name: tc.fieldName, Operator: tc.operator, Value: "manjaro"}
-			sqlCond, args, ok, err := ParseFilterProperty(fp, "")
+			sqlCond, args, ok, err := ParseFilterProperty(fp, "", time.Time{})
 			require.NoError(t, err)
 			assert.True(t, ok)
 			assert.Equal(t, tc.wantCond, sqlCond)
@@ -268,7 +269,7 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			fp := &query.FilterProperty{Name: "recorded", Operator: "bool", Value: tc.value}
-			sqlCond, args, ok, err := ParseFilterProperty(fp, "session")
+			sqlCond, args, ok, err := ParseFilterProperty(fp, "session", time.Time{})
 			assert.Equal(t, tc.wantOk, ok)
 
 			if tc.wantErr {
@@ -287,6 +288,8 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 }
 
 func TestFromOnlineFilter(t *testing.T) {
+	cutoff := time.Date(2026, 8, 12, 11, 58, 0, 0, time.UTC)
+
 	const onlineSQL = `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`
 	const offlineSQL = `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`
 
@@ -350,13 +353,13 @@ func TestFromOnlineFilter(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			sql, args, ok, err := fromOnlineFilter(tc.value)
+			sql, args, ok, err := fromOnlineFilter(tc.value, cutoff)
 			assert.Equal(t, tc.wantOk, ok)
 			assert.Equal(t, tc.wantErr, err)
 
 			if tc.wantOk {
 				assert.Equal(t, tc.wantSQL, sql)
-				require.Len(t, args, 1)
+				assert.Equal(t, []any{cutoff}, args)
 			}
 		})
 	}
@@ -444,7 +447,7 @@ func TestParseFilterProperty_Active(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			sql, args, ok, err := ParseFilterProperty(tc.fp, tc.tableAlias)
+			sql, args, ok, err := ParseFilterProperty(tc.fp, tc.tableAlias, time.Time{})
 			assert.Equal(t, tc.wantOk, ok)
 			assert.Equal(t, tc.wantSQL, sql)
 			assert.Equal(t, tc.wantArgs, args)
@@ -475,7 +478,7 @@ func TestParseFilterProperty_Closed(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			fp := &query.FilterProperty{Name: "closed", Operator: "bool", Value: tc.value}
 
-			sqlCond, args, ok, err := ParseFilterProperty(fp, "session")
+			sqlCond, args, ok, err := ParseFilterProperty(fp, "session", time.Time{})
 			require.NoError(t, err)
 			assert.True(t, ok)
 			assert.Equal(t, tc.wantSQL, sqlCond)
@@ -486,7 +489,7 @@ func TestParseFilterProperty_Closed(t *testing.T) {
 	t.Run("rejects a value that is not a boolean", func(t *testing.T) {
 		fp := &query.FilterProperty{Name: "closed", Operator: "bool", Value: "yes"}
 
-		_, _, ok, err := ParseFilterProperty(fp, "session")
+		_, _, ok, err := ParseFilterProperty(fp, "session", time.Time{})
 		require.Error(t, err)
 		assert.False(t, ok)
 	})

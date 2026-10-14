@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -21,7 +20,7 @@ func (pg *Pg) NamespaceCreateMembership(ctx context.Context, sc scope.Scope, mem
 		return err
 	}
 
-	membership.AddedAt = clock.Now()
+	membership.AddedAt = pg.clock.Now()
 	entity := entity.MembershipFromModel(tenantID, membership)
 	if _, err := db.NewInsert().Model(entity).Exec(ctx); err != nil {
 		return fromSQLError(err)
@@ -40,7 +39,7 @@ func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, sc scope.Scope, mem
 	}
 
 	e := entity.MembershipFromModel(tenantID, member)
-	e.UpdatedAt = clock.Now()
+	e.UpdatedAt = pg.clock.Now()
 	r, err := db.NewUpdate().Model(e).WherePK().Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
@@ -150,7 +149,7 @@ func (pg *Pg) keepDepartingDevices(ctx context.Context, tenantID, memberID strin
 }
 
 func (pg *Pg) removeOwnedDevices(ctx context.Context, sc scope.Scope, tenantID, memberID string) ([]string, error) {
-	now := clock.Now()
+	now := pg.clock.Now()
 
 	removed := []string{}
 	if err := pg.GetConnection(ctx).NewUpdate().

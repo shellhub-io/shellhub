@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -14,7 +13,7 @@ import (
 
 // AccessPolicyCreate implements [store.AccessPolicyStore].
 func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error) {
-	now := clock.Now()
+	now := pg.clock.Now()
 	accessPolicy.CreatedAt = now
 	accessPolicy.UpdatedAt = now
 
@@ -110,7 +109,7 @@ func (pg *Pg) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.Acces
 		db := pg.GetConnection(ctx)
 
 		e := entity.AccessPolicyFromModel(accessPolicy)
-		e.UpdatedAt = clock.Now()
+		e.UpdatedAt = pg.clock.Now()
 
 		r, err := db.NewUpdate().
 			Model(e).

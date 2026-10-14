@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -20,7 +19,7 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 		return nil, store.ErrInvalidScope
 	}
 
-	onlineDevices, err := countInScope(ctx, buildOnlineDevicesQuery(db), sc)
+	onlineDevices, err := countInScope(ctx, buildOnlineDevicesQuery(db, OnlineCutoff(pg.clock)), sc)
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +80,11 @@ func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (
 	return count, nil
 }
 
-func buildOnlineDevicesQuery(db bun.IDB) *bun.SelectQuery {
+func buildOnlineDevicesQuery(db bun.IDB, cutoff time.Time) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
 		Where("disconnected_at IS NULL").
-		Where("last_seen > ?", clock.Now().Add(-2*time.Minute)).
+		Where("last_seen > ?", cutoff).
 		Where("status = ?", "accepted")
 }
 

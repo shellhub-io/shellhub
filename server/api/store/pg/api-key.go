@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -14,8 +13,8 @@ import (
 func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	apiKey.CreatedAt = clock.Now()
-	apiKey.UpdatedAt = clock.Now()
+	apiKey.CreatedAt = pg.clock.Now()
+	apiKey.UpdatedAt = pg.clock.Now()
 	if _, err := db.NewInsert().Model(entity.APIKeyFromModel(apiKey)).Exec(ctx); err != nil {
 		return "", fromSQLError(err)
 	}
@@ -119,7 +118,7 @@ func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
 	db := pg.GetConnection(ctx)
 
 	a := entity.APIKeyFromModel(apiKey)
-	a.UpdatedAt = clock.Now()
+	a.UpdatedAt = pg.clock.Now()
 	r, err := db.NewUpdate().Model(a).OmitZero().WherePK().Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)

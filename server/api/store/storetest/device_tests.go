@@ -7,7 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -72,9 +71,9 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		s.CreateDevice(t, WithDeviceName("device-1"))
-		time.Sleep(10 * time.Millisecond)
+		s.advanceClock(t, 10*time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-2"))
-		time.Sleep(10 * time.Millisecond)
+		s.advanceClock(t, 10*time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-3"))
 
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
@@ -91,9 +90,9 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		s.CreateDevice(t, WithDeviceName("device-1"))
-		time.Sleep(10 * time.Millisecond)
+		s.advanceClock(t, 10*time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-2"))
-		time.Sleep(10 * time.Millisecond)
+		s.advanceClock(t, 10*time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-3"))
 
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
@@ -414,7 +413,7 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 				MAC: "aa:bb:cc:dd:ee:ff",
 			},
 			TenantID:  tenantID,
-			LastSeen:  clock.Now(),
+			LastSeen:  s.Clock().Now(),
 			PublicKey: "-",
 			Info:      &models.DeviceInfo{},
 		}
@@ -703,8 +702,8 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-2"))
 
 		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
-			{UID: "nonexistent1", At: clock.Now()},
-			{UID: "nonexistent2", At: clock.Now()},
+			{UID: "nonexistent1", At: s.Clock().Now()},
+			{UID: "nonexistent2", At: s.Clock().Now()},
 		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{"nonexistent1", "nonexistent2"}, gone)
@@ -716,7 +715,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
 
-		newTime := clock.Now()
+		newTime := s.Clock().Now()
 		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
 			{UID: string(uid1), At: newTime},
 			{UID: string(uid2), At: newTime},
@@ -737,7 +736,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
 
-		earlier := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		earlier := s.Clock().Now().UTC().Add(-time.Minute).Truncate(time.Second)
 		later := earlier.Add(30 * time.Second)
 
 		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
@@ -760,7 +759,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		staleUID := s.CreateDevice(t, WithDeviceName("device-stale"))
 		freshUID := s.CreateDevice(t, WithDeviceName("device-fresh"))
 
-		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		disconnectedAt := s.Clock().Now().UTC().Add(-time.Minute).Truncate(time.Second)
 		require.NoError(t, st.DeviceOffline(ctx, string(staleUID), disconnectedAt))
 		require.NoError(t, st.DeviceOffline(ctx, string(freshUID), disconnectedAt))
 
@@ -786,7 +785,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 
 		uid := s.CreateDevice(t)
 
-		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
+		disconnectedAt := s.Clock().Now().UTC().Add(-time.Minute).Truncate(time.Second)
 		require.NoError(t, st.DeviceOffline(ctx, string(uid), disconnectedAt))
 
 		_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: disconnectedAt}})
@@ -802,7 +801,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 
 		uid := s.CreateDevice(t)
 
-		_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: clock.Now()}})
+		_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: s.Clock().Now()}})
 		require.NoError(t, err)
 
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
@@ -823,8 +822,8 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		require.NoError(t, st.NamespaceDelete(ctx, namespace))
 
 		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
-			{UID: string(kept), At: clock.Now()},
-			{UID: string(deleted), At: clock.Now()},
+			{UID: string(kept), At: s.Clock().Now()},
+			{UID: string(deleted), At: s.Clock().Now()},
 		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{string(deleted)}, gone)
@@ -833,7 +832,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 	t.Run("reports a removed device as gone and leaves its last_seen alone", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		lastSeen := clock.Now().UTC().Add(-time.Hour).Truncate(time.Second)
+		lastSeen := s.Clock().Now().UTC().Add(-time.Hour).Truncate(time.Second)
 		removedAt := lastSeen
 		kept := s.CreateDevice(t, WithDeviceName("device-1"))
 		removed := s.CreateDevice(t,
@@ -844,8 +843,8 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		)
 
 		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{
-			{UID: string(kept), At: clock.Now()},
-			{UID: string(removed), At: clock.Now()},
+			{UID: string(kept), At: s.Clock().Now()},
+			{UID: string(removed), At: s.Clock().Now()},
 		})
 		require.NoError(t, err)
 		assert.Equal(t, []string{string(removed)}, gone)

@@ -17,7 +17,7 @@ import (
 func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
 	db := pg.GetConnection(ctx)
 
-	device.CreatedAt = clock.Now()
+	device.CreatedAt = pg.clock.Now()
 
 	e := entity.DeviceFromModel(device)
 	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
@@ -72,7 +72,7 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 
 	entities := make([]entity.Device, 0)
 
-	onlineExpr, onlineThreshold := deviceExprOnline(clock.Now().Add(-2 * time.Minute))
+	onlineExpr, onlineThreshold := deviceExprOnline(OnlineCutoff(pg.clock))
 	query := db.
 		NewSelect().
 		Model(&entities).
@@ -112,7 +112,7 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 		Model(&entities).
 		Where("ephemeral = TRUE").
 		Where("disconnected_at IS NOT NULL").
-		Where("disconnected_at + make_interval(mins => ephemeral_timeout) < ?", clock.Now()).
+		Where("disconnected_at + make_interval(mins => ephemeral_timeout) < ?", pg.clock.Now()).
 		Limit(1000).
 		Scan(ctx)
 	if err != nil {
@@ -138,7 +138,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.
 
 	d := new(entity.Device)
 
-	onlineExpr, onlineThreshold := deviceExprOnline(clock.Now().Add(-2 * time.Minute))
+	onlineExpr, onlineThreshold := deviceExprOnline(OnlineCutoff(pg.clock))
 	query := db.
 		NewSelect().
 		Model(d).
@@ -176,7 +176,7 @@ func (pg *Pg) deviceUpdate(ctx context.Context, device *models.Device, unlessRem
 	db := pg.GetConnection(ctx)
 
 	d := entity.DeviceFromModel(device)
-	d.UpdatedAt = clock.Now()
+	d.UpdatedAt = pg.clock.Now()
 
 	query := db.NewUpdate().Model(d).Where("id = ?", d.ID).Where("namespace_id = ?", d.NamespaceID)
 	if unlessRemoved {
@@ -412,10 +412,11 @@ func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun
 	}
 }
 
-// DeviceOnlineThreshold is the base duration used to determine if a device
-// is online. A device is considered online when its last_seen timestamp is
-// within 2 × DeviceOnlineThreshold of the current time.
-const DeviceOnlineThreshold = time.Minute
+// OnlineCutoff returns the instant, at c's now, that a device's last_seen must be after to count
+// as online: [models.DeviceOnlineWindow] before now.
+func OnlineCutoff(c clock.Clock) time.Time {
+	return c.Now().Add(-models.DeviceOnlineWindow)
+}
 
 // DeviceIsOnline reports whether the device should be considered online
 // based on the given threshold time. A device is online when it has not

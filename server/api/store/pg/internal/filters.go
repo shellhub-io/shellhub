@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/uptrace/bun"
 )
 
@@ -40,7 +39,7 @@ func qualifyColumn(column, tableAlias string) bun.Ident {
 	return bun.Ident(column)
 }
 
-func fromOnlineFilter(value any) (string, []any, bool, error) {
+func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, error) {
 	var isOnline bool
 
 	switch v := value.(type) {
@@ -57,8 +56,6 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	default:
 		return "", nil, false, ErrUnsupportedBoolType
 	}
-
-	threshold := clock.Now().Add(-2 * time.Minute)
 
 	if isOnline {
 		return `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`, []any{threshold}, true, nil
@@ -124,10 +121,11 @@ func ParseFilterOperator(op *query.FilterOperator) (string, bool) {
 // tableAlias, when non-empty, qualifies column names to avoid ambiguity in
 // queries with JOINs (e.g. "device.name" instead of just "name").
 // It returns a SQL condition string, SQL arguments array, boolean indicating
-// if the operator is valid and an error, if any.
-func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, []any, bool, error) {
+// if the operator is valid and an error, if any. The online filter counts a
+// device as online when its last_seen is after onlineCutoff.
+func ParseFilterProperty(fp *query.FilterProperty, tableAlias string, onlineCutoff time.Time) (string, []any, bool, error) {
 	if fp.Name == "online" {
-		return fromOnlineFilter(fp.Value)
+		return fromOnlineFilter(fp.Value, onlineCutoff)
 	}
 
 	if fp.Name == "active" {

@@ -92,7 +92,7 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 
 	t.Run("counts only devices seen within the window", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
-		pinClock(t, now)
+		s.pinClock(t, now)
 
 		tenantID := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"), WithDeviceLastSeen(now.Add(-1*time.Minute)))
@@ -108,7 +108,7 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 
 	t.Run("moving the clock past the window takes a device offline", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
-		clk := pinClock(t, now)
+		clk := s.pinClock(t, now)
 
 		tenantID := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"), WithDeviceLastSeen(now.Add(-1*time.Minute)))
@@ -117,7 +117,7 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(1), stats.OnlineDevices)
 
-		clk.now = now.Add(2 * time.Minute)
+		clk.Set(now.Add(2 * time.Minute))
 
 		stats, err = st.GetStats(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)

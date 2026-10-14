@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -15,7 +14,7 @@ import (
 func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	db := pg.GetConnection(ctx)
 
-	now := clock.Now()
+	now := pg.clock.Now()
 	invitation.ID = uuid.Generate()
 	invitation.CreatedAt = now
 	invitation.UpdatedAt = now
@@ -73,7 +72,7 @@ func (pg *Pg) MembershipInvitationResolveBySig(ctx context.Context, sig string) 
 		Relation("UserInvitation").
 		Where("membership_invitation.sig = ?", sig).
 		Where("membership_invitation.status = ?", models.MembershipInvitationStatusPending).
-		Where("membership_invitation.expires_at > ?", clock.Now()).
+		Where("membership_invitation.expires_at > ?", pg.clock.Now()).
 		Limit(1).
 		Scan(ctx)
 	if err != nil {
@@ -87,7 +86,7 @@ func (pg *Pg) MembershipInvitationResolveBySig(ctx context.Context, sig string) 
 func (pg *Pg) MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	db := pg.GetConnection(ctx)
 
-	invitation.UpdatedAt = clock.Now()
+	invitation.UpdatedAt = pg.clock.Now()
 
 	e := entity.MembershipInvitationFromModel(invitation)
 

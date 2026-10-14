@@ -22,14 +22,14 @@ func TestMigrateMigrationLock(t *testing.T) {
 	t.Run("holder died without unlocking", func(t *testing.T) {
 		dbtest.CloseWithoutUnlocking(t, ctx, dbtest.HoldAdvisoryLock(t, ctx, db, options.MigrationLockKey))
 
-		require.NoError(t, options.Migrate()(ctx, db))
+		require.NoError(t, options.Migrate()(ctx, &options.Store{DB: db}))
 	})
 
 	t.Run("holder alive", func(t *testing.T) {
 		holder := dbtest.HoldAdvisoryLock(t, ctx, db, options.MigrationLockKey)
 
 		done := make(chan error, 1)
-		go func() { done <- options.Migrate()(ctx, db) }()
+		go func() { done <- options.Migrate()(ctx, &options.Store{DB: db}) }()
 
 		dbtest.RequireAdvisoryLockWaiter(t, ctx, db, options.MigrationLockKey)
 
@@ -52,7 +52,7 @@ func TestMigrateMigrationLock(t *testing.T) {
 		defer cancel()
 
 		done := make(chan error, 1)
-		go func() { done <- options.Migrate()(waitCtx, db) }()
+		go func() { done <- options.Migrate()(waitCtx, &options.Store{DB: db}) }()
 
 		dbtest.RequireAdvisoryLockWaiter(t, ctx, db, options.MigrationLockKey)
 		cancel()
@@ -61,12 +61,12 @@ func TestMigrateMigrationLock(t *testing.T) {
 		_, err := holder.ExecContext(ctx, "SELECT pg_advisory_unlock(?)", options.MigrationLockKey)
 		require.NoError(t, err)
 
-		require.NoError(t, options.Migrate()(ctx, db))
+		require.NoError(t, options.Migrate()(ctx, &options.Store{DB: db}))
 	})
 
 	t.Run("stale row in the old lock table", func(t *testing.T) {
 		execSQL(t, ctx, db, "INSERT INTO bun_migration_locks (table_name) VALUES ('bun_migrations')")
 
-		require.NoError(t, options.Migrate()(ctx, db))
+		require.NoError(t, options.Migrate()(ctx, &options.Store{DB: db}))
 	})
 }

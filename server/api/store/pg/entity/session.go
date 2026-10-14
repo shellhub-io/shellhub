@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/uptrace/bun"
 )
@@ -45,8 +44,8 @@ type Session struct {
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 }
 
-// SessionFromModel projects a session into its row form.
-func SessionFromModel(model *models.Session) *Session {
+// SessionFromModel projects a session into its row form, stamping now as its update time.
+func SessionFromModel(model *models.Session, now time.Time) *Session {
 	session := &Session{
 		ID:            model.UID,
 		NamespaceID:   model.TenantID,
@@ -62,7 +61,7 @@ func SessionFromModel(model *models.Session) *Session {
 		Web:           model.Web,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
-		UpdatedAt:     clock.Now(),
+		UpdatedAt:     now,
 	}
 
 	return session
@@ -110,19 +109,20 @@ type ActiveSession struct {
 
 	SessionID string    `bun:"session_id,pk"`
 	SeenAt    time.Time `bun:"seen_at"`
-	// skipupdate: ActiveSessionFromModel always stamps clock.Now(), so without this every
+	// skipupdate: ActiveSessionFromModel always stamps the now it is given, so without this every
 	// ActiveSessionUpdate would reset created_at to "now".
 	CreatedAt time.Time `bun:"created_at,skipupdate"`
 
 	Session *Session `bun:"rel:belongs-to,join:session_id=id"`
 }
 
-// ActiveSessionFromModel projects a liveness record into its row form, stamping the current time.
-func ActiveSessionFromModel(model *models.ActiveSession) *ActiveSession {
+// ActiveSessionFromModel projects a liveness record into its row form, stamping now as its creation
+// time.
+func ActiveSessionFromModel(model *models.ActiveSession, now time.Time) *ActiveSession {
 	return &ActiveSession{
 		SessionID: string(model.UID),
 		SeenAt:    model.LastSeen,
-		CreatedAt: clock.Now(),
+		CreatedAt: now,
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -67,8 +66,7 @@ func TestSessionFromModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clock.Freeze(t, now)
-			result := SessionFromModel(tt.model)
+			result := SessionFromModel(tt.model, now)
 			tt.check(t, result)
 		})
 	}
@@ -201,8 +199,7 @@ func TestActiveSessionFromModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clock.Freeze(t, now)
-			result := ActiveSessionFromModel(tt.model)
+			result := ActiveSessionFromModel(tt.model, now)
 			tt.check(t, result)
 		})
 	}

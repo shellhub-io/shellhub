@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,7 @@ func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -67,7 +66,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		createdInvitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -96,7 +95,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 
 		cancelled := &models.MembershipInvitation{
 			TenantID:    tenantID,
@@ -109,7 +108,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		}
 		require.NoError(t, st.MembershipInvitationCreate(ctx, cancelled))
 
-		time.Sleep(2 * time.Millisecond)
+		s.advanceClock(t, 2*time.Millisecond)
 
 		pending := &models.MembershipInvitation{
 			TenantID:    tenantID,
@@ -151,7 +150,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -179,7 +178,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiredAt := clock.Now().Add(-1 * time.Hour)
+		expiredAt := s.Clock().Now().Add(-1 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -204,7 +203,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiredAt := clock.Now().Add(-1 * time.Hour)
+		expiredAt := s.Clock().Now().Add(-1 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -217,7 +216,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		}
 		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation.ExpiresAt = &expiresAt
 		invitation.Sig = "FRESHSIG1234"
 		invitation.Invitations = 2
@@ -239,7 +238,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -286,7 +285,7 @@ func (s *Suite) TestMembershipInvitationUpdate(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,
@@ -332,7 +331,7 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 		invitedBy := s.CreateUser(t)
 		invitedUser := s.CreateUser(t)
 
-		expiresAt := clock.Now().Add(7 * 24 * time.Hour)
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
 		invitation := &models.MembershipInvitation{
 			TenantID:    tenantID,
 			UserID:      invitedUser,

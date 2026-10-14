@@ -6,7 +6,6 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store/pg/migrations"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/migrator"
 	log "github.com/sirupsen/logrus"
-	"github.com/uptrace/bun"
 )
 
 // Migrate runs the pending migrations at startup, so a deployment does not need a separate
@@ -14,7 +13,9 @@ import (
 // the first migration it did not finish. It holds [MigrationLockKey] while migrating, so a replica
 // booting during another one's migration waits for it instead of failing.
 func Migrate() Option {
-	return func(ctx context.Context, db *bun.DB) error {
+	return func(ctx context.Context, store *Store) error {
+		db := store.DB
+
 		return WithMigrationLock(ctx, db, MigrationLockKey, func(ctx context.Context) error {
 			log.Info("starting database migration")
 
