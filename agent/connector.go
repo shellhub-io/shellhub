@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/docker/docker/api/types/container"
@@ -14,7 +15,6 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
@@ -255,7 +255,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		"hostname":       cfg.PreferredHostname,
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
-		"timestamp":      clock.Now(),
+		"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 		"version":        cfg.Version,
 	}).Info("Connector container started")
 
@@ -267,7 +267,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"hostname":       cfg.PreferredHostname,
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
-			"timestamp":      clock.Now(),
+			"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 			"version":        cfg.Version,
 		}).Fatal("Failed to create connector mode")
 	}
@@ -295,7 +295,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		"hostname":       cfg.PreferredHostname,
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
-		"timestamp":      clock.Now(),
+		"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 		"version":        cfg.Version,
 	}).Info("Listening for connections")
 
@@ -306,7 +306,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"hostname":       cfg.PreferredHostname,
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
-			"timestamp":      clock.Now(),
+			"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 			"version":        cfg.Version,
 		}).Fatal("Failed to listen for connections")
 	}

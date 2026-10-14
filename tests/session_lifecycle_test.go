@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -133,7 +132,7 @@ func dialWebTerminal(t *testing.T, ctx context.Context, compose *environment.Doc
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = conn.Close() })
 
-	require.NoError(t, conn.SetReadDeadline(clock.Now().Add(30*time.Second)))
+	require.NoError(t, conn.SetReadDeadline(wallClock.Now().Add(30*time.Second)))
 
 	for {
 		var frame []byte

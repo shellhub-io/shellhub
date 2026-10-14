@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -82,13 +81,13 @@ func fullLicenseWhere(change func(license *environment.License)) environment.Lic
 
 func expiredLicense() environment.License {
 	return fullLicenseWhere(func(license *environment.License) {
-		license.ExpiresAt = clock.Now().Add(-time.Hour).Unix()
+		license.ExpiresAt = wallClock.Now().Add(-time.Hour).Unix()
 	})
 }
 
 func notYetStartedLicense() environment.License {
 	return fullLicenseWhere(func(license *environment.License) {
-		license.StartsAt = clock.Now().Add(24 * time.Hour).Unix()
+		license.StartsAt = wallClock.Now().Add(24 * time.Hour).Unix()
 	})
 }
 

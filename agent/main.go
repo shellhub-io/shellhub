@@ -19,7 +19,6 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -390,8 +389,8 @@ waits until the device is accepted, rejected, or the code expires.`,
 
 			printPairingInstructions(cmd, cfg.ServerAddress, code.Code, code.ExpiresIn)
 
-			deadline := clock.Now().Add(time.Duration(code.ExpiresIn) * time.Second)
-			for clock.Now().Before(deadline) {
+			deadline := time.Now().Add(time.Duration(code.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
+			for time.Now().Before(deadline) {                                       //nolint:forbidigo // a deadline
 				time.Sleep(3 * time.Second)
 
 				status, err := ag.DeviceStatus()
@@ -481,8 +480,8 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	log.Infof("Or open the link directly: %s", url)
 	log.Infof("Waiting for acceptance... (code expires in %d minutes)", pairing.ExpiresIn/60)
 
-	deadline := clock.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second)
-	for clock.Now().Before(deadline) {
+	deadline := time.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
+	for time.Now().Before(deadline) {                                          //nolint:forbidigo // a deadline
 		select {
 		case <-ctx.Done():
 			return "", ctx.Err()
@@ -553,8 +552,8 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 
 	printPairingInstructions(cmd, cfg.ServerAddress, pairing.Code, pairing.ExpiresIn)
 
-	deadline := clock.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second)
-	for clock.Now().Before(deadline) {
+	deadline := time.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
+	for time.Now().Before(deadline) {                                          //nolint:forbidigo // a deadline
 		time.Sleep(3 * time.Second)
 
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {

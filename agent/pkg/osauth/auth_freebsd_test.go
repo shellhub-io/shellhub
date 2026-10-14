@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +17,7 @@ func masterPasswdLine(username, change, expire string) string {
 }
 
 func TestAuthUserFromShadowExpiry(t *testing.T) {
-	clock.Freeze(t, time.Unix(1800000000, 0))
+	now := time.Unix(1800000000, 0)
 
 	tests := []struct {
 		name   string
@@ -56,32 +55,32 @@ func TestAuthUserFromShadowExpiry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			masterPasswd := strings.NewReader(masterPasswdLine("user", tt.change, tt.expire))
 
-			assert.Equal(t, tt.want, AuthUserFromShadow("user", "123", masterPasswd))
+			assert.Equal(t, tt.want, AuthUserFromShadow("user", "123", masterPasswd, now))
 		})
 	}
 }
 
 func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
-	clock.Freeze(t, time.Unix(1800000000, 0))
+	now := time.Unix(1800000000, 0)
 
 	masterPasswd := masterPasswdLine("bad", "0", "never") + masterPasswdLine("good", "0", "0")
 
-	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(masterPasswd)))
-	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(masterPasswd)))
-	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(masterPasswd)))
+	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(masterPasswd), now))
+	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(masterPasswd), now))
+	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(masterPasswd), now))
 }
 
 func TestAccountExpiredFromShadow(t *testing.T) {
-	clock.Freeze(t, time.Unix(1800000000, 0))
+	now := time.Unix(1800000000, 0)
 
 	masterPasswd := masterPasswdLine("expired", "0", "1800000000") +
 		masterPasswdLine("changed", "1700000000", "0") +
 		masterPasswdLine("active", "0", "1800000001")
 
-	assert.True(t, AccountExpiredFromShadow("expired", strings.NewReader(masterPasswd)))
-	assert.False(t, AccountExpiredFromShadow("changed", strings.NewReader(masterPasswd)))
-	assert.False(t, AccountExpiredFromShadow("active", strings.NewReader(masterPasswd)))
-	assert.False(t, AccountExpiredFromShadow("missing", strings.NewReader(masterPasswd)))
+	assert.True(t, AccountExpiredFromShadow("expired", strings.NewReader(masterPasswd), now))
+	assert.False(t, AccountExpiredFromShadow("changed", strings.NewReader(masterPasswd), now))
+	assert.False(t, AccountExpiredFromShadow("active", strings.NewReader(masterPasswd), now))
+	assert.False(t, AccountExpiredFromShadow("missing", strings.NewReader(masterPasswd), now))
 }
 
 func TestVerifyPasswordHashEmptyHash(t *testing.T) {

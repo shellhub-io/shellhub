@@ -100,11 +100,12 @@ linters:
             joins. Use pg.ScanThenCount, which runs them one after the other.
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
         - pattern: ^time\.Now$
-          msg: use clock.Now() so a test can control it. If this is an elapsed-time
-            measurement or a deadline, keep time.Now and add //nolint:forbidigo saying which.
-        - pattern: ^(clock|uuid|osauth)\.DefaultBackend$
-          msg: a swapped backend outlives the test that set it. Use clock.Freeze, clock.Set,
-            uuid.Fix, uuid.Set or osauth.Set, which put the previous one back when the test ends.
+          msg: read the time from the clock.Clock the component was built with, so a test can
+            control it. If this is an elapsed-time measurement, a deadline or a log timestamp,
+            keep time.Now and add //nolint:forbidigo saying which.
+        - pattern: ^(uuid|osauth)\.DefaultBackend$
+          msg: a swapped backend outlives the test that set it. Use uuid.Fix, uuid.Set or
+            osauth.Set, which put the previous one back when the test ends.
         - pattern: ^os\.(Getenv|LookupEnv)$
           msg: parse the environment once at the entrypoint, with envs.Parse over envs.OS(),
             and pass the value down.

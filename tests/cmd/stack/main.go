@@ -19,6 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var wallClock = clock.New()
+
 const (
 	adminUsername  = "e2e-admin"
 	adminPassword  = "e2e-password"
@@ -85,8 +87,8 @@ func writeState(s *stateFile, name string) error {
 
 func expiredLicense(issuer *environment.LicenseIssuer) ([]byte, error) {
 	license := environment.FullLicense()
-	license.StartsAt = clock.Now().Add(-2 * 365 * 24 * time.Hour).Unix()
-	license.ExpiresAt = clock.Now().Add(-365 * 24 * time.Hour).Unix()
+	license.StartsAt = wallClock.Now().Add(-2 * 365 * 24 * time.Hour).Unix()
+	license.ExpiresAt = wallClock.Now().Add(-365 * 24 * time.Hour).Unix()
 
 	return issuer.Sign(license)
 }

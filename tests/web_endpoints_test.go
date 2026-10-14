@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/container"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -332,9 +331,9 @@ func testWebEndpointLifetime(t *testing.T, compose *environment.DockerCompose, e
 
 		time.Sleep(2 * time.Second)
 
-		before := clock.Now()
+		before := wallClock.Now()
 		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
-		after := clock.Now()
+		after := wallClock.Now()
 
 		accessed := listedWebEndpoint(t, compose, endpoint.Address)
 		assert.True(t, accessed.ExpiresIn.After(created.ExpiresIn.Add(time.Second)), "the expiry %s did not move past %s", accessed.ExpiresIn, created.ExpiresIn)
@@ -354,7 +353,7 @@ func testWebEndpointLifetime(t *testing.T, compose *environment.DockerCompose, e
 		endpoint := compose.CreateWebEndpoint(t, withTTL(ttl))
 		pastFirstExpiry := endpoint.CreatedAt.Add(ttl*time.Second + time.Second)
 
-		for clock.Now().Before(pastFirstExpiry) {
+		for wallClock.Now().Before(pastFirstExpiry) {
 			requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
 			time.Sleep(time.Second)
 		}

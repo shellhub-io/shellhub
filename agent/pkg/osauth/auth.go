@@ -12,13 +12,13 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GehirnInc/crypt"
 	_ "github.com/GehirnInc/crypt/md5_crypt"    // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha256_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha512_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	"github.com/shellhub-io/shellhub/agent/pkg/yescrypt"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,7 +42,7 @@ func (b *backend) AuthUser(username, password string) bool {
 	}
 	defer file.Close() //nolint:errcheck
 
-	return AuthUserFromShadow(username, password, file)
+	return AuthUserFromShadow(username, password, file, time.Now()) //nolint:forbidigo // shadow aging is judged against the host's wall clock
 }
 
 func (b *backend) AccountExpired(username string) bool {
@@ -62,7 +62,7 @@ func (b *backend) AccountExpired(username string) bool {
 	}
 	defer file.Close() //nolint:errcheck // read-only file, nothing to flush
 
-	return AccountExpiredFromShadow(username, file)
+	return AccountExpiredFromShadow(username, file, time.Now()) //nolint:forbidigo // shadow aging is judged against the host's wall clock
 }
 
 func (b *backend) LookupUser(username string) (*User, error) {
@@ -101,8 +101,8 @@ var (
 	errPasswordChangeRequired = errors.New("password must be changed before login")
 )
 
-func daysSinceEpoch() int {
-	return int(clock.Now().Unix() / secondsPerDay)
+func daysSinceEpoch(now time.Time) int {
+	return int(now.Unix() / secondsPerDay)
 }
 
 func (e shadowEntry) checkAccountExpiry(today int) error {
@@ -154,7 +154,8 @@ func AccountExpired(username string) bool {
 // AuthUserFromShadow attempts to authenticate username and password from file. It refuses an
 // account whose shadow entry has expired, or whose password has aged out or must be changed,
 // even when the password matches, because the agent cannot run the change a local login would.
-func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
+// The entry's aging is judged as of now.
+func AuthUserFromShadow(username, password string, shadow io.Reader, now time.Time) bool {
 	entry, ok := parseShadowReader(shadow)[username]
 	if !ok {
 		logrus.WithFields(logrus.Fields{
@@ -176,7 +177,7 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 		return false
 	}
 
-	if err := entry.checkPasswordLogin(daysSinceEpoch()); err != nil {
+	if err := entry.checkPasswordLogin(daysSinceEpoch(now)); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"username": username,
 		}).WithError(err).Error("Refusing login")
@@ -189,8 +190,8 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 
 // AccountExpiredFromShadow reports whether the account's entry in shadow has expired. It returns
 // true when the account's line cannot be parsed, and false when the account has no entry, as an
-// account without one has no expiry to enforce.
-func AccountExpiredFromShadow(username string, shadow io.Reader) bool {
+// account without one has no expiry to enforce. The entry's expiry is judged as of now.
+func AccountExpiredFromShadow(username string, shadow io.Reader, now time.Time) bool {
 	entry, ok := parseShadowReader(shadow)[username]
 	if !ok {
 		return false
@@ -204,7 +205,7 @@ func AccountExpiredFromShadow(username string, shadow io.Reader) bool {
 		return true
 	}
 
-	if err := entry.checkAccountExpiry(daysSinceEpoch()); err != nil {
+	if err := entry.checkAccountExpiry(daysSinceEpoch(now)); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"username": username,
 		}).WithError(err).Error("Refusing login")

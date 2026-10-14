@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -26,7 +25,7 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 		req := newKeyedDeviceAuthRequest(t, key.Key, "evented", "02:00:00:00:70:01")
 		presented, err := devicekey.ParsePublicKey(req.PublicKey)
 		require.NoError(t, err)
-		before := clock.Now()
+		before := wallClock.Now()
 
 		device := enroll(t, compose, req)
 
@@ -50,7 +49,7 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, ssh.FingerprintSHA256(presented), event.Fingerprint)
 		assert.False(t, event.Ephemeral)
 		assert.False(t, event.ReRegistration)
-		assert.WithinRange(t, event.Timestamp, before.Add(-time.Minute), clock.Now().Add(time.Minute))
+		assert.WithinRange(t, event.Timestamp, before.Add(-time.Minute), wallClock.Now().Add(time.Minute))
 		assert.Equal(t, models.DeviceStatusPending, event.DeviceStatus)
 		assert.Empty(t, event.DecidedStatus)
 		assert.Nil(t, event.DecidedAt)
@@ -83,7 +82,7 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			device := enroll(t, compose, newKeyedDeviceAuthRequest(t, key.Key, tc.hostname, tc.mac))
-			before := clock.Now()
+			before := wallClock.Now()
 
 			compose.UpdateDeviceStatus(t, device.UID, tc.decision)
 
@@ -91,7 +90,7 @@ func testEnrollmentEvents(t *testing.T, compose *environment.DockerCompose) {
 			require.NotNil(t, event, "the enrollment recorded no event")
 			assert.Equal(t, tc.status, event.DecidedStatus)
 			if assert.NotNil(t, event.DecidedAt) {
-				assert.WithinRange(t, *event.DecidedAt, before.Add(-time.Minute), clock.Now().Add(time.Minute))
+				assert.WithinRange(t, *event.DecidedAt, before.Add(-time.Minute), wallClock.Now().Add(time.Minute))
 			}
 		})
 	}
