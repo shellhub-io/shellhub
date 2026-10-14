@@ -56,7 +56,7 @@ func testEnrollmentLimits(t *testing.T, compose *environment.DockerCompose) {
 
 		require.NoError(t, compose.SetNamespaceMaxDevices(t.Context(), ShellHubNamespace, -1))
 
-		awaitStatusOnReauth(t, compose, req, over.UID, models.DeviceStatusAccepted)
+		requireStatusOnReauth(t, compose, req, over.UID, models.DeviceStatusAccepted)
 		compose.AwaitProvisioningKeyUses(t, "automatic-limited", 2)
 	})
 }

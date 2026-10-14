@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"bytes"
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
@@ -18,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	rediscache "github.com/go-redis/cache/v9"
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -543,31 +545,114 @@ func (s *Stack) CopyCacheEntry(ctx context.Context, from, to string) error {
 	return s.cacheCommand(ctx, "COPY", from, to)
 }
 
-func (s *Stack) cacheCommand(ctx context.Context, args ...string) error {
+// DropCacheEntry deletes the cache entry key, which the cache may no longer hold because it expired
+// on its own. ctx bounds the exec. It returns the errors [Stack.ExpireCacheEntryIn] does, except
+// the one for an absent key, and an error when the CLI replies anything but a count of 0 or 1.
+func (s *Stack) DropCacheEntry(ctx context.Context, key string) error {
+	reply, err := s.cacheReply(ctx, "DEL", key)
+	if err != nil {
+		return err
+	}
+
+	if reply != "0" && reply != "1" {
+		return fmt.Errorf("valkey-cli DEL %s replied %q", key, reply)
+	}
+
+	return nil
+}
+
+// MoveCachedTimeBack moves the time the cache entry key holds back by age, decoding and encoding it
+// the way the server's cache does, and leaves the entry with no expiry. ctx bounds the execs. It
+// returns the errors [Stack.ExpireCacheEntryIn] does, an error when the entry does not decode as a
+// time or the moved time does not encode, and an error when the CLI does not acknowledge the write.
+func (s *Stack) MoveCachedTimeBack(ctx context.Context, key string, age time.Duration) error {
 	cache := s.Service(ServiceRedis)
 	if cache == nil {
 		return errors.New("the stack runs no cache")
 	}
 
-	code, output, err := cache.Exec(ctx, append([]string{"valkey-cli"}, args...), tcexec.Multiplexed())
+	stored, err := execOutput(ctx, cache, []string{"valkey-cli", "GET", key})
 	if err != nil {
 		return err
+	}
+
+	stored = bytes.TrimSuffix(stored, []byte("\n"))
+	if len(stored) == 0 {
+		return fmt.Errorf("the cache holds no entry named %s", key)
+	}
+
+	codec := rediscache.New(&rediscache.Options{})
+
+	var at time.Time
+	if err := codec.Unmarshal(stored, &at); err != nil {
+		return err
+	}
+
+	moved, err := codec.Marshal(at.Add(-age))
+	if err != nil {
+		return err
+	}
+
+	var escaped strings.Builder
+	for _, b := range moved {
+		fmt.Fprintf(&escaped, `\%03o`, b)
+	}
+
+	reply, err := execOutput(ctx, cache, []string{"sh", "-c", `printf "$0" | valkey-cli -x SET "$1"`, escaped.String(), key})
+	if err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(string(reply)) != "OK" {
+		return fmt.Errorf("valkey-cli SET %s replied %q", key, reply)
+	}
+
+	return nil
+}
+
+func execOutput(ctx context.Context, c *tc.DockerContainer, cmd []string) ([]byte, error) {
+	code, output, err := c.Exec(ctx, cmd, tcexec.Multiplexed())
+	if err != nil {
+		return nil, err
 	}
 
 	body, err := io.ReadAll(output)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if code != 0 {
-		return fmt.Errorf("valkey-cli exited with %d: %s", code, body)
+		return nil, fmt.Errorf("%s exited with %d: %s", cmd[0], code, body)
 	}
 
-	if reply := strings.TrimSpace(string(body)); reply != "1" {
+	return body, nil
+}
+
+func (s *Stack) cacheCommand(ctx context.Context, args ...string) error {
+	reply, err := s.cacheReply(ctx, args...)
+	if err != nil {
+		return err
+	}
+
+	if reply != "1" {
 		return fmt.Errorf("valkey-cli %v changed nothing: it replied %q", args, reply)
 	}
 
 	return nil
+}
+
+func (s *Stack) cacheReply(ctx context.Context, args ...string) (string, error) {
+	cache := s.Service(ServiceRedis)
+	if cache == nil {
+		return "", errors.New("the stack runs no cache")
+	}
+
+	body, err := execOutput(ctx, cache, append([]string{"valkey-cli"}, args...))
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(body)), nil
 }
 
 // NewUser creates a user via the server's admin CLI.

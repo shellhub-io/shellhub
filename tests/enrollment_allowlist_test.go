@@ -68,7 +68,7 @@ func testAllowlistEnrollment(t *testing.T, compose *environment.DockerCompose) {
 			"allowed_identities": []string{"02:00:00:00:30:03"},
 		})
 
-		awaitStatusOnReauth(t, compose, listedReq, listed.UID, models.DeviceStatusAccepted)
-		awaitStatusOnReauth(t, compose, unlistedReq, unlisted.UID, models.DeviceStatusRejected)
+		requireStatusOnReauth(t, compose, listedReq, listed.UID, models.DeviceStatusAccepted)
+		requireStatusOnReauth(t, compose, unlistedReq, unlisted.UID, models.DeviceStatusRejected)
 	})
 }
