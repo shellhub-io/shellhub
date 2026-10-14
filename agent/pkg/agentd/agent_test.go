@@ -12,11 +12,9 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
 	client_mocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,8 +37,9 @@ func ExampleNewAgent() {
 }
 
 func TestLoadConfigFromEnv(t *testing.T) {
-	envMock := new(env_mocks.MockBackend)
-	envs.Set(t, envMock)
+	t.Parallel()
+
+	privateKey := filepath.Join(t.TempDir(), "shellhub.key")
 
 	type expected struct {
 		cfg    *Config
@@ -49,17 +48,13 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 
 	tests := []struct {
-		description   string
-		requiredMocks func()
-		expected      expected
+		description string
+		values      map[string]string
+		expected    expected
 	}{
 		{
 			description: "fail to load the environment variables when required ones are not set",
-			requiredMocks: func() {
-				envs := new(Config)
-
-				envMock.On("Process", "SHELLHUB_", envs).Return(errors.New("")).Once()
-			},
+			values:      map[string]string{},
 			expected: expected{
 				cfg:    nil,
 				fields: nil,
@@ -68,18 +63,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		},
 		{
 			description: "fail to load the environment variables when one required values is empty",
-			requiredMocks: func() {
-				envs := new(Config)
-
-				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg, ok := args.Get(1).(*Config)
-					require.True(t, ok)
-
-					cfg.ServerAddress = "http://localhost"
-					cfg.TenantID = ""
-					cfg.PrivateKey = ""
-					cfg.MaxRetryConnectionTimeout = 30
-				})
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS": "http://localhost",
+				"SHELLHUB_PRIVATE_KEY":    "",
 			},
 			expected: expected{
 				cfg: nil,
@@ -91,18 +77,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		},
 		{
 			description: "fail to load the environment variables when required values are empty",
-			requiredMocks: func() {
-				envs := new(Config)
-
-				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg, ok := args.Get(1).(*Config)
-					require.True(t, ok)
-
-					cfg.ServerAddress = ""
-					cfg.TenantID = ""
-					cfg.PrivateKey = ""
-					cfg.MaxRetryConnectionTimeout = 30
-				})
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS": "",
+				"SHELLHUB_PRIVATE_KEY":    "",
 			},
 			expected: expected{
 				cfg: nil,
@@ -115,25 +92,20 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		},
 		{
 			description: "success to load the environmental variables",
-			requiredMocks: func() {
-				envs := new(Config)
-
-				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg, ok := args.Get(1).(*Config)
-					require.True(t, ok)
-
-					cfg.ServerAddress = "http://localhost"
-					cfg.TenantID = "1c462afa-e4b6-41a5-ba54-7236a1770466"
-					cfg.PrivateKey = "/tmp/shellhub.key"
-					cfg.MaxRetryConnectionTimeout = 30
-				})
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS":               "http://localhost",
+				"SHELLHUB_TENANT_ID":                    "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				"SHELLHUB_PRIVATE_KEY":                  privateKey,
+				"SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT": "30",
 			},
 			expected: expected{
 				cfg: &Config{
 					ServerAddress:             "http://localhost",
 					TenantID:                  "1c462afa-e4b6-41a5-ba54-7236a1770466",
-					PrivateKey:                "/tmp/shellhub.key",
+					PrivateKey:                privateKey,
+					KeepAliveInterval:         30,
 					MaxRetryConnectionTimeout: 30,
+					TransportVersion:          TransportV2,
 				},
 				fields: nil,
 				err:    nil,
@@ -143,9 +115,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			test.requiredMocks()
+			t.Parallel()
 
-			cfg, fields, err := LoadConfigFromEnv()
+			cfg, fields, err := LoadConfigFromEnv(envs.Map(test.values))
 			assert.Equal(t, test.expected.cfg, cfg)
 			assert.Equal(t, test.expected.fields, fields)
 			assert.ErrorIs(t, err, test.expected.err)

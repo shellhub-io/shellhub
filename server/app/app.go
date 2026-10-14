@@ -22,18 +22,14 @@ import (
 // Run is the entry point for the API process. It parses environment variables,
 // sets up the server, and blocks until a termination signal is received.
 func Run() {
-	loglevel.UseEnvs()
-
-	if _, err := envs.ResolveEdition(); err != nil {
-		log.WithError(err).Fatal("failed to resolve ShellHub edition")
-	}
+	loglevel.UseEnvs(envs.OS())
 
 	rootCmd := &cobra.Command{Use: "server"}
 	rootCmd.AddCommand(admin.Command())
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "server",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			env, err := envs.ParseWithPrefix[Env]("API_")
+			env, err := envs.ParseWithPrefix[Env](envs.OS(), "API_")
 			if err != nil {
 				log.WithError(err).
 					Error("Failed to load environment variables")
@@ -41,7 +37,15 @@ func Run() {
 				return err
 			}
 
-			server := &Server{env: env}
+			ssh, err := envs.ParseWithPrefix[sshEnv](envs.OS(), "SSH_")
+			if err != nil {
+				log.WithError(err).
+					Error("Failed to load the SSH environment variables")
+
+				return err
+			}
+
+			server := &Server{env: env, sshEnv: ssh}
 
 			if err := server.Setup(cmd.Context()); err != nil {
 				log.WithError(err).

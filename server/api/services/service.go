@@ -123,17 +123,9 @@ func WithVerifiedDeviceKeyRequired() Option {
 	}
 }
 
-// NewService builds the service layer over store, signing tokens with the given key pair. A
-// nil pair is loaded from the configured files, which is how the server normally starts.
+// NewService builds the service layer over store, signing tokens with the given key pair, which
+// the caller loads with LoadKeys. It panics when privKey is nil.
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
-	if privKey == nil || pubKey == nil {
-		var err error
-		privKey, pubKey, err = LoadKeys()
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	service := &APIService{
 		service: &service{
 			store:             store,

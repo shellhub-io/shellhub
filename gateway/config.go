@@ -25,13 +25,14 @@ const (
 
 // GatewayConfig holds the configuration settings for the gateway.
 type GatewayConfig struct {
-	Env                     string      `env:"SHELLHUB_ENV"`
-	Domain                  string      `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
-	WebEndpoints            bool        `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
-	WebEndpointsDomain      string      `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
-	WebEndpointsDNSProvider DNSProvider `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
-	EnableAutoSSL           bool        `env:"SHELLHUB_AUTO_SSL"`
-	EnableProxyProtocol     bool        `env:"SHELLHUB_PROXY"`
+	Env                     string       `env:"SHELLHUB_ENV"`
+	Edition                 envs.Edition `env:"SHELLHUB_EDITION"`
+	Domain                  string       `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	WebEndpoints            bool         `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	WebEndpointsDomain      string       `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
+	WebEndpointsDNSProvider DNSProvider  `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
+	EnableAutoSSL           bool         `env:"SHELLHUB_AUTO_SSL"`
+	EnableProxyProtocol     bool         `env:"SHELLHUB_PROXY"`
 
 	// ProxyTrustedIPs names the peers allowed to declare the client's address,
 	// through the PROXY protocol preamble and the X-Forwarded-* headers. The
@@ -67,12 +68,7 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 		return nil, err
 	}
 
-	edition, err := envs.ResolveEdition()
-	if err != nil {
-		return nil, err
-	}
-
-	config.EnableEnterprise = edition == envs.Enterprise || edition == envs.Cloud
+	config.EnableEnterprise = config.Edition.IsEnterpriseOrCloud()
 
 	config.applyDefaults()
 

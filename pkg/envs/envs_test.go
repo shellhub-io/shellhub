@@ -4,101 +4,37 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCurrentEdition(t *testing.T) {
+func TestParseEdition(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		description string
-		envValue    string
-		expected    envs.Edition
-	}{
-		{
-			description: "unset defaults to community",
-			envValue:    "",
-			expected:    envs.Community,
-		},
-		{
-			description: "explicit community",
-			envValue:    "community",
-			expected:    envs.Community,
-		},
-		{
-			description: "explicit enterprise",
-			envValue:    "enterprise",
-			expected:    envs.Enterprise,
-		},
-		{
-			description: "explicit cloud",
-			envValue:    "cloud",
-			expected:    envs.Cloud,
-		},
-		{
-			description: "uppercase is normalized",
-			envValue:    "CLOUD",
-			expected:    envs.Cloud,
-		},
-		{
-			description: "mixed case is normalized",
-			envValue:    "Enterprise",
-			expected:    envs.Enterprise,
-		},
-		{
-			description: "whitespace is trimmed",
-			envValue:    "  cloud  ",
-			expected:    envs.Cloud,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.description, func(t *testing.T) {
-			envstest.SetRawEdition(t, tt.envValue)
-
-			assert.Equal(t, tt.expected, envs.CurrentEdition())
-		})
-	}
-}
-
-func TestCurrentEdition_invalid_panics(t *testing.T) {
-	envstest.SetRawEdition(t, "invalid")
-
-	assert.Panics(t, func() { envs.CurrentEdition() })
-}
-
-func TestResolveEdition(t *testing.T) {
-	tests := []struct {
-		description string
-		envValue    string
+		raw         string
 		expected    envs.Edition
 		expectErr   bool
 	}{
-		{
-			description: "unset defaults to community",
-			envValue:    "",
-			expected:    envs.Community,
-		},
-		{
-			description: "normalizes case and whitespace",
-			envValue:    "  Cloud  ",
-			expected:    envs.Cloud,
-		},
-		{
-			description: "invalid returns an error instead of panicking",
-			envValue:    "invalid",
-			expectErr:   true,
-		},
+		{description: "empty is community", raw: "", expected: envs.Community},
+		{description: "explicit community", raw: "community", expected: envs.Community},
+		{description: "explicit enterprise", raw: "enterprise", expected: envs.Enterprise},
+		{description: "explicit cloud", raw: "cloud", expected: envs.Cloud},
+		{description: "uppercase is normalized", raw: "CLOUD", expected: envs.Cloud},
+		{description: "mixed case is normalized", raw: "Enterprise", expected: envs.Enterprise},
+		{description: "whitespace is trimmed", raw: "  cloud  ", expected: envs.Cloud},
+		{description: "unknown value is an error", raw: "invalid", expectErr: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			envstest.SetRawEdition(t, tt.envValue)
+			t.Parallel()
 
-			edition, err := envs.ResolveEdition()
+			edition, err := envs.ParseEdition(tt.raw)
 			if tt.expectErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 
 				return
 			}
@@ -110,31 +46,68 @@ func TestResolveEdition(t *testing.T) {
 }
 
 func TestEditionPredicates(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
+		description         string
 		edition             envs.Edition
 		isCommunity         bool
 		isEnterprise        bool
 		isCloud             bool
 		isEnterpriseOrCloud bool
 	}{
-		{envs.Community, true, false, false, false},
-		{envs.Enterprise, false, true, false, true},
-		{envs.Cloud, false, false, true, true},
+		{"zero value", "", true, false, false, false},
+		{"community", envs.Community, true, false, false, false},
+		{"enterprise", envs.Enterprise, false, true, false, true},
+		{"cloud", envs.Cloud, false, false, true, true},
 	}
 
 	for _, tt := range tests {
-		t.Run(string(tt.edition), func(t *testing.T) {
-			envstest.SetEdition(t, tt.edition)
+		t.Run(tt.description, func(t *testing.T) {
+			t.Parallel()
 
-			assert.Equal(t, tt.isCommunity, envs.IsCommunity())
-			assert.Equal(t, tt.isEnterprise, envs.IsEnterprise())
-			assert.Equal(t, tt.isCloud, envs.IsCloud())
-			assert.Equal(t, tt.isEnterpriseOrCloud, envs.IsEnterpriseOrCloud())
+			assert.Equal(t, tt.isCommunity, tt.edition.IsCommunity())
+			assert.Equal(t, tt.isEnterprise, tt.edition.IsEnterprise())
+			assert.Equal(t, tt.isCloud, tt.edition.IsCloud())
+			assert.Equal(t, tt.isEnterpriseOrCloud, tt.edition.IsEnterpriseOrCloud())
 		})
 	}
 }
 
+func TestParse_edition(t *testing.T) {
+	t.Parallel()
+
+	type Envs struct {
+		Edition envs.Edition `env:"SHELLHUB_EDITION"`
+	}
+
+	t.Run("unset is the zero value", func(t *testing.T) {
+		t.Parallel()
+
+		result, err := envs.Parse[Envs](envs.Map(nil))
+		require.NoError(t, err)
+		assert.True(t, result.Edition.IsCommunity())
+	})
+
+	t.Run("a valid value is normalized", func(t *testing.T) {
+		t.Parallel()
+
+		result, err := envs.Parse[Envs](envs.Map(map[string]string{"SHELLHUB_EDITION": " Cloud "}))
+		require.NoError(t, err)
+		assert.Equal(t, envs.Cloud, result.Edition)
+	})
+
+	t.Run("an invalid value fails the parse", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := envs.Parse[Envs](envs.Map(map[string]string{"SHELLHUB_EDITION": "invalid"}))
+		assert.ErrorIs(t, err, envs.ErrParse)
+	})
+}
+
 func TestParseWithPrefix_with_default(t *testing.T) {
+	t.Parallel()
+
 	type Envs struct {
 		RedisURI string `env:"REDIS_URI,default=redis://redis:6379/default"`
 		MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/default"`
@@ -148,17 +121,15 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 	tests := []struct {
 		description string
 		prefix      string
-		setup       func(t *testing.T)
+		values      map[string]string
 		expected    Expected
 	}{
 		{
 			description: "parse envs with prefix empty",
 			prefix:      "",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/empty",
+				"MONGO_URI": "mongodb://mongo:27017/empty",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -171,12 +142,10 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix and an empty",
 			prefix:      "FOO_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
+			values: map[string]string{
+				"FOO_REDIS_URI": "redis://redis:6379/foo",
+				"REDIS_URI":     "redis://redis:6379/empty",
+				"MONGO_URI":     "mongodb://mongo:27017/empty",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -189,13 +158,11 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix",
 			prefix:      "BAR_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
-				t.Setenv("FOO_MONGO_URI", "mongodb://mongo:27017/foo")
-				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
+			values: map[string]string{
+				"FOO_REDIS_URI": "redis://redis:6379/foo",
+				"BAR_REDIS_URI": "redis://redis:6379/bar",
+				"FOO_MONGO_URI": "mongodb://mongo:27017/foo",
+				"BAR_MONGO_URI": "mongodb://mongo:27017/bar",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -208,12 +175,10 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix and default",
 			prefix:      "FOO_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
-				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
+			values: map[string]string{
+				"FOO_REDIS_URI": "redis://redis:6379/foo",
+				"BAR_REDIS_URI": "redis://redis:6379/bar",
+				"BAR_MONGO_URI": "mongodb://mongo:27017/bar",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -227,9 +192,9 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.setup(t)
+			t.Parallel()
 
-			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
+			result, err := envs.ParseWithPrefix[Envs](envs.Map(tt.values), tt.prefix)
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 		})
@@ -237,6 +202,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 }
 
 func TestParseWithPrefix_with_required(t *testing.T) {
+	t.Parallel()
+
 	type Envs struct {
 		RedisURI string `env:"REDIS_URI,required"`
 		MongoURI string `env:"MONGO_URI,required"`
@@ -250,17 +217,15 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 	tests := []struct {
 		description string
 		prefix      string
-		setup       func(t *testing.T)
+		values      map[string]string
 		expected    Expected
 	}{
 		{
 			description: "parse envs with a prefix and no prefixed",
 			prefix:      "FOO_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
+			values: map[string]string{
+				"FOO_REDIS_URI": "redis://redis:6379/foo",
+				"MONGO_URI":     "mongodb://mongo:27017/empty",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -271,13 +236,11 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 			},
 		},
 		{
-			description: "parse envs with a prefix and no prefixed",
+			description: "parse envs with a prefix and only unprefixed",
 			prefix:      "FOO_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/empty",
+				"MONGO_URI": "mongodb://mongo:27017/empty",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -290,11 +253,9 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 		{
 			description: "fails to parse when two different prefixes",
 			prefix:      "FOO_",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/empty")
+			values: map[string]string{
+				"FOO_REDIS_URI": "redis://redis:6379/foo",
+				"BAR_MONGO_URI": "mongodb://mongo:27017/empty",
 			},
 			expected: Expected{
 				Envs:  nil,
@@ -305,16 +266,42 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.setup(t)
+			t.Parallel()
 
-			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
+			result, err := envs.ParseWithPrefix[Envs](envs.Map(tt.values), tt.prefix)
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 		})
 	}
 }
 
+func TestParseWithPrefix_map_matches_process(t *testing.T) {
+	type Envs struct {
+		RedisURI string `env:"REDIS_URI"`
+	}
+
+	values := map[string]string{
+		"FOO_REDIS_URI": "redis://redis:6379/prefixed",
+		"REDIS_URI":     "redis://redis:6379/unprefixed",
+	}
+
+	for key, value := range values {
+		t.Setenv(key, value)
+	}
+
+	fromMap, err := envs.ParseWithPrefix[Envs](envs.Map(values), "FOO_")
+	require.NoError(t, err)
+
+	fromProcess, err := envs.ParseWithPrefix[Envs](envs.OS(), "FOO_")
+	require.NoError(t, err)
+
+	assert.Equal(t, "redis://redis:6379/prefixed", fromMap.RedisURI)
+	assert.Equal(t, fromProcess, fromMap)
+}
+
 func TestParse_with_default(t *testing.T) {
+	t.Parallel()
+
 	type Envs struct {
 		RedisURI string `env:"REDIS_URI,default=redis://redis:6379/default"`
 		MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/default"`
@@ -327,16 +314,14 @@ func TestParse_with_default(t *testing.T) {
 
 	tests := []struct {
 		description string
-		setup       func(t *testing.T)
+		values      map[string]string
 		expected    Expected
 	}{
 		{
 			description: "parse envs",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/test")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/test",
+				"MONGO_URI": "mongodb://mongo:27017/test",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -348,10 +333,8 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with one set and one default",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/test")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/test",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -363,9 +346,7 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with all default",
-			setup: func(t *testing.T) {
-				t.Helper()
-			},
+			values:      map[string]string{},
 			expected: Expected{
 				Envs: &Envs{
 					RedisURI: "redis://redis:6379/default",
@@ -378,9 +359,9 @@ func TestParse_with_default(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.setup(t)
+			t.Parallel()
 
-			result, err := envs.Parse[Envs]()
+			result, err := envs.Parse[Envs](envs.Map(tt.values))
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 		})
@@ -388,6 +369,8 @@ func TestParse_with_default(t *testing.T) {
 }
 
 func TestParse_with_required(t *testing.T) {
+	t.Parallel()
+
 	type Envs struct {
 		RedisURI string `env:"REDIS_URI,required"`
 		MongoURI string `env:"MONGO_URI,required"`
@@ -400,16 +383,14 @@ func TestParse_with_required(t *testing.T) {
 
 	tests := []struct {
 		description string
-		setup       func(t *testing.T)
+		values      map[string]string
 		expected    Expected
 	}{
 		{
 			description: "parse envs",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/test")
-				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/test",
+				"MONGO_URI": "mongodb://mongo:27017/test",
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -421,10 +402,8 @@ func TestParse_with_required(t *testing.T) {
 		},
 		{
 			description: "fail to parse envs when one env is missing",
-			setup: func(t *testing.T) {
-				t.Helper()
-
-				t.Setenv("REDIS_URI", "redis://redis:6379/test")
+			values: map[string]string{
+				"REDIS_URI": "redis://redis:6379/test",
 			},
 			expected: Expected{
 				Error: envs.ErrParse,
@@ -432,9 +411,7 @@ func TestParse_with_required(t *testing.T) {
 		},
 		{
 			description: "fails to parse when all envs are missing",
-			setup: func(t *testing.T) {
-				t.Helper()
-			},
+			values:      map[string]string{},
 			expected: Expected{
 				Envs:  nil,
 				Error: envs.ErrParse,
@@ -444,9 +421,9 @@ func TestParse_with_required(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.setup(t)
+			t.Parallel()
 
-			result, err := envs.Parse[Envs]()
+			result, err := envs.Parse[Envs](envs.Map(tt.values))
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 		})

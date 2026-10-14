@@ -21,19 +21,69 @@ const (
 	Cloud Edition = "cloud"
 )
 
-// Backend is an interface for any sort of underlying key/value store.
+// ParseEdition normalizes raw (trim and lowercase) into an Edition. The empty string is
+// Community; anything else outside the three editions is an error.
+func ParseEdition(raw string) (Edition, error) {
+	normalized := strings.TrimSpace(strings.ToLower(raw))
+	if normalized == "" {
+		return Community, nil
+	}
+
+	switch Edition(normalized) {
+	case Community, Enterprise, Cloud:
+		return Edition(normalized), nil
+	default:
+		return "", fmt.Errorf("invalid SHELLHUB_EDITION %q: must be community, enterprise, or cloud", normalized)
+	}
+}
+
+// UnmarshalText parses text with ParseEdition, so a config struct that declares an Edition field
+// rejects a bad SHELLHUB_EDITION when it is parsed.
+func (e *Edition) UnmarshalText(text []byte) error {
+	edition, err := ParseEdition(string(text))
+	if err != nil {
+		return err
+	}
+
+	*e = edition
+
+	return nil
+}
+
+// IsCommunity reports whether e is the community edition. The zero value is community too, so an
+// edition nobody set behaves as an unset SHELLHUB_EDITION does.
+func (e Edition) IsCommunity() bool {
+	return e == "" || e == Community
+}
+
+// IsEnterprise reports whether e is the enterprise edition, which is not the same question as
+// "may it use a paid feature"; see IsEnterpriseOrCloud.
+func (e Edition) IsEnterprise() bool {
+	return e == Enterprise
+}
+
+// IsCloud reports whether e is the hosted edition. Billing and namespace limits are the features
+// that turn on here and nowhere else.
+func (e Edition) IsCloud() bool {
+	return e == Cloud
+}
+
+// IsEnterpriseOrCloud reports whether the paid feature set is available. This is the check a
+// feature gate wants, so that a feature added for cloud stays available to enterprise.
+func (e Edition) IsEnterpriseOrCloud() bool {
+	return !e.IsCommunity()
+}
+
+// Backend is where a configuration is parsed from: the process environment ([OS]) or, in a
+// test, a map ([Map]).
 type Backend interface {
 	Get(key string) string
 	Process(prefix string, spec any) error
 }
 
-// DefaultBackend is the backend Get, the edition helpers and Parse read from. Read through Get, and
+// DefaultBackend is the backend Get and the edition helpers read from. Read through Get, and
 // swap it in a test with Set, which puts the previous one back when the test ends.
-var DefaultBackend Backend
-
-func init() {
-	DefaultBackend = &envBackend{}
-}
+var DefaultBackend = OS()
 
 // Get returns the value of key from the package's backend, or "" when it is unset. Use it rather
 // than os.Getenv, so a test can control what the environment holds.
@@ -41,38 +91,22 @@ func Get(key string) string {
 	return DefaultBackend.Get(key)
 }
 
-// Set serves Get, the edition helpers and Parse from b until t and its subtests finish, then puts
-// back the backend it replaced. Calls nest: an inner Set gives back the outer one when its test
-// ends. The backend is process-global, so a test that calls Set must not run in parallel with one
-// that reads the environment.
+// Set serves Get and the edition helpers from b until t and its subtests finish, then puts back
+// the backend it replaced. Calls nest: an inner Set gives back the outer one when its test ends.
+// The backend is process-global, so a test that calls Set must not run in parallel with one that
+// reads the environment.
 func Set(t interface{ Cleanup(func()) }, b Backend) {
 	previous := DefaultBackend
 	t.Cleanup(func() { DefaultBackend = previous })
 	DefaultBackend = b
 }
 
-// ResolveEdition reads SHELLHUB_EDITION, normalizes it (trim + lowercase) and
-// defaults to Community when empty. It returns an error for any unrecognized
-// value so entrypoints can validate the edition once at startup and fail fast
-// with a clean message instead of relying on CurrentEdition's lazy panic.
+// ResolveEdition parses SHELLHUB_EDITION from the package's backend with ParseEdition.
 func ResolveEdition() (Edition, error) {
-	raw := strings.TrimSpace(strings.ToLower(DefaultBackend.Get("SHELLHUB_EDITION")))
-	if raw == "" {
-		return Community, nil
-	}
-
-	switch Edition(raw) {
-	case Community, Enterprise, Cloud:
-		return Edition(raw), nil
-	default:
-		return "", fmt.Errorf("invalid SHELLHUB_EDITION %q: must be community, enterprise, or cloud", raw)
-	}
+	return ParseEdition(DefaultBackend.Get("SHELLHUB_EDITION"))
 }
 
-// CurrentEdition returns the resolved edition, panicking on an unrecognized
-// value so a misconfigured instance fails rather than silently running as
-// community. Entrypoints should call ResolveEdition at startup to surface the
-// error cleanly; this panic is a last-resort invariant for the predicates below.
+// CurrentEdition returns the resolved edition, panicking on an unrecognized value.
 func CurrentEdition() Edition {
 	edition, err := ResolveEdition()
 	if err != nil {
@@ -82,28 +116,24 @@ func CurrentEdition() Edition {
 	return edition
 }
 
-// IsCommunity reports whether this instance runs the community edition. It panics on an
-// unrecognized SHELLHUB_EDITION, as CurrentEdition does.
+// IsCommunity reports whether the package's backend holds the community edition.
 func IsCommunity() bool {
-	return CurrentEdition() == Community
+	return CurrentEdition().IsCommunity()
 }
 
-// IsEnterprise reports whether this instance runs the enterprise edition, which is not the
-// same question as "may it use a paid feature" — see IsEnterpriseOrCloud.
+// IsEnterprise reports whether the package's backend holds the enterprise edition.
 func IsEnterprise() bool {
-	return CurrentEdition() == Enterprise
+	return CurrentEdition().IsEnterprise()
 }
 
-// IsCloud reports whether this instance runs the hosted edition. Billing and namespace
-// limits are the features that turn on here and nowhere else.
+// IsCloud reports whether the package's backend holds the hosted edition.
 func IsCloud() bool {
-	return CurrentEdition() == Cloud
+	return CurrentEdition().IsCloud()
 }
 
-// IsEnterpriseOrCloud reports whether the paid feature set is available. This is the check a
-// feature gate wants, so that a feature added for cloud stays available to enterprise.
+// IsEnterpriseOrCloud reports whether the package's backend holds a paid edition.
 func IsEnterpriseOrCloud() bool {
-	return CurrentEdition() != Community
+	return CurrentEdition().IsEnterpriseOrCloud()
 }
 
 // IsDevelopment reports whether SHELLHUB_ENV is "development". It gates developer conveniences
@@ -126,11 +156,11 @@ const (
 	OpenAPIValidationStrict OpenAPIValidation = "strict"
 )
 
-// OpenAPIValidationMode reads SHELLHUB_OPENAPI_VALIDATION. on, true, 1 and report log a
-// mismatch, strict fails it, and off, false and 0 disable the check. Unset, it reports in
-// development and is off elsewhere.
-func OpenAPIValidationMode() OpenAPIValidation {
-	switch strings.TrimSpace(strings.ToLower(DefaultBackend.Get("SHELLHUB_OPENAPI_VALIDATION"))) {
+// OpenAPIValidationMode turns the raw SHELLHUB_OPENAPI_VALIDATION into a mode. on, true, 1 and
+// report log a mismatch, strict fails it, and off, false and 0 disable the check. Anything else
+// reports in development and is off elsewhere.
+func OpenAPIValidationMode(raw string, development bool) OpenAPIValidation {
+	switch strings.TrimSpace(strings.ToLower(raw)) {
 	case "on", "true", "1", "report":
 		return OpenAPIValidationReport
 	case "strict":
@@ -138,7 +168,7 @@ func OpenAPIValidationMode() OpenAPIValidation {
 	case "off", "false", "0":
 		return OpenAPIValidationOff
 	default:
-		if IsDevelopment() {
+		if development {
 			return OpenAPIValidationReport
 		}
 
@@ -146,34 +176,19 @@ func OpenAPIValidationMode() OpenAPIValidation {
 	}
 }
 
-// OpenAPISchemaURL is where the response validator loads the schema from.
-// SHELLHUB_OPENAPI_SCHEMA overrides the address the openapi service serves it at, so a
-// deployment without that service can point the validator at a file it already carries.
-func OpenAPISchemaURL() string {
-	if raw := strings.TrimSpace(DefaultBackend.Get("SHELLHUB_OPENAPI_SCHEMA")); raw != "" {
-		return raw
-	}
-
-	return "http://openapi:8080/openapi/openapi.json"
-}
-
 // ErrParseWithPrefix is joined with the backend's error when ParseWithPrefix fails, so a
 // caller can tell a configuration problem from anything else with errors.Is.
 var ErrParseWithPrefix = errors.New("failed to parse environment variables for the given prefix")
 
-// ParseWithPrefix parses the environment variables for the a given prefix.
-//
-// This function uses the [envconfig] package as its default backend, so it requires the struct to be annotated with
-// the [envconfig] tags. Check the [envconfig] documentation for more information.
-//
-// The T generic parameter must be a struct with the fields annotated with the [envconfig] tags, that will be returned
-// with the values parsed from the environment variables.
+// ParseWithPrefix fills a T from the [envconfig] tags on its fields, reading each key from backend
+// under prefix before falling back to the unprefixed key. It returns ErrParseWithPrefix, joined
+// with the cause, when a required key is missing or a value does not decode.
 //
 // [envconfig]: https://github.com/sethvargo/go-envconfig
-func ParseWithPrefix[T any](prefix string) (*T, error) {
+func ParseWithPrefix[T any](backend Backend, prefix string) (*T, error) {
 	envs := new(T)
 
-	if err := DefaultBackend.Process(prefix, envs); err != nil {
+	if err := backend.Process(prefix, envs); err != nil {
 		return nil, errors.Join(ErrParseWithPrefix, err)
 	}
 
@@ -184,19 +199,15 @@ func ParseWithPrefix[T any](prefix string) (*T, error) {
 // configuration problem from anything else with errors.Is.
 var ErrParse = errors.New("failed to parse environment variables")
 
-// Parse parses the environment variables.
-//
-// This function uses the [envconfig] package as its default backend, so it requires the struct to be annotated with
-// the [envconfig] tags. Check the [envconfig] documentation for more information.
-//
-// The T generic parameter must be a struct with the fields annotated with the [envconfig] tags, that will be returned
-// with the values parsed from the environment variables.
+// Parse fills a T from the [envconfig] tags on its fields, reading each key from backend. It
+// returns ErrParse, joined with the cause, when a required key is missing or a value does not
+// decode.
 //
 // [envconfig]: https://github.com/sethvargo/go-envconfig
-func Parse[T any]() (*T, error) {
+func Parse[T any](backend Backend) (*T, error) {
 	envs := new(T)
 
-	if err := DefaultBackend.Process("", envs); err != nil {
+	if err := backend.Process("", envs); err != nil {
 		return nil, errors.Join(ErrParse, err)
 	}
 

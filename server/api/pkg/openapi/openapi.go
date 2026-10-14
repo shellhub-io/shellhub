@@ -14,7 +14,6 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -51,7 +50,7 @@ type ValidationResult struct {
 
 // OpenAPIValidatorConfig holds configuration for the validator
 type OpenAPIValidatorConfig struct {
-	// SchemaPath is the URL to the OpenAPI schema.
+	// SchemaPath is the URL the schema is loaded from. NewOpenAPIValidator fails when it is nil.
 	SchemaPath *url.URL
 	// EnabledPaths are the paths that should be validated (nil = all paths)
 	EnabledPaths []string
@@ -59,7 +58,9 @@ type OpenAPIValidatorConfig struct {
 	Logger *logrus.Entry
 }
 
-// NewOpenAPIValidator creates a new OpenAPI response validator
+// NewOpenAPIValidator loads the schema at config.SchemaPath and returns a validator over it. It
+// returns an error when config.SchemaPath is nil (a nil config counts as one), or when the schema
+// does not load, cannot be made strict, does not validate, or does not build a router.
 func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*OpenAPIValidator, error) {
 	if config == nil {
 		config = &OpenAPIValidatorConfig{}
@@ -72,10 +73,6 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	validator := &OpenAPIValidator{
 		enabledPaths: make(map[string]bool),
 		logger:       config.Logger,
-	}
-
-	if config.SchemaPath == nil {
-		config.SchemaPath = schemaPathFromEnv()
 	}
 
 	if config.SchemaPath == nil {
@@ -203,13 +200,4 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 	}
 
 	return result
-}
-
-func schemaPathFromEnv() *url.URL {
-	u, err := url.Parse(envs.OpenAPISchemaURL())
-	if err != nil {
-		return nil
-	}
-
-	return u
 }

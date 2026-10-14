@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	edition := envs.CurrentEdition()
+	edition, err := envs.ParseEdition(envs.OS().Get("SHELLHUB_EDITION"))
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
 
 	var specPath string
 

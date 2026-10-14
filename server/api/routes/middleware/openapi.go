@@ -55,7 +55,8 @@ func (rw *capture) Unwrap() http.ResponseWriter {
 type OpenAPIValidatorConfig struct {
 	// EnabledPaths restricts validation to these paths; nil validates every path.
 	EnabledPaths []string
-	// SchemaPath overrides where the schema is loaded from.
+	// SchemaPath is where the schema is loaded from. Nil fails LoadOpenAPIValidator, and makes
+	// OpenAPIValidator report the load failure once and pass every response.
 	SchemaPath *url.URL
 	// Skipper exempts a request from validation when it returns true.
 	Skipper func(*echo.Context) bool

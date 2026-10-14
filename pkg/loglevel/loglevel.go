@@ -5,21 +5,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// UseEnvs set the logger level to the specified in SHELLHUB_LOG_LEVEL and the log format for SHELLHUB_LOG_FORMAT.
-func UseEnvs() {
-	SetLogFormat()
-	SetLogLevel()
+// UseEnvs sets the logger level to the one SHELLHUB_LOG_LEVEL names in backend and the log format
+// to the one SHELLHUB_LOG_FORMAT names.
+func UseEnvs(backend envs.Backend) {
+	SetLogFormat(backend)
+	SetLogLevel(backend)
 }
 
-// SetLogLevel applies the level named by the environment: trace in development, and otherwise
-// whatever SHELLHUB_LOG_LEVEL asks for, falling back to info.
-func SetLogLevel() {
-	if envs.Get("SHELLHUB_ENV") == "development" {
+// SetLogLevel applies the level backend names: trace in development, and otherwise whatever
+// SHELLHUB_LOG_LEVEL asks for, falling back to info.
+func SetLogLevel(backend envs.Backend) {
+	if backend.Get("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.TraceLevel)
 		logrus.Info("SHELLHUB_LOG_LEVEL set to TRACE due SHELLHUB_ENV in development")
 	}
 
-	if level := envs.Get("SHELLHUB_LOG_LEVEL"); level != "" {
+	if level := backend.Get("SHELLHUB_LOG_LEVEL"); level != "" {
 		l, err := logrus.ParseLevel(level)
 		if err != nil {
 			logrus.SetLevel(logrus.InfoLevel)
@@ -43,11 +44,9 @@ const (
 	LogFormatText LogFormat = "text"
 )
 
-// SetLogFormat sets the default format for the logger.
-// TODO: "set" on the name doesn't make sense, as it isn't receiving nothing to set. In my view, "use" could be a better
-// naming, as it will "use" the environmental variable.
-func SetLogFormat() {
-	if format := envs.Get("SHELLHUB_LOG_FORMAT"); format != "" {
+// SetLogFormat sets the logger's format to the one SHELLHUB_LOG_FORMAT names in backend.
+func SetLogFormat(backend envs.Backend) {
+	if format := backend.Get("SHELLHUB_LOG_FORMAT"); format != "" {
 		switch LogFormat(format) {
 		case LogFormatJSON:
 			logrus.SetFormatter(new(logrus.JSONFormatter))

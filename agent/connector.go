@@ -59,8 +59,8 @@ type ConfigConnector struct {
 	Label string `env:"CONNECTOR_LABEL,default="`
 }
 
-func LoadConfigConnectorFromEnv() (*ConfigConnector, map[string]any, error) {
-	cfg, err := envs.ParseWithPrefix[ConfigConnector]("SHELLHUB_")
+func LoadConfigConnectorFromEnv(backend envs.Backend) (*ConfigConnector, map[string]any, error) {
+	cfg, err := envs.ParseWithPrefix[ConfigConnector](backend, "SHELLHUB_")
 	if err != nil {
 		log.Fatal(err)
 	}
