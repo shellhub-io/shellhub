@@ -172,6 +172,8 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 	var pipeClaimed sync.Once
 
+	var forwarding sync.Mutex
+
 	startPipe := func() {
 		pipeClaimed.Do(func() {
 			go pipe(sess, client.Channel, agent.Channel, seat, done)
@@ -187,7 +189,9 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		defer func() {
 			logger.Debug("agent waiting for data done to close client")
 
+			forwarding.Lock()
 			pipeClaimed.Do(func() { done <- true })
+			forwarding.Unlock()
 
 			<-done
 
@@ -249,6 +253,40 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		defer wg.Done()
 
 		var ptyRequested *models.SSHPty
+
+		forwardToAgent := func(req *gossh.Request) {
+			forwarding.Lock()
+			defer forwarding.Unlock()
+
+			ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+			if err != nil {
+				logger.WithError(err).Error("failed to send the request from client to agent")
+				ptyRequested = nil
+
+				return
+			}
+
+			if req.WantReply {
+				if err := req.Reply(ok, nil); err != nil {
+					logger.WithError(err).Error(err)
+				}
+			}
+
+			if ptyRequested != nil {
+				if ok || !req.WantReply {
+					sess.SetSeatPty(seat, true)
+					sess.Event(PtyRequestType, *ptyRequested, seat)
+				} else {
+					logger.Warn("the device refused the pty; the session continues without one")
+				}
+
+				ptyRequested = nil
+			}
+
+			if startsDataPipe(req.Type) {
+				startPipe()
+			}
+		}
 
 		for {
 			select {
@@ -364,34 +402,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 				logger.Debugf("request from client to agent: %s", req.Type)
 
-				ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from client to agent")
-					ptyRequested = nil
-
-					continue
-				}
-
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error(err)
-					}
-				}
-
-				if ptyRequested != nil {
-					if ok || !req.WantReply {
-						sess.SetSeatPty(seat, true)
-						sess.Event(PtyRequestType, *ptyRequested, seat)
-					} else {
-						logger.Warn("the device refused the pty; the session continues without one")
-					}
-
-					ptyRequested = nil
-				}
-
-				if startsDataPipe(req.Type) {
-					startPipe()
-				}
+				forwardToAgent(req)
 			}
 		}
 	}()
