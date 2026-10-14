@@ -20,10 +20,10 @@ This document describes the security scanning infrastructure for ShellHub.
 ## Required check — `security-gate`
 
 **`security-gate` is the single frozen required-check name** registered in branch protection.
-Every security workflow (Security, Semgrep, CodeQL) exposes a terminal job named exactly
-`security-gate` that aggregates the results of its scan jobs.  Semgrep's runs on every PR,
-Security's only on PRs that change a `go.mod`, `go.sum`, Dockerfile or `.trivyignore`, and
-CodeQL's only on the daily schedule and release tags.
+Security runs it as its only job, on every PR: Semgrep always, govulncheck and Trivy only when
+the PR changes a `go.mod`, `go.sum`, Dockerfile, `versions.env` or `.trivyignore`. CodeQL
+exposes a terminal job of the same name that aggregates its scans, and runs only on the daily
+schedule and release tags.
 
 > **Do not rename `security-gate`.**  Renaming it silently removes the branch-protection
 > requirement and allows unreviewed code to merge.
@@ -36,7 +36,7 @@ CodeQL's only on the daily schedule and release tags.
 |---|---|---|---|
 | `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PRs changing dependencies or Dockerfiles + tags + daily |
 | `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `gateway`, `ui`, `agent`) | PRs changing dependencies or Dockerfiles + tags + daily |
-| `.github/workflows/semgrep.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + tags + daily |
+| `.github/workflows/security.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + tags + daily |
 | `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | Tags + daily |
 | `.github/workflows/build-agent.yml` | **Trivy (image, amd64)** | Agent image CVEs as part of the agent build pipeline | Push to master + tags |
 
@@ -150,7 +150,7 @@ The agent image is a multi-arch build (`linux/amd64`, `linux/arm64/v8`, `linux/a
 
 **Residual risk:** architecture-specific CVEs for `arm` and `386` variants are **not
 blocked by CI**.  They are surfaced by the daily scheduled scan
-(`.github/workflows/security.yml` `trivy-image` matrix includes `agent`) and tracked
+(`.github/workflows/security.yml` scans the `agent` image) and tracked
 manually.  If a CVE affects a non-amd64 variant only, add it to `.trivyignore` with an
 explicit `owner` and architectural scope note.
 
@@ -186,15 +186,14 @@ branch or workflow:
    separate file is needed.
 
 3. **Flip to blocking-on-new** — configure Semgrep to run with `--baseline-commit origin/master`
-   on PRs (already the default in `semgrep.yml`) so that only _new_ findings introduced by
+   on PRs (already the default in `security.yml`) so that only _new_ findings introduced by
    a PR cause `security-gate` to fail.  Confirm that existing suppressed findings do not
    re-surface.
 
 4. **Admin marks `security-gate` required + Require review from Code Owners** — in the
    GitHub repository settings → Branches → Branch protection rules for `master`:
    - Under "Require status checks to pass before merging", add **`security-gate`** (the
-     exact frozen name). Semgrep reports it on every PR; Security adds its own on PRs that
-     touch dependencies or Dockerfiles.
+     exact frozen name). Security reports it on every PR.
    - Enable **"Require review from Code Owners"** so that changes to `.trivyignore`
      and `.semgrepignore` always go through `@shellhub-io/team-lead`.
 
