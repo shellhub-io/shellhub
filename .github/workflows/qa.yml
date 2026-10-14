@@ -266,10 +266,24 @@ jobs:
         working-directory: shellhub
         run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
 
+      - name: Install gotestsum
+        if: steps.changes.outputs.go == 'true'
+        working-directory: shellhub
+        run: |
+          VERSION=$(sed -n 's/^GOTESTSUM_VERSION=//p' versions.env)
+          if [ -z "$VERSION" ]; then
+              echo "could not read GOTESTSUM_VERSION from versions.env"
+              exit 1
+          fi
+          go install gotest.tools/gotestsum@"$VERSION"
+
       - name: Run the integration tests
         if: steps.changes.outputs.go == 'true'
         working-directory: shellhub/tests
-        run: go test ${{ steps.cloud-access.outputs.granted != 'true' && '-skip ''^(TestEnterprise|TestCloud)''' || '' }} -parallel 4 -timeout 60m ./...
+        run: >-
+          gotestsum --format testname --
+          ${{ steps.cloud-access.outputs.granted != 'true' && '-skip ''^(TestEnterprise|TestCloud)''' || '' }}
+          -parallel 4 -timeout 60m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}

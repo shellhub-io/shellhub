@@ -73,6 +73,13 @@
     {
       "customType": "regex",
       "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["(?:^|\\n)GOTESTSUM_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "gotest.tools/gotestsum",
+      "datasourceTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
       "matchStrings": ["(?:^|\\n)DOCKER_VERSION=(?<currentValue>\\S+)"],
       "depNameTemplate": "docker",
       "datasourceTemplate": "docker"
