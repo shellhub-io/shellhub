@@ -26,6 +26,8 @@ const connectorLabel = "io.shellhub.e2e.connector"
 // offline while stopped and back online under the same uid when started again, and once removed is
 // kept as removed until it starts again and asks to join as pending under the same uid.
 func TestConnectorContainerLifecycle(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)

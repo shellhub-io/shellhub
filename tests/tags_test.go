@@ -21,6 +21,8 @@ import (
 // A filter left without its only tag would select every device, so the tag cannot be deleted
 // while a key's filter holds it.
 func TestTagsSelectPublicKeyDevices(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
@@ -62,6 +64,8 @@ func TestTagsSelectPublicKeyDevices(t *testing.T) {
 // while a policy's filter holds it. Each case logs in as a member only its own policy grants, so the
 // owner's starter policy never decides it.
 func TestTagsSelectAccessPolicyDevices(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
@@ -112,6 +116,8 @@ func TestTagsSelectAccessPolicyDevices(t *testing.T) {
 // TestTagDeleteDetachesItEverywhere covers a tag no filter holds: deleting it takes it off every
 // device carrying it, whatever the device's status, and leaves the devices' other tags in place.
 func TestTagDeleteDetachesItEverywhere(t *testing.T) {
+	t.Parallel()
+
 	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 	accepted := enrollDevice(t, compose, "detachaccepted", "02:00:00:00:11:01")
@@ -136,6 +142,8 @@ func TestTagDeleteDetachesItEverywhere(t *testing.T) {
 // TestTagsAreNamespaceScoped covers two namespaces using the same tag name. Each namespace sees,
 // attaches, renames and deletes only its own tag, so a change in one leaves the other untouched.
 func TestTagsAreNamespaceScoped(t *testing.T) {
+	t.Parallel()
+
 	const (
 		neighbourUsername = "neighbour"
 		neighbourTenant   = "11111111-1111-4111-1111-111111111111"

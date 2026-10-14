@@ -21,6 +21,8 @@ import (
 // owner replaces it through the namespace settings, and a command run without a terminal gets
 // only its own output.
 func TestConnectionAnnouncement(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
