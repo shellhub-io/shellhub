@@ -102,9 +102,15 @@ func agentBuildLog() io.Writer {
 	return nil
 }
 
+type agentImageBuild struct {
+	done chan struct{}
+	tag  string
+	err  error
+}
+
 var agentImages struct {
 	sync.Mutex
-	tags map[string]string
+	builds map[string]*agentImageBuild
 }
 
 func buildAgentImage(ctx context.Context, version string) (string, error) {
@@ -119,24 +125,36 @@ func buildAgentImage(ctx context.Context, version string) (string, error) {
 
 func cachedAgentImage(ctx context.Context, key string, build environment.AgentBuild) (string, error) {
 	agentImages.Lock()
-	defer agentImages.Unlock()
+	inflight, ok := agentImages.builds[key]
+	if !ok {
+		if agentImages.builds == nil {
+			agentImages.builds = make(map[string]*agentImageBuild)
+		}
 
-	if tag, ok := agentImages.tags[key]; ok {
-		return tag, nil
+		inflight = &agentImageBuild{done: make(chan struct{})}
+		agentImages.builds[key] = inflight
+	}
+	agentImages.Unlock()
+
+	if ok {
+		select {
+		case <-inflight.done:
+			return inflight.tag, inflight.err
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
 	}
 
-	tag, err := environment.BuildAgentImage(ctx, run, build)
-	if err != nil {
-		return "", err
+	defer close(inflight.done)
+
+	inflight.tag, inflight.err = environment.BuildAgentImage(ctx, run, build)
+	if inflight.err != nil {
+		agentImages.Lock()
+		delete(agentImages.builds, key)
+		agentImages.Unlock()
 	}
 
-	if agentImages.tags == nil {
-		agentImages.tags = make(map[string]string)
-	}
-
-	agentImages.tags[key] = tag
-
-	return tag, nil
+	return inflight.tag, inflight.err
 }
 
 func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
@@ -144,9 +162,12 @@ func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentCo
 }
 
 // NewAgentContainerAtVersion builds an agent that reports version instead of "latest" and returns
-// its container, created but not started. Each version is built once per run under its own tag,
-// so the agent every other test starts keeps its tag; an empty version builds that default agent.
-// It returns the error of a build or a container creation that fails, both bounded by ctx.
+// its container, created but not started. Each version is built under its own tag, so the agent
+// every other test starts keeps its tag; an empty version builds that default agent. A version
+// builds once per run unless its build fails, and a caller asking for a version another caller is
+// building waits for that build without blocking callers of other versions. It returns the error
+// of the build it waited for, even one that the building caller's context ended, or ctx.Err()
+// when ctx ends first, or the error of a container creation that fails, bounded by ctx.
 func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	image, err := buildAgentImage(ctx, version)
 	if err != nil {
