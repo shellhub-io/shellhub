@@ -16,7 +16,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -86,7 +85,7 @@ func rawExchange(t *testing.T, address, preamble, path string) string {
 
 	defer func() { _ = conn.Close() }()
 
-	require.NoError(t, conn.SetDeadline(clock.Now().Add(30*time.Second)))
+	require.NoError(t, conn.SetDeadline(wallClock.Now().Add(30*time.Second)))
 
 	_, err = io.WriteString(conn, preamble+"GET "+path+" HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
 	require.NoError(t, err)
@@ -320,7 +319,7 @@ func TestGateway(t *testing.T) {
 		time.Sleep(idle)
 
 		require.NoError(t, websocket.JSON.Send(conn, map[string]any{"kind": 1, "data": "echo $((40+2))gateway\n"}), "the terminal closed while idle")
-		require.NoError(t, conn.SetReadDeadline(clock.Now().Add(30*time.Second)))
+		require.NoError(t, conn.SetReadDeadline(wallClock.Now().Add(30*time.Second)))
 
 		var output strings.Builder
 		for !strings.Contains(output.String(), "42gateway") {

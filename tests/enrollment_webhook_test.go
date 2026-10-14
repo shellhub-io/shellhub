@@ -18,7 +18,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/moby/moby/api/types/container"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -86,7 +85,7 @@ func TestEnrollmentWebhook(t *testing.T) {
 			WebhookSecret: enrollmentWebhookSecret,
 		})
 		req := newKeyedDeviceAuthRequest(t, key.Key, "webhook-payload", "02:00:00:00:80:04")
-		before := clock.Now()
+		before := wallClock.Now()
 
 		device := enroll(t, compose, req)
 
@@ -105,7 +104,7 @@ func TestEnrollmentWebhook(t *testing.T) {
 		assert.Equal(t, "webhook-payload", payload.Hostname)
 		assert.Equal(t, req.Info, payload.Info)
 		assert.NotEmpty(t, payload.SourceIP)
-		assert.WithinRange(t, payload.Timestamp, before.Add(-time.Minute), clock.Now().Add(time.Minute))
+		assert.WithinRange(t, payload.Timestamp, before.Add(-time.Minute), wallClock.Now().Add(time.Minute))
 
 		callback, err := url.Parse(payload.CallbackURL)
 		require.NoError(t, err)
@@ -121,10 +120,10 @@ func TestEnrollmentWebhook(t *testing.T) {
 			WebhookTimeout: 1,
 		})
 
-		started := clock.Now()
+		started := wallClock.Now()
 		device := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "webhook-slow", "02:00:00:00:80:05"))
 
-		assert.Less(t, clock.Now().Sub(started), models.ProvisioningKeyWebhookDefaultTimeout*time.Second,
+		assert.Less(t, wallClock.Now().Sub(started), models.ProvisioningKeyWebhookDefaultTimeout*time.Second,
 			"the server waited for the integrator past the key's timeout")
 		assert.Equal(t, models.DeviceStatusPending, device.Status)
 		webhook.awaitCalls(t, device.UID, 1)

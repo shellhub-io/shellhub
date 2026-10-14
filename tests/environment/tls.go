@@ -13,8 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 const (
@@ -62,7 +60,7 @@ func SelfSignedCertificate(names ...string) (Certificate, error) {
 		return Certificate{}, err
 	}
 
-	now := clock.Now()
+	now := wallClock.Now()
 
 	template := &x509.Certificate{
 		SerialNumber:          serial,

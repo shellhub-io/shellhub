@@ -70,7 +70,6 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/agent/server"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/connectivity"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -779,7 +778,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 					"version":        a.config.Version,
 					"tenant_id":      a.auth().Namespace,
 					"server_address": a.config.ServerAddress,
-					"timestamp":      clock.Now(),
+					"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 				}).Debug("Starting the ping interval to server")
 
 				ticker.Reset(nextPingInterval(interval))
@@ -788,7 +787,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 					"version":        a.config.Version,
 					"tenant_id":      a.auth().Namespace,
 					"server_address": a.config.ServerAddress,
-					"timestamp":      clock.Now(),
+					"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 				}).Debug("Stopped pinging server due listener status")
 
 				ticker.Stop()
@@ -813,7 +812,7 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 				"name":           a.auth().Name,
 				"hostname":       a.config.PreferredHostname,
 				"identity":       a.config.PreferredIdentity,
-				"timestamp":      clock.Now(),
+				"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 			}).Info("Ping")
 
 			ticker.Reset(nextPingInterval(interval))

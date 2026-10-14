@@ -11,12 +11,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GehirnInc/crypt"
 	_ "github.com/GehirnInc/crypt/md5_crypt"    // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha256_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha512_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -66,7 +66,7 @@ func (b *backend) AuthUser(username, password string) bool {
 		return false
 	}
 
-	return AuthUserFromShadow(username, password, file)
+	return AuthUserFromShadow(username, password, file, time.Now()) //nolint:forbidigo // shadow aging is judged against the host's wall clock
 }
 
 func (b *backend) AccountExpired(username string) bool {
@@ -78,7 +78,7 @@ func (b *backend) AccountExpired(username string) bool {
 	}
 	defer file.Close() //nolint:errcheck // read-only file, nothing to flush
 
-	return AccountExpiredFromShadow(username, file)
+	return AccountExpiredFromShadow(username, file, time.Now()) //nolint:forbidigo // shadow aging is judged against the host's wall clock
 }
 
 func (b *backend) LookupUser(username string) (*User, error) {
@@ -112,8 +112,9 @@ func AccountExpired(username string) bool {
 
 // AuthUserFromShadow attempts to authenticate username and password from file. It refuses an
 // account past its expire time, or whose password is past its change time, even when the
-// password matches, because the agent cannot run the change a local login would.
-func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
+// password matches, because the agent cannot run the change a local login would. The entry's
+// times are judged as of now.
+func AuthUserFromShadow(username, password string, shadow io.Reader, now time.Time) bool {
 	entries, err := parseMasterPasswdReader(shadow)
 	if err != nil {
 		log.WithError(err).Error("Error parsing passwd file")
@@ -142,7 +143,7 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 		return false
 	}
 
-	if err := user.checkPasswordLogin(clock.Now().Unix()); err != nil {
+	if err := user.checkPasswordLogin(now.Unix()); err != nil {
 		log.WithFields(log.Fields{
 			"username": username,
 		}).WithError(err).Error("Refusing login")
@@ -156,7 +157,8 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 // AccountExpiredFromShadow reports whether the account's entry in masterPasswd has expired. It
 // returns true when masterPasswd cannot be parsed or the account's change or expire field is
 // malformed, and false when the account has no entry.
-func AccountExpiredFromShadow(username string, masterPasswd io.Reader) bool {
+// The entry's expire time is judged as of now.
+func AccountExpiredFromShadow(username string, masterPasswd io.Reader, now time.Time) bool {
 	entries, err := parseMasterPasswdReader(masterPasswd)
 	if err != nil {
 		log.WithError(err).Error("Error parsing passwd file")
@@ -177,7 +179,7 @@ func AccountExpiredFromShadow(username string, masterPasswd io.Reader) bool {
 		return true
 	}
 
-	if err := entry.checkAccountExpiry(clock.Now().Unix()); err != nil {
+	if err := entry.checkAccountExpiry(now.Unix()); err != nil {
 		log.WithFields(log.Fields{
 			"username": username,
 		}).WithError(err).Error("Refusing login")

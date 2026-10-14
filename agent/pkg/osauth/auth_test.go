@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -198,13 +197,12 @@ func TestPasswdReader(t *testing.T) {
 
 const testHash = "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN."
 
-func setToday(t *testing.T, days int64) {
-	t.Helper()
-	clock.Freeze(t, time.Unix(days*secondsPerDay+12*60*60, 0).UTC())
+func today(days int64) time.Time {
+	return time.Unix(days*secondsPerDay+12*60*60, 0).UTC()
 }
 
 func TestAuthUserFromShadowAging(t *testing.T) {
-	setToday(t, 20000)
+	now := today(20000)
 
 	tests := []struct {
 		name     string
@@ -308,24 +306,24 @@ func TestAuthUserFromShadowAging(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			shadow := strings.NewReader("user:" + testHash + ":" + tt.aging + "\n")
 
-			assert.Equal(t, tt.want, AuthUserFromShadow("user", tt.password, shadow))
+			assert.Equal(t, tt.want, AuthUserFromShadow("user", tt.password, shadow, now))
 		})
 	}
 }
 
 func TestAuthUserFromShadowSkipsMalformedLine(t *testing.T) {
-	setToday(t, 20000)
+	now := today(20000)
 
 	shadow := "bad:" + testHash + ":19990:0:99999:7::never:\n" +
 		"good:" + testHash + ":19990:0:99999:7:::\n"
 
-	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(shadow)))
-	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(shadow)))
-	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(shadow)))
+	assert.False(t, AuthUserFromShadow("bad", "123", strings.NewReader(shadow), now))
+	assert.True(t, AccountExpiredFromShadow("bad", strings.NewReader(shadow), now))
+	assert.True(t, AuthUserFromShadow("good", "123", strings.NewReader(shadow), now))
 }
 
 func TestAccountExpiredFromShadow(t *testing.T) {
-	setToday(t, 20000)
+	now := today(20000)
 
 	tests := []struct {
 		name     string
@@ -385,7 +383,7 @@ func TestAccountExpiredFromShadow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, AccountExpiredFromShadow(tt.username, strings.NewReader(tt.shadow)))
+			assert.Equal(t, tt.want, AccountExpiredFromShadow(tt.username, strings.NewReader(tt.shadow), now))
 		})
 	}
 }

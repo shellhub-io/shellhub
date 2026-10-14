@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 const (
@@ -35,7 +34,7 @@ func (dc *DockerCompose) StripeAPI(ctx context.Context) *resty.Request {
 // with the webhook secret the cloud stack verifies events against. On a stack of another edition
 // there is no secret, and it signs with an empty key that no server accepts.
 func (dc *DockerCompose) StripeSignature(payload []byte) string {
-	timestamp := strconv.FormatInt(clock.Now().Unix(), 10)
+	timestamp := strconv.FormatInt(wallClock.Now().Unix(), 10)
 
 	mac := hmac.New(sha256.New, []byte(dc.stack.envs["STRIPE_WEBHOOK_SECRET"]))
 	mac.Write([]byte(timestamp + "." + string(payload)))

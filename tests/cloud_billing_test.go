@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -227,8 +226,8 @@ func (s billedSubscription) object(fields map[string]any) map[string]any {
 		"customer":             s.customer,
 		"status":               string(models.BillingStatusActive),
 		"cancel_at_period_end": false,
-		"billing_cycle_anchor": clock.Now().Unix(),
-		"current_period_end":   clock.Now().AddDate(0, 1, 0).Unix(),
+		"billing_cycle_anchor": wallClock.Now().Unix(),
+		"current_period_end":   wallClock.Now().AddDate(0, 1, 0).Unix(),
 		"metadata":             map[string]any{"tenant_id": s.tenant},
 	}
 
@@ -272,7 +271,7 @@ func stripeEvent(t *testing.T, eventType string, object map[string]any) []byte {
 	payload, err := json.Marshal(map[string]any{
 		"id":       "evt_" + stripeTestID(),
 		"object":   "event",
-		"created":  clock.Now().Unix(),
+		"created":  wallClock.Now().Unix(),
 		"livemode": false,
 		"type":     eventType,
 		"data":     map[string]any{"object": object},
@@ -564,7 +563,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 	t.Run("customer.subscription.updated syncs the status and the period end", func(t *testing.T) {
 		owner := newBillingOwner(t, compose, "billing-subscription-updated")
 		subscription := subscribe(t, compose, owner.tenant)
-		periodEnd := clock.Now().AddDate(0, 2, 0).Unix()
+		periodEnd := wallClock.Now().AddDate(0, 2, 0).Unix()
 
 		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.object(map[string]any{
 			"status":             string(models.BillingStatusPastDue),
@@ -668,7 +667,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 		requireStripeEventAnswered(t, compose, stripeSubscriptionDeleted, subscription.object(map[string]any{
 			"id":          other,
 			"status":      string(models.BillingStatusCanceled),
-			"canceled_at": clock.Now().Unix(),
+			"canceled_at": wallClock.Now().Unix(),
 		}))
 
 		requireBillingUnchanged(t, compose, before)
@@ -682,7 +681,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 
 		signatures := map[string]string{
 			"without a Stripe-Signature": "",
-			"signed with another secret": fmt.Sprintf("t=%d,v1=%s", clock.Now().Unix(), strings.Repeat("0", 64)),
+			"signed with another secret": fmt.Sprintf("t=%d,v1=%s", wallClock.Now().Unix(), strings.Repeat("0", 64)),
 		}
 
 		for description, signature := range signatures {
@@ -782,7 +781,7 @@ type stripeTestClock struct {
 func newStripeTestClock(t *testing.T, compose *environment.DockerCompose) *stripeTestClock {
 	t.Helper()
 
-	frozen := clock.Now().Truncate(time.Second)
+	frozen := wallClock.Now().Truncate(time.Second)
 	created := struct {
 		ID string `json:"id"`
 	}{}
@@ -966,7 +965,7 @@ type stripeLeftover struct {
 func sweepStripeLeftovers(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
-	before := clock.Now().Add(-stripeLeftoverAge).Unix()
+	before := wallClock.Now().Add(-stripeLeftoverAge).Unix()
 
 	for _, testClock := range listStripeTestClocks(t, compose) {
 		if testClock.Name == stripeTestClockName && testClock.Created < before {

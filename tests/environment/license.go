@@ -21,6 +21,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
+var wallClock = clock.New()
+
 // LicenseIssuerKeyPath is the key file, relative to tests/, that the Go suite and the e2e stack
 // pass to [LoadLicenseIssuer].
 const LicenseIssuerKeyPath = stackArtifactsDir + "/license-issuer.pem"
@@ -78,7 +80,7 @@ type LicenseFeatures struct {
 // unlocks every feature for any number of devices. Each call carries an ID of its own, so a test
 // can tell which of two licenses the server holds.
 func FullLicense() License {
-	now := clock.Now()
+	now := wallClock.Now()
 
 	return License{
 		ID:       uuid.Generate(),

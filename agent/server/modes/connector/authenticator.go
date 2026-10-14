@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"time"
 
 	cerrdefs "github.com/containerd/errdefs"
 	dockerclient "github.com/docker/docker/client"
@@ -99,7 +100,7 @@ func accountExpiredInContainer(ctx context.Context, cli dockerclient.APIClient, 
 	}
 	defer shadow.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
-	return osauth.AccountExpiredFromShadow(username, shadow)
+	return osauth.AccountExpiredFromShadow(username, shadow, time.Now()) //nolint:forbidigo // shadow aging is judged against the host's wall clock
 }
 
 // Password handles the server's SSH password authentication when server is running in connector mode.
@@ -153,7 +154,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 	}
 	defer shadow.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
-	if !osauth.AuthUserFromShadow(username, password, shadow) {
+	if !osauth.AuthUserFromShadow(username, password, shadow, time.Now()) { //nolint:forbidigo // shadow aging is judged against the host's wall clock
 		log.WithFields(
 			log.Fields{
 				"container": *a.container,

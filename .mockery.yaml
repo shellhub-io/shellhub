@@ -10,10 +10,6 @@ packages:
     interfaces:
       Cache:
 
-  github.com/shellhub-io/shellhub/pkg/clock:
-    interfaces:
-      Clock:
-
   github.com/shellhub-io/shellhub/pkg/hash:
     interfaces:
       Hasher:
