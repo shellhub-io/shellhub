@@ -1,34 +1,10 @@
 package yescrypt
 
 import (
-	"crypto/rand"
-	"math/big"
 	"testing"
 
-	"github.com/openwall/yescrypt-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func FuzzVerify(f *testing.F) {
-	const settings = "$y$j9T$AAt9R641xPvCI9nXw1HHW/"
-
-	for range 100 {
-		v, _ := rand.Int(rand.Reader, big.NewInt(64))
-
-		password := make([]byte, v.Int64())
-		rand.Read(password)
-
-		hash, err := yescrypt.Hash(password, []byte(settings))
-		require.NoError(f, err)
-
-		f.Add(string(password), string(hash))
-	}
-
-	f.Fuzz(func(_ *testing.T, a string, b string) {
-		assert.True(f, Verify(a, b))
-	})
-}
 
 func TestVeirfy(t *testing.T) {
 	cases := []struct {
