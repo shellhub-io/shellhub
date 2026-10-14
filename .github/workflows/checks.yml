@@ -1,0 +1,247 @@
+name: Checks
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: checks
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    env:
+      CHECK_COMMITS: ${{ github.event_name != 'workflow_dispatch' && github.actor != 'dependabot[bot]' }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        if: github.event_name != 'workflow_dispatch'
+        id: changes
+        with:
+          filters: |
+            openapi:
+              - 'openapi/**'
+              - 'versions.env'
+              - '.github/workflows/checks.yml'
+            is-latest-tag:
+              - '.github/scripts/is-latest-tag.sh'
+              - '.github/actions/is-latest-tag/**'
+              - 'tests/is-latest-tag_test.sh'
+              - '.github/workflows/checks.yml'
+            gen-config:
+              - 'ui/scripts/gen-config.sh'
+              - 'tests/ui/**'
+              - 'versions.env'
+              - '.github/workflows/checks.yml'
+            comment-scan:
+              - 'devscripts/comment-scan'
+              - 'tests/devscripts/comment-scan.bats'
+              - '.github/workflows/checks.yml'
+            wrapper:
+              - 'bin/docker-compose'
+              - '.env'
+              - '.env.enterprise'
+              - 'docker-compose*.yml'
+              - 'tests/compose/**'
+              - '.github/workflows/checks.yml'
+
+      - name: Check Commit Type
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^[\(\)\-a-z0-9,\s]+!?: .+(?:\n(?:\n.+)+)?(?:\n\n.+)?$'
+          error: 'Your message must have the correct format "<scope>: <subject>" with an optional body and footer separated by blank lines.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Title Capitalize
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^[^A-Z]'
+          flags: ''
+          error: 'Your title should not capitalize first word.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Title Length
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^[^\s]+([ \t]+[^\s]+){2,}[ \t]*(\n.*)?$'
+          flags: 's'
+          error: 'A meaningful title should contain at least 3 words.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Title Line Length
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^([^\n]{1,80}|Merge pull request.*)(\n.*)?$'
+          flags: 's'
+          error: 'The maximum title line length of 80 characters is exceeded.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Title Line Separator
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^[^\n]+(\n\n.+)?$'
+          flags: 's'
+          error: 'Should leave an empty line after title.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Line Length
+        if: ${{ !cancelled() && env.CHECK_COMMITS == 'true' }}
+        uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
+        with:
+          pattern: '^[^\n]+(\n[^\n]{0,100})*$'
+          flags: 's'
+          error: 'The maximum line length of 100 characters is exceeded.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check the comments the pull request adds
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: devscripts/comment-scan --diff "origin/$BASE_REF"
+
+      - name: Set up Node.js
+        if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || steps.changes.outputs.openapi == 'true') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.20.0"
+
+      - name: Install Prettier and Redocly
+        if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || steps.changes.outputs.openapi == 'true') }}
+        id: openapi-tools
+        run: |
+          PRETTIER=$(sed -n 's/^PRETTIER_VERSION=//p' versions.env)
+          REDOCLY=$(sed -n 's/^REDOCLY_VERSION=//p' versions.env)
+          [ -n "$PRETTIER" ] || { echo "could not read PRETTIER_VERSION from versions.env"; exit 1; }
+          [ -n "$REDOCLY" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npm install -g "prettier@$PRETTIER" "@redocly/cli@$REDOCLY"
+
+      - name: Check the OpenAPI spec formatting
+        if: ${{ !cancelled() && steps.openapi-tools.outcome == 'success' }}
+        run: prettier -c 'openapi/spec/**/*.yaml'
+
+      - name: Lint the OpenAPI spec
+        if: ${{ !cancelled() && steps.openapi-tools.outcome == 'success' }}
+        working-directory: openapi
+        run: redocly lint spec/openapi.yaml spec/community-openapi.yaml spec/cloud-openapi.yaml spec/enterprise-openapi.yaml
+
+      - name: Bundle the customer OpenAPI specs
+        if: ${{ !cancelled() && steps.openapi-tools.outcome == 'success' }}
+        working-directory: openapi
+        run: |
+          for edition in community cloud enterprise; do
+            redocly bundle "${edition}-customer@v1" -o "/tmp/${edition}-customer.json"
+          done
+
+      - name: Install bats
+        if: ${{ !cancelled() }}
+        id: bats
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        with:
+          bats-version: 1.14.0
+
+      - name: Install shellcheck 0.11.0
+        if: ${{ !cancelled() }}
+        id: shellcheck
+        run: |
+          curl -fsSL -o /tmp/shellcheck.tar.xz \
+            https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  /tmp/shellcheck.tar.xz" | sha256sum -c -
+          sudo tar -xJf /tmp/shellcheck.tar.xz -C /usr/local/bin --strip-components=1 shellcheck-v0.11.0/shellcheck
+
+      - name: Read the Alpine version from versions.env
+        if: ${{ !cancelled() }}
+        id: alpine
+        run: |
+          version=$(sed -n 's/^ALPINE_VERSION=//p' versions.env)
+          if [ -z "$version" ]; then
+            echo "could not read ALPINE_VERSION from versions.env" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Lint install.sh
+        if: ${{ !cancelled() && steps.shellcheck.outcome == 'success' }}
+        run: shellcheck -s sh -S warning install.sh
+
+      - name: Run install.sh tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' }}
+        run: bats install.bats shellhub-agent-wrapper.bats
+
+      - name: Run install.sh tests on busybox
+        if: ${{ !cancelled() && steps.alpine.outcome == 'success' }}
+        env:
+          ALPINE_VERSION: ${{ steps.alpine.outputs.version }}
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src "alpine:$ALPINE_VERSION" \
+            sh -c 'apk add --no-cache bats >/dev/null && bats install.bats shellhub-agent-wrapper.bats'
+
+      - name: Run is-latest-tag tests
+        if: ${{ !cancelled() && steps.changes.outputs.is-latest-tag == 'true' }}
+        run: bash tests/is-latest-tag_test.sh
+
+      - name: Run gen-config tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.gen-config == 'true' }}
+        run: bats tests/ui/gen-config.bats
+
+      - name: Run gen-config tests on busybox
+        if: ${{ !cancelled() && steps.alpine.outcome == 'success' && steps.changes.outputs.gen-config == 'true' }}
+        env:
+          ALPINE_VERSION: ${{ steps.alpine.outputs.version }}
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src "alpine:$ALPINE_VERSION" \
+            sh -c 'apk add --no-cache bats jq >/dev/null && bats tests/ui/gen-config.bats'
+
+      - name: Lint comment-scan
+        if: ${{ !cancelled() && steps.shellcheck.outcome == 'success' && steps.changes.outputs.comment-scan == 'true' }}
+        run: shellcheck devscripts/comment-scan
+
+      - name: Run comment-scan tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.comment-scan == 'true' }}
+        run: bats tests/devscripts/comment-scan.bats
+
+      - name: Run the compose wrapper tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.wrapper == 'true' }}
+        run: bats tests/compose/wrapper.bats

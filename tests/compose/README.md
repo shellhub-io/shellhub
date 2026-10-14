@@ -34,7 +34,7 @@ bats tests/compose/wrapper.bats    # subset that doesn't need cloud/
 
 ## CI
 
-`compose-tests.yml` runs `wrapper.bats` on every PR that touches the wrapper,
+`checks.yml` runs `wrapper.bats` on every PR that touches the wrapper,
 the env files, or the compose YAMLs. The cloud-dependent scenarios are
 covered by the cloud repo's CI workflow (it already clones both repos side
 by side); wiring is a separate change.
