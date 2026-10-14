@@ -286,6 +286,12 @@ jobs:
           name: qa-integration
           sum-files: shellhub/tests/go.sum
 
+      - name: Restore the image build cache
+        if: steps.changes.outputs.go == 'true'
+        uses: ./shellhub/.github/actions/build-cache
+        with:
+          save: true
+
       - name: Set SHELLHUB_DATABASE for integration tests
         if: steps.changes.outputs.go == 'true'
         working-directory: shellhub
@@ -314,6 +320,12 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
           SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+
+      - name: Drop the image build cache entries the tests did not use
+        if: steps.changes.outputs.go == 'true'
+        uses: ./shellhub/.github/actions/build-cache
+        with:
+          prune: true
 
       - name: Save the Go caches
         if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}

@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ARG GOLANG_VERSION
 ARG ALPINE_VERSION
 ARG AIR_VERSION
@@ -20,7 +22,8 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
 COPY ./gateway/go.mod ./gateway/go.sum ./
 
-RUN go mod download
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    go mod download
 
 FROM base AS builder
 
@@ -29,11 +32,14 @@ COPY ./gateway .
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-RUN go mod download
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
-RUN go build
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
+    go build
 
 FROM toolchain AS tools
 
@@ -42,7 +48,6 @@ COPY --from=golangci-lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
 
 FROM tools AS development
 
-COPY --from=base $GOPATH/pkg/mod $GOPATH/pkg/mod
 COPY --from=base $GOPATH/src/github.com/shellhub-io/shellhub $GOPATH/src/github.com/shellhub-io/shellhub
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
@@ -52,6 +57,8 @@ RUN go mod download
 COPY ./gateway/entrypoint-dev.sh /entrypoint.sh
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
+
+RUN go mod download
 
 ENTRYPOINT ["/entrypoint.sh"]
 

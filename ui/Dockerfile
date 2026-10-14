@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ARG NODE_VERSION
 ARG ALPINE_VERSION
 ARG SWS_VERSION
@@ -20,7 +22,8 @@ COPY ui/apps/console/package.json ./apps/console/
 COPY ui/apps/website/package.json ./apps/website/
 COPY ui/apps/docs/package.json ./apps/docs/
 
-RUN npm install
+RUN --mount=type=cache,id=shellhub-npm,target=/root/.npm,sharing=shared \
+    npm install
 
 FROM base AS development
 
@@ -34,7 +37,8 @@ CMD ["/scripts/entrypoint-dev.sh"]
 
 FROM node:${NODE_VERSION} AS spec-bundler
 ARG REDOCLY_VERSION
-RUN npm install -g @redocly/cli@${REDOCLY_VERSION:?}
+RUN --mount=type=cache,id=shellhub-npm,target=/root/.npm,sharing=shared \
+    npm install -g @redocly/cli@${REDOCLY_VERSION:?}
 WORKDIR /spec
 COPY openapi/spec ./spec
 COPY openapi/plugins ./plugins
