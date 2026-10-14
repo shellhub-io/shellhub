@@ -201,18 +201,39 @@ func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.Member
 //
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
+//
+// After the namespace is gone it ends every device it held as a device removal does, evicting its cached
+// authorization and closing its tunnel when this process holds it, or on the tunnel's next beat otherwise. A
+// failed eviction is logged and does not fail the call. It returns ErrNamespaceNotFound, ErrBillingReportNamespaceDelete when
+// billing refuses the deletion, a namespace delete hook's error, ErrNamespaceInstanceProtected for the instance's
+// namespace, ErrForbidden for a tenant ID that is not a valid scope, and the store's error when the namespace's
+// devices cannot be listed or the namespace cannot be deleted, evicting nothing on any of them. The devices are
+// listed before billing hears of the deletion and before the delete hooks run, so a failed listing leaves no
+// side effect behind. ctx bounds the listing, the billing report, the hooks, the deletion and the evictions, so a
+// ctx cancelled after the deletion leaves the cached authorizations to expire on their own.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
 
+	err = DeleteNamespacesEndingDevices(ctx, s.store, s.cache, []string{n.TenantID}, func(ctx context.Context) error {
+		return s.deleteNamespace(ctx, n)
+	})
+	if errors.Is(err, store.ErrNamespaceInstanceProtected) {
+		return NewErrNamespaceInstanceProtected(err)
+	}
+
+	return err
+}
+
+func (s *service) deleteNamespace(ctx context.Context, n *models.Namespace) error {
 	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
 		return !ns.Billing.IsNil() && ns.Billing.HasCustomer() && ns.Billing.HasSubscription()
 	}
 
 	if s.edition.IsCloud() && ableToReportDeleteNamespace(n) {
-		if err := s.reportBilling(ctx, tenantID, BillingActionNamespaceDelete); err != nil {
+		if err := s.reportBilling(ctx, n.TenantID, BillingActionNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	}
@@ -221,15 +242,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 		return err
 	}
 
-	if err := s.store.NamespaceDelete(ctx, n); err != nil {
-		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
-			return NewErrNamespaceInstanceProtected(err)
-		}
-
-		return err
-	}
-
-	return nil
+	return s.store.NamespaceDelete(ctx, n)
 }
 
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {

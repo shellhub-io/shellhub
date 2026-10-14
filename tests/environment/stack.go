@@ -444,6 +444,37 @@ func (s *Stack) JWT(token string) {
 	s.client.SetAuthToken(token)
 }
 
+// ServerMetric returns the value of the unlabelled Prometheus series name that the server publishes
+// at its internal metrics endpoint, read with curl from inside the server container, since the
+// gateway refuses that endpoint. ctx bounds the exec. It returns an error when the exec cannot run,
+// its output cannot be read, curl exits non-zero, or the series is missing or not a number.
+func (s *Stack) ServerMetric(ctx context.Context, name string) (float64, error) {
+	code, output, err := s.Service(ServiceServer).Exec(ctx, []string{"curl", "-sf", "http://localhost:8080/internal/metrics"}, tcexec.Multiplexed())
+	if err != nil {
+		return 0, err
+	}
+
+	body, err := io.ReadAll(output)
+	if err != nil {
+		return 0, err
+	}
+
+	if code != 0 {
+		return 0, fmt.Errorf("reading the server's metrics exited with %d: %s", code, body)
+	}
+
+	for line := range strings.SplitSeq(string(body), "\n") {
+		value, found := strings.CutPrefix(line, name+" ")
+		if !found {
+			continue
+		}
+
+		return strconv.ParseFloat(strings.TrimSpace(value), 64)
+	}
+
+	return 0, fmt.Errorf("the server publishes no series %s", name)
+}
+
 // Admin runs `/server admin <args>` inside the server container.
 func (s *Stack) Admin(ctx context.Context, args ...string) error {
 	code, output, err := s.Service(ServiceServer).Exec(ctx, append([]string{"/server", "admin"}, args...), tcexec.Multiplexed())

@@ -9,6 +9,8 @@ package admin
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/admin/services"
 	"github.com/shellhub-io/shellhub/server/api/store/pg"
@@ -24,6 +26,7 @@ type env struct {
 	PostgresDatabase   string `env:"POSTGRES_DATABASE,default=main"`
 	PostgresLogLevel   string `env:"POSTGRES_LOG_LEVEL,default=INFO"`
 	PostgresLogVerbose bool   `env:"POSTGRES_LOG_VERBOSE,default=false"`
+	RedisURI           string `env:"REDIS_URI,default=redis://redis:6379"`
 
 	Edition envs.Edition `env:"SHELLHUB_EDITION"`
 }
@@ -80,5 +83,10 @@ func connect(ctx context.Context) (services.Services, error) {
 		return nil, err
 	}
 
-	return services.NewService(store, services.WithEdition(cfg.Edition)), nil
+	cache, err := cache.NewRedisCache(cfg.RedisURI, 0, cache.Config{}, clock.New())
+	if err != nil {
+		return nil, err
+	}
+
+	return services.NewService(store, services.WithEdition(cfg.Edition), services.WithCache(cache)), nil
 }

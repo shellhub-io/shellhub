@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
+	apiservices "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -134,14 +135,16 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 	return ns, nil
 }
 
-// NamespaceDelete deletes a namespace based on the provided namespace name.
+// NamespaceDelete implements [Services].
 func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error {
 	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(ctx, ns); err != nil {
+	if err := apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, []string{ns.TenantID}, func(ctx context.Context) error {
+		return s.store.NamespaceDelete(ctx, ns)
+	}); err != nil {
 		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
 			return ErrNamespaceInstanceProtected
 		}

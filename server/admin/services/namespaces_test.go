@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -715,6 +716,7 @@ func TestNamespaceDelete(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	mock := new(mocks.MockStore)
+	cacheMock := cachemock.NewMockCache(t)
 
 	ctx := context.TODO()
 
@@ -748,7 +750,22 @@ func TestNamespaceDelete(t *testing.T) {
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}}, int64(1), nil).
+					Once()
 				mock.On("NamespaceDelete", ctx, namespace).Return(errors.New("error")).Once()
+			},
+			expected: ErrFailedDeleteNamespace,
+		},
+		{
+			description: "fails without deleting when the namespace's devices cannot be listed",
+			namespace:   "namespace",
+			requiredMocks: func() {
+				namespace := &models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return(nil, int64(0), errors.New("error")).
+					Once()
 			},
 			expected: ErrFailedDeleteNamespace,
 		},
@@ -768,7 +785,27 @@ func TestNamespaceDelete(t *testing.T) {
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}, {UID: "uid-2"}}, int64(2), nil).
+					Once()
+				deleted := mock.On("NamespaceDelete", ctx, namespace).Return(nil).Once()
+				cacheMock.On("Delete", ctx, "auth_device/uid-1").Return(nil).Once().NotBefore(deleted)
+				cacheMock.On("Delete", ctx, "auth_device/uid-2").Return(nil).Once().NotBefore(deleted)
+			},
+			expected: nil,
+		},
+		{
+			description: "deletes the namespace when evicting a device's authorization fails",
+			namespace:   "namespace",
+			requiredMocks: func() {
+				namespace := &models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}, {UID: "uid-2"}}, int64(2), nil).
+					Once()
 				mock.On("NamespaceDelete", ctx, namespace).Return(nil).Once()
+				cacheMock.On("Delete", ctx, "auth_device/uid-1").Return(errors.New("error")).Once()
+				cacheMock.On("Delete", ctx, "auth_device/uid-2").Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -778,7 +815,7 @@ func TestNamespaceDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			s := NewService(store.Store(mock), WithClock(clock.NewFixed(now)))
+			s := NewService(store.Store(mock), WithClock(clock.NewFixed(now)), WithCache(cacheMock))
 			err := s.NamespaceDelete(ctx, &inputs.NamespaceDelete{Namespace: tc.namespace})
 			assert.Equal(t, tc.expected, err)
 		})
