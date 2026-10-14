@@ -239,6 +239,12 @@ func TestGateway(t *testing.T) {
 		assert.Empty(t, unknown.body)
 	})
 
+	t.Run("a request under /internal is answered 404 rather than reaching the console", func(t *testing.T) {
+		internal := fetch(t, withoutRedirects, compose.BaseURL()+"/internal/whatever", "", nil)
+
+		assert.Equal(t, http.StatusNotFound, internal.status)
+	})
+
 	t.Run("plain HTTP is served without a redirect when TLS is off", func(t *testing.T) {
 		plain := fetch(t, withoutRedirects, compose.BaseURL()+"/info", "", nil)
 
