@@ -99,6 +99,28 @@ export function findRow(page: Page, text: string) {
   return page.getByRole("row").filter({ hasText: text });
 }
 
+export async function generateKey(
+  page: Page,
+  {
+    dialog,
+    submit,
+    keyLabel,
+  }: { dialog: string; submit: string; keyLabel: string },
+) {
+  const name = `e2e-${buildShortId()}`;
+  await page.getByRole("button", { name: "Generate Key" }).click();
+  const generate = page.getByRole("dialog", { name: dialog });
+  await generate.getByLabel("Name").fill(name);
+  await generate.getByRole("button", { name: submit, exact: true }).click();
+  const plaintext = generate.getByLabel(keyLabel, { exact: true });
+  await expect(plaintext).toHaveText(/\S+/);
+  const key = await plaintext.textContent();
+  if (!key) throw new Error(`expected the plaintext of ${name}`);
+  await generate.getByRole("button", { name: "Done" }).click();
+  await expect(findRow(page, name)).toBeVisible();
+  return { name, key };
+}
+
 export async function fillLoginForm(
   page: Page,
   username: string,
