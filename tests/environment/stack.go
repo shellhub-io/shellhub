@@ -51,6 +51,10 @@ import (
 // StripeEvents applies to the cloud edition. It runs stripe-cli, which forwards every event on the
 // Stripe test account to the stack's webhook, asynchronously and in no fixed order. Without it the
 // stack receives none of Stripe's own events.
+//
+// FailureLog, when set, is the file Up writes the logs of every container the stack started to when
+// the stack fails to come up, before it takes the stack down. The first write a run makes to a path
+// replaces the file, and its later writes to that path append.
 type Config struct {
 	Edition             Edition
 	Name                string
@@ -68,6 +72,7 @@ type Config struct {
 	ACME                bool
 	AutoSSL             bool
 	StripeEvents        bool
+	FailureLog          string
 }
 
 type imageBuild struct {
@@ -83,6 +88,7 @@ var stackImages struct {
 // Stack is a running ShellHub compose stack. All methods return errors instead of calling
 // [testing.T], so standalone binaries can use it. The test-time wrapper is [DockerCompose].
 type Stack struct {
+	name      string
 	files     []string
 	envs      map[string]string
 	services  map[Service]*tc.DockerContainer
@@ -114,7 +120,10 @@ type Stack struct {
 // for a license, for no license, or for a GeoIP database. It returns an error when cfg asks for
 // both a supplied certificate and ACME, when a certificate cannot be generated, and when a
 // certificate or Pebble configuration path cannot be resolved or its file written. A stack that
-// fails to come up leaves no license, GeoIP, certificate or Pebble file behind.
+// fails to come up leaves no license, GeoIP, certificate or Pebble file behind. Once the stack's
+// containers exist, a failure also writes their logs to cfg.FailureLog when that is set, and names
+// the file in the error returned when it wrote at least one container's logs; an error writing
+// them is joined to it.
 func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if cfg.Run == nil {
 		return nil, errors.New("the stack config has no run to own its images")
@@ -264,6 +273,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	stack := &Stack{
+		name:      cfg.Name,
 		files:     files,
 		envs:      merged,
 		services:  make(map[Service]*tc.DockerContainer),
@@ -276,6 +286,15 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	down := func(err error) error {
+		if cfg.FailureLog != "" {
+			kept, logErr := cfg.Run.keepProjectLogs(context.WithoutCancel(ctx), cfg.Name, cfg.FailureLog)
+			if kept > 0 {
+				err = fmt.Errorf("%w; the logs of the stack's containers are in %s", err, cfg.FailureLog)
+			}
+
+			err = errors.Join(err, logErr)
+		}
+
 		return errors.Join(err, stack.Down(context.WithoutCancel(ctx)))
 	}
 

@@ -111,8 +111,11 @@ func (dcc *DockerComposeConfigurator) WithCronTrigger() *DockerComposeConfigurat
 // every later Up starts from those images and fails if they were removed in between.
 //
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
-// [assert.FailNow] if an error arises.
+// [assert.FailNow] if an error arises. A stack that fails to come up leaves its containers' logs in
+// .stack/<test name>.log under the tests directory, as [DockerCompose.Down] does for a failed test.
 func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
+	dcc.cfg.FailureLog = stackLogPath(dcc.t.Name())
+
 	stack, err := Up(ctx, dcc.cfg)
 	require.NoError(dcc.t, err)
 

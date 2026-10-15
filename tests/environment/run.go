@@ -5,9 +5,14 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
+	"github.com/moby/moby/api/pkg/stdcopy"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
@@ -35,6 +40,90 @@ type Run struct {
 	client *client.Client
 	lease  *client.HijackedResponse
 	issuer *LicenseIssuer
+
+	logsMu     sync.Mutex
+	logsOpened map[string]bool
+}
+
+func (r *Run) keepProjectLogs(ctx context.Context, project string, path string) (int, error) {
+	containers, err := r.client.ContainerList(ctx, client.ContainerListOptions{All: true, Filters: labelEquals(composeProjectLabel, project)})
+	if err != nil {
+		return 0, err
+	}
+
+	if len(containers.Items) == 0 {
+		return 0, nil
+	}
+
+	file, err := r.openStackLog(path)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func() { _ = file.Close() }()
+
+	var (
+		kept int
+		errs []error
+	)
+
+	for _, c := range containers.Items {
+		service := c.Labels[composeServiceLabel]
+
+		if err := r.writeContainerLogs(ctx, file, service, c.ID); err != nil {
+			errs = append(errs, fmt.Errorf("logs for %s: %w", service, err))
+
+			continue
+		}
+
+		kept++
+	}
+
+	return kept, errors.Join(errs...)
+}
+
+func (r *Run) writeContainerLogs(ctx context.Context, w io.Writer, service, id string) error {
+	if _, err := fmt.Fprintf(w, "===== %s =====\n", service); err != nil {
+		return err
+	}
+
+	logs, err := r.client.ContainerLogs(ctx, id, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		return err
+	}
+
+	defer func() { _ = logs.Close() }()
+
+	_, err = stdcopy.StdCopy(w, w, logs)
+
+	return err
+}
+
+func (r *Run) openStackLog(path string) (*os.File, error) {
+	r.logsMu.Lock()
+	defer r.logsMu.Unlock()
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+		return nil, err
+	}
+
+	flags := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	if r.logsOpened[path] {
+		flags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
+	}
+
+	file, err := os.OpenFile(path, flags, 0o600) //nolint:gosec // the path is a test's own name under the tests directory
+	if err != nil {
+		return nil, err
+	}
+
+	if r.logsOpened == nil {
+		r.logsOpened = make(map[string]bool)
+	}
+
+	r.logsOpened[path] = true
+
+	return file, nil
 }
 
 // StartRun starts a run for the calling process. Its lease is a container whose stdin the
