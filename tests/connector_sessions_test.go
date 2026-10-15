@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
+
+var sftpSessionClosed = regexp.MustCompile(`server unexpectedly closed connection|error sending init packet to server: failed to send packet: EOF`)
 
 // TestConnectorSessions covers the SSH sessions a connector serves inside the container it
 // connects, and the transport it reaches the server over.
@@ -99,7 +102,8 @@ func TestConnectorSessions(t *testing.T) {
 
 		select {
 		case err := <-done:
-			require.ErrorContains(t, err, "server unexpectedly closed connection")
+			require.Error(t, err)
+			assert.Regexp(t, sftpSessionClosed, err.Error())
 		case <-time.After(30 * time.Second):
 			require.Fail(t, "the SFTP client neither started nor failed")
 		}
