@@ -48,13 +48,18 @@ func (e Edition) Build() string {
 	return "enterprise"
 }
 
+func statCloudSource(cloudDir string) error {
+	_, err := os.Stat(filepath.Join(cloudDir, "go.mod"))
+
+	return err
+}
+
 func (e Edition) composeFiles(cloudDir string) ([]string, error) {
 	base := []string{"../docker-compose.yml"}
 
 	if e != EditionCommunity {
-		cloudModule := filepath.Join(cloudDir, "go.mod")
-		if _, err := os.Stat(cloudModule); err != nil {
-			return nil, fmt.Errorf("the %s edition builds from the cloud source, %s: %w", e, cloudModule, err)
+		if err := statCloudSource(cloudDir); err != nil {
+			return nil, fmt.Errorf("the %s edition builds from the cloud source: %w", e, err)
 		}
 	}
 

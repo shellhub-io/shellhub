@@ -12,21 +12,9 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 		return nil, nil, errLicensedAndUnlicensed
 	}
 
-	var ldflags map[string]string
-	if issuer != nil {
-		flags, err := issuer.ldflags()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		ldflags = map[string]string{goLDFlagsEnv: flags}
-	}
-
 	switch {
 	case cfg.Unlicensed:
-		envs, err := mergeEnvs(nil, ldflags, map[string]string{licenseFileEnv: ""})
-
-		return envs, nil, err
+		return map[string]string{licenseFileEnv: ""}, nil, nil
 	case issuer == nil:
 		return nil, nil, errRunIssuesNoLicense
 	}
@@ -54,9 +42,7 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 		return nil, []string{path}, err
 	}
 
-	envs, err := mergeEnvs(nil, ldflags, map[string]string{licenseFileEnv: path})
-
-	return envs, []string{path}, err
+	return map[string]string{licenseFileEnv: path}, []string{path}, nil
 }
 
 func licenseFilePath(stack string) (string, error) {

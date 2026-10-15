@@ -75,6 +75,11 @@ type Config struct {
 	FailureLog          string
 }
 
+const (
+	defaultCloudDir  = "../../cloud"
+	buildComposeFile = "../docker-compose.test.build.yml"
+)
+
 type imageBuild struct {
 	run     string
 	edition Edition
@@ -101,9 +106,9 @@ type Stack struct {
 }
 
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
-// healthy. The first Up per edition in a run builds the images, tagged with the run's ID; later
-// Ups reuse them. The stack's network is created by the run, so Up returns an error when cfg has
-// no run and when the daemon refuses the network. It also returns an error, after taking the
+// healthy. The first Up per edition in a run builds the images, tagged with the run's ID, unless
+// [BuildStackImages] built them; later Ups reuse them. The stack's network is created by the run,
+// so Up returns an error when cfg has no run and when the daemon refuses the network. It also returns an error, after taking the
 // stack down, when compose fails, when the daemon cannot list the stack's containers, or when a
 // service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up
 // returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
@@ -134,21 +139,18 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	if cfg.CloudDir == "" {
-		cfg.CloudDir = "../../cloud"
+		cfg.CloudDir = defaultCloudDir
 	}
 
-	files, err := cfg.Edition.composeFiles(cfg.CloudDir)
+	build, err := newStackBuild(cfg.Edition, cfg.CloudDir, cfg.Run)
 	if err != nil {
 		return nil, err
 	}
 
-	editionEnvs, err := cfg.Edition.envs(cfg.CloudDir)
-	if err != nil {
-		return nil, err
-	}
+	files := build.composeFiles
 
 	var billingEnvs map[string]string
-	if editionEnvs["SHELLHUB_BILLING"] == "stripe" {
+	if cfg.Edition == EditionCloud {
 		if billingEnvs, err = stripeEnvs(ctx, cfg.CloudDir); err != nil {
 			return nil, err
 		}
@@ -232,7 +234,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		files = append(files, https.composeFile)
 	}
 
-	merged, err := mergeEnvs(cfg.Edition.envFiles(cfg.CloudDir), editionEnvs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
+	merged, err := mergeEnvs(build.envFiles, build.envs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
 	}, cfg.Envs, map[string]string{
@@ -258,7 +260,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if needsBuild {
 		defer stackImages.Unlock()
 
-		files = append(files, "../docker-compose.test.build.yml")
+		files = append(files, buildComposeFile)
 	} else {
 		stackImages.Unlock()
 	}
@@ -325,6 +327,35 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	return stack, nil
+}
+
+type stackBuild struct {
+	composeFiles []string
+	envFiles     []string
+	envs         map[string]string
+}
+
+func newStackBuild(edition Edition, cloudDir string, run *Run) (stackBuild, error) {
+	files, err := edition.composeFiles(cloudDir)
+	if err != nil {
+		return stackBuild{}, err
+	}
+
+	envs, err := edition.envs(cloudDir)
+	if err != nil {
+		return stackBuild{}, err
+	}
+
+	if issuer := run.LicenseIssuer(); edition != EditionCommunity && issuer != nil {
+		flags, err := issuer.ldflags()
+		if err != nil {
+			return stackBuild{}, err
+		}
+
+		envs[goLDFlagsEnv] = flags
+	}
+
+	return stackBuild{composeFiles: files, envFiles: edition.envFiles(cloudDir), envs: envs}, nil
 }
 
 func newComposeStack(name string, files []string) (*compose.DockerCompose, error) {
