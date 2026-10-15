@@ -65,7 +65,7 @@ const categories: Category[] = [
         enterprise: true,
       },
       { name: "Audit logs", community: false, cloud: true, enterprise: true },
-      { name: "SSO / SAML", community: false, cloud: true, enterprise: true },
+      { name: "SSO / SAML", community: false, cloud: false, enterprise: true },
     ],
   },
   {
