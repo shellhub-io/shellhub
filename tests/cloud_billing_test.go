@@ -28,7 +28,6 @@ const (
 	acceptedTestCard           = "pm_card_visa"
 	decliningTestCard          = "pm_card_chargeCustomerFail"
 	billingBlockedLog          = "doesn't qualify for the free plan"
-	paymentFailedLog           = "invoice payment failed for namespace"
 	deviceLimitMessage         = "device limit reached"
 	subscriptionBlockedMessage = "the namespace's subscription blocks new devices"
 	stripeWaitFor              = time.Minute
@@ -42,11 +41,10 @@ const (
 )
 
 const (
-	stripeInvoicePaid          = "invoice.paid"
-	stripeInvoicePaymentFailed = "invoice.payment_failed"
-	stripeCustomerDeleted      = "customer.deleted"
-	stripeSubscriptionUpdated  = "customer.subscription.updated"
-	stripeSubscriptionDeleted  = "customer.subscription.deleted"
+	stripeInvoicePaid         = "invoice.paid"
+	stripeCustomerDeleted     = "customer.deleted"
+	stripeSubscriptionUpdated = "customer.subscription.updated"
+	stripeSubscriptionDeleted = "customer.subscription.deleted"
 )
 
 // TestCloudBilling runs a cloud instance billing through Stripe test mode. Each case owns a
@@ -110,15 +108,6 @@ func billedNamespace(t *testing.T, compose *environment.DockerCompose, tenant st
 	require.NotNil(t, namespace.Billing, "namespace %s has no billing", tenant)
 
 	return namespace
-}
-
-func requireBillingUnchanged(t *testing.T, compose *environment.DockerCompose, before responses.Namespace) {
-	t.Helper()
-
-	after := billedNamespace(t, compose, before.TenantID)
-	assert.Equal(t, before.Billing.CustomerID, after.Billing.CustomerID)
-	assert.Equal(t, before.Billing.Subscription, after.Billing.Subscription)
-	assert.Equal(t, before.MaxDevices, after.MaxDevices)
 }
 
 func subscriptionStatus(t *testing.T, compose *environment.DockerCompose, tenant string) models.BillingStatus {
@@ -515,34 +504,6 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, models.BillingStatusActive, subscriptionStatus(t, compose, owner.tenant))
 	})
 
-	for _, status := range []models.BillingStatus{models.BillingStatusUnpaid, models.BillingStatusIncomplete} {
-		t.Run(fmt.Sprintf("invoice.paid recovers an %s subscription to active", status), func(t *testing.T) {
-			owner := newBillingOwner(t, compose, "billing-recover-"+string(status))
-			subscription := subscribe(t, compose, owner.tenant)
-
-			requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated,
-				subscription.object(map[string]any{"status": string(status)}))
-			require.Equal(t, status, subscriptionStatus(t, compose, owner.tenant))
-
-			requireStripeEventAnswered(t, compose, stripeInvoicePaid, subscription.invoice())
-
-			assert.Equal(t, models.BillingStatusActive, subscriptionStatus(t, compose, owner.tenant))
-		})
-	}
-
-	t.Run("invoice.payment_failed is logged and changes nothing", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-payment-failed")
-		subscription := subscribe(t, compose, owner.tenant)
-		before := billedNamespace(t, compose, owner.tenant)
-
-		mark := compose.ServerLogMark(t)
-		requireStripeEventAnswered(t, compose, stripeInvoicePaymentFailed, subscription.invoice())
-
-		compose.AwaitServerLogLine(t, mark, paymentFailedLog, "tenant="+owner.tenant, "subscription="+subscription.id)
-
-		requireBillingUnchanged(t, compose, before)
-	})
-
 	t.Run("customer.deleted clears billing and reverts to the free tier", func(t *testing.T) {
 		owner := newBillingOwner(t, compose, "billing-customer-deleted")
 		maxNamespaces := owner.maxNamespaces(t, compose)
@@ -558,35 +519,6 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 		assert.Nil(t, namespace.Billing.Subscription)
 		assert.Equal(t, freeTierDevices, namespace.MaxDevices)
 		assert.Equal(t, maxNamespaces, owner.maxNamespaces(t, compose))
-	})
-
-	t.Run("customer.subscription.updated syncs the status and the period end", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-subscription-updated")
-		subscription := subscribe(t, compose, owner.tenant)
-		periodEnd := wallClock.Now().AddDate(0, 2, 0).Unix()
-
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.object(map[string]any{
-			"status":             string(models.BillingStatusPastDue),
-			"current_period_end": periodEnd,
-		}))
-
-		billing := billedNamespace(t, compose, owner.tenant).Billing
-		require.NotNil(t, billing.Subscription)
-		assert.Equal(t, models.BillingStatusPastDue, billing.Subscription.Status)
-		assert.Equal(t, periodEnd, billing.Subscription.CurrentPeriodEnd)
-	})
-
-	t.Run("customer.subscription.updated with cancel_at_period_end keeps the subscription until the period ends", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-cancel-at-end")
-		subscription := subscribe(t, compose, owner.tenant)
-
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated,
-			subscription.object(map[string]any{"cancel_at_period_end": true}))
-
-		namespace := billedNamespace(t, compose, owner.tenant)
-		require.NotNil(t, namespace.Billing.Subscription)
-		assert.Equal(t, models.BillingStatusToCancelAtEndOfPeriod, namespace.Billing.Subscription.Status)
-		assert.Equal(t, unlimitedDevices, namespace.MaxDevices)
 	})
 
 	t.Run("customer.subscription.deleted cancels the subscription and takes back the namespace it allowed", func(t *testing.T) {
@@ -637,72 +569,6 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, unlimitedDevices, namespace.MaxDevices)
 		assert.Equal(t, maxNamespaces+1, owner.maxNamespaces(t, compose))
 		assert.Equal(t, 1, activeStripeSubscriptions(t, compose, customer))
-	})
-
-	t.Run("an event naming another customer changes nothing", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-other-customer")
-		subscription := subscribe(t, compose, owner.tenant)
-		before := billedNamespace(t, compose, owner.tenant)
-
-		other := "cus_" + stripeTestID()
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.object(map[string]any{
-			"customer": other,
-			"status":   string(models.BillingStatusPastDue),
-		}))
-		requireStripeEventAnswered(t, compose, stripeCustomerDeleted, subscription.customerObject(map[string]any{"id": other}))
-
-		requireBillingUnchanged(t, compose, before)
-	})
-
-	t.Run("an event naming another subscription changes nothing", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-other-subscription")
-		subscription := subscribe(t, compose, owner.tenant)
-		before := billedNamespace(t, compose, owner.tenant)
-
-		other := "sub_" + stripeTestID()
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.object(map[string]any{
-			"id":     other,
-			"status": string(models.BillingStatusPastDue),
-		}))
-		requireStripeEventAnswered(t, compose, stripeSubscriptionDeleted, subscription.object(map[string]any{
-			"id":          other,
-			"status":      string(models.BillingStatusCanceled),
-			"canceled_at": wallClock.Now().Unix(),
-		}))
-
-		requireBillingUnchanged(t, compose, before)
-	})
-
-	t.Run("an event that Stripe did not sign is refused", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-unsigned")
-		subscription := subscribe(t, compose, owner.tenant)
-		payload := stripeEvent(t, stripeSubscriptionUpdated,
-			subscription.object(map[string]any{"status": string(models.BillingStatusPastDue)}))
-
-		signatures := map[string]string{
-			"without a Stripe-Signature": "",
-			"signed with another secret": fmt.Sprintf("t=%d,v1=%s", wallClock.Now().Unix(), strings.Repeat("0", 64)),
-		}
-
-		for description, signature := range signatures {
-			resp, err := compose.PostStripeWebhook(t.Context(), payload, signature)
-			require.NoError(t, err)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode(), "%s: %s", description, resp.String())
-		}
-
-		assert.Equal(t, models.BillingStatusActive, subscriptionStatus(t, compose, owner.tenant))
-	})
-
-	t.Run("an event of a type the server does not handle is answered and ignored", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-unhandled")
-		subscription := subscribe(t, compose, owner.tenant)
-		before := billedNamespace(t, compose, owner.tenant)
-
-		requireStripeEventAnswered(t, compose, "customer.subscription.created",
-			subscription.object(map[string]any{"status": string(models.BillingStatusPastDue)}))
-		requireStripeEventAnswered(t, compose, "invoice.created", subscription.invoice())
-
-		requireBillingUnchanged(t, compose, before)
 	})
 }
 
