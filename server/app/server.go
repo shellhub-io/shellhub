@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -143,10 +144,36 @@ func (e *Env) openAPISchema() (*url.URL, error) {
 }
 
 type sshEnv struct {
-	ConnectTimeout               time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
-	HostKeyFile                  string        `env:"HOST_KEY_FILE"`
-	AllowPublickeyAccessBelow060 bool          `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-	RequireAcceptedTunnel        bool          `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
+	ConnectTimeout               time.Duration      `env:"CONNECT_TIMEOUT,default=30s"`
+	HostKeyFile                  string             `env:"HOST_KEY_FILE"`
+	AllowPublickeyAccessBelow060 bool               `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	RequireAcceptedTunnel        bool               `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
+	TunnelPingInterval           tunnelPingInterval `env:"SHELLHUB_TUNNEL_PING_INTERVAL"`
+}
+
+type tunnelPingInterval time.Duration
+
+const maxTunnelPingInterval = time.Minute
+
+var errTunnelPingInterval = errors.New("SHELLHUB_TUNNEL_PING_INTERVAL must be a positive duration under 1m, such as 15s")
+
+func (i *tunnelPingInterval) UnmarshalText(text []byte) error {
+	if len(text) == 0 {
+		return nil
+	}
+
+	interval, err := time.ParseDuration(string(text))
+	if err != nil {
+		return fmt.Errorf("%w: %w", errTunnelPingInterval, err)
+	}
+
+	if interval <= 0 || interval >= maxTunnelPingInterval {
+		return fmt.Errorf("%w: got %s", errTunnelPingInterval, text)
+	}
+
+	*i = tunnelPingInterval(interval)
+
+	return nil
 }
 
 // Server owns the process: the HTTP router, the background worker, and the stores and
@@ -349,6 +376,7 @@ func (s *Server) setupSSH(service services.Service) error {
 	env := s.sshEnv
 
 	d := dialer.NewDialer(service, s.heartbeater, s.clock)
+	d.Manager.PingInterval = time.Duration(env.TunnelPingInterval)
 	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
 		d.Manager.Evict(tenantID, uid)
 	})
@@ -362,6 +390,7 @@ func (s *Server) setupSSH(service services.Service) error {
 	sshhttp.Register(s.router, s.authn, d, service, sessions, &sshhttp.Config{
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 		Clock:                 s.clock,
+		TunnelPingInterval:    time.Duration(env.TunnelPingInterval),
 	})
 
 	handoff := webhandoff.NewStore()

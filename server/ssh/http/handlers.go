@@ -228,6 +228,7 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 			wsconnadapter.WithID(requestID),
 			wsconnadapter.WithDevice(tenant, uid),
 			wsconnadapter.WithClock(h.Config.clock()),
+			wsconnadapter.WithPingInterval(h.Config.TunnelPingInterval),
 		),
 		HandleRevdialPath,
 	)

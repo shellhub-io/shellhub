@@ -6,10 +6,12 @@ import (
 	"crypto/rsa"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -202,4 +204,34 @@ func TestVerifiedDeviceKeyOption(t *testing.T) {
 		require.ErrorIs(t, err, down)
 		assert.ErrorContains(t, err, "init device key verification")
 	})
+}
+
+func TestTunnelPingInterval(t *testing.T) {
+	parse := func(values map[string]string) (*sshEnv, error) {
+		return envs.ParseWithPrefix[sshEnv](envs.Map(values), "SSH_")
+	}
+
+	t.Run("is zero when unset, leaving each transport its own interval", func(t *testing.T) {
+		for _, values := range []map[string]string{{}, {"SHELLHUB_TUNNEL_PING_INTERVAL": ""}} {
+			env, err := parse(values)
+			require.NoError(t, err)
+			assert.Zero(t, env.TunnelPingInterval)
+		}
+	})
+
+	for value, interval := range map[string]time.Duration{"15s": 15 * time.Second, "59s": 59 * time.Second} {
+		t.Run("honours "+value, func(t *testing.T) {
+			env, err := parse(map[string]string{"SHELLHUB_TUNNEL_PING_INTERVAL": value})
+			require.NoError(t, err)
+			assert.Equal(t, interval, time.Duration(env.TunnelPingInterval))
+		})
+	}
+
+	for _, value := range []string{"0s", "-1s", "soon", "1m", "3m"} {
+		t.Run("refuses "+value+" naming the variable", func(t *testing.T) {
+			_, err := parse(map[string]string{"SHELLHUB_TUNNEL_PING_INTERVAL": value})
+			require.ErrorIs(t, err, envs.ErrParseWithPrefix)
+			assert.ErrorContains(t, err, "SHELLHUB_TUNNEL_PING_INTERVAL")
+		})
+	}
 }

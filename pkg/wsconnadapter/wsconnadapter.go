@@ -19,8 +19,8 @@ import (
 var ErrUnexpectedMessageType = errors.New("unexpected websocket message type")
 
 const (
-	defaultPongTimeout  = time.Second * 35
-	defaultPingInterval = time.Second * 30
+	defaultPingInterval = 30 * time.Second
+	pongMargin          = 5 * time.Second
 )
 
 // Adapter is a net.Conn backed by a websocket connection. The zero value is not usable;
@@ -75,6 +75,20 @@ func WithDevice(tenant string, device string) Option {
 	}
 }
 
+// WithPingInterval sets how often the keep-alive loop pings the peer, 30 seconds by default. The
+// pong timeout moves with it, to the interval plus five seconds, so a peer that answers every ping
+// is never dropped between two of them. A non-positive interval leaves the default.
+func WithPingInterval(interval time.Duration) Option {
+	return func(a *Adapter) {
+		if interval <= 0 {
+			return
+		}
+
+		a.pingInterval = interval
+		a.pongTimeout = interval + pongMargin
+	}
+}
+
 // New wraps conn in an Adapter. The adapter takes ownership of conn: closing the adapter
 // closes it, and the caller must not use conn directly afterwards. Keep-alive is off until
 // Ping is called.
@@ -88,7 +102,7 @@ func New(conn *websocket.Conn, options ...Option) *Adapter {
 			Level:     log.StandardLogger().Level,
 		}),
 		pingInterval: defaultPingInterval,
-		pongTimeout:  defaultPongTimeout,
+		pongTimeout:  defaultPingInterval + pongMargin,
 		clock:        clock.New(),
 	}
 

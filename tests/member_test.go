@@ -58,7 +58,7 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 	})
 
 	t.Run("closes their paired devices' tunnels within a heartbeat", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newFastTunnelPingEnvironment(t, t.Context())
 		member := signInDepartingMember(t, compose)
 
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired())
@@ -80,7 +80,7 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 
 			assert.Equal(tt, models.DeviceStatusRemoved, current.Status)
 			assert.False(tt, current.Online, "the removed device still holds its tunnel")
-		}, tunnelPingTimeout, time.Second)
+		}, tunnelBeatTimeout, time.Second)
 	})
 }
 

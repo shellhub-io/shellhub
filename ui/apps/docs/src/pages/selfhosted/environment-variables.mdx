@@ -56,9 +56,16 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 |---|---|---|
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
 | `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
+| `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
 
 `SHELLHUB_PROXY_TRUSTED_IPS` is what password lockout and access policy source IPs are keyed on. The
 default trusts everyone, which is fine only if nothing but your balancer can reach the port.
+
+A NAT, load balancer or proxy that drops idle connections in under 30 seconds closes device tunnels
+between two pings. Set `SHELLHUB_TUNNEL_PING_INTERVAL` below its idle timeout. Each answered ping
+also marks the device as seen, and a device reads offline two minutes after the last one, so an
+interval above 40 seconds tolerates fewer than three missed pings. The server refuses to start on a
+value that is not a positive duration under one minute.
 
 ## Database
 
