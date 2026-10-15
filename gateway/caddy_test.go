@@ -247,7 +247,7 @@ func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
 			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
 			require.NoError(t, err)
 
-			for name, server := range httpServers(t, adapted) {
+			for name, server := range httpServers[httpServer](t, adapted) {
 				if !slices.Contains(server.Listen, ":80") {
 					continue
 				}
@@ -295,13 +295,13 @@ type httpServer struct {
 	Routes []httpRoute `json:"routes"`
 }
 
-func httpServers(t *testing.T, adapted []byte) map[string]httpServer {
+func httpServers[S any](t *testing.T, adapted []byte) map[string]S {
 	t.Helper()
 
 	var config struct {
 		Apps struct {
 			HTTP struct {
-				Servers map[string]httpServer `json:"servers"`
+				Servers map[string]S `json:"servers"`
 			} `json:"http"`
 		} `json:"apps"`
 	}
@@ -367,4 +367,76 @@ func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 
 	assert.NotContains(t, string(without), "proxy_protocol",
 		"the listener wrapper has no business being there when the feature is off")
+}
+
+func TestCaddyfileLeavesAnIdleWebTerminalOpen(t *testing.T) {
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			rendered, err := Caddyfile(cfg)
+			require.NoError(t, err)
+
+			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+			require.NoError(t, err)
+
+			proxied := false
+
+			for name, server := range httpServers[map[string]any](t, adapted) {
+				routes := collect(server["routes"], func(node map[string]any) bool {
+					matchers, _ := node["match"].([]any)
+
+					return slices.ContainsFunc(matchers, func(matcher any) bool {
+						paths, _ := matcher.(map[string]any)["path"].([]any)
+
+						return slices.Contains(paths, any("/ws*"))
+					})
+				})
+				if len(routes) == 0 {
+					continue
+				}
+
+				for _, timeout := range []string{"read_timeout", "write_timeout"} {
+					assert.Nil(t, server[timeout], "%s serves /ws with a %s", name, timeout)
+				}
+
+				proxies := collect(routes, func(node map[string]any) bool { return node["handler"] == "reverse_proxy" })
+				for _, proxy := range proxies {
+					proxied = true
+
+					assert.Nil(t, proxy["stream_timeout"], "the /ws proxy of %s closes upgraded streams", name)
+
+					transport, _ := proxy["transport"].(map[string]any)
+					for _, timeout := range []string{"read_timeout", "write_timeout", "response_header_timeout"} {
+						assert.Nil(t, transport[timeout], "the /ws proxy of %s has a transport %s", name, timeout)
+					}
+				}
+			}
+
+			assert.True(t, proxied, "no server proxies /ws")
+		})
+	}
+}
+
+func collect(node any, matches func(map[string]any) bool) []map[string]any {
+	var found []map[string]any
+
+	switch value := node.(type) {
+	case []map[string]any:
+		for _, item := range value {
+			found = append(found, collect(item, matches)...)
+		}
+	case []any:
+		for _, item := range value {
+			found = append(found, collect(item, matches)...)
+		}
+	case map[string]any:
+		if matches(value) {
+			found = append(found, value)
+		}
+
+		for _, child := range value {
+			found = append(found, collect(child, matches)...)
+		}
+	}
+
+	return found
 }
