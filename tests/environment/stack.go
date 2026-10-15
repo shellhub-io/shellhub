@@ -588,6 +588,32 @@ func (s *Stack) ExpireCacheEntryIn(ctx context.Context, key string, ttl time.Dur
 	return s.cacheCommand(ctx, "PEXPIRE", key, strconv.FormatInt(ttl.Milliseconds(), 10))
 }
 
+// CacheEntryTTL returns the time the cache entry key has left before the cache drops it. ctx
+// bounds the exec. It returns an error when the stack runs no cache, the error of an exec that
+// could not start or whose output could not be read, an error carrying the CLI's output when it
+// exits non-zero, an error when the CLI replies anything but a count of milliseconds, an error when
+// the cache holds no entry named key, and an error when the entry never expires.
+func (s *Stack) CacheEntryTTL(ctx context.Context, key string) (time.Duration, error) {
+	reply, err := s.cacheReply(ctx, "PTTL", key)
+	if err != nil {
+		return 0, err
+	}
+
+	left, err := strconv.ParseInt(reply, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("valkey-cli PTTL %s replied %q", key, reply)
+	}
+
+	switch left {
+	case -2:
+		return 0, fmt.Errorf("the cache holds no entry named %s", key)
+	case -1:
+		return 0, fmt.Errorf("the cache entry %s never expires", key)
+	}
+
+	return time.Duration(left) * time.Millisecond, nil
+}
+
 // CopyCacheEntry stores a copy of the cache entry from under the key to, with the time from has
 // left. ctx bounds the exec. It returns the errors [Stack.ExpireCacheEntryIn] does, an error when
 // the cache holds no entry named from, and an error when it already holds one named to.
