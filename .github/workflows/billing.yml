@@ -1,0 +1,203 @@
+name: Billing
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+
+  workflow_dispatch:
+    inputs:
+      shellhub-ref:
+        description: shellhub branch, tag or SHA to test
+        required: true
+        default: master
+      cloud-ref:
+        description: cloud branch, tag or SHA to test
+        required: true
+        default: master
+      report:
+        description: Open or close the tracking issue on the result, as the nightly run does
+        type: boolean
+        default: false
+
+  repository_dispatch:
+    types: [cloud-billing-pr]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.client_payload.pr_number && format('cloud-{0}', github.event.client_payload.pr_number) || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  billing:
+    name: TestCloudBilling
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out the shared actions
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: workflow
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Determine the shellhub branch paired with the cloud pull request
+        id: paired
+        if: github.event_name == 'repository_dispatch'
+        uses: ./workflow/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/shellhub
+          head-ref: ${{ github.event.client_payload.head_ref }}
+          token: ${{ github.token }}
+
+      - name: Pick the refs to test
+        id: refs
+        env:
+          EVENT: ${{ github.event_name }}
+          PAIRED_REF: ${{ steps.paired.outputs.ref }}
+          CLOUD_HEAD_SHA: ${{ github.event.client_payload.head_sha }}
+          INPUT_SHELLHUB_REF: ${{ inputs.shellhub-ref }}
+          INPUT_CLOUD_REF: ${{ inputs.cloud-ref }}
+        run: |
+          case "$EVENT" in
+            repository_dispatch)
+              { echo "shellhub=$PAIRED_REF"; echo "cloud=$CLOUD_HEAD_SHA"; } >> "$GITHUB_OUTPUT"
+              ;;
+            workflow_dispatch)
+              { echo "shellhub=$INPUT_SHELLHUB_REF"; echo "cloud=$INPUT_CLOUD_REF"; } >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              { echo "shellhub=master"; echo "cloud=master"; } >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Generate cloud repo token
+        id: cloud-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+          permission-contents: read
+          permission-statuses: write
+
+      - name: Report the pending status to the cloud pull request
+        if: github.event_name == 'repository_dispatch'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          CLOUD_HEAD_SHA: ${{ github.event.client_payload.head_sha }}
+        with:
+          github-token: ${{ steps.cloud-token.outputs.token }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: 'shellhub-io',
+              repo: 'cloud',
+              sha: process.env.CLOUD_HEAD_SHA,
+              state: 'pending',
+              context: 'shellhub / billing',
+              description: 'TestCloudBilling against Stripe test mode',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
+      - name: Check out shellhub source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ steps.refs.outputs.shellhub }}
+          path: shellhub
+          persist-credentials: false
+
+      - name: Check out cloud source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.cloud-token.outputs.token }}
+          ref: ${{ steps.refs.outputs.cloud }}
+          fetch-depth: 1
+          path: cloud
+          persist-credentials: false
+
+      - name: Restore the Go caches
+        uses: ./workflow/.github/actions/go-cache
+        with:
+          name: qa-integration
+          sum-files: shellhub/tests/go.sum
+
+      - name: Restore the image build cache
+        uses: ./workflow/.github/actions/build-cache
+
+      - name: Set up the integration tests
+        uses: ./workflow/.github/actions/integration-setup
+
+      - name: Run TestCloudBilling
+        working-directory: shellhub/tests
+        run: gotestsum --format testname -- -run '^TestCloudBilling$' -timeout 30m .
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
+          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+
+      - name: Upload the stack logs of the failed test
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: billing-stack-logs
+          path: shellhub/tests/.stack/*.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Report the result to the cloud pull request
+        if: always() && github.event_name == 'repository_dispatch'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          CLOUD_HEAD_SHA: ${{ github.event.client_payload.head_sha }}
+          JOB_STATUS: ${{ job.status }}
+        with:
+          github-token: ${{ steps.cloud-token.outputs.token }}
+          script: |
+            const states = { success: 'success', failure: 'failure' };
+            await github.rest.repos.createCommitStatus({
+              owner: 'shellhub-io',
+              repo: 'cloud',
+              sha: process.env.CLOUD_HEAD_SHA,
+              state: states[process.env.JOB_STATUS] ?? 'error',
+              context: 'shellhub / billing',
+              description: `TestCloudBilling ${process.env.JOB_STATUS}`,
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
+      - name: Open, update or close the tracking issue
+        if: ${{ !cancelled() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.report)) }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          SHELLHUB_REF: ${{ steps.refs.outputs.shellhub }}
+          CLOUD_REF: ${{ steps.refs.outputs.cloud }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          label="billing-test-failing"
+          number=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --label "$label" --json number --jq '.[0].number // empty')
+
+          if [ "$JOB_STATUS" = success ]; then
+              if [ -n "$number" ]; then
+                  gh issue close "$number" -R "$GITHUB_REPOSITORY" --comment "TestCloudBilling passes again on shellhub $SHELLHUB_REF and cloud $CLOUD_REF: $RUN_URL"
+              fi
+              exit 0
+          fi
+
+          if [ -n "$number" ]; then
+              gh issue comment "$number" -R "$GITHUB_REPOSITORY" --body "Still failing on shellhub $SHELLHUB_REF and cloud $CLOUD_REF: $RUN_URL"
+              exit 0
+          fi
+
+          gh label create "$label" -R "$GITHUB_REPOSITORY" --color B60205 \
+              --description "TestCloudBilling fails in the Billing workflow" --force
+          gh issue create -R "$GITHUB_REPOSITORY" --label "$label" \
+              --title "TestCloudBilling fails against Stripe test mode" \
+              --body "The Billing workflow failed TestCloudBilling on shellhub $SHELLHUB_REF and cloud $CLOUD_REF. The issue closes when a reporting run passes again. Run: $RUN_URL"
