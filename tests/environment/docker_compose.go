@@ -427,6 +427,17 @@ func (dc *DockerCompose) ExpireCacheEntryIn(t *testing.T, key string, ttl time.D
 	require.NoError(t, dc.stack.ExpireCacheEntryIn(t.Context(), key, ttl))
 }
 
+// CacheEntryTTL returns the time the cache entry key has left, failing t unless the cache holds the
+// entry with an expiry. See [Stack.CacheEntryTTL].
+func (dc *DockerCompose) CacheEntryTTL(t *testing.T, key string) time.Duration {
+	t.Helper()
+
+	left, err := dc.stack.CacheEntryTTL(t.Context(), key)
+	require.NoError(t, err)
+
+	return left
+}
+
 // DropDeviceAuthCache deletes the cached authentication of the device uid, so the device's next
 // authentication reads the database and reconciles a pending enrollment. It fails t on any error
 // [Stack.DropCacheEntry] returns, so not when the entry already expired.
