@@ -1,12 +1,18 @@
 import { expect, test } from "@playwright/test";
-import { createDeviceLoginCode, getDevice } from "@/client";
+import {
+  createDeviceLoginCode,
+  createDevicePairing,
+  getDevice,
+} from "@/client";
 import { isCommunity } from "./env";
 import {
+  createTeam,
   createTeamWithOwnerInAnother,
   signInAndOpen,
   singleNamespaceReason,
 } from "./helpers";
-import { enrollDevice } from "./devices";
+import { buildDeviceAuthRequest, enrollDevice } from "./devices";
+import { expireCacheEntry } from "./seed";
 import { buildRequestContext } from "./api";
 
 async function requestLoginCode(tenant: string) {
@@ -56,5 +62,34 @@ test.describe("accepting a device by its login code", () => {
       path: { uid: device.uid },
     });
     expect(data.status).toBe("accepted");
+  });
+});
+
+test.describe("accepting a device by its pairing code", () => {
+  test("a code past its lifetime is shown as invalid or expired", async ({
+    page,
+  }) => {
+    const { owner } = await createTeam();
+    const { data } = await createDevicePairing({
+      ...buildRequestContext(),
+      body: buildDeviceAuthRequest(),
+    });
+    if (!data.code) throw new Error("expected a pairing code");
+
+    await signInAndOpen(
+      page,
+      owner.username,
+      `/accept-device?code=${data.code}`,
+    );
+    await expect(
+      page.getByRole("heading", { name: "Accept this device?" }),
+    ).toBeVisible();
+
+    expireCacheEntry(`pairing_code/${data.code}`);
+    await page.reload();
+
+    await expect(
+      page.getByRole("heading", { name: "Invalid or Expired Code" }),
+    ).toBeVisible();
   });
 });
