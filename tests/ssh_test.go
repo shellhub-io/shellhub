@@ -1984,11 +1984,17 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 
 	agent := startAgent(t, ctx, compose, opts...)
 
+	return agent, acceptPendingDevice(t, compose)
+}
+
+func acceptPendingDevice(t *testing.T, compose *environment.DockerCompose) *models.Device {
+	t.Helper()
+
 	pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
 
 	compose.UpdateDeviceStatus(t, pending.UID, environment.DeviceActionAccept)
 
 	device := compose.AwaitDeviceOnline(t, pending.UID)
 
-	return agent, &device
+	return &device
 }
