@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strings"
 
 	"github.com/docker/cli/cli/config"
 	controlapi "github.com/moby/buildkit/api/services/control"
@@ -36,19 +37,22 @@ const (
 // AgentBuild describes the agent image [BuildAgentImage] builds. Context is the build context
 // and is required. Repository defaults to shellhub-e2e/agent and Dockerfile, relative to
 // Context, to agent/Dockerfile.test. Version, when set, is the version the agent reports instead
-// of latest. Output receives BuildKit's plain progress; nil discards it.
+// of latest. Tags are the Go build tags the agent is compiled with, such as docker for an agent
+// that runs as a container and replaces itself on update. Output receives BuildKit's plain
+// progress; nil discards it.
 type AgentBuild struct {
 	Repository string
 	Context    string
 	Dockerfile string
 	Version    string
+	Tags       []string
 	Output     io.Writer
 }
 
 // BuildAgentImage builds the agent the e2e tests start with BuildKit, through the run's Docker
 // client, accepting [AgentUsername] and [AgentPassword], labelled with run and tagged with the
-// run's ID in build's repository, followed by -<version> when build sets a Version, so a versioned
-// agent never replaces the default one. Base images are pulled with the registry credentials of
+// run's ID in build's repository, followed by -<version> when build sets a Version and by its
+// build tags joined with dashes when it sets Tags, so neither replaces the default agent. Base images are pulled with the registry credentials of
 // the Docker CLI config, as docker build pulls them. It returns the image reference,
 // repository:tag, or an error when the working directory cannot be resolved, no versions.env is
 // found at or above it, the file cannot be read or has a line that is not KEY=VALUE, the build
@@ -84,6 +88,12 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 	if build.Version != "" {
 		tag += "-" + build.Version
 		buildArgs["SHELLHUB_VERSION"] = &build.Version
+	}
+
+	if len(build.Tags) > 0 {
+		goTags := strings.Join(build.Tags, ",")
+		tag += "-" + strings.Join(build.Tags, "-")
+		buildArgs["GO_TAGS"] = &goTags
 	}
 
 	request := tc.ContainerRequest{FromDockerfile: tc.FromDockerfile{Context: build.Context, Dockerfile: build.Dockerfile}}

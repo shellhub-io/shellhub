@@ -23,6 +23,7 @@ RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
     go mod download
 
 ARG SHELLHUB_VERSION=latest
+ARG GO_TAGS=""
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./agent .
@@ -36,7 +37,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
     --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
-    go build -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
+    go build -tags "${GO_TAGS}" -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
 ARG USERNAME
 ARG PASSWORD
