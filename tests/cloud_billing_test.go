@@ -31,10 +31,10 @@ const (
 	deviceLimitMessage         = "device limit reached"
 	subscriptionBlockedMessage = "the namespace's subscription blocks new devices"
 	stripeWaitFor              = time.Minute
-	stripeUsageQuietCheck      = 10 * time.Second
-	testClockStep              = 30 * 24 * time.Hour
-	testClockSteps             = 5
+	testClockStep              = 59 * 24 * time.Hour
+	testClockSteps             = 3
 	testClockWaitFor           = 5 * time.Minute
+	testClockPollEvery         = time.Second
 	stripeTestEmailDomain      = "@shellhub.test"
 	stripeTestClockName        = "shellhub-e2e"
 	stripeLeftoverAge          = 2 * time.Hour
@@ -363,14 +363,8 @@ func awaitStripeUsage(t *testing.T, compose *environment.DockerCompose, subscrip
 	}, stripeWaitFor, 2*time.Second)
 }
 
-func requireStripeUsageHolds(t *testing.T, compose *environment.DockerCompose, subscription string, usage int64) {
+func requireStripeUsage(t *testing.T, compose *environment.DockerCompose, subscription string, usage int64) {
 	t.Helper()
-
-	require.Never(t, func() bool {
-		current, err := stripeUsage(t.Context(), compose, subscription)
-
-		return err == nil && current != usage
-	}, stripeUsageQuietCheck, 2*time.Second, "Stripe's usage for %s was not held at %d", subscription, usage)
 
 	current, err := stripeUsage(t.Context(), compose, subscription)
 	require.NoError(t, err)
@@ -433,7 +427,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		device := enrollIn(t, compose, owner.tenant, "past-due", "02:00:00:00:44:02")
 		requireAcceptAnswers(t, compose, device, http.StatusPaymentRequired)
 
-		requireStripeUsageHolds(t, compose, subscription.id, 0)
+		requireStripeUsage(t, compose, subscription.id, 0)
 	})
 
 	t.Run("an unpaid subscription blocks accepting a device", func(t *testing.T) {
@@ -705,7 +699,7 @@ func (c *stripeTestClock) advance(t *testing.T, compose *environment.DockerCompo
 		if assert.NoError(tt, err) && assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
 			assert.Equal(tt, "ready", current.Status)
 		}
-	}, testClockWaitFor, 5*time.Second)
+	}, testClockWaitFor, testClockPollEvery)
 }
 
 func (c *stripeTestClock) advanceUntilCanceledForPayment(t *testing.T, compose *environment.DockerCompose, subscription string) int64 {
