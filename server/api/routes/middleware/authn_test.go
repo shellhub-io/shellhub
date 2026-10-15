@@ -235,6 +235,63 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 	service.AssertExpectations(t)
 }
 
+func TestAuthenticatorMiddlewareAdminID(t *testing.T) {
+	bearer, privateKey := userBearer(t)
+
+	cases := []struct {
+		description     string
+		path            string
+		admin           bool
+		expectedID      string
+		expectedAdminID string
+	}{
+		{
+			description:     "forwards an administrator's ID as the admin ID on the admin surface",
+			path:            "/admin/api/instance-api-keys",
+			admin:           true,
+			expectedID:      "",
+			expectedAdminID: testUserID,
+		},
+		{
+			description:     "keeps the user ID and sets no admin ID on the regular surface",
+			path:            "/api/namespaces",
+			admin:           true,
+			expectedID:      testUserID,
+			expectedAdminID: "",
+		},
+		{
+			description:     "sets no admin ID for a user who is not an administrator",
+			path:            "/admin/api/instance-api-keys",
+			admin:           false,
+			expectedID:      "",
+			expectedAdminID: "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			service := new(mocks.MockService)
+			service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+			service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
+				Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
+			service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).
+				Return(&models.User{ID: testUserID, Admin: tc.admin}, nil).Once()
+
+			c, rec := authenticatedRequest(echo.New(), bearer)
+			c.SetPath(tc.path)
+			c.Request().Header.Set("X-Admin-ID", "forged")
+
+			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+			require.NoError(t, NewAuthenticator(service).Middleware(next)(c))
+
+			assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedID, c.Request().Header.Get("X-ID"))
+			assert.Equal(t, tc.expectedAdminID, c.Request().Header.Get("X-Admin-ID"))
+			service.AssertExpectations(t)
+		})
+	}
+}
+
 func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 	const deviceUID = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 

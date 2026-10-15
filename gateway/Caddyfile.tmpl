@@ -59,8 +59,8 @@
 # the transport context -- who connected, over what, and under which name.
 #
 # No identity headers appear here. The API authenticates in-process and
-# overwrites the whole X-ID/X-Role/X-Tenant-ID/X-Username/X-Admin/X-Device-UID
-# set from the request's own credential, so a forged one cannot survive and this
+# overwrites every identity header (identityHeaders in the API's gateway package)
+# from the request's own credential, so a forged one cannot survive and this
 # proxy has nothing to strip.
 (forwarded) {
 	header_up Host {host}

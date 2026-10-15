@@ -190,6 +190,7 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 		"X-API-Key":    "forged-key",
 		"X-Role":       "owner",
 		"X-Admin":      "true",
+		"X-Admin-ID":   "forged-admin",
 	}
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, probe, nil)

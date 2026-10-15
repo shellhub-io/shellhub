@@ -31,10 +31,10 @@ var InstanceAPIKeySortFields = query.NewFieldSet(
 type InstanceAPIKeyService interface {
 	// CreateInstanceAPIKey mints an instance API key on behalf of the requesting administrator. The
 	// server generates the plaintext and returns it in the response, storing only its SHA256 digest,
-	// so a caller can read the key exactly once. It returns ErrUserNotFound when the requesting
-	// username does not resolve, ErrAuthForbidden when that user is not an instance administrator,
-	// ErrBadRequest for an expiry outside the permitted set, and ErrInstanceAPIKeyDuplicated when
-	// the name is taken.
+	// so a caller can read the key exactly once. It returns ErrUserNotFound when the acting
+	// administrator's ID does not resolve, ErrAuthForbidden when that user is not an instance
+	// administrator, ErrBadRequest for an expiry outside the permitted set, and
+	// ErrInstanceAPIKeyDuplicated when the name is taken.
 	CreateInstanceAPIKey(ctx context.Context, req *requests.CreateInstanceAPIKey) (res *responses.CreateInstanceAPIKey, err error)
 
 	// ListInstanceAPIKeys retrieves every instance API key together with the total count before
@@ -47,9 +47,9 @@ type InstanceAPIKeyService interface {
 }
 
 func (s *service) CreateInstanceAPIKey(ctx context.Context, req *requests.CreateInstanceAPIKey) (*responses.CreateInstanceAPIKey, error) {
-	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, req.Username)
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.AdminID)
 	if err != nil {
-		return nil, NewErrUserNotFound(req.Username, err)
+		return nil, NewErrUserNotFound(req.AdminID, err)
 	}
 
 	if !user.Admin {
