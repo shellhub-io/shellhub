@@ -6,10 +6,10 @@ RUN apk add --update ca-certificates util-linux setpriv bash openssh
 
 RUN ln -sf /bin/bash /bin/sh
 
-COPY ./tests/cmd/winch-reporter/main.go /tmp/winch-reporter/main.go
+COPY ./tests/cmd/signal-reporter/main.go /tmp/signal-reporter/main.go
 
 RUN --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
-    cd /tmp/winch-reporter && go build -o /usr/local/bin/winch-reporter main.go && rm -rf /tmp/winch-reporter
+    cd /tmp/signal-reporter && go build -o /usr/local/bin/signal-reporter main.go && rm -rf /tmp/signal-reporter
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

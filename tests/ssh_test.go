@@ -1128,11 +1128,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				sess, output := startInterruptTrap(t, environment.services, environment.signer, device, false)
+				sess, output := startInterruptReporter(t, environment.services, environment.signer, device, false)
 
 				require.NoError(t, sess.Signal(ssh.SIGINT))
 
-				requireInterruptTrapFired(t, sess, output)
+				requireInterruptReported(t, sess, output)
 			},
 		},
 		{
@@ -1140,11 +1140,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				sess, output := startInterruptTrap(t, environment.services, environment.signer, device, true)
+				sess, output := startInterruptReporter(t, environment.services, environment.signer, device, true)
 
 				require.NoError(t, sess.Signal(ssh.SIGINT))
 
-				requireInterruptTrapFired(t, sess, output)
+				requireInterruptReported(t, sess, output)
 			},
 		},
 		{
@@ -1162,7 +1162,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				require.NoError(t, sess.Shell())
 
-				_, err = io.WriteString(stdin, `sh -c 'trap "echo GOT""-INT; exit 3" INT; echo REA""DY; for i in $(seq 1 100); do sleep 0.1; done'; echo "STA""TUS=$?"; exit`+"\n")
+				_, err = io.WriteString(stdin, `signal-reporter INT; echo "STA""TUS=$?"; exit`+"\n")
 				require.NoError(t, err)
 
 				output := bufio.NewReader(stdout)
@@ -1176,20 +1176,9 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				require.NoError(t, sess.Signal(ssh.SIGINT))
 
-				finished := make(chan string, 1)
-
-				go func() {
-					rest, _ := io.ReadAll(output)
-					finished <- string(rest)
-				}()
-
-				select {
-				case rest := <-finished:
-					assert.Contains(t, rest, "GOT-INT")
-					assert.Contains(t, rest, "STATUS=3")
-				case <-time.After(30 * time.Second):
-					t.Fatal("the shell never finished the line after the signal")
-				}
+				rest := readRemaining(t, output, "the shell never finished the line after the signal")
+				assert.Contains(t, rest, "GOT-INT")
+				assert.Contains(t, rest, "STATUS=3")
 			},
 		},
 		{
@@ -1197,7 +1186,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				sess, output := startInterruptTrap(t, environment.services, environment.signer, device, false)
+				sess, output := startInterruptReporter(t, environment.services, environment.signer, device, false)
 
 				replied := make(chan bool, 1)
 
@@ -1213,7 +1202,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					t.Fatal("a signal asking for a reply never got one")
 				}
 
-				requireInterruptTrapFired(t, sess, output)
+				requireInterruptReported(t, sess, output)
 			},
 		},
 		{
@@ -1516,7 +1505,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				started := make(chan error, 1)
 				go func() {
-					started <- sess.Start("exec winch-reporter")
+					started <- sess.Start("exec signal-reporter WINCH")
 				}()
 
 				select {
@@ -1820,7 +1809,7 @@ func openSignalSession(t *testing.T, compose *environment.DockerCompose, signer 
 	return sess
 }
 
-func startInterruptTrap(t *testing.T, compose *environment.DockerCompose, signer ssh.Signer, device *models.Device, pty bool) (*ssh.Session, *bufio.Reader) {
+func startInterruptReporter(t *testing.T, compose *environment.DockerCompose, signer ssh.Signer, device *models.Device, pty bool) (*ssh.Session, *bufio.Reader) {
 	t.Helper()
 
 	sess := openSignalSession(t, compose, signer, device, pty)
@@ -1828,28 +1817,54 @@ func startInterruptTrap(t *testing.T, compose *environment.DockerCompose, signer
 	stdout, err := sess.StdoutPipe()
 	require.NoError(t, err)
 
-	require.NoError(t, sess.Start(`trap 'echo GOT-INT; exit 3' INT; echo ready; for i in $(seq 1 100); do sleep 0.1; done; echo timeout`))
+	require.NoError(t, sess.Start("exec signal-reporter INT"))
 
 	output := bufio.NewReader(stdout)
 
 	line, err := output.ReadString('\n')
 	require.NoError(t, err)
-	require.Equal(t, "ready", strings.TrimSpace(line))
+	require.Equal(t, "READY", strings.TrimSpace(line))
 
 	return sess, output
 }
 
-func requireInterruptTrapFired(t *testing.T, sess *ssh.Session, output *bufio.Reader) {
+func requireInterruptReported(t *testing.T, sess *ssh.Session, output *bufio.Reader) {
 	t.Helper()
 
-	rest, err := io.ReadAll(output)
-	require.NoError(t, err)
+	rest := readRemaining(t, output, "the command never reported the interrupt")
 
 	var status *ssh.ExitError
 
-	require.ErrorAs(t, sess.Wait(), &status, "the command finished without its trap firing: %q", rest)
+	require.ErrorAs(t, sess.Wait(), &status, "the command finished without reporting the interrupt: %q", rest)
 	assert.Equal(t, 3, status.ExitStatus())
-	assert.Equal(t, "GOT-INT", strings.TrimSpace(string(rest)))
+	assert.Equal(t, "GOT-INT", strings.TrimSpace(rest))
+}
+
+func readRemaining(t *testing.T, output io.Reader, never string) string {
+	t.Helper()
+
+	type read struct {
+		rest []byte
+		err  error
+	}
+
+	finished := make(chan read, 1)
+
+	go func() {
+		rest, err := io.ReadAll(output)
+		finished <- read{rest, err}
+	}()
+
+	select {
+	case got := <-finished:
+		require.NoError(t, got.err)
+
+		return string(got.rest)
+	case <-time.After(30 * time.Second):
+		t.Fatal(never)
+
+		return ""
+	}
 }
 
 func newSigner(t *testing.T) (ssh.Signer, string) {
