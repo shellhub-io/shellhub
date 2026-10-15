@@ -709,6 +709,23 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 func testBilledNamespaceDeletion(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
+	t.Run("a namespace with an active subscription is deleted only once the subscription is canceled", func(t *testing.T) {
+		owner := newBillingOwner(t, compose, "billing-active-delete")
+		subscription := subscribe(t, compose, owner.tenant)
+
+		resp, err := compose.R(t.Context()).Delete("/api/namespaces/" + owner.tenant)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusPaymentRequired, resp.StatusCode(), resp.String())
+		assert.Equal(t, models.BillingStatusActive, billedNamespace(t, compose, owner.tenant).Billing.Subscription.Status)
+
+		canceledAt := cancelStripeSubscription(t, compose, subscription.id)
+		requireStripeEventAnswered(t, compose, stripeSubscriptionDeleted, subscription.canceled(canceledAt))
+
+		resp, err = compose.R(t.Context()).Delete("/api/namespaces/" + owner.tenant)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
+
 	t.Run("a namespace whose canceled subscription has an open invoice is deleted only once the invoice is voided", func(t *testing.T) {
 		owner := newBillingOwner(t, compose, "billing-open-invoice")
 		subscription := subscribe(t, compose, owner.tenant)
