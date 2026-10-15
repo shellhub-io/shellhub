@@ -23,14 +23,14 @@ type dockerContainer struct {
 }
 
 func (c *dockerContainer) splitImageVersion() (image, version string) {
-	parts := strings.SplitN(c.info.Config.Image, ":", 2)
-	image, version = parts[0], ""
+	reference, _, _ := strings.Cut(c.info.Config.Image, "@")
 
-	if len(parts) == 2 {
-		version = parts[1]
+	colon := strings.LastIndex(reference, ":")
+	if colon <= strings.LastIndex(reference, "/") {
+		return reference, ""
 	}
 
-	return
+	return reference[:colon], reference[colon+1:]
 }
 
 type dockerUpdater struct {
