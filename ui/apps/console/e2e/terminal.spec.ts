@@ -25,7 +25,6 @@ import { isCommunity, isEnterprise } from "./env";
 import {
   createTeam,
   createTeamWithOwnerInAnother,
-  dismissWizard,
   findRow,
   mfaReason,
   signInAndOpen,
@@ -446,7 +445,6 @@ async function signInAsSamlOwner(
   const requests = await answerSignOn(page.context(), user, options);
   await signInWithSso(page);
   await expect(page).toHaveURL(/\/dashboard$/);
-  await dismissWizard(page);
   return { team, device, requests };
 }
 

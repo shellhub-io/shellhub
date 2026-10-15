@@ -5,7 +5,6 @@ import { adminUser, isEnterprise } from "./env";
 import {
   signIn,
   fillLoginForm,
-  dismissWizard,
   directMembershipReason,
   signUpFromInvite,
   createTeamWithMember,
@@ -33,7 +32,6 @@ test.describe("authentication", () => {
     await signIn(page, adminUser.username, adminUser.password);
     await expect(page).toHaveURL(/\/dashboard$/);
 
-    await dismissWizard(page);
     await signOut(page, adminUser.username);
 
     await page.goto("/dashboard");
@@ -48,7 +46,7 @@ test.describe("session ended on the server", () => {
     const { owner, member, tenant } = await createTeamWithMember("observer");
     await signIn(page, member.username, password);
     await expect(page).toHaveURL(/\/dashboard$/);
-    await dismissWizard(page);
+    await expect(page.getByText("No recent sessions")).toBeVisible();
 
     await removeNamespaceMember({
       ...buildRequestContext({ token: owner.token }),
@@ -135,7 +133,7 @@ test.describe("accept invitation", () => {
     const { user, link } = await inviteUser();
 
     await signIn(page, user.username, password);
-    await dismissWizard(page);
+    await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto(link);
 

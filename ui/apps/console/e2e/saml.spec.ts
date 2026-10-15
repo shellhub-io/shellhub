@@ -14,7 +14,6 @@ import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise, requireEnv } from "./env";
 import {
   createTeam,
-  dismissWizard,
   generateKey,
   required,
   signInAndOpen,
@@ -413,7 +412,6 @@ test.describe("Instance API keys", () => {
 
     const token = await signInWithSso(page);
     await expect(page).toHaveURL(/\/dashboard$/);
-    await dismissWizard(page);
     await page.goto("/admin/instance-api-keys");
 
     const { name } = await generateKey(page, {

@@ -6,7 +6,7 @@ import {
 } from "@/client";
 import { buildRequestContext, expectLoginStatus, loginAs } from "./api";
 import { isEnterprise, isEnterpriseOrCloud } from "./env";
-import { createTeam, dismissWizard, required, signInAndOpen } from "./helpers";
+import { createTeam, required, signInAndOpen } from "./helpers";
 import { disableSaml, enableSaml } from "./saml";
 import { password } from "./seed";
 
@@ -41,7 +41,6 @@ test("an admin signs in as another user in a new tab", async ({
   const tab = await opened;
 
   await expect(tab).toHaveURL(/\/dashboard$/);
-  await dismissWizard(tab);
   await expect(
     tab.getByRole("button", {
       name: `Account menu for ${target.owner.username}`,
