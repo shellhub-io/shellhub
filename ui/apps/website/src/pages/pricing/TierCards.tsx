@@ -43,7 +43,6 @@ const tiers = [
       "Firewall rules",
       "Session recording",
       "Audit logs",
-      "SSO / SAML",
       "Email support",
     ],
     cta: "Start Free",
@@ -60,6 +59,7 @@ const tiers = [
     desc: "For organizations that need full control, compliance, and dedicated support.",
     features: [
       "Everything in Cloud",
+      "SSO / SAML",
       "Admin panel",
       "Dedicated support & SLA",
       "On-premises deployment",
