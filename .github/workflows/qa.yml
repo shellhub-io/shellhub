@@ -299,7 +299,7 @@ jobs:
         run: >-
           gotestsum --format testname --
           -skip '${{ steps.cloud-access.outputs.granted != 'true' && '^(TestEnterprise|TestCloud)' || '^TestCloudBilling$' }}'
-          -parallel 4 -timeout 60m ./...
+          -parallel 8 -timeout 60m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
