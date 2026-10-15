@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
@@ -25,7 +26,8 @@ var anyDevice = environment.FirewallRuleFilter{Hostname: anyValue}
 // and the device by hostname or tag decides; a connection no rule matches, or with no rules at all,
 // passes; an inactive rule is skipped; and a namespace in the identity mode decides by its access
 // policies instead, never reading its firewall rules. The cases share one stack and one device,
-// and each removes the rules it adds.
+// and each removes the rules it adds. Renaming a tag preserves the rule's match and updates the
+// tag name returned with the rule.
 func TestEnterpriseFirewall(t *testing.T) {
 	t.Parallel()
 
@@ -115,6 +117,18 @@ func TestEnterpriseFirewall(t *testing.T) {
 		requireKeyLogsIn(t, compose, sshid, signer)
 	})
 
+	t.Run("a renamed tag keeps the rule matching the devices carrying it", func(t *testing.T) {
+		createTag(t, compose, "rulebefore")
+		t.Cleanup(func() { deleteTag(t, compose, "ruleafter") })
+		attachTag(t, compose, device.UID, "rulebefore")
+		rule := addFirewallRule(t, compose, deny(1, matching(anyValue, anyValue, environment.FirewallRuleFilter{Tags: []string{"rulebefore"}})))
+
+		renameTag(t, compose, "rulebefore", "ruleafter")
+
+		assert.Equal(t, []string{"ruleafter"}, firewallRuleTags(t, compose, rule))
+		requireAccessDenied(t, compose, sshid, signer, firewallBlockedLog, errFirewallRuleBlock)
+	})
+
 	t.Run("a namespace in the identity mode is not held to its firewall rules", func(t *testing.T) {
 		compose.EditSSHAccessMode(t, ShellHubNamespace, models.SSHAccessModeIdentity)
 		t.Cleanup(func() { compose.EditSSHAccessMode(t, ShellHubNamespace, models.SSHAccessModeLegacy) })
@@ -144,11 +158,29 @@ func deny(priority int, rule environment.FirewallRule) environment.FirewallRule 
 	return rule
 }
 
-func addFirewallRule(t *testing.T, compose *environment.DockerCompose, rule environment.FirewallRule) {
+func addFirewallRule(t *testing.T, compose *environment.DockerCompose, rule environment.FirewallRule) string {
 	t.Helper()
 
 	id := compose.CreateFirewallRule(t, rule)
 	t.Cleanup(func() { compose.DeleteFirewallRule(t, id) })
+
+	return id
+}
+
+func firewallRuleTags(t *testing.T, compose *environment.DockerCompose, id string) []string {
+	t.Helper()
+
+	rule := struct {
+		Filter struct {
+			Tags []models.Tag `json:"tags"`
+		} `json:"filter"`
+	}{}
+
+	resp, err := compose.R(t.Context()).SetResult(&rule).Get("/api/firewall/rules/" + id)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	return tagNames(rule.Filter.Tags)
 }
 
 func clientAddress(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer) string {
