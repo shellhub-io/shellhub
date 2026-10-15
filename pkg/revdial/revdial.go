@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -42,7 +43,10 @@ import (
 // dialer, and the caller reconnects.
 var ErrDialerClosed = errors.New("revdial.Dialer closed")
 
-const dialerUniqParam = "revdial.dialer"
+const (
+	dialerUniqParam = "revdial.dialer"
+	dialUUIDParam   = "uuid"
+)
 
 const dialerKeepAliveTimeout = 35 * time.Second
 
@@ -53,13 +57,18 @@ type Dialer struct {
 	uniqID     string
 	pickupPath string // path + uniqID: "/revdial?revdial.dialer="+uniqID
 
-	incomingConn *sync.Map
-	pickupFailed chan error
-	connReady    chan string
-	donec        chan struct{}
-	closeOnce    sync.Once
-	logger       *log.Entry
-	clock        clock.Clock
+	pendingMu sync.Mutex
+	pending   map[string]*pendingDial
+	connReady chan string
+	donec     chan struct{}
+	closeOnce sync.Once
+	logger    *log.Entry
+	clock     clock.Clock
+}
+
+type pendingDial struct {
+	conn   chan net.Conn
+	failed chan error
 }
 
 var dialers = sync.Map{}
@@ -72,15 +81,14 @@ var dialers = sync.Map{}
 // mounted. The dialer reads clk to set its write deadlines.
 func NewDialer(logger *log.Entry, c net.Conn, connPath string, clk clock.Clock) *Dialer {
 	d := &Dialer{
-		path:         connPath,
-		uniqID:       newUniqID(),
-		conn:         c,
-		donec:        make(chan struct{}),
-		connReady:    make(chan string, 8),
-		incomingConn: new(sync.Map),
-		pickupFailed: make(chan error),
-		logger:       logger,
-		clock:        clk,
+		path:      connPath,
+		uniqID:    newUniqID(),
+		conn:      c,
+		donec:     make(chan struct{}),
+		connReady: make(chan string, 8),
+		pending:   make(map[string]*pendingDial),
+		logger:    logger,
+		clock:     clk,
 	}
 
 	join := "?"
@@ -116,7 +124,7 @@ func (d *Dialer) unregister() {
 // the peer).
 func (d *Dialer) Done() <-chan struct{} { return d.donec }
 
-// Close closes the Dialer.
+// Close closes the Dialer. It never blocks, returns nil, and every later call is a no-op.
 func (d *Dialer) Close() error {
 	d.closeOnce.Do(d.close)
 
@@ -128,20 +136,27 @@ func (d *Dialer) close() {
 
 	d.unregister()
 	_ = d.conn.Close()
-	d.donec <- struct{}{}
 	close(d.donec)
 }
 
-// Dial creates a new connection back to the Listener.
+// Dial creates a new connection back to the Listener. It returns the connection the device
+// dialled back for this call, the error the device reported when it could not, ErrDialerClosed
+// once the dialer is closed, or ctx's error when ctx ends first. A connection that arrives
+// after Dial returned is closed.
 func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
-	uuid := uuid.Generate()
+	id := uuid.Generate()
+
+	pending := &pendingDial{
+		conn:   make(chan net.Conn, 1),
+		failed: make(chan error, 1),
+	}
+
+	d.addPending(id, pending)
+	defer d.removePending(id, pending)
 
 	select {
-	case d.connReady <- uuid:
+	case d.connReady <- id:
 		d.logger.Debug("message true to conn ready channel")
-
-		d.incomingConn.Store(uuid, make(chan net.Conn))
-		defer d.incomingConn.Delete(uuid)
 	case <-d.donec:
 		d.logger.Debug("dial done")
 
@@ -152,22 +167,12 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 		return nil, ctx.Err()
 	}
 
-	ch, ok := d.incomingConn.Load(uuid)
-	if !ok {
-		return nil, errors.New("failed to load the incoming connection map")
-	}
-
-	connection, ok := ch.(chan net.Conn)
-	if !ok {
-		return nil, errors.New("incoming connection map holds an unexpected value")
-	}
-
 	select {
-	case c := <-connection:
+	case c := <-pending.conn:
 		d.logger.Debug("new incoming connection")
 
 		return c, nil
-	case err := <-d.pickupFailed:
+	case err := <-pending.failed:
 		d.logger.Debug("failed to pick-up connection")
 
 		return nil, err
@@ -182,31 +187,85 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 	}
 }
 
-func (d *Dialer) matchConn(c net.Conn) {
-	adapter, ok := c.(*wsconnadapter.Adapter)
+func (d *Dialer) addPending(id string, pending *pendingDial) {
+	d.pendingMu.Lock()
+	defer d.pendingMu.Unlock()
+
+	d.pending[id] = pending
+}
+
+func (d *Dialer) removePending(id string, pending *pendingDial) {
+	d.pendingMu.Lock()
+	delete(d.pending, id)
+	d.pendingMu.Unlock()
+
+	pending.abandon()
+}
+
+func (d *Dialer) matchConn(id string, c net.Conn) {
+	d.pendingMu.Lock()
+	defer d.pendingMu.Unlock()
+
+	pending, ok := d.pending[id]
 	if !ok {
-		d.logger.Debug("connection is not a websocket adapter")
+		d.logger.WithField("uuid", id).Debug("closing a connection no dial is waiting for")
+
+		_ = c.Close()
 
 		return
 	}
 
-	ch, ok := d.incomingConn.Load(adapter.UUID)
-	if !ok {
-		d.logger.Debug("failed to find the incoming connection channel")
+	if !pending.deliver(c) {
+		d.logger.WithField("uuid", id).Debug("closing a second connection for the same dial")
+
+		_ = c.Close()
+	}
+}
+
+func (d *Dialer) failPickup(connPath string, err error) {
+	parsed, parseErr := url.ParseRequestURI(connPath)
+	if parseErr != nil {
+		d.logger.WithError(parseErr).WithField("connPath", connPath).Debug("pick-up failed for a path that names no dial")
 
 		return
 	}
 
-	connection, ok := ch.(chan net.Conn)
+	id := parsed.Query().Get(dialUUIDParam)
+
+	d.pendingMu.Lock()
+	defer d.pendingMu.Unlock()
+
+	pending, ok := d.pending[id]
 	if !ok {
-		d.logger.Debug("incoming connection map holds an unexpected value")
+		d.logger.WithError(err).WithField("uuid", id).Debug("pick-up failed for a dial that is no longer waiting")
 
 		return
 	}
 
+	pending.fail(err)
+}
+
+func (p *pendingDial) deliver(c net.Conn) bool {
 	select {
-	case connection <- c:
-	case <-d.donec:
+	case p.conn <- c:
+		return true
+	default:
+		return false
+	}
+}
+
+func (p *pendingDial) fail(err error) {
+	select {
+	case p.failed <- err:
+	default:
+	}
+}
+
+func (p *pendingDial) abandon() {
+	select {
+	case c := <-p.conn:
+		_ = c.Close()
+	default:
 	}
 }
 
@@ -239,14 +298,7 @@ func (d *Dialer) serve() error {
 
 			switch msg.Command {
 			case "pickup-failed":
-				err := fmt.Errorf("revdial listener failed to pick up connection: %v", msg.Err)
-				select {
-				case d.pickupFailed <- err:
-				case <-d.donec:
-					d.logger.WithError(err).Debug("failed to pick-up connection")
-
-					return
-				}
+				d.failPickup(msg.ConnPath, fmt.Errorf("revdial listener failed to pick up connection: %v", msg.Err))
 			case "keep-alive":
 			default:
 				log.WithField("message", msg.Command).Debug("unknown message received")
@@ -268,7 +320,7 @@ func (d *Dialer) serve() error {
 			t.Stop()
 			if err := d.sendMessage(controlMsg{
 				Command:  "conn-ready",
-				ConnPath: d.pickupPath + "&uuid=" + uuid,
+				ConnPath: d.pickupPath + "&" + dialUUIDParam + "=" + uuid,
 			}); err != nil {
 				d.logger.WithError(err).Debug("failed to send conn-ready message to device")
 
@@ -501,7 +553,7 @@ func (fakeAddr) String() string  { return "revdialconn" }
 func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		dialerUniq := r.FormValue(dialerUniqParam)
-		uuid := r.FormValue("uuid")
+		uuid := r.FormValue(dialUUIDParam)
 
 		d, ok := dialers.Load(dialerUniq)
 		if !ok {
@@ -518,13 +570,14 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 		}
 
 		c := wsconnadapter.New(wsConn)
-		c.UUID = uuid
 
 		dialer, ok := d.(*Dialer)
 		if !ok {
+			_ = c.Close()
+
 			return
 		}
 
-		dialer.matchConn(c)
+		dialer.matchConn(uuid, c)
 	})
 }
