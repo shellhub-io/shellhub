@@ -241,6 +241,10 @@ jobs:
         if: steps.changes.outputs.go == 'true' && steps.cloud-access.outputs.granted != 'true'
         run: echo "::notice title=enterprise and cloud tests skipped::a pull request from a fork cannot check out the private cloud source"
 
+      - name: Report TestCloudBilling skipped for the Billing workflow
+        if: steps.cloud-access.outputs.granted == 'true'
+        run: echo "::notice title=TestCloudBilling skipped::the Billing workflow runs it nightly and on cloud pull requests that change billing"
+
       - name: Generate cloud repo token
         id: cloud-token
         if: steps.cloud-access.outputs.granted == 'true'
@@ -272,13 +276,6 @@ jobs:
           path: cloud
           persist-credentials: false
 
-      - name: Set up Go
-        if: steps.changes.outputs.go == 'true'
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version-file: shellhub/tests/go.mod
-          cache: false
-
       - name: Restore the Go caches
         if: steps.changes.outputs.go == 'true'
         uses: ./shellhub/.github/actions/go-cache
@@ -292,28 +289,16 @@ jobs:
         with:
           save: true
 
-      - name: Set SHELLHUB_DATABASE for integration tests
+      - name: Set up the integration tests
         if: steps.changes.outputs.go == 'true'
-        working-directory: shellhub
-        run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
-
-      - name: Install gotestsum
-        if: steps.changes.outputs.go == 'true'
-        working-directory: shellhub
-        run: |
-          VERSION=$(sed -n 's/^GOTESTSUM_VERSION=//p' versions.env)
-          if [ -z "$VERSION" ]; then
-              echo "could not read GOTESTSUM_VERSION from versions.env"
-              exit 1
-          fi
-          go install gotest.tools/gotestsum@"$VERSION"
+        uses: ./shellhub/.github/actions/integration-setup
 
       - name: Run the integration tests
         if: steps.changes.outputs.go == 'true'
         working-directory: shellhub/tests
         run: >-
           gotestsum --format testname --
-          ${{ steps.cloud-access.outputs.granted != 'true' && '-skip ''^(TestEnterprise|TestCloud)''' || '' }}
+          -skip '${{ steps.cloud-access.outputs.granted != 'true' && '^(TestEnterprise|TestCloud)' || '^TestCloudBilling$' }}'
           -parallel 4 -timeout 60m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true

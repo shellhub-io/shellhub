@@ -1,0 +1,31 @@
+name: Integration setup
+description: >-
+  Prepare a runner to run the integration tests in shellhub/tests: install the Go version
+  shellhub/tests/go.mod names, point the stack at PostgreSQL in shellhub/.env and install the
+  gotestsum version shellhub/versions.env pins. Expects shellhub checked out at shellhub/; the
+  caller restores the Go and image build caches.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      with:
+        go-version-file: shellhub/tests/go.mod
+        cache: false
+
+    - name: Set SHELLHUB_DATABASE for integration tests
+      shell: bash
+      working-directory: shellhub
+      run: sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=postgres/' .env
+
+    - name: Install gotestsum
+      shell: bash
+      working-directory: shellhub
+      run: |
+        VERSION=$(sed -n 's/^GOTESTSUM_VERSION=//p' versions.env)
+        if [ -z "$VERSION" ]; then
+            echo "could not read GOTESTSUM_VERSION from versions.env"
+            exit 1
+        fi
+        go install gotest.tools/gotestsum@"$VERSION"
