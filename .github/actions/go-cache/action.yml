@@ -50,10 +50,14 @@ runs:
           ${{ steps.key.outputs.sums }}
           ${{ steps.key.outputs.prefix }}
 
-    - name: Mark when the Go caches were restored
+    - name: Backdate the restored build cache and mark when the Go caches were restored
       if: inputs.save != 'true'
       shell: bash
-      run: touch "$RUNNER_TEMP/go-cache-restored"
+      run: |
+        restored=$(date -u +%s)
+        mkdir -p ~/.cache/go-build
+        find ~/.cache/go-build -type f -exec touch -d "@$(( restored - 7200 ))" {} +
+        touch -d "@$restored" "$RUNNER_TEMP/go-cache-restored"
 
     - name: Drop the build cache entries this job did not use
       if: steps.key.outputs.save == 'true'
