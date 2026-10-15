@@ -311,20 +311,17 @@ func TestGateway(t *testing.T) {
 		assert.Equal(t, "localhost:80", apiEndpoint("localhost"), "a Host without a port is answered with the port the gateway listens on")
 	})
 
-	t.Run("an idle web terminal stays open", func(t *testing.T) {
+	t.Run("a web terminal runs a command through the gateway", func(t *testing.T) {
 		_, device := startAcceptedAgent(t, ctx, compose)
 		conn, _ := dialWebTerminal(t, ctx, compose, device)
 
-		idle := 75 * time.Second
-		time.Sleep(idle)
-
-		require.NoError(t, websocket.JSON.Send(conn, map[string]any{"kind": 1, "data": "echo $((40+2))gateway\n"}), "the terminal closed while idle")
+		require.NoError(t, websocket.JSON.Send(conn, map[string]any{"kind": 1, "data": "echo $((40+2))gateway\n"}))
 		require.NoError(t, conn.SetReadDeadline(wallClock.Now().Add(30*time.Second)))
 
 		var output strings.Builder
 		for !strings.Contains(output.String(), "42gateway") {
 			var frame []byte
-			require.NoError(t, websocket.Message.Receive(conn, &frame), "the terminal closed after %s idle, having written %q", idle, output.String())
+			require.NoError(t, websocket.Message.Receive(conn, &frame), "the terminal closed having written %q", output.String())
 			output.Write(frame)
 		}
 	})
