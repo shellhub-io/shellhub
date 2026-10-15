@@ -112,12 +112,13 @@ var agentImages struct {
 	builds map[string]*agentImageBuild
 }
 
-func buildAgentImage(ctx context.Context, version string) (string, error) {
-	return cachedAgentImage(ctx, version, environment.AgentBuild{
+func buildAgentImage(ctx context.Context, version string, tags ...string) (string, error) {
+	return cachedAgentImage(ctx, strings.Join(append([]string{version}, tags...), "-"), environment.AgentBuild{
 		Repository: os.Getenv("SHELLHUB_E2E_AGENT_IMAGE"),
 		Context:    envOr("SHELLHUB_E2E_AGENT_CONTEXT", ".."),
 		Dockerfile: os.Getenv("SHELLHUB_E2E_AGENT_DOCKERFILE"),
 		Version:    version,
+		Tags:       tags,
 		Output:     agentBuildLog(),
 	})
 }

@@ -5,6 +5,7 @@ go 1.26.9
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
 	github.com/compose-spec/compose-go/v2 v2.12.1
+	github.com/containerd/errdefs v1.0.0
 	github.com/docker/cli v29.6.0+incompatible
 	github.com/docker/compose/v5 v5.2.0
 	github.com/go-redis/cache/v9 v9.0.0
@@ -45,7 +46,6 @@ require (
 	github.com/containerd/containerd/api v1.11.1 // indirect
 	github.com/containerd/containerd/v2 v2.2.9 // indirect
 	github.com/containerd/continuity v0.5.0 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v1.0.0-rc.4 // indirect
