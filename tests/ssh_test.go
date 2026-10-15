@@ -178,9 +178,18 @@ func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, 
 }
 
 func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	req, err := agentContainerRequest(gatewayID, image, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return createAgentContainer(ctx, req)
+}
+
+func agentContainerRequest(gatewayID, image string, opts ...NewAgentContainerOption) (testcontainers.ContainerRequest, error) {
 	raw := make([]byte, 6)
 	if _, err := rand.Read(raw); err != nil {
-		return nil, err
+		return testcontainers.ContainerRequest{}, err
 	}
 
 	identity := hex.EncodeToString(raw)
@@ -201,22 +210,21 @@ func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...New
 		opt(envs)
 	}
 
-	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image:  image,
-			Env:    envs,
-			Labels: run.Labels(),
-			HostConfigModifier: func(hc *container.HostConfig) {
-				hc.NetworkMode = container.NetworkMode("container:" + gatewayID)
-			},
+	return testcontainers.ContainerRequest{
+		Image:  image,
+		Env:    envs,
+		Labels: run.Labels(),
+		HostConfigModifier: func(hc *container.HostConfig) {
+			hc.NetworkMode = container.NetworkMode("container:" + gatewayID)
 		},
-		Logger: log.New(io.Discard, "", log.LstdFlags),
-	})
-	if err != nil {
-		return nil, err
-	}
+	}, nil
+}
 
-	return c, nil
+func createAgentContainer(ctx context.Context, req testcontainers.ContainerRequest) (testcontainers.Container, error) {
+	return testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Logger:           log.New(io.Discard, "", log.LstdFlags),
+	})
 }
 
 // TestSSHIdentityMode covers the identity authorization model, which namespaces are born
@@ -1979,6 +1987,23 @@ func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCo
 	t.Helper()
 
 	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), opts...)
+	require.NoError(t, err)
+
+	return runAgent(t, ctx, agent)
+}
+
+func startCustomAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, customize func(*testcontainers.ContainerRequest), opts ...NewAgentContainerOption) testcontainers.Container {
+	t.Helper()
+
+	image, err := buildAgentImage(ctx, "")
+	require.NoError(t, err)
+
+	req, err := agentContainerRequest(compose.Service(environment.ServiceGateway).GetContainerID(), image, opts...)
+	require.NoError(t, err)
+
+	customize(&req)
+
+	agent, err := createAgentContainer(ctx, req)
 	require.NoError(t, err)
 
 	return runAgent(t, ctx, agent)
