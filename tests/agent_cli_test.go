@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
+	"net"
 	"regexp"
 	"strings"
 	"testing"
@@ -17,7 +19,8 @@ import (
 // TestAgentCLI covers the agent's commands a person runs by hand next to the daemon. For a pending
 // device, login prints a code a namespace member accepts from the console, then returns when the
 // server reports acceptance. An already-accepted device gets no code and is told it is accepted.
-// Without a tenant, login pairs the device and persists the tenant it is accepted into.
+// Without a tenant, login pairs the device and persists the tenant it is accepted into. The info
+// command prints the version and endpoints the server reports for the agent's configured address.
 // The cases share one stack.
 func TestAgentCLI(t *testing.T) {
 	t.Parallel()
@@ -55,6 +58,24 @@ func TestAgentCLI(t *testing.T) {
 		assert.Zero(t, awaitAgentExit(t, login))
 		awaitAgentLog(t, login, regexp.MustCompile(`(✓ Device accepted\. The agent will connect automatically\.)`), "login did not report the acceptance")
 		assert.Equal(t, ShellHubNamespace, readStoppedAgentFile(t, login, "/tmp/shellhub.key.tenant"), "login did not keep the tenant the device was accepted into")
+	})
+
+	t.Run("info prints the server's version and the endpoints it reports for the agent's address", func(t *testing.T) {
+		agent := startAgent(t, t.Context(), compose)
+
+		output := execInAgent(t, agent, "./agent", "info")
+		lines := strings.Split(output, "\n")
+
+		info := new(models.Info)
+		require.NoError(t, json.Unmarshal([]byte(lines[len(lines)-1]), info), output)
+
+		_, sshPort, err := net.SplitHostPort(compose.SSHAddress())
+		require.NoError(t, err)
+
+		assert.Equal(t, models.Info{
+			Version:   serverVersion(t, compose),
+			Endpoints: models.Endpoints{API: "localhost:80", SSH: "localhost:" + sshPort},
+		}, *info)
 	})
 }
 
