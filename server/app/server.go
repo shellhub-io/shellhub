@@ -270,6 +270,13 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, feOpts...)
 
+	thOpts, err := s.tagHolderOption(ctx, store, cache)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, thOpts...)
+
 	rpOpts, err := s.sessionRecordingPrunerOption(ctx, store, cache)
 	if err != nil {
 		return err
@@ -536,6 +543,24 @@ func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Stor
 
 	if rp != nil {
 		return []services.Option{services.WithSessionRecordingPruner(rp)}, nil
+	}
+
+	return nil, nil
+}
+
+func (s *Server) tagHolderOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.TagHolderFactory()
+	if factory == nil {
+		return nil, nil
+	}
+
+	th, err := factory(ctx, st, c)
+	if err != nil {
+		return nil, errors.Join(errors.New("init tag holder"), err)
+	}
+
+	if th != nil {
+		return []services.Option{services.WithTagHolder(th)}, nil
 	}
 
 	return nil, nil
