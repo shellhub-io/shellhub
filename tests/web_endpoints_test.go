@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -75,7 +76,8 @@ type deviceSeen struct {
 // request sent to an endpoint's address through the agent into an HTTP or TLS service on the
 // device, the deprecated tunnel API over the same endpoints, and a device merge handing a device's
 // endpoints to the device it merged into. The device's services listen in the agents' network
-// namespace and answer with the name they were started with and what they received.
+// namespace, or on another host of the stack's network, and answer with the name they were started
+// with and what they received.
 func TestEnterpriseWebEndpoints(t *testing.T) {
 	t.Parallel()
 
@@ -255,6 +257,15 @@ func testWebEndpointProxy(t *testing.T, compose *environment.DockerCompose, devi
 			assert.Equal(t, first.name, requireDeviceAnswer(t, compose, one.FullAddress, "/").Name)
 			assert.Equal(t, second.name, requireDeviceAnswer(t, compose, two.FullAddress, "/").Name)
 		}
+	})
+
+	t.Run("a request to an endpoint for another host on the device's network reaches that host", func(t *testing.T) {
+		neighbour := deviceService{name: "neighbour", httpPort: 8003, tlsPort: 8445}
+		host := startDeviceServiceOnStackNetwork(t, compose, neighbour, nil)
+
+		endpoint := compose.CreateWebEndpoint(t, environment.WebEndpointCreate{UID: device.UID, Host: host, Port: neighbour.httpPort, TTL: -1})
+
+		assert.Equal(t, neighbour.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
 	})
 
 	t.Run("a request to a deleted endpoint's address is refused", func(t *testing.T) {
@@ -468,38 +479,66 @@ func startDeviceService(t *testing.T, compose *environment.DockerCompose, servic
 
 	gateway := compose.Service(environment.ServiceGateway).GetContainerID()
 
+	startDeviceHTTP(t, service, deviceServiceHost, func(req *testcontainers.ContainerRequest) {
+		req.HostConfigModifier = func(hc *container.HostConfig) {
+			hc.NetworkMode = container.NetworkMode("container:" + gateway)
+		}
+	})
+
+	return service
+}
+
+func startDeviceServiceOnStackNetwork(t *testing.T, compose *environment.DockerCompose, service deviceService, labels map[string]string) string {
+	t.Helper()
+
+	network := stackNetwork(t, compose)
+
+	c := startDeviceHTTP(t, service, "0.0.0.0", func(req *testcontainers.ContainerRequest) {
+		req.Networks = []string{network}
+		maps.Copy(req.Labels, labels)
+	})
+
+	ip, err := c.ContainerIP(t.Context())
+	require.NoError(t, err)
+
+	return ip
+}
+
+func startDeviceHTTP(t *testing.T, service deviceService, listenHost string, place func(*testcontainers.ContainerRequest)) testcontainers.Container {
+	t.Helper()
+
 	buildArgs, err := testimage.BuildArgs("..")
 	require.NoError(t, err)
 
-	c, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			FromDockerfile: testcontainers.FromDockerfile{
-				Repo:      "device-http",
-				Tag:       "test",
-				Context:   "cmd/device-http",
-				KeepImage: true,
-				BuildArgs: buildArgs,
-			},
-			Env: map[string]string{
-				"NAME":         service.name,
-				"HTTP_ADDRESS": deviceServiceHost + ":" + strconv.Itoa(service.httpPort),
-				"TLS_ADDRESS":  deviceServiceHost + ":" + strconv.Itoa(service.tlsPort),
-				"TLS_DOMAIN":   deviceTLSDomain,
-			},
-			Labels: run.Labels(),
-			HostConfigModifier: func(hc *container.HostConfig) {
-				hc.NetworkMode = container.NetworkMode("container:" + gateway)
-			},
-			WaitingFor: wait.ForLog("listening"),
+	req := testcontainers.ContainerRequest{
+		FromDockerfile: testcontainers.FromDockerfile{
+			Repo:      "device-http",
+			Tag:       "test",
+			Context:   "cmd/device-http",
+			KeepImage: true,
+			BuildArgs: buildArgs,
 		},
-		Started: true,
-		Logger:  log.New(io.Discard, "", log.LstdFlags),
+		Env: map[string]string{
+			"NAME":         service.name,
+			"HTTP_ADDRESS": listenHost + ":" + strconv.Itoa(service.httpPort),
+			"TLS_ADDRESS":  listenHost + ":" + strconv.Itoa(service.tlsPort),
+			"TLS_DOMAIN":   deviceTLSDomain,
+		},
+		Labels:     run.Labels(),
+		WaitingFor: wait.ForLog("listening"),
+	}
+	place(&req)
+
+	c, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+		Logger:           log.New(io.Discard, "", log.LstdFlags),
 	})
 	require.NoError(t, err)
 
 	t.Cleanup(func() { _ = c.Terminate(context.WithoutCancel(t.Context())) })
 
-	return service
+	return c
 }
 
 func gatewayAuthority(t *testing.T, compose *environment.DockerCompose) *x509.Certificate {

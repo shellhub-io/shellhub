@@ -136,26 +136,32 @@ func encodeDevicePublicKey(key *rsa.PublicKey) string {
 	return string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(key)}))
 }
 
+func stackNetwork(t *testing.T, compose *environment.DockerCompose) string {
+	t.Helper()
+
+	networks, err := compose.Service(environment.ServiceGateway).Networks(t.Context())
+	require.NoError(t, err)
+	require.Len(t, networks, 1, "the gateway is on more than the stack's network")
+
+	return networks[0]
+}
+
 func onStackNetworkWithKey(t *testing.T, compose *environment.DockerCompose, mac string, key []byte) func(*testcontainers.ContainerRequest) {
 	t.Helper()
 
 	hardware, err := net.ParseMAC(mac)
 	require.NoError(t, err)
 
-	networks, err := compose.Service(environment.ServiceGateway).Networks(t.Context())
-	require.NoError(t, err)
-	require.Len(t, networks, 1, "the gateway is on more than the stack's network")
-
-	stackNetwork := networks[0]
+	stack := stackNetwork(t, compose)
 
 	gatewayIP, err := compose.Service(environment.ServiceGateway).ContainerIP(t.Context())
 	require.NoError(t, err)
 
 	return func(req *testcontainers.ContainerRequest) {
 		req.HostConfigModifier = nil
-		req.Networks = []string{stackNetwork}
+		req.Networks = []string{stack}
 		req.EndpointSettingsModifier = func(settings map[string]*network.EndpointSettings) {
-			settings[stackNetwork].MacAddress = network.HardwareAddr(hardware)
+			settings[stack].MacAddress = network.HardwareAddr(hardware)
 		}
 		req.Entrypoint = []string{"sh", "-c", `echo "$0 localhost" > /etc/hosts && exec ./agent`, gatewayIP}
 		req.Files = append(req.Files, testcontainers.ContainerFile{
