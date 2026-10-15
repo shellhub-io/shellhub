@@ -8,7 +8,12 @@ import {
   mfaReason,
   signInAndOpen,
 } from "./helpers";
-import { buildRandomEmail, password } from "./seed";
+import {
+  buildRandomEmail,
+  cacheEntryTTL,
+  expireCacheEntry,
+  password,
+} from "./seed";
 import { readLatestEmail } from "./mail";
 import { buildRequestContext, expectStatus, loginAs } from "./api";
 import {
@@ -385,6 +390,38 @@ test.describe("MFA", () => {
 
       await expect(page).toHaveURL(/\/dashboard$/);
       expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
+    });
+
+    test("the emailed codes last 24 hours and are refused once they expire", async ({
+      page,
+    }) => {
+      const user = await createMFAUser();
+      const {
+        data: { id },
+      } = await getUserInfo(buildRequestContext({ token: user.token }));
+      const { codes, path } = await requestReset(user);
+      const day = 24 * 60 * 60;
+
+      for (const key of [
+        `reset-mfa={main:${id}}`,
+        `reset-mfa={recovery:${id}}`,
+      ]) {
+        expect(cacheEntryTTL(key), key).toBeGreaterThan(day - 5 * 60);
+        expect(cacheEntryTTL(key), key).toBeLessThanOrEqual(day);
+        expireCacheEntry(key);
+      }
+
+      await page.goto(path);
+      await fillResetCodes(page, codes);
+      await page.getByRole("button", { name: "Reset MFA and Login" }).click();
+
+      await expect(
+        page.getByText(
+          "Invalid verification codes. Please check and try again.",
+        ),
+      ).toBeVisible();
+      await expect(page).toHaveURL(/\/reset-mfa\?/);
+      expect(await readMFA(user)).toMatchObject({ enabled: true });
     });
 
     test("the emailed link resets MFA and signs in", async ({ page }) => {

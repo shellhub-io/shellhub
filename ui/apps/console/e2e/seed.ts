@@ -149,6 +149,22 @@ export function deleteLicenses() {
   }
 }
 
+export function cacheEntryTTL(key: string) {
+  const reply = composeExec("redis", ["valkey-cli", "TTL", key]);
+  const seconds = Number(reply);
+  if (!Number.isInteger(seconds) || seconds < 0) {
+    throw new Error(`expected ${key} in the cache with a TTL, got "${reply}"`);
+  }
+  return seconds;
+}
+
+export function expireCacheEntry(key: string) {
+  const reply = composeExec("redis", ["valkey-cli", "PEXPIRE", key, "0"]);
+  if (reply !== "1") {
+    throw new Error(`expected ${key} in the cache to expire, got "${reply}"`);
+  }
+}
+
 function evictCachedSystem() {
   composeExec("redis", ["valkey-cli", "DEL", "system"]);
 }
