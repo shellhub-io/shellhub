@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"testing"
 	"time"
@@ -66,11 +67,17 @@ func TestConnectorContainerLifecycle(t *testing.T) {
 func startLabelledContainer(t *testing.T, ctx context.Context, name string) testcontainers.Container {
 	t.Helper()
 
+	return startIdleContainer(t, ctx, name, map[string]string{connectorLabel: name})
+}
+
+func startIdleContainer(t *testing.T, ctx context.Context, name string, extraLabels map[string]string) testcontainers.Container {
+	t.Helper()
+
 	image, err := buildAgentImage(ctx, "")
 	require.NoError(t, err)
 
 	labels := run.Labels()
-	labels[connectorLabel] = name
+	maps.Copy(labels, extraLabels)
 
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
@@ -131,6 +138,12 @@ func startConnector(t *testing.T, ctx context.Context, compose *environment.Dock
 func awaitContainerWithStatus(t *testing.T, compose *environment.DockerCompose, status models.DeviceStatus) models.Device {
 	t.Helper()
 
+	return awaitContainersWithStatus(t, compose, status, 1)[0]
+}
+
+func awaitContainersWithStatus(t *testing.T, compose *environment.DockerCompose, status models.DeviceStatus, count int) []models.Device {
+	t.Helper()
+
 	containers := []models.Device{}
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
@@ -140,10 +153,10 @@ func awaitContainerWithStatus(t *testing.T, compose *environment.DockerCompose, 
 			Get("/api/containers")
 		assert.NoError(tt, err)
 		assert.Equal(tt, http.StatusOK, resp.StatusCode())
-		assert.Len(tt, containers, 1)
+		assert.Len(tt, containers, count)
 	}, 30*time.Second, time.Second)
 
-	return containers[0]
+	return containers
 }
 
 func randomHex(t *testing.T) string {
