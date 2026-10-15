@@ -1510,9 +1510,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				require.NoError(t, sess.WindowChange(48, 160))
 
-				const reportResizes = `sh -c 'trap "echo SIZE \$(stty size)" WINCH; echo READY; sleep 3600 & while :; do wait; done'`
-
-				stdout, _ := sess.StdoutPipe()
+				stdout, err := sess.StdoutPipe()
+				require.NoError(t, err)
 
 				lines := make(chan string, 256)
 				go func() {
@@ -1540,7 +1539,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 								return fmt.Errorf("session ended while waiting for %q", want)
 							}
 
-							if strings.Contains(line, want) {
+							if line == want {
 								return nil
 							}
 						case <-deadline:
@@ -1551,7 +1550,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				started := make(chan error, 1)
 				go func() {
-					started <- sess.Start(reportResizes)
+					started <- sess.Start("exec winch-reporter")
 				}()
 
 				select {
