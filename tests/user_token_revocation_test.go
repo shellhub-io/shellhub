@@ -95,12 +95,18 @@ func TestRevokeUserTokens(t *testing.T) {
 func signInto(t *testing.T, compose *environment.DockerCompose, username, password string) *models.UserAuthResponse {
 	t.Helper()
 
+	return signIntoTenant(t, compose, username, password, ShellHubNamespace)
+}
+
+func signIntoTenant(t *testing.T, compose *environment.DockerCompose, username, password, tenant string) *models.UserAuthResponse {
+	t.Helper()
+
 	login := compose.AuthUser(t, username, password)
 
 	signedInto := new(models.UserAuthResponse)
 	resp, err := asBearer(t, compose, login.Token).
 		SetResult(signedInto).
-		Get("/api/auth/token/" + ShellHubNamespace)
+		Get("/api/auth/token/" + tenant)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 

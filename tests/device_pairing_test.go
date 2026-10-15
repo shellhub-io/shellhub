@@ -245,10 +245,14 @@ func getPairingStatus(ctx context.Context, compose *environment.DockerCompose, c
 }
 
 func postPairingAccept(req *resty.Request, code string) (*models.DevicePairingAccepted, *resty.Response, error) {
+	return postPairingAcceptInto(req, ShellHubNamespace, code)
+}
+
+func postPairingAcceptInto(req *resty.Request, tenant, code string) (*models.DevicePairingAccepted, *resty.Response, error) {
 	accepted := new(models.DevicePairingAccepted)
 
 	resp, err := req.
-		SetBody(map[string]string{"tenant_id": ShellHubNamespace}).
+		SetBody(map[string]string{"tenant_id": tenant}).
 		SetResult(accepted).
 		Post("/api/devices/pairing/" + code + "/accept")
 
@@ -258,7 +262,13 @@ func postPairingAccept(req *resty.Request, code string) (*models.DevicePairingAc
 func acceptPairing(t *testing.T, req *resty.Request, code string) *models.DevicePairingAccepted {
 	t.Helper()
 
-	accepted, resp, err := postPairingAccept(req, code)
+	return acceptPairingInto(t, req, ShellHubNamespace, code)
+}
+
+func acceptPairingInto(t *testing.T, req *resty.Request, tenant, code string) *models.DevicePairingAccepted {
+	t.Helper()
+
+	accepted, resp, err := postPairingAcceptInto(req, tenant, code)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 	require.NotEmpty(t, accepted.UID)
