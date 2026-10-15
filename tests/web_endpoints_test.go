@@ -74,8 +74,9 @@ type deviceSeen struct {
 // TestEnterpriseWebEndpoints covers web endpoints on an enterprise instance that enables them: what
 // the API refuses to create, the address and lifetime of what it creates, the gateway carrying a
 // request sent to an endpoint's address through the agent into an HTTP or TLS service on the
-// device, the deprecated tunnel API over the same endpoints, and a device merge handing a device's
-// endpoints to the device it merged into. The device's services listen in the agents' network
+// device, the deprecated tunnel API over the same endpoints, a device merge handing a device's
+// endpoints to the device it merged into, and a connector carrying a request for a container's
+// loopback to the container's own address. The device's services listen in the agents' network
 // namespace, or on another host of the stack's network, and answer with the name they were started
 // with and what they received.
 func TestEnterpriseWebEndpoints(t *testing.T) {
@@ -97,6 +98,7 @@ func TestEnterpriseWebEndpoints(t *testing.T) {
 	t.Run("deprecated tunnel API", func(t *testing.T) { testTunnelAPI(t, compose, device, second) })
 	t.Run("another namespace", func(t *testing.T) { testWebEndpointAnotherNamespace(t, ctx, compose, device, first) })
 	t.Run("device merge", func(t *testing.T) { testWebEndpointDeviceMerge(t, ctx, compose, first) })
+	t.Run("connector", func(t *testing.T) { testWebEndpointConnector(t, ctx, compose) })
 }
 
 // TestEnterpriseWebEndpointsDisabled covers an enterprise instance that leaves web endpoints off,
@@ -472,6 +474,25 @@ func testWebEndpointDeviceMerge(t *testing.T, ctx context.Context, compose *envi
 
 	assert.Equal(t, merged.UID, listedWebEndpoint(t, compose, endpoint.Address).DeviceUID)
 	assert.Equal(t, service.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
+}
+
+func testWebEndpointConnector(t *testing.T, ctx context.Context, compose *environment.DockerCompose) {
+	t.Helper()
+
+	label := "web-" + randomHex(t)
+	containerService := deviceService{name: "container", httpPort: 8006, tlsPort: 8446}
+	startDeviceServiceOnStackNetwork(t, compose, containerService, map[string]string{connectorLabel: label})
+	startConnector(t, ctx, compose, connectorLabel+"="+label)
+
+	device := awaitContainerWithStatus(t, compose, models.DeviceStatusPending)
+	compose.UpdateDeviceStatus(t, device.UID, environment.DeviceActionAccept)
+	compose.AwaitDeviceOnline(t, device.UID)
+
+	t.Run("an endpoint for a container's loopback reaches the service on the container's address", func(t *testing.T) {
+		endpoint := compose.CreateWebEndpoint(t, containerService.plain(device.UID, -1))
+
+		assert.Equal(t, containerService.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
+	})
 }
 
 func startDeviceService(t *testing.T, compose *environment.DockerCompose, service deviceService) deviceService {
