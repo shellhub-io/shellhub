@@ -6,19 +6,17 @@ import {
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
-import { isCloud } from "../env";
+import { isEnterprise } from "../env";
 
 type LicenseData = GetLicenseResponse | null;
 
 /**
- * The installed licence, or null when there is none. Not run on cloud, where licensing is the
- * provider's concern and the endpoint does not exist, nor when the caller passes active false.
- * The community edition has no such endpoint either, so a caller that can render there must pass
- * false for it: the gateway answers with the console's HTML, which is not a licence.
+ * The installed licence, or null when there is none. Run only for an instance admin on enterprise,
+ * the one edition with a licence endpoint, and not when the caller passes active false.
  */
 export function useAdminLicense({ active = true }: { active?: boolean } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
-  const enabled = active && isAdmin && !isCloud();
+  const enabled = active && isAdmin && isEnterprise();
 
   const query = useQuery<LicenseData>({
     queryKey: getLicenseQueryKey(),

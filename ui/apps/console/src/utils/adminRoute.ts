@@ -10,3 +10,14 @@ export function isAdminPath(pathname: string): boolean {
  * so it opens no tab of its own.
  */
 export const ADMIN_UNAUTHORIZED_PATH = "/admin/unauthorized";
+
+/**
+ * The admin console's landing page, the instance overview.
+ */
+export const ADMIN_INSTANCE_PATH = "/admin/instance";
+
+/**
+ * The instance's sign-in settings page. Only enterprise has it; any other edition redirects it to
+ * the instance overview.
+ */
+export const ADMIN_AUTHENTICATION_PATH = "/admin/settings/authentication";

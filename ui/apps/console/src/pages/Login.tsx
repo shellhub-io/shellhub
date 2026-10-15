@@ -8,7 +8,7 @@ import {
 import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
-import { isCloud, isEnterpriseOrCloud } from "../env";
+import { isCloud, isEnterprise } from "../env";
 import { getSafeRedirect } from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthActions from "@/components/auth/AuthActions";
@@ -18,14 +18,14 @@ import { readLoginState } from "@/components/auth/loginState";
 import { getInfo, getSamlAuthUrl } from "../client";
 
 /**
- * The sign-in page. What it offers depends on the edition — SSO and sign-up exist only above
- * community — and on where the user was going, which it returns them to afterwards. Reached with
- * a {@link signOutLoginState} in the location state, it ends the current session itself and
- * keeps the notice beside it.
+ * The sign-in page. What it offers depends on the edition (SSO exists only on enterprise, sign-up
+ * only on cloud) and on where the user was going, which it returns them to afterwards. Reached with
+ * a {@link signOutLoginState} in the location state, it ends the current session itself and keeps
+ * the notice beside it.
  */
 export default function Login() {
   const isCloudEdition = isCloud();
-  const isEnterpriseOrCloudEdition = isEnterpriseOrCloud();
+  const isEnterpriseEdition = isEnterprise();
   const location = useLocation();
   const { notice, signOut } = readLoginState(location.state);
 
@@ -86,9 +86,8 @@ export default function Login() {
     }
   };
 
-  const showLocalForm =
-    !isEnterpriseOrCloudEdition || authentication?.local === true;
-  const ssoOnly = isEnterpriseOrCloudEdition && authentication?.local === false;
+  const showLocalForm = !isEnterpriseEdition || authentication?.local === true;
+  const ssoOnly = isEnterpriseEdition && authentication?.local === false;
 
   if (token && !queryToken && !signOut) {
     return <Navigate to="/" replace />;
@@ -122,7 +121,7 @@ export default function Login() {
         {error && <Callout variant="error">{error}</Callout>}
       </div>
 
-      {isEnterpriseOrCloudEdition && authentication?.saml && (
+      {isEnterpriseEdition && authentication?.saml && (
         <div>
           <Button
             variant={ssoOnly ? "primary" : "secondary"}
@@ -158,9 +157,7 @@ export default function Login() {
         <div className="mt-4">
           <AuthActions
             links={[
-              ...(showLocalForm
-                ? [{ label: "Forgot password?", to: "/forgot-password" }]
-                : []),
+              { label: "Forgot password?", to: "/forgot-password" },
               { label: "Don't have an account? Sign up", to: "/sign-up" },
             ]}
           />

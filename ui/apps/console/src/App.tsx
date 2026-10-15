@@ -20,9 +20,14 @@ import IdentityAccessGuard from "./components/common/IdentityAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
+import EnterpriseAdminRouteGuard from "./components/common/EnterpriseAdminRouteGuard";
 import LicenseGuard from "./components/common/LicenseGuard";
 import FeatureGate from "./components/common/FeatureGate";
-import { ADMIN_UNAUTHORIZED_PATH } from "./utils/adminRoute";
+import {
+  ADMIN_AUTHENTICATION_PATH,
+  ADMIN_INSTANCE_PATH,
+  ADMIN_UNAUTHORIZED_PATH,
+} from "./utils/adminRoute";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
@@ -158,23 +163,21 @@ export default function App() {
                       element={<AdminUnauthorized />}
                     />
                     <Route element={<AdminRoute />}>
-                      <Route
-                        path="/admin/license"
-                        element={
-                          isCloud() ? (
-                            <Navigate to="/admin/instance" replace />
-                          ) : (
-                            <AdminLicense />
-                          )
-                        }
-                      />
+                      <Route element={<EnterpriseAdminRouteGuard />}>
+                        <Route
+                          path="/admin/license"
+                          element={<AdminLicense />}
+                        />
+                      </Route>
                       <Route element={<LicenseGuard />}>
                         <Route
                           path="/admin"
-                          element={<Navigate to="/admin/instance" replace />}
+                          element={
+                            <Navigate to={ADMIN_INSTANCE_PATH} replace />
+                          }
                         />
                         <Route
-                          path="/admin/instance"
+                          path={ADMIN_INSTANCE_PATH}
                           element={<AdminInstance />}
                         />
                         <Route path="/admin/users" element={<AdminUsers />} />
@@ -194,10 +197,12 @@ export default function App() {
                           path="/admin/instance-api-keys"
                           element={<AdminInstanceApiKeys />}
                         />
-                        <Route
-                          path="/admin/settings/authentication"
-                          element={<AdminAuthentication />}
-                        />
+                        <Route element={<EnterpriseAdminRouteGuard />}>
+                          <Route
+                            path={ADMIN_AUTHENTICATION_PATH}
+                            element={<AdminAuthentication />}
+                          />
+                        </Route>
                       </Route>
                     </Route>
                     <Route

@@ -51,7 +51,7 @@ function renderBanner() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
   useAuthStore.setState({ isAdmin: true });
   setHandlers(makeLicense(100), { registered_devices: 50 });
 });

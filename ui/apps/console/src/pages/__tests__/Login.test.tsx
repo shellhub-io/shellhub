@@ -339,18 +339,21 @@ describe("Login", () => {
       );
     }
 
-    it("does not show SSO button on community edition", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig });
-      setInfo({ local: true, saml: true });
+    it.each(["community", "cloud"] as const)(
+      "does not show SSO button on %s edition",
+      async (edition) => {
+        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        setInfo({ local: true, saml: true });
 
-      renderLogin();
+        renderLogin();
 
-      await waitFor(() =>
-        expect(screen.getByLabelText(/username/i)).toBeInTheDocument(),
-      );
+        await waitFor(() =>
+          expect(screen.getByLabelText(/username/i)).toBeInTheDocument(),
+        );
 
-      expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
-    });
+        expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
+      },
+    );
 
     it("does not show SSO button when saml is false", async () => {
       mockGetConfig.mockReturnValue({
@@ -368,19 +371,19 @@ describe("Login", () => {
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
     });
 
-    it.each(["enterprise", "cloud"] as const)(
-      "shows SSO button when edition=%s and saml is true",
-      async (edition) => {
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
-        setInfo({ local: true, saml: true });
+    it("shows SSO button on enterprise edition when saml is true", async () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        edition: "enterprise",
+      });
+      setInfo({ local: true, saml: true });
 
-        renderLogin();
+      renderLogin();
 
-        await waitFor(() =>
-          expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
-        );
-      },
-    );
+      await waitFor(() =>
+        expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
+      );
+    });
 
     it("redirects to SSO URL when SSO button is clicked", async () => {
       const originalLocation = window.location;
@@ -486,17 +489,6 @@ describe("Login", () => {
         "href",
         "/sign-up",
       );
-    });
-
-    it("offers no password recovery when SSO is the only way in", async () => {
-      setLocalAuth(false);
-
-      renderLogin();
-
-      await screen.findByRole("button", { name: /login with sso/i });
-      expect(
-        screen.queryByRole("link", { name: /forgot password/i }),
-      ).not.toBeInTheDocument();
     });
   });
 

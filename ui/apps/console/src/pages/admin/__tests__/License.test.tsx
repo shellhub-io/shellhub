@@ -8,6 +8,7 @@ import AdminLicense from "../License";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 
 Object.assign(navigator, {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
@@ -71,6 +72,7 @@ function datFile(content = "license-content") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: true });
   server.use(
     http.get("*/admin/api/license", () => HttpResponse.json({})),

@@ -473,6 +473,9 @@ describe("AdminInstance", () => {
         expect(
           await within(access).findByText("Local · SAML"),
         ).toBeInTheDocument();
+        expect(
+          within(access).getByRole("link", { name: /^sign-in methods/i }),
+        ).toHaveAttribute("href", "/admin/settings/authentication");
       });
     });
 
@@ -520,6 +523,16 @@ describe("AdminInstance", () => {
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("region", { name: "License" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("lists the sign-in methods without linking to the settings", async () => {
+      renderPage();
+
+      const access = screen.getByRole("region", { name: "Access" });
+      expect(await within(access).findByText(/^Local/)).toBeInTheDocument();
+      expect(
+        within(access).queryByRole("link", { name: /^sign-in methods/i }),
       ).not.toBeInTheDocument();
     });
 
