@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/yamux"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -154,6 +156,46 @@ func TestDialToCarriesTheAgentsRefusal(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "connection refused", refused.Reason)
 	assert.Nil(t, conn)
+}
+
+func TestDialToGivesUpOnADeviceThatNeverDialsBack(t *testing.T) {
+	serverCtl, agentCtl := net.Pipe()
+
+	t.Cleanup(func() {
+		_ = serverCtl.Close()
+		_ = agentCtl.Close()
+	})
+
+	go func() { _, _ = io.Copy(io.Discard, agentCtl) }()
+
+	logger := log.New()
+	logger.SetOutput(io.Discard)
+
+	tunnel := revdial.NewDialer(log.NewEntry(logger), serverCtl, "/ssh/revdial", clock.New())
+	t.Cleanup(func() { _ = tunnel.Close() })
+
+	d := newDialerWith(t, NewKey("tenant", "device"), tunnel)
+	d.dialTimeout = 300 * time.Millisecond
+
+	type result struct {
+		conn net.Conn
+		err  error
+	}
+
+	done := make(chan result, 1)
+	go func() {
+		conn, err := d.DialTo(t.Context(), "tenant", "device", SSHOpenTarget{SessionID: "session"})
+		done <- result{conn: conn, err: err}
+	}()
+
+	select {
+	case r := <-done:
+		require.ErrorIs(t, r.err, ErrUnreachable)
+		require.NotErrorIs(t, r.err, ErrNoConnection, "the device is present; it did not answer")
+		assert.Nil(t, r.conn)
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "DialTo must give up on a device that never dials back")
+	}
 }
 
 // TestDescribeNamesEachFailure keeps the three modes distinguishable to an operator reading the

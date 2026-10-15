@@ -52,7 +52,11 @@ type TunnelDialer interface {
 // [TunnelDialer].
 type Dialer struct {
 	Manager *Manager
+
+	dialTimeout time.Duration
 }
+
+const defaultDialTimeout = 30 * time.Second
 
 // NewDialer returns a [Dialer] that marks a device offline through devices when its last
 // tunnel closes, and refreshes its liveness through heartbeater while one is held. Its tunnels read
@@ -130,14 +134,15 @@ const HandshakeTimeout = 30 * time.Second
 // the version-specific bootstrap for the provided target. It returns a
 // connection ready for application protocol usage.
 //
-// It reports the failures [TunnelDialer] names. A nil target skips the bootstrap and returns
-// the raw stream.
+// It reports the failures [TunnelDialer] names. A device that holds a tunnel but hands over no
+// stream within 30 seconds is [ErrUnreachable], whatever later deadline ctx carries. A nil target
+// skips the bootstrap and returns the raw stream.
 func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target Target) (net.Conn, error) {
 	if tenant == "" || uid == "" {
 		return nil, ErrInvalidArgument
 	}
 
-	conn, version, err := t.Manager.Dial(ctx, NewKey(tenant, uid))
+	conn, version, err := t.dialWithin(ctx, NewKey(tenant, uid))
 	if err != nil {
 		if errors.Is(err, ErrNoConnection) {
 			return nil, err
@@ -156,6 +161,18 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 	}
 
 	return prepared, nil
+}
+
+func (t *Dialer) dialWithin(ctx context.Context, key string) (net.Conn, TransportVersion, error) { //nolint:ireturn // hands back the transport's own conn, as Manager.Dial does
+	timeout := t.dialTimeout
+	if timeout <= 0 {
+		timeout = defaultDialTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return t.Manager.Dial(ctx, key)
 }
 
 func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { //nolint:ireturn
