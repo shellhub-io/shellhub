@@ -1,16 +1,25 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
 import { SignedXml } from "xml-crypto";
 import {
+  adminUpdateUser,
   createNamespace,
   getAuthenticationSettings,
   getInfo,
   getSamlAuthUrl,
   getUser,
   getUserInfo,
+  listInstanceApiKeys,
 } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise, requireEnv } from "./env";
-import { createTeam, required, signInAndOpen, signOut } from "./helpers";
+import {
+  createTeam,
+  dismissWizard,
+  generateKey,
+  required,
+  signInAndOpen,
+  signOut,
+} from "./helpers";
 import {
   type SignOnRequest,
   adminContext,
@@ -378,6 +387,43 @@ test.describe("Sign-in", () => {
       auth_methods: ["local", "saml"],
     });
     expect((await loginAs(owner.username, password)).id).toBe(id);
+  });
+});
+
+test.describe("Instance API keys", () => {
+  test.beforeEach(() => enableSaml());
+
+  test("a SAML administrator mints an instance API key credited to them", async ({
+    page,
+  }) => {
+    const user = buildSamlUser();
+    const first = await signInThroughApi(user);
+    const { id, user: username } = await readSessionUser(first);
+    expect(username).toBe("");
+    await adminUpdateUser({
+      ...(await adminContext()),
+      path: { id },
+      body: { admin: true },
+    });
+    await createNamespace({
+      ...buildRequestContext({ token: first }),
+      body: { name: `e2e-saml-${buildShortId()}` },
+    });
+    await answerSignOn(page.context(), user);
+
+    const token = await signInWithSso(page);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await dismissWizard(page);
+    await page.goto("/admin/instance-api-keys");
+
+    const { name } = await generateKey(page, {
+      dialog: "Generate instance API key",
+      submit: "Generate",
+      keyLabel: "Your Instance API Key",
+    });
+
+    const { data } = await listInstanceApiKeys(buildRequestContext({ token }));
+    expect(data?.find((key) => key.name === name)?.created_by).toBe(id);
   });
 });
 
