@@ -2,7 +2,7 @@ import { type Page, expect } from "@playwright/test";
 import { createHmac, randomUUID } from "node:crypto";
 import { enableMfa, updateUser } from "@/client";
 import { buildRequestContext } from "./api";
-import { dismissWizard, signIn } from "./helpers";
+import { signIn } from "./helpers";
 import { buildRandomEmail, password } from "./seed";
 
 export const mfaSecret = "JBSWY3DPEHPK3PXP";
@@ -48,7 +48,6 @@ export async function signInWithMFA(page: Page, username: string) {
   await fillDigits(page, totp(mfaSecret));
   await page.getByRole("button", { name: "Verify" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await dismissWizard(page);
 }
 
 export const buildRecoveryCode = () =>

@@ -143,21 +143,7 @@ export async function signInAndOpen(
 ) {
   await signIn(page, username, password);
   await expect(page).toHaveURL(/\/dashboard$/);
-  await dismissWizard(page);
   await page.goto(path);
-}
-
-export async function dismissWizard(page: Page) {
-  const close = page.getByRole("button", { name: "Close wizard" });
-  if (
-    await close.waitFor({ state: "visible", timeout: 5000 }).then(
-      () => true,
-      () => false,
-    )
-  ) {
-    await close.click();
-    await close.waitFor({ state: "hidden" });
-  }
 }
 
 export async function signOut(page: Page, username: string) {
@@ -175,7 +161,6 @@ export async function switchNamespace(page: Page, namespace: string) {
   const palette = page.getByRole("dialog", { name: "Command palette" });
   await palette.getByRole("combobox").fill(namespace);
   await palette.getByRole("option", { name: namespace }).click();
-  await dismissWizard(page);
   await expect(page.getByRole("tab", { selected: true })).toHaveText(
     new RegExp(`${namespace}$`),
   );

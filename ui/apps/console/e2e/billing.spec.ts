@@ -2,7 +2,7 @@ import { type Page, expect, test as base } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { getCustomer, getNamespace, getNamespaces } from "@/client";
 import { isCloud } from "./env";
-import { createUser, signIn, dismissWizard } from "./helpers";
+import { createUser, signIn } from "./helpers";
 import {
   password,
   buildShortId,
@@ -116,7 +116,6 @@ const test = base.extend<{ owner: Owner }>({
 async function openBilling(page: Page, owner: Owner) {
   await signIn(page, owner.username, password);
   await expect(page).toHaveURL(/\/dashboard$/);
-  await dismissWizard(page);
   await page.goto("/settings/billing");
 }
 
