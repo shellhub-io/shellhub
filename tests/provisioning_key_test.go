@@ -20,7 +20,7 @@ const (
 
 // TestProvisioningKeyEnrollment enrolls a device with a provisioning key instead of a tenant id: the key
 // names the namespace, and its mode decides whether the device still needs a decision. The legacy
-// tenant-only path is covered by [TestSSH].
+// tenant-only path is covered by [TestSSHConnectionV1] and [TestSSHConnectionV2].
 func TestProvisioningKeyEnrollment(t *testing.T) {
 	t.Parallel()
 

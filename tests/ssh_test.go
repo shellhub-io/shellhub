@@ -229,7 +229,8 @@ func createAgentContainer(ctx context.Context, req testcontainers.ContainerReque
 // TestSSHIdentityMode covers the identity authorization model, which namespaces are born
 // into: the presented key IS the identity, so password authentication is not offered at all
 // and only a key enrolled as an SSH identity gets through. The legacy model — passwords and
-// firewall-filtered public keys — is covered by [TestSSH].
+// firewall-filtered public keys — is covered by [TestSSHConnectionV1] and
+// [TestSSHConnectionV2].
 //
 // The access mode is orthogonal to the transport, so this runs on the default version only.
 func TestSSHIdentityMode(t *testing.T) {
@@ -279,14 +280,16 @@ func TestSSHIdentityMode(t *testing.T) {
 	})
 }
 
-func TestSSH(t *testing.T) {
+func TestSSHConnectionV1(t *testing.T) {
 	t.Parallel()
 
-	for _, version := range []int{1, 2} {
-		t.Run(fmt.Sprintf("connection_v%d", version), func(t *testing.T) {
-			testSSHWithVersion(t, version)
-		})
-	}
+	testSSHWithVersion(t, 1)
+}
+
+func TestSSHConnectionV2(t *testing.T) {
+	t.Parallel()
+
+	testSSHWithVersion(t, 2)
 }
 
 func testSSHWithVersion(t *testing.T, connectionVersion int) {
