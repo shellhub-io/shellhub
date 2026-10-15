@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -1405,56 +1404,15 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
-				config := &ssh.ClientConfig{
+				reqs := openShellWatchingGlobalRequests(t, t.Context(), environment.services.SSHAddress(), &ssh.ClientConfig{
 					User: deviceSSHID(device),
 					Auth: []ssh.AuthMethod{
 						ssh.PublicKeys(environment.signer),
 					},
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
+				})
 
-				addr := environment.services.SSHAddress()
-
-				dialed, err := (&net.Dialer{Timeout: 30 * time.Second}).DialContext(t.Context(), "tcp", addr)
-				require.NoError(t, err)
-
-				conn, chans, reqs, err := ssh.NewClientConn(dialed, addr, config)
-				require.NoError(t, err)
-
-				defer conn.Close() //nolint:errcheck
-
-				go func() {
-					for newChan := range chans {
-						newChan.Reject(ssh.UnknownChannelType, "unexpected") //nolint:errcheck
-					}
-				}()
-
-				ch, chReqs, err := conn.OpenChannel("session", nil)
-				require.NoError(t, err)
-
-				defer ch.Close() //nolint:errcheck
-
-				go ssh.DiscardRequests(chReqs)
-
-				_, err = ch.SendRequest("shell", true, nil)
-				require.NoError(t, err)
-
-				for {
-					select {
-					case req, ok := <-reqs:
-						require.True(t, ok, "the connection closed before a keepalive arrived")
-
-						if req.WantReply {
-							req.Reply(false, nil) //nolint:errcheck
-						}
-
-						if strings.HasPrefix(req.Type, "keepalive") {
-							return
-						}
-					case <-time.After(60 * time.Second):
-						t.Fatal("no keepalive reached the client on the connection")
-					}
-				}
+				awaitGlobalRequest(t, reqs, "keepalive", 60*time.Second)
 			},
 		},
 		{
