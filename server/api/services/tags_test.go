@@ -1059,3 +1059,107 @@ func TestListTags(t *testing.T) {
 		assert.False(t, TagSortFields.Allows("unknown"))
 	})
 }
+
+type tagHolderFunc func(ctx context.Context, sc scope.Scope, tagID string) ([]string, error)
+
+func (f tagHolderFunc) TagHolders(ctx context.Context, sc scope.Scope, tagID string) ([]string, error) {
+	return f(ctx, sc, tagID)
+}
+
+func TestService_DeleteTag_TagHolder(t *testing.T) {
+	ctx := context.TODO()
+	tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+	listErr := errors.New("error")
+
+	cases := []struct {
+		description string
+		publicKeys  []models.PublicKey
+		held        []string
+		listErr     error
+		deleted     bool
+		expected    error
+	}{
+		{
+			description: "fails naming every holder when the tag holder reports the tag held",
+			publicKeys: []models.PublicKey{
+				{PublicKeyFields: models.PublicKeyFields{Name: "deploy", Filter: models.PublicKeyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}}},
+			},
+			held:     []string{`firewall rule "rule1"`},
+			expected: NewErrTagInUse([]string{`public key "deploy"`, `firewall rule "rule1"`}),
+		},
+		{
+			description: "fails without deleting when the tag holder cannot list",
+			listErr:     listErr,
+			expected:    listErr,
+		},
+		{
+			description: "deletes the tag when the tag holder reports nothing holding it",
+			deleted:     true,
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			queryOptionsMock := storemock.NewMockQueryOptions(t)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+			queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
+
+			storeMock.
+				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
+			storeMock.
+				On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+				Return(&models.Namespace{}, nil).
+				Once()
+			storeMock.
+				On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+				Return(tag, nil).
+				Once()
+			storeMock.
+				On("PublicKeyList", ctx, mock.Anything).
+				Return(tc.publicKeys, int64(len(tc.publicKeys)), nil).
+				Once()
+			storeMock.
+				On("AccessPolicyList", ctx, mock.Anything).
+				Return([]models.AccessPolicy{}, int64(0), nil).
+				Once()
+
+			if tc.deleted {
+				for _, target := range store.TagTargets() {
+					storeMock.
+						On("TagPullFromTarget", ctx, tag.ID, target).
+						Return(nil).
+						Once()
+				}
+
+				storeMock.
+					On("TagDelete", ctx, tag).
+					Return(nil).
+					Once()
+			}
+
+			var askedScope scope.Scope
+
+			var askedTagID string
+
+			holder := tagHolderFunc(func(_ context.Context, sc scope.Scope, tagID string) ([]string, error) {
+				askedScope, askedTagID = sc, tagID
+
+				return tc.held, tc.listErr
+			})
+
+			service := NewService(storeMock, privateKey, publicKey, nil, WithTagHolder(holder))
+
+			err := service.DeleteTag(ctx, &requests.DeleteTag{Name: "production", TenantID: "tenant1"})
+			require.Equal(t, tc.expected, err)
+
+			bounded, err := scope.NewBounded("tenant1")
+			require.NoError(t, err)
+			assert.Equal(t, bounded, askedScope)
+			assert.Equal(t, tag.ID, askedTagID)
+		})
+	}
+}

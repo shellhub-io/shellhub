@@ -33,6 +33,7 @@ type service struct {
 	billing           BillingProvider
 	licenseEvaluator  LicenseEvaluator
 	firewallEvaluator FirewallEvaluator
+	tagHolder         TagHolder
 	recordingPruner   SessionRecordingPruner
 	issuer            string
 	challengeKey      []byte
@@ -106,6 +107,14 @@ func WithLicenseEvaluator(le LicenseEvaluator) Option {
 func WithFirewallEvaluator(fe FirewallEvaluator) Option {
 	return func(service *APIService) {
 		service.firewallEvaluator = fe
+	}
+}
+
+// WithTagHolder attaches the holders of tags the core store does not know of, without which only
+// public keys and access policies keep a tag from being deleted.
+func WithTagHolder(th TagHolder) Option {
+	return func(service *APIService) {
+		service.tagHolder = th
 	}
 }
 
