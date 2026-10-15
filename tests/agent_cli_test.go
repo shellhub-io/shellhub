@@ -12,9 +12,10 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
-// TestAgentCLI covers the agent's commands a person runs by hand next to the daemon. The login
-// command prints a code a namespace member accepts the device with from the console, and returns
-// once the server reports the device accepted. The cases share one stack.
+// TestAgentCLI covers the agent's commands a person runs by hand next to the daemon. For a pending
+// device, login prints a code a namespace member accepts from the console, then returns when the
+// server reports acceptance. An already-accepted device gets no code and is told it is accepted.
+// The cases share one stack.
 func TestAgentCLI(t *testing.T) {
 	t.Parallel()
 
@@ -32,6 +33,15 @@ func TestAgentCLI(t *testing.T) {
 
 		assert.Zero(t, awaitAgentExit(t, login))
 		awaitAgentLog(t, login, regexp.MustCompile(`(✓ Device accepted into namespace "`+ShellHubNamespaceName+`"\.)`), "login did not report the acceptance")
+	})
+
+	t.Run("login on an accepted device says so and asks for no code", func(t *testing.T) {
+		agent, _ := startAcceptedAgent(t, t.Context(), compose)
+
+		output := execInAgent(t, agent, "./agent", "login")
+
+		assert.Contains(t, output, `✓ Device is already accepted into namespace "`+ShellHubNamespaceName+`".`)
+		assert.NotRegexp(t, agentPairingLink, output)
 	})
 }
 
