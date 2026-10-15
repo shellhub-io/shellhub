@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -32,10 +33,36 @@ type DockerCompose struct {
 
 // Down stops the [DockerCompose] instance, removing the services, networks, and volumes
 // associated with it. It keeps the images, because every [DockerComposeConfigurator.Up] after
-// the first starts from them instead of pulling or building. It's generally a good idea to
-// encapsulate it inside a [t.Cleanup] function.
+// the first starts from them instead of pulling or building. When the test that brought the
+// stack up has failed, Down first writes the stack's container logs to .stack/<test name>.log
+// under the tests directory, so the cause of a failure can be read after the teardown. The first
+// stack a run writes for a test replaces the file an earlier run left, and the test's later stacks
+// append to it. It's generally a good idea to encapsulate it inside a [t.Cleanup] function.
 func (dc *DockerCompose) Down() {
+	dc.keepLogsOnFailure()
+
 	require.NoError(dc.setupT, dc.stack.Down(context.Background()))
+}
+
+func stackLogPath(testName string) string {
+	return filepath.Join(stackArtifactsDir, strings.ReplaceAll(testName, "/", "_")+".log")
+}
+
+func (dc *DockerCompose) keepLogsOnFailure() {
+	if !dc.setupT.Failed() {
+		return
+	}
+
+	path := stackLogPath(dc.setupT.Name())
+
+	kept, err := dc.stack.run.keepProjectLogs(context.Background(), dc.stack.name, path)
+	if err != nil {
+		dc.setupT.Logf("could not keep every stack log in %s: %v", path, err)
+	}
+
+	if kept > 0 {
+		dc.setupT.Logf("stack logs kept in %s", path)
+	}
 }
 
 // R return a [resty.R] with `http://localhost:{SHELLHUB_HTTP_PORT}` as base URL.
