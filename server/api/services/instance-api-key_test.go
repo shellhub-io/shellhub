@@ -44,32 +44,32 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 		{
 			description: "fails when the requesting user does not exist",
 			req: &requests.CreateInstanceAPIKey{
-				Username:  "ghost",
+				AdminID:   "user-0",
 				Name:      "billing-export",
 				ExpiresAt: 30,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "ghost").
+					On("UserResolve", ctx, store.UserIDResolver, "user-0").
 					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: Expected{
 				res: nil,
-				err: NewErrUserNotFound("ghost", errors.New("error")),
+				err: NewErrUserNotFound("user-0", errors.New("error")),
 			},
 		},
 		{
 			description: "fails when the requesting user is not an instance administrator",
 			req: &requests.CreateInstanceAPIKey{
-				Username:  "regular",
+				AdminID:   "user-2",
 				Name:      "billing-export",
 				ExpiresAt: 30,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "regular").
-					Return(&models.User{ID: "user-1", Admin: false}, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "user-2").
+					Return(&models.User{ID: "user-2", Admin: false}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -80,13 +80,13 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 		{
 			description: "fails when the expiration is outside the permitted set",
 			req: &requests.CreateInstanceAPIKey{
-				Username:  "admin",
+				AdminID:   "user-1",
 				Name:      "billing-export",
 				ExpiresAt: -1,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "admin").
+					On("UserResolve", ctx, store.UserIDResolver, "user-1").
 					Return(&models.User{ID: "user-1", Admin: true}, nil).
 					Once()
 			},
@@ -98,13 +98,13 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 		{
 			description: "fails when the name is already taken",
 			req: &requests.CreateInstanceAPIKey{
-				Username:  "admin",
+				AdminID:   "user-1",
 				Name:      "billing-export",
 				ExpiresAt: 30,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "admin").
+					On("UserResolve", ctx, store.UserIDResolver, "user-1").
 					Return(&models.User{ID: "user-1", Admin: true}, nil).
 					Once()
 
@@ -126,16 +126,16 @@ func TestCreateInstanceAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds and returns the prefixed plaintext key once",
+			description: "succeeds for an administrator with no username and returns the prefixed plaintext key once",
 			req: &requests.CreateInstanceAPIKey{
-				Username:  "admin",
+				AdminID:   "user-1",
 				Name:      "license-sync",
 				ExpiresAt: 365,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "admin").
-					Return(&models.User{ID: "user-1", Admin: true}, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "user-1").
+					Return(&models.User{ID: "user-1", UserData: models.UserData{Username: ""}, Admin: true}, nil).
 					Once()
 
 				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")

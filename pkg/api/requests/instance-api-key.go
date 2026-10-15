@@ -4,11 +4,11 @@ import "github.com/shellhub-io/shellhub/pkg/api/query"
 
 // CreateInstanceAPIKey is the request to mint an instance API key.
 //
-// The acting user is identified by username rather than by ID because the admin surface strips
-// X-ID from the request: an admin-panel call carries no user scope. An empty username is refused,
-// since every user a SAML sign-in created shares it and it names no one.
+// The acting administrator is identified by X-Admin-ID rather than X-ID because the admin surface
+// strips X-ID from the request: an admin-panel call carries no user scope. A request without it is
+// refused, since it names no administrator to record as the key's creator.
 type CreateInstanceAPIKey struct {
-	Username  string `header:"X-Username" validate:"required"`
+	AdminID   string `header:"X-Admin-ID" validate:"required"`
 	Name      string `json:"name" validate:"required,api-key_name"`
 	ExpiresAt int    `json:"expires_at" validate:"required,instance-api-key_expires-at"`
 }

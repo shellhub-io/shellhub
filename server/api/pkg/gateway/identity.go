@@ -18,6 +18,7 @@ type Identity struct {
 	APIKeyID  string
 	Role      authorizer.Role
 	Admin     bool
+	AdminID   string
 }
 
 var identityHeaders = []string{
@@ -29,6 +30,7 @@ var identityHeaders = []string{
 	"X-API-Key-ID",
 	"X-Role",
 	"X-Admin",
+	"X-Admin-ID",
 }
 
 // WriteTo stamps the identity onto header, clearing every identity header
@@ -60,6 +62,7 @@ func (i *Identity) WriteTo(header http.Header) {
 	set("X-API-Key", i.APIKey)
 	set("X-API-Key-ID", i.APIKeyID)
 	set("X-Role", i.Role.String())
+	set("X-Admin-ID", i.AdminID)
 
 	if i.Admin {
 		header.Set("X-Admin", "true")
@@ -67,7 +70,9 @@ func (i *Identity) WriteTo(header http.Header) {
 }
 
 // WithoutUserScope returns the identity stripped of the acting user's ID and
-// namespace scope, keeping the admin flag.
+// namespace scope, keeping the admin flag. An administrator's ID moves to
+// AdminID, sent as X-Admin-ID, so an admin route can still tell who acted
+// without the X-ID the guards key on.
 //
 // The /admin/api surface depends on this shape: [middleware.Authorize] and
 // [middleware.RequiresTenant] treat a missing X-ID alongside X-Admin as "this
@@ -76,6 +81,10 @@ func (i *Identity) WriteTo(header http.Header) {
 // their user scope and stays subject to that guard.
 func (i *Identity) WithoutUserScope() Identity {
 	scoped := *i
+	if i.Admin {
+		scoped.AdminID = i.ID
+	}
+
 	scoped.ID = ""
 	scoped.TenantID = ""
 
