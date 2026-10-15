@@ -26,14 +26,21 @@ type Conn struct {
 	// Pinger is reponsable to inform the server that a SSH session is open.
 	Pinger *time.Ticker
 
-	writes sync.Mutex
+	writes    sync.Mutex
+	deadlines sync.Mutex
+	closed    chan struct{}
+	closing   sync.Once
+	closeErr  error
 }
+
+var aLongTimeAgo = time.Unix(1, 0)
 
 // NewConn wraps socket, starting the ticker that keeps the session marked as live.
 func NewConn(socket Socket) *Conn {
 	return &Conn{
 		Socket: socket,
 		Pinger: time.NewTicker(30 * time.Second),
+		closed: make(chan struct{}),
 	}
 }
 
@@ -205,11 +212,27 @@ func (c *Conn) Write(buffer []byte) (int, error) {
 	return c.Socket.Write(buffer)
 }
 
-// Close stops the ping ticker and closes the socket.
+// Close stops the ping ticker, ends [Conn.KeepAlive] and closes the socket. When the socket
+// implements SetWriteDeadline, a write in flight is failed at once rather than waited for; any
+// other socket waits for that write. With no write in flight, the close frame is written under the
+// deadline KeepAlive last set, so a browser that stopped reading can hold the close until it
+// expires. Only the first call closes anything; every call returns the error of that first socket
+// close.
 func (c *Conn) Close() error {
-	c.Pinger.Stop()
+	c.closing.Do(func() {
+		c.Pinger.Stop()
+		close(c.closed)
 
-	return c.Socket.Close()
+		if !c.writes.TryLock() {
+			c.expireWrites()
+			c.writes.Lock()
+		}
+		defer c.writes.Unlock()
+
+		c.closeErr = c.Socket.Close()
+	})
+
+	return c.closeErr
 }
 
 // KeepAlive pings on every tick until the connection is closed. It is meant to be run in its
@@ -221,7 +244,7 @@ func (c *Conn) KeepAlive() {
 	}
 
 	for {
-		if err := socket.SetDeadline(time.Now().Add((time.Second * 30) * 2)); err != nil { //nolint:forbidigo // a network deadline needs the wall clock
+		if !c.extendDeadline(socket) {
 			return
 		}
 
@@ -229,8 +252,32 @@ func (c *Conn) KeepAlive() {
 			return
 		}
 
-		if _, running := <-c.Pinger.C; !running {
+		select {
+		case <-c.Pinger.C:
+		case <-c.closed:
 			return
 		}
+	}
+}
+
+func (c *Conn) extendDeadline(socket *websocket.Conn) bool {
+	c.deadlines.Lock()
+	defer c.deadlines.Unlock()
+
+	select {
+	case <-c.closed:
+		return false
+	default:
+	}
+
+	return socket.SetDeadline(time.Now().Add((time.Second*30)*2)) == nil //nolint:forbidigo // a network deadline needs the wall clock
+}
+
+func (c *Conn) expireWrites() {
+	c.deadlines.Lock()
+	defer c.deadlines.Unlock()
+
+	if socket, ok := c.Socket.(interface{ SetWriteDeadline(time.Time) error }); ok {
+		socket.SetWriteDeadline(aLongTimeAgo) //nolint:errcheck // a refused deadline only delays the close until the stalled write returns
 	}
 }
