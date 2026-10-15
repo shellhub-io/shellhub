@@ -163,6 +163,12 @@ func agentLogs(ctx context.Context, agent testcontainers.Container) ([]byte, err
 func awaitAgentLog(t *testing.T, agent testcontainers.Container, line *regexp.Regexp, missing string) string {
 	t.Helper()
 
+	return awaitAgentLogWithin(t, agent, line, missing, 30*time.Second)
+}
+
+func awaitAgentLogWithin(t *testing.T, agent testcontainers.Container, line *regexp.Regexp, missing string, within time.Duration) string {
+	t.Helper()
+
 	var captured string
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
@@ -175,7 +181,7 @@ func awaitAgentLog(t *testing.T, agent testcontainers.Container, line *regexp.Re
 		if assert.NotNil(tt, match, missing) {
 			captured = string(match[1])
 		}
-	}, 30*time.Second, time.Second)
+	}, within, time.Second)
 
 	return captured
 }
