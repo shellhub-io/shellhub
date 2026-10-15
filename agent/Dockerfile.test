@@ -8,7 +8,8 @@ RUN ln -sf /bin/bash /bin/sh
 
 COPY ./tests/cmd/winch-reporter/main.go /tmp/winch-reporter/main.go
 
-RUN cd /tmp/winch-reporter && go build -o /usr/local/bin/winch-reporter main.go && rm -rf /tmp/winch-reporter
+RUN --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
+    cd /tmp/winch-reporter && go build -o /usr/local/bin/winch-reporter main.go && rm -rf /tmp/winch-reporter
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -18,7 +19,8 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 COPY ./agent/go.mod ./agent/go.sum ./
 
-RUN go mod download
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    go mod download
 
 ARG SHELLHUB_VERSION=latest
 
@@ -27,11 +29,14 @@ COPY ./agent .
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-RUN go mod download
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-RUN go build -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
+    go build -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
 ARG USERNAME
 ARG PASSWORD
