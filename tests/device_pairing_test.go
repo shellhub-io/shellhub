@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
 
 var (
@@ -197,14 +195,7 @@ func awaitAgentConnected(t *testing.T, agent testcontainers.Container) string {
 func readAgentFile(t *testing.T, agent testcontainers.Container, path string) string {
 	t.Helper()
 
-	exit, output, err := agent.Exec(t.Context(), []string{"cat", path}, tcexec.Multiplexed())
-	require.NoError(t, err)
-
-	content, err := io.ReadAll(output)
-	require.NoError(t, err)
-	require.Zero(t, exit, string(content))
-
-	return strings.TrimSpace(string(content))
+	return execInAgent(t, agent, "cat", path)
 }
 
 func pairingCodeCacheKey(code string) string {
