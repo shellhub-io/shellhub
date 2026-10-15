@@ -206,6 +206,31 @@ type LogSource interface {
 func AwaitLogContains(t *testing.T, source LogSource, substr string) {
 	t.Helper()
 
+	awaitLog(t, source, func(tt *assert.CollectT, logs string) {
+		assert.Contains(tt, logs, substr)
+	})
+}
+
+// AwaitLogLine waits until a single line of source's log holds every one of parts, failing t if
+// none ever does. It tells apart a message logged for one device from the same message logged for
+// another, which [AwaitLogContains] cannot.
+func AwaitLogLine(t *testing.T, source LogSource, parts ...string) {
+	t.Helper()
+
+	awaitLog(t, source, func(tt *assert.CollectT, logs string) {
+		for line := range strings.SplitSeq(logs, "\n") {
+			if containsAll(line, parts) {
+				return
+			}
+		}
+
+		assert.Fail(tt, "no log line holds all of the parts", "%q", parts)
+	})
+}
+
+func awaitLog(t *testing.T, source LogSource, match func(tt *assert.CollectT, logs string)) {
+	t.Helper()
+
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		reader, err := source.Logs(t.Context())
 		if !assert.NoError(tt, err) {
@@ -215,9 +240,22 @@ func AwaitLogContains(t *testing.T, source LogSource, substr string) {
 		defer func() { _ = reader.Close() }()
 
 		logs, err := io.ReadAll(reader)
-		assert.NoError(tt, err)
-		assert.Contains(tt, string(logs), substr)
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		match(tt, string(logs))
 	}, 30*time.Second, 2*time.Second)
+}
+
+func containsAll(line string, parts []string) bool {
+	for _, part := range parts {
+		if !strings.Contains(line, part) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // AwaitServerLog waits until the server's log holds substr. It is how a test reads a decision the
