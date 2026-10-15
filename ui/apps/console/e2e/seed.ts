@@ -149,6 +149,18 @@ export function deleteLicenses() {
   }
 }
 
+export function expirePendingInvitation(tenant: string) {
+  const out = sql(
+    "UPDATE membership_invitations SET expires_at = now() - interval '1 minute' WHERE tenant_id = :'tenant' AND status = 'pending';",
+    { tenant },
+  );
+  if (out !== "UPDATE 1") {
+    throw new Error(
+      `expected to expire the one pending invitation to ${tenant}, got "${out}"`,
+    );
+  }
+}
+
 export function cacheEntryTTL(key: string) {
   const reply = composeExec("redis", ["valkey-cli", "TTL", key]);
   const seconds = Number(reply);

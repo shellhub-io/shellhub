@@ -31,7 +31,13 @@ import {
   switchNamespace,
 } from "./helpers";
 import { buildDeviceAuthRequest, signDeviceAuth } from "./devices";
-import { password, buildShortId, buildRandomEmail, addMember } from "./seed";
+import {
+  password,
+  buildShortId,
+  buildRandomEmail,
+  addMember,
+  expirePendingInvitation,
+} from "./seed";
 import {
   type Endpoint,
   buildRequestContext,
@@ -161,6 +167,43 @@ test.describe("invitations", () => {
     await acceptInvite({ ...buildRequestContext({ token }), path: { tenant } });
 
     await expectInvitationPage(browser, link, "Invitation Unavailable");
+  });
+
+  test("an expired invitation link is refused, and regenerating it issues one that works", async ({
+    page,
+    browser,
+  }) => {
+    const { owner, tenant } = await createTeam();
+    const email = buildRandomEmail("invitee");
+    const { link } = await invite(owner.token, tenant, email);
+
+    await signInAndOpen(page, owner.username, "/team");
+    const row = findRow(page, email);
+    const regenerate = row.getByRole("button", {
+      name: "Regenerate invitation link",
+    });
+    await expect(regenerate).toBeDisabled();
+
+    expirePendingInvitation(tenant);
+    await expectInvitationPage(browser, link, "Invitation Unavailable");
+
+    await page.reload();
+    await expect(row).toContainText("expired");
+    const regenerated = page.waitForResponse(
+      (r) =>
+        r.url().endsWith(`/api/namespaces/${tenant}/invitations/links`) &&
+        r.request().method() === "POST",
+    );
+    await regenerate.click();
+    await confirmDialog(page, "Regenerate link", "Regenerate link");
+    const response = await regenerated;
+    expect(response.ok()).toBe(true);
+    const { link: fresh } = (await response.json()) as { link: string };
+
+    expect(fresh).not.toBe(link);
+    await expect(row).not.toContainText("expired");
+    await expectInvitationPage(browser, link, "Invitation Unavailable");
+    await expectInvitationPage(browser, fresh, "You've been invited");
   });
 
   test("cancelling an invitation kills its link", async ({ page, browser }) => {
