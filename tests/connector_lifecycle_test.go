@@ -100,6 +100,20 @@ func startIdleContainer(t *testing.T, ctx context.Context, name string, extraLab
 func startConnector(t *testing.T, ctx context.Context, compose *environment.DockerCompose, label string) testcontainers.Container {
 	t.Helper()
 
+	return startConnectorWithEnv(t, ctx, compose, label, nil)
+}
+
+func startConnectorWithEnv(t *testing.T, ctx context.Context, compose *environment.DockerCompose, label string, extraEnv map[string]string) testcontainers.Container {
+	t.Helper()
+
+	env := map[string]string{
+		"SHELLHUB_SERVER_ADDRESS":  "http://localhost",
+		"SHELLHUB_TENANT_ID":       ShellHubNamespace,
+		"SHELLHUB_PRIVATE_KEYS":    "/tmp/keys",
+		"SHELLHUB_CONNECTOR_LABEL": label,
+	}
+	maps.Copy(env, extraEnv)
+
 	image, err := buildAgentImage(ctx, "")
 	require.NoError(t, err)
 
@@ -107,14 +121,9 @@ func startConnector(t *testing.T, ctx context.Context, compose *environment.Dock
 
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image: image,
-			Cmd:   []string{"connector"},
-			Env: map[string]string{
-				"SHELLHUB_SERVER_ADDRESS":  "http://localhost",
-				"SHELLHUB_TENANT_ID":       ShellHubNamespace,
-				"SHELLHUB_PRIVATE_KEYS":    "/tmp/keys",
-				"SHELLHUB_CONNECTOR_LABEL": label,
-			},
+			Image:  image,
+			Cmd:    []string{"connector"},
+			Env:    env,
 			Labels: run.Labels(),
 			HostConfigModifier: func(hc *container.HostConfig) {
 				hc.NetworkMode = container.NetworkMode("container:" + gateway)
