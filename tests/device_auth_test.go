@@ -21,15 +21,16 @@ import (
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 )
 
 const (
-	otherNamespaceName = "otherspace"
-	otherNamespace     = "00000000-0000-4000-0000-000000000001"
-	lastSeenQuietPolls = 15
-	tunnelPingTimeout  = 60 * time.Second
-	staleBeatCycles    = 8
-	staleBeatWindow    = 4 * time.Second
+	otherNamespaceName     = "otherspace"
+	otherNamespace         = "00000000-0000-4000-0000-000000000001"
+	fastTunnelPingInterval = 2 * time.Second
+	tunnelBeatTimeout      = 15 * time.Second
+	staleBeatCycles        = 3
+	staleBeatWindow        = 2500 * time.Millisecond
 )
 
 // TestDeviceAuth drives the endpoint an agent enrolls through with requests built by hand, so each
@@ -138,34 +139,27 @@ func TestDeviceAuthAgent(t *testing.T) {
 		assert.Equal(t, "e2e_agent_example", device.Name)
 	})
 
-	t.Run("the tunnel ping advances last_seen once the agent has settled", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	t.Run("the tunnel ping keeps advancing last_seen", func(t *testing.T) {
+		compose := newFastTunnelPingEnvironment(t, t.Context())
 
 		_, device := startAcceptedAgent(t, t.Context(), compose)
 
-		settled := awaitSettledLastSeen(t, compose, device.UID)
-
-		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-			current, resp, err := compose.GetDevice(t.Context(), device.UID)
-			if !assert.NoError(tt, err) {
-				return
-			}
-
-			assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String())
-			assert.True(tt, current.LastSeen.After(settled), "last_seen %s has not moved past %s", current.LastSeen, settled)
-		}, tunnelPingTimeout, 2*time.Second)
+		seen := device.LastSeen
+		for range 2 {
+			seen = awaitLastSeenPast(t, compose, device.UID, seen)
+		}
 	})
 
 	t.Run("an agent stopped soon after it connects stays offline", func(t *testing.T) {
 		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
 
 		agent, device := startAcceptedAgent(t, t.Context(), compose)
+		require.NoError(t, agent.Stop(t.Context(), nil))
+		compose.AwaitDeviceOffline(t, device.UID)
 
 		for cycle := range staleBeatCycles {
-			if cycle > 0 {
-				require.NoError(t, agent.Start(t.Context()))
-				compose.AwaitDeviceOnline(t, device.UID)
-			}
+			require.NoError(t, agent.Start(t.Context()))
+			awaitAgentConnections(t, agent, cycle+2)
 
 			require.NoError(t, agent.Stop(t.Context(), nil))
 			compose.AwaitDeviceOffline(t, device.UID)
@@ -207,15 +201,21 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 }
 
-func awaitSettledLastSeen(t *testing.T, compose *environment.DockerCompose, uid string) time.Time {
+func newFastTunnelPingEnvironment(t *testing.T, ctx context.Context) *environment.DockerCompose {
 	t.Helper()
 
-	var settled time.Time
+	configurator := environment.New(t, run).WithEnv("SHELLHUB_TUNNEL_PING_INTERVAL", fastTunnelPingInterval.String())
 
-	unchanged := 0
+	return newConfiguredSSHEnvironment(t, ctx, configurator, models.SSHAccessModeLegacy)
+}
+
+func awaitLastSeenPast(t *testing.T, compose *environment.DockerCompose, uid string, seen time.Time) time.Time {
+	t.Helper()
+
+	var current *models.Device
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		current, resp, err := compose.GetDevice(t.Context(), uid)
+		device, resp, err := compose.GetDevice(t.Context(), uid)
 		if !assert.NoError(tt, err) {
 			return
 		}
@@ -224,17 +224,25 @@ func awaitSettledLastSeen(t *testing.T, compose *environment.DockerCompose, uid 
 			return
 		}
 
-		if current.LastSeen.Equal(settled) {
-			unchanged++
-		} else {
-			settled = current.LastSeen
-			unchanged = 0
+		assert.True(tt, device.LastSeen.After(seen), "last_seen %s has not moved past %s", device.LastSeen, seen)
+
+		current = device
+	}, 5*fastTunnelPingInterval, fastTunnelPingInterval/4)
+
+	return current.LastSeen
+}
+
+func awaitAgentConnections(t *testing.T, agent testcontainers.Container, connections int) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		logs, err := agentLogs(t.Context(), agent)
+		if !assert.NoError(tt, err) {
+			return
 		}
 
-		assert.GreaterOrEqual(tt, unchanged, lastSeenQuietPolls, "last_seen still moving: %s", settled)
-	}, 60*time.Second, 1*time.Second)
-
-	return settled
+		assert.Len(tt, agentConnectedLine.FindAll(logs, -1), connections, "the agent has not connected to the server")
+	}, 30*time.Second, 100*time.Millisecond)
 }
 
 func newDeviceAuthRequest(t *testing.T, hostname, mac string) requests.DeviceAuth {

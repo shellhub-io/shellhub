@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
@@ -34,6 +35,9 @@ type Config struct {
 	RequireAcceptedTunnel bool
 	// Clock is what the tunnels the server accepts read the time from. Nil means the wall clock.
 	Clock clock.Clock
+	// TunnelPingInterval is how often a v1 tunnel is pinged, each answered ping a beat for its
+	// device. A non-positive value leaves the adapter's default of 30 seconds.
+	TunnelPingInterval time.Duration
 }
 
 func (c *Config) clock() clock.Clock {

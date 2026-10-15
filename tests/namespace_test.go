@@ -117,7 +117,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+			compose := newFastTunnelPingEnvironment(t, t.Context())
 
 			startAcceptedAgent(t, t.Context(), compose)
 
@@ -138,7 +138,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 					}
 
 					assert.InDelta(tt, 1, evicted, 0)
-				}, tunnelPingTimeout, time.Second)
+				}, tunnelBeatTimeout, time.Second)
 			} else {
 				evicted, err := compose.ServerMetric(t, evictedTunnels)
 				require.NoError(t, err)

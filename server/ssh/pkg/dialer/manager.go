@@ -30,6 +30,10 @@ type Manager struct {
 
 	clock clock.Clock
 
+	// PingInterval is how often a v2 tunnel is pinged, each answered ping a beat for its device.
+	// A non-positive value means 35 seconds. Set it before the first Bind.
+	PingInterval time.Duration
+
 	displaced atomic.Uint64
 	evicted   atomic.Uint64
 }
@@ -152,21 +156,26 @@ func closeConnections(key string, conns []any) {
 	}
 }
 
-// BindPingInterval is the interval between pings sent to the yamux session
-// to keep it alive. It should be less than the NAT timeout to avoid
-// disconnections.
-// It should be the same value as used by the revdial.Dialer ping interval.
-const BindPingInterval = 35 * time.Second
+const defaultPingInterval = 35 * time.Second
+
+func (m *Manager) pingInterval() time.Duration {
+	if m.PingInterval <= 0 {
+		return defaultPingInterval
+	}
+
+	return m.PingInterval
+}
 
 // Bind binds a WebSocket connection to a yamux session and stores it in the connection manager.
 // All new agents should use this handler to register their reverse connection.
 func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) error {
 	key := NewKey(tenant, uid)
+	interval := m.pingInterval()
 
 	session, err := yamux.Client(conn, &yamux.Config{
 		AcceptBacklog:          256,
 		EnableKeepAlive:        false,
-		KeepAliveInterval:      BindPingInterval,
+		KeepAliveInterval:      interval,
 		ConnectionWriteTimeout: 15 * time.Second,
 		MaxStreamWindowSize:    256 * 1024,
 		StreamCloseTimeout:     5 * time.Minute,
@@ -185,7 +194,7 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	go func() {
 		for {
 			select {
-			case <-time.After(BindPingInterval):
+			case <-time.After(interval):
 				if _, err := session.Ping(); err != nil {
 					log.WithFields(log.Fields{
 						"key": key,
