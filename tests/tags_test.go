@@ -113,6 +113,34 @@ func TestTagsSelectAccessPolicyDevices(t *testing.T) {
 	})
 }
 
+// TestEnterpriseTagsSelectFirewallRuleDevices covers a tag as the device filter of a firewall rule.
+// A rule left without its only tag matches every device, so an allow rule would let through what a
+// lower-priority deny blocks; the tag cannot be deleted while a rule's filter holds it.
+func TestEnterpriseTagsSelectFirewallRuleDevices(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	compose := newEnterpriseEnvironment(t, ctx, environment.New(t, run))
+	signer := registerDeviceKey(t, ctx, compose)
+	_, device := startAcceptedAgent(t, ctx, compose)
+	sshid := deviceSSHID(device)
+
+	t.Run("a tag a firewall rule's filter holds is not deleted", func(t *testing.T) {
+		createTag(t, compose, "ruleheld")
+		t.Cleanup(func() { deleteTag(t, compose, "ruleheld") })
+		addFirewallRule(t, compose, deny(100, matching(anyValue, anyValue, anyDevice)))
+		rule := compose.CreateFirewallRule(t, allow(1, matching(anyValue, anyValue, environment.FirewallRuleFilter{Tags: []string{"ruleheld"}})))
+		t.Cleanup(func() { compose.DeleteFirewallRule(t, rule) })
+		requireAccessDenied(t, compose, sshid, signer, firewallBlockedLog, errFirewallRuleBlock)
+
+		requireTagInUse(t, compose, "ruleheld", `firewall rule "`+rule+`"`)
+
+		assert.Contains(t, listedTags(t, compose.R(t.Context())), "ruleheld")
+		requireAccessDenied(t, compose, sshid, signer, firewallBlockedLog, errFirewallRuleBlock)
+	})
+}
+
 // TestTagDeleteDetachesItEverywhere covers a tag no filter holds: deleting it takes it off every
 // device carrying it, whatever the device's status, and leaves the devices' other tags in place.
 func TestTagDeleteDetachesItEverywhere(t *testing.T) {
