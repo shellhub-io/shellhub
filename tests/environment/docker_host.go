@@ -14,14 +14,23 @@ var pinDockerHost = sync.OnceValue(func() error {
 		return nil
 	}
 
-	cli, err := command.NewDockerCli()
+	cli, err := newDockerCli()
 	if err != nil {
-		return fmt.Errorf("new docker cli: %w", err)
-	}
-
-	if err := cli.Initialize(&flags.ClientOptions{}); err != nil {
-		return fmt.Errorf("initialize docker cli: %w", err)
+		return err
 	}
 
 	return os.Setenv("DOCKER_HOST", cli.DockerEndpoint().Host)
 })
+
+func newDockerCli() (*command.DockerCli, error) {
+	cli, err := command.NewDockerCli()
+	if err != nil {
+		return nil, fmt.Errorf("new docker cli: %w", err)
+	}
+
+	if err := cli.Initialize(&flags.ClientOptions{}); err != nil {
+		return nil, fmt.Errorf("initialize docker cli: %w", err)
+	}
+
+	return cli, nil
+}

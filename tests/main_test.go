@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"os"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/tests/environment"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 var run *environment.Run
@@ -16,6 +18,8 @@ func TestMain(m *testing.M) {
 }
 
 func runSuite(m *testing.M) int {
+	flag.Parse()
+
 	_ = os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 	ctx := context.Background()
@@ -53,5 +57,26 @@ func runSuite(m *testing.M) int {
 		}
 	}()
 
+	if flag.Lookup("test.list").Value.String() == "" {
+		if err := buildImages(ctx); err != nil {
+			log.WithError(err).Error("failed to build the e2e images")
+
+			return 1
+		}
+	}
+
 	return m.Run()
+}
+
+func buildImages(ctx context.Context) error {
+	group, ctx := errgroup.WithContext(ctx)
+
+	group.Go(func() error { return environment.BuildStackImages(ctx, run, "") })
+	group.Go(func() error {
+		_, err := buildAgentImage(ctx, "")
+
+		return err
+	})
+
+	return group.Wait()
 }
