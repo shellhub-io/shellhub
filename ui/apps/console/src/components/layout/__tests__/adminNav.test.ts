@@ -1,7 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { setEdition } from "@/tests/edition";
 import { adminNavSectionTitle } from "../adminNav";
 
 describe("adminNavSectionTitle", () => {
+  beforeEach(() => setEdition("enterprise"));
+
   it.each([
     ["/admin/instance", undefined],
     ["/admin/users", "Accounts"],

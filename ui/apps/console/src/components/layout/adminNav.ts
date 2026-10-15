@@ -7,9 +7,13 @@ import {
   LockClosedIcon,
   DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import { isCloud } from "@/env";
+import { isEnterprise } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
+import {
+  ADMIN_AUTHENTICATION_PATH,
+  ADMIN_INSTANCE_PATH,
+} from "@/utils/adminRoute";
 import { navSectionTitle, type NavSection } from "./navSections";
 
 type Icon = typeof HomeIcon;
@@ -35,26 +39,28 @@ const licenseLink: AdminNavLink = {
   icon: DocumentCheckIcon,
 };
 
+const authenticationLink: AdminNavLink = {
+  to: ADMIN_AUTHENTICATION_PATH,
+  label: "Authentication",
+  icon: KeyIcon,
+};
+
+const instanceApiKeysLink: AdminNavLink = {
+  to: "/admin/instance-api-keys",
+  label: "Instance API Keys",
+  icon: LockClosedIcon,
+};
+
 const licenseOnlySections: AdminNavSection[] = [{ items: [licenseLink] }];
 
 function buildFullSections(): AdminNavSection[] {
-  const instance: AdminNavLink[] = [
-    {
-      to: "/admin/settings/authentication",
-      label: "Authentication",
-      icon: KeyIcon,
-    },
-    {
-      to: "/admin/instance-api-keys",
-      label: "Instance API Keys",
-      icon: LockClosedIcon,
-    },
-  ];
-  if (!isCloud()) instance.push(licenseLink);
+  const instance = isEnterprise()
+    ? [authenticationLink, instanceApiKeysLink, licenseLink]
+    : [instanceApiKeysLink];
 
   return [
     {
-      items: [{ to: "/admin/instance", label: "Instance", icon: ServerIcon }],
+      items: [{ to: ADMIN_INSTANCE_PATH, label: "Instance", icon: ServerIcon }],
     },
     {
       title: "Accounts",

@@ -62,15 +62,18 @@ describe("AdminNavBar", () => {
       ).toHaveAttribute("aria-current", "page");
     });
 
-    it("leaves License out on cloud, which has no license", async () => {
+    it("leaves License and Authentication out on cloud", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       renderBar(false);
 
       expect(
-        await screen.findByRole("link", { name: "Authentication" }),
+        await screen.findByRole("link", { name: "Instance API Keys" }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole("link", { name: "License" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: "Authentication" }),
       ).not.toBeInTheDocument();
     });
 

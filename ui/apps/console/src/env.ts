@@ -1,8 +1,8 @@
 import { nullOnFailure } from "@/utils/failure";
 
 /**
- * Which edition the server is running. It decides what the UI offers — billing, SSO and web
- * endpoints exist only above community.
+ * Which edition the server is running. It decides what the UI offers: web endpoints exist only
+ * above community, SSO only on enterprise, and billing only on cloud.
  */
 export type Edition = "community" | "enterprise" | "cloud";
 

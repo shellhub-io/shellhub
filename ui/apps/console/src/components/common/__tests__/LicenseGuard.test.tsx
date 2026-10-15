@@ -55,7 +55,7 @@ function renderGuard(Wrapper?: ComponentType<{ children: ReactNode }>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
   useAuthStore.setState({ isAdmin: true });
 });
 
@@ -133,23 +133,26 @@ describe("LicenseGuard", () => {
     });
   });
 
-  describe("cloud deployment", () => {
-    it("renders the Outlet without calling getLicense when cloud=true", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      let called = false;
-      server.use(
-        http.get("*/admin/api/license", () => {
-          called = true;
-          return HttpResponse.json({}, { status: 400 });
-        }),
-      );
+  describe("outside enterprise", () => {
+    it.each(["cloud", "community"] as const)(
+      "renders the Outlet without calling getLicense on %s",
+      async (edition) => {
+        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        let called = false;
+        server.use(
+          http.get("*/admin/api/license", () => {
+            called = true;
+            return HttpResponse.json({}, { status: 400 });
+          }),
+        );
 
-      renderGuard(createTestWrapper());
+        renderGuard(createTestWrapper());
 
-      await waitFor(() => {
-        expect(screen.getByText("protected content")).toBeInTheDocument();
-      });
-      expect(called).toBe(false);
-    });
+        await waitFor(() => {
+          expect(screen.getByText("protected content")).toBeInTheDocument();
+        });
+        expect(called).toBe(false);
+      },
+    );
   });
 });

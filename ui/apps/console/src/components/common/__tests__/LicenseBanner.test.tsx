@@ -62,7 +62,7 @@ function renderBanner() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
   useAuthStore.setState({ isAdmin: true });
 });
 

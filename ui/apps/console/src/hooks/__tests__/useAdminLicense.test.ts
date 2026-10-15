@@ -28,7 +28,7 @@ function makeLicense(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
 });
 
 describe("useAdminLicense", () => {
@@ -118,24 +118,27 @@ describe("useAdminLicense", () => {
     });
   });
 
-  describe("cloud admin — bypass", () => {
-    it("does NOT call getLicense on cloud deployments", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      let called = false;
-      server.use(
-        http.get("*/admin/api/license", () => {
-          called = true;
-          return HttpResponse.json(makeLicense());
-        }),
-      );
+  describe("admin outside enterprise — bypass", () => {
+    it.each(["cloud", "community"] as const)(
+      "does NOT call getLicense on %s",
+      async (edition) => {
+        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        let called = false;
+        server.use(
+          http.get("*/admin/api/license", () => {
+            called = true;
+            return HttpResponse.json(makeLicense());
+          }),
+        );
 
-      const { result } = renderHookWithClient(() => useAdminLicense());
+        const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await waitFor(() => {
-        expect(called).toBe(false);
-        expect(result.current.isLoading).toBe(false);
-      });
-    });
+        await waitFor(() => {
+          expect(called).toBe(false);
+          expect(result.current.isLoading).toBe(false);
+        });
+      },
+    );
 
     it("returns isExpired false on cloud deployments", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });

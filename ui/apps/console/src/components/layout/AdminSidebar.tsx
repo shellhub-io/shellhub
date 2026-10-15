@@ -1,4 +1,5 @@
 import { useTerminalStore } from "@/stores/terminalStore";
+import { ADMIN_INSTANCE_PATH } from "@/utils/adminRoute";
 import SidebarShell from "./SidebarShell";
 
 /**
@@ -14,7 +15,7 @@ export default function AdminSidebar({ expanded }: { expanded: boolean }) {
       expanded={expanded}
       covered
       onNavigate={minimizeAll}
-      logoHref="/admin/instance"
+      logoHref={ADMIN_INSTANCE_PATH}
     />
   );
 }

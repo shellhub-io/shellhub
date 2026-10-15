@@ -15,6 +15,7 @@ import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import SettingsField from "@/components/settings/SettingsField";
 import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
+import { ADMIN_AUTHENTICATION_PATH } from "@/utils/adminRoute";
 import CopyButton from "@/components/common/CopyButton";
 import SamlConfigModal from "./SamlConfigModal";
 import PageLoader from "@/components/common/PageLoader";
@@ -115,7 +116,7 @@ export default function AdminAuthentication() {
       <div>
         <PageHeader
           icon={<KeyIcon className="w-6 h-6" />}
-          overline={adminNavSectionTitle("/admin/settings/authentication")}
+          overline={adminNavSectionTitle(ADMIN_AUTHENTICATION_PATH)}
           title="Authentication"
           description="Control how users authenticate to ShellHub, including local credentials and SAML SSO."
         />
@@ -134,7 +135,7 @@ export default function AdminAuthentication() {
     <div>
       <PageHeader
         icon={<KeyIcon className="w-6 h-6" />}
-        overline={adminNavSectionTitle("/admin/settings/authentication")}
+        overline={adminNavSectionTitle(ADMIN_AUTHENTICATION_PATH)}
         title="Authentication"
         description="Control how users authenticate to ShellHub, including local credentials and SAML SSO."
       />
