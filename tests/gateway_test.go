@@ -222,11 +222,13 @@ func TestGateway(t *testing.T) {
 		assert.Equal(t, "ok", execInGateway(t, compose, "wget -q -O- http://healthcheck.internal/healthz"))
 	})
 
-	t.Run("the kickstart script is served uncached and names the gateway's address", func(t *testing.T) {
+	t.Run("the install script and its kickstart alias are served uncached and name the gateway's address", func(t *testing.T) {
 		kickstart := fetch(t, withoutRedirects, compose.BaseURL()+"/kickstart.sh", "", nil)
 		install := fetch(t, withoutRedirects, compose.BaseURL()+"/install.sh", "", nil)
 
+		require.Equal(t, http.StatusOK, install.status, install.body)
 		require.Equal(t, http.StatusOK, kickstart.status, kickstart.body)
+		assert.Equal(t, "no-store", install.header.Get("Cache-Control"))
 		assert.Equal(t, "no-store", kickstart.header.Get("Cache-Control"))
 		assert.True(t, strings.HasPrefix(kickstart.body, "#!"), "the kickstart script is a script")
 		assert.Contains(t, kickstart.body, "SERVER_ADDRESS='http://"+host+"'")
