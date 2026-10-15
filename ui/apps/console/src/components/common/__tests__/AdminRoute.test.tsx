@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 import AdminRoute from "../AdminRoute";
 
 beforeEach(() => {
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: false });
 });
 
