@@ -4,7 +4,6 @@ title: Managing Devices
 description: How devices enrol, what the statuses mean, and what identifies one.
 ---
 
-import Deprecated from '../../components/Deprecated.astro';
 import Shot from '../../components/Shot.astro';
 
 # Managing Devices
@@ -22,7 +21,7 @@ the agent was given at install decides both how it joins and whether anybody has
 |---|---|---|
 | Nothing | Accepted, once somebody opens the link it prints | A device in front of you |
 | A [provisioning key](/manage/devices/provisioning-keys) | Whatever the key's mode says | Fleets, images, production |
-| A tenant ID | Pending, for review | <Deprecated /> |
+| A tenant ID | Pending, for review | Deprecated; what a [legacy namespace](/manage/access-control/migrating-from-legacy) accepts |
 
 Given nothing, the agent pairs: it asks the server for a code, prints it with a link, and waits
 for somebody to accept it in the browser. That is the path the
@@ -31,8 +30,9 @@ for somebody to accept it in the browser. That is the path the
 A provisioning key is the answer at any volume. It names the namespace on its own and its mode
 decides acceptance, so a fleet arrives accepted and tagged instead of arriving as a queue.
 
-A tenant ID also names the namespace, and is the older way of doing it. It always leaves the
-device pending, which is workable for one device and not for fifty. Nothing new should use it.
+A tenant ID also names the namespace, and is how a legacy namespace enrolls every device: it
+always leaves the device pending, in the queue behind the namespace's built-in key. A new namespace
+still accepts it the same way, but it is deprecated, so nothing new should use it.
 
 ## Statuses
 

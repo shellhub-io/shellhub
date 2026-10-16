@@ -16,7 +16,7 @@ Firewall rules are on **Cloud** and **Enterprise**.
 </EditionBanner>
 
 <LegacyBanner>
-In identity mode firewall rules are bypassed entirely: they remain stored and manageable, and
+In a new namespace firewall rules are bypassed entirely: they remain stored and manageable, and
 are never consulted. Access is decided by
 <a href="/manage/access-control/access-policies">access policies</a> instead.
 </LegacyBanner>
@@ -60,7 +60,7 @@ IP ever grants on its own.
 So a firewall rule that grants access to a range has no direct equivalent. The replacement policy
 needs a real subject — a user, a role, an API key — with the addresses as a restriction on
 top. See
-[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+[Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 <Callout variant="warning">
 Source addresses are resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
@@ -72,4 +72,4 @@ firewall rules and policy source IPs are matching on the wrong thing. See
 ## Where to go next
 
 - [Public Keys](/manage/access-control/public-keys) — What these rules restrict.
-- [Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy) — Translating rules to policies.
+- [Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy) — Translating rules to policies.

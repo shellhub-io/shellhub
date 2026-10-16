@@ -1,18 +1,20 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
-title: Migrating from the Legacy Model
-description: Move a namespace from public keys and firewall rules to identities and access policies.
+title: Upgrading a Legacy Namespace
+description: Move a namespace from public keys, firewall rules and tenant-only enrollment to identities, access policies and provisioning keys.
 ---
 
 import Shot from "../../../components/Shot.astro";
 
-# Migrating from the Legacy Model
+# Upgrading a Legacy Namespace
 
-Namespaces created before identity-based access default to the legacy model: a public key grants
-access through its device ACL, and firewall rules restrict it. Namespaces created today start in
-identity mode.
+A namespace created before identity-based access is **legacy**: a public key grants access through
+its device ACL, firewall rules restrict it, and a device enrolls with the namespace's tenant ID
+alone. A namespace created today is **new**: identities and access policies decide access, and a
+device enrolls by pairing or with a provisioning key.
 
-Moving across is a switch you make when you are ready. This page is what to do before you flip it.
+Moving across is an upgrade you make once, when you are ready, and it cannot be undone. This page
+is what to do before you click it.
 
 ## What changes
 
@@ -24,13 +26,17 @@ Moving across is a switch you make when you are ready. This page is what to do b
 | Source IP | A firewall rule can grant on it | Only narrows a grant; never grants |
 | Revoking one person | Find and remove their key everywhere it applies | Revoke the identity, in one place |
 | Audit trail names | The key | The person |
+| A device enrolls by | `TENANT_ID` alone, then someone accepts it | Pairing or a provisioning key, and the deprecated `TENANT_ID` |
+| Password login | Allowed | Refused, in the web terminal too |
 
-In identity mode the firewall checks are bypassed entirely. The rules stay stored and manageable,
-and are never consulted.
+After the upgrade the firewall checks are bypassed entirely. The rules stay stored and manageable,
+and are never consulted. Devices already enrolled, accepted or still pending, keep authenticating
+with the tenant they persisted, and a device that enrolls with the tenant alone still lands
+pending.
 
-## Before you switch
+## Before you upgrade
 
-The switch takes effect on the next connection, so do the mapping first.
+The upgrade takes effect on the next connection, so do the mapping first.
 
 **1. Inventory who actually connects.** List the public keys in the namespace and work out who
 holds each one. The keys nobody can account for are the reason this migration is worth doing —
@@ -38,7 +44,7 @@ do not carry them across.
 
 **2. Turn each key into an identity.** Add the ones you are keeping on the SSH Identities page,
 each bound to the right member. An automation's key goes on the API key instead, from its **SSH
-access** on the **Team** page; see [SSH Access](/api/ssh-access). Doing this before the switch
+access** on the **Team** page; see [SSH Access](/api/ssh-access). Doing this before the upgrade
 means nobody sits through a first-use approval.
 
 **3. Translate your firewall rules.** A deny rule usually becomes a deny policy. An allow rule
@@ -54,26 +60,25 @@ before you can carry it across.
 **5. Decide where re-authentication belongs.** Production and privileged logins are the usual
 candidates. Off is the default and the right choice nearly everywhere else.
 
-## Switching
+**6. Plan how new devices will enroll.** A device presenting only `TENANT_ID` still enrolls, and
+lands pending for somebody to accept. Images and scripts that bake the tenant in keep working, but
+a [provisioning key](/manage/devices/provisioning-keys) accepts and tags a fleet without that
+queue, and a Docker connector takes it as `SHELLHUB_PROVISIONING_KEY`.
 
-Change the namespace's SSH access mode in the console settings.
+## Upgrading
 
-<Shot id="ssh-access-mode" route="/settings/ssh" of={{ role: "group", name: "SSH access mode" }} accessMode="legacy" alt="The SSH access mode card in legacy, with the button that switches to identity" />
+Click **Upgrade** on the namespace's SSH settings. The confirmation spells out what
+changes and asks for the namespace's name, because there is no way back.
 
-If the namespace has no policies at the moment you switch, ShellHub seeds one — **Owner access**,
-granting the owner every login on every device — so default deny cannot lock the owner out.
+<Shot id="namespace-upgrade" route="/settings/ssh" of={{ role: "group", name: "Namespace" }} accessMode="legacy" alt="The namespace card of a legacy namespace, with the button that upgrades it" />
+
+If the namespace has no policies at the moment you upgrade, ShellHub seeds one, **Owner access**,
+which grants the owner every login on every device, so default deny cannot lock the owner out.
 
 **Every other member starts with no access.** That is why the mapping above matters: anyone you
-did not write a policy for loses access the moment you switch.
+did not write a policy for loses access the moment you upgrade.
 
-## Switching back
-
-A namespace that predates identity mode can be switched back to legacy while you settle in.
-
-A namespace **born** in identity mode cannot. There is no legacy configuration behind it to return
-to, and the server refuses the change.
-
-## After the switch
+## After the upgrade
 
 Public keys and firewall rules remain visible but decide nothing. Leave them until you are
 confident, then remove them — a stale key that grants nothing here is still a key somebody might
@@ -87,3 +92,4 @@ was missed. See [Connection Denied](/manage/access-control/connection-denied).
 - [How Authorization Works](/manage/access-control) — The model you are moving to.
 - [Access Policies](/manage/access-control/access-policies) — Writing the rules.
 - [Public Keys](/manage/access-control/public-keys) — The model you are leaving.
+- [Provisioning Keys](/manage/devices/provisioning-keys) — How new devices enroll from here on.

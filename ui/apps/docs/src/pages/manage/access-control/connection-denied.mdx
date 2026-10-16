@@ -88,16 +88,16 @@ source IP matching is operating on the wrong address entirely. See
 
 ## The namespace has no policies at all
 
-A namespace in identity mode with zero policies refuses everything, and ShellHub short-circuits it
+A new namespace with zero policies refuses everything, and ShellHub short-circuits it
 — refusing immediately rather than proceeding toward a login that could never succeed.
 
-This happens after switching a namespace to identity mode without writing policies first. The
+This happens after upgrading a legacy namespace without writing policies first. The
 owner keeps working, through the seeded **Owner access** policy; nobody else does. See
-[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+[Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 ## Legacy namespaces
 
-If the namespace is still in legacy mode, none of the above applies. Access is decided by the
+If the namespace is still legacy, none of the above applies. Access is decided by the
 key's device ACL and by firewall rules — see
 [Public Keys](/manage/access-control/public-keys) and
 [Firewall Rules](/manage/access-control/firewall-rules).

@@ -137,8 +137,10 @@ ran.
 ## Reviewing a pending enrollment
 
 A key in manual mode, and a key whose webhook deferred, leaves devices waiting. They are reviewed
-on the key's page rather than in the device list. The Fleet list marks every key that has devices
-waiting, and the dashboard's pending count links to it.
+on the key's page rather than in the device list, and the Fleet list marks every key that has
+devices waiting. Devices that registered with the tenant ID have their own page, **Pending
+devices**, linked from the Devices list and the dashboard, which anyone who may accept devices can
+work.
 
 <Shot id="provisioning-key-activity" route="/devices/add/fleet/:provisioningkey/activity" of={{ role: "main" }} alt="A provisioning key's activity, listing each registration with what the agent reported and the accept or reject" />
 
@@ -177,17 +179,18 @@ Neither affects devices already enrolled. They stay accepted and connected.
 
 ## The two keys you did not create
 
-Every namespace's key list carries two rows it manages itself.
+Every namespace has two keys it manages itself.
 
 **Pairing code** covers devices that pair by the code the agent prints during install, or by the
 link printed with it. There is nothing to reveal and no mode worth setting — the code itself is
 the acceptance.
 
-**Tenant-only enrollment** is the legacy path for devices that enroll with the namespace
-identifier and no key at all. It is deprecated and will be removed. It starts on manual mode,
-which is why a plain tenant-only enrollment lands in **Pending** — but its mode is editable like
-any other, and it is worth confirming nobody has moved it to automatic. On automatic, anything
-holding your namespace identifier enrolls itself.
+**Tenant-only registration** is the deprecated path a device enrolls through with the namespace
+identifier and no key at all, and the only one a [legacy
+namespace](/manage/access-control/migrating-from-legacy) has. It is fixed on manual mode and
+cannot be edited or disabled, so every tenant-only enrollment lands in **Pending**, on the Pending
+devices page the Devices list links to. A new namespace lists the row only while devices are
+pending under it.
 
 ## Treating a key as a secret
 

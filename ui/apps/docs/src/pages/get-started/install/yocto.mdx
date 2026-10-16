@@ -67,8 +67,13 @@ no precedence rule on purpose: an image that registers through a source you did 
 choose is the thing worth failing over.
 </Callout>
 
-`SHELLHUB_TENANT_ID` is deprecated. It remains for integrations that already ship with
-it; use the provisioning key for anything new.
+`SHELLHUB_TENANT_ID` is deprecated. It remains for integrations that already ship with it; use the
+provisioning key for anything new.
+
+<Callout variant="warning">
+A [legacy namespace](/manage/access-control/migrating-from-legacy) refuses a provisioning key.
+There, set `SHELLHUB_TENANT_ID` instead and accept each device from Pending devices.
+</Callout>
 
 <Callout variant="info">
 The layer puts the device key at `/etc/shellhub-agent.key`. The installation

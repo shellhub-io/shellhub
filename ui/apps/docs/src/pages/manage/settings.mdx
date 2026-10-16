@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: Settings
-description: "Namespace-wide settings: recording, announcements, and the SSH access mode."
+description: "Namespace-wide settings: recording, announcements, and the upgrade of a legacy namespace."
 ---
 
 import Shot from '../../components/Shot.astro';
@@ -37,19 +37,21 @@ Sessions on this namespace are recorded.
 It is also a reasonable place for an environment warning — anything that makes somebody pause
 before typing on the wrong machine.
 
-## SSH access mode
+## Legacy or new
 
-Chooses between the identity model and the legacy key-and-firewall model.
+Shows whether the namespace is legacy or new, and offers a legacy namespace a one-way upgrade to
+the new model.
 
-Namespaces created today are born in identity mode and **cannot leave it**. Namespaces that
-predate identity mode default to legacy and can be switched across — and, while they are settling
-in, switched back.
+Namespaces created today are new and stay that way. A namespace that predates identity-based
+access is legacy, and this page offers it one **Upgrade** to the new model. The upgrade asks for
+the namespace's name, because it cannot be undone.
 
-Switching to identity mode with no policies seeds the **Owner access** policy so default deny does
-not lock the owner out. Everyone else starts with no access.
+Upgrading with no policies seeds the **Owner access** policy so default deny does not lock the owner
+out. Everyone else starts with no access, password and public-key logins stop, and new devices
+enroll by pairing or a provisioning key.
 
-Do not switch without preparing. See
-[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+Do not upgrade without preparing. See
+[Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 ## MFA requirements
 
