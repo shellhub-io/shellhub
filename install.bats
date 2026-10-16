@@ -164,7 +164,7 @@ discover_version() {
 
     call_install enrollment_summary
 
-    [ "$output" = "tenant $TENANT_ID (device lands pending)" ]
+    [ "$output" = "tenant $TENANT_ID (legacy namespace, device lands pending)" ]
 }
 
 @test "enrollment_summary points at the login flow when no credential is given" {
@@ -336,22 +336,43 @@ discover_version() {
     assert_called "-e SHELLHUB_PRIVATE_KEYS=/host/etc/shellhub/connector/keys"
 }
 
-@test "docker_install refuses connector mode without a tenant" {
+@test "docker_install refuses connector mode without a tenant or a provisioning key" {
     container_install connector
 
     [ "$status" -eq 1 ]
-    assert_output_contains "TENANT_ID is required"
+    assert_output_contains "TENANT_ID or PROVISIONING_KEY is required"
     refute_called "docker run"
 }
 
-@test "podman_install refuses connector mode without a tenant" {
+@test "podman_install refuses connector mode without a tenant or a provisioning key" {
     use_podman
 
     container_install connector
 
     [ "$status" -eq 1 ]
-    assert_output_contains "TENANT_ID is required"
+    assert_output_contains "TENANT_ID or PROVISIONING_KEY is required"
     refute_called "podman run"
+}
+
+@test "docker_install starts the connector with a provisioning key alone" {
+    export PROVISIONING_KEY=key-1
+
+    container_install connector
+
+    [ "$status" -eq 0 ]
+    assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
+    refute_called "SHELLHUB_TENANT_ID"
+}
+
+@test "podman_install starts the connector with a provisioning key alone" {
+    use_podman
+    export PROVISIONING_KEY=key-1
+
+    container_install connector
+
+    [ "$status" -eq 0 ]
+    assert_called "-e SHELLHUB_PROVISIONING_KEY=key-1"
+    refute_called "SHELLHUB_TENANT_ID"
 }
 
 @test "docker_install rejects an unknown mode" {
@@ -979,7 +1000,7 @@ discover_version() {
     run_install
 
     [ "$status" -eq 0 ]
-    assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
+    assert_output_contains "Enrollment: tenant $TENANT_ID (legacy namespace, device lands pending)"
 }
 
 @test "the installer discovers the agent version from the server" {

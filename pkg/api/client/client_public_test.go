@@ -297,7 +297,7 @@ func TestAuthDevice(t *testing.T) {
 
 			test.requiredMocks()
 
-			response, err := cli.AuthDevice(test.request, nil)
+			response, err := cli.AuthDevice(context.Background(), test.request, nil)
 			assert.Equal(t, test.expected, Expected{response, err})
 		})
 	}
@@ -363,7 +363,7 @@ func TestAuthDeviceRetriesOnlyWhatAnOperatorCanResolve(t *testing.T) {
 
 			mock.RegisterResponder("POST", "/api/devices/auth", refusal)
 
-			response, err := cli.AuthDevice(&models.DeviceAuthRequest{
+			response, err := cli.AuthDevice(context.Background(), &models.DeviceAuthRequest{
 				Info: &models.DeviceInfo{ID: "manjaro", PrettyName: "Manjaro", Version: "latest", Arch: "amd64"},
 				DeviceAuth: &models.DeviceAuth{
 					Hostname:  "83-18-77-25-78-0d",
@@ -635,7 +635,7 @@ func TestAuthDeviceProvesTheKeyOnEveryAttempt(t *testing.T) {
 			mock.RegisterResponder("POST", "/api/devices/auth", sent(t, &bodies, mock.NewStringResponder(refused, `{"message":"refused"}`).Then(accepted)))
 
 			req := request()
-			_, err = cli.AuthDevice(req, key)
+			_, err = cli.AuthDevice(context.Background(), req, key)
 			require.NoError(t, err)
 			assert.Empty(t, req.Challenge, "the caller's request is left as it was")
 			assert.Empty(t, req.Signature, "the caller's request is left as it was")
@@ -657,7 +657,7 @@ func TestAuthDeviceProvesTheKeyOnEveryAttempt(t *testing.T) {
 			var bodies []models.DeviceAuthRequest
 			mock.RegisterResponder("POST", "/api/devices/auth", sent(t, &bodies, accepted))
 
-			_, err := cli.AuthDevice(request(), key)
+			_, err := cli.AuthDevice(context.Background(), request(), key)
 			require.NoError(t, err)
 
 			require.Len(t, bodies, 1)
@@ -671,7 +671,7 @@ func TestAuthDeviceProvesTheKeyOnEveryAttempt(t *testing.T) {
 
 		mock.RegisterResponder("POST", "/api/devices/auth/challenge", mock.NewStringResponder(http.StatusBadRequest, ""))
 
-		_, err := cli.AuthDevice(request(), key)
+		_, err := cli.AuthDevice(context.Background(), request(), key)
 		require.ErrorIs(t, err, ErrBadRequest)
 		assert.Zero(t, mock.GetCallCountInfo()["POST https://www.cloud.shellhub.io/api/devices/auth"])
 	})
