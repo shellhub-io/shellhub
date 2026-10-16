@@ -1,0 +1,13 @@
+services:
+  server:
+    build:
+      cache_from:
+        - type=registry,ref=${SHELLHUB_E2E_LAYER_CACHE:?}:cache-server-${SHELLHUB_BUILD_EDITION:-community}
+  gateway:
+    build:
+      cache_from:
+        - type=registry,ref=${SHELLHUB_E2E_LAYER_CACHE:?}:cache-gateway
+  ui:
+    build:
+      cache_from:
+        - type=registry,ref=${SHELLHUB_E2E_LAYER_CACHE:?}:cache-ui

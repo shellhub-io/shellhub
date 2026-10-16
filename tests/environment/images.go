@@ -164,7 +164,7 @@ func buildEditionImages(ctx context.Context, run *Run, edition Edition, cloudDir
 
 	project, err := service.LoadProject(ctx, composeapi.ProjectLoadOptions{
 		ProjectName:       "shellhub-e2e-build-" + run.ID() + "-" + string(edition),
-		ConfigPaths:       append(build.composeFiles, buildComposeFile),
+		ConfigPaths:       append(build.composeFiles, buildComposeFiles()...),
 		ProjectOptionsFns: []cli.ProjectOptionsFn{cli.WithEnv(env)},
 	})
 	if err != nil {
