@@ -18,6 +18,11 @@ import { useTerminalStore } from "./terminalStore";
 import { useWorkspaceTabsStore } from "./workspaceTabsStore";
 import { useRecentDevicesStore } from "./recentDevicesStore";
 import { setRecordingsScope } from "../utils/recordings";
+import {
+  authSessionKey,
+  authSessionVersion,
+  signedInSession,
+} from "./authSession";
 
 interface AuthState {
   token: string | null;
@@ -119,18 +124,7 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
-          const userData = data;
-          set({
-            token: userData.token,
-            user: userData.user,
-            userId: userData.id,
-            email: userData.email,
-            tenant: userData.tenant,
-            name: userData.name,
-            isAdmin: userData.admin ?? false,
-            mfaEnabled: userData.mfa || false,
-            loading: false,
-          });
+          set({ ...signedInSession(data), loading: false });
         } catch (err) {
           const currentState = get();
           if (currentState.mfaToken) {
@@ -233,13 +227,7 @@ export const useAuthStore = create<AuthState>()(
             throwOnError: true,
           });
           set({
-            token: data.token,
-            user: data.user,
-            userId: data.id,
-            email: data.email,
-            tenant: data.tenant,
-            name: data.name,
-            isAdmin: data.admin ?? false,
+            ...signedInSession(data),
             mfaToken: null, // Clear temporary token
             mfaEnabled: true,
             loading: false,
@@ -272,7 +260,6 @@ export const useAuthStore = create<AuthState>()(
             throwOnError: true,
           });
 
-          const userData = data;
           const expiresAt = response.headers.get("x-expires-at") || "";
 
           let expiryValue: number | null = null;
@@ -282,13 +269,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           set({
-            token: userData.token,
-            user: userData.user,
-            userId: userData.id,
-            email: userData.email,
-            tenant: userData.tenant,
-            name: userData.name,
-            isAdmin: userData.admin ?? false,
+            ...signedInSession(data),
             mfaEnabled: true,
             mfaToken: null,
             mfaRecoveryExpiry: expiryValue,
@@ -319,8 +300,8 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "shellhub-session",
-      version: 1,
+      name: authSessionKey,
+      version: authSessionVersion,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         token: state.token,

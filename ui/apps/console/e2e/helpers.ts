@@ -2,6 +2,11 @@ import { type Page, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { getValidateAccount, registerUser } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
+import {
+  authSessionKey,
+  authSessionVersion,
+  signedInSession,
+} from "@/stores/authSession";
 import { isCloud } from "./env";
 import { readLatestEmail } from "./mail";
 import {
@@ -141,8 +146,22 @@ export async function signInAndOpen(
   username: string,
   path: string,
 ) {
-  await signIn(page, username, password);
-  await expect(page).toHaveURL(/\/dashboard$/);
+  const session = await loginAs(username, password);
+  await page.addInitScript(
+    ({ key, value, seeded }) => {
+      if (window !== window.top || sessionStorage.getItem(seeded)) return;
+      sessionStorage.setItem(seeded, "1");
+      localStorage.setItem(key, value);
+    },
+    {
+      key: authSessionKey,
+      seeded: `e2e-session-${randomUUID()}`,
+      value: JSON.stringify({
+        state: signedInSession(session),
+        version: authSessionVersion,
+      }),
+    },
+  );
   await page.goto(path);
 }
 
