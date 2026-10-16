@@ -25,6 +25,7 @@ export function useAcceptDevice() {
     "getStatusDevices",
     "getStats",
     "provisioningKeyList",
+    "listTenantRegistrations",
   );
   return useMutation({
     ...acceptDeviceMutation(),
@@ -33,15 +34,17 @@ export function useAcceptDevice() {
 }
 
 /**
- * Rejects a pending device. The device leaves the pending list but the accepted count is
- * unchanged, so stats are not refreshed.
+ * Rejects a pending device. The device leaves the pending list, so the stats' pending count is
+ * refreshed with the lists.
  */
 export function useRejectDevice() {
   const invalidate = useInvalidateByIds(
     "getDevices",
     "getDevice",
     "getStatusDevices",
+    "getStats",
     "provisioningKeyList",
+    "listTenantRegistrations",
   );
   return useMutation({
     ...updateDeviceStatusMutation(),
@@ -59,6 +62,7 @@ export function useRemoveDevice() {
     "getStatusDevices",
     "getStats",
     "provisioningKeyList",
+    "listTenantRegistrations",
   );
   return useMutation({
     ...deleteDeviceMutation(),

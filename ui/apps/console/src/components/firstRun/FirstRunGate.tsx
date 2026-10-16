@@ -5,8 +5,9 @@ import DeviceTrail from "./DeviceTrail";
 
 /**
  * Takes /dashboard over with the first-run trail on an account's first run: a member who can
- * accept devices, whose only namespace has no accepted device. A user with several namespaces is
- * past their first run and keeps the normal dashboard. Every other route passes through.
+ * accept devices, whose only namespace has no accepted device and, when it is new, no pending one
+ * either. A user with several namespaces is past their first run and keeps the normal dashboard.
+ * Every other route passes through.
  *
  * Once the trail shows, it stays for the rest of that visit to the dashboard, even after pairing
  * makes the namespace no longer empty, so the user sees the last step. Leaving the route or

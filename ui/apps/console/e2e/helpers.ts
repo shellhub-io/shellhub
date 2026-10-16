@@ -1,6 +1,10 @@
 import { type Page, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { getValidateAccount, registerUser } from "@/client";
+import {
+  getValidateAccount,
+  registerUser,
+  provisioningKeyCreate,
+} from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
 import {
   authSessionKey,
@@ -59,16 +63,28 @@ export async function signUpUser(prefix: string, { confirm = true } = {}) {
   return user;
 }
 
+export async function createManualProvisioningKey(token: string) {
+  const { data } = await provisioningKeyCreate({
+    ...buildRequestContext({ token }),
+    body: { name: `e2e-${buildShortId()}`, mode: "manual" },
+  });
+  if (!data.key) throw new Error("expected a provisioning key secret");
+  return data.key;
+}
+
 export async function createTeam({
   admin = false,
-  sshAccessMode,
+  legacy = false,
 }: { admin?: boolean } & NamespaceOptions = {}) {
   const owner = createUser("owner", { admin });
   const namespace = `e2e-team-${buildShortId()}`;
   const tenant = randomUUID();
-  createNamespace(owner.username, namespace, tenant, { sshAccessMode });
+  createNamespace(owner.username, namespace, tenant, { legacy });
   const { token } = await loginAs(owner.username, password);
-  return { owner: { ...owner, token }, namespace, tenant };
+  const provisioningKey = legacy
+    ? undefined
+    : await createManualProvisioningKey(token);
+  return { owner: { ...owner, token }, namespace, tenant, provisioningKey };
 }
 
 export async function createTeamWithMember(

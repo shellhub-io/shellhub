@@ -12,7 +12,10 @@ import { useActionDialog, type EntityBase } from "@/hooks/useActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useLoadOnReach } from "@/hooks/useLoadOnReach";
-import { useProvisioningKeyEvents } from "@/hooks/useProvisioningKeyEvents";
+import {
+  useProvisioningKeyEvents,
+  type RegistrationHistory,
+} from "@/hooks/useProvisioningKeyEvents";
 import { formatDateFull } from "@/utils/date";
 import EventPublicKey from "./EventPublicKey";
 import { formatCount } from "./helpers";
@@ -292,15 +295,53 @@ function ResolvedEntry({
   );
 }
 
+function RegistrationDays({
+  events,
+  decide,
+}: {
+  events: ProvisioningKeyEvent[];
+  decide: Decide;
+}) {
+  const days: { label: string; events: ProvisioningKeyEvent[] }[] = [];
+  for (const event of events) {
+    const label = dayLabel(event.timestamp);
+    const last = days[days.length - 1];
+    if (last?.label === label) last.events.push(event);
+    else days.push({ label, events: [event] });
+  }
+
+  return days.map((day) => (
+    <div key={day.label}>
+      <h3 className="mb-2 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
+        {day.label}
+      </h3>
+      <ol className="relative before:absolute before:left-[9px] before:top-4 before:bottom-4 before:w-0.5 before:rounded-full before:bg-text-muted/25">
+        {day.events.map((event) => (
+          <Entry key={event.id} event={event} decide={decide} />
+        ))}
+      </ol>
+    </div>
+  ));
+}
+
 /**
- * What a provisioning key registered, newest first and grouped by day, one line per registration
- * with how it ended. A device still waiting for a decision stands out as a card in the line, with
- * what it reported and its accept and reject; any other line expands to the same details. Older
- * registrations load a hundred at a time as the reader nears the end; a page that fails keeps the
- * ones already shown and offers a retry.
+ * A registration history, newest first and grouped by day, one line per registration with how it
+ * ended. A device still waiting for a decision stands out as a card in the line, with what it
+ * reported and its accept and reject; any other line expands to the same details. Older
+ * registrations load as the reader nears the end; a page that fails keeps the ones already shown
+ * and offers a retry. emptyMessage is what an empty history says.
  */
-export default function ProvisioningKeyTimeline({ id }: { id: string }) {
-  const refreshHistory = useInvalidateByIds("provisioningKeyHistory");
+export function RegistrationTimeline({
+  history,
+  emptyMessage,
+}: {
+  history: RegistrationHistory;
+  emptyMessage: string;
+}) {
+  const refreshHistory = useInvalidateByIds(
+    "provisioningKeyHistory",
+    "listTenantRegistrations",
+  );
   const deviceActions = useActionDialog({
     onSuccess: () => void refreshHistory(),
   });
@@ -314,7 +355,7 @@ export default function ProvisioningKeyTimeline({ id }: { id: string }) {
     loadMoreFailed,
     isLoading,
     error,
-  } = useProvisioningKeyEvents({ id });
+  } = history;
   const sentinel = useLoadOnReach(
     loadMore,
     hasMore && !isLoadingMore && !loadMoreFailed,
@@ -340,38 +381,14 @@ export default function ProvisioningKeyTimeline({ id }: { id: string }) {
   if (events.length === 0) {
     return (
       <p className="py-12 text-center text-xs text-text-muted">
-        No registrations yet. Devices that register with this key will appear
-        here.
+        {emptyMessage}
       </p>
     );
   }
 
-  const days: { label: string; events: ProvisioningKeyEvent[] }[] = [];
-  for (const event of events) {
-    const label = dayLabel(event.timestamp);
-    const last = days[days.length - 1];
-    if (last?.label === label) last.events.push(event);
-    else days.push({ label, events: [event] });
-  }
-
   return (
     <section aria-label="Registration activity" className="space-y-8">
-      {days.map((day) => (
-        <div key={day.label}>
-          <h3 className="mb-2 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
-            {day.label}
-          </h3>
-          <ol className="relative before:absolute before:left-[9px] before:top-4 before:bottom-4 before:w-0.5 before:rounded-full before:bg-text-muted/25">
-            {day.events.map((event) => (
-              <Entry
-                key={event.id}
-                event={event}
-                decide={deviceActions.requestAction}
-              />
-            ))}
-          </ol>
-        </div>
-      ))}
+      <RegistrationDays events={events} decide={deviceActions.requestAction} />
 
       <div className="flex items-center justify-between gap-4 pl-8">
         <span className="text-2xs font-mono text-text-muted">
@@ -409,5 +426,17 @@ export default function ProvisioningKeyTimeline({ id }: { id: string }) {
         />
       )}
     </section>
+  );
+}
+
+/**
+ * What a provisioning key registered, as a RegistrationTimeline.
+ */
+export default function ProvisioningKeyTimeline({ id }: { id: string }) {
+  return (
+    <RegistrationTimeline
+      history={useProvisioningKeyEvents({ id })}
+      emptyMessage="No registrations yet. Devices that register with this key will appear here."
+    />
   );
 }

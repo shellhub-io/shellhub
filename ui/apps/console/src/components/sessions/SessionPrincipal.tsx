@@ -12,7 +12,7 @@ const ICON = "w-3 h-3 shrink-0";
 
 /**
  * Who opened the session, a person or an API key. It renders nothing when the session has no
- * principal, which is every session under the legacy access model.
+ * principal, which is every session in a legacy namespace.
  */
 export default function SessionPrincipal({
   principal,

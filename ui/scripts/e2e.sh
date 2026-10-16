@@ -68,6 +68,17 @@ stop_playwright() {
   wait "$playwright_pid" 2>/dev/null || true
 }
 
+stack_bin="$REPO_ROOT/tests/.stack/bin/stack"
+
+build_stack() {
+  if [ "$runner" = host ]; then
+    (cd "$REPO_ROOT/tests" && CGO_ENABLED=0 go build -o "$stack_bin" ./cmd/stack)
+    return
+  fi
+
+  compose_run -w "$REPO_ROOT/tests" -e CGO_ENABLED=0 test go build -o "$stack_bin" ./cmd/stack
+}
+
 playwright() {
   if [ "$runner" = host ]; then
     (cd "$REPO_ROOT/ui/apps/console" && npx playwright test "$@")
@@ -77,6 +88,7 @@ playwright() {
   compose_run \
     -e E2E_COMPOSE_PROJECT -e E2E_BASE_URL -e E2E_EDITION -e E2E_ADMIN_USER -e E2E_ADMIN_PASSWORD -e E2E_ADMIN_NAMESPACE \
     -e E2E_AGENT_IMAGE -e E2E_ACCOUNT_LOCKOUT_BASE_MS -e E2E_MAILPIT_URL \
+    -e E2E_STACK_BIN -e E2E_STACK_NAME -e E2E_STACK_DIR \
     -e E2E_EXPIRED_LICENSE -e E2E_LICENSE_ISSUER_KEY \
     -e CI \
     e2e npx playwright test "$@"
@@ -89,7 +101,9 @@ fi
 case "${1:-test}" in
   up)
     shift
+    build_stack >&2
     stack up --edition "$edition" ${ttl_args[@]+"${ttl_args[@]}"} ${name_args[@]+"${name_args[@]}"} "$@" | grep '^export '
+    echo "export E2E_STACK_BIN=$stack_bin"
     ;;
   down)
     stack down ${name_args[@]+"${name_args[@]}"}
@@ -107,8 +121,10 @@ case "${1:-test}" in
     trap 'stop_playwright; exit 129' HUP
     trap 'stop_playwright; exit 130' INT
     trap 'stop_playwright; exit 143' TERM
+    build_stack >&2
     env=$(stack up --edition "$edition" ${ttl_args[@]+"${ttl_args[@]}"} ${name_args[@]+"${name_args[@]}"}) || exit $?
     eval "$(echo "$env" | grep '^export ')"
+    export E2E_STACK_BIN=$stack_bin
     set -m
     playwright ${playwright_args[@]+"${playwright_args[@]}"} </dev/null &
     playwright_pid=$!

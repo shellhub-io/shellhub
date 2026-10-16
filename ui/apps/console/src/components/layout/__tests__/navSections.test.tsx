@@ -8,7 +8,7 @@ import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useNavSectionTitle } from "../navSections";
 
-function setAccessMode(mode: "legacy" | "identity") {
+function serveNamespace(legacy: boolean) {
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(
@@ -16,8 +16,7 @@ function setAccessMode(mode: "legacy" | "identity") {
           settings: {
             session_record: false,
             connection_announcement: "",
-            ssh_access_mode: mode,
-            ssh_legacy_allowed: true,
+            legacy,
           },
         }),
       ),
@@ -36,20 +35,22 @@ async function sectionTitle(route: string) {
 
 beforeEach(() => {
   seedAuthStore();
-  setAccessMode("legacy");
+  serveNamespace(true);
 });
 
 describe("useNavSectionTitle", () => {
-  it("places Sessions under Resources in legacy mode", async () => {
+  it("places Sessions under Resources in a legacy namespace", async () => {
+    serveNamespace(true);
     expect(await sectionTitle("/sessions")).toBe("Resources");
   });
 
-  it("places Sessions under SSH in identity mode", async () => {
-    setAccessMode("identity");
+  it("places Sessions under SSH in a new namespace", async () => {
+    serveNamespace(false);
     expect(await sectionTitle("/sessions")).toBe("SSH");
   });
 
   it("names the legacy key pages SSH too", async () => {
+    serveNamespace(true);
     expect(await sectionTitle("/sshkeys/public-keys")).toBe("SSH");
   });
 

@@ -210,4 +210,95 @@ describe("Fleet", () => {
     const line = (await keyRow("paused-key")).getByText(/^Disabled · expired/);
     expect(line).not.toHaveClass("text-accent-red");
   });
+
+  it("lists no row for the built-in legacy key", async () => {
+    server.use(
+      http.get("*/api/namespaces/provisioning-key", () =>
+        jsonWithTotal([
+          mockProvisioningKey({
+            id: "legacy-digest",
+            name: "legacy",
+            type: "legacy",
+          }),
+          mockProvisioningKey({
+            id: "pairing-digest",
+            name: "pairing",
+            type: "pairing",
+            mode: "automatic",
+          }),
+          mockProvisioningKey({ id: "fleet-digest", name: "fleet-key" }),
+        ]),
+      ),
+    );
+    renderPage();
+
+    await keyRow("fleet-key");
+    expect(
+      screen.getByRole("row", { name: /Pairing code/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("row", { name: /Tenant-only registration/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("leaves the hidden legacy key out of the key count", async () => {
+    server.use(
+      http.get("*/api/namespaces/provisioning-key", () =>
+        jsonWithTotal(
+          [
+            mockProvisioningKey({
+              id: "legacy-digest",
+              name: "legacy",
+              type: "legacy",
+              pending_devices: 0,
+            }),
+            mockProvisioningKey({ id: "fleet-digest", name: "fleet-key" }),
+          ],
+          25,
+        ),
+      ),
+    );
+    renderPage();
+
+    await keyRow("fleet-key");
+    expect(screen.getByText("24 keys")).toBeInTheDocument();
+  });
+
+  it("keeps the legacy key's row while devices wait under it", async () => {
+    server.use(
+      http.get("*/api/namespaces/provisioning-key", () =>
+        jsonWithTotal([
+          mockProvisioningKey({
+            id: "legacy-digest",
+            name: "legacy",
+            type: "legacy",
+            pending_devices: 2,
+          }),
+          mockProvisioningKey({ id: "fleet-digest", name: "fleet-key" }),
+        ]),
+      ),
+    );
+    renderPage();
+
+    await keyRow("fleet-key");
+    expect(
+      screen.getByRole("row", { name: /Tenant-only registration/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers the Docker connector command for a key", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("row", { name: /auto-key/ }));
+    await user.click(
+      await screen.findByRole("radio", { name: "Docker connector" }),
+    );
+
+    expect(
+      await screen.findByText(
+        /PROVISIONING_KEY=secret-of-auto-key .* sh -s connector/,
+      ),
+    ).toBeInTheDocument();
+  });
 });

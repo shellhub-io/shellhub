@@ -220,14 +220,14 @@ export function parseMessage(
 const APPROVAL_REFUSED_PREFIX = "the login approval was refused: ";
 
 /**
- * Turns a server error string into the banner's contents. Identity mode changes the advice —
+ * Turns a server error string into the banner's contents. A new namespace changes the advice —
  * the same failure has a different remedy when access is granted by identity rather than by
  * key — so it is a parameter rather than read here.
  */
 export function resolveError(
   raw: string,
   deviceUid: string,
-  isIdentityMode: boolean,
+  isNewNamespace: boolean,
 ): TerminalError {
   if (raw.startsWith(APPROVAL_REFUSED_PREFIX)) {
     return {
@@ -251,7 +251,7 @@ export function resolveError(
   }
 
   const hints = entry.hints.map((h) =>
-    isIdentityMode ? h.replace("namespace policy", "access policy") : h,
+    isNewNamespace ? h.replace("namespace policy", "access policy") : h,
   );
 
   const links = (entry.links ?? []).map((l) => ({
@@ -261,13 +261,13 @@ export function resolveError(
 
   if (isEnterpriseOrCloud()) {
     hints.push(
-      isIdentityMode
+      isNewNamespace
         ? "An access policy may be blocking this connection."
         : "A firewall rule may be blocking this connection.",
     );
     links.push({
-      label: isIdentityMode ? "Access policies" : "Firewall rules",
-      to: "/firewall-rules",
+      label: isNewNamespace ? "Access policies" : "Firewall rules",
+      to: isNewNamespace ? "/access-policies" : "/firewall-rules",
     });
   }
 

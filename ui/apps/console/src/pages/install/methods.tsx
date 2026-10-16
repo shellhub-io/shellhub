@@ -48,6 +48,17 @@ export const PAIRING_METHODS: Method[] = [
   "wsl",
 ];
 
+const TENANT_ONLY_METHODS: Method[] = ["snap", "freebsd"];
+
+/**
+ * The methods a new namespace offers: every method but snap and FreeBSD, which name the namespace
+ * by its tenant alone and take no provisioning key, the deprecated path that only lands a device
+ * pending.
+ */
+export function methodsForNewNamespace(): MethodInfo[] {
+  return METHODS.filter((m) => !TENANT_ONLY_METHODS.includes(m.id));
+}
+
 /** Every method, in the order the screens offer them. */
 export const METHODS: MethodInfo[] = [
   {

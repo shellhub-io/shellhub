@@ -2,6 +2,7 @@ import { useState } from "react";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useDevices } from "@/hooks/useDevices";
 import {
   useAcceptDevicePairing,
@@ -45,6 +46,7 @@ export type FirstDeviceStage = "install" | "pair" | "shell";
 export function useFirstDevice() {
   const tenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(tenant ?? "");
+  const legacy = useNamespaceLegacy();
   const canSubscribe = useHasPermission("billing:subscribe");
 
   const [code, setCode] = useState("");
@@ -125,7 +127,9 @@ export function useFirstDevice() {
 
   return {
     namespace: namespace?.name ?? "",
-    signsInByKey: namespace?.settings?.ssh_access_mode === "identity",
+    legacy: legacy === true,
+    tenant: namespace?.tenant_id ?? "",
+    signsInByKey: legacy !== true,
     stage,
     code,
     submitCode,

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { http } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockNamespace } from "@/tests/factories";
+import { mockLegacyNamespace, mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import BrowserIdentityPreferences from "../BrowserIdentityPreferences";
 
@@ -23,26 +23,25 @@ beforeEach(() => {
 
 describe("BrowserIdentityPreferences", () => {
   it("says a legacy-mode namespace does not use the key, and offers no way in", async () => {
-    serveNamespaces(mockNamespace({ name: "old-way" }));
+    serveNamespaces(mockLegacyNamespace({ name: "old-way" }));
     renderIdentity();
 
     expect(
-      await screen.findByText("Not used in legacy mode"),
+      await screen.findByText("Not used in a legacy namespace"),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /old-way/ }),
     ).not.toBeInTheDocument();
   });
 
-  it("offers an identity-mode namespace as a way to its SSH identities", async () => {
+  it("offers a new namespace as a way to its SSH identities", async () => {
     serveNamespaces(
       mockNamespace({
         name: "new-way",
         settings: {
           session_record: false,
           connection_announcement: "",
-          ssh_access_mode: "identity",
-          ssh_legacy_allowed: false,
+          legacy: false,
         },
       }),
     );

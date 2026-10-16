@@ -316,6 +316,51 @@ describe("AcceptDeviceFlow standalone", () => {
     expect(tenant).toBe("t2");
   });
 
+  it("leaves legacy namespaces out of the namespace picker", async () => {
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([
+          { name: "my-ns", tenant_id: "t1", settings: { legacy: false } },
+          { name: "old-ns", tenant_id: "t2", settings: { legacy: true } },
+          { name: "other-ns", tenant_id: "t3", settings: { legacy: false } },
+        ]),
+      ),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Namespace: my-ns" }),
+    );
+
+    expect(
+      await screen.findByRole("menuitemradio", { name: /other-ns/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitemradio", { name: /old-ns/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("explains when every namespace is legacy", async () => {
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([
+          { name: "old-ns", tenant_id: "t2", settings: { legacy: true } },
+        ]),
+      ),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+
+    expect(
+      await screen.findByText(/every namespace you belong to is legacy/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^Namespace:/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("offers no account switch inside the add-device dialog", async () => {
     setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow({ inDialog: true });

@@ -3,7 +3,11 @@ import { renderHook, type RenderHookOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 
-function createTestQueryClient(): QueryClient {
+/**
+ * A query client for one test: it neither retries nor waits between attempts, so a failing
+ * request settles at once.
+ */
+export function createTestQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: { retry: false, retryDelay: 0 },

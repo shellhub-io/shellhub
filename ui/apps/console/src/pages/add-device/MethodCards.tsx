@@ -3,7 +3,11 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
-import { METHODS, type Method } from "@/pages/install/methods";
+import {
+  METHODS,
+  type Method,
+  type MethodInfo,
+} from "@/pages/install/methods";
 
 const INITIAL_VISIBLE = 3;
 
@@ -15,16 +19,18 @@ export default function MethodCards({
   labelledBy,
   value,
   onChange,
+  methods = METHODS,
 }: {
   labelledBy: string;
   value: Method;
   onChange: (method: Method) => void;
+  methods?: MethodInfo[];
 }) {
   const [showAll, setShowAll] = useState(false);
-  const selected = METHODS.find((m) => m.id === value)!;
-  const base = METHODS.slice(0, INITIAL_VISIBLE);
+  const selected = methods.find((m) => m.id === value) ?? methods[0];
+  const base = methods.slice(0, INITIAL_VISIBLE);
   const visible = showAll
-    ? METHODS
+    ? methods
     : base.includes(selected)
       ? base
       : [...base, selected];

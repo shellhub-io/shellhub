@@ -2,23 +2,33 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import BaseDialog from "@/components/common/BaseDialog";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
-import { METHODS, PAIRING_METHODS, type Method } from "@/pages/install/methods";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
+import {
+  METHODS,
+  PAIRING_METHODS,
+  methodsForNewNamespace,
+  type Method,
+} from "@/pages/install/methods";
 import { useAuthStore } from "@/stores/authStore";
 import InstallCommand from "./InstallCommand";
 import MethodCards from "./MethodCards";
 import Step from "./Step";
 
 /**
- * Adding a device interactively, with someone at the machine. Where the installer can pair, the command carries no credential and
- * the agent prints a link to accept it in the browser; elsewhere it carries the tenant and the
- * device waits to be accepted.
+ * Adding a device interactively, with someone at the machine. In a new namespace the command
+ * carries no credential where the installer can pair, and the agent prints a link to accept it in
+ * the browser; snap and FreeBSD are left out, since neither can pair. In a legacy namespace every command carries
+ * the tenant and the device waits in the pending queue to be accepted.
  */
 export default function Interactive() {
   const { tenant } = useAuthStore();
+  const legacy = useNamespaceLegacy() === true;
   const [method, setMethod] = useState<Method>("auto");
   const [pairOpen, setPairOpen] = useState(false);
-  const pairs = PAIRING_METHODS.includes(method);
-  const manual = METHODS.find((m) => m.id === method)?.manual;
+  const methods = legacy ? METHODS : methodsForNewNamespace();
+  const selected = methods.some((m) => m.id === method) ? method : "auto";
+  const pairs = !legacy && PAIRING_METHODS.includes(selected);
+  const manual = METHODS.find((m) => m.id === selected)?.manual;
 
   return (
     <div className="space-y-6">
@@ -29,8 +39,9 @@ export default function Interactive() {
       >
         <MethodCards
           labelledBy="interactive-method-label"
-          value={method}
+          value={selected}
           onChange={setMethod}
+          methods={methods}
         />
       </Step>
 
@@ -39,8 +50,8 @@ export default function Interactive() {
         label={manual ? "Follow the documentation" : "Run on your device"}
       >
         <InstallCommand
-          method={method}
-          credential={pairs ? undefined : `TENANT_ID=${tenant}`}
+          method={selected}
+          credential={legacy ? `TENANT_ID=${tenant}` : undefined}
           outcome={
             pairs ? (
               <>
@@ -55,31 +66,45 @@ export default function Interactive() {
                 </button>{" "}
                 instead.
               </>
+            ) : legacy ? (
+              <>
+                The device registers with the tenant ID and waits in the{" "}
+                <Link
+                  to="/devices/pending"
+                  className="text-primary font-medium hover:text-primary/80 transition-colors"
+                >
+                  pending queue
+                </Link>{" "}
+                until you accept it.
+              </>
             ) : (
               <>
-                The device registers through the tenant-only{" "}
+                The guide enrolls the device by pairing or with a provisioning
+                key from the{" "}
                 <Link
                   to="/devices/add/fleet"
                   className="text-primary font-medium hover:text-primary/80 transition-colors"
                 >
-                  provisioning key
-                </Link>{" "}
-                and waits there until you accept it.
+                  Fleet tab
+                </Link>
+                .
               </>
             )
           }
         />
       </Step>
 
-      <BaseDialog
-        open={pairOpen}
-        onClose={() => setPairOpen(false)}
-        size="md"
-        className="p-6"
-        aria-label="Claim a device"
-      >
-        <AcceptDeviceFlow inDialog />
-      </BaseDialog>
+      {!legacy && (
+        <BaseDialog
+          open={pairOpen}
+          onClose={() => setPairOpen(false)}
+          size="md"
+          className="p-6"
+          aria-label="Claim a device"
+        >
+          <AcceptDeviceFlow inDialog />
+        </BaseDialog>
+      )}
     </div>
   );
 }

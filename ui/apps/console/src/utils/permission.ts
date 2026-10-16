@@ -49,7 +49,7 @@ const permissions = {
   "namespace:removeMember": RoleLevel.ADMINISTRATOR,
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
-  "namespace:updateSshAccessMode": RoleLevel.ADMINISTRATOR,
+  "namespace:upgrade": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
   "tag:edit": RoleLevel.OPERATOR,
@@ -88,6 +88,7 @@ const permissions = {
   "apiKey:edit": RoleLevel.ADMINISTRATOR,
   "apiKey:delete": RoleLevel.ADMINISTRATOR,
 
+  "provisioningKey:list": RoleLevel.ADMINISTRATOR,
   "provisioningKey:create": RoleLevel.ADMINISTRATOR,
   "provisioningKey:reveal": RoleLevel.ADMINISTRATOR,
   "provisioningKey:edit": RoleLevel.ADMINISTRATOR,

@@ -11,8 +11,8 @@ import { enrollDevice } from "./devices";
 import { buildRequestContext } from "./api";
 import { limitNamespaceDevices } from "./seed";
 
-async function requestLoginCode(tenant: string) {
-  const device = await enrollDevice(tenant);
+async function requestLoginCode(team: Parameters<typeof enrollDevice>[0]) {
+  const device = await enrollDevice(team);
   const { data } = await createDeviceLoginCode(
     buildRequestContext({ token: device.token }),
   );
@@ -27,7 +27,7 @@ test.describe("accepting a device by its login code", () => {
     page,
   }) => {
     const { namespace, owner, other } = await createTeamWithOwnerInAnother();
-    const device = await requestLoginCode(other.tenant);
+    const device = await requestLoginCode(other);
 
     await signInAndOpen(page, owner.username, "/dashboard");
     await expect(page.getByRole("tab", { selected: true })).toHaveText(
@@ -67,14 +67,15 @@ test.describe("accepting a device at the namespace device limit", () => {
   test("the accept page names the device limit instead of a permission problem", async ({
     page,
   }) => {
-    const { owner, namespace, tenant } = await createTeam();
-    const accepted = await enrollDevice(tenant);
+    const team = await createTeam();
+    const { owner, namespace } = team;
+    const accepted = await enrollDevice(team);
     await updateDeviceStatus({
       ...buildRequestContext({ token: owner.token }),
       path: { uid: accepted.uid, status: "accept" },
     });
     limitNamespaceDevices(namespace, 1);
-    const device = await requestLoginCode(tenant);
+    const device = await requestLoginCode(team);
 
     await signInAndOpen(
       page,

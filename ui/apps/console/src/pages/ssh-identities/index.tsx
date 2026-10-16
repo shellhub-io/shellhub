@@ -308,7 +308,7 @@ export default function SSHIdentities() {
           icon={<FingerPrintIcon className="w-8 h-8" />}
           overline="Identity Access"
           title="SSH Identities"
-          description="Under the identity access mode an SSH key is who you are. A key becomes an identity the first time you connect with it, or you can add one here ahead of time."
+          description="In a new namespace an SSH key is who you are. A key becomes an identity the first time you connect with it, or you can add one here ahead of time."
           features={[
             {
               icon: <BoltIcon className="w-5 h-5" />,
@@ -347,7 +347,7 @@ export default function SSHIdentities() {
             icon={<FingerPrintIcon className="w-6 h-6" />}
             overline={sectionTitle}
             title="SSH Identities"
-            description="Manage the SSH keys that are your identity under the identity access mode."
+            description="Manage the SSH keys that are your identity in a new namespace."
           >
             <RestrictedAction action="sshIdentity:add">
               <Button

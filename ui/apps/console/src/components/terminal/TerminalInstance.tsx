@@ -11,6 +11,7 @@ import { useTerminalStore } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { OpfsCastRecorder } from "@/utils/recordings";
 import { isSdkError } from "@/api/errors";
@@ -81,7 +82,7 @@ export default function TerminalInstance({
 
   const activeTenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(session.tenant ?? activeTenant ?? "");
-  const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
+  const isNewNamespace = !isLegacyNamespace(namespace);
 
   const updateStatus = useCallback(
     (s: "connecting" | "connected" | "disconnected") => {
@@ -291,7 +292,7 @@ export default function TerminalInstance({
               lastError = true;
               updateStatus("disconnected");
               setError(
-                resolveError(msg.data, session.deviceUid, isIdentityMode),
+                resolveError(msg.data, session.deviceUid, isNewNamespace),
               );
               break;
             }

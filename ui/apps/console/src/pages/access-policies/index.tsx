@@ -25,6 +25,7 @@ import { cn } from "@shellhub/design-system/cn";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
@@ -225,14 +226,14 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
 
 /**
  * The access policies page: who may reach which devices, as what. This replaces the key ACL and
- * firewall pages in namespaces using identity access mode.
+ * firewall pages in new namespaces.
  */
 export default function AccessPolicies() {
   const sectionTitle = useNavSectionTitle("/access-policies");
   const { policies, isLoading } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
+  const isNewNamespace = useNamespaceLegacy() !== true;
 
   const { apiKeys } = useApiKeys({ perPage: 100 });
   const members = ns?.members ?? [];
@@ -376,22 +377,22 @@ export default function AccessPolicies() {
     return (
       <>
         <EmptyState
-          accent={isIdentityMode ? "yellow" : "primary"}
+          accent={isNewNamespace ? "yellow" : "primary"}
           icon={
-            isIdentityMode ? (
+            isNewNamespace ? (
               <ExclamationTriangleIcon className="w-8 h-8" />
             ) : (
               <ShieldCheckIcon className="w-8 h-8" />
             )
           }
-          overline={isIdentityMode ? "Access Blocked" : "Identity Access"}
+          overline={isNewNamespace ? "Access Blocked" : "Identity Access"}
           title={
-            isIdentityMode ? "SSH is blocked for everyone" : "Access Policies"
+            isNewNamespace ? "SSH is blocked for everyone" : "Access Policies"
           }
           description={
-            isIdentityMode
-              ? "Identity mode is on but this namespace has no policies, so every SSH login is denied. Add a policy to allow access."
-              : "Decide who may reach which devices, as which login, under the identity SSH access mode. Policies are default-deny; deny rules win over allow."
+            isNewNamespace
+              ? "This namespace has no policies, so every SSH login is denied. Add a policy to allow access."
+              : "Decide who may reach which devices, as which login. Policies are default-deny; deny rules win over allow."
           }
           features={[
             {
@@ -412,11 +413,6 @@ export default function AccessPolicies() {
                 "Allow any login, or restrict to an explicit list of unix logins.",
             },
           ]}
-          footnote={
-            isIdentityMode
-              ? undefined
-              : "Policies take effect once you switch SSH access to identity mode in Settings."
-          }
         >
           <RestrictedAction action="accessPolicy:create">
             <Button
@@ -424,7 +420,7 @@ export default function AccessPolicies() {
               onClick={openNew}
               icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              {isIdentityMode ? "Add policy" : "Add your first policy"}
+              {isNewNamespace ? "Add policy" : "Add your first policy"}
             </Button>
           </RestrictedAction>
         </EmptyState>
@@ -444,7 +440,7 @@ export default function AccessPolicies() {
         icon={<ShieldCheckIcon className="w-6 h-6" />}
         overline={sectionTitle}
         title="Access Policies"
-        description="Control who may reach which devices, as which login, under the identity SSH access mode."
+        description="Control who may reach which devices, as which login."
       >
         <RestrictedAction action="accessPolicy:create">
           <Button

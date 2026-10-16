@@ -17,7 +17,6 @@ import {
   getSessions,
   listAccessPolicies,
   listSshIdentities,
-  setSshAccessMode,
   updateDeviceStatus,
 } from "@/client";
 import { buildRequestContext } from "./api";
@@ -30,6 +29,7 @@ import {
   signInAndOpen,
   singleNamespaceReason,
   switchNamespace,
+  createManualProvisioningKey,
 } from "./helpers";
 import { enableMFA, fillDigits, mfaSecret, signInWithMFA, totp } from "./mfa";
 import { buildShortId, password, runInGateway, startAgent } from "./seed";
@@ -53,7 +53,12 @@ const deviceLogin = "root";
 const devicePassword = "password";
 const keyPassphrase = "e2e-key-passphrase";
 
-type Team = { owner: { token: string }; namespace: string; tenant: string };
+type Team = {
+  owner: { token: string };
+  namespace: string;
+  tenant: string;
+  provisioningKey?: string;
+};
 type LocalTeam = Team & { owner: { username: string } };
 
 function docker(args: string[]) {
@@ -124,18 +129,20 @@ async function acceptDevice(
 
 async function createDevice(team: Team) {
   const name = `e2e-device-${buildShortId()}`;
-  const container = startAgent(team.tenant, name);
+  const container = startAgent(team, name);
   containers.push(container);
   return { uid: await acceptDevice(team, name), name, container };
 }
 
-function startConnector(tenant: string, label: string) {
+function startConnector(team: Team, label: string) {
   const socket = process.env.E2E_DOCKER_SOCKET ?? "/var/run/docker.sock";
   return runInGateway(
     [
       `--volume=${socket}:/var/run/docker.sock`,
       "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
-      `--env=SHELLHUB_TENANT_ID=${tenant}`,
+      team.provisioningKey
+        ? `--env=SHELLHUB_PROVISIONING_KEY=${team.provisioningKey}`
+        : `--env=SHELLHUB_TENANT_ID=${team.tenant}`,
       "--env=SHELLHUB_PRIVATE_KEYS=/tmp/keys",
       `--env=SHELLHUB_CONNECTOR_LABEL=${label}`,
     ],
@@ -154,7 +161,7 @@ async function createContainer(team: Team) {
   const name = `e2e-container-${buildShortId()}`;
   const label = `io.shellhub.e2e.connector=${name}`;
   containers.push(startContainer(name, label));
-  containers.push(startConnector(team.tenant, label));
+  containers.push(startConnector(team, label));
   return {
     uid: await acceptDevice(team, name, getContainers),
     name,
@@ -169,7 +176,7 @@ async function createDeviceAndSignIn(page: Page, team: LocalTeam) {
 }
 
 async function createTeamWithKey({ passphrase = "" } = {}) {
-  const team = await createTeam({ sshAccessMode: "legacy" });
+  const team = await createTeam({ legacy: true });
   const privateKey = buildPrivateKey({ passphrase });
   const publicKey = sshpk
     .parsePrivateKey(privateKey, "pem", { passphrase })
@@ -315,7 +322,7 @@ async function connectWithBrowserKey(page: Page, device: string) {
 
 test.describe("Connection & Authentication", () => {
   test("a password opens a shell on the device", async ({ page }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const device = await createDeviceAndSignIn(page, team);
 
     await connectWithPassword(page, device.name);
@@ -372,10 +379,10 @@ test.describe("Connection & Authentication", () => {
     await expectAuthenticatedWebSession(team, device.uid);
   });
 
-  test("identity mode registers a new browser key, then reuses it", async ({
+  test("a new namespace registers a new browser key, then reuses it", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     const device = await createDeviceAndSignIn(page, team);
 
     await connectWithBrowserKey(page, device.name);
@@ -424,12 +431,12 @@ async function createSamlTeam() {
     body: { name: namespace },
   });
   const token = await signInThroughApi(user);
-  await setSshAccessMode({
-    ...buildRequestContext({ token }),
-    path: { tenant: data.tenant_id },
-    body: { ssh_access_mode: "identity" },
-  });
-  const team: Team = { owner: { token }, namespace, tenant: data.tenant_id };
+  const team: Team = {
+    owner: { token },
+    namespace,
+    tenant: data.tenant_id,
+    provisioningKey: await createManualProvisioningKey(token),
+  };
   return { user, team };
 }
 
@@ -469,7 +476,7 @@ test.describe("Re-authentication", () => {
   test("a policy asks for the password before the shell opens", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     await requireReauth(team);
     const device = await createDeviceAndSignIn(page, team);
 
@@ -482,7 +489,7 @@ test.describe("Re-authentication", () => {
 
   test("an MFA user re-authenticates with a TOTP code", async ({ page }) => {
     test.skip(isCommunity, mfaReason);
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     await requireReauth(team);
     const device = await createDevice(team);
     await enableMFA(team.owner.token);
@@ -501,7 +508,7 @@ test.describe("Re-authentication", () => {
   test("rejecting the re-authentication refuses the login", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     await requireReauth(team);
     const device = await createDeviceAndSignIn(page, team);
 
@@ -703,7 +710,7 @@ const sshidOf = (team: Team, device: { name: string }) =>
   `${deviceLogin}@${team.namespace}.${device.name}`;
 
 async function openNewKeyApproval(page: Page) {
-  const team = await createTeam({ sshAccessMode: "identity" });
+  const team = await createTeam();
   const device = await createDeviceAndSignIn(page, team);
   createNativeClientKey(device.container);
   const ssh = openNativeSSH(device.container, sshidOf(team, device));
@@ -728,7 +735,7 @@ test.describe("SSH Approval", () => {
   test("re-authenticating in the console lets the ssh client in", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     await requireReauth(team);
     const device = await createDeviceAndSignIn(page, team);
     const publicKey = createNativeClientKey(device.container);
@@ -765,7 +772,7 @@ test.describe("Public Keys", () => {
   test("a key registered in the console lets the ssh client in", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const device = await createDevice(team);
     const publicKey = createNativeClientKey(device.container);
     await signInAndOpen(page, team.owner.username, "/sshkeys/public-keys");
@@ -806,7 +813,7 @@ test.describe("Firewall Rules", () => {
   test("a deny rule created in the console keeps the ssh client out", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const device = await createDevice(team);
     const publicKey = createNativeClientKey(device.container);
     await createPublicKey({
@@ -852,7 +859,7 @@ test.describe("Firewall Rules", () => {
 
 test.describe("Containers", () => {
   test("a password opens a shell in a container", async ({ page }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const container = await createContainer(team);
     await signInAndOpen(page, team.owner.username, "/containers");
 
@@ -865,7 +872,7 @@ test.describe("Containers", () => {
   });
 
   test("a registered key lets the ssh client into a container", async () => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const container = await createContainer(team);
     const publicKey = createNativeClientKey(container.container);
     await createPublicKey({
@@ -886,7 +893,7 @@ test.describe("Containers", () => {
 
 test.describe("Window Management", () => {
   test("two terminals stay connected side by side", async ({ page }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     const first = await createDevice(team);
     const second = await createDeviceAndSignIn(page, team);
 
@@ -907,7 +914,7 @@ test.describe("Window Management", () => {
   test("an open terminal survives a namespace switch", async ({ page }) => {
     test.skip(isCommunity, singleNamespaceReason);
     const team = await createTeamWithOwnerInAnother({
-      sshAccessMode: "legacy",
+      legacy: true,
     });
     const device = await createDeviceAndSignIn(page, team);
 
@@ -1003,7 +1010,7 @@ test.describe("Session Recording", () => {
   test("a browser recording plays back from the sessions page", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     await setNamespaceRecording(team, false);
 
     await recordInBrowserAndPlayBack(page, team);
@@ -1012,7 +1019,7 @@ test.describe("Session Recording", () => {
   test("a session that printed nothing leaves no browser recording", async ({
     page,
   }) => {
-    const team = await createTeam({ sshAccessMode: "identity" });
+    const team = await createTeam();
     await setNamespaceRecording(team, false);
     await requireReauth(team);
     const device = await createDeviceAndSignIn(page, team);
@@ -1053,7 +1060,7 @@ test.describe("Session Recording", () => {
     page,
   }) => {
     test.skip(!isCommunity, "only community leaves recording to the browser");
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     await setNamespaceRecording(team, true);
 
     await recordInBrowserAndPlayBack(page, team);
@@ -1063,7 +1070,7 @@ test.describe("Session Recording", () => {
     page,
   }) => {
     test.skip(isCommunity, "only enterprise and cloud record sessions");
-    const team = await createTeam({ sshAccessMode: "legacy" });
+    const team = await createTeam({ legacy: true });
     await setNamespaceRecording(team, true);
     const device = await createDeviceAndSignIn(page, team);
 
