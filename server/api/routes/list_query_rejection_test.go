@@ -56,7 +56,7 @@ func TestListEndpointsRejectAnUnapprovedFilterField(t *testing.T) {
 			req.Header.Set("X-Role", "owner")
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
 			svcMock.AssertNotCalled(t, tc.uncalledFunc)
@@ -117,7 +117,7 @@ func TestListEndpointsRejectAnUnapprovedSortField(t *testing.T) {
 			req.Header.Set("X-Role", "owner")
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
 			svcMock.AssertNotCalled(t, tc.uncalledFunc)
@@ -188,7 +188,7 @@ func TestListEndpointsRejectAValueTheColumnCannotHold(t *testing.T) {
 			req.Header.Set("X-Role", "owner")
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
 			svcMock.AssertNotCalled(t, tc.uncalledFunc)

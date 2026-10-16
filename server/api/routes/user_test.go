@@ -138,7 +138,7 @@ func TestUpdateUser(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, Expected{rec.Result().StatusCode})
@@ -268,7 +268,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -302,7 +302,7 @@ func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 
-	e := NewRouter(mock)
+	e := newTestRouter(t, mock)
 	e.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
@@ -364,7 +364,7 @@ func TestRevokeUserTokens(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)

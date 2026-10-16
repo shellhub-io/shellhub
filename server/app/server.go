@@ -316,7 +316,10 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.authn = middleware.NewAuthenticator(service)
 	routerOptions = append(routerOptions, routes.WithAuthentication(s.authn))
 
-	s.router = routes.NewRouter(service, routerOptions...)
+	s.router, err = routes.NewRouter(service, routerOptions...)
+	if err != nil {
+		return err
+	}
 
 	s.worker = asynq.NewServer(
 		s.env.RedisURI,

@@ -97,7 +97,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)

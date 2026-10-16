@@ -44,7 +44,7 @@ func TestListSSHIdentitiesScopesByPermission(t *testing.T) {
 			req.Header.Set("X-Role", tc.role)
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 		})
@@ -88,7 +88,7 @@ func TestCreateAPIKeySSHIdentityNeedsTheManagePermission(t *testing.T) {
 			req.Header.Set("X-Role", tc.role)
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected, rec.Result().StatusCode)
 		})

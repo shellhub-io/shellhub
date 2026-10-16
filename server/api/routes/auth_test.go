@@ -150,7 +150,7 @@ func TestAuthDevice(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -375,7 +375,7 @@ func TestAuthLocalUser(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			var body *models.UserAuthResponse
@@ -492,7 +492,7 @@ func TestCreateUserToken(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			body := new(models.UserAuthResponse)
@@ -564,7 +564,7 @@ func TestAuthPublicKey(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -598,7 +598,7 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 	req.Header.Set("X-ID", "000000000000000000000000")
 	rec := httptest.NewRecorder()
 
-	NewRouter(svcMock).ServeHTTP(rec, req)
+	newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 	require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 

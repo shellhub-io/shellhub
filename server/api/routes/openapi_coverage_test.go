@@ -79,8 +79,8 @@ func specEndpoints(t *testing.T) map[string]bool {
 // the response validator loads. Method and path are both compared, because that is how the
 // validator resolves a request to a schema.
 func TestEveryAPIRouteIsInTheCommunitySpec(t *testing.T) {
-	router := routes.NewRouter(new(mocks.MockService))
-	require.NotNil(t, router, "building the router")
+	router, err := routes.NewRouter(new(mocks.MockService))
+	require.NoError(t, err, "building the router")
 
 	declared := specEndpoints(t)
 

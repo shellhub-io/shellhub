@@ -111,7 +111,7 @@ func TestSetup(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			router := NewRouter(servicesMock)
+			router := newTestRouter(t, servicesMock)
 			router.ServeHTTP(rec, req)
 
 			result := rec.Result()

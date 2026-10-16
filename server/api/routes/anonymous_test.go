@@ -40,7 +40,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 
 	authn := routesmiddleware.NewAuthenticator(service)
 
-	return NewRouter(service, WithAuthentication(authn)), authn, service
+	return newTestRouter(t, service, WithAuthentication(authn)), authn, service
 }
 
 // TestAllowlistsMatchRegisteredRoutes catches a typo or a stale entry in the

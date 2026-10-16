@@ -63,7 +63,7 @@ func TestMakeTeamDevice(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", ownerTestTenant)
 			rec := httptest.NewRecorder()
 
-			NewRouter(m).ServeHTTP(rec, req)
+			newTestRouter(t, m).ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
@@ -94,7 +94,7 @@ func TestGetDeviceListFiltersByOwner(t *testing.T) {
 		req.Header.Set("X-Tenant-ID", ownerTestTenant)
 		rec := httptest.NewRecorder()
 
-		NewRouter(m).ServeHTTP(rec, req)
+		newTestRouter(t, m).ServeHTTP(rec, req)
 
 		return rec.Result().StatusCode
 	}
@@ -127,7 +127,7 @@ func TestMemberRequestsCarryTheDevicesToKeep(t *testing.T) {
 		req.Header.Set("X-Tenant-ID", ownerTestTenant)
 		rec := httptest.NewRecorder()
 
-		NewRouter(m).ServeHTTP(rec, req)
+		newTestRouter(t, m).ServeHTTP(rec, req)
 
 		return rec.Result().StatusCode
 	}

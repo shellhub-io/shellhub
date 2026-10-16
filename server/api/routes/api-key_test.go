@@ -260,7 +260,7 @@ func TestCreateAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -544,7 +544,7 @@ func TestListAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -749,7 +749,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -840,7 +840,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
