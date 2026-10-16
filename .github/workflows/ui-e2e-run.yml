@@ -141,9 +141,6 @@ jobs:
           name: ui-e2e
           sum-files: shellhub/tests/go.sum
 
-      - name: Restore the image build cache
-        uses: ./shellhub/.github/actions/build-cache
-
       - name: Log in to the e2e image repository
         continue-on-error: true
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4

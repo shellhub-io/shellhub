@@ -59,8 +59,10 @@ jobs:
     if: ${{ !failure() && !cancelled() && github.event_name != 'push' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e == 'true') }}
     permissions:
       contents: read
-      packages: read
+      packages: write
     uses: ./.github/workflows/ui-e2e-run.yml
+    with:
+      push-images: true
     secrets:
       CLOUD_DISPATCH_APP_ID: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
       CLOUD_DISPATCH_APP_PRIVATE_KEY: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
