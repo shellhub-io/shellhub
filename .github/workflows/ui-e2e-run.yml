@@ -158,12 +158,21 @@ jobs:
         env:
           EDITIONS: ${{ steps.editions.outputs.list }}
           E2E_RUNNER: host
+          E2E_KEEP_STACK: "1"
           SHELLHUB_E2E_IMAGE_REPOSITORY: ghcr.io/shellhub-io/shellhub-e2e-images
           SHELLHUB_E2E_IMAGE_PUSH: ${{ inputs.push-images }}
           CLOUD_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
           CLOUD_STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
           CLOUD_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
         run: |
+          # shellcheck disable=SC2329 # the EXIT trap below invokes it
+          tear_down_stacks() {
+              for edition in $EDITIONS; do
+                  E2E_STACK_NAME=e2e-$edition npm run e2e:down -w @shellhub/console || true
+              done
+          }
+          trap tear_down_stacks EXIT
+
           declare -A pids
           for edition in $EDITIONS; do
               prefix=$(printf '%-12s' "[$edition]")

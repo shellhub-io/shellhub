@@ -77,7 +77,9 @@ case "${1:-test}" in
         *) playwright_args+=("$arg") ;;
       esac
     done
-    [ -n "${CI:-}" ] && trap 'stack down ${name_args[@]+"${name_args[@]}"}' EXIT
+    if [ -n "${CI:-}" ] && [ -z "${E2E_KEEP_STACK:-}" ]; then
+      trap 'stack down ${name_args[@]+"${name_args[@]}"}' EXIT
+    fi
     env=$(stack up --edition "$edition" ${name_args[@]+"${name_args[@]}"}) || exit $?
     eval "$(echo "$env" | grep '^export ')"
     status=0
