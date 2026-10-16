@@ -32,7 +32,7 @@ func removalTestAgent(t *testing.T, cli *client_mocks.MockClient, tenant string)
 	require.NoError(t, err)
 
 	return &Agent{
-		config:     &Config{TenantID: tenant, PrivateKey: keyPath, TransportVersion: TransportV2, MaxRetryConnectionTimeout: 60},
+		config:     &Config{TenantID: tenant, PrivateKey: keyPath, TransportVersion: TransportV2},
 		mode:       idleMode{},
 		cli:        cli,
 		key:        key,
