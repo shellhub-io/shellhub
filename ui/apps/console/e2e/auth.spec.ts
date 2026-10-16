@@ -54,9 +54,11 @@ test.describe("session ended on the server", () => {
     const requestRejected = page.waitForResponse(
       (r) => r.url().includes("/api/") && r.status() === 401,
     );
+    const signInPageReloaded = page.waitForEvent("load");
     await page.getByRole("link", { name: "Devices", exact: true }).click();
 
     await requestRejected;
+    await signInPageReloaded;
     await expect(page).toHaveURL(/\/login$/);
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login$/);
