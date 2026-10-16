@@ -101,7 +101,7 @@ export function buildUserIdentity(prefix: string) {
   return { username: `e2e-${prefix}-${id}`, email: `${prefix}-${id}@e2e.test` };
 }
 
-export function createUserWithCli(prefix: string, { admin = false } = {}) {
+export function createUser(prefix: string, { admin = false } = {}) {
   const user = buildUserIdentity(prefix);
   serverAdmin(
     "user",

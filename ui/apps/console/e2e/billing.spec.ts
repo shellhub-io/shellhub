@@ -2,7 +2,7 @@ import { type Page, expect, test as base } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { getCustomer, getNamespace, getNamespaces } from "@/client";
 import { isCloud } from "./env";
-import { createUser, signInAndOpen } from "./helpers";
+import { signInAndOpen, signUpUser } from "./helpers";
 import {
   password,
   buildShortId,
@@ -78,7 +78,7 @@ async function readTenants(owner: Owner) {
 const test = base.extend<{ owner: Owner }>({
   // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from this destructuring, and owner has none
   owner: async ({}, provide, testInfo) => {
-    const user = await createUser("billing");
+    const user = await signUpUser("billing");
     const tenant = randomUUID();
     const namespace = `e2e-billing-${buildShortId()}`;
     createNamespace(user.username, namespace, tenant);

@@ -6,14 +6,13 @@ import {
   consoleAccountDeletionReason,
   createTeam,
   createTeamWithMember,
-  createUser,
   deleteOwnAccount,
   emailDeliveryReason,
   fillLoginForm,
   signInAndOpen,
   signUpUser,
 } from "./helpers";
-import { buildUserIdentity, password } from "./seed";
+import { buildUserIdentity, createUser, password } from "./seed";
 import {
   buildRequestContext,
   expectLoginStatus,
@@ -124,7 +123,7 @@ test.describe("email confirmation", () => {
 
 test.describe("password", () => {
   test("changing the password replaces the old one", async ({ page }) => {
-    const user = await createUser("password");
+    const user = createUser("password");
     const before = await loginAs(user.username, password);
 
     await signInAndOpen(page, user.username, "/account/security");
@@ -148,7 +147,7 @@ test.describe("password", () => {
 
   test("the emailed reset link sets a new password", async ({ page }) => {
     test.skip(!isCloud, emailDeliveryReason);
-    const user = await createUser("forgot");
+    const user = createUser("forgot");
     const before = await loginAs(user.username, password);
 
     await page.goto("/login");

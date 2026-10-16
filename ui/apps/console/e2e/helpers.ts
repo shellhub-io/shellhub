@@ -7,13 +7,12 @@ import {
   authSessionVersion,
   signedInSession,
 } from "@/stores/authSession";
-import { isCloud } from "./env";
 import { readLatestEmail } from "./mail";
 import {
   password,
   buildShortId,
   buildUserIdentity,
-  createUserWithCli,
+  createUser,
   createNamespace,
   addMember,
   type NamespaceOptions,
@@ -60,16 +59,11 @@ export async function signUpUser(prefix: string, { confirm = true } = {}) {
   return user;
 }
 
-export async function createUser(prefix: string, { admin = false } = {}) {
-  if (!isCloud || admin) return createUserWithCli(prefix, { admin });
-  return signUpUser(prefix);
-}
-
 export async function createTeam({
   admin = false,
   sshAccessMode,
 }: { admin?: boolean } & NamespaceOptions = {}) {
-  const owner = await createUser("owner", { admin });
+  const owner = createUser("owner", { admin });
   const namespace = `e2e-team-${buildShortId()}`;
   const tenant = randomUUID();
   createNamespace(owner.username, namespace, tenant, { sshAccessMode });
@@ -82,7 +76,7 @@ export async function createTeamWithMember(
   options: NamespaceOptions = {},
 ) {
   const team = await createTeam(options);
-  const member = await createUser("member");
+  const member = createUser("member");
   addMember(member.username, team.namespace, role);
   const { token, tenant, id } = await loginAs(member.username, password);
   if (tenant !== team.tenant) {
