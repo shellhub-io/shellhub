@@ -84,19 +84,22 @@ func BuildStackImages(ctx context.Context, run *Run, cloudDir string) error {
 }
 
 // BuildEditionImages builds the server, gateway and UI images a stack of edition in run starts
-// from, so an Up of that edition after it builds nothing. An empty cloudDir is the one Up
-// defaults to. With SHELLHUB_E2E_IMAGE_REPOSITORY set, it pulls the server and gateway images
-// from that one repository instead, tagged <image>-<key>, the key covering the build's arguments
-// and the sources each copies as committed at HEAD, so uncommitted changes reuse the image of
-// their commit, and builds the ones it does not find there; with SHELLHUB_E2E_IMAGE_PUSH=true as
-// well, it pushes each image it built there under its tag. It returns an error when run is nil,
-// and otherwise the first error among: checking and resolving cloudDir, encoding the run issuer's
-// key into the build, reading the edition's env files, resolving the Docker host, setting up the
-// Docker CLI, creating the compose service, loading the compose project, computing an image's
-// key, the build, which writes its output to .stack/build-<edition>.log as [BuildStackImages]
-// does, and a push. ctx ending stops the pull, build or push in progress: a pull it stops counts
-// as a miss, and the build or push then returns the error. After an error it marks nothing
-// built, so Up builds as if BuildEditionImages had not run.
+// from, so an Up of that edition after it builds nothing. An empty cloudDir is the one Up defaults
+// to. With SHELLHUB_E2E_IMAGE_REPOSITORY set, it pulls the server and gateway images from that one
+// repository instead, tagged <image>-<key>, the key covering the build's arguments and the sources
+// each copies as committed at HEAD, so uncommitted changes reuse the image of their commit, and
+// builds the ones it does not find there; with SHELLHUB_E2E_IMAGE_PUSH=true as well, it pushes each
+// image it built there under its tag. With the repository set, the builds also read their layer
+// cache from it, tagged cache-<image> and cache-server-<edition> for the server, and with the push
+// enabled write it back there, so a build that misses its image still skips the layers its change
+// leaves alone; a layer cache it cannot read is a slower build, not an error. It returns an error
+// when run is nil, and otherwise the first error among: checking and resolving cloudDir, encoding
+// the run issuer's key into the build, reading the edition's env files, resolving the Docker host,
+// setting up the Docker CLI, creating the compose service, loading the compose project, computing
+// an image's key, the build, which writes its output to .stack/build-<edition>.log as
+// [BuildStackImages] does, and a push. ctx ending stops the pull, build or push in progress: a pull
+// it stops counts as a miss, and the build or push then returns the error. After an error it marks
+// nothing built, so Up builds as if BuildEditionImages had not run.
 func BuildEditionImages(ctx context.Context, run *Run, edition Edition, cloudDir string) error {
 	if run == nil {
 		return errors.New("building the stack images needs a run to own them")
@@ -164,7 +167,7 @@ func buildEditionImages(ctx context.Context, run *Run, edition Edition, cloudDir
 
 	project, err := service.LoadProject(ctx, composeapi.ProjectLoadOptions{
 		ProjectName:       "shellhub-e2e-build-" + run.ID() + "-" + string(edition),
-		ConfigPaths:       append(build.composeFiles, buildComposeFile),
+		ConfigPaths:       append(build.composeFiles, buildComposeFiles()...),
 		ProjectOptionsFns: []cli.ProjectOptionsFn{cli.WithEnv(env)},
 	})
 	if err != nil {

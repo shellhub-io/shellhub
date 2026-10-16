@@ -76,8 +76,11 @@ type Config struct {
 }
 
 const (
-	defaultCloudDir  = "../../cloud"
-	buildComposeFile = "../docker-compose.test.build.yml"
+	defaultCloudDir           = "../../cloud"
+	buildComposeFile          = "../docker-compose.test.build.yml"
+	layerCacheComposeFile     = "../docker-compose.test.cache.yml"
+	layerCachePushComposeFile = "../docker-compose.test.cache-push.yml"
+	layerCacheEnv             = "SHELLHUB_E2E_LAYER_CACHE"
 )
 
 type imageBuild struct {
@@ -266,7 +269,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	if needsBuild {
 		defer stackImages.Unlock()
 
-		files = append(files, buildComposeFile)
+		files = append(files, buildComposeFiles()...)
 	} else {
 		stackImages.Unlock()
 	}
@@ -341,6 +344,22 @@ type stackBuild struct {
 	envs         map[string]string
 }
 
+func buildComposeFiles() []string {
+	files := []string{buildComposeFile}
+
+	cache := imageCacheFromEnv()
+	if cache.repository == "" {
+		return files
+	}
+
+	files = append(files, layerCacheComposeFile)
+	if cache.push {
+		files = append(files, layerCachePushComposeFile)
+	}
+
+	return files
+}
+
 func newStackBuild(edition Edition, cloudDir string, run *Run) (stackBuild, error) {
 	files, err := edition.composeFiles(cloudDir)
 	if err != nil {
@@ -359,6 +378,10 @@ func newStackBuild(edition Edition, cloudDir string, run *Run) (stackBuild, erro
 		}
 
 		envs[goLDFlagsEnv] = flags
+	}
+
+	if cache := imageCacheFromEnv(); cache.repository != "" {
+		envs[layerCacheEnv] = cache.repository
 	}
 
 	return stackBuild{composeFiles: files, envFiles: edition.envFiles(cloudDir), envs: envs}, nil
