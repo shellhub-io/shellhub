@@ -19,25 +19,19 @@ on:
         required: false
 
 jobs:
-  e2e:
-    name: e2e
+  editions:
+    name: editions
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-
+    outputs:
+      list: ${{ steps.editions.outputs.list }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          path: shellhub
-
       - name: Decide which editions can run
         id: editions
         run: |
           if [ "$EVENT" != pull_request ] || [ "$HEAD_REPO" = "$REPO" ]; then
-              echo "list=community enterprise cloud" >> "$GITHUB_OUTPUT"
-              echo "cloud=true" >> "$GITHUB_OUTPUT"
+              echo 'list=["community","enterprise","cloud"]' >> "$GITHUB_OUTPUT"
           else
-              echo "list=community" >> "$GITHUB_OUTPUT"
+              echo 'list=["community"]' >> "$GITHUB_OUTPUT"
               echo "::notice title=enterprise and cloud e2e skipped::a pull request from a fork cannot check out the private cloud source"
           fi
         env:
@@ -45,9 +39,25 @@ jobs:
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           REPO: ${{ github.repository }}
 
+  e2e:
+    name: e2e (${{ matrix.edition }})
+    needs: editions
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: ${{ fromJSON(needs.editions.outputs.list) }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: shellhub
+
       - name: Generate cloud repo token
         id: cloud-token
-        if: steps.editions.outputs.cloud == 'true'
+        if: matrix.edition != 'community'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
@@ -58,7 +68,7 @@ jobs:
 
       - name: Determine cloud branch
         id: cloud-branch
-        if: steps.editions.outputs.cloud == 'true'
+        if: matrix.edition != 'community'
         env:
           GH_TOKEN: ${{ steps.cloud-token.outputs.token }}
           HEAD_REF: ${{ github.head_ref }}
@@ -70,7 +80,7 @@ jobs:
           fi
 
       - name: Check out cloud source
-        if: steps.editions.outputs.cloud == 'true'
+        if: matrix.edition != 'community'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/cloud
@@ -156,65 +166,18 @@ jobs:
         working-directory: shellhub/ui
         timeout-minutes: 60
         env:
-          EDITIONS: ${{ steps.editions.outputs.list }}
+          E2E_EDITION: ${{ matrix.edition }}
+          E2E_STACK_NAME: e2e-${{ matrix.edition }}
           E2E_RUNNER: host
-          E2E_KEEP_STACK: "1"
           SHELLHUB_E2E_IMAGE_REPOSITORY: ghcr.io/shellhub-io/shellhub-e2e-images
           SHELLHUB_E2E_IMAGE_PUSH: ${{ inputs.push-images }}
-          CLOUD_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
-          CLOUD_STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
-          CLOUD_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
-        run: |
-          # shellcheck disable=SC2329 # the EXIT trap below invokes it
-          tear_down_stacks() {
-              for edition in $EDITIONS; do
-                  E2E_STACK_NAME=e2e-$edition npm run e2e:down -w @shellhub/console || true
-              done
-          }
-          trap tear_down_stacks EXIT
-
-          declare -A pids
-          for edition in $EDITIONS; do
-              prefix=$(printf '%-12s' "[$edition]")
-              (
-                  set -o pipefail
-                  (
-                      if [ "$edition" = cloud ]; then
-                          export STRIPE_SECRET_KEY=$CLOUD_STRIPE_SECRET_KEY
-                          export STRIPE_PRICE_ID=$CLOUD_STRIPE_PRICE_ID
-                          export SHELLHUB_STRIPE_PUBLISHABLE_KEY=$CLOUD_STRIPE_PUBLISHABLE_KEY
-                      fi
-                      unset CLOUD_STRIPE_SECRET_KEY CLOUD_STRIPE_PRICE_ID CLOUD_STRIPE_PUBLISHABLE_KEY
-                      E2E_EDITION=$edition E2E_STACK_NAME=e2e-$edition \
-                          exec npm run e2e:test -w @shellhub/console
-                  ) 2>&1 | tee "$RUNNER_TEMP/e2e-$edition.log" | sed -u "s/^/$prefix /"
-              ) &
-              pids[$edition]=$!
-          done
-
-          declare -A statuses
-          for edition in $EDITIONS; do
-              status=0
-              wait "${pids[$edition]}" || status=$?
-              statuses[$edition]=$status
-          done
-
-          failed=0
-          for edition in $EDITIONS; do
-              status=${statuses[$edition]}
-              echo "::group::e2e ($edition) exited $status"
-              cat "$RUNNER_TEMP/e2e-$edition.log"
-              echo "::endgroup::"
-              if [ "$status" -ne 0 ]; then
-                  echo "::error title=e2e ($edition) failed::exit status $status"
-                  failed=1
-              fi
-          done
-
-          exit "$failed"
+          STRIPE_SECRET_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_SECRET_KEY || '' }}
+          STRIPE_PRICE_ID: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PRICE_ID || '' }}
+          SHELLHUB_STRIPE_PUBLISHABLE_KEY: ${{ matrix.edition == 'cloud' && secrets.STRIPE_TEST_PUBLISHABLE_KEY || '' }}
+        run: npm run e2e:test -w @shellhub/console
 
       - name: Save the Go caches
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.edition == 'enterprise' }}
         uses: ./shellhub/.github/actions/go-cache
         with:
           name: ui-e2e
@@ -225,10 +188,9 @@ jobs:
         if: ${{ failure() || cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.edition }}
           path: |
             shellhub/ui/apps/console/e2e/tmp
             shellhub/tests/.stack/*.log
-            ${{ runner.temp }}/e2e-*.log
           include-hidden-files: true
           retention-days: 14
