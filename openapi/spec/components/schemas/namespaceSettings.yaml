@@ -5,28 +5,18 @@ properties:
     $ref: namespaceSessionRecord.yaml
   connection_announcement:
     $ref: namespaceConnectionAnnouncement.yaml
-  ssh_access_mode:
+  legacy:
     description: |
-      The SSH access model governing the namespace.
-
-      - `legacy` — access is a public key with an ACL (and, on Cloud/Enterprise, firewall rules).
-      - `identity` — SSH logins go through browser approval and are authorized by Access Policies.
-    type: string
-    enum:
-      - legacy
-      - identity
-    readOnly: true
-    example: identity
-  ssh_legacy_allowed:
-    description: |
-      Whether the namespace may switch the SSH access mode to `legacy`. Only
-      namespaces that predate identity-first (grandfathered) have it `true`;
-      namespaces born in identity mode can never leave it. Server-controlled.
+      Whether the namespace still runs the legacy model: SSH access by public key ACL (and, on
+      Cloud/Enterprise, firewall rules) or password, and device enrollment by `TENANT_ID` alone.
+      A new namespace authorizes SSH through SSH identities and Access Policies and enrolls
+      devices by pairing or a provisioning key; a device presenting the deprecated `TENANT_ID`
+      alone still lands pending. Only namespaces that predate SSH identities and Access Policies
+      are legacy; the upgrade endpoint clears it and nothing sets it.
     type: boolean
     readOnly: true
     example: false
 required:
   - session_record
   - connection_announcement
-  - ssh_access_mode
-  - ssh_legacy_allowed
+  - legacy

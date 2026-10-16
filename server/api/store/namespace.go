@@ -55,16 +55,23 @@ type NamespaceStore interface {
 	// It returns the namespace or an error if any.
 	NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error)
 
-	// NamespaceCreate stores a namespace and returns its tenant ID. It enrols the owner as a
-	// member when namespace.Members omits them, appending to the slice the caller passed, because
-	// the owner policy seeded in the same transaction has a foreign key to that membership row.
+	// NamespaceCreate stores a namespace and returns its tenant ID. It always stores it as new,
+	// clearing namespace.Settings.Legacy on the caller's struct; only NamespaceUpgrade writes the
+	// flag. It seeds the owner's access policy, enrolling the owner as a member when
+	// namespace.Members omits them, appending to the slice the caller passed, because that policy
+	// has a foreign key to the membership row.
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error)
 
 	NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) (conflicts []string, has bool, err error)
 
 	// NamespaceUpdate updates a namespace. It returns an error, if any, or store.ErrNoDocuments if the
-	// 	namespace does not exist.
+	// 	namespace does not exist. It never writes the legacy flag; only NamespaceUpgrade does.
 	NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error
+
+	// NamespaceUpgrade clears the legacy flag of a namespace in one conditional update, so two
+	// concurrent calls cannot both succeed. It returns [ErrNamespaceNotLegacy] when the namespace is
+	// already new or does not exist, and the database's error otherwise.
+	NamespaceUpgrade(ctx context.Context, tenantID string) error
 
 	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
 	// Returns [ErrNoDocuments] if the namespace is not found.

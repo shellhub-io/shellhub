@@ -10,7 +10,7 @@ import (
 )
 
 func resolveKeyAuth(ctx gliderssh.Context, sess *session.Session, publicKey gliderssh.PublicKey) (session.Auth, error) {
-	if !sess.IsIdentityMode() {
+	if sess.IsLegacy() {
 		return session.AuthPublicKey(publicKey), nil
 	}
 
@@ -24,7 +24,7 @@ func resolveKeyAuth(ctx gliderssh.Context, sess *session.Session, publicKey glid
 // no session is registered, and the agent is not contacted. Everything with a
 // cost waits for [PublicKeyVerified].
 //
-// An unenrolled key is acceptable in identity mode — enrolling it is the point
+// An unenrolled key is acceptable in a new namespace — enrolling it is the point
 // of the flow — so a miss is not refused here.
 func PublicKeyOffer(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
 	logger := log.WithFields(

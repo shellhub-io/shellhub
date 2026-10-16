@@ -40,6 +40,7 @@ var Groups = []Group{
 		(*Suite).TestNamespaceConflicts,
 		(*Suite).TestNamespaceUpdate,
 		(*Suite).TestNamespaceUpdateDoesNotClobberDeviceCounts,
+		(*Suite).TestNamespaceUpgrade,
 		(*Suite).TestNamespaceIncrementDeviceCount,
 		(*Suite).TestNamespaceSyncDeviceCounts,
 		(*Suite).TestNamespaceDelete,

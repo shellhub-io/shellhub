@@ -1361,32 +1361,35 @@ func TestEditSessionRecord(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-func withSSHAccessMode(ns *models.Namespace, mode string) *models.Namespace {
-	settings := *ns.Settings
-	settings.SSHAccessMode = mode
-
-	expected := *ns
-	expected.Settings = &settings
-
-	return &expected
-}
-
-func TestEditSSHAccessMode(t *testing.T) {
+func TestUpgradeNamespace(t *testing.T) {
 	const tenantID = "00000000-0000-4000-0000-000000000000"
 	const ownerID = "owner-1"
 
 	errTransactionAborted := errors.New("transaction aborted")
 
+	legacyNamespace := func() *models.Namespace {
+		return &models.Namespace{
+			TenantID: tenantID,
+			Owner:    ownerID,
+			Settings: &models.NamespaceSettings{Legacy: true},
+		}
+	}
+
+	inTransaction := func(ctx context.Context, storeMock *storemock.MockStore) {
+		storeMock.
+			On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+			Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+			Once()
+	}
+
 	cases := []struct {
 		description string
-		mode        string
-		mocks       func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
+		mocks       func(ctx context.Context, storeMock *storemock.MockStore)
 		expected    error
 	}{
 		{
 			description: "fails when namespace not found",
-			mode:        models.SSHAccessModeIdentity,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(nil, store.ErrNoDocuments).
@@ -1395,71 +1398,32 @@ func TestEditSSHAccessMode(t *testing.T) {
 			expected: NewErrNamespaceNotFound(tenantID, store.ErrNoDocuments),
 		},
 		{
-			description: "rejects legacy when the namespace is not grandfathered",
-			mode:        models.SSHAccessModeLegacy,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				namespace := &models.Namespace{
-					TenantID: tenantID,
-					Owner:    ownerID,
-					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeIdentity},
-				}
+			description: "refuses a namespace that is already new",
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespace, nil).
+					Return(&models.Namespace{TenantID: tenantID, Owner: ownerID, Settings: &models.NamespaceSettings{}}, nil).
+					Once()
+				inTransaction(ctx, storeMock)
+				storeMock.
+					On("NamespaceUpgrade", ctx, tenantID).
+					Return(store.ErrNamespaceNotLegacy).
 					Once()
 			},
-			expected: NewErrForbidden(ErrNamespaceLegacyNotAllowed, nil),
+			expected: NewErrNamespaceNotLegacy(tenantID, store.ErrNamespaceNotLegacy),
 		},
 		{
-			description: "allows legacy when the namespace is grandfathered",
-			mode:        models.SSHAccessModeLegacy,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				namespace := &models.Namespace{
-					TenantID: tenantID,
-					Owner:    ownerID,
-					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeIdentity, SSHLegacyAllowed: true},
-				}
+			description: "upgrades and seeds the owner access policy",
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespace, nil).
+					Return(legacyNamespace(), nil).
 					Once()
-
+				inTransaction(ctx, storeMock)
 				storeMock.
-					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-
-				storeMock.
-					On("NamespaceUpdate", ctx, withSSHAccessMode(namespace, models.SSHAccessModeLegacy)).
+					On("NamespaceUpgrade", ctx, tenantID).
 					Return(nil).
 					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "switching to identity seeds the owner access policy",
-			mode:        models.SSHAccessModeIdentity,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				namespace := &models.Namespace{
-					TenantID: tenantID,
-					Owner:    ownerID,
-					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespace, nil).
-					Once()
-
-				storeMock.
-					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-
-				storeMock.
-					On("NamespaceUpdate", ctx, withSSHAccessMode(namespace, models.SSHAccessModeIdentity)).
-					Return(nil).
-					Once()
-
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{}, int64(0), nil).
@@ -1472,29 +1436,17 @@ func TestEditSSHAccessMode(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "switching to identity does not seed when policies exist",
-			mode:        models.SSHAccessModeIdentity,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				namespace := &models.Namespace{
-					TenantID: tenantID,
-					Owner:    ownerID,
-					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
-				}
+			description: "leaves the policies alone when the namespace already has one",
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespace, nil).
+					Return(legacyNamespace(), nil).
 					Once()
-
+				inTransaction(ctx, storeMock)
 				storeMock.
-					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-
-				storeMock.
-					On("NamespaceUpdate", ctx, withSSHAccessMode(namespace, models.SSHAccessModeIdentity)).
+					On("NamespaceUpgrade", ctx, tenantID).
 					Return(nil).
 					Once()
-
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{{ID: "existing"}}, int64(1), nil).
@@ -1503,19 +1455,12 @@ func TestEditSSHAccessMode(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "the mode switch and the seed share one transaction",
-			mode:        models.SSHAccessModeIdentity,
-			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				namespace := &models.Namespace{
-					TenantID: tenantID,
-					Owner:    ownerID,
-					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
-				}
+			description: "the upgrade and the seed share one transaction",
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespace, nil).
+					Return(legacyNamespace(), nil).
 					Once()
-
 				storeMock.
 					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(errTransactionAborted).
@@ -1533,11 +1478,11 @@ func TestEditSSHAccessMode(t *testing.T) {
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-			tc.mocks(ctx, storeMock, queryOptionsMock)
+			tc.mocks(ctx, storeMock)
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-			err := s.EditSSHAccessMode(ctx, tc.mode, tenantID)
+			err := s.UpgradeNamespace(ctx, tenantID)
 			assert.Equal(t, tc.expected, err)
 
 			storeMock.AssertExpectations(t)

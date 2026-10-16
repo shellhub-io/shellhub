@@ -26,7 +26,7 @@ import (
 
 var identityNow = time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
 
-func newIdentitySession(service services.Service, mode string) *Session {
+func newIdentitySession(service services.Service, legacy bool) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
@@ -43,7 +43,7 @@ func newIdentitySession(service services.Service, mode string) *Session {
 			Namespace: &models.Namespace{
 				Name:     "namespace",
 				TenantID: "tenant-id",
-				Settings: &models.NamespaceSettings{SSHAccessMode: mode},
+				Settings: &models.NamespaceSettings{Legacy: legacy},
 			},
 		},
 		once:   new(sync.Once),
@@ -65,9 +65,9 @@ func newTestSSHKey(t *testing.T) gliderssh.PublicKey {
 	return signer.PublicKey()
 }
 
-func TestIsIdentityMode(t *testing.T) {
-	require.True(t, newIdentitySession(nil, models.SSHAccessModeIdentity).IsIdentityMode())
-	require.False(t, newIdentitySession(nil, models.SSHAccessModeLegacy).IsIdentityMode())
+func TestIsLegacy(t *testing.T) {
+	require.True(t, newIdentitySession(nil, true).IsLegacy())
+	require.False(t, newIdentitySession(nil, false).IsLegacy())
 }
 
 func TestResolveKeyAuth(t *testing.T) {
@@ -81,7 +81,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHIdentity{PrincipalID: "user1", SingleUse: true}, true, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
@@ -100,7 +100,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHIdentity{PrincipalID: "user1", ConsumedAt: &consumedAt}, true, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
@@ -117,7 +117,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHIdentity{PrincipalID: "user1", ExpiresAt: &expiredAt}, true, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
@@ -132,7 +132,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(nil, false, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
@@ -149,7 +149,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(nil, false, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
@@ -173,7 +173,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
@@ -196,7 +196,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		ctx := newStubContext()
 
 		first, err := sess.ResolveKeyAuth(ctx, pubKey)
@@ -233,7 +233,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.Decision{Allowed: true}, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		ctx := newStubContext()
 
 		unenrolled, err := sess.ResolveKeyAuth(ctx, pubKey)
@@ -268,7 +268,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(nil, false, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		ctx := newStubContext()
 
 		_, err := sess.ResolveKeyAuth(ctx, pubKey)
@@ -314,7 +314,7 @@ func TestAuthorize(t *testing.T) {
 			Return(&models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: "user"}, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		sess.UserID = "user-id"
 
 		dec, err := sess.authorize(ctx)
@@ -347,7 +347,7 @@ func TestAuthorize(t *testing.T) {
 			Return(&models.Decision{Allowed: false, Reason: models.ReasonDeniedByPolicy, PolicyName: "block contractors"}, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		sess.UserID = "user-id"
 
 		_, err := sess.authorize(ctx)
@@ -371,7 +371,7 @@ func TestAuthorize(t *testing.T) {
 			Return(nil, errors.New("the store is unreachable")).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		sess.UserID = "user-id"
 
 		dec, err := sess.authorize(ctx)
@@ -398,7 +398,7 @@ func TestAuthorize(t *testing.T) {
 			Return(nil, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		sess.UserID = "user-id"
 
 		dec, err := sess.authorize(ctx)
@@ -419,7 +419,7 @@ func TestAuthorize(t *testing.T) {
 			Return(&models.Decision{Allowed: true, RequireReauth: true}, nil).
 			Once()
 
-		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, false)
 		sess.UserID = "user-id"
 
 		dec, err := sess.authorize(ctx)
@@ -444,7 +444,7 @@ func TestAReauthIsStillAskedAfterADismissedEnrollment(t *testing.T) {
 		Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil). //nolint:exhaustruct // only the code is read
 		Twice()
 
-	sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+	sess := newIdentitySession(serviceMock, false)
 
 	require.NoError(t, sess.beginChallenge(context.Background(), nil, models.SSHApprovalIdentity, nil))
 

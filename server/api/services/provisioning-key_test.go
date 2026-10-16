@@ -86,9 +86,18 @@ func TestCreateProvisioningKey(t *testing.T) {
 			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedErr: NewErrNamespaceNotFound(tenant, store.ErrNoDocuments),
+		},
+		{
+			description: "returns the store's error when the namespace cannot be read",
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(nil, errors.New("error")).Once()
 			},
-			expectedErr: NewErrNamespaceNotFound(tenant, errors.New("error")),
+			expectedErr: errors.New("error"),
 		},
 		{
 			description: "creates a key that never expires when expires_in is omitted",
@@ -356,9 +365,9 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
-					Return(nil, errors.New("error")).Once()
+					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expectedErr: NewErrNamespaceNotFound(tenant, errors.New("error")),
+			expectedErr: NewErrNamespaceNotFound(tenant, store.ErrNoDocuments),
 		},
 		{
 			description: "fails when the key does not exist",
@@ -398,30 +407,26 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			description: "changes the legacy key's enrollment mode",
+			description: "rejects changing the legacy key's enrollment mode",
 			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "legacy", Mode: &modeAutomatic},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
-				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeAutomatic}).
-					Return(nil).Once()
 			},
-			expectedErr: nil,
+			expectedErr: NewErrProvisioningKeyForbidden(),
 		},
 		{
-			description: "allows disabling the legacy key to turn off keyless enrollment",
+			description: "rejects disabling the legacy key",
 			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "legacy", Disabled: &truePtr},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
-				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual, Disabled: true}).
-					Return(nil).Once()
 			},
-			expectedErr: nil,
+			expectedErr: NewErrProvisioningKeyForbidden(),
 		},
 		{
 			description: "rejects changing a fixed field (name/limit/tags) on the legacy key",
@@ -782,6 +787,90 @@ func TestListProvisioningKeyEvents(t *testing.T) {
 
 			result, count, err := s.ListProvisioningKeyEvents(ctx, tc.req)
 			require.Equal(t, tc.expectedErr, err)
+			require.Equal(t, tc.expectedCount, count)
+			require.Equal(t, tc.expectedEvents, result)
+		})
+	}
+
+	storeMock.AssertExpectations(t)
+}
+
+func TestListTenantRegistrations(t *testing.T) {
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	events := []models.ProvisioningKeyEvent{{ID: "e1", ProvisioningKeyID: "tenant-digest", TenantID: tenant, Hostname: "web-01"}}
+	errStore := errors.New("store failure")
+	page := func() *requests.ListTenantRegistrations {
+		return &requests.ListTenantRegistrations{TenantID: tenant, Paginator: query.Paginator{Page: 1, PerPage: 10}}
+	}
+
+	cases := []struct {
+		description    string
+		req            *requests.ListTenantRegistrations
+		requiredMocks  func(ctx context.Context)
+		expectedEvents []models.ProvisioningKeyEvent
+		expectedCount  int64
+		expectedErr    error
+	}{
+		{
+			description:    "fails for an empty tenant",
+			req:            &requests.ListTenantRegistrations{},
+			requiredMocks:  func(context.Context) {},
+			expectedEvents: nil,
+			expectedErr:    ErrForbidden,
+		},
+		{
+			description: "answers an empty page when the namespace has no tenant-only key",
+			req:         page(),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedEvents: []models.ProvisioningKeyEvent{},
+		},
+		{
+			description: "fails with the store's error when the tenant-only key cannot be read",
+			req:         page(),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(nil, errStore).Once()
+			},
+			expectedEvents: nil,
+			expectedErr:    errStore,
+		},
+		{
+			description: "lists the tenant-only key's history, sorted by creation with an id tiebreak by default",
+			req:         page(),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).
+					Return(&models.ProvisioningKey{ID: "tenant-digest", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy}, nil).Once()
+				queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Tiebreak: "id"}).Return(nil).Once()
+				queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
+				storeMock.On("ProvisioningKeyEventList", ctx, scope.MustBounded(tenant), "tenant-digest", mock.AnythingOfType("[]store.QueryOption")).
+					Return(events, int64(1), nil).Once()
+			},
+			expectedEvents: events,
+			expectedCount:  1,
+		},
+	}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
+
+			result, count, err := s.ListTenantRegistrations(ctx, tc.req)
+			if tc.expectedErr != nil {
+				require.ErrorIs(t, err, tc.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
 			require.Equal(t, tc.expectedCount, count)
 			require.Equal(t, tc.expectedEvents, result)
 		})

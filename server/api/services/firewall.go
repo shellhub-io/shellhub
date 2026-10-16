@@ -29,7 +29,7 @@ func FirewallEvaluatorFactory() FirewallEvaluatorFactoryFunc {
 
 // FirewallEvaluator reports whether the legacy firewall (a key/username/source-IP
 // blocklist) lets an SSH connection through. It is enterprise-only and is bypassed
-// entirely when the namespace runs in identity access mode, where Access Policies are
+// entirely when the namespace is new, where Access Policies are
 // the authorization model.
 type FirewallEvaluator interface {
 	// AllowsConnection returns nil when the connection may proceed,

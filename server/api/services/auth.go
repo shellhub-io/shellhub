@@ -52,11 +52,12 @@ type AuthService interface {
 	// window or stamped ahead of the clock, for a signature
 	// that does not verify, and for an unsigned request when the instance requires verification or the
 	// device has verified its key before. It returns [ErrAuthUnathorized] for a removed device that was
-	// paired, [ErrAuthInvalid] for a provisioning key that is unknown, unusable or required and
-	// missing, [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
+	// paired, [ErrAuthInvalid] for a provisioning key that is unknown or unusable,
+	// [ErrAuthNamespaceLegacy] for a device a legacy namespace does not know that presents a
+	// provisioning key or a pairing, [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new device
-	// cannot be stored. It returns the store's error when the device, the namespace's pairing key, its counters or its heartbeat cannot
+	// cannot be stored. It returns the store's error when the device, the namespace's pairing or legacy key, its counters or its heartbeat cannot
 	// be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. It returns
@@ -183,7 +184,23 @@ func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.Pr
 	}
 }
 
-func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
+func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool, settings *models.NamespaceSettings) (*models.ProvisioningKey, error) {
+	if settings.IsLegacy() {
+		return s.legacyEnrollmentKey(ctx, sc, req, paired)
+	}
+
+	return s.newEnrollmentKey(ctx, sc, req, paired)
+}
+
+func (s *service) legacyEnrollmentKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
+	if req.ProvisioningKey != "" || paired {
+		return nil, NewErrAuthNamespaceLegacy()
+	}
+
+	return s.tenantEnrollmentKey(ctx, sc)
+}
+
+func (s *service) newEnrollmentKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
 	if req.ProvisioningKey != "" {
 		sk, err := s.presentedProvisioningKey(ctx, sc, req.ProvisioningKey)
 		if errors.Is(err, errProvisioningKeyUnusable) {
@@ -205,15 +222,20 @@ func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope,
 		return nil, nil
 	}
 
-	if legacy, err := s.store.ProvisioningKeyResolveSystem(ctx, sc); err == nil {
-		if !legacy.IsValid(s.clock.Now()) {
-			return nil, NewErrAuthInvalid(map[string]any{"provisioning_key": "required"}, nil)
-		}
+	return s.tenantEnrollmentKey(ctx, sc)
+}
 
-		return legacy, nil
+func (s *service) tenantEnrollmentKey(ctx context.Context, sc scope.Scope) (*models.ProvisioningKey, error) {
+	key, err := s.store.ProvisioningKeyResolveSystem(ctx, sc)
+	if errors.Is(err, store.ErrNoDocuments) {
+		return nil, nil
 	}
 
-	return nil, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
 }
 
 func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey string) (string, error) {
@@ -229,8 +251,6 @@ func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey str
 	return sk.TenantID, nil
 }
 
-// AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
-// attributes to the namespace's legacy key (see enrollmentProvisioningKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
 	verification, err := s.verifyDeviceKey(req)
 	if err != nil {
@@ -454,7 +474,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			return nil, err
 		}
 
-		provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
+		provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired, namespace.Settings)
 		if err != nil {
 			return nil, err
 		}
@@ -546,7 +566,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 				}
 			}
 
-			provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired)
+			provisioningKey, err = s.enrollmentProvisioningKey(ctx, sc, req, enrollment.paired, namespace.Settings)
 			if err != nil {
 				return nil, err
 			}

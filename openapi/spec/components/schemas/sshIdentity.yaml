@@ -1,6 +1,5 @@
 description: |
-  An SSH key enrolled as an identity within a namespace under the identity SSH
-  access mode. The key's fingerprint is what the gateway resolves to the bound
+  An SSH key enrolled as an identity within a new namespace. The key's fingerprint is what the gateway resolves to the bound
   principal on each connection.
 type: object
 properties:

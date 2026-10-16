@@ -11,7 +11,7 @@ const (
 	RoleInvalid Role = ""
 	// RoleObserver represents a namespace observer. An observer can only retrieve device
 	// and session details. It holds no [DeviceConnect], so it cannot connect to a device,
-	// except by native SSH in the legacy access mode, where no identity reaches the check.
+	// except by native SSH in a legacy namespace, where no identity reaches the check.
 	RoleObserver Role = "observer"
 	// RoleOperator represents a namespace operator. An operator has only device-related
 	// permissions, excluding the [DeviceRemove] permission. An operator also has the

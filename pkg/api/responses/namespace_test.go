@@ -82,7 +82,7 @@ func TestNamespaceFromModelDoesNotMutateSource(t *testing.T) {
 
 func TestNamespaceFromModelProjectsEveryField(t *testing.T) {
 	createdAt := time.Date(2026, 9, 16, 12, 0, 0, 0, time.UTC)
-	settings := &models.NamespaceSettings{SessionRecord: true, SSHAccessMode: "identity"}
+	settings := &models.NamespaceSettings{SessionRecord: true, Legacy: true}
 	billing := &models.Billing{CustomerID: "cus_test"}
 
 	res := responses.NamespaceFromModel(&models.Namespace{

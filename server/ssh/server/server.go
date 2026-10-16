@@ -195,7 +195,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 		},
 		NoClientAuthCallback: func(gossh.ConnMetadata) (*gossh.Permissions, error) {
 			sess, state := session.ObtainSession(ctx)
-			if !state.Evaluated() || sess.Web || !sess.IsIdentityMode() {
+			if !state.Evaluated() || sess.Web || sess.IsLegacy() {
 				return nil, errNoneAuthUnsupported
 			}
 

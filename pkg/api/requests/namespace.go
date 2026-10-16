@@ -110,9 +110,8 @@ type SessionEditRecordStatus struct {
 	SessionRecord bool `json:"session_record"`
 }
 
-// EditSSHAccessMode is the structure to represent the request data for the edit
-// SSH access mode endpoint.
-type EditSSHAccessMode struct {
+// UpgradeNamespace is the request to upgrade a legacy namespace to a new one. It names the
+// namespace by the tenant in the path and carries no body, since the upgrade has no options.
+type UpgradeNamespace struct {
 	TenantParam
-	SSHAccessMode string `json:"ssh_access_mode" validate:"required,oneof=legacy identity"`
 }

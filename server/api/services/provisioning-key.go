@@ -165,17 +165,19 @@ type ProvisioningKeyService interface {
 	// stores its SHA256 hash plus an encrypted-at-rest copy, and returns the plaintext key once. The key
 	// holds the tags it names, creating any the namespace lacks, so a later rename carries over to it.
 	// Tags and key are written in one transaction, so a failed request creates no tag. It returns
-	// [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace does not exist,
-	// [ErrProvisioningKeyInvalidField] for an unknown mode or one its webhook or identity settings do
-	// not satisfy and [ErrProvisioningKeyDuplicated] when the name is taken. A ctx cancelled or past
-	// its deadline returns [ErrNamespaceNotFound] when it stops the namespace lookup and ctx's error
-	// after it. Any other failure returns the underlying error, the store's for a tag that can be
-	// neither resolved nor created included.
+	// [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when no namespace carries the tenant,
+	// [ErrNamespaceLegacy] in a legacy namespace, [ErrProvisioningKeyInvalidField] for an unknown mode
+	// or one its webhook or identity settings do not satisfy and [ErrProvisioningKeyDuplicated] when
+	// the name is taken. Any other failure returns the underlying error: the store's when the
+	// namespace cannot be read, a ctx cancelled or past its deadline included, and the store's for a
+	// tag that can be neither resolved nor created.
 	CreateProvisioningKey(ctx context.Context, req *requests.CreateProvisioningKey) (res *responses.CreateProvisioningKey, err error)
 
 	// RevealProvisioningKey returns the plaintext of a provisioning key, decrypted from its at-rest ciphertext. It
-	// rejects the system key and keys with no stored ciphertext. It returns the plaintext and an
-	// error, if any.
+	// returns ErrForbidden for an empty tenant, ErrNamespaceNotFound when no namespace carries the
+	// tenant, ErrNamespaceLegacy in a legacy namespace, ErrProvisioningKeyNotFound for a key that does
+	// not exist, is a system key or has no stored ciphertext, and the store's or the decryption's
+	// error otherwise.
 	RevealProvisioningKey(ctx context.Context, req *requests.RevealProvisioningKey) (key string, err error)
 
 	// ListProvisioningKeys retrieves a list of provisioning keys within the specified tenant ID. It returns the
@@ -185,24 +187,47 @@ type ProvisioningKeyService interface {
 	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. Tags, when set,
 	// replace the tags the key holds, creating any the namespace lacks. Tags are resolved only once
 	// every field has validated, in the transaction that writes the key, so a rejected request creates
-	// no tag. It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace
-	// does not exist, [ErrProvisioningKeyNotFound] when no key has the current name and
-	// [ErrProvisioningKeyForbidden] for the pairing key, a revoked key, or a system key asked to change
-	// its name, revocation, usage limit, expiry, tags or ephemeral settings. It returns
-	// [ErrProvisioningKeyDuplicated] for a new name already taken, [ErrProvisioningKeyInvalidField]
-	// for an unknown mode or one its settings do not satisfy, a usage limit below the times the key
-	// was used or an expiry outside 1 to 36500 days. A ctx cancelled or past its deadline returns
-	// [ErrNamespaceNotFound] when it stops the namespace lookup and ctx's error after it. Any other
-	// failure returns the store's error, a tag that can be neither resolved nor created included.
+	// no tag. It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when no namespace
+	// carries the tenant, [ErrNamespaceLegacy] in a legacy namespace, [ErrProvisioningKeyNotFound]
+	// when no key has the current name and [ErrProvisioningKeyForbidden] for any field on a system
+	// key or a revoked key. It returns [ErrProvisioningKeyDuplicated] for a new name already taken,
+	// [ErrProvisioningKeyInvalidField] for an unknown mode or one its settings do not satisfy, a usage
+	// limit below the times the key was used or an expiry outside 1 to 36500 days. Any other failure
+	// returns the store's error, a ctx cancelled or past its deadline and a tag that can be neither
+	// resolved nor created included.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
 	// ListProvisioningKeyEvents retrieves the append-only enrollment history of the provisioning key identified by
 	// tenant ID and name, newest first. It returns the events, the total count, and an error, if any.
 	ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) (events []models.ProvisioningKeyEvent, count int64, err error)
 
+	// ListTenantRegistrations pages the registration history of the namespace's tenant-only key, the
+	// one a device presenting only the tenant enrolls under, with the same order and fields as
+	// [ProvisioningKeyService.ListProvisioningKeyEvents]. A namespace without that key has no history
+	// and gets an empty page. It returns [ErrForbidden] for an empty tenant and the store's error when
+	// the key or its history cannot be read.
+	ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) (events []models.ProvisioningKeyEvent, count int64, err error)
+
 	// ResolveEnrollmentCallback applies a webhook integrator's deferred decision, authenticated solely
 	// by the signed callback token. It returns an error, if any.
 	ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) (err error)
+}
+
+func (s *service) provisioningKeysAvailable(ctx context.Context, tenantID string) error {
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrNamespaceNotFound(tenantID, err)
+		}
+
+		return err
+	}
+
+	if namespace.Settings.IsLegacy() {
+		return NewErrNamespaceLegacy(tenantID)
+	}
+
+	return nil
 }
 
 func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.CreateProvisioningKey) (*responses.CreateProvisioningKey, error) {
@@ -211,8 +236,8 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 		return nil, err
 	}
 
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	if err := s.provisioningKeysAvailable(ctx, req.TenantID); err != nil {
+		return nil, err
 	}
 
 	mode := models.ProvisioningKeyMode(req.Mode)
@@ -323,8 +348,8 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		return err
 	}
 
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
+	if err := s.provisioningKeysAvailable(ctx, req.TenantID); err != nil {
+		return err
 	}
 
 	provisioningKey, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, req.CurrentName)
@@ -337,15 +362,7 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		}
 	}
 
-	if provisioningKey.IsPairing() {
-		return NewErrProvisioningKeyForbidden()
-	}
-
-	if provisioningKey.IsSystem() {
-		if req.Name != "" || req.Revoked != nil || req.UsageLimit != nil || req.ExpiresIn.Present || req.Tags != nil || req.Ephemeral != nil || req.EphemeralTimeout != nil {
-			return NewErrProvisioningKeyForbidden()
-		}
-	} else if provisioningKey.Revoked {
+	if provisioningKey.IsSystem() || provisioningKey.Revoked {
 		return NewErrProvisioningKeyForbidden()
 	}
 
@@ -481,6 +498,10 @@ func (s *service) RevealProvisioningKey(ctx context.Context, req *requests.Revea
 		return "", err
 	}
 
+	if err := s.provisioningKeysAvailable(ctx, req.TenantID); err != nil {
+		return "", err
+	}
+
 	provisioningKey, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, req.Name)
 	if err != nil {
 		switch {
@@ -514,19 +535,34 @@ func (s *service) ListProvisioningKeyEvents(ctx context.Context, req *requests.L
 		}
 	}
 
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
+	return s.listRegistrations(ctx, sc, provisioningKey.ID, &req.Sorter, &req.Paginator)
+}
+
+func (s *service) listRegistrations(ctx context.Context, sc scope.Scope, keyID string, sorter *query.Sorter, paginator *query.Paginator) ([]models.ProvisioningKeyEvent, int64, error) {
+	if sorter.By == "" {
+		sorter.By = "created_at"
 	}
 
-	req.Sorter.Tiebreak = "id"
+	sorter.Tiebreak = "id"
 
-	return s.store.ProvisioningKeyEventList(
-		ctx,
-		sc,
-		provisioningKey.ID,
-		s.store.Options().Sort(&req.Sorter),
-		s.store.Options().Paginate(&req.Paginator),
-	)
+	return s.store.ProvisioningKeyEventList(ctx, sc, keyID, s.store.Options().Sort(sorter), s.store.Options().Paginate(paginator))
+}
+
+func (s *service) ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	tenantKey, err := s.store.ProvisioningKeyResolveSystem(ctx, sc)
+	switch {
+	case errors.Is(err, store.ErrNoDocuments):
+		return []models.ProvisioningKeyEvent{}, 0, nil
+	case err != nil:
+		return nil, 0, err
+	}
+
+	return s.listRegistrations(ctx, sc, tenantKey.ID, &req.Sorter, &req.Paginator)
 }
 
 func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) error {

@@ -1,0 +1,57 @@
+get:
+  summary: List the tenant-only registrations
+  description: |
+    Returns the registration history of the namespace's tenant-only key, the one a device that
+    presents only the tenant ID enrolls under: one row per registration, newest first, with how it
+    was decided. Open to every member who may accept devices, so the queue can be worked without
+    listing provisioning keys. A namespace without that key answers an empty list.
+  operationId: listTenantRegistrations
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: The list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+      required: false
+      in: query
+    - name: sort_by
+      description: |
+        The property to sort by. Accepts `hostname`, `source_ip`, `decided_status`, `decided_at`
+        and `created_at`; any other value is rejected with 400.
+      schema:
+        type: string
+        example: created_at
+        default: created_at
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/provisioningKeyEvent.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

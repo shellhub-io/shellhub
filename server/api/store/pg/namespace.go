@@ -35,13 +35,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.Settings = &models.NamespaceSettings{}
 	}
 
-	if namespace.Settings.SSHAccessMode == "" {
-		namespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
-	}
-
-	if namespace.Settings.SSHAccessMode == models.SSHAccessModeLegacy {
-		namespace.Settings.SSHLegacyAllowed = true
-	}
+	namespace.Settings.Legacy = false
 
 	if namespace.Owner != "" {
 		if _, ok := namespace.FindMember(namespace.Owner); !ok {
@@ -93,7 +87,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			return err
 		}
 
-		if namespace.Settings.IsIdentityAccess() && namespace.Owner != "" {
+		if namespace.Owner != "" {
 			if _, err := pg.AccessPolicyCreate(ctx, models.NewOwnerAccessPolicy(namespace.TenantID, namespace.Owner)); err != nil {
 				return err
 			}
@@ -290,6 +284,32 @@ func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) 
 
 	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
 		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+// NamespaceUpgrade implements [store.NamespaceStore].
+func (pg *Pg) NamespaceUpgrade(ctx context.Context, tenantID string) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.Namespace)(nil)).
+		Set("legacy = false").
+		Set("updated_at = ?", pg.clock.Now()).
+		Where("id = ? AND legacy = true", tenantID).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	rowsAffected, err := r.RowsAffected()
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected == 0 {
+		return store.ErrNamespaceNotLegacy
 	}
 
 	return nil
