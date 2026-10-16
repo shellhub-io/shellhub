@@ -1,18 +1,11 @@
 import { useState, type FormEvent } from "react";
-import {
-  CheckIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { CheckIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
 import { type ProvisioningKey, type ProvisioningKeyUpdate } from "@/client";
-import {
-  getRemainingDays,
-  isSystemKey,
-  keyExpiryUpdatePayload,
-} from "./helpers";
+import { getRemainingDays, keyExpiryUpdatePayload } from "./helpers";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
@@ -38,7 +31,6 @@ function EditProvisioningKeyModal({
 }) {
   const updateKey = useUpdateProvisioningKey();
   const open = provisioningKey !== null;
-  const isSystem = provisioningKey ? isSystemKey(provisioningKey) : false;
   const [name, setName] = useState("");
   const [mode, setMode] = useState<ProvisioningKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -117,15 +109,13 @@ function EditProvisioningKeyModal({
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (!provisioningKey) return;
-    if (!isSystem) {
-      const validationError = validateName(name.trim());
-      if (validationError) {
-        setNameError(validationError);
-        return;
-      }
-      if (usageLimitError) {
-        return;
-      }
+    const validationError = validateName(name.trim());
+    if (validationError) {
+      setNameError(validationError);
+      return;
+    }
+    if (usageLimitError) {
+      return;
     }
     if (modeError) {
       setError(modeError);
@@ -147,17 +137,15 @@ function EditProvisioningKeyModal({
           : {}),
         ...(mode === "allowlist" ? { allowed_identities: identityList } : {}),
       };
-      const body: ProvisioningKeyUpdate = isSystem
-        ? modeBody
-        : {
-            ...modeBody,
-            name: name.trim(),
-            usage_limit: usageLimit,
-            ...(expiryTouched ? keyExpiryUpdatePayload(expiresIn) : {}),
-            tags,
-            ephemeral,
-            ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
-          };
+      const body: ProvisioningKeyUpdate = {
+        ...modeBody,
+        name: name.trim(),
+        usage_limit: usageLimit,
+        ...(expiryTouched ? keyExpiryUpdatePayload(expiresIn) : {}),
+        tags,
+        ephemeral,
+        ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
+      };
 
       await updateKey.mutateAsync({
         path: { key: provisioningKey.name },
@@ -195,7 +183,9 @@ function EditProvisioningKeyModal({
             disabled={
               submitting ||
               !!modeError ||
-              (!isSystem && (!!nameError || !!usageLimitError || !name.trim()))
+              !!nameError ||
+              !!usageLimitError ||
+              !name.trim()
             }
             loading={submitting}
             icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
@@ -206,25 +196,16 @@ function EditProvisioningKeyModal({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {isSystem && (
-          <p className="text-2xs text-text-muted">
-            This is the namespace's default key: it accepts devices that
-            register with only a tenant ID (no Provisioning Key). Its mode sets
-            what happens to every such keyless device.
-          </p>
-        )}
-        {!isSystem && (
-          <InputField
-            id="edit-provisioning-key-name"
-            label="Name"
-            value={name}
-            onChange={handleNameChange}
-            onBlur={handleNameBlur}
-            placeholder="e.g. fleet-provisioning"
-            error={nameError || undefined}
-            maxLength={20}
-          />
-        )}
+        <InputField
+          id="edit-provisioning-key-name"
+          label="Name"
+          value={name}
+          onChange={handleNameChange}
+          onBlur={handleNameBlur}
+          placeholder="e.g. fleet-provisioning"
+          error={nameError || undefined}
+          maxLength={20}
+        />
         <ModeField
           idPrefix="edit-provisioning-key"
           mode={mode}
@@ -242,42 +223,38 @@ function EditProvisioningKeyModal({
           isEditing={alreadyWebhook}
           panelKey={provisioningKey?.name}
         />
-        {!isSystem && (
-          <>
-            <div>
-              {isExpired && (
-                <Callout variant="warning" className="mb-3">
-                  This key has expired. Set a new expiration to resume
-                  registrations.
-                </Callout>
-              )}
-              <ExpirationField
-                expiresIn={expiresIn}
-                onExpiresInChange={handleExpiresInChange}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <UsageLimitField value={usageLimit} onChange={setUsageLimit} />
-              {usageLimitError && (
-                <p className="text-2xs text-accent-red">{usageLimitError}</p>
-              )}
-            </div>
-            <EphemeralField
-              id="edit-provisioning-key-ephemeral"
-              enabled={ephemeral}
-              onEnabledChange={setEphemeral}
-              timeout={ephemeralTimeout}
-              onTimeoutChange={setEphemeralTimeout}
-            />
-            <TagsSelector
-              id="edit-provisioning-key-tags"
-              label="Tags"
-              selected={tags}
-              onChange={setTags}
-              hint="Tags applied to every device registered with this key."
-            />
-          </>
-        )}
+        <div>
+          {isExpired && (
+            <Callout variant="warning" className="mb-3">
+              This key has expired. Set a new expiration to resume
+              registrations.
+            </Callout>
+          )}
+          <ExpirationField
+            expiresIn={expiresIn}
+            onExpiresInChange={handleExpiresInChange}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <UsageLimitField value={usageLimit} onChange={setUsageLimit} />
+          {usageLimitError && (
+            <p className="text-2xs text-accent-red">{usageLimitError}</p>
+          )}
+        </div>
+        <EphemeralField
+          id="edit-provisioning-key-ephemeral"
+          enabled={ephemeral}
+          onEnabledChange={setEphemeral}
+          timeout={ephemeralTimeout}
+          onTimeoutChange={setEphemeralTimeout}
+        />
+        <TagsSelector
+          id="edit-provisioning-key-tags"
+          label="Tags"
+          selected={tags}
+          onChange={setTags}
+          hint="Tags applied to every device registered with this key."
+        />
         {error && <p className="text-2xs text-accent-red">{error}</p>}
       </form>
     </Modal>

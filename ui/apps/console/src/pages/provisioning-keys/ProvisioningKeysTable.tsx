@@ -12,7 +12,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { capitalize } from "@/utils/string";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import ProvisioningKeyActionsMenu from "./ProvisioningKeyActionsMenu";
-import StatusChip, { DeprecatedBadge } from "./StatusChip";
+import StatusChip from "./StatusChip";
 import UsageMeter from "./UsageMeter";
 import {
   ephemeralPhrase,
@@ -34,7 +34,6 @@ function KeyCell({
   selected: boolean;
 }) {
   const { revoked, disabled, expired, inert, quiet } = getKeyBlockers(key);
-  const system = isSystemKey(key);
   const mode = keyModeInfo(key);
   const state = revoked
     ? "Revoked"
@@ -75,7 +74,6 @@ function KeyCell({
           >
             {provisioningKeyDisplayName(key)}
           </Link>
-          {system && !isPairingKey(key) && <DeprecatedBadge />}
           {key.tags?.map((tag) => (
             <StatusChip key={tag} label={tag} tone="primary" mono />
           ))}

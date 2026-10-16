@@ -6,7 +6,12 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { mockDevice, mockNamespace, mockStats } from "@/tests/factories";
+import {
+  mockDevice,
+  mockLegacyNamespace,
+  mockNamespace,
+  mockStats,
+} from "@/tests/factories";
 import { getConfig, defaultConfig } from "@/env";
 import FirstRunGate from "../FirstRunGate";
 
@@ -540,17 +545,15 @@ describe("FirstRunGate shell step", () => {
   it.each([
     {
       mode: "identity" as const,
-      legacyAllowed: false,
       hint: /uses your ssh key\. the first time, it shows a link to approve it\./i,
     },
     {
       mode: "legacy" as const,
-      legacyAllowed: true,
       hint: /the device's own users and passwords apply\./i,
     },
   ])(
     "tells how the ssh command signs in when the namespace is in $mode mode",
-    async ({ mode, legacyAllowed, hint }) => {
+    async ({ mode, hint }) => {
       serveDashboard();
       serveLinkedDevice("shellhub.local:22");
       server.use(
@@ -562,8 +565,7 @@ describe("FirstRunGate shell step", () => {
               settings: {
                 session_record: false,
                 connection_announcement: "",
-                ssh_access_mode: mode,
-                ssh_legacy_allowed: legacyAllowed,
+                legacy: mode === "legacy",
               },
             }),
           ),
@@ -600,5 +602,21 @@ describe("FirstRunGate when the counts fail", () => {
     renderAt("/dashboard");
 
     expect(await screen.findByText("normal dashboard")).toBeInTheDocument();
+  });
+
+  it("installs a legacy namespace's first device with its tenant and a login code", async () => {
+    serveDashboard();
+    server.use(
+      http.get(`*/api/namespaces/${TENANT}`, () =>
+        HttpResponse.json(
+          mockLegacyNamespace({ tenant_id: TENANT, name: "dev" }),
+        ),
+      ),
+    );
+    renderAt("/dashboard");
+
+    expect(await screen.findByText(/TENANT_ID=tenant-1/)).toBeInTheDocument();
+    expect(screen.getByText(/shellhub-agent login/)).toBeInTheDocument();
+    expect(screen.queryByText(/accept-device\?code=/)).not.toBeInTheDocument();
   });
 });

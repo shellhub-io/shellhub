@@ -1,3 +1,4 @@
+import type { NamespaceCredential } from "./seed";
 import {
   generateKeyPairSync,
   randomBytes,
@@ -81,10 +82,15 @@ export function buildDeviceAuthRequest() {
   };
 }
 
-export async function enrollDevice(tenant: string) {
+export async function enrollDevice({
+  tenant,
+  provisioningKey,
+}: NamespaceCredential) {
   const body = await signDeviceAuth({
     ...buildDeviceAuthRequest(),
-    tenant_id: tenant,
+    ...(provisioningKey
+      ? { provisioning_key: provisioningKey }
+      : { tenant_id: tenant }),
   });
   const { data } = await authDevice({ ...buildRequestContext(), body });
   if (!data.uid || !data.token) {

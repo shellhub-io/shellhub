@@ -23,8 +23,7 @@ import IdentityModal from "@/pages/ssh-identities/IdentityModal";
 import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
 import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
-import { useNamespace } from "@/hooks/useNamespaces";
-import { useAuthStore } from "@/stores/authStore";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatDateShort } from "@/utils/date";
 import { type ApiKey, type SshIdentity } from "@/client";
@@ -90,9 +89,7 @@ function KeySshAccessModal({
   const keyName = apiKey?.name ?? "";
   const { identities, isLoading } = useApiKeySshIdentities(keyName, open);
   const { policies } = useAccessPolicies();
-  const { tenant } = useAuthStore();
-  const { namespace } = useNamespace(tenant ?? "");
-  const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
+  const isNewNamespace = useNamespaceLegacy() !== true;
   const deleteIdentity = useDeleteSSHIdentity();
   const invalidate = useInvalidateByIds("listApiKeySshIdentities");
   const [addOpen, setAddOpen] = useState(false);
@@ -227,7 +224,7 @@ function KeySshAccessModal({
             {reaching.length === 0 ? (
               <p className="text-xs text-text-muted">
                 No policy names this key yet.
-                {isIdentityMode && (
+                {isNewNamespace && (
                   <>
                     {" "}
                     <Link

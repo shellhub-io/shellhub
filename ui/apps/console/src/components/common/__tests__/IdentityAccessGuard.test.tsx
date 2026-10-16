@@ -6,11 +6,10 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { useNamespace } from "@/hooks/useNamespaces";
-import { useAuthStore } from "@/stores/authStore";
+import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import IdentityAccessGuard from "../IdentityAccessGuard";
 
-function setAccessMode(mode: "legacy" | "identity") {
+function serveNamespace(legacy: boolean) {
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(
@@ -18,20 +17,12 @@ function setAccessMode(mode: "legacy" | "identity") {
           settings: {
             session_record: false,
             connection_announcement: "",
-            ssh_access_mode: mode,
-            ssh_legacy_allowed: true,
+            legacy,
           },
         }),
       ),
     ),
   );
-}
-
-function ResolvedMode() {
-  const { tenant } = useAuthStore();
-  const { namespace } = useNamespace(tenant ?? "");
-
-  return <div>mode: {namespace?.settings?.ssh_access_mode ?? "pending"}</div>;
 }
 
 beforeEach(() => {
@@ -49,7 +40,7 @@ function renderGuard() {
             element={
               <>
                 <div>policies content</div>
-                <ResolvedMode />
+                <NamespaceModeProbe />
               </>
             }
           />
@@ -62,8 +53,8 @@ function renderGuard() {
 }
 
 describe("IdentityAccessGuard", () => {
-  it("sends the page to public keys in legacy mode", async () => {
-    setAccessMode("legacy");
+  it("sends the page to public keys in a legacy namespace", async () => {
+    serveNamespace(true);
     renderGuard();
 
     expect(await screen.findByText("public keys")).toBeInTheDocument();
@@ -71,10 +62,10 @@ describe("IdentityAccessGuard", () => {
   });
 
   it("keeps the page once the namespace settles as identity", async () => {
-    setAccessMode("identity");
+    serveNamespace(false);
     renderGuard();
 
-    expect(await screen.findByText("mode: identity")).toBeInTheDocument();
+    expect(await screen.findByText("mode: new")).toBeInTheDocument();
     expect(screen.getByText("policies content")).toBeInTheDocument();
     expect(screen.queryByText("public keys")).not.toBeInTheDocument();
   });

@@ -7,6 +7,9 @@ import {
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useStats } from "@/hooks/useStats";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
+import { useLegacyProvisioningKey } from "@/hooks/useProvisioningKeys";
+import { provisioningKeyActivityPath } from "@/pages/provisioning-keys/helpers";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import CopyButton from "@/components/common/CopyButton";
@@ -20,6 +23,16 @@ export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading } = useStats();
+  const legacy = useNamespaceLegacy() === true;
+  const legacyKey = useLegacyProvisioningKey();
+  const pendingAction = legacy
+    ? legacyKey
+      ? {
+          label: "Review pending",
+          to: provisioningKeyActivityPath(legacyKey.id),
+        }
+      : undefined
+    : { label: "Review pending", to: "/devices/add/fleet" };
 
   if (statsLoading) return null;
 
@@ -72,7 +85,7 @@ export default function Dashboard() {
             icon={<ClockIcon className="w-7 h-7" />}
             title="Pending Devices"
             value={stats?.pending_devices ?? "--"}
-            action={{ label: "Review pending", to: "/devices/add/fleet" }}
+            action={pendingAction}
             accent="text-accent-yellow"
           />
         </div>

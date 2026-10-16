@@ -5,6 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import SettingsSection from "@/components/settings/SettingsSection";
 import { useNamespaces, type Namespace } from "@/hooks/useNamespaces";
+import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useBrowserKeyFingerprints } from "@/hooks/useBrowserKey";
 import { namespaceTabId } from "@/stores/workspaceTabsStore";
@@ -17,9 +18,11 @@ function KeyState({
   ns: Namespace;
   fingerprint: string | null | undefined;
 }) {
-  if ((ns.settings?.ssh_access_mode ?? "identity") !== "identity")
+  if (isLegacyNamespace(ns))
     return (
-      <span className="text-xs text-text-muted">Not used in legacy mode</span>
+      <span className="text-xs text-text-muted">
+        Not used in a legacy namespace
+      </span>
     );
   if (fingerprint)
     return (
@@ -36,8 +39,8 @@ function KeyState({
 
 /**
  * The SSH keys this browser signs in with, one per namespace the user belongs to. The private
- * half never leaves the browser; a namespace in identity mode gets one the first time the user
- * connects there, and one in legacy mode never uses it. Picking a namespace opens its tab on the
+ * half never leaves the browser; a new namespace gets one the first time the user
+ * connects there, and a legacy one never uses it. Picking a namespace opens its tab on the
  * SSH identities page, where the key is enrolled, and a namespace that cannot be entered says why
  * in its row.
  */
@@ -72,8 +75,7 @@ export default function BrowserIdentityPreferences() {
         ) : (
           <ul className="divide-y divide-border">
             {namespaces.map((ns) => {
-              const identity =
-                (ns.settings?.ssh_access_mode ?? "identity") === "identity";
+              const identity = !isLegacyNamespace(ns);
               const failure = workspace.failures[namespaceTabId(ns.tenant_id)];
               const row = (
                 <>
@@ -111,7 +113,10 @@ export default function BrowserIdentityPreferences() {
                     </div>
                   )}
                   {failure && (
-                    <p role="alert" className="px-5 pb-3 text-xs text-accent-red">
+                    <p
+                      role="alert"
+                      className="px-5 pb-3 text-xs text-accent-red"
+                    >
                       Couldn't open {ns.name}: {failure}
                     </p>
                   )}

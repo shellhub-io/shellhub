@@ -25,7 +25,7 @@ import {
 const serverStorageReason = "community keeps the vault in the browser only";
 
 async function openVault(page: Page) {
-  const team = await createTeam({ sshAccessMode: "legacy" });
+  const team = await createTeam({ legacy: true });
   await signInAndOpen(page, team.owner.username, "/secure-vault");
   return team;
 }
@@ -180,7 +180,7 @@ test.describe("Secure vault", () => {
 
   test("each user has their own vault", async ({ page }) => {
     const { owner, member } = await createTeamWithMember("administrator", {
-      sshAccessMode: "legacy",
+      legacy: true,
     });
 
     await signInAndOpen(page, owner.username, "/secure-vault");
@@ -200,7 +200,7 @@ test.describe("Secure vault", () => {
     test.skip(isCommunity, singleNamespaceReason);
 
     const { owner, namespace, other } = await createTeamWithOwnerInAnother({
-      sshAccessMode: "legacy",
+      legacy: true,
     });
 
     await signInAndOpen(page, owner.username, "/secure-vault");
@@ -221,7 +221,7 @@ test.describe("Secure vault", () => {
     test.skip(isCommunity, singleNamespaceReason);
 
     const { owner, namespace, other } = await createTeamWithOwnerInAnother({
-      sshAccessMode: "legacy",
+      legacy: true,
     });
     await signInAndOpen(page, owner.username, "/secure-vault");
     await setUpVault(page);

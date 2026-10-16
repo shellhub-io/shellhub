@@ -9,8 +9,8 @@ import {
 import { enrollDevice } from "./devices";
 import { buildRequestContext } from "./api";
 
-async function requestLoginCode(tenant: string) {
-  const device = await enrollDevice(tenant);
+async function requestLoginCode(team: Parameters<typeof enrollDevice>[0]) {
+  const device = await enrollDevice(team);
   const { data } = await createDeviceLoginCode(
     buildRequestContext({ token: device.token }),
   );
@@ -25,7 +25,7 @@ test.describe("accepting a device by its login code", () => {
     page,
   }) => {
     const { namespace, owner, other } = await createTeamWithOwnerInAnother();
-    const device = await requestLoginCode(other.tenant);
+    const device = await requestLoginCode(other);
 
     await signInAndOpen(page, owner.username, "/dashboard");
     await expect(page.getByRole("tab", { selected: true })).toHaveText(

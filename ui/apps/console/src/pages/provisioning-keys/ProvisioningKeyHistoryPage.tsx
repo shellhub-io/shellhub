@@ -14,13 +14,14 @@ import CopyButton from "@/components/common/CopyButton";
 import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useProvisioningKeys } from "@/hooks/useProvisioningKeys";
 import { useRevealProvisioningKey } from "@/hooks/useRevealProvisioningKey";
 import { formatDateShort } from "@/utils/date";
 import { capitalize } from "@/utils/string";
 import ProvisioningKeyActions from "./ProvisioningKeyActions";
 import ProvisioningKeyTimeline from "./ProvisioningKeyTimeline";
-import StatusChip, { DeprecatedBadge } from "./StatusChip";
+import StatusChip from "./StatusChip";
 import { UsageCount, UsageDetail } from "./UsageMeter";
 import {
   ephemeralPhrase,
@@ -28,8 +29,8 @@ import {
   formatCount,
   getUsageInfo,
   getWaitingInfo,
+  isLegacyKey,
   isPairingKey,
-  isSystemKey,
   keyModeInfo,
   lastUsedPhrase,
   provisioningKeyDisplayName,
@@ -263,7 +264,13 @@ export default function ProvisioningKeyHistoryPage() {
 
   const { provisioningKeys, isLoading } = useProvisioningKeys({ perPage: 100 });
   const key = provisioningKeys.find((k) => k.id === id) ?? state?.key ?? null;
-  const name = key ? provisioningKeyDisplayName(key) : (state?.name ?? "");
+  const pendingQueue =
+    useNamespaceLegacy() === true && !!key && isLegacyKey(key);
+  const name = pendingQueue
+    ? "Pending devices"
+    : key
+      ? provisioningKeyDisplayName(key)
+      : (state?.name ?? "");
 
   const detailsOpen = detailsChoice ?? key?.mode === "webhook";
 
@@ -276,7 +283,7 @@ export default function ProvisioningKeyHistoryPage() {
       <ResourceNotFound
         icon={TicketIcon}
         resource="Provisioning key"
-        backTo="/devices/add/fleet"
+        backTo={pendingQueue ? "/devices" : "/devices/add/fleet"}
       />
     );
   }
@@ -284,12 +291,16 @@ export default function ProvisioningKeyHistoryPage() {
   return (
     <div className="max-w-3xl">
       <Breadcrumb
-        items={[
-          { label: "Devices", to: "/devices" },
-          { label: "Add Device", to: "/devices/add" },
-          { label: "Fleet", to: "/devices/add/fleet" },
-          { label: name || "Provisioning key" },
-        ]}
+        items={
+          pendingQueue
+            ? [{ label: "Devices", to: "/devices" }, { label: name }]
+            : [
+                { label: "Devices", to: "/devices" },
+                { label: "Add Device", to: "/devices/add" },
+                { label: "Fleet", to: "/devices/add/fleet" },
+                { label: name || "Provisioning key" },
+              ]
+        }
         className="mb-4"
       />
 
@@ -304,7 +315,6 @@ export default function ProvisioningKeyHistoryPage() {
                 <h1 className="text-xl font-semibold text-text-primary leading-tight truncate">
                   {name || "Provisioning key"}
                 </h1>
-                {isSystemKey(key) && !isPairingKey(key) && <DeprecatedBadge />}
                 {key.revoked && (
                   <StatusChip icon={NoSymbolIcon} label="Revoked" tone="red" />
                 )}

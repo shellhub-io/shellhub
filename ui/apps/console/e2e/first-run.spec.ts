@@ -20,7 +20,7 @@ test("the first run moves on once the namespace's first device is accepted", asy
 
   await expect(install).toHaveAttribute("aria-current", "step");
 
-  const device = await enrollDevice(team.tenant);
+  const device = await enrollDevice(team);
   await updateDeviceStatus({
     ...buildRequestContext({ token: team.owner.token }),
     path: { uid: device.uid, status: "accept" },

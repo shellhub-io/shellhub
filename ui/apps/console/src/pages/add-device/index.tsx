@@ -7,6 +7,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
 import { useNavSectionTitle } from "@/components/layout/navSections";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 
 const TABS = [
   {
@@ -26,10 +27,13 @@ const TABS = [
 /**
  * Where devices come in from: interactively, with someone at the machine to accept it, or as a
  * fleet provisioned with one of the namespace's provisioning keys. Each tab has its own URL, and
- * Interactive is the default.
+ * Interactive is the default. A legacy namespace cannot create provisioning keys, so it has no
+ * Fleet tab.
  */
 export default function AddDevice() {
   const overline = useNavSectionTitle("/devices");
+  const legacy = useNamespaceLegacy() === true;
+  const tabs = legacy ? TABS.filter((tab) => tab.to === "/devices/add") : TABS;
 
   return (
     <div className="max-w-3xl">
@@ -44,7 +48,7 @@ export default function AddDevice() {
         aria-label="How to add"
         className="flex gap-1 border-b border-border mb-8"
       >
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}

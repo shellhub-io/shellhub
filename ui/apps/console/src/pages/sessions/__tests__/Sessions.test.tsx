@@ -224,7 +224,7 @@ describe("Sessions", () => {
       expect(await screen.findByText("admin@test.com")).toBeInTheDocument();
     });
 
-    it("names nobody for a session under the legacy access model", async () => {
+    it("names nobody for a session in a legacy namespace", async () => {
       setSessions([mockSession({ principal: undefined })]);
 
       renderSessions();

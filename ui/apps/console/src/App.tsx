@@ -109,7 +109,7 @@ const AdminAuthentication = lazy(
 );
 
 /**
- * Every route of the console. The nesting is the access model, read outside in: connectivity,
+ * Every route of the console. The nesting is the order of the checks, read outside in: connectivity,
  * then setup, then authentication, then a namespace, then the layout. A page added inside a
  * guard inherits it, which is why a new route belongs in the group that matches what it needs
  * rather than at the top.
@@ -213,7 +213,9 @@ export default function App() {
                     <Route path="/devices" element={<Devices />} />
                     <Route path="/devices/add" element={<AddDevice />}>
                       <Route index element={<AddInteractive />} />
-                      <Route path="fleet" element={<AddFleet />} />
+                      <Route element={<IdentityAccessGuard />}>
+                        <Route path="fleet" element={<AddFleet />} />
+                      </Route>
                     </Route>
                     <Route
                       path="/devices/add/fleet/:id/activity"
