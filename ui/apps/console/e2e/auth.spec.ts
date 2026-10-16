@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { listNamespaceMembers, removeNamespaceMember } from "@/client";
-import { adminUser, isEnterprise } from "./env";
+import { accountLockoutBaseMs, adminUser, isEnterprise } from "./env";
 import {
   signIn,
   fillLoginForm,
@@ -71,8 +71,6 @@ test.describe("session ended on the server", () => {
 
 test.describe("account lockout", () => {
   test("locks out after 3 failed attempts, then recovers", async ({ page }) => {
-    test.setTimeout(120_000);
-
     const user = await createUser("lockout");
     createNamespace(
       user.username,
@@ -90,10 +88,12 @@ test.describe("account lockout", () => {
     await expect(
       page.getByText("Too many failed login attempts"),
     ).toBeVisible();
-    await expect(page.getByText(/\d+ (second|minute)/)).toBeVisible();
+    await expect(page.getByText(/\d+ seconds?/)).toBeVisible({
+      timeout: accountLockoutBaseMs,
+    });
 
     await expect(page.getByText("Your timeout has finished")).toBeVisible({
-      timeout: 75000,
+      timeout: accountLockoutBaseMs + 5_000,
     });
 
     await fillLoginForm(page, user.username, password);

@@ -100,6 +100,7 @@ value that is not a positive duration under one minute.
 | `SHELLHUB_METRICS` | `false` | Metrics endpoint |
 | `SHELLHUB_PAYWALL` | `true` | Show Cloud/Enterprise features to Community users |
 | `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Maximum lockout minutes after repeated failed sign-ins, 0 disables |
+| `SHELLHUB_ACCOUNT_LOCKOUT_BASE` | `1m` | First lockout's length as a Go duration, at least `1s`; each later one is four times longer |
 | `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Agent-side |
 | `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | 0 means the driver default |
 | `SHELLHUB_WORKER_SCHEDULE` | `@daily` | Cron format |

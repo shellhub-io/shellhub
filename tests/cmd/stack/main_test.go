@@ -46,15 +46,20 @@ func TestDefaultStackName(t *testing.T) {
 }
 
 func TestPrintExportsSurvivesEval(t *testing.T) {
-	state := &stateFile{Name: "shellhub-e2e-a", Edition: "enterprise", AgentImage: "agent:a b"}
+	state := &stateFile{
+		Name:       "shellhub-e2e-a",
+		Edition:    "enterprise",
+		AgentImage: "agent:a b",
+		Envs:       map[string]string{"SHELLHUB_ACCOUNT_LOCKOUT_BASE": "5s"},
+	}
 
 	var out bytes.Buffer
 	require.NoError(t, printExports(&out, state, []byte(`it's "$HOME" * ;`)))
 
-	script := out.String() + `printf '%s|%s' "$E2E_AGENT_IMAGE" "$E2E_EXPIRED_LICENSE"`
+	script := out.String() + `printf '%s|%s|%s' "$E2E_AGENT_IMAGE" "$E2E_EXPIRED_LICENSE" "$E2E_ACCOUNT_LOCKOUT_BASE_MS"`
 	sh := exec.CommandContext(t.Context(), "sh")
 	sh.Stdin = strings.NewReader(script)
 	got, err := sh.Output()
 	require.NoError(t, err)
-	assert.Equal(t, `agent:a b|it's "$HOME" * ;`, string(got))
+	assert.Equal(t, `agent:a b|it's "$HOME" * ;|5000`, string(got))
 }

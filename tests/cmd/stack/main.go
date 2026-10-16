@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +28,8 @@ const (
 	adminEmail     = "admin@e2e.test"
 	adminNamespace = "e2e"
 	projectPrefix  = "shellhub-e2e-"
+
+	accountLockoutBase = 5 * time.Second
 )
 
 var validName = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
@@ -96,6 +99,11 @@ func expiredLicense(issuer *environment.LicenseIssuer) ([]byte, error) {
 type export struct{ name, value string }
 
 func printExports(w io.Writer, s *stateFile, expired []byte) error {
+	lockoutBase, err := time.ParseDuration(s.Envs["SHELLHUB_ACCOUNT_LOCKOUT_BASE"])
+	if err != nil {
+		return fmt.Errorf("reading the stack's account lockout base: %w", err)
+	}
+
 	exports := []export{
 		{"E2E_BASE_URL", "http://localhost:" + s.Envs["SHELLHUB_HTTP_PORT"]},
 		{"E2E_EDITION", s.Edition},
@@ -104,6 +112,7 @@ func printExports(w io.Writer, s *stateFile, expired []byte) error {
 		{"E2E_ADMIN_PASSWORD", adminPassword},
 		{"E2E_ADMIN_NAMESPACE", adminNamespace},
 		{"E2E_AGENT_IMAGE", s.AgentImage},
+		{"E2E_ACCOUNT_LOCKOUT_BASE_MS", strconv.FormatInt(lockoutBase.Milliseconds(), 10)},
 	}
 
 	if expired != nil {
@@ -293,6 +302,7 @@ func main() {
 				Name:         projectName,
 				HTTPPort:     httpPort,
 				CloudDir:     cloudDir,
+				Envs:         map[string]string{"SHELLHUB_ACCOUNT_LOCKOUT_BASE": accountLockoutBase.String()},
 				Run:          run,
 				StripeEvents: edition == environment.EditionCloud,
 			}

@@ -235,3 +235,38 @@ func TestTunnelPingInterval(t *testing.T) {
 		})
 	}
 }
+
+func TestAccountLockoutConfiguration(t *testing.T) {
+	parse := func(values map[string]string) (*Env, error) {
+		return envs.ParseWithPrefix[Env](envs.Map(values), "API_")
+	}
+
+	t.Run("defaults to a one minute base capped at 60 minutes", func(t *testing.T) {
+		env, err := parse(map[string]string{})
+		require.NoError(t, err)
+		assert.Equal(t, cache.LockoutBase(time.Minute), env.Cache.AccountLockoutBase)
+		assert.Equal(t, 60, env.Cache.MaximumAccountLockout)
+	})
+
+	for value, base := range map[string]time.Duration{"1s": time.Second, "5s": 5 * time.Second, "2m": 2 * time.Minute} {
+		t.Run("honours a base of "+value, func(t *testing.T) {
+			env, err := parse(map[string]string{"ACCOUNT_LOCKOUT_BASE": value})
+			require.NoError(t, err)
+			assert.Equal(t, cache.LockoutBase(base), env.Cache.AccountLockoutBase)
+		})
+	}
+
+	for _, value := range []string{"999ms", "0s", "-1s", "5"} {
+		t.Run("refuses a base of "+value+" naming the variable", func(t *testing.T) {
+			_, err := parse(map[string]string{"ACCOUNT_LOCKOUT_BASE": value})
+			require.ErrorIs(t, err, envs.ErrParseWithPrefix)
+			assert.ErrorContains(t, err, "SHELLHUB_ACCOUNT_LOCKOUT_BASE")
+		})
+	}
+
+	t.Run("still reads the maximum as whole minutes", func(t *testing.T) {
+		env, err := parse(map[string]string{"MAXIMUM_ACCOUNT_LOCKOUT": "30"})
+		require.NoError(t, err)
+		assert.Equal(t, 30, env.Cache.MaximumAccountLockout)
+	})
+}
