@@ -1,5 +1,5 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
-import { SignedXml } from "xml-crypto";
+import { createPublicKey, verify } from "node:crypto";
 import {
   adminUpdateUser,
   createNamespace,
@@ -20,7 +20,6 @@ import {
   signOut,
 } from "./helpers";
 import {
-  type SignOnRequest,
   adminContext,
   answerSignOn,
   buildSamlUser,
@@ -108,15 +107,37 @@ async function publishIdpMetadata(entityId: string, bindings?: Binding[]) {
   return `http://ui:8080/${file}`;
 }
 
-function isSignedBy(request: SignOnRequest, certificate: string) {
-  const signature = request.document.getElementsByTagNameNS(
-    "http://www.w3.org/2000/09/xmldsig#",
-    "Signature",
-  )[0];
-  if (!signature) throw new Error("expected a signed SAML request");
-  const verifier = new SignedXml({ publicCert: certificate });
-  verifier.loadSignature(signature);
-  return verifier.checkSignature(request.xml);
+const rsaSha256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+
+function isSignedBy(url: URL, certificate: string) {
+  const encoded = new Map(
+    url.search
+      .slice(1)
+      .split("&")
+      .map((pair) => {
+        const at = pair.indexOf("=");
+        return [pair.slice(0, at), pair.slice(at + 1)] as const;
+      }),
+  );
+  const signature = required(encoded.get("Signature"), `a Signature in ${url}`);
+  const algorithm = decodeURIComponent(
+    required(encoded.get("SigAlg"), `a SigAlg in ${url}`),
+  );
+  if (algorithm !== rsaSha256) {
+    throw new Error(
+      `expected the request signed with RSA-SHA256, got ${algorithm}`,
+    );
+  }
+  const signed = ["SAMLRequest", "RelayState", "SigAlg"]
+    .filter((name) => encoded.has(name))
+    .map((name) => `${name}=${encoded.get(name)}`)
+    .join("&");
+  return verify(
+    "sha256",
+    Buffer.from(signed),
+    createPublicKey(certificate),
+    Buffer.from(decodeURIComponent(signature), "base64"),
+  );
 }
 
 const buildEntityId = () => `${identityProvider}/${buildShortId()}`;
@@ -256,7 +277,8 @@ test.describe("Admin configuration", () => {
     const token = await signInWithSso(page);
 
     expect(requests).toHaveLength(1);
-    expect(isSignedBy(requests[0], certificate)).toBe(true);
+    expect(endpointOf(requests[0].url)).toBe(signOnURLs.redirect);
+    expect(isSignedBy(requests[0].url, certificate)).toBe(true);
     expect((await readSessionUser(token)).email).toBe(user.email);
   });
 

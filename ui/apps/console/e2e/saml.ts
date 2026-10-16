@@ -37,7 +37,6 @@ export function buildSamlUser(): SamlUser {
 export type SignOnRequest = {
   url: URL;
   document: Element;
-  xml: string;
   relayState: string;
 };
 
@@ -200,7 +199,6 @@ function buildSignOnRequest(
   return {
     url,
     document: new DOMParser().parseFromString(xml, "text/xml").documentElement,
-    xml,
     relayState: relayState ?? "",
   };
 }
