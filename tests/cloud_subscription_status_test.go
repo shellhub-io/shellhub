@@ -23,7 +23,7 @@ func TestCloudSubscriptionStatus(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubUsername+stripeTestEmailDomain, ShellHubPassword)
-	ownNamespace(t, ctx, compose, models.SSHAccessModeLegacy)
+	ownNamespace(t, ctx, compose, legacyNamespace)
 
 	subscription := billedSubscription{tenant: ShellHubNamespace, customer: "cus_" + stripeTestID(), id: "sub_" + stripeTestID()}
 	subscription.storeIn(t, compose, models.BillingStatusCanceled)

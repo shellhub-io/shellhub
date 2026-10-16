@@ -27,7 +27,7 @@ func TestSSHPublicKeyRules(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, named := startAcceptedAgent(t, ctx, compose)
 	_, other := startAcceptedAgent(t, ctx, compose)
 
@@ -80,7 +80,7 @@ func TestSSHPublicKeyRefusedBelowAgent060(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 
 	agent, err := NewAgentContainerAtVersion(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), "0.5.2")

@@ -25,7 +25,7 @@ func TestConnectionAnnouncement(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)
 

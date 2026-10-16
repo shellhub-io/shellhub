@@ -117,7 +117,7 @@ func TestSessionCloseDelegatesToTheGatewayThatOwnsIt(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	conn, session := openShellSession(t, ctx, compose, device)
@@ -138,7 +138,7 @@ func TestSessionCloseRetiresASessionNoGatewayOwns(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	conn, session := openShellSession(t, ctx, compose, device)

@@ -104,7 +104,7 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 				compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 			}
 
-			ownNamespace(t, t.Context(), compose, models.SSHAccessModeLegacy)
+			ownNamespace(t, t.Context(), compose, legacyNamespace)
 
 			authDevice(t, compose, cached)
 
@@ -131,7 +131,7 @@ func newAdministeredTunnelEnvironment(t *testing.T, ctx context.Context, edition
 	require.True(t, admin.Admin, "the first user is the instance's administrator")
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	ownNamespace(t, ctx, compose, models.SSHAccessModeLegacy)
+	ownNamespace(t, ctx, compose, legacyNamespace)
 
 	return compose, admin
 }

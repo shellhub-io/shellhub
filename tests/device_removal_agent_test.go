@@ -24,7 +24,7 @@ const agentPairedTenantFile = "/tmp/shellhub.key.tenant"
 func TestRemovedPairedDeviceAgent(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("an agent that learned its tenant from pairing pairs again", func(t *testing.T) {
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired(), NewAgentContainerWithHostname("removed-repairs"))
@@ -66,7 +66,7 @@ func TestRemovedPairedDeviceAgent(t *testing.T) {
 		require.NoError(t, pairing.Stop(t.Context(), nil))
 		compose.AwaitDeviceOffline(t, paired.UID)
 
-		configured := startCustomAgent(t, t.Context(), compose, withKey, sameDevice...)
+		configured := startCustomAgent(t, t.Context(), compose, withKey, append(sameDevice, NewAgentContainerWithTenantOnly(ShellHubNamespace))...)
 		require.Equal(t, ShellHubNamespace, awaitAgentConnected(t, configured))
 		compose.AwaitDeviceOnline(t, paired.UID)
 

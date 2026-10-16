@@ -31,7 +31,7 @@ func TestConnectorContainerLifecycle(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	name := "connected-" + randomHex(t)
 	target := startLabelledContainer(t, ctx, name)
@@ -72,7 +72,7 @@ func TestConnectorRestart(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	label := "restarted-" + randomHex(t)
 	for range 2 {
@@ -159,6 +159,7 @@ func startConnectorWithEnv(t *testing.T, ctx context.Context, compose *environme
 		"SHELLHUB_CONNECTOR_LABEL": label,
 	}
 	maps.Copy(env, extraEnv)
+	maps.DeleteFunc(env, func(_, value string) bool { return value == "" })
 
 	image, err := buildAgentImage(ctx, "")
 	require.NoError(t, err)

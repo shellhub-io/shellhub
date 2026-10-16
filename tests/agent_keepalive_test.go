@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/ssh"
 )
@@ -31,7 +30,7 @@ func TestAgentKeepAlive(t *testing.T) {
 	t.Run("the configured interval spaces the keepalives the client receives", func(t *testing.T) {
 		const interval = 3 * time.Second
 
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		_, device := startAcceptedAgent(t, t.Context(), compose, NewAgentContainerWithKeepAliveInterval(interval))
 

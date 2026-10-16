@@ -103,17 +103,17 @@ func requireLoginRefused(t *testing.T, compose *environment.DockerCompose, devic
 
 var approvalCodePattern = regexp.MustCompile(`/ssh-identities/new/([2-9A-Z]{8})`)
 
-// TestIdentityAccessPolicy covers what decides a login once a namespace is in the identity model:
+// TestIdentityAccessPolicy covers what decides a login in a new namespace:
 // an unknown key is held for approval and let in once confirmed, default-deny leaves a member
 // without a grant outside, a deny beats the allow that would otherwise let the owner in, and a
 // namespace stripped of every policy admits nobody. Password refusal and a pre-enrolled identity
-// connecting are covered by [TestSSHIdentityMode].
+// connecting are covered by [TestSSHNewNamespace].
 func TestIdentityAccessPolicy(t *testing.T) {
 	t.Parallel()
 
 	t.Run("an unknown key is held for approval and let in once confirmed", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 		_, device := startAcceptedAgent(t, ctx, compose)
 
 		signer, _ := newSigner(t)
@@ -173,7 +173,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 	t.Run("a client that cannot answer a challenge is refused at once", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 		_, device := startAcceptedAgent(t, ctx, compose)
 
 		signer, _ := newSigner(t)
@@ -190,7 +190,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 
 	t.Run("an agent full of unenrolled keys is asked once and still gets in", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 		_, device := startAcceptedAgent(t, ctx, compose)
 
 		enrolled, enrolledKey := newSigner(t)
@@ -284,7 +284,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 				resp, err := compose.R(t.Context()).SetResult(&policies).Get("/api/access-policies")
 				require.NoError(t, err)
 				require.Equal(t, 200, resp.StatusCode())
-				require.NotEmpty(t, policies, "a namespace born in identity is seeded with the owner policy")
+				require.NotEmpty(t, policies, "a new namespace is seeded with the owner policy")
 
 				for _, policy := range policies {
 					resp, err := compose.R(t.Context()).Delete("/api/access-policies/" + policy.ID)
@@ -304,7 +304,7 @@ func TestIdentityAccessPolicy(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
-			compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+			compose := newSSHEnvironment(t, ctx, newNamespace)
 			_, device := startAcceptedAgent(t, ctx, compose)
 
 			signer := tc.refuse(t, compose)

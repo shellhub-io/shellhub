@@ -40,7 +40,7 @@ func TestAgentSetup(t *testing.T) {
 	t.Parallel()
 
 	t.Run("the agent generates its private key on first run and keeps it", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		const keyPath = "/var/lib/shellhub/device.key"
 
@@ -69,7 +69,7 @@ func TestAgentSetup(t *testing.T) {
 	})
 
 	t.Run("the agent derives the device uid from its mac address", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		const (
 			firstMAC  = "02:5e:00:00:24:01"
@@ -110,7 +110,7 @@ func TestAgentSetup(t *testing.T) {
 	})
 
 	t.Run("an agent with a preferred identity enrolls under it instead of its mac address", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		identity := "preferred-" + randomHex(t)
 

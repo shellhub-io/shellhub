@@ -1,12 +1,14 @@
 package main
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
 	"testing"
+	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -27,26 +29,142 @@ func testKeylessEnrollment(t *testing.T, compose *environment.DockerCompose) {
 		assert.NotNil(t, eventOf(compose.ProvisioningKeyHistory(t, legacy.ID), device.UID))
 	})
 
-	t.Run("a disabled legacy key refuses tenant-only enrollment until it is enabled again", func(t *testing.T) {
-		req := newDeviceAuthRequest(t, "keyless-disabled", "02:00:00:00:40:02")
+	t.Run("the tenant-only registrations are read by a member who may accept devices and refused to an observer", func(t *testing.T) {
+		device := enroll(t, compose, newDeviceAuthRequest(t, "keyless-listed", "02:00:00:00:40:09"))
 
-		compose.UpdateProvisioningKey(t, legacy.Name, map[string]any{"disabled": true})
-		t.Cleanup(func() {
-			resp, err := compose.PatchProvisioningKey(context.Background(), legacy.Name, map[string]any{"disabled": false})
-			if assert.NoError(t, err) {
-				assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		for _, tc := range []struct {
+			role   authorizer.Role
+			status int
+		}{
+			{authorizer.RoleOperator, http.StatusOK},
+			{authorizer.RoleObserver, http.StatusForbidden},
+		} {
+			username := "registrations-" + string(tc.role)
+			compose.NewUser(t, username, username+"@ossystems.com.br", ShellHubPassword)
+			compose.NewMember(t, username, ShellHubNamespaceName, string(tc.role))
+			member := signInto(t, compose, username, ShellHubPassword)
+
+			events := []models.ProvisioningKeyEvent{}
+			resp, err := asBearer(t, compose, member.Token).SetResult(&events).Get("/api/devices/tenant-registrations")
+			require.NoError(t, err)
+			require.Equal(t, tc.status, resp.StatusCode(), "%s: %s", tc.role, resp.String())
+			if tc.status == http.StatusOK {
+				assert.NotNil(t, eventOf(events, device.UID), "the operator did not see the tenant-only registration")
 			}
-		})
+		}
 
-		requireAuthRefused(t, compose, req)
+		resp, err := compose.R(t.Context()).SetQueryParam("sort_by", "fingerprint").Get("/api/devices/tenant-registrations")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+	})
 
-		compose.UpdateProvisioningKey(t, legacy.Name, map[string]any{"disabled": false})
+	t.Run("an agent given only the tenant lands pending and serves once accepted", func(t *testing.T) {
+		startAgent(t, t.Context(), compose, NewAgentContainerWithTenantOnly(ShellHubNamespace), NewAgentContainerWithHostname("keyless-agent"))
 
-		assert.Equal(t, models.DeviceStatusPending, enroll(t, compose, req).Status)
+		var pending models.Device
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			for _, device := range compose.ListDevices(t, models.DeviceStatusPending) {
+				if device.Name == "keyless-agent" {
+					pending = device
+				}
+			}
+
+			assert.NotEmpty(tt, pending.UID, "the agent did not land pending")
+		}, 30*time.Second, time.Second)
+		assert.Equal(t, legacy.ID, pending.ProvisioningKeyID)
+
+		compose.UpdateDeviceStatus(t, pending.UID, environment.DeviceActionAccept)
+		compose.AwaitDeviceOnline(t, pending.UID)
 	})
 }
 
-func testSystemKeyPresented(t *testing.T, compose *environment.DockerCompose) {
+func testAgentLoginWithTenant(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("an agent given the tenant lands pending and login prints a code that accepts it", func(t *testing.T) {
+		login := startAgentCommand(t, compose, []string{"./agent", "login"}, NewAgentContainerWithHostname("legacy-login"))
+		code := awaitAgentPairingCode(t, login)
+
+		preview := requireLoginCodePreview(t, compose, code)
+		require.Equal(t, "legacy-login", preview.Name)
+		require.Equal(t, models.DeviceStatusPending, preview.Status)
+
+		compose.UpdateDeviceStatus(t, preview.UID, environment.DeviceActionAccept)
+
+		assert.Zero(t, awaitAgentExit(t, login))
+	})
+}
+
+func testEnrollmentUID(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("a device enrolled by key keeps its uid with the tenant it persisted, with or without the key", func(t *testing.T) {
+		key := requireHarnessProvisioningKey(t, compose)
+		keyed := newKeyedDeviceAuthRequest(t, key, "uid-by-key", "02:00:00:00:40:07")
+		device := enroll(t, compose, keyed)
+
+		withTenant := keyed
+		withTenant.TenantID = ShellHubNamespace
+		reauthDevice(t, compose, withTenant, device.UID)
+		require.Equal(t, device.UID, authDevice(t, compose, withTenant).UID)
+
+		tenantOnly := withTenant
+		tenantOnly.ProvisioningKey = ""
+		reauthDevice(t, compose, tenantOnly, device.UID)
+
+		require.Equal(t, device.UID, authDevice(t, compose, tenantOnly).UID)
+	})
+}
+
+func testProvisioningKeyRefusedInLegacy(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("a presented provisioning key is refused with 403 and enrolls nothing", func(t *testing.T) {
+		req := newKeyedDeviceAuthRequest(t, unissuedProvisioningKey, "legacy-keyed", "02:00:00:00:40:05")
+		req.TenantID = ShellHubNamespace
+
+		requireAuthForbidden(t, compose, req)
+	})
+}
+
+func testPairingRefusedInLegacy(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("accepting a pairing into the namespace is refused with 403 and enrolls nothing", func(t *testing.T) {
+		req := newPairingRequest(t, "legacy-pairing", "02:00:00:00:40:06")
+		pairing := startPairing(t, compose, req)
+
+		_, resp, err := postPairingAccept(compose.R(t.Context()), pairing.Code)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+		assert.NotContains(t, deviceNames(compose.ListDevices(t, models.DeviceStatusEmpty)), req.Hostname)
+	})
+}
+
+func testProvisioningKeyAPIInLegacy(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("creating a key is refused", func(t *testing.T) {
+		resp, err := compose.R(t.Context()).
+			SetBody(&requests.CreateProvisioningKey{Name: "fleet", Mode: string(models.ProvisioningKeyModeManual)}).
+			Post("/api/namespaces/provisioning-key")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("editing a key is refused before the key is looked up", func(t *testing.T) {
+		resp, err := compose.PatchProvisioningKey(t.Context(), "no-such-key", map[string]any{"disabled": true})
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("the system keys are still listed", func(t *testing.T) {
+		assert.Equal(t, models.ProvisioningKeyTypeLegacy, compose.ProvisioningKey(t, string(models.ProvisioningKeyTypeLegacy)).Type)
+		assert.Equal(t, models.ProvisioningKeyTypePairing, compose.ProvisioningKey(t, string(models.ProvisioningKeyTypePairing)).Type)
+	})
+}
+
+func testSystemKeyPresented(t *testing.T, compose *environment.DockerCompose, alongsideTenantStatus int) {
 	t.Helper()
 
 	cases := []struct {
@@ -72,7 +190,7 @@ func testSystemKeyPresented(t *testing.T, compose *environment.DockerCompose) {
 				req := newKeyedDeviceAuthRequest(t, tc.plaintext, "system-"+string(tc.keyType)+"-tenant", tc.mac)
 				req.TenantID = ShellHubNamespace
 
-				requireAuthRefused(t, compose, req)
+				requireAuthAnswers(t, compose, req, alongsideTenantStatus)
 			})
 		})
 	}

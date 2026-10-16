@@ -21,7 +21,7 @@ import (
 func TestPairedDevicesFollowTheirMember(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("accepting a pairing makes the accepting member the device's owner", func(t *testing.T) {
 		member := signInPairingMember(t, compose, "pairing-owner")

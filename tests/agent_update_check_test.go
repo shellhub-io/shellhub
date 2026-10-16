@@ -32,7 +32,7 @@ var agentRetriedRequest = regexp.MustCompile(`msg="(Cannot reach the server, ret
 func TestAgentUpdateCheck(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("a versioned agent checks the server's version as it starts", func(t *testing.T) {
 		agent, err := NewAgentContainerAtVersion(t.Context(), compose.Service(environment.ServiceGateway).GetContainerID(), "0.20.0")

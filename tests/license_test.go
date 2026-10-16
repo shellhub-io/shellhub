@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,7 +51,7 @@ func newEnterpriseEnvironment(t *testing.T, ctx context.Context, configurator *e
 	t.Cleanup(compose.Down)
 
 	compose.NewAdmin(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	ownNamespace(t, ctx, compose, models.SSHAccessModeLegacy)
+	ownNamespace(t, ctx, compose, legacyNamespace)
 
 	return compose
 }

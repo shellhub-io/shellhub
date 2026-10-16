@@ -27,7 +27,7 @@ func testDeviceCodeFormat(t *testing.T, compose *environment.DockerCompose) {
 		accepted := acceptPairing(t, compose.R(t.Context()), typed)
 		assert.Equal(t, models.DeviceStatusAccepted, requireDevice(t, compose, accepted.UID).Status)
 
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "format-login", "02:00:00:00:92:02"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "format-login", "02:00:00:00:92:02"))
 		code := createLoginCode(t, compose, device.Token)
 
 		assert.Equal(t, device.UID, requireLoginCodePreview(t, compose, typedLoosely(code.Code)).UID)
@@ -38,7 +38,7 @@ func testDeviceCodeFormat(t *testing.T, compose *environment.DockerCompose) {
 		pairing := startPairing(t, compose, req)
 		require.Regexp(t, "^["+pairingcode.Alphabet+"]{8}$", pairing.Code)
 
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "format-outside-login", "02:00:00:00:92:04"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "format-outside-login", "02:00:00:00:92:04"))
 		login := createLoginCode(t, compose, device.Token)
 
 		for _, outside := range []string{"0", "O", "1", "I", "L", "U"} {

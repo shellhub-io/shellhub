@@ -16,7 +16,7 @@ import (
 func TestDeviceLifecycle(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("status transitions", func(t *testing.T) {
 		cases := []struct {

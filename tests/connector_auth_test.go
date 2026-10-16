@@ -22,7 +22,7 @@ func TestConnectorPasswordAuth(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	name := "auth-" + randomHex(t)
 	target := startLabelledContainer(t, ctx, name)

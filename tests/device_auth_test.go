@@ -39,8 +39,8 @@ const (
 func TestDeviceAuth(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
-	compose.NewNamespace(t, ShellHubUsername, otherNamespaceName, otherNamespace, "")
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
+	compose.NewLegacyNamespace(t, ShellHubUsername, otherNamespaceName, otherNamespace)
 
 	t.Run("a tenant id earns a token signed for the device", func(t *testing.T) {
 		res := authDevice(t, compose, newDeviceAuthRequest(t, "token", "02:00:00:00:01:00"))
@@ -57,10 +57,6 @@ func TestDeviceAuth(t *testing.T) {
 
 	t.Run("the uid is derived from the identity", func(t *testing.T) {
 		otherPublicKey := newDevicePublicKey(t)
-		provisioningKey := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
-			Name: "uid",
-			Mode: string(models.ProvisioningKeyModeManual),
-		})
 
 		cases := []struct {
 			description string
@@ -76,13 +72,6 @@ func TestDeviceAuth(t *testing.T) {
 				description: "a new hostname keeps the uid",
 				change: func(req *requests.DeviceAuth) {
 					req.Hostname = "renamed"
-				},
-				compare: assert.Equal,
-			},
-			{
-				description: "presenting a provisioning key keeps the uid",
-				change: func(req *requests.DeviceAuth) {
-					req.ProvisioningKey = provisioningKey.Key
 				},
 				compare: assert.Equal,
 			},
@@ -131,7 +120,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 	t.Parallel()
 
 	t.Run("an agent's hostname has its dots replaced by underscores", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		startAgent(t, t.Context(), compose, NewAgentContainerWithHostname("e2e.agent.example"))
 
@@ -140,7 +129,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 
 	t.Run("the tunnel ping keeps advancing last_seen", func(t *testing.T) {
-		compose := newFastTunnelPingEnvironment(t, t.Context())
+		compose := newFastTunnelPingEnvironment(t, t.Context(), legacyNamespace)
 
 		_, device := startAcceptedAgent(t, t.Context(), compose)
 
@@ -151,7 +140,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 
 	t.Run("an agent stopped soon after it connects stays offline", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		agent, device := startAcceptedAgent(t, t.Context(), compose)
 		require.NoError(t, agent.Stop(t.Context(), nil))
@@ -173,7 +162,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 
 	t.Run("a removed device re-registers as pending under the same uid", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		agent, device := startAcceptedAgent(t, t.Context(), compose)
 		require.NoError(t, agent.Stop(t.Context(), nil))
@@ -190,7 +179,7 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 
 	t.Run("a removed device's running agent re-registers as pending without a restart", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		_, device := startAcceptedAgent(t, t.Context(), compose)
 
@@ -201,12 +190,12 @@ func TestDeviceAuthAgent(t *testing.T) {
 	})
 }
 
-func newFastTunnelPingEnvironment(t *testing.T, ctx context.Context) *environment.DockerCompose {
+func newFastTunnelPingEnvironment(t *testing.T, ctx context.Context, model namespaceModel) *environment.DockerCompose {
 	t.Helper()
 
 	configurator := environment.New(t, run).WithEnv("SHELLHUB_TUNNEL_PING_INTERVAL", fastTunnelPingInterval.String())
 
-	return newConfiguredSSHEnvironment(t, ctx, configurator, models.SSHAccessModeLegacy)
+	return newConfiguredSSHEnvironment(t, ctx, configurator, model)
 }
 
 func awaitLastSeenPast(t *testing.T, compose *environment.DockerCompose, uid string, seen time.Time) time.Time {

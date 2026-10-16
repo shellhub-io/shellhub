@@ -16,7 +16,7 @@ import (
 func TestRemovedDeviceFreesItsSlot(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("removing an accepted device frees its slot", func(t *testing.T) {
 		held, waiting := fillNamespaceLimit(t, compose, "freed", "02:00:00:00:13:01", "02:00:00:00:13:02")

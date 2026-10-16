@@ -26,7 +26,7 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 	auth := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
 	compose.JWT(auth.Token)
@@ -82,6 +82,11 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 			description: "creating an API key",
 			method:      http.MethodPost,
 			path:        "/api/namespaces/api-key",
+		},
+		{
+			description: "upgrading the namespace",
+			method:      http.MethodPost,
+			path:        "/api/namespaces/" + ShellHubNamespace + "/upgrade",
 		},
 		{
 			description: "creating a provisioning key",
@@ -229,7 +234,7 @@ func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
 			t.Cleanup(compose.Down)
 
 			compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 			compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
 
 			key := compose.CreateAPIKey(t, &requests.CreateAPIKey{
@@ -262,9 +267,10 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
+	useManualProvisioningKey(t, compose)
 
 	_, device := startAcceptedAgent(t, t.Context(), compose)
 
@@ -465,7 +471,7 @@ func TestAPIKeyRoleCap(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
 
