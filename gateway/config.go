@@ -34,6 +34,10 @@ type GatewayConfig struct {
 	EnableAutoSSL           bool         `env:"SHELLHUB_AUTO_SSL"`
 	EnableProxyProtocol     bool         `env:"SHELLHUB_PROXY"`
 
+	WebEndpointsACMEDNSURL       string `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_URL" validate:"required_if=WebEndpointsDNSProvider acmedns WebEndpoints true EnableAutoSSL true"`
+	WebEndpointsACMEDNSUsername  string `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_USERNAME" validate:"required_if=WebEndpointsDNSProvider acmedns WebEndpoints true EnableAutoSSL true"`
+	WebEndpointsACMEDNSSubdomain string `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN" validate:"required_if=WebEndpointsDNSProvider acmedns WebEndpoints true EnableAutoSSL true"`
+
 	// ProxyTrustedIPs names the peers allowed to declare the client's address,
 	// through the PROXY protocol preamble and the X-Forwarded-* headers. The
 	// default trusts anyone, which is what the previous configuration did; a

@@ -43,6 +43,9 @@ func configurations() map[string]*GatewayConfig {
 			c.EnableAutoSSL = true
 			c.WebEndpoints = true
 			c.WebEndpointsDNSProvider = AcmeDNSProvider
+			c.WebEndpointsACMEDNSURL = "https://auth.acme-dns.example"
+			c.WebEndpointsACMEDNSUsername = "c36f50e8-4632-44f0-83fe-e070fef28a10"
+			c.WebEndpointsACMEDNSSubdomain = "8e5700ea-a4bf-41c7-8a77-e990661dcb6a"
 		}),
 		"development":    with(func(c *GatewayConfig) { c.Env = "development"; c.EnableEnterprise = true }),
 		"dev community":  with(func(c *GatewayConfig) { c.Env = "development" }),
@@ -319,6 +322,32 @@ func hosts(route httpRoute) []string {
 	}
 
 	return names
+}
+
+// TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount guards the account the
+// acme-dns provider writes the challenge through. The module resolves no
+// placeholder but the password's, so any other field left as one reaches the
+// acme-dns server as the placeholder's own text.
+func TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount(t *testing.T) {
+	cfg := configurations()["dns acmedns"]
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+	require.NoError(t, err)
+
+	var config any
+	require.NoError(t, json.Unmarshal(adapted, &config))
+
+	providers := collect(config, func(node map[string]any) bool { return node["name"] == "acmedns" })
+	require.Len(t, providers, 1, "the configuration names one acme-dns provider:\n%s", adapted)
+
+	assert.Equal(t, cfg.WebEndpointsACMEDNSURL, providers[0]["server_url"])
+	assert.Equal(t, cfg.WebEndpointsACMEDNSUsername, providers[0]["username"])
+	assert.Equal(t, cfg.WebEndpointsACMEDNSSubdomain, providers[0]["subdomain"])
+	assert.Equal(t, "{env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD}", providers[0]["password"],
+		"the password stays out of the rendered configuration; the module resolves it")
 }
 
 // TestCaddyfileStoresCertificatesOnTheVolume guards a mistake that is invisible
