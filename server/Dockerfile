@@ -61,7 +61,7 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
             ./github.com/shellhub-io/shellhub/server \
             ./github.com/shellhub-io/cloud && \
         GOWORK=/go/src/go.work go build -tags enterprise -ldflags "$GO_LDFLAGS" -o /server github.com/shellhub-io/cloud/cmd/server && \
-        mjml /go/src/github.com/shellhub-io/cloud/templates/*.mjml -o /templates; \
+        mjml /go/src/github.com/shellhub-io/cloud/templates/*.mjml --config.allowIncludes true -o /templates; \
     else \
         go build -ldflags "$GO_LDFLAGS" -o /server .; \
     fi
