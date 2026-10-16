@@ -87,9 +87,7 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 		PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
 		SessionRequestCallback: server.sessionRequestCallback,
-		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
-			SFTPSubsystemName: server.sftpSubsystemHandler,
-		},
+		SubsystemHandlers:      subsystemHandlers(mode),
 		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&LocalPortForwardFeature > 0
 		},

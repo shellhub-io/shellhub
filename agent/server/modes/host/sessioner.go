@@ -21,7 +21,10 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-var _ modes.Sessioner = (*Sessioner)(nil)
+var (
+	_ modes.Sessioner   = (*Sessioner)(nil)
+	_ modes.Subsystemer = (*Sessioner)(nil)
+)
 
 var geteuidFn = os.Geteuid
 
