@@ -48,6 +48,13 @@ import (
 // redirects a plain HTTP request to the instance's domain to HTTPS on port 443, which the stack
 // does not publish.
 //
+// ACMEDNS, which needs ACME, sets SHELLHUB_WEB_ENDPOINTS_DOMAIN to [ACMEDNSWebEndpointsDomain] and
+// has the gateway prove that domain's wildcard over DNS-01 with its acme-dns provider. Up registers
+// an account on an acme-dns server first, through the server's own API, and hands its credentials
+// to the gateway. The server then runs in the gateway's network namespace as the gateway's DNS,
+// answering for the parent of the web endpoint domain, with the challenge name a CNAME to the
+// account's record, as an operator delegates it.
+//
 // StripeEvents applies to the cloud edition. It runs stripe-cli, which forwards every event on the
 // Stripe test account to the stack's webhook, asynchronously and in no fixed order. Without it the
 // stack receives none of Stripe's own events.
@@ -70,6 +77,7 @@ type Config struct {
 	Located             *Location
 	SuppliedCertificate *Certificate
 	ACME                bool
+	ACMEDNS             bool
 	AutoSSL             bool
 	StripeEvents        bool
 	FailureLog          string
@@ -124,9 +132,10 @@ type Stack struct {
 // and for none, when the run's issuer cannot encode its public key or sign the license, when a
 // license or GeoIP path cannot be resolved or its file written, and when a community stack asks
 // for a license, for no license, or for a GeoIP database. It returns an error when cfg asks for
-// both a supplied certificate and ACME, when a certificate cannot be generated, and when a
-// certificate or Pebble configuration path cannot be resolved or its file written. A stack that
-// fails to come up leaves no license, GeoIP, certificate or Pebble file behind. Once the stack's
+// both a supplied certificate and ACME, when it asks for ACMEDNS without ACME, when a certificate
+// cannot be generated, when a certificate, Pebble or acme-dns configuration path cannot be resolved
+// or its file written, and when acme-dns cannot be started or does not register an account. A stack that
+// fails to come up leaves no license, GeoIP, certificate, Pebble or acme-dns file behind. Once the stack's
 // containers exist, a failure also writes their logs to cfg.FailureLog when that is set, and names
 // the file in the error returned when it wrote at least one container's logs; an error writing
 // them is joined to it.
@@ -228,16 +237,14 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, errors.New("the community edition loads no license and locates no address")
 	}
 
-	https, err := cfg.httpsLayer()
+	https, err := cfg.httpsLayer(ctx)
 	artifacts = append(artifacts, https.artifacts...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if https.composeFile != "" {
-		files = append(files, https.composeFile)
-	}
+	files = append(files, https.composeFiles...)
 
 	merged, err := mergeEnvs(build.envFiles, build.envs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
 		"SHELLHUB_HTTP_PORT":         cfg.HTTPPort,
@@ -400,7 +407,7 @@ func mergeEnvs(files []string, layers ...map[string]string) (map[string]string, 
 
 // Attach reconnects to an existing compose project by name without starting it. It is used
 // to tear down a stack from a different process than the one that brought it up, so the stack it
-// returns owns the license, GeoIP, certificate and Pebble files [Up] writes for a stack of that name. It returns an
+// returns owns the license, GeoIP, certificate, Pebble and acme-dns files [Up] writes for a stack of that name. It returns an
 // error when the compose project cannot be loaded or those files' paths cannot be resolved.
 func Attach(ctx context.Context, name string, files []string, envs map[string]string) (*Stack, error) {
 	tcDc, err := newComposeStack(name, files)
@@ -439,7 +446,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 }
 
 // Down removes the stack's containers and volumes, and keeps its images. Once compose is down, it
-// also removes the stack's license, GeoIP, certificate and Pebble files, and the network of a stack [Up] started; a
+// also removes the stack's license, GeoIP, certificate, Pebble and acme-dns files, and the network of a stack [Up] started; a
 // stack from [Attach] leaves its network to [Run.Close]. It returns the compose error alone,
 // stopping there, or the errors from removing the network and the files, joined. ctx bounds
 // compose and the network.

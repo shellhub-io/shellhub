@@ -87,7 +87,8 @@ func (dc *DockerCompose) SSHAddress() string {
 }
 
 // HTTPSAddress is the host address the gateway's HTTPS port is published on. Only a stack brought
-// up with [DockerComposeConfigurator.WithAutoSSL] publishes it.
+// up with [DockerComposeConfigurator.WithAutoSSL] or [DockerComposeConfigurator.WithACMEDNS]
+// publishes it.
 func (dc *DockerCompose) HTTPSAddress() string {
 	return dc.stack.HTTPSAddress()
 }

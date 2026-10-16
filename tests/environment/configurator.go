@@ -99,6 +99,19 @@ func (dcc *DockerComposeConfigurator) WithAutoSSL() *DockerComposeConfigurator {
 	return dcc
 }
 
+// WithACMEDNS serves the gateway over HTTPS too, on a port reserved for it, with certificates from
+// a Pebble ACME server in the stack, and has it prove the web endpoint wildcard over DNS-01 through
+// an acme-dns server, see [Config.ACMEDNS]. The web endpoint domain is then
+// [ACMEDNSWebEndpointsDomain]. The gateway redirects a plain HTTP request to the instance's domain
+// as [DockerComposeConfigurator.WithAutoSSL] has it do.
+func (dcc *DockerComposeConfigurator) WithACMEDNS() *DockerComposeConfigurator {
+	dcc.cfg.ACME = true
+	dcc.cfg.ACMEDNS = true
+	dcc.cfg.HTTPSPort = ReservePort(dcc.t)
+
+	return dcc
+}
+
 // WithCronTrigger publishes the stack's redis on a port reserved for it, so [DockerCompose.RunCron]
 // can reach the queue the server schedules its cron jobs on. Without it redis takes whatever port
 // the daemon picks, which the test neither knows nor, under rootless Docker, can reach.

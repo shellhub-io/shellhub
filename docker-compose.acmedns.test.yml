@@ -1,0 +1,19 @@
+x-e2e-labels: &e2e-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+
+services:
+  acmedns:
+    image: ${SHELLHUB_TEST_ACME_DNS_IMAGE:?}
+    labels: *e2e-labels
+    network_mode: service:gateway
+    volumes:
+      - ${SHELLHUB_TEST_ACME_DNS_DIR:?}/config.cfg:/etc/acme-dns/config.cfg:ro
+      - ${SHELLHUB_TEST_ACME_DNS_DIR:?}/data:/var/lib/acme-dns
+  gateway:
+    dns:
+      - 127.0.0.1
+    entrypoint:
+      - sh
+      - -c
+      - until nslookup -type=SOA ${SHELLHUB_TEST_ACME_DNS_ZONE:?} 127.0.0.1 >/dev/null 2>&1; do sleep 0.2; done; exec /gateway

@@ -164,6 +164,47 @@ func TestEnterpriseWebEndpointsTLS(t *testing.T) {
 	assert.Contains(t, resp.Body, webEndpointNotFound)
 }
 
+// TestEnterpriseWebEndpointsDNS01 covers the gateway proving the web endpoints wildcard over DNS-01
+// through the acme-dns provider: it writes the challenge to an acme-dns server that answers for the
+// web endpoint domain, waits until that server serves it, and then presents the wildcard
+// certificate the ACME CA issued for an endpoint's address, carrying the request to the server.
+func TestEnterpriseWebEndpointsDNS01(t *testing.T) {
+	t.Parallel()
+
+	compose := environment.New(t, run).
+		WithEdition(environment.EditionEnterprise).
+		WithEnv("SHELLHUB_WEB_ENDPOINTS", "true").
+		WithACMEDNS().
+		Up(context.Background())
+	t.Cleanup(compose.Down)
+
+	host := unknownAddress + "." + environment.ACMEDNSWebEndpointsDomain
+	config := &tls.Config{
+		ServerName:         host,
+		InsecureSkipVerify: true, //nolint:gosec // Pebble's root is generated when it starts; the issuer is what the case reads
+		MinVersion:         tls.VersionTLS12,
+	}
+
+	var served *x509.Certificate
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		var err error
+
+		served, err = servedCertificate(t.Context(), compose.HTTPSAddress(), config)
+		if assert.NoError(tt, err, "the gateway holds no certificate for %s yet", host) {
+			assert.True(tt, strings.HasPrefix(served.Issuer.CommonName, "Pebble Intermediate CA"), "issued by %q", served.Issuer.CommonName)
+		}
+	}, 3*time.Minute, 2*time.Second)
+
+	assert.Equal(t, []string{"*." + environment.ACMEDNSWebEndpointsDomain}, served.DNSNames)
+	require.NoError(t, served.VerifyHostname(host))
+
+	resp, err := compose.VisitWebEndpointOverTLS(t.Context(), config, host, "/")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	assert.Contains(t, resp.Body, webEndpointNotFound)
+}
+
 func testWebEndpointCreation(t *testing.T, compose *environment.DockerCompose, device *models.Device, valid environment.WebEndpointCreate) {
 	t.Helper()
 
