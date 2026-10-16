@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -76,6 +77,19 @@ func TestSessionList(t *testing.T) {
 	t.Run("by closed status", func(t *testing.T) {
 		requireSessionsListed(t, ctx, compose, propertyFilter(t, "closed", "bool", true), oldest, onSecond)
 		requireSessionsListed(t, ctx, compose, propertyFilter(t, "closed", "bool", false), live)
+	})
+
+	t.Run("an operator the field does not take is refused", func(t *testing.T) {
+		var refusal responses.Error
+
+		resp, err := compose.R(ctx).
+			SetQueryParam("filter", propertyFilter(t, "device_uid", "gt", first.UID)).
+			SetError(&refusal).
+			Get("/api/sessions")
+		require.NoError(t, err)
+		require.Equal(t, 400, resp.StatusCode(), resp.String())
+
+		assert.Equal(t, map[string]string{"filter": query.ErrFilterPropertyInvalid.Error()}, refusal.Fields)
 	})
 
 	t.Run("newest started first", func(t *testing.T) {
