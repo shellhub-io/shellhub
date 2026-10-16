@@ -40,6 +40,7 @@ type stateFile struct {
 	Files      []string          `json:"files"`
 	Envs       map[string]string `json:"envs"`
 	AgentImage string            `json:"agent_image"`
+	MailpitURL string            `json:"mailpit_url,omitempty"`
 }
 
 func defaultStackName(root string) string {
@@ -113,6 +114,10 @@ func printExports(w io.Writer, s *stateFile, expired []byte, cloudDir string) er
 		{"E2E_ADMIN_NAMESPACE", adminNamespace},
 		{"E2E_AGENT_IMAGE", s.AgentImage},
 		{"E2E_ACCOUNT_LOCKOUT_BASE_MS", strconv.FormatInt(lockoutBase.Milliseconds(), 10)},
+	}
+
+	if s.MailpitURL != "" {
+		exports = append(exports, export{"E2E_MAILPIT_URL", s.MailpitURL})
 	}
 
 	if expired != nil {
@@ -346,6 +351,7 @@ func main() {
 				Files:      stack.Files(),
 				Envs:       stack.Envs(),
 				AgentImage: agentImage,
+				MailpitURL: stack.MailpitURL(),
 			}
 
 			if err := writeState(state, name); err != nil {

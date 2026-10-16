@@ -1,4 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
+import { getByLabelText } from "@testing-library/dom";
 import { getUserInfo, mfaRecover, requestResetMfa } from "@/client";
 import { isCloud, isCommunity } from "./env";
 import {
@@ -76,10 +77,9 @@ async function readMFAAfterReset(user: MFAUser) {
 }
 
 async function readResetEmail(email: string) {
-  const { line, link } = await readLatestEmail(email, "/reset-mfa");
-  const code = line.match(/following code\.(?:\\n|\s)*([A-Z2-7]{5})\b/)?.[1];
-  if (!code)
-    throw new Error(`expected a code in the email to ${email}: ${line}`);
+  const { body, link } = await readLatestEmail(email, "/reset-mfa");
+  const code = getByLabelText(body, "MFA reset code").textContent?.trim();
+  if (!code) throw new Error(`expected a reset code in the email to ${email}`);
   return { code, link };
 }
 

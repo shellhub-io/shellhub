@@ -115,9 +115,10 @@ type Stack struct {
 // SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
 // Stripe returns no webhook secret for the key. Stripe's own events reach a cloud stack only with
 // StripeEvents set, and Up returns an error when a stack of another edition sets it; without it a
-// test delivers the events it needs, see [DockerCompose.StripeSignature]. An enterprise or cloud
-// stack with Unlicensed set loads no license file; otherwise it loads the one cfg names, signed by
-// its run's issuer. Up returns an error when an enterprise or cloud stack finds no cloud source (a
+// test delivers the events it needs, see [DockerCompose.StripeSignature]. A cloud stack delivers its
+// email over SMTP to a Mailpit whose HTTP API it publishes on a random host port, see
+// [Stack.MailpitURL]. An enterprise or cloud stack with Unlicensed set loads no license file;
+// otherwise it loads the one cfg names, signed by its run's issuer. Up returns an error when an enterprise or cloud stack finds no cloud source (a
 // go.mod) in CloudDir, when a cloud stack finds no docker-compose.yml there, when an enterprise or
 // cloud stack without Unlicensed has a run that issues no licenses, when cfg asks for a license
 // and for none, when the run's issuer cannot encode its public key or sign the license, when a
@@ -158,13 +159,17 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 
 	var stripeEventsEnvs map[string]string
 	if cfg.StripeEvents {
-		files = append(files, "../docker-compose.cloud.test.yml")
 		stripeEventsEnvs = map[string]string{"COMPOSE_PROFILES": "stripe"}
 	}
 
 	ports := []*string{&cfg.HTTPPort, &cfg.SSHPort}
 	if cfg.SuppliedCertificate != nil || cfg.ACME || cfg.AutoSSL {
 		ports = append(ports, &cfg.HTTPSPort)
+	}
+
+	var mailpitPort string
+	if cfg.Edition == EditionCloud {
+		ports = append(ports, &mailpitPort)
 	}
 
 	for _, port := range ports {
@@ -235,8 +240,9 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	merged, err := mergeEnvs(build.envFiles, build.envs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
-		"SHELLHUB_HTTP_PORT": cfg.HTTPPort,
-		"SHELLHUB_SSH_PORT":  cfg.SSHPort,
+		"SHELLHUB_HTTP_PORT":         cfg.HTTPPort,
+		"SHELLHUB_SSH_PORT":          cfg.SSHPort,
+		"SHELLHUB_TEST_MAILPIT_PORT": mailpitPort,
 	}, cfg.Envs, map[string]string{
 		"SHELLHUB_NETWORK":          cfg.Network,
 		"SHELLHUB_NETWORK_EXTERNAL": "true",
@@ -468,6 +474,16 @@ func (s *Stack) BaseURL() string { return "http://localhost:" + s.HTTPPort() }
 // HTTPSAddress returns the host:port the gateway publishes HTTPS on. Only a stack started with
 // [Config.SuppliedCertificate], [Config.ACME] or [Config.AutoSSL] publishes it.
 func (s *Stack) HTTPSAddress() string { return "localhost:" + s.envs["SHELLHUB_HTTPS_PORT"] }
+
+// MailpitURL returns the base URL of the HTTP API of the Mailpit that catches the stack's email.
+// Only a cloud stack runs one; for any other it returns "".
+func (s *Stack) MailpitURL() string {
+	if port := s.envs["SHELLHUB_TEST_MAILPIT_PORT"]; port != "" {
+		return "http://localhost:" + port
+	}
+
+	return ""
+}
 
 // SSHAddress returns the host:port the gateway's SSH listener is reachable at.
 func (s *Stack) SSHAddress() string { return "localhost:" + s.SSHPort() }

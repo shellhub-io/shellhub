@@ -5,3 +5,15 @@ x-e2e-labels: &e2e-labels
 services:
   stripe-cli:
     labels: *e2e-labels
+  mailpit:
+    image: axllent/mailpit:v1.30.7
+    labels: *e2e-labels
+    ports:
+      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_TEST_MAILPIT_PORT:-0}:8025
+    networks:
+      - shellhub
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 1s
+      start_period: 10s
+      retries: 20

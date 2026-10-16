@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -24,8 +23,6 @@ const (
 	mfaSecret            = "JBSWY3DPEHPK3PXP" //nolint:gosec // the TOTP secret the test registers for its own user
 	mfaResetCodeLifetime = 24 * time.Hour
 )
-
-var mfaResetCodeLine = regexp.MustCompile(`following code\.(?:\\n|\s)*([A-Z2-7]{5})\b`)
 
 // TestCloudMFAReset runs a cloud instance, the only edition that sends email, for the reset of a
 // user's MFA by the two codes it emails to their main and recovery addresses. Each code lasts 24
@@ -125,8 +122,6 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 func requestMFAReset(t *testing.T, compose *environment.DockerCompose, user mfaUser) map[string]string {
 	t.Helper()
 
-	mark := compose.ServerLogMark(t)
-
 	resp, err := compose.Anonymous(t.Context()).
 		SetBody(map[string]string{"identifier": user.username}).
 		Post("/api/user/mfa/reset")
@@ -134,20 +129,18 @@ func requestMFAReset(t *testing.T, compose *environment.DockerCompose, user mfaU
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 
 	return map[string]string{
-		"main_email_code":     emailedMFAResetCode(t, compose, mark, user.email),
-		"recovery_email_code": emailedMFAResetCode(t, compose, mark, user.recoveryEmail),
+		"main_email_code":     emailedMFAResetCode(t, compose, user.email),
+		"recovery_email_code": emailedMFAResetCode(t, compose, user.recoveryEmail),
 	}
 }
 
-func emailedMFAResetCode(t *testing.T, compose *environment.DockerCompose, mark int, to string) string {
+func emailedMFAResetCode(t *testing.T, compose *environment.DockerCompose, to string) string {
 	t.Helper()
 
-	line := compose.AwaitServerLogLine(t, mark, "[mail/dummy]", "to="+to)
+	code, ok := compose.AwaitEmail(t, to, "/reset-mfa").Labelled("MFA reset code")
+	require.True(t, ok, "no reset code in the email to %s", to)
 
-	match := mfaResetCodeLine.FindStringSubmatch(line)
-	require.NotNil(t, match, "no reset code in the email to %s: %s", to, line)
-
-	return match[1]
+	return code
 }
 
 func mfaResetCodeCacheKey(address, userID string) string {

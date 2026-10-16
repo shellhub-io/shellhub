@@ -20,7 +20,8 @@ const (
 	EditionCommunity Edition = "community"
 	// EditionEnterprise adds the enterprise overlay (redis, minio, enterprise server image).
 	EditionEnterprise Edition = "enterprise"
-	// EditionCloud adds the cloud overlay on top of enterprise (billing, email, cloud endpoints).
+	// EditionCloud adds the cloud overlay on top of enterprise (billing, cloud endpoints) and
+	// delivers its email over SMTP to a Mailpit in the stack.
 	EditionCloud Edition = "cloud"
 )
 
@@ -82,6 +83,10 @@ func (e Edition) composeFiles(cloudDir string) ([]string, error) {
 		base = append(base, "../docker-compose.enterprise.test.yml")
 	}
 
+	if e == EditionCloud {
+		base = append(base, "../docker-compose.cloud.test.yml")
+	}
+
 	return base, nil
 }
 
@@ -123,13 +128,15 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	}
 
 	if e != EditionCommunity {
-		envs["SHELLHUB_EMAIL_PROVIDER"] = "dummy"
 		envs["SHELLHUB_MAXMIND_MIRROR"] = ""
 		envs["SHELLHUB_SAML_SECRET"] = buildSAMLSecret()
 	}
 
 	if e == EditionCloud {
 		envs["SHELLHUB_BILLING"] = "stripe"
+		envs["SHELLHUB_EMAIL_PROVIDER"] = "smtp"
+		envs["SHELLHUB_EMAIL_SMTP_HOST"] = "mailpit"
+		envs["SHELLHUB_EMAIL_SMTP_PORT"] = "1025"
 	}
 
 	return envs, nil
