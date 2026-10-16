@@ -23,16 +23,12 @@ import (
 
 var wallClock = clock.New()
 
-// LicenseIssuerKeyPath is the key file, relative to tests/, that the Go suite and the e2e stack
-// pass to [LoadLicenseIssuer].
-const LicenseIssuerKeyPath = stackArtifactsDir + "/license-issuer.pem"
-
 const (
 	licenseFileEnv = "SHELLHUB_LICENSE_FILE"
 	goLDFlagsEnv   = "SHELLHUB_TEST_GO_LDFLAGS"
 
 	licensePublicKeySymbol = "github.com/shellhub-io/cloud/pkg/lic.PublicKey"
-	licenseIssuerKeyBits   = 2048
+	licenseIssuerKeyFile   = "pkg/lic/testdata/license-issuer.pem"
 
 	// UnlimitedDevices is the [LicenseFeatures.Devices] of a license that sets no device limit.
 	UnlimitedDevices = -1
@@ -110,22 +106,37 @@ type LicenseIssuer struct {
 	key *rsa.PrivateKey
 }
 
-// LoadLicenseIssuer returns the issuer whose private key path holds, generating the key and
-// writing it there first when the file does not exist, so every run that loads the same path
-// compiles the same server and reuses its cached build. Runs racing to create the file all end up
-// with the key the first of them wrote. It returns an error when the file cannot be read, when a
-// key cannot be generated, encoded or written to it, and when the file holds no PEM-encoded
-// PKCS #8 RSA private key.
-func LoadLicenseIssuer(path string) (*LicenseIssuer, error) {
-	data, err := os.ReadFile(path) //nolint:gosec // the caller names the key file, and reading it is the point
-	if errors.Is(err, fs.ErrNotExist) {
-		if err := writeLicenseIssuerKey(path); err != nil {
-			return nil, err
-		}
-
-		data, err = os.ReadFile(path) //nolint:gosec // the caller names the key file, and reading it is the point
+// LicenseIssuerKeyPath returns the path of the test license issuer's private key in the cloud
+// source at cloudDir, the key [LoadLicenseIssuer] loads. An empty cloudDir is the one [Up]
+// defaults to.
+func LicenseIssuerKeyPath(cloudDir string) string {
+	if cloudDir == "" {
+		cloudDir = defaultCloudDir
 	}
 
+	return filepath.Join(cloudDir, licenseIssuerKeyFile)
+}
+
+// LoadLicenseIssuer returns the issuer whose private key the cloud source at cloudDir carries, at
+// [LicenseIssuerKeyPath], so every run and every machine compiles the same enterprise server. An
+// empty cloudDir is the one [Up] defaults to. Without the cloud source (a go.mod) it returns nil
+// and no error: only the editions built from that source take a license. It returns an error when
+// the cloud source cannot be checked, when the key file cannot be read, including when the
+// cloud source lacks it, and when the file holds no PEM-encoded PKCS #8 RSA private key.
+func LoadLicenseIssuer(cloudDir string) (*LicenseIssuer, error) {
+	if cloudDir == "" {
+		cloudDir = defaultCloudDir
+	}
+
+	if err := statCloudSource(cloudDir); errors.Is(err, fs.ErrNotExist) {
+		return nil, nil //nolint:nilnil // a run without the cloud source issues no licenses, which a nil issuer means
+	} else if err != nil {
+		return nil, err
+	}
+
+	path := LicenseIssuerKeyPath(cloudDir)
+
+	data, err := os.ReadFile(path) //nolint:gosec // the path is the cloud source's own key file
 	if err != nil {
 		return nil, err
 	}
@@ -146,45 +157,6 @@ func LoadLicenseIssuer(path string) (*LicenseIssuer, error) {
 	}
 
 	return &LicenseIssuer{key: key}, nil
-}
-
-func writeLicenseIssuerKey(path string) error {
-	key, err := rsa.GenerateKey(rand.Reader, licenseIssuerKeyBits)
-	if err != nil {
-		return err
-	}
-
-	der, err := x509.MarshalPKCS8PrivateKey(key)
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-		return err
-	}
-
-	tmp, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*")
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(tmp.Name()) //nolint:errcheck // the key is linked into place or another run's key won; the temporary name is litter either way
-
-	if err := pem.Encode(tmp, &pem.Block{Type: "PRIVATE KEY", Bytes: der}); err != nil {
-		_ = tmp.Close()
-
-		return err
-	}
-
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-
-	if err := os.Link(tmp.Name(), path); err != nil && !errors.Is(err, fs.ErrExist) {
-		return err
-	}
-
-	return nil
 }
 
 // Sign returns license as a license file the server built for this issuer accepts: the license's

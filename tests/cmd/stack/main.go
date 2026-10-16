@@ -98,7 +98,7 @@ func expiredLicense(issuer *environment.LicenseIssuer) ([]byte, error) {
 
 type export struct{ name, value string }
 
-func printExports(w io.Writer, s *stateFile, expired []byte) error {
+func printExports(w io.Writer, s *stateFile, expired []byte, cloudDir string) error {
 	lockoutBase, err := time.ParseDuration(s.Envs["SHELLHUB_ACCOUNT_LOCKOUT_BASE"])
 	if err != nil {
 		return fmt.Errorf("reading the stack's account lockout base: %w", err)
@@ -116,7 +116,7 @@ func printExports(w io.Writer, s *stateFile, expired []byte) error {
 	}
 
 	if expired != nil {
-		issuerKey, err := filepath.Abs(environment.LicenseIssuerKeyPath)
+		issuerKey, err := filepath.Abs(environment.LicenseIssuerKeyPath(cloudDir))
 		if err != nil {
 			return err
 		}
@@ -274,7 +274,7 @@ func main() {
 				return err
 			}
 
-			issuer, err := environment.LoadLicenseIssuer(environment.LicenseIssuerKeyPath)
+			issuer, err := environment.LoadLicenseIssuer(cloudDir)
 			if err != nil {
 				return fmt.Errorf("loading the license issuer: %w", err)
 			}
@@ -308,6 +308,10 @@ func main() {
 			}
 
 			cmd.PrintErrf("Starting stack %q (edition=%s)...\n", projectName, edition)
+
+			if err := environment.BuildEditionImages(ctx, run, edition, cloudDir); err != nil {
+				return err
+			}
 
 			stack, err := environment.Up(ctx, cfg)
 			if err != nil {
@@ -357,7 +361,7 @@ func main() {
 
 			cmd.PrintErrln("Stack ready.")
 
-			return printExports(stdout, state, expired)
+			return printExports(stdout, state, expired, cloudDir)
 		},
 	}
 

@@ -38,7 +38,7 @@ func runSuite(m *testing.M) int {
 		return 1
 	}
 
-	issuer, err := environment.LoadLicenseIssuer(environment.LicenseIssuerKeyPath)
+	issuer, err := environment.LoadLicenseIssuer("")
 	if err != nil {
 		log.WithError(err).Error("failed to load the license issuer")
 

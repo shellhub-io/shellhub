@@ -1,0 +1,225 @@
+name: UI E2E run
+
+on:
+  workflow_call:
+    inputs:
+      push-images:
+        type: boolean
+        default: false
+    secrets:
+      CLOUD_DISPATCH_APP_ID:
+        required: false
+      CLOUD_DISPATCH_APP_PRIVATE_KEY:
+        required: false
+      STRIPE_TEST_SECRET_KEY:
+        required: false
+      STRIPE_TEST_PRICE_ID:
+        required: false
+      STRIPE_TEST_PUBLISHABLE_KEY:
+        required: false
+
+jobs:
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: shellhub
+
+      - name: Decide which editions can run
+        id: editions
+        run: |
+          if [ "$EVENT" != pull_request ] || [ "$HEAD_REPO" = "$REPO" ]; then
+              echo "list=community enterprise cloud" >> "$GITHUB_OUTPUT"
+              echo "cloud=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "list=community" >> "$GITHUB_OUTPUT"
+              echo "::notice title=enterprise and cloud e2e skipped::a pull request from a fork cannot check out the private cloud source"
+          fi
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+
+      - name: Generate cloud repo token
+        id: cloud-token
+        if: steps.editions.outputs.cloud == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+          permission-contents: read
+
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: steps.editions.outputs.cloud == 'true'
+        env:
+          GH_TOKEN: ${{ steps.cloud-token.outputs.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ -n "$HEAD_REF" ] && gh api "repos/shellhub-io/cloud/branches/$HEAD_REF" >/dev/null 2>&1; then
+            echo "ref=$HEAD_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=master" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out cloud source
+        if: steps.editions.outputs.cloud == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.cloud-token.outputs.token }}
+          ref: ${{ steps.cloud-branch.outputs.ref }}
+          fetch-depth: 1
+          path: cloud
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24.20.0"
+
+      - name: Restore node modules
+        id: node-modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: shellhub/ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('shellhub/ui/package-lock.json') }}
+
+      - name: Install Node dependencies
+        working-directory: shellhub/ui
+        run: npm install
+
+      - name: Generate OpenAPI client
+        working-directory: shellhub/ui
+        run: |
+          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
+          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
+          npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
+
+      - name: Restore Playwright browser
+        id: playwright-browser
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.OS }}-playwright-${{ hashFiles('shellhub/ui/package-lock.json') }}
+
+      - name: Install Playwright browser
+        working-directory: shellhub/ui
+        run: npm run e2e:browsers -w @shellhub/console
+
+      - name: Save node modules
+        if: steps.node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: shellhub/ui/node_modules
+          key: ${{ steps.node-modules.outputs.cache-primary-key }}
+
+      - name: Save Playwright browser
+        if: steps.playwright-browser.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.playwright-browser.outputs.cache-primary-key }}
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: shellhub/tests/go.mod
+          cache: false
+
+      - name: Restore the Go caches
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: ui-e2e
+          sum-files: shellhub/tests/go.sum
+
+      - name: Restore the image build cache
+        uses: ./shellhub/.github/actions/build-cache
+
+      - name: Log in to the e2e image repository
+        continue-on-error: true
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run E2E tests
+        working-directory: shellhub/ui
+        timeout-minutes: 60
+        env:
+          EDITIONS: ${{ steps.editions.outputs.list }}
+          E2E_RUNNER: host
+          SHELLHUB_E2E_IMAGE_REPOSITORY: ghcr.io/shellhub-io/shellhub-e2e-images
+          SHELLHUB_E2E_IMAGE_PUSH: ${{ inputs.push-images }}
+          CLOUD_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          CLOUD_STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
+          CLOUD_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+        run: |
+          declare -A pids
+          for edition in $EDITIONS; do
+              prefix=$(printf '%-12s' "[$edition]")
+              (
+                  set -o pipefail
+                  (
+                      if [ "$edition" = cloud ]; then
+                          export STRIPE_SECRET_KEY=$CLOUD_STRIPE_SECRET_KEY
+                          export STRIPE_PRICE_ID=$CLOUD_STRIPE_PRICE_ID
+                          export SHELLHUB_STRIPE_PUBLISHABLE_KEY=$CLOUD_STRIPE_PUBLISHABLE_KEY
+                      fi
+                      unset CLOUD_STRIPE_SECRET_KEY CLOUD_STRIPE_PRICE_ID CLOUD_STRIPE_PUBLISHABLE_KEY
+                      E2E_EDITION=$edition E2E_STACK_NAME=e2e-$edition \
+                          exec npm run e2e:test -w @shellhub/console
+                  ) 2>&1 | tee "$RUNNER_TEMP/e2e-$edition.log" | sed -u "s/^/$prefix /"
+              ) &
+              pids[$edition]=$!
+          done
+
+          declare -A statuses
+          for edition in $EDITIONS; do
+              status=0
+              wait "${pids[$edition]}" || status=$?
+              statuses[$edition]=$status
+          done
+
+          failed=0
+          for edition in $EDITIONS; do
+              status=${statuses[$edition]}
+              echo "::group::e2e ($edition) exited $status"
+              cat "$RUNNER_TEMP/e2e-$edition.log"
+              echo "::endgroup::"
+              if [ "$status" -ne 0 ]; then
+                  echo "::error title=e2e ($edition) failed::exit status $status"
+                  failed=1
+              fi
+          done
+
+          exit "$failed"
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() }}
+        uses: ./shellhub/.github/actions/go-cache
+        with:
+          name: ui-e2e
+          sum-files: shellhub/tests/go.sum
+          save: true
+
+      - name: Upload Playwright report
+        if: ${{ failure() || cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: playwright-report
+          path: |
+            shellhub/ui/apps/console/e2e/tmp
+            shellhub/tests/.stack/*.log
+            ${{ runner.temp }}/e2e-*.log
+          include-hidden-files: true
+          retention-days: 14

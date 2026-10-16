@@ -33,7 +33,9 @@ var validStackProject = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,99}$`)
 // Run owns the Docker objects one e2e run creates on a shared daemon: the images it builds and
 // the containers and networks it starts, each labelled with the run's ID. A run is alive
 // while a container carrying its lease label exists, in any state; every run sweeps the objects
-// of dead runs when it starts.
+// of dead runs when it starts. The images pulled from or pushed to an image repository by
+// [BuildEditionImages] also keep their repository tag, which carries no run, so no run removes
+// it: the editions of a stack share one daemon and pull or push the same tag at once.
 type Run struct {
 	id     string
 	stack  bool

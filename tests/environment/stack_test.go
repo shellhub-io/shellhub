@@ -3,7 +3,6 @@ package environment
 import (
 	"io/fs"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,10 +12,7 @@ import (
 func TestStackArtifactsCoverWhatUpWrites(t *testing.T) {
 	t.Chdir(t.TempDir())
 
-	issuer, err := LoadLicenseIssuer(filepath.Join(t.TempDir(), "issuer.pem"))
-	require.NoError(t, err)
-
-	cfg := Config{Name: "shellhub-e2e-a", Located: &Location{Country: "BR"}, Run: &Run{issuer: issuer}}
+	cfg := Config{Name: "shellhub-e2e-a", Located: &Location{Country: "BR"}, Run: &Run{issuer: newLicenseIssuer(t)}}
 
 	_, written, err := cfg.licensingEnvs()
 	require.NoError(t, err)
