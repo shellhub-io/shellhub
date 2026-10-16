@@ -39,7 +39,7 @@ const (
 func TestAgentDockerSelfUpdate(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 	next := reportedServerVersion(t, compose)
 
 	registry, err := environment.StartRegistry(t.Context(), run)

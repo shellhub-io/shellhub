@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +18,7 @@ const maxDeviceCustomFields = 20
 func TestDeviceCustomFieldLimit(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	uid := enrollDevice(t, compose, "customfields", "02:00:00:00:15:01")
 	compose.UpdateDeviceStatus(t, uid, environment.DeviceActionAccept)

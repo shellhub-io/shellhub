@@ -134,7 +134,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 	signer := registerDeviceKey(t, ctx, compose)
 
@@ -302,7 +302,7 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 			opened := sessionAfter(t, ctx, compose, before, func() { tc.open(t, conn) })
 
 			assert.Empty(t, opened.Events.Items, "the list carries no timeline")
-			assert.Nil(t, opened.Principal, "the legacy access model authorizes no principal")
+			assert.Nil(t, opened.Principal, "a legacy namespace authorizes no principal")
 
 			require.NoError(t, conn.Close())
 			requireSessionActive(t, ctx, compose, opened.UID, false)
@@ -328,7 +328,7 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	openedWith := func(t *testing.T, signer ssh.Signer) *models.Session {
@@ -360,7 +360,7 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 
 		opened := openedWith(t, signer)
 
-		require.NotNil(t, opened.Principal, "an identity-mode session is opened by someone")
+		require.NotNil(t, opened.Principal, "a new namespace's session is opened by someone")
 		assert.Equal(t, models.Principal{Kind: models.PrincipalUser, ID: owner.ID}, *opened.Principal)
 	})
 
@@ -385,7 +385,7 @@ func TestSessionPrincipalNamesWhoOpenedIt(t *testing.T) {
 
 		opened := openedWith(t, signer)
 
-		require.NotNil(t, opened.Principal, "an identity-mode session is opened by someone")
+		require.NotNil(t, opened.Principal, "a new namespace's session is opened by someone")
 		assert.Equal(t, models.Principal{Kind: models.PrincipalAPIKey, ID: key.ID}, *opened.Principal)
 	})
 }

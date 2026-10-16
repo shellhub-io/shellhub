@@ -50,7 +50,7 @@ func TestSessionList(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, first := startAcceptedAgent(t, ctx, compose)
 	_, second := startAcceptedAgent(t, ctx, compose)
 	signer := registerDeviceKey(t, ctx, compose)

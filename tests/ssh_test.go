@@ -82,6 +82,7 @@ func NewAgentContainerWithProvisioningKey(key string) NewAgentContainerOption {
 func NewAgentContainerUnpaired() NewAgentContainerOption {
 	return func(envs map[string]string) {
 		delete(envs, "SHELLHUB_TENANT_ID")
+		delete(envs, "SHELLHUB_PROVISIONING_KEY")
 	}
 }
 
@@ -227,19 +228,19 @@ func createAgentContainer(ctx context.Context, req testcontainers.ContainerReque
 	})
 }
 
-// TestSSHIdentityMode covers the identity authorization model, which namespaces are born
-// into: the presented key IS the identity, so password authentication is not offered at all
+// TestSSHNewNamespace covers how a new namespace authorizes SSH, which every namespace is
+// born as: the presented key IS the identity, so password authentication is not offered at all
 // and only a key enrolled as an SSH identity gets through. The legacy model — passwords and
 // firewall-filtered public keys — is covered by [TestSSHConnectionV1] and
 // [TestSSHConnectionV2].
 //
-// The access mode is orthogonal to the transport, so this runs on the default version only.
-func TestSSHIdentityMode(t *testing.T) {
+// Whether a namespace is legacy is orthogonal to the transport, so this runs on the default version only.
+func TestSSHNewNamespace(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)
@@ -1722,7 +1723,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 
 	for _, tc := range tests {
@@ -1866,28 +1867,93 @@ func deviceSSHID(device *models.Device) string {
 	return ShellHubAgentUsername + "@" + ShellHubNamespaceName + "." + device.Name
 }
 
-func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
+type namespaceModel bool
+
+const (
+	legacyNamespace namespaceModel = true
+	newNamespace    namespaceModel = false
+)
+
+func newSSHEnvironment(t *testing.T, ctx context.Context, model namespaceModel) *environment.DockerCompose {
 	t.Helper()
 
-	return newConfiguredSSHEnvironment(t, ctx, environment.New(t, run), sshAccessMode)
+	return newConfiguredSSHEnvironment(t, ctx, environment.New(t, run), model)
 }
 
-func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator *environment.DockerComposeConfigurator, sshAccessMode string) *environment.DockerCompose {
+func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator *environment.DockerComposeConfigurator, model namespaceModel) *environment.DockerCompose {
 	t.Helper()
 
 	compose := configurator.Up(ctx)
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	ownNamespace(t, ctx, compose, sshAccessMode)
+	ownNamespace(t, ctx, compose, model)
 
 	return compose
 }
 
-func ownNamespace(t *testing.T, ctx context.Context, compose *environment.DockerCompose, sshAccessMode string) {
+var harnessProvisioningKeys sync.Map
+
+const harnessProvisioningKeyName = "harness"
+
+func useManualProvisioningKey(t *testing.T, compose *environment.DockerCompose) string {
 	t.Helper()
 
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, sshAccessMode)
+	key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
+		Name: harnessProvisioningKeyName,
+		Mode: string(models.ProvisioningKeyModeManual),
+	})
+	harnessProvisioningKeys.Store(compose, key.Key)
+
+	return key.Key
+}
+
+func harnessProvisioningKey(compose *environment.DockerCompose) (string, bool) {
+	key, ok := harnessProvisioningKeys.Load(compose)
+	if !ok {
+		return "", false
+	}
+
+	return key.(string), true //nolint:forcetypeassert // the map holds nothing but the keys useManualProvisioningKey stores
+}
+
+func requireHarnessProvisioningKey(t *testing.T, compose *environment.DockerCompose) string {
+	t.Helper()
+
+	key, ok := harnessProvisioningKey(compose)
+	require.True(t, ok, "the stack's namespace is legacy and has no provisioning key")
+
+	return key
+}
+
+func withHarnessCredential(compose *environment.DockerCompose) NewAgentContainerOption {
+	return func(envs map[string]string) {
+		if key, ok := harnessProvisioningKey(compose); ok {
+			NewAgentContainerWithProvisioningKey(key)(envs)
+		}
+	}
+}
+
+func harnessDeviceAuthRequest(t *testing.T, compose *environment.DockerCompose, hostname, mac string) requests.DeviceAuth {
+	t.Helper()
+
+	req := newDeviceAuthRequest(t, hostname, mac)
+	if key, ok := harnessProvisioningKey(compose); ok {
+		req.TenantID = ""
+		req.ProvisioningKey = key
+	}
+
+	return req
+}
+
+func ownNamespace(t *testing.T, ctx context.Context, compose *environment.DockerCompose, model namespaceModel) {
+	t.Helper()
+
+	if model == legacyNamespace {
+		compose.NewLegacyNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+	} else {
+		compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+	}
 
 	auth := models.UserAuthResponse{}
 
@@ -1904,10 +1970,16 @@ func ownNamespace(t *testing.T, ctx context.Context, compose *environment.Docker
 	}, 30*time.Second, 1*time.Second)
 
 	compose.JWT(auth.Token)
+
+	if model == newNamespace {
+		useManualProvisioningKey(t, compose)
+	}
 }
 
 func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) testcontainers.Container {
 	t.Helper()
+
+	opts = append([]NewAgentContainerOption{withHarnessCredential(compose)}, opts...)
 
 	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), opts...)
 	require.NoError(t, err)
@@ -1920,6 +1992,8 @@ func startCustomAgent(t *testing.T, ctx context.Context, compose *environment.Do
 
 	image, err := buildAgentImage(ctx, "")
 	require.NoError(t, err)
+
+	opts = append([]NewAgentContainerOption{withHarnessCredential(compose)}, opts...)
 
 	req, err := agentContainerRequest(compose.Service(environment.ServiceGateway).GetContainerID(), image, opts...)
 	require.NoError(t, err)

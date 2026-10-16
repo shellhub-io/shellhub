@@ -13,7 +13,7 @@ import (
 func TestPasswordChangeRevokesTokens(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	cases := []struct {
 		description string
@@ -76,7 +76,7 @@ func TestPasswordChangeRevokesTokens(t *testing.T) {
 func TestRevokeUserTokens(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	first := signInto(t, compose, ShellHubUsername, ShellHubPassword)
 	second := signInto(t, compose, ShellHubUsername, ShellHubPassword)

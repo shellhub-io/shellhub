@@ -141,7 +141,7 @@ func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 	compose.NewUser(t, sweepObserver, sweepObserverEmail, sweepObserverPassword)
 	compose.NewMember(t, sweepObserver, ShellHubNamespaceName, string(authorizer.RoleObserver))
 

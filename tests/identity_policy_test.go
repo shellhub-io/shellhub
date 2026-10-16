@@ -26,7 +26,7 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)
@@ -216,7 +216,7 @@ func TestAccessPolicyFilterSaysWhichDevices(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 
 	createTag(t, compose, "filtered")
 	t.Cleanup(func() { deleteTag(t, compose, "filtered") })

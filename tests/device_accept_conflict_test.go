@@ -20,7 +20,7 @@ func TestDeviceAcceptNameConflicts(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	t.Run("a fresh device is refused the name an accepted device holds", func(t *testing.T) {
 		holder := enrollDevice(t, compose, "freshtaken", "02:00:00:00:14:01")

@@ -105,6 +105,11 @@ func printExports(w io.Writer, s *stateFile, expired []byte, cloudDir string) er
 		return fmt.Errorf("reading the stack's account lockout base: %w", err)
 	}
 
+	stackDir, err := filepath.Abs(".")
+	if err != nil {
+		return err
+	}
+
 	exports := []export{
 		{"E2E_BASE_URL", "http://localhost:" + s.Envs["SHELLHUB_HTTP_PORT"]},
 		{"E2E_EDITION", s.Edition},
@@ -114,6 +119,8 @@ func printExports(w io.Writer, s *stateFile, expired []byte, cloudDir string) er
 		{"E2E_ADMIN_NAMESPACE", adminNamespace},
 		{"E2E_AGENT_IMAGE", s.AgentImage},
 		{"E2E_ACCOUNT_LOCKOUT_BASE_MS", strconv.FormatInt(lockoutBase.Milliseconds(), 10)},
+		{"E2E_STACK_NAME", strings.TrimPrefix(s.Name, projectPrefix)},
+		{"E2E_STACK_DIR", stackDir},
 	}
 
 	if s.MailpitURL != "" {
@@ -198,6 +205,20 @@ func teardown(ctx context.Context, cmd *cobra.Command, name string) error {
 	}
 
 	return nil
+}
+
+func createLegacyNamespace(ctx context.Context, name, owner, namespace, tenant string) error {
+	existing, err := readState(name)
+	if err != nil {
+		return fmt.Errorf("reading the stack's state: %w", err)
+	}
+
+	stack, err := environment.Attach(ctx, existing.Name, existing.Files, existing.Envs)
+	if err != nil {
+		return fmt.Errorf("attaching to stack: %w", err)
+	}
+
+	return stack.NewLegacyNamespace(ctx, owner, namespace, tenant)
 }
 
 func teardownRun(ctx context.Context, cmd *cobra.Command, name string) error {
@@ -335,7 +356,7 @@ func main() {
 				return fmt.Errorf("creating admin user: %w", err)
 			}
 
-			if err := stack.NewNamespace(ctx, adminUsername, adminNamespace, uuid.Generate(), ""); err != nil {
+			if err := stack.NewNamespace(ctx, adminUsername, adminNamespace, uuid.Generate()); err != nil {
 				return fmt.Errorf("creating admin namespace: %w", err)
 			}
 
@@ -388,7 +409,16 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(upCmd, downCmd)
+	legacyNamespaceCmd := &cobra.Command{
+		Use:   "legacy-namespace <owner> <name> <tenant>",
+		Short: "Write a legacy namespace into the running e2e stack",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return createLegacyNamespace(cmd.Context(), name, args[0], args[1], args[2])
+		},
+	}
+
+	rootCmd.AddCommand(upCmd, downCmd, legacyNamespaceCmd)
 
 	if err := rootCmd.ExecuteContext(context.Background()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

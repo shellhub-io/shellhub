@@ -89,7 +89,7 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 	}
 
 	compose.NewUser(t, username, user.email, ShellHubPassword)
-	compose.NewNamespace(t, username, username, uuid.Generate(), "")
+	compose.NewNamespace(t, username, username, uuid.Generate())
 
 	login := compose.AuthUser(t, username, ShellHubPassword)
 	user.id, user.token = login.ID, login.Token

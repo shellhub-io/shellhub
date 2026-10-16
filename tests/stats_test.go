@@ -17,7 +17,7 @@ func TestStatsDeviceCounts(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewLegacyNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
 

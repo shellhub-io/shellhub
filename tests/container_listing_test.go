@@ -17,7 +17,7 @@ import (
 func TestContainerListing(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	containerReq := newDeviceAuthRequest(t, "listed-container", "02:00:00:00:a1:01")
 	containerReq.Info.Platform = "connector"

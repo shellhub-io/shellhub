@@ -25,7 +25,7 @@ func TestSSHApprovalIdentity(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)
@@ -174,7 +174,7 @@ func TestSSHApprovalIdentity(t *testing.T) {
 
 	t.Run("a person outside the namespace can neither see nor decide its approval", func(t *testing.T) {
 		compose.NewUser(t, "outsider", "outsider@ossystems.com.br", ShellHubPassword)
-		compose.NewNamespace(t, "outsider", "elsewhere", uuid.Generate(), models.SSHAccessModeIdentity)
+		compose.NewNamespace(t, "outsider", "elsewhere", uuid.Generate())
 		outsider := compose.AuthUser(t, "outsider", ShellHubPassword)
 
 		signer, _ := newSigner(t)

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/container"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -202,7 +203,7 @@ func testWebEndpointCreation(t *testing.T, compose *environment.DockerCompose, d
 		const username, password = "orphan", "password"
 
 		compose.NewUser(t, username, "orphan@shellhub.example.com", password)
-		compose.NewNamespace(t, username, "orphanspace", "00000000-0000-4000-0000-000000002201", "")
+		compose.NewNamespace(t, username, "orphanspace", "00000000-0000-4000-0000-000000002201")
 		token := compose.AuthUser(t, username, password).Token
 
 		compose.DeleteNamespace(t, "orphanspace")
@@ -435,12 +436,14 @@ func testWebEndpointAnotherNamespace(t *testing.T, ctx context.Context, compose 
 	owner := compose.AuthUser(t, ShellHubUsername, ShellHubPassword)
 
 	compose.NewUser(t, intruderUsername, "intruder@ossystems.com.br", ShellHubPassword)
-	compose.NewNamespace(t, intruderUsername, intruderNamespaceName, intruderNamespace, "")
+	compose.NewNamespace(t, intruderUsername, intruderNamespaceName, intruderNamespace)
 	compose.JWT(compose.AuthUser(t, intruderUsername, ShellHubPassword).Token)
 	t.Cleanup(func() { compose.JWT(owner.Token) })
 
+	intruderKey := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{Name: "intruder", Mode: string(models.ProvisioningKeyModeManual)})
+
 	_, foreign := startAcceptedAgent(t, ctx, compose,
-		NewAgentContainerWithTenant(intruderNamespace),
+		NewAgentContainerWithProvisioningKey(intruderKey.Key),
 		NewAgentContainerWithIdentity("020000002203"),
 		NewAgentContainerWithHostname("intruding"),
 	)
