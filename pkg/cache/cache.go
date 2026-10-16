@@ -65,22 +65,23 @@ type Cache interface {
 	// The following equations are used to calculate both lockout and attempt duration, with 'x' representing
 	// the lockout duration and 'y' the attempt duration:
 	//
-	//	F(x) = min(4^(a - 3), M)
-	//	F(y) = min(x * 2.5, M)
+	//	F(x) = min(B * 4^(a - 3), M)
+	//	F(y) = max(min(x * 2.5, M), 2 * B)
 	//
 	// Where:
 	//
-	//	x is the lockout duration in minutes.
-	//	y is the attempt duration in minutes.
+	//	x is the lockout duration.
+	//	y is the attempt duration.
 	//	a is the attempt number.
+	//	B is the first lockout's duration, specified by the "SHELLHUB_ACCOUNT_LOCKOUT_BASE" environment variable.
 	//	M is the maximum duration value, specified by the "SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT" environment variable.
 	//
-	// Examples for M = 32768 (15 days) and a = n:
+	// Examples, in minutes, for B = 1 minute, M = 32768 (15 days) and a = n:
 	//
-	//	n    = 3 | 4  | 5  | 8    | 11
-	//	_________________________________
-	//	F(x) = 1 | 4  | 16 | 1024 | 32768
-	//	F(y) = 3 | 10 | 40 | 2560 | 32768
+	//	n    = 3   | 4  | 5  | 8    | 11
+	//	__________________________________
+	//	F(x) = 1   | 4  | 16 | 1024 | 32768
+	//	F(y) = 2.5 | 10 | 40 | 2560 | 32768
 	//
 	// It returns the absolute Unix timestamp in seconds representing the end of the lockout, or 0 if no
 	// lockout was found; the attempt number and an error if any.

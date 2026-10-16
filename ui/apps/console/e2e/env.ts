@@ -13,6 +13,10 @@ export const adminUser = {
   namespace: requireEnv("E2E_ADMIN_NAMESPACE"),
 };
 
+export const accountLockoutBaseMs = Number(
+  requireEnv("E2E_ACCOUNT_LOCKOUT_BASE_MS"),
+);
+
 export const edition = (process.env.E2E_EDITION ?? "community") as
   "community" | "enterprise" | "cloud";
 

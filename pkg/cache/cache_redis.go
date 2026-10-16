@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"errors"
-	"math"
 	"strconv"
 	"time"
 
@@ -134,9 +133,8 @@ func (c *redisCache) StoreLoginAttempt(ctx context.Context, source, id string) (
 	attempt++
 
 	now := c.clock.Now()
-	tmp := math.Min(math.Pow(4, float64(attempt-3)), float64(c.cfg.MaximumAccountLockout))
+	lockoutTTL, attemptTTL := c.cfg.lockout(attempt)
 
-	attemptTTL := time.Duration(math.Max(math.Min(tmp*2.5, float64(c.cfg.MaximumAccountLockout)), 2)) * time.Minute
 	if err := c.Set(ctx, "login-attempt="+source+":"+id, strconv.Itoa(attempt), attemptTTL); err != nil {
 		return 0, attempt, err
 	}
@@ -145,7 +143,6 @@ func (c *redisCache) StoreLoginAttempt(ctx context.Context, source, id string) (
 		return 0, attempt, nil
 	}
 
-	lockoutTTL := time.Duration(tmp) * time.Minute
 	lockoutDeadline := strconv.FormatInt(now.Add(lockoutTTL).Unix(), 10)
 	if err := c.Set(ctx, "account-lockout="+source+":"+id, lockoutDeadline, lockoutTTL); err != nil {
 		return 0, attempt, err
