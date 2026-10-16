@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestAPIKeySSHAccess covers what decides an API key's SSH login in the identity mode: no policy
+// TestAPIKeySSHAccess covers what decides an API key's SSH login in a new namespace: no policy
 // naming the key lets it in, a deny naming it beats the allow that would, its identity works until
 // its expiry, and deleting the key takes its identities with it. That an every-member policy does
 // not grant a key is covered by [TestAccessPolicyEvaluation], single-use identities by
@@ -22,7 +22,7 @@ func TestAPIKeySSHAccess(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)

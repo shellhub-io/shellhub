@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	agentPairingLink   = regexp.MustCompile(`accept-device\?code=([` + pairingcode.Alphabet + `]+)`)
-	agentConnectedLine = regexp.MustCompile(`msg="Server connection established".* tenant_id=(\S+)`)
+	agentPairingLink    = regexp.MustCompile(`accept-device\?code=([` + pairingcode.Alphabet + `]+)`)
+	agentConnectedLine  = regexp.MustCompile(`msg="Server connection established".* tenant_id=(\S+)`)
+	agentPairsAgainLine = regexp.MustCompile(`msg="(The device was removed from its namespace; pairing it again)"`)
 )
 
 // TestDevicePairing drives the codes an agent prints for a person to accept it from a browser with
@@ -33,7 +34,7 @@ var (
 func TestDevicePairing(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("pairing", func(t *testing.T) { testPairingCode(t, compose) })
 	t.Run("login code", func(t *testing.T) { testDeviceLoginCode(t, compose) })
@@ -46,7 +47,7 @@ func TestDevicePairing(t *testing.T) {
 func TestDevicePairingAgent(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("an agent without a tenant starts a pairing and waits on its code", func(t *testing.T) {
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired(), NewAgentContainerWithHostname("pairing-waits"))
@@ -97,6 +98,20 @@ func TestDevicePairingAgent(t *testing.T) {
 		assert.Equal(t, ShellHubNamespace, awaitAgentConnected(t, agent))
 		assert.Equal(t, ShellHubNamespace, readAgentFile(t, agent, "/tmp/shellhub.key.tenant"), "the agent did not keep the tenant it learned")
 		assert.Equal(t, ShellHubNamespace, compose.AwaitDeviceOnline(t, accepted.UID).TenantID)
+	})
+
+	t.Run("an agent whose device was removed while it was stopped pairs again", func(t *testing.T) {
+		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired(), NewAgentContainerWithHostname("pairing-deleted"))
+
+		accepted := acceptPairing(t, compose.R(t.Context()), awaitAgentPairingCode(t, agent))
+		awaitAgentConnected(t, agent)
+
+		require.NoError(t, agent.Stop(t.Context(), nil))
+		compose.DeleteDevice(t, accepted.UID)
+		require.NoError(t, agent.Start(t.Context()))
+
+		awaitAgentLog(t, agent, agentPairsAgainLine, "the agent did not go back to pairing")
+		assert.NotContains(t, execInAgent(t, agent, "ls", "/tmp"), "shellhub.key.tenant", "the agent kept the tenant of a removed device")
 	})
 }
 

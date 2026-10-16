@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
@@ -23,7 +22,7 @@ const forwardingUser = "forwarded"
 func TestAgentSSHAgentForwarding(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	shellhubAgent, device := startAcceptedAgent(t, t.Context(), compose)
 	execInAgent(t, shellhubAgent, "adduser", "-D", forwardingUser)

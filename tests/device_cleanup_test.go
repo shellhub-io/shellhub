@@ -26,7 +26,7 @@ const (
 func TestDeviceCleanup(t *testing.T) {
 	t.Parallel()
 
-	compose := newConfiguredSSHEnvironment(t, t.Context(), environment.New(t, run).WithCronTrigger(), models.SSHAccessModeLegacy)
+	compose := newConfiguredSSHEnvironment(t, t.Context(), environment.New(t, run).WithCronTrigger(), newNamespace)
 
 	t.Run("an ephemeral device offline past its timeout is deleted and an online one is kept", func(t *testing.T) {
 		key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{

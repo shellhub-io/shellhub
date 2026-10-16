@@ -160,7 +160,7 @@ func TestSessionLifecycle(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 	signer := registerDeviceKey(t, ctx, compose)
 
@@ -233,7 +233,7 @@ func TestSessionLifecycle(t *testing.T) {
 
 	t.Run("a session is visible only inside its own namespace", func(t *testing.T) {
 		compose.NewUser(t, outsiderUsername, outsiderEmail, outsiderPassword)
-		compose.NewNamespace(t, outsiderUsername, outsiderNamespaceName, outsiderNamespace, "")
+		compose.NewNamespace(t, outsiderUsername, outsiderNamespaceName, outsiderNamespace)
 
 		outsider := compose.AuthUser(t, outsiderUsername, outsiderPassword)
 		require.NotNil(t, outsider.Tenant)

@@ -33,7 +33,7 @@ func TestAgentTunnelRedial(t *testing.T) {
 
 	compose := newConfiguredSSHEnvironment(t, ctx,
 		environment.New(t, run).WithEnv("SHELLHUB_REQUIRE_ACCEPTED_TUNNEL", "true"),
-		models.SSHAccessModeLegacy)
+		legacyNamespace)
 
 	mark := compose.ServerLogMark(t)
 

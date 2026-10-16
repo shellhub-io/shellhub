@@ -23,7 +23,7 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
@@ -183,7 +183,7 @@ func TestSSHServerRestart(t *testing.T) {
 
 	compose := newConfiguredSSHEnvironment(t, ctx,
 		environment.New(t, run).WithEnv("SHELLHUB_SESSION_KEEPALIVE_TIMEOUT", "2m").WithCronTrigger(),
-		models.SSHAccessModeLegacy)
+		legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
@@ -236,7 +236,7 @@ func TestSSHUnresponsiveDevice(t *testing.T) {
 
 	compose := newConfiguredSSHEnvironment(t, ctx,
 		environment.New(t, run).WithEnv("SHELLHUB_TUNNEL_PING_INTERVAL", tunnelPingInterval.String()),
-		models.SSHAccessModeLegacy)
+		legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 	agent, device := startAcceptedAgent(t, ctx, compose, NewAgentContainerWithConnectionVersion(1))
 

@@ -28,7 +28,7 @@ func TestConnectorSSH(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	name := "ssh-" + randomHex(t)
 	target := startLabelledContainer(t, ctx, name)

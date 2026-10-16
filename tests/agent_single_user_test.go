@@ -39,7 +39,7 @@ func asUser(user string) func(*testcontainers.ContainerRequest) {
 func TestAgentSingleUserMode(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("an agent running as root refuses to start", func(t *testing.T) {
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerInSingleUserMode())

@@ -23,7 +23,7 @@ const invitationLifetime = 7 * 24 * time.Hour
 func TestInvitationLink(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("a link resolves for seven days", func(t *testing.T) {
 		tenant := newInvitingNamespace(t, compose, "invitation-lifetime")
@@ -72,7 +72,7 @@ func newInvitingNamespace(t *testing.T, compose *environment.DockerCompose, name
 	t.Helper()
 
 	tenant := uuid.Generate()
-	compose.NewNamespace(t, ShellHubUsername, name, tenant, "")
+	compose.NewNamespace(t, ShellHubUsername, name, tenant)
 
 	return tenant
 }

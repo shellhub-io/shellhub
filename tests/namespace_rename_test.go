@@ -17,12 +17,12 @@ import (
 func TestRenameNamespace(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 	_, device := startAcceptedAgent(t, t.Context(), compose)
 	signer := registerDeviceKey(t, t.Context(), compose)
 
 	const takenName = "takenspace"
-	compose.NewNamespace(t, ShellHubUsername, takenName, uuid.Generate(), "")
+	compose.NewNamespace(t, ShellHubUsername, takenName, uuid.Generate())
 
 	sshTo := func(namespace string) *ssh.ClientConfig {
 		return &ssh.ClientConfig{

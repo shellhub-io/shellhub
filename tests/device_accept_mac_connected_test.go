@@ -22,7 +22,7 @@ import (
 func TestDeviceAcceptMACTwinConnected(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("an accept is refused on identity.mac and leaves both devices intact", func(t *testing.T) {
 		_, twin := startNamedAcceptedAgent(t, compose, "connected-twin")

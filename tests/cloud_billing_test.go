@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -75,6 +76,7 @@ func TestCloudBilling(t *testing.T) {
 type billingOwner struct {
 	username string
 	tenant   string
+	key      string
 }
 
 type billedSubscription struct {
@@ -89,8 +91,9 @@ func newBillingOwner(t *testing.T, compose *environment.DockerCompose, name stri
 	owner := billingOwner{username: name, tenant: uuid.Generate()}
 
 	compose.NewUser(t, name, name+stripeTestEmailDomain, ShellHubPassword)
-	compose.NewNamespace(t, name, name, owner.tenant, "")
+	compose.NewNamespace(t, name, name, owner.tenant)
 	compose.JWT(compose.AuthUser(t, name, ShellHubPassword).Token)
+	owner.key = compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{Name: name, Mode: string(models.ProvisioningKeyModeManual)}).Key
 
 	return owner
 }
@@ -193,11 +196,10 @@ func startSubscription(t *testing.T, compose *environment.DockerCompose, tenant,
 	return billedSubscription{tenant: tenant, customer: customer, id: namespace.Billing.Subscription.ID}
 }
 
-func enrollIn(t *testing.T, compose *environment.DockerCompose, tenant, hostname, mac string) models.Device {
+func enrollIn(t *testing.T, compose *environment.DockerCompose, provisioningKey, hostname, mac string) models.Device {
 	t.Helper()
 
-	req := newDeviceAuthRequest(t, hostname, mac)
-	req.TenantID = tenant
+	req := newKeyedDeviceAuthRequest(t, provisioningKey, hostname, mac)
 
 	device := enroll(t, compose, req)
 	require.Equal(t, models.DeviceStatusPending, device.Status)
@@ -205,11 +207,11 @@ func enrollIn(t *testing.T, compose *environment.DockerCompose, tenant, hostname
 	return device
 }
 
-func acceptDevicesIn(t *testing.T, compose *environment.DockerCompose, tenant, prefix string, count int) {
+func acceptDevicesIn(t *testing.T, compose *environment.DockerCompose, provisioningKey, prefix string, count int) {
 	t.Helper()
 
 	for i := range count {
-		device := enrollIn(t, compose, tenant, fmt.Sprintf("%s-%d", prefix, i), fmt.Sprintf("02:00:00:00:43:%02x", i))
+		device := enrollIn(t, compose, provisioningKey, fmt.Sprintf("%s-%d", prefix, i), fmt.Sprintf("02:00:00:00:43:%02x", i))
 		compose.UpdateDeviceStatus(t, device.UID, environment.DeviceActionAccept)
 	}
 }
@@ -417,9 +419,9 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 
 	t.Run("a namespace without a subscription is refused a device past the free tier until it subscribes", func(t *testing.T) {
 		owner := newBillingOwner(t, compose, "billing-free-tier")
-		acceptDevicesIn(t, compose, owner.tenant, "free-tier", freeTierDevices)
+		acceptDevicesIn(t, compose, owner.key, "free-tier", freeTierDevices)
 
-		device := enrollIn(t, compose, owner.tenant, "past-free-tier", "02:00:00:00:44:00")
+		device := enrollIn(t, compose, owner.key, "past-free-tier", "02:00:00:00:44:00")
 		requireAcceptRefused(t, compose, device, deviceLimitMessage)
 
 		subscribe(t, compose, owner.tenant)
@@ -431,7 +433,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		subscription := subscribe(t, compose, owner.tenant)
 		awaitStripeUsage(t, compose, subscription.id, 0)
 
-		device := enrollIn(t, compose, owner.tenant, "reported", "02:00:00:00:44:01")
+		device := enrollIn(t, compose, owner.key, "reported", "02:00:00:00:44:01")
 		requireAcceptAnswers(t, compose, device, http.StatusOK)
 
 		awaitStripeUsage(t, compose, subscription.id, 1)
@@ -445,7 +447,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.inStatus(models.BillingStatusPastDue))
 		require.Equal(t, models.BillingStatusPastDue, subscriptionStatus(t, compose, owner.tenant))
 
-		device := enrollIn(t, compose, owner.tenant, "past-due", "02:00:00:00:44:02")
+		device := enrollIn(t, compose, owner.key, "past-due", "02:00:00:00:44:02")
 		requireAcceptAnswers(t, compose, device, http.StatusPaymentRequired)
 
 		requireStripeUsageHolds(t, compose, subscription.id, 0)
@@ -458,7 +460,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.inStatus(models.BillingStatusUnpaid))
 		require.Equal(t, models.BillingStatusUnpaid, subscriptionStatus(t, compose, owner.tenant))
 
-		device := enrollIn(t, compose, owner.tenant, "unpaid", "02:00:00:00:44:03")
+		device := enrollIn(t, compose, owner.key, "unpaid", "02:00:00:00:44:03")
 		requireAcceptRefused(t, compose, device, subscriptionBlockedMessage)
 	})
 }
@@ -480,10 +482,10 @@ func testBilledDeviceConnection(t *testing.T, ctx context.Context, compose *envi
 	t.Helper()
 
 	compose.NewUser(t, ShellHubUsername, ShellHubUsername+stripeTestEmailDomain, ShellHubPassword)
-	ownNamespace(t, ctx, compose, models.SSHAccessModeLegacy)
+	ownNamespace(t, ctx, compose, newNamespace)
 
 	subscription := subscribe(t, compose, ShellHubNamespace)
-	acceptDevicesIn(t, compose, ShellHubNamespace, "connection", freeTierDevices)
+	acceptDevicesIn(t, compose, requireHarnessProvisioningKey(t, compose), "connection", freeTierDevices)
 
 	signer := registerDeviceKey(t, ctx, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)
@@ -508,7 +510,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 
 	t.Run("invoice.paid keeps an active subscription active and sets the period's usage to the accepted devices", func(t *testing.T) {
 		owner := newBillingOwner(t, compose, "billing-invoice-paid")
-		acceptDevicesIn(t, compose, owner.tenant, "invoiced", freeTierDevices)
+		acceptDevicesIn(t, compose, owner.key, "invoiced", freeTierDevices)
 		subscription := subscribe(t, compose, owner.tenant)
 		awaitStripeUsage(t, compose, subscription.id, 0)
 

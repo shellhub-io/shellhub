@@ -39,9 +39,9 @@ func TestLeaveNamespace(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
-	compose.NewNamespace(t, ShellHubUsername, leftBehindNamespaceName, leftBehindNamespace, "")
-	compose.NewNamespace(t, ShellHubUsername, neverLeftNamespaceName, neverLeftNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+	compose.NewNamespace(t, ShellHubUsername, leftBehindNamespaceName, leftBehindNamespace)
+	compose.NewNamespace(t, ShellHubUsername, neverLeftNamespaceName, neverLeftNamespace)
 	compose.NewUser(t, leaverUsername, leaverEmail, leaverPassword)
 	compose.NewMember(t, leaverUsername, ShellHubNamespaceName, string(authorizer.RoleObserver))
 	compose.NewMember(t, leaverUsername, leftBehindNamespaceName, string(authorizer.RoleObserver))
@@ -117,7 +117,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			compose := newFastTunnelPingEnvironment(t, t.Context())
+			compose := newFastTunnelPingEnvironment(t, t.Context(), legacyNamespace)
 
 			startAcceptedAgent(t, t.Context(), compose)
 
@@ -145,7 +145,7 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 				assert.InDelta(t, 1, evicted, 0)
 			}
 
-			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, models.SSHAccessModeLegacy)
+			compose.NewLegacyNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 			authDevice(t, compose, cached)
 
@@ -166,7 +166,7 @@ func TestDeleteNamespaceRefusesItsAPIKeys(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
 
 	key := compose.CreateAPIKey(t, &requests.CreateAPIKey{

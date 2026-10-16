@@ -28,7 +28,7 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 	t.Parallel()
 
 	t.Run("refuses their token and API keys at once", func(t *testing.T) {
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), newNamespace)
 		member := signInDepartingMember(t, compose)
 
 		key := new(responses.CreateAPIKey)
@@ -58,7 +58,7 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 	})
 
 	t.Run("closes their paired devices' tunnels within a heartbeat", func(t *testing.T) {
-		compose := newFastTunnelPingEnvironment(t, t.Context())
+		compose := newFastTunnelPingEnvironment(t, t.Context(), newNamespace)
 		member := signInDepartingMember(t, compose)
 
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired())

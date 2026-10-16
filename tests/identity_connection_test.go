@@ -18,12 +18,12 @@ const deadIdentityLog = "failed to resolve the identity for the public key"
 // TestSSHIdentityConnection covers what an enrolled identity does at connect time once it exists:
 // it stops working when it expires or when its one session burns it, every connection stamps it,
 // and it authenticates as the principal it is bound to and nobody else. Enrolling a key and the
-// first connection with it are covered by [TestSSHIdentityMode] and [TestIdentityAccessPolicy].
+// first connection with it are covered by [TestSSHNewNamespace] and [TestIdentityAccessPolicy].
 func TestSSHIdentityConnection(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)

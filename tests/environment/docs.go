@@ -28,7 +28,7 @@
 //	    t.Cleanup(dockerCompose.Down)
 //
 //	    dockerCompose.NewUser(t, "john_doe", "john.doe@test.com", "secret")
-//	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000", "legacy")
+//	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000")
 //	    credentials := dockerCompose.AuthUser(t, "john_doe", "secret")
 //	    // Do something ...
 //	}

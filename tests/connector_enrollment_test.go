@@ -20,7 +20,7 @@ func TestConnectorEnrollment(t *testing.T) {
 	t.Run("a container asks to join under the first 12 characters of its ID", func(t *testing.T) {
 		t.Parallel()
 
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		name := "identity-" + randomHex(t)
 		target := startLabelledContainer(t, t.Context(), name)
@@ -31,10 +31,26 @@ func TestConnectorEnrollment(t *testing.T) {
 		assert.Equal(t, target.GetContainerID()[:12], pending.Identity.MAC)
 	})
 
+	t.Run("a connector given a provisioning key enrolls its containers into a new namespace", func(t *testing.T) {
+		t.Parallel()
+
+		compose := newSSHEnvironment(t, t.Context(), newNamespace)
+
+		name := "keyed-" + randomHex(t)
+		startLabelledContainer(t, t.Context(), name)
+		startConnectorWithEnv(t, t.Context(), compose, connectorLabel+"="+name, map[string]string{
+			"SHELLHUB_TENANT_ID":        "",
+			"SHELLHUB_PROVISIONING_KEY": requireHarnessProvisioningKey(t, compose),
+		})
+
+		pending := awaitContainerWithStatus(t, compose, models.DeviceStatusPending)
+		assert.Equal(t, compose.ProvisioningKey(t, harnessProvisioningKeyName).ID, pending.ProvisioningKeyID)
+	})
+
 	t.Run("a container's name has its dots replaced by underscores and is cut to 64 characters", func(t *testing.T) {
 		t.Parallel()
 
-		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 		value := randomHex(t)
 		name := "sanitized." + value + "." + strings.Repeat("x", 64)
@@ -53,7 +69,7 @@ func TestConnectorEnrollment(t *testing.T) {
 
 		ctx := t.Context()
 
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 		value := randomHex(t)
 		runningBefore := startIdleContainer(t, ctx, "unlabelled-before-"+value, nil)

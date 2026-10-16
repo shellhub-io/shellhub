@@ -21,13 +21,6 @@ const (
 
 var anyDevice = environment.FirewallRuleFilter{Hostname: anyValue}
 
-// TestEnterpriseFirewall covers how the legacy-mode firewall decides an SSH connection: the first
-// active rule, lowest priority value first, matching the client's source address, the device user
-// and the device by hostname or tag decides; a connection no rule matches, or with no rules at all,
-// passes; an inactive rule is skipped; and a namespace in the identity mode decides by its access
-// policies instead, never reading its firewall rules. The cases share one stack and one device,
-// and each removes the rules it adds. Renaming a tag preserves the rule's match and updates the
-// tag name returned with the rule.
 func TestEnterpriseFirewall(t *testing.T) {
 	t.Parallel()
 
@@ -129,9 +122,8 @@ func TestEnterpriseFirewall(t *testing.T) {
 		requireAccessDenied(t, compose, sshid, signer, firewallBlockedLog, errFirewallRuleBlock)
 	})
 
-	t.Run("a namespace in the identity mode is not held to its firewall rules", func(t *testing.T) {
-		compose.EditSSHAccessMode(t, ShellHubNamespace, models.SSHAccessModeIdentity)
-		t.Cleanup(func() { compose.EditSSHAccessMode(t, ShellHubNamespace, models.SSHAccessModeLegacy) })
+	t.Run("an upgraded namespace is not held to its firewall rules", func(t *testing.T) {
+		compose.UpgradeNamespace(t, ShellHubNamespace)
 
 		owner, _ := enrollOwnerKey(t, compose)
 		addFirewallRule(t, compose, denyAll)

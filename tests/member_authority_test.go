@@ -136,7 +136,7 @@ func newMembershipEnvironment(t *testing.T) *environment.DockerCompose {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 	compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
 
 	return compose

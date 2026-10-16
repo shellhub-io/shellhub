@@ -26,7 +26,7 @@ func TestCloudLicensing(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubUsername+stripeTestEmailDomain, ShellHubPassword)
-	ownNamespace(t, ctx, compose, models.SSHAccessModeLegacy)
+	ownNamespace(t, ctx, compose, legacyNamespace)
 
 	signer := registerDeviceKey(t, ctx, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)

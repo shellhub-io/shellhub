@@ -140,7 +140,7 @@ func testAdminExports(t *testing.T, compose *environment.DockerCompose) {
 	compose.NewUser(t, "export-beta", "beta@export.shellhub.io", ShellHubPassword)
 
 	tenant := uuid.Generate()
-	compose.NewNamespace(t, "export-alpha", "export-space", tenant, "")
+	compose.NewNamespace(t, "export-alpha", "export-space", tenant)
 
 	alpha := adminUser(t, compose, "export-alpha")
 	beta := adminUser(t, compose, "export-beta")
@@ -201,7 +201,7 @@ func testAdminStats(t *testing.T, compose *environment.DockerCompose) {
 
 		compose.NewUser(t, "stats-owner", "stats-owner@shellhub.io", ShellHubPassword)
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "stats-owner", "stats-space", tenant, "")
+		compose.NewLegacyNamespace(t, "stats-owner", "stats-space", tenant)
 		owner := compose.AuthUser(t, "stats-owner", ShellHubPassword)
 
 		enrollPendingDevice(t, compose, "stats-pending", "02:00:00:00:24:01")
@@ -235,7 +235,7 @@ func testAdminAuthToken(t *testing.T, compose *environment.DockerCompose) {
 	t.Run("an administrator gets a token that signs in as the user", func(t *testing.T) {
 		compose.NewUser(t, "impersonated", "impersonated@shellhub.io", ShellHubPassword)
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "impersonated", "impersonated-space", tenant, "")
+		compose.NewNamespace(t, "impersonated", "impersonated-space", tenant)
 		target := adminUser(t, compose, "impersonated")
 
 		token := struct {
@@ -353,7 +353,7 @@ func testAdminUserWrites(t *testing.T, compose *environment.DockerCompose) {
 		createUserAsAdmin(t, compose, "doomed")
 
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "doomed", "doomed-space", tenant, "")
+		compose.NewNamespace(t, "doomed", "doomed-space", tenant)
 		owner := signIntoTenant(t, compose, "doomed", ShellHubPassword, tenant)
 
 		req := newDeviceAuthRequest(t, "doomed-owned", "02:00:00:00:24:11")
@@ -361,9 +361,12 @@ func testAdminUserWrites(t *testing.T, compose *environment.DockerCompose) {
 		owned := authDevice(t, compose, req).UID
 		requireAnswer(t, asBearer(t, compose, owner.Token), http.MethodPatch, "/api/devices/"+owned+"/"+string(environment.DeviceActionAccept), http.StatusOK)
 
-		compose.NewMember(t, "doomed", ShellHubNamespaceName, string(authorizer.RoleOperator))
-		member := signIntoTenant(t, compose, "doomed", ShellHubPassword, ShellHubNamespace)
-		paired := pairDeviceAs(t, compose, member, "doomed-paired", "02:00:00:00:24:12")
+		pairedTenant := uuid.Generate()
+		compose.NewNamespace(t, ShellHubUsername, "doomed-pairs-here", pairedTenant)
+		compose.NewMember(t, "doomed", "doomed-pairs-here", string(authorizer.RoleOperator))
+		member := signIntoTenant(t, compose, "doomed", ShellHubPassword, pairedTenant)
+		pairing := startPairing(t, compose, newPairingRequest(t, "doomed-paired", "02:00:00:00:24:12"))
+		paired := acceptPairingInto(t, asBearer(t, compose, member.Token), pairedTenant, pairing.Code)
 		require.Equal(t, owner.ID, paired.OwnerID)
 
 		requireAnswer(t, compose.R(t.Context()), http.MethodDelete, "/admin/api/users/"+owner.ID, http.StatusOK)
@@ -371,7 +374,12 @@ func testAdminUserWrites(t *testing.T, compose *environment.DockerCompose) {
 		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/users/"+owner.ID, http.StatusNotFound)
 		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/namespaces/"+tenant, http.StatusNotFound)
 		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/devices/"+owned, http.StatusNotFound)
-		requireRemovedDevice(t, compose, paired.UID)
+
+		removed := new(models.Device)
+		resp, err := compose.R(t.Context()).SetResult(removed).Get("/admin/api/devices/" + paired.UID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, models.DeviceStatusRemoved, removed.Status, "a paired device stayed after its owner was deleted")
 	})
 }
 
@@ -381,7 +389,7 @@ func testAdminNamespaceWrites(t *testing.T, compose *environment.DockerCompose) 
 	t.Run("a device limit an administrator sets holds on the next accept", func(t *testing.T) {
 		compose.NewUser(t, "limited", "limited@admin.shellhub.io", ShellHubPassword)
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "limited", "limited-space", tenant, "")
+		compose.NewNamespace(t, "limited", "limited-space", tenant)
 		owner := compose.AuthUser(t, "limited", ShellHubPassword)
 
 		held := enrollPendingDeviceAs(t, compose, owner, "limited-held", "02:00:00:00:24:21")
