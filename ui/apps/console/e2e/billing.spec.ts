@@ -2,7 +2,7 @@ import { type Page, expect, test as base } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { getCustomer, getNamespace, getNamespaces } from "@/client";
 import { isCloud } from "./env";
-import { createUser, signIn } from "./helpers";
+import { createUser, signInAndOpen } from "./helpers";
 import {
   password,
   buildShortId,
@@ -114,9 +114,7 @@ const test = base.extend<{ owner: Owner }>({
 });
 
 async function openBilling(page: Page, owner: Owner) {
-  await signIn(page, owner.username, password);
-  await expect(page).toHaveURL(/\/dashboard$/);
-  await page.goto("/settings/billing");
+  await signInAndOpen(page, owner.username, "/settings/billing");
 }
 
 function subscribeDialog(page: Page) {
