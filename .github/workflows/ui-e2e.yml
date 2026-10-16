@@ -47,6 +47,7 @@ jobs:
             images:
               - 'server/**'
               - 'gateway/**'
+              - 'agent/**'
               - 'pkg/**'
               - 'go.mod'
               - 'go.sum'

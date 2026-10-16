@@ -13,7 +13,6 @@ require (
 	github.com/hibiken/asynq v0.26.0
 	github.com/joho/godotenv v1.5.1
 	github.com/maxmind/mmdbwriter v1.2.0
-	github.com/moby/buildkit v0.31.1
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.1
 	github.com/oschwald/maxminddb-golang/v2 v2.7.0
@@ -94,6 +93,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.24 // indirect
 	github.com/mattn/go-shellwords v1.0.16 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
+	github.com/moby/buildkit v0.31.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.3.0 // indirect
 	github.com/moby/locker v1.0.1 // indirect

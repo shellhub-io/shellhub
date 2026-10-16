@@ -347,12 +347,16 @@ var reusableImageSources = map[string][]string{
 		"gateway/Dockerfile", "docker-compose.test.build.yml", "versions.env", ".dockerignore",
 		"go.mod", "go.sum", "pkg", "gateway",
 	},
+	"agent": {
+		defaultAgentDockerfile, "versions.env", ".dockerignore",
+		"go.mod", "go.sum", "pkg", "agent", "tests/cmd/signal-reporter",
+	},
 }
 
-func imageKey(ctx context.Context, repoRoot, cloudDir, service string, edition Edition, ldflags string) (string, error) {
+func sourceTrees(ctx context.Context, repoRoot, service string) (*strings.Builder, error) {
 	paths, ok := reusableImageSources[service]
 	if !ok {
-		return "", fmt.Errorf("the %s image is built on every run, never reused", service)
+		return nil, fmt.Errorf("the %s image is built on every run, never reused", service)
 	}
 
 	revisions := make([]string, len(paths))
@@ -362,13 +366,22 @@ func imageKey(ctx context.Context, repoRoot, cloudDir, service string, edition E
 
 	trees, err := gitRevParse(ctx, repoRoot, revisions...)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var inputs strings.Builder
 
 	for i, path := range paths {
 		inputs.WriteString(path + " " + trees[i] + "\n")
+	}
+
+	return &inputs, nil
+}
+
+func imageKey(ctx context.Context, repoRoot, cloudDir, service string, edition Edition, ldflags string) (string, error) {
+	inputs, err := sourceTrees(ctx, repoRoot, service)
+	if err != nil {
+		return "", err
 	}
 
 	if service == "server" {
