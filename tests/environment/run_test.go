@@ -43,6 +43,10 @@ func dockerClient(t *testing.T) *client.Client {
 }
 
 func newRunImage(ctx context.Context, cli *client.Client, id string) (string, error) {
+	return commitRunImage(ctx, cli, "shellhub-e2e/run-test:"+id, id)
+}
+
+func commitRunImage(ctx context.Context, cli *client.Client, ref, id string) (string, error) {
 	image, err := leaseImage()
 	if err != nil {
 		return "", err
@@ -60,7 +64,6 @@ func newRunImage(ctx context.Context, cli *client.Client, id string) (string, er
 		_, _ = cli.ContainerRemove(context.WithoutCancel(ctx), source.ID, client.ContainerRemoveOptions{Force: true})
 	}()
 
-	ref := "shellhub-e2e/run-test:" + id
 	if _, err := cli.ContainerCommit(ctx, source.ID, client.ContainerCommitOptions{
 		Reference: ref,
 		Changes:   []string{"LABEL " + runLabel + "=" + id},

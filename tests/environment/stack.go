@@ -107,7 +107,7 @@ type Stack struct {
 
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
 // healthy. The first Up per edition in a run builds the images, tagged with the run's ID, unless
-// [BuildStackImages] built them; later Ups reuse them. The stack's network is created by the run,
+// [BuildStackImages] or [BuildEditionImages] built them; later Ups reuse them. The stack's network is created by the run,
 // so Up returns an error when cfg has no run and when the daemon refuses the network. It also returns an error, after taking the
 // stack down, when compose fails, when the daemon cannot list the stack's containers, or when a
 // service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up

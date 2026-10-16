@@ -54,7 +54,7 @@ func TestPrintExportsSurvivesEval(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	require.NoError(t, printExports(&out, state, []byte(`it's "$HOME" * ;`)))
+	require.NoError(t, printExports(&out, state, []byte(`it's "$HOME" * ;`), "../../cloud"))
 
 	script := out.String() + `printf '%s|%s|%s' "$E2E_AGENT_IMAGE" "$E2E_EXPIRED_LICENSE" "$E2E_ACCOUNT_LOCKOUT_BASE_MS"`
 	sh := exec.CommandContext(t.Context(), "sh")
