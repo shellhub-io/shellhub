@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { validateNamespaceName } from "@/utils/validation";
-import type { Namespace } from "@/client";
+import type { Namespace, NamespaceWritable } from "@/client";
 
 const editNamespaceFields = z.object({
   name: z.string(),
@@ -53,13 +53,13 @@ export function buildEditNamespaceDefaults(
 }
 
 /**
- * The SDK types the edit body as a full Namespace, so the original entity is
+ * The SDK types the edit body as the namespace's writable fields, so the original entity is
  * spread in and only the editable fields are overwritten.
  */
 export function buildEditNamespaceBody(
   namespace: Namespace,
   values: EditNamespaceFormValues,
-): Namespace {
+): NamespaceWritable {
   return {
     ...namespace,
     name: values.name.trim(),
@@ -68,8 +68,6 @@ export function buildEditNamespaceBody(
       connection_announcement:
         namespace.settings?.connection_announcement ?? "",
       session_record: values.sessionRecord,
-      ssh_access_mode: namespace.settings?.ssh_access_mode ?? "legacy",
-      ssh_legacy_allowed: namespace.settings?.ssh_legacy_allowed ?? false,
     },
   };
 }

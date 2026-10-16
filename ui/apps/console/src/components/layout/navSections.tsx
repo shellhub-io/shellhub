@@ -14,8 +14,7 @@ import {
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 import { getConfig, isEnterpriseOrCloud } from "@/env";
-import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { navIcon } from "./SidebarShell";
 
 /**
@@ -52,7 +51,7 @@ export function navSectionTitle(
   )?.title;
 }
 
-function buildSections(isIdentityMode: boolean): NavSection[] {
+function buildSections(isNewNamespace: boolean): NavSection[] {
   const config = getConfig();
 
   const resources: NavItem[] = [
@@ -68,7 +67,7 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     },
   ];
 
-  if (!isIdentityMode) {
+  if (!isNewNamespace) {
     resources.push({
       to: "/sessions",
       label: "Sessions",
@@ -85,7 +84,7 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     });
   }
 
-  const security: NavItem[] = isIdentityMode
+  const security: NavItem[] = isNewNamespace
     ? [
         {
           to: "/sessions",
@@ -159,17 +158,15 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
 }
 
 /**
- * The navigation sections for the current namespace. The SSH access mode decides which security
+ * The navigation sections for the current namespace. Whether it is legacy decides which security
  * pages exist, so the result depends on the namespace settings.
  */
 export function useNavSections(): NavSection[] {
-  const { tenant } = useAuthStore();
-  const { namespace } = useNamespace(tenant ?? "");
-  return buildSections(namespace?.settings?.ssh_access_mode === "identity");
+  return buildSections(useNamespaceLegacy() !== true);
 }
 
 /**
- * navSectionTitle over the current namespace's sidebar, whose sections follow the SSH access mode.
+ * navSectionTitle over the current namespace's sidebar, whose sections follow whether the namespace is legacy.
  */
 export function useNavSectionTitle(route: string): string | undefined {
   return navSectionTitle(useNavSections(), route);

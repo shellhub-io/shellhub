@@ -35,6 +35,7 @@ const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
+const PendingDevices = lazy(() => import("./pages/devices/PendingDevices"));
 const Containers = lazy(() => import("./pages/containers"));
 const ContainerDetails = lazy(() => import("./pages/ContainerDetails"));
 const Sessions = lazy(() => import("./pages/sessions"));
@@ -109,7 +110,7 @@ const AdminAuthentication = lazy(
 );
 
 /**
- * Every route of the console. The nesting is the access model, read outside in: connectivity,
+ * Every route of the console. The nesting is the order of the checks, read outside in: connectivity,
  * then setup, then authentication, then a namespace, then the layout. A page added inside a
  * guard inherits it, which is why a new route belongs in the group that matches what it needs
  * rather than at the top.
@@ -211,9 +212,15 @@ export default function App() {
                     />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/devices" element={<Devices />} />
+                    <Route
+                      path="/devices/pending"
+                      element={<PendingDevices />}
+                    />
                     <Route path="/devices/add" element={<AddDevice />}>
                       <Route index element={<AddInteractive />} />
-                      <Route path="fleet" element={<AddFleet />} />
+                      <Route element={<IdentityAccessGuard />}>
+                        <Route path="fleet" element={<AddFleet />} />
+                      </Route>
                     </Route>
                     <Route
                       path="/devices/add/fleet/:id/activity"

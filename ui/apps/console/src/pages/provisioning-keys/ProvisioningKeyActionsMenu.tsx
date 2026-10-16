@@ -11,7 +11,7 @@ import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { type ProvisioningKey } from "@/client";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { type Action } from "@/utils/permission";
-import { isPairingKey, isSystemKey } from "./helpers";
+import { isSystemKey } from "./helpers";
 
 function MenuItem({
   action,
@@ -43,8 +43,9 @@ function MenuItem({
 
 /**
  * The provisioning key overflow menu. Disabling is offered separately from deleting: a disabled key
- * can be re-enabled, and a deleted one cannot. Given onActivity, it also opens the key's
- * registration history, which every key has, the pairing code and revoked keys included.
+ * can be re-enabled, and a deleted one cannot. The built-in keys are fixed and offer neither. Given
+ * onActivity, it also opens the key's registration history, which every key has, the built-in and
+ * revoked keys included.
  */
 export default function ProvisioningKeyActionsMenu({
   provisioningKey,
@@ -59,8 +60,7 @@ export default function ProvisioningKeyActionsMenu({
   onRevoke: (key: ProvisioningKey) => void;
   onActivity?: (key: ProvisioningKey) => void;
 }) {
-  const pairing = isPairingKey(provisioningKey);
-  const editable = !pairing && !provisioningKey.revoked;
+  const editable = !isSystemKey(provisioningKey) && !provisioningKey.revoked;
   if (!editable && !onActivity) return null;
 
   return (

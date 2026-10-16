@@ -88,7 +88,7 @@ describe("resolveError", () => {
       expect(result.links.some((l) => l.to === "/firewall-rules")).toBe(false);
     });
 
-    describe("identity mode", () => {
+    describe("in a new namespace", () => {
       beforeEach(() => {
         mockGetConfig.mockReturnValue({
           ...defaultConfig,
@@ -113,7 +113,7 @@ describe("resolveError", () => {
           "uid-1",
           true,
         );
-        const link = result.links.find((l) => l.to === "/firewall-rules");
+        const link = result.links.find((l) => l.to === "/access-policies");
         expect(link).toBeDefined();
         expect(link!.label).toBe("Access policies");
       });
@@ -129,7 +129,7 @@ describe("resolveError", () => {
         expect(hintText).not.toContain("namespace policy");
       });
 
-      it("keeps firewall wording when not in identity mode", () => {
+      it("keeps firewall wording in a legacy namespace", () => {
         const result = resolveError(
           "access to the device has been denied",
           "uid-1",
@@ -194,7 +194,7 @@ describe("resolveError", () => {
       expect(result.links.some((l) => l.to === "/firewall-rules")).toBe(true);
     });
 
-    it("labels the link 'Access policies' in identity mode", () => {
+    it("labels the link 'Access policies' in a new namespace", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "cloud",
@@ -205,7 +205,7 @@ describe("resolveError", () => {
         "uid-4",
         true,
       );
-      const link = result.links.find((l) => l.to === "/firewall-rules");
+      const link = result.links.find((l) => l.to === "/access-policies");
       expect(link).toBeDefined();
       expect(link!.label).toBe("Access policies");
     });

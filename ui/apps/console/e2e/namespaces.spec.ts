@@ -24,16 +24,16 @@ async function holdApiKeyList(page: Page) {
   return release;
 }
 
-async function switchToIdentity(page: Page) {
-  const mode = page.getByRole("group", { name: "SSH access mode" });
-  await mode.getByRole("button", { name: "Switch to identity" }).click();
-  await page
-    .getByRole("dialog", { name: "Switch to identity access?" })
-    .getByRole("button", { name: "Switch to identity" })
-    .click();
-  await expect(
-    mode.getByRole("button", { name: "Switch to legacy" }),
-  ).toBeVisible();
+async function upgradeNamespace(page: Page, namespace: string) {
+  const mode = page.getByRole("group", { name: "Namespace" });
+  await mode.getByRole("button", { name: "Upgrade" }).click();
+  const dialog = page.getByRole("dialog", {
+    name: "Upgrade this namespace?",
+  });
+  await dialog.getByLabel(`Type "${namespace}" to confirm`).fill(namespace);
+  await dialog.getByRole("button", { name: "Upgrade namespace" }).click();
+  await expect(mode.getByText("New")).toBeVisible();
+  await expect(mode.getByRole("button", { name: "Upgrade" })).toHaveCount(0);
 }
 
 async function readAccessPolicyNames(token: string) {
@@ -69,24 +69,22 @@ test.describe("Namespaces", () => {
     await expect(findRow(page, otherKey.name)).toBeVisible();
   });
 
-  test.describe("SSH access mode", () => {
-    test("switching to identity seeds the owner's access policy", async ({
-      page,
-    }) => {
-      const { owner } = await createTeam({ sshAccessMode: "legacy" });
+  test.describe("upgrading a legacy namespace", () => {
+    test("seeds the owner's access policy", async ({ page }) => {
+      const { owner, namespace } = await createTeam({ legacy: true });
       await signInAndOpen(page, owner.username, "/settings/ssh");
 
-      await switchToIdentity(page);
+      await upgradeNamespace(page, namespace);
 
       expect(await readAccessPolicyNames(owner.token)).toEqual([
         "Owner access",
       ]);
     });
 
-    test("switching to identity keeps existing policies without seeding another", async ({
+    test("keeps existing policies without seeding another", async ({
       page,
     }) => {
-      const { owner } = await createTeam({ sshAccessMode: "legacy" });
+      const { owner, namespace } = await createTeam({ legacy: true });
       const name = `e2e-policy-${buildShortId()}`;
       await createAccessPolicy({
         ...buildRequestContext({ token: owner.token }),
@@ -99,7 +97,7 @@ test.describe("Namespaces", () => {
       });
       await signInAndOpen(page, owner.username, "/settings/ssh");
 
-      await switchToIdentity(page);
+      await upgradeNamespace(page, namespace);
 
       expect(await readAccessPolicyNames(owner.token)).toEqual([name]);
     });

@@ -5,6 +5,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
 import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -66,6 +67,9 @@ type SortField = "name" | "last_seen";
  */
 export default function Devices() {
   const sectionTitle = useNavSectionTitle("/devices");
+  const queue = useTenantRegistrationQueue();
+  const pendingCount = queue.waiting;
+  const showPending = queue.reachable;
   const { params, setPage, setSearch, setArrayFilter, mapArrayFilter } =
     usePaginatedListState<DevicesParams>({
       defaults: DEFAULTS,
@@ -271,9 +275,19 @@ export default function Devices() {
       </PageHeader>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <span className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
-          Accepted
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
+            Accepted
+          </span>
+          {showPending && (
+            <Link
+              to="/devices/pending"
+              className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md border border-accent-yellow/25 bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/15 transition-colors"
+            >
+              {pendingCount} pending
+            </Link>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
           <TagFilterDropdown

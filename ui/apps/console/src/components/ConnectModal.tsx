@@ -14,6 +14,7 @@ import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespace } from "../hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useCreateSSHIdentity } from "../hooks/useSSHIdentityMutations";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {
@@ -303,9 +304,9 @@ export default function ConnectModal({
   const namespaceRecords =
     isEnterpriseOrCloud() && (namespace?.settings?.session_record ?? false);
 
-  const identityMode = namespace?.settings?.ssh_access_mode === "identity";
+  const newNamespace = useNamespaceLegacy() !== true;
   const browserKeyFingerprint = useBrowserKeyFingerprint();
-  const { identities } = useSSHIdentities({ enabled: open && identityMode });
+  const { identities } = useSSHIdentities({ enabled: open && newNamespace });
   const browserIdentity = identities.find(
     (i) => i.source === "browser" && i.fingerprint === browserKeyFingerprint,
   );
@@ -327,7 +328,7 @@ export default function ConnectModal({
     : undefined;
 
   const canConnect =
-    identityMode ||
+    newNamespace ||
     (state.authMethod === "password"
       ? state.password.trim().length > 0
       : effectiveKeySource === "vault"
@@ -394,7 +395,7 @@ export default function ConnectModal({
   };
 
   const connect = async () => {
-    if (identityMode) {
+    if (newNamespace) {
       const params: ConnectParams = {
         deviceUid,
         deviceName,
@@ -581,7 +582,7 @@ export default function ConnectModal({
             placeholder={DEFAULT_LOGIN}
           />
 
-          {identityMode &&
+          {newNamespace &&
             (state.keyUnavailable ? (
               <Callout variant="error">{state.keyUnavailable}</Callout>
             ) : (
@@ -593,7 +594,7 @@ export default function ConnectModal({
               />
             ))}
 
-          {!identityMode && (
+          {!newNamespace && (
             <>
               <RadioGroupField
                 label="Authentication"

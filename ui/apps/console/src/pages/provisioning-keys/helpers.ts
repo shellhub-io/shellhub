@@ -9,7 +9,12 @@ import { modeInfo, PAIRING_INFO } from "./constants";
  * user-created key is `user`. System keys are not presentable by an agent.
  */
 export function isSystemKey(key: ProvisioningKey): boolean {
-  return key.type === "legacy" || key.type === "pairing";
+  return isLegacyKey(key) || isPairingKey(key);
+}
+
+/** The legacy system key, which holds the devices enrolled with only a tenant ID. */
+export function isLegacyKey(key: ProvisioningKey): boolean {
+  return key.type === "legacy";
 }
 
 /** The pairing system key specifically. */

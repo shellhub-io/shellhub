@@ -4,9 +4,16 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
-import { createTestWrapper } from "@/tests/wrapper";
-import { mockDevice, mockNamespace, mockStats } from "@/tests/factories";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
+import {
+  mockDevice,
+  mockLegacyNamespace,
+  mockNamespace,
+  mockProvisioningKeyEvent,
+  mockStats,
+} from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
+import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import Devices from "../index";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
@@ -78,10 +85,19 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-function renderPage(initialEntries: string[] = ["/"]) {
-  return render(<Devices />, {
-    wrapper: createTestWrapper({ initialEntries }),
-  });
+function renderPage(
+  initialEntries: string[] = ["/"],
+  queryClient = createTestQueryClient(),
+) {
+  return render(
+    <>
+      <Devices />
+      <NamespaceModeProbe />
+    </>,
+    {
+      wrapper: createTestWrapper({ initialEntries, queryClient }),
+    },
+  );
 }
 
 let lastDevicesUrl: URL | null;
@@ -199,6 +215,85 @@ describe("Devices empty state", () => {
     expect(await screen.findByText(/no devices found/i)).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /continue setup/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("Devices pending queue", () => {
+  function serveRegistrations(statuses: ("pending" | "rejected")[]) {
+    server.use(
+      http.get("*/api/devices/tenant-registrations", () =>
+        jsonWithTotal(
+          statuses.map((status, i) =>
+            mockProvisioningKeyEvent({
+              id: `registration-${i}`,
+              device_uid: `uid-${i}`,
+              device_status: status,
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  it("is not offered by a new namespace no device registered with the tenant ID", async () => {
+    serveRegistrations([]);
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await screen.findByText("mode: new");
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(
+      screen.queryByRole("link", { name: /pending$/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("is linked from a new namespace with the count of devices waiting", async () => {
+    serveRegistrations(["pending", "pending", "rejected"]);
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: "2 pending" }),
+    ).toHaveAttribute("href", "/devices/pending");
+  });
+
+  it("stays linked while only a rejected registration remains to reconsider", async () => {
+    serveRegistrations(["rejected"]);
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: "0 pending" }),
+    ).toHaveAttribute("href", "/devices/pending");
+  });
+
+  it("is linked from a legacy namespace with its count", async () => {
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockLegacyNamespace()),
+      ),
+    );
+    serveRegistrations(["pending", "pending", "pending"]);
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: "3 pending" }),
+    ).toHaveAttribute("href", "/devices/pending");
+  });
+
+  it("is not offered to a member who may not accept devices", async () => {
+    seedAuthStore({ role: "observer" });
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockLegacyNamespace()),
+      ),
+    );
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await screen.findByText("mode: legacy");
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(
+      screen.queryByRole("link", { name: /pending$/ }),
     ).not.toBeInTheDocument();
   });
 });

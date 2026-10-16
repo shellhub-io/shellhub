@@ -39,11 +39,3 @@ export default function StatusChip({
     </span>
   );
 }
-
-/**
- * Marks a key created by an older mechanism that is no longer offered. It still works; it just
- * cannot be made again.
- */
-export function DeprecatedBadge() {
-  return <StatusChip label="Deprecated" tone="yellow" />;
-}

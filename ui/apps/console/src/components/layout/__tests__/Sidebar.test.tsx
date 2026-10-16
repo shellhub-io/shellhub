@@ -8,7 +8,7 @@ import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import Sidebar from "../Sidebar";
 
-async function renderSidebar(mode: "legacy" | "identity") {
+async function renderSidebar(legacy: boolean) {
   let served: () => void;
   const namespaceServed = new Promise<void>((resolve) => (served = resolve));
   server.use(
@@ -19,8 +19,7 @@ async function renderSidebar(mode: "legacy" | "identity") {
           settings: {
             session_record: false,
             connection_announcement: "",
-            ssh_access_mode: mode,
-            ssh_legacy_allowed: true,
+            legacy,
           },
         }),
       );
@@ -41,8 +40,8 @@ beforeEach(() => {
 });
 
 describe("Sidebar", () => {
-  it("offers the identity pages only in identity mode", async () => {
-    await renderSidebar("identity");
+  it("offers the identity pages only in a new namespace", async () => {
+    await renderSidebar(false);
 
     expect(
       await screen.findByRole("link", { name: /access policies/i }),
@@ -52,8 +51,8 @@ describe("Sidebar", () => {
     ).toBeInTheDocument();
   });
 
-  it("hides the identity pages in legacy mode, where nothing reads them", async () => {
-    await renderSidebar("legacy");
+  it("hides the identity pages in a legacy namespace, where nothing reads them", async () => {
+    await renderSidebar(true);
 
     expect(
       await screen.findByRole("link", { name: /public keys/i }),
@@ -67,17 +66,18 @@ describe("Sidebar", () => {
   });
 
   it("groups the legacy key pages under SSH", async () => {
-    await renderSidebar("legacy");
+    await renderSidebar(true);
 
-    const ssh = await screen.findByRole("group", { name: "SSH" });
+    await screen.findByRole("link", { name: /public keys/i });
+    const ssh = screen.getByRole("group", { name: "SSH" });
     expect(
       within(ssh).getByRole("link", { name: /public keys/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Security")).not.toBeInTheDocument();
   });
 
-  it("keeps hiding the legacy pages in identity mode", async () => {
-    await renderSidebar("identity");
+  it("keeps hiding the legacy pages in a new namespace", async () => {
+    await renderSidebar(false);
 
     await screen.findByRole("link", { name: /access policies/i });
     expect(

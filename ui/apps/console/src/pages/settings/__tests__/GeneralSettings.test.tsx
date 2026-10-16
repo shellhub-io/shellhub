@@ -17,18 +17,12 @@ import GeneralSettings from "../GeneralSettings";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-function defaultNs(
-  settings: Partial<{
-    ssh_access_mode: "legacy" | "identity";
-    ssh_legacy_allowed: boolean;
-  }> = {},
-) {
+function defaultNs(settings: Partial<{ legacy: boolean }> = {}) {
   return mockNamespace({
     settings: {
       session_record: false,
       connection_announcement: "",
-      ssh_access_mode: "legacy",
-      ssh_legacy_allowed: true,
+      legacy: false,
       ...settings,
     },
   });
@@ -60,10 +54,6 @@ beforeEach(() => {
     ),
     http.delete("*/api/namespaces/:tenant/members", () =>
       HttpResponse.json({}),
-    ),
-    http.put(
-      "*/api/namespaces/ssh-access-mode/:tenant",
-      () => new HttpResponse(null, { status: 204 }),
     ),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: VALID_JWT }),

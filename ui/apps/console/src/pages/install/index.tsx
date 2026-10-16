@@ -100,8 +100,9 @@ export default function Install() {
             </WindowChrome>
             {!pairs && (
               <p className="text-2xs text-text-muted leading-relaxed mt-2">
-                Snap is the one method that needs the namespace named up front.
-                Your tenant ID is on the namespace's settings page.
+                Snap is the one method that needs the namespace named up front,
+                and its device waits in Pending until somebody accepts it. Your
+                tenant ID is on the namespace's settings page.
               </p>
             )}
           </Step>
