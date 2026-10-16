@@ -93,19 +93,35 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		{
 			description: "success to load the environmental variables",
 			values: map[string]string{
-				"SHELLHUB_SERVER_ADDRESS":               "http://localhost",
-				"SHELLHUB_TENANT_ID":                    "1c462afa-e4b6-41a5-ba54-7236a1770466",
-				"SHELLHUB_PRIVATE_KEY":                  privateKey,
-				"SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT": "30",
+				"SHELLHUB_SERVER_ADDRESS": "http://localhost",
+				"SHELLHUB_TENANT_ID":      "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				"SHELLHUB_PRIVATE_KEY":    privateKey,
 			},
 			expected: expected{
 				cfg: &Config{
-					ServerAddress:             "http://localhost",
-					TenantID:                  "1c462afa-e4b6-41a5-ba54-7236a1770466",
-					PrivateKey:                privateKey,
-					KeepAliveInterval:         30,
-					MaxRetryConnectionTimeout: 30,
-					TransportVersion:          TransportV2,
+					ServerAddress:     "http://localhost",
+					TenantID:          "1c462afa-e4b6-41a5-ba54-7236a1770466",
+					PrivateKey:        privateKey,
+					KeepAliveInterval: 30,
+					TransportVersion:  TransportV2,
+				},
+				fields: nil,
+				err:    nil,
+			},
+		},
+		{
+			description: "ignore the retired max retry connection timeout whatever its value",
+			values: map[string]string{
+				"SHELLHUB_SERVER_ADDRESS":               "http://localhost",
+				"SHELLHUB_PRIVATE_KEY":                  privateKey,
+				"SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT": "5",
+			},
+			expected: expected{
+				cfg: &Config{
+					ServerAddress:     "http://localhost",
+					PrivateKey:        privateKey,
+					KeepAliveInterval: 30,
+					TransportVersion:  TransportV2,
 				},
 				fields: nil,
 				err:    nil,

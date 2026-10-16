@@ -237,16 +237,15 @@ func (d *DockerConnector) CheckUpdate() (*semver.Version, error) {
 
 func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container connector.Container) {
 	cfg := &agentd.Config{
-		ServerAddress:             container.ServerAddress,
-		TenantID:                  container.Tenant,
-		PrivateKey:                container.PrivateKey,
-		PreferredIdentity:         container.ID,
-		PreferredHostname:         container.Name,
-		KeepAliveInterval:         30,
-		MaxRetryConnectionTimeout: 60,
-		TransportVersion:          agentd.TransportV2,
-		Version:                   connector.ConnectorVersion,
-		Platform:                  "connector",
+		ServerAddress:     container.ServerAddress,
+		TenantID:          container.Tenant,
+		PrivateKey:        container.PrivateKey,
+		PreferredIdentity: container.ID,
+		PreferredHostname: container.Name,
+		KeepAliveInterval: 30,
+		TransportVersion:  agentd.TransportV2,
+		Version:           connector.ConnectorVersion,
+		Platform:          "connector",
 	}
 
 	log.WithFields(log.Fields{

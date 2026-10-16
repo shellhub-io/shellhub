@@ -125,10 +125,6 @@ type Config struct {
 	// compatibility, this new variable was created.
 	SimpleUserPassword string `env:"SIMPLE_USER_PASSWORD"`
 
-	// MaxRetryConnectionTimeout has no effect. It is still read and validated so that a configuration
-	// setting it keeps starting.
-	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
-
 	// TransportVersion specifies the version of the agent transport protocol to use.
 	// Version 1 uses HTTP-based revdial, version 2 uses yamux multiplexing with multistream.
 	// Supported values are 1 and 2. Default is 2.
