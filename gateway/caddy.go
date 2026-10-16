@@ -33,17 +33,20 @@ type caddyfileData struct {
 	WebEndpointsInternalTLS bool
 }
 
-func dnsProvider(provider DNSProvider) string {
+func dnsProvider(cfg *GatewayConfig) string {
+	provider := cfg.WebEndpointsDNSProvider
+	if provider == "" {
+		provider = DigitalOceanDNSProvider
+	}
+
 	switch provider {
-	case "":
-		return dnsProvider(DigitalOceanDNSProvider)
 	case AcmeDNSProvider:
-		return `acmedns {
-	username {env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_USERNAME}
+		return fmt.Sprintf(`acmedns {
+	username %s
 	password {env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD}
-	subdomain {env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN}
-	server_url {env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_URL}
-}`
+	subdomain %s
+	server_url %s
+}`, cfg.WebEndpointsACMEDNSUsername, cfg.WebEndpointsACMEDNSSubdomain, cfg.WebEndpointsACMEDNSURL)
 	default:
 		return string(provider) + " {env.SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN}"
 	}
@@ -67,7 +70,7 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 		SiteAddress: scheme + cfg.Domain,
 
 		WebEndpointsAddress: scheme + "*." + domain,
-		DNSProvider:         dnsProvider(cfg.WebEndpointsDNSProvider),
+		DNSProvider:         dnsProvider(cfg),
 
 		ACMECAServer:   cfg.ACMECAServer,
 		TrustedProxies: cfg.ProxyTrustedIPs,
