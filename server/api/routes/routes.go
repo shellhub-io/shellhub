@@ -2,6 +2,8 @@ package routes
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
@@ -117,16 +119,19 @@ func WithEdition(edition envs.Edition) Option {
 }
 
 // NewRouter builds the API router over service, applying each option in turn.
-func NewRouter(service services.Service, opts ...Option) *echo.Echo {
+// It returns a nil router and an error wrapping the option's own error when an
+// option fails, or an error when [DefaultHTTPHandler] does not build an
+// [echo.Echo].
+func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	router, ok := DefaultHTTPHandler().(*echo.Echo)
 	if !ok {
-		return nil
+		return nil, errors.New("the default HTTP handler is not an echo router")
 	}
 
 	handler := NewHandler(service)
 	for _, opt := range opts {
 		if err := opt(router, handler); err != nil {
-			return nil
+			return nil, fmt.Errorf("failed to apply a router option: %w", err)
 		}
 	}
 
@@ -273,5 +278,5 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	router.Pre(echoMiddleware.Rewrite(rootAliases))
 
-	return router
+	return router, nil
 }

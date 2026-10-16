@@ -114,7 +114,7 @@ func TestGetTags(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 
@@ -245,7 +245,7 @@ func TestDeleteTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -427,7 +427,7 @@ func TestCreateTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			res := rec.Result()
@@ -627,7 +627,7 @@ func TestUpdateTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			res := rec.Result()
@@ -758,7 +758,7 @@ func TestPushTagToDevice(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -883,7 +883,7 @@ func TestPullTagFromDevice(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)

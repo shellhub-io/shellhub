@@ -37,7 +37,7 @@ func benchRouter(b *testing.B) http.Handler {
 	service := serviceMocks.NewMockService(b)
 	service.On("PublicKey").Return(nil).Maybe()
 
-	return NewRouter(service)
+	return newTestRouter(b, service)
 }
 
 func benchServe(b *testing.B, target string, want int) {

@@ -175,7 +175,7 @@ func TestGetSessionList(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -286,7 +286,7 @@ func TestGetSession(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)

@@ -1,13 +1,45 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/server/api/services"
+	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func newTestRouter(tb testing.TB, service services.Service, opts ...Option) *echo.Echo {
+	tb.Helper()
+
+	router, err := NewRouter(service, opts...)
+	require.NoError(tb, err)
+
+	return router
+}
+
+func TestNewRouterReportsAFailingOption(t *testing.T) {
+	errOption := errors.New("option failed")
+
+	succeeding := func(*echo.Echo, *Handler) error { return nil }
+	failing := func(*echo.Echo, *Handler) error { return errOption }
+
+	t.Run("reports the error of a failing option", func(t *testing.T) {
+		router, err := NewRouter(mocks.NewMockService(t), succeeding, failing)
+		require.ErrorIs(t, err, errOption)
+		assert.Nil(t, router)
+	})
+
+	t.Run("builds the router when every option succeeds", func(t *testing.T) {
+		router, err := NewRouter(mocks.NewMockService(t), succeeding)
+		require.NoError(t, err)
+		assert.NotNil(t, router)
+	})
+}
 
 // TestRequestIDReachesTheHandler pins that a request carries an ID even when
 // nothing in front of the API supplied one. The agent's V2 handshake binds

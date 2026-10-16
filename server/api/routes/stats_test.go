@@ -60,7 +60,7 @@ func TestGetSystemInfo(t *testing.T) {
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -131,7 +131,7 @@ func TestGetStats(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)

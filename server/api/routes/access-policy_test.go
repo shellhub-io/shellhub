@@ -97,7 +97,7 @@ func TestAccessPolicyFilterTagLimit(t *testing.T) {
 				req.Header.Set("X-ID", "000000000000000000000000")
 
 				rec := httptest.NewRecorder()
-				NewRouter(svcMock).ServeHTTP(rec, req)
+				newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 				assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 				svcMock.AssertExpectations(t)

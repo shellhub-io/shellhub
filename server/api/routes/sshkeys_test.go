@@ -69,7 +69,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -146,7 +146,7 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
@@ -259,7 +259,7 @@ func TestDeletePublicKey(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)

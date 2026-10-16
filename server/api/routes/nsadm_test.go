@@ -88,7 +88,7 @@ func TestCreateNamespace(t *testing.T) {
 			req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000000")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock, WithEdition(envs.Enterprise))
+			e := newTestRouter(t, mock, WithEdition(envs.Enterprise))
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -168,7 +168,7 @@ func TestGetNamespace(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.req)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -255,7 +255,7 @@ func TestDeleteNamespace(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.req)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -362,7 +362,7 @@ func TestEditNamespace(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -452,7 +452,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := newTestRouter(t, svcMock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(tt, tc.expected, rec.Result().StatusCode)
@@ -564,7 +564,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 				}
 
 				rec := httptest.NewRecorder()
-				NewRouter(mock).ServeHTTP(rec, req)
+				newTestRouter(t, mock).ServeHTTP(rec, req)
 
 				assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
 				assert.NotContains(t, rec.Body.String(), victimEmail)
@@ -582,7 +582,7 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 	rec := httptest.NewRecorder()
-	NewRouter(mock).ServeHTTP(rec, req)
+	newTestRouter(t, mock).ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
 	mock.AssertExpectations(t)
@@ -597,7 +597,7 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 	rec := httptest.NewRecorder()
-	NewRouter(mock, WithEdition(envs.Enterprise)).ServeHTTP(rec, req)
+	newTestRouter(t, mock, WithEdition(envs.Enterprise)).ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
 	mock.AssertExpectations(t)
@@ -767,7 +767,7 @@ func TestGetNamespaceList(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			NewRouter(svcMock).ServeHTTP(rec, req)
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 

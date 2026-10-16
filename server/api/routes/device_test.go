@@ -113,7 +113,7 @@ func TestGetDevice(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -213,7 +213,7 @@ func TestResolveDevice(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -272,7 +272,7 @@ func TestDeleteDevice(t *testing.T) {
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -340,7 +340,7 @@ func TestRenameDevice(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -407,7 +407,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
-			NewRouter(mock).ServeHTTP(rec, req)
+			newTestRouter(t, mock).ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedCode, rec.Result().StatusCode)
 		})
@@ -486,7 +486,7 @@ func TestGetDeviceList(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.req.TenantID)
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			devices := make([]models.Device, 0)
@@ -571,7 +571,7 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
@@ -654,7 +654,7 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			NewRouter(mock).ServeHTTP(rec, req)
+			newTestRouter(t, mock).ServeHTTP(rec, req)
 
 			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 			require.NotNil(t, captured)
@@ -670,7 +670,7 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 		req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 		rec := httptest.NewRecorder()
-		NewRouter(mock).ServeHTTP(rec, req)
+		newTestRouter(t, mock).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnprocessableEntity, rec.Result().StatusCode)
 		mock.AssertNotCalled(t, "ListDevices")
@@ -731,7 +731,7 @@ func TestUpdateDevice(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -801,7 +801,7 @@ func TestGetDeviceListBadStatus(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
@@ -836,7 +836,7 @@ func TestGetDeviceListAcceptsEveryDeviceStatus(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
+			e := newTestRouter(t, mock)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
