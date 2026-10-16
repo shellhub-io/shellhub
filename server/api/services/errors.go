@@ -100,7 +100,8 @@ var (
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
-	ErrNamespaceLegacyNotAllowed       = errors.New("legacy SSH access mode is not available for this namespace", ErrLayer, ErrCodeForbidden)
+	ErrNamespaceNotLegacy              = errors.New("namespace is not legacy", ErrLayer, ErrCodeConflict)
+	ErrNamespaceLegacy                 = errors.New("namespace is legacy", ErrLayer, ErrCodeForbidden)
 	ErrNamespaceSingle                 = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConflict)
 	ErrMaxTagReached                   = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
@@ -154,6 +155,7 @@ var (
 	ErrSetupCompleted                  = errors.New("setup has already been completed", ErrLayer, ErrCodeConflict)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
+	ErrAuthNamespaceLegacy             = errors.New("this namespace accepts only TENANT_ID", ErrLayer, ErrCodeForbidden)
 	ErrAuthDeviceNoIdentity            = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 	ErrDeviceKeyVerificationRefused    = errors.New("device key verification refused", ErrLayer, ErrCodeForbidden)
 )
@@ -448,6 +450,17 @@ func NewErrNamespaceSingle(next error) error {
 	return errors.Wrap(ErrNamespaceSingle, next)
 }
 
+// NewErrNamespaceNotLegacy returns an error when upgrading a namespace that is already new.
+func NewErrNamespaceNotLegacy(tenantID string, next error) error {
+	return errors.Wrap(errors.WithData(ErrNamespaceNotLegacy, tenantID), next)
+}
+
+// NewErrNamespaceLegacy returns an error when a legacy namespace is asked for something only a
+// new namespace has: provisioning keys and device pairing.
+func NewErrNamespaceLegacy(tenantID string) error {
+	return NewErrForbidden(errors.WithData(ErrNamespaceLegacy, tenantID), nil)
+}
+
 // NewErrNamespaceDuplicated returns an error to be used when the namespace is duplicated.
 func NewErrNamespaceDuplicated(next error) error {
 	return NewErrDuplicated(ErrNamespaceDuplicated, nil, next)
@@ -594,6 +607,13 @@ func NewErrUserDelete(err error) error {
 // It carries ErrCodeConflict so the echo handler maps it to HTTP 409.
 func NewErrSetupCompleted() error {
 	return errors.Wrap(ErrSetupCompleted, nil)
+}
+
+// NewErrAuthNamespaceLegacy reports that an unknown device offered a provisioning key or a pairing
+// to a legacy namespace, which enrolls by tenant alone. It is a 403 rather than a 400 so an agent
+// in the field keeps retrying with backoff instead of exiting.
+func NewErrAuthNamespaceLegacy() error {
+	return NewErrForbidden(ErrAuthNamespaceLegacy, nil)
 }
 
 // NewErrAuthDeviceNoIdentityAndHostname reports that a device offered neither a MAC nor a

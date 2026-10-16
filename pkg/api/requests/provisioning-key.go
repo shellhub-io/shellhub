@@ -121,6 +121,13 @@ type ListProvisioningKeyEvents struct {
 	query.Sorter
 }
 
+// ListTenantRegistrations pages the registration history of the namespace's tenant-only key.
+type ListTenantRegistrations struct {
+	TenantID string `header:"X-Tenant-ID"`
+	query.Paginator
+	query.Sorter
+}
+
 // EnrollmentCallback is a webhook integrator's deferred decision, redeemed against the signed callback
 // token embedded in the URL. The token is the credential (no API key), so there is no tenant header.
 type EnrollmentCallback struct {

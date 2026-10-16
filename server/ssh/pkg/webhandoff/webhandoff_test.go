@@ -23,7 +23,7 @@ func TestStore_carriesTheDataAcrossTheDial(t *testing.T) {
 			data:        webhandoff.Data{Device: "device-uid", IP: "2001:db8::1"},
 		},
 		{
-			description: "identity mode, carrying the logged-in account",
+			description: "a new namespace, carrying the logged-in account",
 			data:        webhandoff.Data{Device: "device-uid", IP: "192.168.0.10", UserID: "user-id"},
 		},
 		{

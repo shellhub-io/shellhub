@@ -21,8 +21,8 @@ func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
 		return false
 	}
 
-	if sess.IsIdentityMode() {
-		logger.Info("password authentication is disabled in identity access mode")
+	if !sess.IsLegacy() {
+		logger.Info("password authentication is disabled outside legacy namespaces")
 
 		return false
 	}

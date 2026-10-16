@@ -62,8 +62,9 @@ type DevicePairingService interface {
 	// unknown, expired or already accepted code returns not found.
 	//
 	// The response carries the surviving device's owner, which is empty only when
-	// the device merged into a team device. It returns an error when the accepted
-	// device cannot be read back, rather than a response that would read as one.
+	// the device merged into a team device. It returns ErrNamespaceLegacy when the
+	// chosen namespace is legacy, and an error when the accepted device cannot be
+	// read back, rather than a response that would read as one.
 	AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error)
 }
 
@@ -195,6 +196,10 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 
 	if !member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
 		return nil, NewErrRoleForbidden()
+	}
+
+	if namespace.Settings.IsLegacy() {
+		return nil, NewErrNamespaceLegacy(namespace.TenantID)
 	}
 
 	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, userID)

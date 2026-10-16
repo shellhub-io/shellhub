@@ -1,7 +1,7 @@
 description: |
   An access policy either grants (action allow) or blocks (action deny) a
   subject (user, role, or all members) reaching a set of devices as a set of
-  unix logins, under the identity SSH access mode. Evaluation is default-deny
+  unix logins, in a new namespace. Evaluation is default-deny
   and deny-first: a matching deny wins over any allow.
 type: object
 properties:
@@ -41,8 +41,7 @@ properties:
   require_reauth:
     description: |
       Whether a recognized key must still complete a fresh per-session
-      re-authentication before the session proceeds under the identity SSH
-      access mode.
+      re-authentication before the session proceeds.
     type: boolean
     example: false
   reauth_period:

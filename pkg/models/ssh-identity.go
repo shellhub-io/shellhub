@@ -18,7 +18,7 @@ const (
 )
 
 // SSHIdentity binds an SSH public key to a principal (a person or an API key)
-// within a namespace. In the identity SSH access mode the key is the
+// within a namespace. In a new namespace the key is the
 // credential: a connection whose presented key's fingerprint resolves to an
 // identity is recognized as that principal, without a browser step. A fingerprint
 // maps to exactly one identity per namespace (UNIQUE(namespace_id, fingerprint));

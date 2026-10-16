@@ -603,6 +603,20 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+func TestUpgradeNamespaceBlocksAPIKey(t *testing.T) {
+	mock := mocks.NewMockService(t)
+
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces/00000000-0000-4000-0000-000000000000/upgrade", nil)
+	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
+	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+	rec := httptest.NewRecorder()
+	newTestRouter(t, mock).ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
+	mock.AssertExpectations(t)
+}
+
 func encodeFilter(t *testing.T, filters []query.Filter) string {
 	t.Helper()
 

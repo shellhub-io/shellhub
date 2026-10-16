@@ -19,6 +19,7 @@ const (
 	UpdateProvisioningKeyURL  = "/namespaces/provisioning-key/:name"
 	RevealProvisioningKeyURL  = "/namespaces/provisioning-key/:name/reveal"
 	HistoryProvisioningKeyURL = "/namespaces/provisioning-key/:id/history"
+	TenantRegistrationsURL    = "/devices/tenant-registrations"
 
 	// EnrollmentCallbackURL is the public, token-authenticated endpoint a webhook integrator POSTs its
 	// deferred decision to. The token in the path is the credential (no API key/JWT).
@@ -150,13 +151,7 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 
 	req.Paginator.Normalize()
 
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
+	defaultRegistrationSorter(&req.Sorter)
 
 	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
 		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
@@ -174,4 +169,48 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, events)
+}
+
+// TenantRegistrations lists the registration history of the namespace's tenant-only key, newest
+// first unless sort_by and order_by say otherwise, so anyone who may accept devices can work that
+// queue without listing provisioning keys. It returns the bind or validation error for a malformed
+// query, an invalid-entity error for a sort_by outside ProvisioningKeyEventSortFields, ErrForbidden
+// when the request carries no tenant, and the store's error otherwise.
+func (h *Handler) TenantRegistrations(c *gateway.Context) error {
+	req := new(requests.ListTenantRegistrations)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	req.Paginator.Normalize()
+
+	defaultRegistrationSorter(&req.Sorter)
+
+	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	events, count, err := h.service.ListTenantRegistrations(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
+
+	return c.JSON(http.StatusOK, events)
+}
+
+func defaultRegistrationSorter(sorter *query.Sorter) {
+	if sorter.By == "" {
+		sorter.By = "created_at"
+	}
+
+	if sorter.Order == "" {
+		sorter.Order = "desc"
+	}
 }

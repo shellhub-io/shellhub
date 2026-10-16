@@ -33,6 +33,9 @@ var (
 	// bound to one (systems.instance_tenant_id set — Community). Enterprise/Cloud never bind, so
 	// this is Community-specific and distinct from a plain duplicate-name conflict.
 	ErrNamespaceSingle = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConstraint)
+	// ErrNamespaceNotLegacy is returned when upgrading a namespace that is already new or does not
+	// exist: the conditional update that performs the upgrade cannot tell the two apart.
+	ErrNamespaceNotLegacy = errors.New("namespace is not legacy", ErrLayer, ErrCodeConstraint)
 	// ErrAmbiguous is returned when a resolver that must identify a single row matched more than
 	// one. For a credential digest resolved without a namespace this is a security event rather
 	// than a lookup outcome: the store cannot tell which namespace the presented secret belongs

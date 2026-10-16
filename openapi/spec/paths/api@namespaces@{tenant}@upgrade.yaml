@@ -1,0 +1,32 @@
+post:
+  operationId: upgradeNamespace
+  summary: Upgrade a legacy namespace
+  description: |
+    Upgrade a legacy namespace to a new one, once and for good. After the upgrade SSH
+    logins resolve to SSH identities and are authorized by Access Policies, password and
+    public-key login stop, and a new device enrolls by pairing or a provisioning key; one
+    presenting the deprecated `TENANT_ID` alone still lands pending. Devices already enrolled
+    keep authenticating. An Access Policy granting the owner every
+    device and login is created when the namespace has none.
+
+    Refuses API keys: the action is irreversible and needs a user session.
+  tags:
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  responses:
+    '200':
+      description: The namespace is upgraded.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

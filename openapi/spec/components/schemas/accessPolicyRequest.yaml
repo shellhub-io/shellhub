@@ -33,8 +33,7 @@ properties:
   require_reauth:
     description: |
       Whether a recognized key must still complete a fresh per-session
-      re-authentication before the session proceeds under the identity SSH
-      access mode.
+      re-authentication before the session proceeds.
     type: boolean
     example: false
   reauth_period:

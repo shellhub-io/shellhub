@@ -30,7 +30,7 @@ type Data struct {
 	// IP is the browser's address, not the loopback address of the dial. It ends
 	// up on the session record and feeds the firewall and geoip decisions.
 	IP string
-	// UserID is the logged-in account, set only in identity mode. Legacy web
+	// UserID is the logged-in account, set only in a new namespace. Legacy web
 	// sessions authenticate with a device credential and leave it empty.
 	UserID string
 }

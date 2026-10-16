@@ -2984,69 +2984,6 @@ func (_c *MockService_EditNamespace_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
-// EditSSHAccessMode provides a mock function for the type MockService
-func (_mock *MockService) EditSSHAccessMode(ctx context.Context, sshAccessMode string, tenantID string) error {
-	ret := _mock.Called(ctx, sshAccessMode, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for EditSSHAccessMode")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, sshAccessMode, tenantID)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockService_EditSSHAccessMode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EditSSHAccessMode'
-type MockService_EditSSHAccessMode_Call struct {
-	*mock.Call
-}
-
-// EditSSHAccessMode is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sshAccessMode string
-//   - tenantID string
-func (_e *MockService_Expecter) EditSSHAccessMode(ctx any, sshAccessMode any, tenantID any) *MockService_EditSSHAccessMode_Call {
-	return &MockService_EditSSHAccessMode_Call{Call: _e.mock.On("EditSSHAccessMode", ctx, sshAccessMode, tenantID)}
-}
-
-func (_c *MockService_EditSSHAccessMode_Call) Run(run func(ctx context.Context, sshAccessMode string, tenantID string)) *MockService_EditSSHAccessMode_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_EditSSHAccessMode_Call) Return(err error) *MockService_EditSSHAccessMode_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockService_EditSSHAccessMode_Call) RunAndReturn(run func(ctx context.Context, sshAccessMode string, tenantID string) error) *MockService_EditSSHAccessMode_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // EditSessionRecordStatus provides a mock function for the type MockService
 func (_mock *MockService) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
 	ret := _mock.Called(ctx, sessionRecord, tenantID)
@@ -5401,6 +5338,80 @@ func (_c *MockService_ListTags_Call) Return(tags []models.Tag, totalCount int64,
 }
 
 func (_c *MockService_ListTags_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error)) *MockService_ListTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListTenantRegistrations provides a mock function for the type MockService
+func (_mock *MockService) ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListTenantRegistrations")
+	}
+
+	var r0 []models.ProvisioningKeyEvent
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListTenantRegistrations) []models.ProvisioningKeyEvent); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.ProvisioningKeyEvent)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListTenantRegistrations) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListTenantRegistrations) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListTenantRegistrations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTenantRegistrations'
+type MockService_ListTenantRegistrations_Call struct {
+	*mock.Call
+}
+
+// ListTenantRegistrations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListTenantRegistrations
+func (_e *MockService_Expecter) ListTenantRegistrations(ctx any, req any) *MockService_ListTenantRegistrations_Call {
+	return &MockService_ListTenantRegistrations_Call{Call: _e.mock.On("ListTenantRegistrations", ctx, req)}
+}
+
+func (_c *MockService_ListTenantRegistrations_Call) Run(run func(ctx context.Context, req *requests.ListTenantRegistrations)) *MockService_ListTenantRegistrations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListTenantRegistrations
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListTenantRegistrations)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListTenantRegistrations_Call) Return(events []models.ProvisioningKeyEvent, count int64, err error) *MockService_ListTenantRegistrations_Call {
+	_c.Call.Return(events, count, err)
+	return _c
+}
+
+func (_c *MockService_ListTenantRegistrations_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error)) *MockService_ListTenantRegistrations_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7801,6 +7812,63 @@ func (_c *MockService_UpdateUser_Call) Return(err error) *MockService_UpdateUser
 }
 
 func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateUser) error) *MockService_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpgradeNamespace provides a mock function for the type MockService
+func (_mock *MockService) UpgradeNamespace(ctx context.Context, tenantID string) error {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpgradeNamespace")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_UpgradeNamespace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpgradeNamespace'
+type MockService_UpgradeNamespace_Call struct {
+	*mock.Call
+}
+
+// UpgradeNamespace is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockService_Expecter) UpgradeNamespace(ctx any, tenantID any) *MockService_UpgradeNamespace_Call {
+	return &MockService_UpgradeNamespace_Call{Call: _e.mock.On("UpgradeNamespace", ctx, tenantID)}
+}
+
+func (_c *MockService_UpgradeNamespace_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_UpgradeNamespace_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UpgradeNamespace_Call) Return(err error) *MockService_UpgradeNamespace_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_UpgradeNamespace_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockService_UpgradeNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }

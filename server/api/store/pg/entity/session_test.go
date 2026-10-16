@@ -494,7 +494,7 @@ func TestSessionToModelPrincipal(t *testing.T) {
 			expected: &models.Principal{Kind: models.PrincipalAPIKey, ID: "api-key-id"},
 		},
 		{
-			name:     "is absent under the legacy access model, where no principal exists",
+			name:     "is absent in a legacy namespace, where no principal exists",
 			entity:   &Session{ID: "uid"},
 			expected: nil,
 		},
