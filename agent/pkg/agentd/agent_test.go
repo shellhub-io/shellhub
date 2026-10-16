@@ -1,6 +1,7 @@
 package agentd
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -551,7 +552,7 @@ func TestConfigHasNamespaceCredential(t *testing.T) {
 func TestAgentAuthorizeRequiresANamespaceCredential(t *testing.T) {
 	agent := &Agent{config: &Config{}}
 
-	assert.Equal(t, ErrAuthorizeNoNamespaceCredential, agent.Authorize())
+	assert.Equal(t, ErrAuthorizeNoNamespaceCredential, agent.Authorize(context.Background()))
 }
 
 func TestNextPingInterval(t *testing.T) {

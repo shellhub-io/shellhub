@@ -44,21 +44,21 @@ func removalTestAgent(t *testing.T, cli *client_mocks.MockClient, tenant string)
 
 func TestAuthorizeReportsARemovedDevice(t *testing.T) {
 	cli := client_mocks.NewMockClient(t)
-	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
 
 	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
 
-	assert.ErrorIs(t, ag.Authorize(), ErrDeviceRemoved)
+	assert.ErrorIs(t, ag.Authorize(context.Background()), ErrDeviceRemoved)
 }
 
 func TestListenStopsWhenTheDeviceIsRemoved(t *testing.T) {
 	cli := client_mocks.NewMockClient(t)
-	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token", Name: "dev", Namespace: "ns"}, nil).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token", Name: "dev", Namespace: "ns"}, nil).Once()
 
 	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
-	require.NoError(t, ag.Authorize())
+	require.NoError(t, ag.Authorize(context.Background()))
 
-	cli.On("AuthDevice", mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).Return(nil, client.ErrUnauthorized).Once()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -91,7 +91,7 @@ func TestAuthorizeProvesTheDeviceKey(t *testing.T) {
 	cli := client_mocks.NewMockClient(t)
 	ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
 
-	cli.On("AuthDevice", mock.Anything, ag.key).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token"}, nil).Once()
+	cli.On("AuthDevice", mock.Anything, mock.Anything, ag.key).Return(&models.DeviceAuthResponse{UID: "uid", Token: "token"}, nil).Once()
 
-	require.NoError(t, ag.Authorize())
+	require.NoError(t, ag.Authorize(context.Background()))
 }

@@ -18,8 +18,10 @@ type Container struct {
 	Name string
 	// ServerAddress is the ShellHub address of the server that the agent will connect to.
 	ServerAddress string
-	// Tenant is the tenant ID of the namespace that the agent belongs to.
-	Tenant string
+	// Tenant is the tenant ID of the namespace that the agent belongs to, when the connector was
+	// given one.
+	Tenant          string
+	ProvisioningKey string
 	// PrivateKey is the private key of the device. Specify the path to store the container private key. If not
 	// provided, the agent will generate a new one. This is required.
 	PrivateKey string

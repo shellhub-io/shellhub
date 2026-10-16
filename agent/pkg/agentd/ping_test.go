@@ -44,7 +44,7 @@ func TestListenPingsTheServerEveryEightToTwelveMinutes(t *testing.T) {
 		var authorizations []time.Time
 
 		cli := client_mocks.NewMockClient(t)
-		cli.On("AuthDevice", mock.Anything, mock.Anything).
+		cli.On("AuthDevice", mock.Anything, mock.Anything, mock.Anything).
 			Run(func(mock.Arguments) {
 				mu.Lock()
 				defer mu.Unlock()
@@ -57,7 +57,7 @@ func TestListenPingsTheServerEveryEightToTwelveMinutes(t *testing.T) {
 			Once()
 
 		ag := removalTestAgent(t, cli, "00000000-0000-4000-0000-000000000000")
-		require.NoError(t, ag.Authorize())
+		require.NoError(t, ag.Authorize(context.Background()))
 
 		ctx, cancel := context.WithCancel(context.Background())
 
