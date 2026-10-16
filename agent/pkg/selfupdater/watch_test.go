@@ -2,12 +2,14 @@ package selfupdater
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
 	log "github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,6 +39,7 @@ func (s *serverVersions) count() int {
 type recordingUpdater struct {
 	mu      sync.Mutex
 	applied []string
+	err     error
 }
 
 func (r *recordingUpdater) CurrentVersion() (*semver.Version, error) {
@@ -49,7 +52,7 @@ func (r *recordingUpdater) ApplyUpdate(v *semver.Version) error {
 
 	r.applied = append(r.applied, v.String())
 
-	return nil
+	return r.err
 }
 
 func (r *recordingUpdater) CompleteUpdate() error {
@@ -93,6 +96,39 @@ func TestWatch(t *testing.T) {
 		require.Eventually(t, func() bool { return len(updater.appliedVersions()) == 2 }, time.Second, time.Millisecond, "the agent did not check again after the interval")
 		assert.Equal(t, 2, server.count())
 		assert.Equal(t, []string{"0.21.0", "0.21.0"}, updater.appliedVersions())
+
+		cancel()
+		<-done
+	})
+
+	t.Run("a failed update is not reported as applied", func(t *testing.T) {
+		t.Parallel()
+
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+
+		logger, hook := logtest.NewNullLogger()
+		server := &serverVersions{version: semver.MustParse("0.21.0")}
+		updater := &recordingUpdater{err: errors.New("the image could not be pulled")}
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			Watch(ctx, log.NewEntry(logger), "0.20.0", semver.MustParse("0.20.0"), server.check, updater, make(chan time.Time))
+		}()
+
+		require.Eventually(t, func() bool {
+			return hook.LastEntry() != nil && hook.LastEntry().Message == "Waiting for the next update check"
+		}, time.Second, time.Millisecond, "the agent did not finish its first check")
+
+		messages := make([]string, 0)
+		for _, entry := range hook.AllEntries() {
+			messages = append(messages, entry.Message)
+		}
+
+		assert.Equal(t, []string{"0.21.0"}, updater.appliedVersions())
+		assert.Contains(t, messages, "Failed to apply update")
+		assert.NotContains(t, messages, "Update successfully applied")
 
 		cancel()
 		<-done
