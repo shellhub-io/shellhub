@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -123,15 +124,15 @@ func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode user membership invitation list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -162,15 +163,15 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace membership invitation list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.MembershipInvitationFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateSorter(&req.Sorter, services.MembershipInvitationSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {

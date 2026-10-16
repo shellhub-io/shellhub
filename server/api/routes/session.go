@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -35,11 +36,11 @@ func (h *Handler) GetSessionList(c *gateway.Context) error {
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode session list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.SessionFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	sc, err := c.AdminOrScope()

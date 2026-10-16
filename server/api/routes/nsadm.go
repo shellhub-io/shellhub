@@ -48,11 +48,11 @@ func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 	if err := req.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.NamespaceFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {

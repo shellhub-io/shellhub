@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -30,6 +31,7 @@ func TestGetTags(t *testing.T) {
 		requiredMocks  func()
 		expectedStatus int
 		expectedCount  int
+		expectedFields map[string]string
 	}{
 		{
 			description:    "fails with bad filter query param",
@@ -72,6 +74,7 @@ func TestGetTags(t *testing.T) {
 			query:          "sort_by=badcolumn",
 			requiredMocks:  func() {},
 			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"sort_by": query.ErrSorterFieldInvalid.Error()},
 		},
 		{
 			description: "succeeds and returns X-Total-Count header",
@@ -120,6 +123,12 @@ func TestGetTags(t *testing.T) {
 
 			if tc.expectedStatus == http.StatusOK {
 				assert.Equal(t, strconv.Itoa(tc.expectedCount), rec.Result().Header.Get("X-Total-Count"))
+			}
+
+			if tc.expectedFields != nil {
+				var refusal responses.Error
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &refusal))
+				assert.Equal(t, tc.expectedFields, refusal.Fields)
 			}
 		})
 	}
