@@ -25,7 +25,7 @@ if [ -d "$CLOUD_DIR" ]; then
 
     if [ -d "$CLOUD_DIR/templates" ]; then
         echo "Compiling email templates from $CLOUD_DIR/templates"
-        mjml "$CLOUD_DIR"/templates/*.mjml -o /templates || {
+        mjml "$CLOUD_DIR"/templates/*.mjml --config.allowIncludes true -o /templates || {
             echo "ERROR: MJML template compilation failed" >&2
             exit 1
         }
