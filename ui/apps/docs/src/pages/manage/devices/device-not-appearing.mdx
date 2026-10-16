@@ -13,9 +13,11 @@ goes from most to least common.
 
 ## Is it waiting to be accepted?
 
-Check **Add Device** → **Fleet** before anything else. A device enrolled with only a
-tenant ID waits for a decision on the key that registered it, and each key's row says how many are
-waiting. It is not broken; it is queued.
+Check the **pending** link on the Devices page before anything else. It opens **Pending devices**,
+the history of every device that registered with the tenant ID, where anyone who may accept
+devices accepts or rejects one that waits and accepts one rejected before. A device enrolled with a
+provisioning key waits on that key's row in **Add Device** → **Fleet** instead. It is not broken; it
+is queued.
 
 Accept it and it comes online. To stop needing to, use a
 [provisioning key](/manage/devices/provisioning-keys). See
@@ -49,9 +51,10 @@ Two variables are required, and a mistake in either produces a device that never
 `shellhub.example.com`. Self-hosted deployments often have this pointing at the default Cloud
 address by accident.
 
-**`SHELLHUB_TENANT_ID`** — required for Snap and standalone installs. Optional for Docker and
-Podman, which fall back to pairing mode when it is absent — so a container install with no tenant
-is not misconfigured, it is waiting to be paired. Run `shellhub-agent login` on the host. See
+**`SHELLHUB_TENANT_ID`** is deprecated. A device that enrolls with it lands in **Pending** and
+stays out of the device list until somebody accepts it, so look there first. Snap needs it.
+Docker, Podman and standalone fall back to pairing mode when it is absent, so an install with no
+tenant is not misconfigured: it is waiting to be paired. Run `shellhub-agent login` on the host. See
 [How a device enrols](/manage/devices#how-a-device-enrols).
 
 A typo'd variable name is ignored silently, which is a particularly quiet way to fail. Check the

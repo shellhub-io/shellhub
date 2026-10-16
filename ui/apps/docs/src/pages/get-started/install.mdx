@@ -77,7 +77,9 @@ $ podman restart <container>         # restart it
 
 ### Snap
 
-Picked when the `snap` command is present. Leaves the `shellhub` snap.
+Picked when the `snap` command is present. Leaves the `shellhub` snap. The snap needs the tenant
+named up front and cannot pair or take a provisioning key, so its device always lands pending until
+somebody accepts it.
 
 That snap is **classic** rather than strict, for the same reason the containers are privileged,
 and classic snaps cannot be installed on **Ubuntu Core** — run the agent as a container under the
@@ -132,7 +134,7 @@ $ sudo systemctl restart shellhub-agent   # restart it
 | `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
 | `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
 | `PROVISIONING_KEY` | — | Enrol without anybody accepting the device. See below |
-| `TENANT_ID` | — | Which namespace to join. Deprecated |
+| `TENANT_ID` | — | Which namespace to join. Deprecated: the device lands pending until somebody accepts it |
 | `SKIP_BOOT_RESTART_CHECK` | — | Set to `1` to install under Podman without `podman-restart.service` |
 
 `SERVER_ADDRESS` is filled in for you. Set it only to point somewhere other than where the script

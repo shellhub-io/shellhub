@@ -4,6 +4,8 @@ title: Buildroot
 description: Add the agent to a root filesystem with the ShellHub external tree.
 ---
 
+import Callout from "../../../components/Callout.astro";
+
 # Buildroot
 
 ShellHub maintains a Buildroot external tree, so a manufactured unit arrives with the
@@ -56,8 +58,13 @@ PROVISIONING_KEY="<your-provisioning-key>"
 EOF
 ```
 
-`TENANT_ID` is the deprecated alternative to `PROVISIONING_KEY`, and the two do not go
-together. Set the provisioning key.
+`TENANT_ID` is the deprecated alternative to `PROVISIONING_KEY`, and the two do not go together.
+Set the provisioning key.
+
+<Callout variant="warning">
+A [legacy namespace](/manage/access-control/migrating-from-legacy) refuses a provisioning key.
+There, set `TENANT_ID` instead and accept each device from Pending devices.
+</Callout>
 
 **Why the tenant is the wrong one.** A device registering with the tenant alone goes
 through the namespace's legacy registration path, which holds it for manual review —
