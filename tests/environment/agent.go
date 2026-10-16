@@ -2,11 +2,14 @@ package environment
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net"
+	"path/filepath"
 	"strings"
 
 	"github.com/docker/cli/cli/config"
@@ -19,6 +22,7 @@ import (
 	"github.com/moby/moby/api/types/jsonstream"
 	"github.com/moby/moby/client"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
+	log "github.com/sirupsen/logrus"
 	tc "github.com/testcontainers/testcontainers-go"
 )
 
@@ -52,13 +56,19 @@ type AgentBuild struct {
 // BuildAgentImage builds the agent the e2e tests start with BuildKit, through the run's Docker
 // client, accepting [AgentUsername] and [AgentPassword], labelled with run and tagged with the
 // run's ID in build's repository, followed by -<version> when build sets a Version and by its
-// build tags joined with dashes when it sets Tags, so neither replaces the default agent. Base images are pulled with the registry credentials of
+// build tags joined with dashes when it sets Tags, so neither replaces the default agent. With
+// SHELLHUB_E2E_IMAGE_REPOSITORY set, an agent built from the repository root with the default
+// repository and Dockerfile is first pulled from there under a key covering its sources and build,
+// and built only when no image carries that key; with SHELLHUB_E2E_IMAGE_PUSH=true as well, the one
+// it built is pushed there. A pull that fails counts as a miss. Base images are pulled with the registry credentials of
 // the Docker CLI config, as docker build pulls them. It returns the image reference,
 // repository:tag, or an error when the working directory cannot be resolved, no versions.env is
 // found at or above it, the file cannot be read or has a line that is not KEY=VALUE, the build
 // context or its .dockerignore cannot be read, the daemon refuses the build, the build's output
 // cannot be read or decoded, or a build step fails, carrying the daemon's message. When the build
-// fails and the session could not connect to the daemon, the error carries that failure too. A
+// fails and the session could not connect to the daemon, the error carries that failure too. With
+// the repository set it also returns an error when the build context cannot be resolved, when git
+// cannot read the agent's sources, and when the push fails. A
 // write to Output that fails is dropped and does not fail the build. Cancelling ctx aborts the
 // build, whether the daemon is starting it or streaming it, and returns an error.
 func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, error) {
@@ -96,6 +106,35 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 		buildArgs["GO_TAGS"] = &goTags
 	}
 
+	image := build.Repository + ":" + tag
+
+	cache := imageCacheFromEnv()
+
+	var remote string
+
+	reusable, err := reusableAgent(cache, root, build)
+	if err != nil {
+		return "", err
+	}
+
+	if reusable {
+		key, err := agentImageKey(ctx, root, build)
+		if err != nil {
+			return "", fmt.Errorf("computing the agent image's key: %w", err)
+		}
+
+		remote = cache.repository + ":agent-" + key
+
+		err = run.adoptImage(ctx, stackImage{service: "agent", local: image, remote: remote})
+		if err == nil {
+			log.WithFields(log.Fields{"image": image, "from": remote}).Info("reused the image another run built")
+
+			return image, nil
+		}
+
+		log.WithError(err).WithField("image", remote).Info("found no image to reuse, building it")
+	}
+
 	request := tc.ContainerRequest{FromDockerfile: tc.FromDockerfile{Context: build.Context, Dockerfile: build.Dockerfile}}
 
 	buildContext, err := request.GetContext()
@@ -107,8 +146,6 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 		defer archive.Close() //nolint:errcheck // the daemon has read the context by the time the build ends
 	}
 
-	image := build.Repository + ":" + tag
-
 	if err := buildInSession(ctx, run.client, buildContext, client.ImageBuildOptions{
 		Version:    buildapi.BuilderBuildKit,
 		Dockerfile: build.Dockerfile,
@@ -119,7 +156,40 @@ func BuildAgentImage(ctx context.Context, run *Run, build AgentBuild) (string, e
 		return "", err
 	}
 
+	if remote != "" && cache.push {
+		if err := run.publishImage(ctx, stackImage{service: "agent", local: image, remote: remote}); err != nil {
+			return "", err
+		}
+	}
+
 	return image, nil
+}
+
+func reusableAgent(cache imageCache, root string, build AgentBuild) (bool, error) {
+	if cache.repository == "" || build.Repository != defaultAgentRepository || build.Dockerfile != defaultAgentDockerfile {
+		return false, nil
+	}
+
+	contextDir, err := filepath.Abs(build.Context)
+	if err != nil {
+		return false, err
+	}
+
+	return contextDir == root, nil
+}
+
+func agentImageKey(ctx context.Context, repoRoot string, build AgentBuild) (string, error) {
+	inputs, err := sourceTrees(ctx, repoRoot, "agent")
+	if err != nil {
+		return "", err
+	}
+
+	inputs.WriteString("version " + build.Version + "\ntags " + strings.Join(build.Tags, ",") + "\n")
+	inputs.WriteString("user " + AgentUsername + "\npassword " + AgentPassword + "\n")
+
+	sum := sha256.Sum256([]byte(inputs.String()))
+
+	return hex.EncodeToString(sum[:]), nil
 }
 
 func buildInSession(ctx context.Context, cli *client.Client, buildContext io.Reader, options client.ImageBuildOptions, output io.Writer) error {
