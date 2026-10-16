@@ -2,13 +2,16 @@ package environment
 
 import (
 	"context"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/moby/moby/client"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -251,4 +254,121 @@ func TestImageKey(t *testing.T) {
 		_, err := imageKey(t.Context(), repo, "", "ui", EditionCommunity, "")
 		require.Error(t, err)
 	})
+}
+
+func TestReusableImageSourcesCoverTheirDockerfiles(t *testing.T) {
+	root, err := testimage.Root()
+	require.NoError(t, err)
+
+	dockerfiles := map[string]string{
+		"server":  "server/Dockerfile",
+		"gateway": "gateway/Dockerfile",
+		"agent":   defaultAgentDockerfile,
+	}
+
+	require.ElementsMatch(t, slices.Collect(maps.Keys(reusableImageSources)), slices.Collect(maps.Keys(dockerfiles)))
+
+	for service, dockerfile := range dockerfiles {
+		t.Run(service, func(t *testing.T) {
+			paths := reusableImageSources[service]
+			assert.Contains(t, paths, dockerfile)
+
+			content, err := os.ReadFile(filepath.Join(root, dockerfile)) //nolint:gosec // the path is one of the fixed Dockerfiles listed above
+			require.NoError(t, err)
+
+			for _, source := range copiedSources(string(content)) {
+				covered := slices.ContainsFunc(paths, func(path string) bool {
+					return source == path || strings.HasPrefix(source, path+"/")
+				})
+				assert.True(t, covered, "%s copies %s, which no path in the %s image's key covers", dockerfile, source, service)
+			}
+		})
+	}
+}
+
+func copiedSources(dockerfile string) []string {
+	var sources []string
+
+	for instruction := range strings.Lines(strings.ReplaceAll(dockerfile, "\\\n", " ")) {
+		fields := strings.Fields(instruction)
+		if len(fields) == 0 {
+			continue
+		}
+
+		switch strings.ToUpper(fields[0]) {
+		case "COPY", "ADD":
+			sources = append(sources, contextSources(fields[1:])...)
+		case "RUN":
+			sources = append(sources, boundSources(fields[1:])...)
+		}
+	}
+
+	return sources
+}
+
+func contextSources(args []string) []string {
+	if len(args) < 2 || slices.ContainsFunc(args, func(arg string) bool { return strings.HasPrefix(arg, "--from=") }) {
+		return nil
+	}
+
+	var sources []string
+
+	for _, arg := range args[:len(args)-1] {
+		if !strings.HasPrefix(arg, "--") && !strings.Contains(arg, "://") {
+			sources = append(sources, contextPath(arg))
+		}
+	}
+
+	return sources
+}
+
+func boundSources(args []string) []string {
+	var sources []string
+
+	for _, arg := range args {
+		options, ok := strings.CutPrefix(arg, "--mount=")
+		if !ok {
+			continue
+		}
+
+		mount := map[string]string{"source": "."}
+		for option := range strings.SplitSeq(options, ",") {
+			key, value, _ := strings.Cut(option, "=")
+			mount[key] = value
+		}
+
+		if mount["type"] == "bind" && mount["from"] == "" {
+			sources = append(sources, contextPath(mount["source"]))
+		}
+	}
+
+	return sources
+}
+
+func contextPath(path string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(path, "./"), "/")
+}
+
+func TestCopiedSources(t *testing.T) {
+	dockerfile := strings.Join([]string{
+		"FROM golang AS builder",
+		"COPY ./go.mod ./go.sum ./",
+		"COPY --chown=1000:1000 ./pkg /src/pkg",
+		"COPY --from=builder /server /server",
+		"ADD ./install.sh /install.sh",
+		"ADD https://example.test/tool.tar.gz /tool.tar.gz",
+		"COPY ./server \\",
+		"     ./openapi/ /src/",
+		"RUN --mount=type=bind,source=./gateway,target=/gateway \\",
+		"    --mount=type=bind,from=cloud-src,target=/cloud \\",
+		"    --mount=type=cache,id=go,target=/go \\",
+		"    go build",
+		"RUN --mount=type=bind,target=/context true",
+		"",
+	}, "\n")
+
+	assert.Equal(t,
+		[]string{"go.mod", "go.sum", "pkg", "install.sh", "server", "openapi", "gateway", "."},
+		copiedSources(dockerfile),
+	)
 }
