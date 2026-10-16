@@ -16,6 +16,9 @@ const readMailpit = async <T>(path: string) => {
   return (await response.json()) as T;
 };
 
+const withoutStyles = (html: string) =>
+  html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+
 const findLink = (body: HTMLElement, path: string) => {
   const url = Array.from(
     body.querySelectorAll("a[href]"),
@@ -38,7 +41,7 @@ const findLatestEmail = async (to: string, path: string) => {
     const { HTML } = await readMailpit<MailpitMessage>(
       `/api/v1/message/${encodeURIComponent(ID)}`,
     );
-    const { body } = new JSDOM(HTML).window.document;
+    const { body } = new JSDOM(withoutStyles(HTML)).window.document;
     const link = findLink(body, path);
     if (link) return { body, link };
   }
