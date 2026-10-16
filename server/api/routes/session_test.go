@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -30,6 +31,7 @@ func TestGetSessionList(t *testing.T) {
 		expectedSession []models.Session
 		expectedStatus  int
 		expectedCount   int // total count from X-Total-Count header; only checked for 200 responses
+		expectedFields  map[string]string
 	}
 	cases := []struct {
 		description   string
@@ -94,6 +96,7 @@ func TestGetSessionList(t *testing.T) {
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
+				expectedFields:  map[string]string{"filter": query.ErrFilterPropertyInvalid.Error()},
 			},
 		},
 		{
@@ -105,6 +108,7 @@ func TestGetSessionList(t *testing.T) {
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
+				expectedFields:  map[string]string{"filter": query.ErrFilterInvalid.Error()},
 			},
 		},
 		{
@@ -190,6 +194,12 @@ func TestGetSessionList(t *testing.T) {
 
 			if rec.Result().StatusCode == http.StatusOK {
 				assert.Equal(t, strconv.Itoa(tc.expected.expectedCount), rec.Result().Header.Get("X-Total-Count"))
+			}
+
+			if tc.expected.expectedFields != nil {
+				var refusal responses.Error
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &refusal))
+				assert.Equal(t, tc.expected.expectedFields, refusal.Fields)
 			}
 		})
 	}

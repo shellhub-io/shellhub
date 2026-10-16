@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
@@ -63,7 +64,7 @@ func (h *Handler) ListProvisioningKeys(c *gateway.Context) error {
 	}
 
 	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeySortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -158,7 +159,7 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 	}
 
 	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {

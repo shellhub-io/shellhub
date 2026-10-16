@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -38,17 +39,17 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	req.Sorter.Normalize()
 
 	if err := query.ValidateSorter(&req.Sorter, services.DeviceSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode device list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {
