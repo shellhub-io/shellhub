@@ -143,6 +143,73 @@ func openShellWatchingGlobalRequests(t *testing.T, ctx context.Context, addr str
 	return reqs
 }
 
+func startResizeReporter(t *testing.T, sess *ssh.Session) func(rows, cols int) {
+	t.Helper()
+
+	stdout, err := sess.StdoutPipe()
+	require.NoError(t, err)
+
+	lines := make(chan string, 256)
+
+	go func() {
+		defer close(lines)
+
+		reader := bufio.NewReader(stdout)
+
+		for {
+			line, err := reader.ReadString('\n')
+			if line != "" {
+				lines <- strings.TrimSpace(line)
+			}
+
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	started := make(chan error, 1)
+
+	go func() {
+		started <- sess.Start("exec signal-reporter WINCH")
+	}()
+
+	select {
+	case err := <-started:
+		require.NoError(t, err)
+	case <-time.After(15 * time.Second):
+		require.FailNow(t, "exec went unanswered: the session's request loop is wedged")
+	}
+
+	awaitLine(t, lines, "READY")
+
+	return func(rows, cols int) {
+		t.Helper()
+
+		require.NoError(t, sess.WindowChange(rows, cols))
+		awaitLine(t, lines, fmt.Sprintf("SIZE %d %d", rows, cols))
+	}
+}
+
+func awaitLine(t *testing.T, lines <-chan string, want string) {
+	t.Helper()
+
+	deadline := time.After(30 * time.Second)
+
+	for {
+		select {
+		case line, ok := <-lines:
+			require.True(t, ok, "the session ended while waiting for %q", want)
+
+			if line == want {
+				return
+			}
+		case <-deadline:
+			require.FailNow(t, "the device never reported the line", "waited 30s for %q", want)
+		}
+	}
+}
+
 func awaitGlobalRequest(t *testing.T, reqs <-chan *ssh.Request, prefix string, timeout time.Duration) {
 	t.Helper()
 

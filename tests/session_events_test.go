@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -237,37 +235,9 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
 
-				stdin, err := sess.StdinPipe()
-				require.NoError(t, err)
+				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{ssh.ECHO: 0}))
 
-				stdout, err := sess.StdoutPipe()
-				require.NoError(t, err)
-
-				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{ssh.ECHO: 1}))
-				require.NoError(t, sess.Shell())
-				require.NoError(t, sess.WindowChange(50, 132))
-
-				_, err = stdin.Write([]byte("stty size\n"))
-				require.NoError(t, err)
-
-				resized := make(chan struct{})
-
-				go func() {
-					scanner := bufio.NewScanner(stdout)
-					for scanner.Scan() {
-						if strings.Contains(scanner.Text(), "50 132") {
-							close(resized)
-
-							return
-						}
-					}
-				}()
-
-				select {
-				case <-resized:
-				case <-time.After(30 * time.Second):
-					require.Fail(t, "the shell never reported the size the client resized it to")
-				}
+				startResizeReporter(t, sess)(50, 132)
 			},
 			expect: func(t *testing.T, session models.Session) {
 				t.Helper()
