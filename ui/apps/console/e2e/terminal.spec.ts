@@ -72,7 +72,11 @@ const nativeClients: ChildProcess[] = [];
 
 test.afterEach(() => {
   for (const client of nativeClients.splice(0)) client.kill();
+  const started = performance.now();
+  const count = containers.length;
   if (containers.length) docker(["rm", "--force", ...containers.splice(0)]);
+  if (count)
+    console.log(`[device-timing] rm n=${count} ${Math.round(performance.now() - started)}ms`);
 });
 
 const ownerContext = (team: Team) =>
@@ -110,7 +114,9 @@ async function acceptDevice(
   name: string,
   list: DeviceList = getDevices,
 ) {
+  const started = performance.now();
   const uid = await waitForPendingDevice(team, name, list);
+  const pending = performance.now();
   const context = ownerContext(team);
   await updateDeviceStatus({ ...context, path: { uid, status: "accept" } });
   await expect
@@ -119,12 +125,17 @@ async function acceptDevice(
       { message: `${name} to come online` },
     )
     .toBe(true);
+  console.log(
+    `[device-timing] pending=${Math.round(pending - started)}ms online=${Math.round(performance.now() - pending)}ms`,
+  );
   return uid;
 }
 
 async function createDevice(team: Team) {
   const name = `e2e-device-${buildShortId()}`;
+  const started = performance.now();
   const container = startAgent(team.tenant, name);
+  console.log(`[device-timing] run=${Math.round(performance.now() - started)}ms`);
   containers.push(container);
   return { uid: await acceptDevice(team, name), name, container };
 }

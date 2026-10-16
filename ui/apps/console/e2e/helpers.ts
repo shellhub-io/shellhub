@@ -156,7 +156,9 @@ export async function signInAndOpen(
       }),
     },
   );
+  const started = performance.now();
   await page.goto(path);
+  console.log(`[signin-timing] goto=${Math.round(performance.now() - started)}ms`);
 }
 
 export async function signOut(page: Page, username: string) {
