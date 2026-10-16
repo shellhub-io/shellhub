@@ -50,7 +50,6 @@ func TestEdition(t *testing.T) {
 			},
 			envFiles: []string{"../.env", "../versions.env", "../.env.enterprise", cloudEnv},
 			editionEnvs: map[string]string{
-				"SHELLHUB_EMAIL_PROVIDER": "dummy",
 				"SHELLHUB_MAXMIND_MIRROR": "",
 			},
 		},
@@ -64,12 +63,15 @@ func TestEdition(t *testing.T) {
 				"../docker-compose.test.yml",
 				"../docker-compose.postgres.test.yml",
 				"../docker-compose.enterprise.test.yml",
+				"../docker-compose.cloud.test.yml",
 			},
 			envFiles: []string{"../.env", "../versions.env", "../.env.enterprise", cloudEnv},
 			editionEnvs: map[string]string{
-				"SHELLHUB_BILLING":        "stripe",
-				"SHELLHUB_EMAIL_PROVIDER": "dummy",
-				"SHELLHUB_MAXMIND_MIRROR": "",
+				"SHELLHUB_BILLING":         "stripe",
+				"SHELLHUB_EMAIL_PROVIDER":  "smtp",
+				"SHELLHUB_EMAIL_SMTP_HOST": "mailpit",
+				"SHELLHUB_EMAIL_SMTP_PORT": "1025",
+				"SHELLHUB_MAXMIND_MIRROR":  "",
 			},
 		},
 	}
@@ -88,7 +90,7 @@ func TestEdition(t *testing.T) {
 			assert.Equal(t, tt.buildEdition, envs["SHELLHUB_BUILD_EDITION"])
 			assert.Equal(t, "production", envs["SHELLHUB_ENV"])
 
-			assert.Equal(t, tt.editionEnvs, pick(envs, "SHELLHUB_BILLING", "COMPOSE_PROFILES", "SHELLHUB_EMAIL_PROVIDER", "SHELLHUB_MAXMIND_MIRROR"))
+			assert.Equal(t, tt.editionEnvs, pick(envs, "SHELLHUB_BILLING", "COMPOSE_PROFILES", "SHELLHUB_EMAIL_PROVIDER", "SHELLHUB_EMAIL_SMTP_HOST", "SHELLHUB_EMAIL_SMTP_PORT", "SHELLHUB_MAXMIND_MIRROR"))
 
 			secret, ok := envs["SHELLHUB_SAML_SECRET"]
 			if tt.edition == EditionCommunity {

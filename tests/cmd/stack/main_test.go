@@ -63,3 +63,35 @@ func TestPrintExportsSurvivesEval(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, `agent:a b|it's "$HOME" * ;|5000`, string(got))
 }
+
+func TestPrintExportsMailpitURL(t *testing.T) {
+	cases := []struct {
+		name       string
+		mailpitURL string
+		want       string
+	}{
+		{
+			name:       "a stack that catches email exports where to read it",
+			mailpitURL: "http://localhost:18025",
+			want:       "http://localhost:18025",
+		},
+		{
+			name:       "a stack that sends no email exports none",
+			mailpitURL: "",
+			want:       "unset",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var out bytes.Buffer
+			require.NoError(t, printExports(&out, &stateFile{Envs: map[string]string{"SHELLHUB_ACCOUNT_LOCKOUT_BASE": "5s"}, MailpitURL: tc.mailpitURL}, nil, "../../cloud"))
+
+			sh := exec.CommandContext(t.Context(), "sh")
+			sh.Stdin = strings.NewReader(out.String() + `printf '%s' "${E2E_MAILPIT_URL-unset}"`)
+			got, err := sh.Output()
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, string(got))
+		})
+	}
+}

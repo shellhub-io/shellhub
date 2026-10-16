@@ -1,29 +1,55 @@
 import { expect } from "@playwright/test";
-import { composeLogs } from "./seed";
+import { JSDOM } from "jsdom";
+import { requireEnv } from "./env";
 
-const findLink = (emailLogLine: string, path: string) => {
-  const url = emailLogLine
-    .match(/https?:\/\/[^\s"\\)]+/g)
-    ?.map((link) => new URL(link))
+type MailpitSummary = { ID: string; To: { Address: string }[] };
+type MailpitSearch = { messages: MailpitSummary[] };
+type MailpitMessage = { HTML: string };
+
+const readMailpit = async <T>(path: string) => {
+  const response = await fetch(new URL(path, requireEnv("E2E_MAILPIT_URL")));
+  if (!response.ok) {
+    throw new Error(
+      `expected Mailpit to answer ${path}, got ${response.status}`,
+    );
+  }
+  return (await response.json()) as T;
+};
+
+const findLink = (body: HTMLElement, path: string) => {
+  const url = Array.from(
+    body.querySelectorAll("a[href]"),
+    (anchor) => anchor.getAttribute("href") ?? "",
+  )
+    .filter((href) => URL.canParse(href))
+    .map((href) => new URL(href))
     .find((candidate) => candidate.pathname === path);
   return url && { path: url.pathname + url.search, params: url.searchParams };
 };
 
-const findLatestEmail = (to: string, path: string) => {
-  const lines = composeLogs("server").split("\n").reverse();
-  for (const line of lines) {
-    if (!line.includes("[mail/dummy]") || !line.includes(`to=${to}`)) continue;
-    const link = findLink(line, path);
-    if (link) return { line, link };
+const findLatestEmail = async (to: string, path: string) => {
+  const query = new URLSearchParams({ query: `to:"${to}"` });
+  const { messages } = await readMailpit<MailpitSearch>(
+    `/api/v1/search?${query}`,
+  );
+  const sentTo = ({ To }: MailpitSummary) =>
+    To.some(({ Address }) => Address.toLowerCase() === to.toLowerCase());
+  for (const { ID } of messages.filter(sentTo)) {
+    const { HTML } = await readMailpit<MailpitMessage>(
+      `/api/v1/message/${encodeURIComponent(ID)}`,
+    );
+    const { body } = new JSDOM(HTML).window.document;
+    const link = findLink(body, path);
+    if (link) return { body, link };
   }
 };
 
 export async function readLatestEmail(to: string, path: string) {
-  let email: ReturnType<typeof findLatestEmail>;
+  let email: Awaited<ReturnType<typeof findLatestEmail>>;
   await expect
     .poll(
-      () => {
-        email = findLatestEmail(to, path);
+      async () => {
+        email = await findLatestEmail(to, path);
         return email;
       },
       { message: `an email to ${to} with a ${path} link` },
