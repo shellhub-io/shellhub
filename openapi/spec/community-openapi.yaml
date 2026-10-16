@@ -38,10 +38,10 @@ tags:
     description: Register and manage SSH public keys.
   - name: access-policies
     x-displayName: SSH Access Policies
-    description: Manage SSH access policies for the identity access mode.
+    description: Manage SSH access policies of a new namespace.
   - name: ssh-identities
     x-displayName: SSH Identities
-    description: Manage enrolled SSH key identities for the identity access mode.
+    description: Manage enrolled SSH key identities of a new namespace.
   - name: tags
     x-displayName: Tags
     description: Create tags and attach them to devices.
@@ -162,8 +162,8 @@ paths:
     $ref: paths/api@namespaces@{tenant}@members.yaml
   /api/namespaces/{tenant}/members/{uid}:
     $ref: paths/api@namespaces@{tenant}@members@{uid}.yaml
-  /api/namespaces/ssh-access-mode/{tenant}:
-    $ref: paths/api@namespaces@ssh-access-mode@{tenant}.yaml
+  /api/namespaces/{tenant}/upgrade:
+    $ref: paths/api@namespaces@{tenant}@upgrade.yaml
   /api/namespaces/api-key:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:

@@ -303,6 +303,7 @@ func TestEvaluate(t *testing.T) {
 
 			sess := newTestSession(serviceMock, nil)
 			sess.edition = tt.edition
+			sess.Namespace.Settings = &models.NamespaceSettings{Legacy: true}
 			ctx := newStubContext()
 
 			snap := getSnapshot(ctx)

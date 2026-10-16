@@ -44,18 +44,18 @@ type Data struct {
 	// Web reports whether the session originated from the web terminal.
 	Web bool
 	// UserID is the principal bound to this session: resolved from the presented key
-	// in identity mode, or set by the enrollment/step-up approval. Empty in legacy
+	// in a new namespace, or set by the enrollment/step-up approval. Empty in legacy
 	// mode. PrincipalKind says which table it names, because an automation is an API
 	// key rather than an account.
 	UserID        string
 	PrincipalKind models.PrincipalKind
-	// ApprovalCode is the JIT code minted in identity mode, for enrollment or
+	// ApprovalCode is the JIT code minted in a new namespace, for enrollment or
 	// step-up. Empty otherwise. It reaches the person on the approval prompt,
 	// inside the console URL they open, and only once the presented key turns
 	// out to be unenrolled, so an enrolled key never sees it.
 	ApprovalCode string
 	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
-	// identity mode; it is the identity lookup key.
+	// a new namespace; it is the identity lookup key.
 	Fingerprint string
 	// KeyData is the presented SSH public key in OpenSSH authorized_keys form,
 	// carried so an enrollment can persist it.
@@ -848,7 +848,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
-	if s.edition.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
+	if s.edition.IsEnterpriseOrCloud() && s.IsLegacy() {
 		if err := s.checkFirewall(ctx); err != nil {
 			return err
 		}
@@ -860,7 +860,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
-	if s.Namespace.Settings.IsIdentityAccess() {
+	if !s.IsLegacy() {
 		has, err := s.service.NamespaceHasAccessPolicies(ctx, s.Namespace.TenantID)
 		if err != nil {
 			return err
@@ -1010,10 +1010,10 @@ func (s *Session) Challenged() (models.SSHApprovalKind, bool) {
 	return s.challenge.kind, true
 }
 
-// IsIdentityMode reports whether the session's namespace uses the identity-based
-// SSH access mode, where the presented key is the identity.
-func (s *Session) IsIdentityMode() bool {
-	return s.Namespace.Settings.IsIdentityAccess()
+// IsLegacy reports whether the session's namespace still authorizes SSH by public key ACL,
+// firewall rules and password rather than by identity and Access Policies.
+func (s *Session) IsLegacy() bool {
+	return s.Namespace.Settings.IsLegacy()
 }
 
 // ConsoleURL builds an absolute URL into the console from the instance's domain, taking the

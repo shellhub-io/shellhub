@@ -238,7 +238,7 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
 
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
-	publicAPI.PUT(EditSSHAccessModeURL, gateway.Handler(handler.EditSSHAccessMode), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
+	publicAPI.POST(UpgradeNamespaceURL, gateway.Handler(handler.UpgradeNamespace), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
 
 	publicAPI.GET(ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
 	publicAPI.POST(CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))

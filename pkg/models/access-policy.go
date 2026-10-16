@@ -65,8 +65,8 @@ func (f AccessPolicyFilter) Matches(device *Device) bool {
 	return false
 }
 
-// AccessPolicy is a namespace-scoped authorization rule for the identity-based
-// SSH access mode: for a subject (user, role, or all members) reaching the
+// AccessPolicy is a namespace-scoped authorization rule of a new namespace: for
+// a subject (user, role, or all members) reaching the
 // devices selected by Filter as the unix logins listed in Logins, it either
 // grants (Effect allow) or blocks (Effect deny) access. Evaluation is
 // default-deny and deny-first: a matching deny wins over any allow, and access
@@ -110,10 +110,10 @@ type AccessPolicy struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// NewOwnerAccessPolicy is the starter policy for the identity access mode: it
-// grants the namespace owner every login on every device. Seeded when a
-// namespace is born identity (creation) or switches to identity with no
-// policies (legacy toggle), so default-deny never locks the owner out while
+// NewOwnerAccessPolicy is the starter policy of a new namespace: it
+// grants the namespace owner every login on every device. Seeded at
+// namespace creation, and by UpgradeNamespace when a legacy namespace
+// has no policies yet, so default-deny never locks the owner out while
 // every other member starts with no access.
 func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
 	return &AccessPolicy{

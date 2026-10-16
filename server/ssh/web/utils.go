@@ -23,15 +23,15 @@ type Credentials struct {
 	// Fingerprint is the identifier of the public key used in the device's OS.
 	Fingerprint string `json:"fingerprint"`
 	// PublicKey is the browser's own enrolled SSH public key (an "ssh-ed25519 …"
-	// line) in identity access mode. When set, the web terminal authenticates by
+	// line) in a new namespace. When set, the web terminal authenticates by
 	// signing the SSH challenge with the matching non-extractable browser key,
 	// and the gateway resolves it to the identity — no device credential and no
 	// legacy public-key ACL. Empty in legacy and keyless-fallback sessions.
 	PublicKey string `json:"public_key"`
 	// UserID is the ShellHub account driving the web terminal, taken from the
 	// X-ID header the gateway injects after authenticating the request (never
-	// from the request body). It is the identity used in the identity access
-	// mode, where no device credential is presented; empty in legacy mode.
+	// from the request body). It is the identity used in a new namespace, where
+	// no device credential is presented; empty in a legacy namespace.
 	UserID string `json:"-"`
 }
 

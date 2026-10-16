@@ -57,9 +57,9 @@ tags:
   - name: ssh
     description: Routes related to SSH resource.
   - name: access-policies
-    description: Routes related to SSH access policies (identity access mode).
+    description: Routes related to SSH access policies (new namespaces).
   - name: ssh-identities
-    description: Routes related to enrolled SSH key identities (identity access mode).
+    description: Routes related to enrolled SSH key identities (new namespaces).
   - name: instance-api-keys
     description: |
       An instance API key authenticates as an instance administrator rather than as a member of a
@@ -140,8 +140,8 @@ paths:
     $ref: paths/api@users@tokens.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
-  /api/namespaces/ssh-access-mode/{tenant}:
-    $ref: paths/api@namespaces@ssh-access-mode@{tenant}.yaml
+  /api/namespaces/{tenant}/upgrade:
+    $ref: paths/api@namespaces@{tenant}@upgrade.yaml
   /api/devices:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:

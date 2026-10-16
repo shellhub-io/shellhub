@@ -4,7 +4,7 @@ properties:
   name:
     $ref: namespaceName.yaml
   settings:
-    description: Namespace's settings. The SSH access mode has its own endpoint and is not accepted here.
+    description: Namespace's settings. Whether the namespace is legacy is not accepted here; the upgrade has its own endpoint.
     type: object
     properties:
       session_record:
