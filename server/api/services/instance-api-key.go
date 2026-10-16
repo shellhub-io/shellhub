@@ -15,15 +15,18 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// InstanceAPIKeySortFields is the set of field names accepted in the sort_by query parameter when
-// listing instance API keys. The row also holds the key's digest, which the response omits and a
-// sort must not order by.
-var InstanceAPIKeySortFields = query.NewFieldSet(
-	"name",
-	"created_at",
-	"updated_at",
-	"expires_at",
-)
+// InstanceAPIKeyQuery is the query contract the instance API key list accepts. The row also holds
+// the key's digest, which the response omits and a sort must not order by; keys take no filter at
+// all, and the newest come first when the client names no order.
+var InstanceAPIKeyQuery = query.Contract{
+	Sort: query.NewFieldSet(
+		"name",
+		"created_at",
+		"updated_at",
+		"expires_at",
+	),
+	DefaultSort: query.Sorter{By: "created_at", Order: query.OrderDesc},
+}
 
 // InstanceAPIKeyService manages the keys that authenticate as an instance administrator rather
 // than as a member of a namespace. A key's plaintext is returned once, at creation, and only its
