@@ -51,8 +51,8 @@ func (_m *MockClient) EXPECT() *MockClient_Expecter {
 }
 
 // AuthDevice provides a mock function for the type MockClient
-func (_mock *MockClient) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
-	ret := _mock.Called(req, key)
+func (_mock *MockClient) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
+	ret := _mock.Called(ctx, req, key)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthDevice")
@@ -60,18 +60,18 @@ func (_mock *MockClient) AuthDevice(req *models.DeviceAuthRequest, key crypto.Si
 
 	var r0 *models.DeviceAuthResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*models.DeviceAuthRequest, crypto.Signer) (*models.DeviceAuthResponse, error)); ok {
-		return returnFunc(req, key)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest, crypto.Signer) (*models.DeviceAuthResponse, error)); ok {
+		return returnFunc(ctx, req, key)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*models.DeviceAuthRequest, crypto.Signer) *models.DeviceAuthResponse); ok {
-		r0 = returnFunc(req, key)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest, crypto.Signer) *models.DeviceAuthResponse); ok {
+		r0 = returnFunc(ctx, req, key)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DeviceAuthResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(*models.DeviceAuthRequest, crypto.Signer) error); ok {
-		r1 = returnFunc(req, key)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.DeviceAuthRequest, crypto.Signer) error); ok {
+		r1 = returnFunc(ctx, req, key)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -84,25 +84,31 @@ type MockClient_AuthDevice_Call struct {
 }
 
 // AuthDevice is a helper method to define mock.On call
+//   - ctx context.Context
 //   - req *models.DeviceAuthRequest
 //   - key crypto.Signer
-func (_e *MockClient_Expecter) AuthDevice(req any, key any) *MockClient_AuthDevice_Call {
-	return &MockClient_AuthDevice_Call{Call: _e.mock.On("AuthDevice", req, key)}
+func (_e *MockClient_Expecter) AuthDevice(ctx any, req any, key any) *MockClient_AuthDevice_Call {
+	return &MockClient_AuthDevice_Call{Call: _e.mock.On("AuthDevice", ctx, req, key)}
 }
 
-func (_c *MockClient_AuthDevice_Call) Run(run func(req *models.DeviceAuthRequest, key crypto.Signer)) *MockClient_AuthDevice_Call {
+func (_c *MockClient_AuthDevice_Call) Run(run func(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer)) *MockClient_AuthDevice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *models.DeviceAuthRequest
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*models.DeviceAuthRequest)
+			arg0 = args[0].(context.Context)
 		}
-		var arg1 crypto.Signer
+		var arg1 *models.DeviceAuthRequest
 		if args[1] != nil {
-			arg1 = args[1].(crypto.Signer)
+			arg1 = args[1].(*models.DeviceAuthRequest)
+		}
+		var arg2 crypto.Signer
+		if args[2] != nil {
+			arg2 = args[2].(crypto.Signer)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -113,7 +119,7 @@ func (_c *MockClient_AuthDevice_Call) Return(deviceAuthResponse *models.DeviceAu
 	return _c
 }
 
-func (_c *MockClient_AuthDevice_Call) RunAndReturn(run func(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error)) *MockClient_AuthDevice_Call {
+func (_c *MockClient_AuthDevice_Call) RunAndReturn(run func(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error)) *MockClient_AuthDevice_Call {
 	_c.Call.Return(run)
 	return _c
 }

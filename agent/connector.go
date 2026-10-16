@@ -24,11 +24,12 @@ var _ connector.Connector = new(DockerConnector)
 
 // DockerConnector is a struct that represents a connector that uses Docker as the container runtime.
 type DockerConnector struct {
-	mu          sync.Mutex
-	server      string
-	tenant      string
-	cli         *dockerclient.Client
-	privateKeys string
+	mu              sync.Mutex
+	server          string
+	tenant          string
+	provisioningKey string
+	cli             *dockerclient.Client
+	privateKeys     string
 	// Label is the label used to identify the containers managed by the ShellHub agent.
 	Label   string
 	cancels map[string]context.CancelFunc
@@ -47,8 +48,9 @@ type ConfigConnector struct {
 
 	// Sets the account tenant id used during communication to associate the
 	// devices to a specific tenant.
-	// This is required.
-	TenantID string `env:"TENANT_ID,required"`
+	TenantID string `env:"TENANT_ID" validate:"required_without=ProvisioningKey"`
+
+	ProvisioningKey string `env:"PROVISIONING_KEY" validate:"required_without=TenantID"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
@@ -82,12 +84,13 @@ func NewDockerConnector(config *ConfigConnector) (connector.Connector, error) {
 	}
 
 	return &DockerConnector{
-		cli:         cli,
-		server:      config.ServerAddress,
-		tenant:      config.TenantID,
-		privateKeys: config.PrivateKeys,
-		Label:       config.Label,
-		cancels:     make(map[string]context.CancelFunc),
+		cli:             cli,
+		server:          config.ServerAddress,
+		tenant:          config.TenantID,
+		provisioningKey: config.ProvisioningKey,
+		privateKeys:     config.PrivateKeys,
+		Label:           config.Label,
+		cancels:         make(map[string]context.CancelFunc),
 	}, nil
 }
 
@@ -140,11 +143,12 @@ func (d *DockerConnector) Start(ctx context.Context, id string, name string) {
 
 	privateKey := fmt.Sprintf("%s/%s.key", d.privateKeys, id)
 	go initContainerAgent(ctx, d.cli, connector.Container{
-		ID:            id,
-		Name:          name,
-		ServerAddress: d.server,
-		Tenant:        d.tenant,
-		PrivateKey:    privateKey,
+		ID:              id,
+		Name:            name,
+		ServerAddress:   d.server,
+		Tenant:          d.tenant,
+		ProvisioningKey: d.provisioningKey,
+		PrivateKey:      privateKey,
 	})
 }
 
@@ -239,6 +243,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 	cfg := &agentd.Config{
 		ServerAddress:     container.ServerAddress,
 		TenantID:          container.Tenant,
+		ProvisioningKey:   container.ProvisioningKey,
 		PrivateKey:        container.PrivateKey,
 		PreferredIdentity: container.ID,
 		PreferredHostname: container.Name,
@@ -268,24 +273,36 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"server_address": cfg.ServerAddress,
 			"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 			"version":        cfg.Version,
-		}).Fatal("Failed to create connector mode")
+		}).Error("Failed to create connector mode")
+
+		return
 	}
 
 	ag, err := agentd.NewAgentWithConfig(cfg, mode)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
-			"id":            container.ID,
-			"configuration": cfg,
-			"version":       cfg.Version,
-		}).Fatal("Failed to create agent")
+			"id":             container.ID,
+			"identity":       cfg.PreferredIdentity,
+			"hostname":       cfg.PreferredHostname,
+			"tenant_id":      cfg.TenantID,
+			"server_address": cfg.ServerAddress,
+			"version":        cfg.Version,
+		}).Error("Failed to create agent")
+
+		return
 	}
 
-	if err := ag.Initialize(); err != nil {
+	if err := ag.Initialize(ctx); err != nil {
 		log.WithError(err).WithFields(log.Fields{
-			"id":            container.ID,
-			"configuration": cfg,
-			"version":       cfg.Version,
-		}).Fatal("Failed to initialize agent")
+			"id":             container.ID,
+			"identity":       cfg.PreferredIdentity,
+			"hostname":       cfg.PreferredHostname,
+			"tenant_id":      cfg.TenantID,
+			"server_address": cfg.ServerAddress,
+			"version":        cfg.Version,
+		}).Error("Failed to initialize agent")
+
+		return
 	}
 
 	log.WithFields(log.Fields{
@@ -307,7 +324,9 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"server_address": cfg.ServerAddress,
 			"timestamp":      time.Now(), //nolint:forbidigo // a log line's timestamp is wall-clock time
 			"version":        cfg.Version,
-		}).Fatal("Failed to listen for connections")
+		}).Error("Failed to listen for connections")
+
+		return
 	}
 
 	log.WithFields(log.Fields{

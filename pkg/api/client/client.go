@@ -24,7 +24,7 @@ import (
 
 type publicAPI interface {
 	GetInfo(agentVersion string) (*models.Info, error)
-	AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error)
+	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
 	GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error)
@@ -113,7 +113,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return nil
 		}
 
-		return client.signDeviceAuth(signed)
+		return client.signDeviceAuth(r.Context(), signed)
 	})
 	client.http.AddRetryHook(func(r *resty.Response, err error) {
 		if r == nil {

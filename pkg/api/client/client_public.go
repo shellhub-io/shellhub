@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -48,9 +49,13 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 // verification the device failed; retrying the latter signs a fresh challenge, so a stale or
 // expired one heals on its own instead of unpairing the device. Every other refusal is returned
 // to the caller, whose device is misconfigured in a way that repeating the same request cannot
-// settle. Transport failures, 429 and 5xx are left to the client-wide retry condition, which
+// settle; it wraps the status's error, ErrUnauthorized for a 401, with the server's answer, so the
+// caller can log the reason. Transport failures, 429 and 5xx are left to the client-wide retry condition, which
 // reports them as a server that cannot answer rather than one that refuses the device.
-func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
+//
+// ctx bounds the call and every retry: once it is done, the call stops waiting and returns its
+// error.
+func (c *client) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
 
 	var body any = req
@@ -60,6 +65,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*
 	}
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		AddRetryCondition(func(r *resty.Response, err error) bool {
 			if err != nil || r == nil || serverAtFault(r.StatusCode()) {
 				return false
@@ -75,7 +81,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*
 	}
 
 	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", err, answer(response))
 	}
 
 	return requireBody(res)
@@ -86,10 +92,11 @@ type signedDeviceAuth struct {
 	key crypto.Signer
 }
 
-func (c *client) signDeviceAuth(signed *signedDeviceAuth) error {
+func (c *client) signDeviceAuth(ctx context.Context, signed *signedDeviceAuth) error {
 	var challenge *models.DeviceAuthChallenge
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		SetResult(&challenge).
 		Post("/api/devices/auth/challenge")
 	if err != nil {

@@ -123,7 +123,7 @@ func main() {
 					ag.SetTenantID(tenant)
 				}
 
-				err := ag.Authorize()
+				err := ag.Authorize(ctx)
 				if err == nil {
 					log.WithFields(log.Fields{
 						"version":            AgentVersion,
@@ -285,7 +285,7 @@ waits until the device is accepted, rejected, or the code expires.`,
 			cfg.Version = AgentVersion
 			cfg.Platform = AgentPlatform
 
-			if cfg.TenantID == "" {
+			if !cfg.HasNamespaceCredential() {
 				pairingLogin(cmd, cfg)
 
 				return
@@ -296,7 +296,7 @@ waits until the device is accepted, rejected, or the code expires.`,
 				log.WithError(err).Fatal("Failed to create agent")
 			}
 
-			if err := ag.Initialize(); err != nil {
+			if err := ag.Initialize(cmd.Context()); err != nil {
 				log.WithError(err).Fatal("Failed to authenticate with the ShellHub server")
 			}
 

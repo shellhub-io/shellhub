@@ -28,7 +28,7 @@
 //	        panic(err)
 //	    }
 //
-//	    if err := ag.Initialize(); err != nil {
+//	    if err := ag.Initialize(ctx); err != nil {
 //	        panic(err)
 //	    }
 //
@@ -290,13 +290,16 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 // Initialize initializes the ShellHub Agent, generating device identity, loading device information, generating or
 // reading the device's private key, probing server information and authorizing device on ShellHub server.
 //
-// When any of the steps fails, the agent will return an error, and the agent will not be able to start.
-func (a *Agent) Initialize() error {
+// When Setup fails it returns Setup's error. Otherwise it returns [Agent.Authorize]'s:
+// ErrAuthorizeNoNamespaceCredential, ErrDeviceRemoved wrapping the server's answer, or any other
+// failure wrapped.
+// ctx bounds the authorization and its retries, as in [Agent.Authorize].
+func (a *Agent) Initialize(ctx context.Context) error {
 	if err := a.Setup(); err != nil {
 		return err
 	}
 
-	return a.Authorize()
+	return a.Authorize(ctx)
 }
 
 // Setup prepares the agent for server communication without authorizing it:
@@ -338,13 +341,17 @@ func (a *Agent) Setup() error {
 // naming a namespace: a tenant (from configuration, or injected with
 // [Agent.SetTenantID] after a pairing) or a provisioning key, which is
 // namespace-scoped and so enrolls on its own. The tenant a provisioning key
-// resolved to is adopted from the server's response.
-func (a *Agent) Authorize() error {
+// resolved to is adopted from the server's response. It returns
+// ErrAuthorizeNoNamespaceCredential when the device carries neither,
+// ErrDeviceRemoved wrapping the server's answer when the server answers 401,
+// and any other failure wrapped, a 400 or 403 refusal included. ctx bounds the request and the
+// retries of a refusal an operator can resolve; once it is done, the failure wraps ctx's error.
+func (a *Agent) Authorize(ctx context.Context) error {
 	if !a.config.HasNamespaceCredential() {
 		return ErrAuthorizeNoNamespaceCredential
 	}
 
-	if err := a.authorize(); err != nil {
+	if err := a.authorize(ctx); err != nil {
 		if errors.Is(err, ErrDeviceRemoved) {
 			return err
 		}
@@ -506,7 +513,7 @@ func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 	return auth, nil
 }
 
-func (a *Agent) authorize() error {
+func (a *Agent) authorize(ctx context.Context) error {
 	auth, err := a.buildDeviceAuth()
 	if err != nil {
 		return err
@@ -520,9 +527,9 @@ func (a *Agent) authorize() error {
 	a.authMu.Lock()
 	defer a.authMu.Unlock()
 
-	data, err := a.cli.AuthDevice(req, a.key)
+	data, err := a.cli.AuthDevice(ctx, req, a.key)
 	if errors.Is(err, client.ErrUnauthorized) {
-		return ErrDeviceRemoved
+		return fmt.Errorf("%w: %w", ErrDeviceRemoved, err)
 	}
 
 	if err != nil {
@@ -665,9 +672,9 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 				return
 			}
 
-			if err := a.authorize(); err != nil {
+			if err := a.authorize(ctx); err != nil {
 				if errors.Is(err, ErrDeviceRemoved) {
-					cancel(ErrDeviceRemoved)
+					cancel(err)
 
 					return
 				}
@@ -704,8 +711,8 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 	<-ctx.Done()
 
 	closeErr := a.Close()
-	if errors.Is(context.Cause(ctx), ErrDeviceRemoved) {
-		return ErrDeviceRemoved
+	if cause := context.Cause(ctx); errors.Is(cause, ErrDeviceRemoved) {
+		return cause
 	}
 
 	return closeErr
@@ -789,9 +796,9 @@ func (a *Agent) ping(ctx context.Context, removed context.CancelCauseFunc, inter
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			if err := a.authorize(); err != nil {
+			if err := a.authorize(ctx); err != nil {
 				if errors.Is(err, ErrDeviceRemoved) {
-					removed(ErrDeviceRemoved)
+					removed(err)
 
 					return
 				}
