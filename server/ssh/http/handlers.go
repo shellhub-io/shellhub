@@ -191,7 +191,10 @@ func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*mode
 
 // HandleConnectionV1 upgrades the HTTP connection to WebSocket and
 // registers a legacy (V1) reverse dialer for the agent. Each new logical
-// session requires an extra reverse dial handshake.
+// session requires an extra reverse dial handshake. It returns a 500 error when
+// the device cannot be resolved, and a 403 error when RequireAcceptedTunnel is
+// set and the device is not accepted. When the upgrade fails it logs the cause
+// and returns nil, because the upgrader has already written the response.
 func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	requestID := c.Request().Header.Get("X-Request-ID")
 
@@ -216,9 +219,17 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 		tenant = device.TenantID
 	}
 
+	logger := log.WithFields(log.Fields{
+		"request-id": requestID,
+		"tenant":     tenant,
+		"uid":        uid,
+	})
+
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		logger.WithError(err).Warn("failed to upgrade the v1 connection")
+
+		return nil
 	}
 
 	h.Tunnels.Set(
@@ -248,7 +259,11 @@ type HandleConnectionV2Data struct {
 // HandleConnectionV2 upgrades the HTTP connection to WebSocket and
 // binds it to a yamux session (V2). Subsequent logical streams are
 // opened without additional HTTP handshakes and are protocol-negotiated
-// via multistream-select.
+// via multistream-select. It returns the binding or validation error for
+// malformed headers, the device errors of HandleConnectionV1 when
+// RequireAcceptedTunnel is set, and the tunnel's error when binding the upgraded
+// connection fails. When the upgrade fails it logs the cause and returns nil,
+// because the upgrader has already written the response.
 func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 	log.Trace("handling v2 connection")
 	defer log.Trace("v2 connection handle closed")
@@ -273,16 +288,18 @@ func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 		}
 	}
 
-	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
 	logger := log.WithFields(log.Fields{
 		"request-id": data.RequestID,
 		"tenant":     data.Tenant,
 		"uid":        data.UID,
 	})
+
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		logger.WithError(err).Warn("failed to upgrade the v2 connection")
+
+		return nil
+	}
 
 	logger.Info("v2 connection established")
 

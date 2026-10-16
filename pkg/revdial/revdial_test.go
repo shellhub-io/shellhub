@@ -378,3 +378,35 @@ func TestCloseReturnsWhenNobodyIsWatchingDone(t *testing.T) {
 		require.FailNow(t, "Done must be closed once Close returned")
 	}
 }
+
+func TestConnHandlerAnswersANonUpgradePickupWithOnlyTheUpgradersResponse(t *testing.T) {
+	t.Parallel()
+
+	d, a := newDialer(t)
+
+	dialed := make(chan error, 1)
+	go func() {
+		_, err := dialWithin(t, d, 5*time.Second)
+		dialed <- err
+	}()
+
+	path, ok := a.awaitConnReady()
+	require.True(t, ok)
+
+	httpURL := "http" + strings.TrimPrefix(a.wsURL, "ws")
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, httpURL+path, nil)
+	require.NoError(t, err)
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = res.Body.Close() }()
+
+	body, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, "Bad Request\n", string(body))
+
+	require.True(t, a.failPickup(path, "the agent gave up"))
+	require.Error(t, <-dialed)
+}

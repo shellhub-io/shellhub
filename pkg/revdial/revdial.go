@@ -549,13 +549,17 @@ func (fakeAddr) String() string  { return "revdialconn" }
 // ConnHandler returns the HTTP handler that needs to be mounted somewhere
 // that the Listeners can dial out and get to. A dialer to connect to it
 // is given to NewListener and the path to reach it is given to NewDialer
-// to use in messages to the listener.
+// to use in messages to the listener. It answers an unknown dialer with 400,
+// and when the upgrade fails it logs the cause through the dialer's logger and
+// writes nothing, because the upgrader has already written the response.
 func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		dialerUniq := r.FormValue(dialerUniqParam)
 		uuid := r.FormValue(dialUUIDParam)
 
-		d, ok := dialers.Load(dialerUniq)
+		d, _ := dialers.Load(dialerUniq)
+
+		dialer, ok := d.(*Dialer)
 		if !ok {
 			http.Error(w, "unknown dialer", http.StatusBadRequest)
 
@@ -564,20 +568,11 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 
 		wsConn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			dialer.logger.WithError(err).WithField("uuid", uuid).Warn("failed to upgrade the pickup connection")
 
 			return
 		}
 
-		c := wsconnadapter.New(wsConn)
-
-		dialer, ok := d.(*Dialer)
-		if !ok {
-			_ = c.Close()
-
-			return
-		}
-
-		dialer.matchConn(uuid, c)
+		dialer.matchConn(uuid, wsconnadapter.New(wsConn))
 	})
 }

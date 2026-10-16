@@ -42,6 +42,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 		tenantHeader   string
 		setupMock      func(*servicemocks.MockService)
 		expectedStatus int
+		expectedBody   string
 	}{
 		{
 			description:  "an unknown device is refused with a server error",
@@ -79,6 +80,14 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 		},
+		{
+			description:    "a request that is not a websocket upgrade gets only the upgrader's response",
+			config:         &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct // only the tunnel gate matters here
+			tenantHeader:   "00000000-0000-4000-0000-000000000000",
+			setupMock:      func(*servicemocks.MockService) {},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "Bad Request\n",
+		},
 	}
 
 	for _, tt := range tests {
@@ -100,6 +109,9 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tt.expectedStatus, rec.Code)
+			if tt.expectedBody != "" {
+				assert.Equal(t, tt.expectedBody, rec.Body.String())
+			}
 		})
 	}
 }
@@ -154,6 +166,7 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 		description    string
 		headers        map[string]string
 		expectedStatus int
+		expectedBody   string
 	}{
 		{
 			description: "a malformed tenant is rejected before anything else",
@@ -181,6 +194,16 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
+		{
+			description: "a request that is not a websocket upgrade gets only the upgrader's response",
+			headers: map[string]string{
+				"X-Request-ID": "request-id",
+				"X-Device-UID": testDeviceUID,
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "Bad Request\n",
+		},
 	}
 
 	for _, tt := range tests {
@@ -196,6 +219,9 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tt.expectedStatus, rec.Code)
+			if tt.expectedBody != "" {
+				assert.Equal(t, tt.expectedBody, rec.Body.String())
+			}
 		})
 	}
 }
