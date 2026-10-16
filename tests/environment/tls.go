@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -9,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"maps"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -91,26 +93,28 @@ func SelfSignedCertificate(names ...string) (Certificate, error) {
 }
 
 type httpsLayer struct {
-	envs        map[string]string
-	artifacts   []string
-	composeFile string
+	envs         map[string]string
+	artifacts    []string
+	composeFiles []string
 }
 
-func (cfg Config) httpsLayer() (httpsLayer, error) {
+func (cfg Config) httpsLayer(ctx context.Context) (httpsLayer, error) {
 	var (
 		layer httpsLayer
 		err   error
 	)
 
 	switch {
+	case cfg.ACMEDNS && !cfg.ACME:
+		return httpsLayer{}, errACMEDNSWithoutACME
 	case cfg.SuppliedCertificate != nil && cfg.ACME:
 		return httpsLayer{}, errSuppliedCertificateAndACME
 	case cfg.SuppliedCertificate != nil:
 		layer, err = cfg.suppliedCertificateLayer()
 	case cfg.ACME:
-		layer, err = cfg.acmeLayer()
+		layer, err = cfg.acmeLayer(ctx)
 	case cfg.AutoSSL:
-		layer = httpsLayer{envs: map[string]string{}, composeFile: "../docker-compose.autossl.yml"}
+		layer = httpsLayer{envs: map[string]string{}, composeFiles: []string{"../docker-compose.autossl.yml"}}
 	default:
 		return httpsLayer{}, nil
 	}
@@ -131,7 +135,7 @@ func (cfg Config) suppliedCertificateLayer() (httpsLayer, error) {
 		return httpsLayer{}, err
 	}
 
-	layer := httpsLayer{artifacts: []string{dir}, composeFile: "../docker-compose.tls.test.yml"}
+	layer := httpsLayer{artifacts: []string{dir}, composeFiles: []string{"../docker-compose.tls.test.yml"}}
 
 	if err := writeCertificate(dir, *cfg.SuppliedCertificate); err != nil {
 		return layer, err
@@ -146,7 +150,7 @@ func (cfg Config) suppliedCertificateLayer() (httpsLayer, error) {
 	return layer, nil
 }
 
-func (cfg Config) acmeLayer() (httpsLayer, error) {
+func (cfg Config) acmeLayer(ctx context.Context) (httpsLayer, error) {
 	dir, err := acmeDir(cfg.Name)
 	if err != nil {
 		return httpsLayer{}, err
@@ -157,7 +161,7 @@ func (cfg Config) acmeLayer() (httpsLayer, error) {
 		return httpsLayer{}, err
 	}
 
-	layer := httpsLayer{artifacts: []string{dir}, composeFile: "../docker-compose.acme.test.yml"}
+	layer := httpsLayer{artifacts: []string{dir}, composeFiles: []string{"../docker-compose.acme.test.yml"}}
 
 	if err := writeCertificate(dir, directory); err != nil {
 		return layer, err
@@ -171,6 +175,18 @@ func (cfg Config) acmeLayer() (httpsLayer, error) {
 		acmeDirEnv:                dir,
 		"SHELLHUB_ACME_CA_SERVER": "https://" + pebbleName + ":14000/dir",
 	}
+
+	if !cfg.ACMEDNS {
+		return layer, nil
+	}
+
+	acmeDNS, err := cfg.acmeDNSLayer(ctx, dir)
+	if err != nil {
+		return layer, err
+	}
+
+	maps.Copy(layer.envs, acmeDNS.envs)
+	layer.composeFiles = append(layer.composeFiles, acmeDNS.composeFiles...)
 
 	return layer, nil
 }
