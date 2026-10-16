@@ -181,10 +181,3 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 
 	return nil
 }
-
-// SFTP handles the SSH's server sftp session when server is running in connector mode.
-//
-// sftp is a subsystem of SSH that allows file operations over SSH.
-func (s *Sessioner) SFTP(_ gliderssh.Session) error {
-	return errors.New("SFTP isn't supported to ShellHub Agent in connector mode")
-}

@@ -19,7 +19,6 @@ type Authenticator interface {
 
 // Sessioner defines the session methods used by the SSH's server to deal wihth determining the type of session.
 type Sessioner interface {
-	Subsystemer
 	// Shell must be implemented to deal with shell session.
 	Shell(session gliderssh.Session) error
 	// Heredoc must be implemented to deal with heredoc session.
@@ -36,9 +35,8 @@ type Sessioner interface {
 	Exec(session gliderssh.Session) error
 }
 
-// Subsystemer defines the subsystem methods used by the SSH's server to deal with determining the type of subsystem.
-//
-// Subsystemer is a subset of the [Sessioner] interface.
+// Subsystemer is implemented by a [Mode] that serves the SFTP subsystem. The SSH server refuses
+// the subsystem request of a mode that does not implement it, before the channel carries any data.
 type Subsystemer interface {
 	// SFTP must be implemented to deal with SFTP session.
 	SFTP(session gliderssh.Session) error
