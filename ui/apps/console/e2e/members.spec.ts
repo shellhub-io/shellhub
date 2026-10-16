@@ -20,7 +20,6 @@ import {
   createTeam,
   consoleAccountDeletionReason,
   createTeamWithMember,
-  createUser,
   deleteOwnAccount,
   findRow,
   signIn,
@@ -31,7 +30,13 @@ import {
   switchNamespace,
 } from "./helpers";
 import { buildDeviceAuthRequest, signDeviceAuth } from "./devices";
-import { password, buildShortId, buildRandomEmail, addMember } from "./seed";
+import {
+  password,
+  buildShortId,
+  buildRandomEmail,
+  addMember,
+  createUser,
+} from "./seed";
 import {
   type Endpoint,
   buildRequestContext,
@@ -154,7 +159,7 @@ test.describe("invitations", () => {
   test("a used invitation link stops working", async ({ browser }) => {
     test.skip(isEnterprise, directMembershipReason);
     const { owner, tenant } = await createTeam();
-    const invitee = await createUser("invitee");
+    const invitee = createUser("invitee");
     const { link } = await invite(owner.token, tenant, invitee.email);
 
     const { token } = await loginAs(invitee.username, password);
