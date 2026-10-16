@@ -26,14 +26,15 @@ func Watch(ctx context.Context, logger *log.Entry, version string, current *semv
 		} else if nextVersion.GreaterThan(current) {
 			if err := updater.ApplyUpdate(nextVersion); err != nil {
 				logger.WithError(err).WithFields(log.Fields{
-					"version": version,
+					"version":      version,
+					"next_version": nextVersion.String(),
 				}).Error("Failed to apply update")
+			} else {
+				logger.WithFields(log.Fields{
+					"version":      current,
+					"next_version": nextVersion.String(),
+				}).Info("Update successfully applied")
 			}
-
-			logger.WithFields(log.Fields{
-				"version":      current,
-				"next_version": nextVersion.String(),
-			}).Info("Update successfully applied")
 		}
 
 		logger.WithFields(log.Fields{
