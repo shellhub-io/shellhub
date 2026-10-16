@@ -21,12 +21,17 @@ not the machine underneath it.
 
 ## Setting it up
 
-From the console's **Containers** page, register the Docker host:
+From the console's **Containers** page, click **Add Docker Host**:
 
-<Shot id="add-docker-host" route="/containers" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Docker Host" } }]} alt="ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command" />
+<Shot id="add-docker-host" route="/containers" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Docker Host" } }]} alt="ShellHub Containers page with the Add Docker Host dialog open" />
 
-That gives you a one-line command to run on the host. The Connector then watches the Docker daemon
-and registers containers as they appear.
+In a new namespace the dialog sends you to **Fleet**. Open a provisioning key there and pick its
+**Docker connector** method: the one-line command it shows enrolls every container with that key.
+In a [legacy namespace](/manage/access-control/migrating-from-legacy) the dialog gives you the
+one-line command with the namespace's tenant ID.
+
+Run the command on the host. The Connector then watches the Docker daemon and registers containers
+as they appear.
 
 ## Configuration
 
@@ -36,7 +41,8 @@ The Connector takes its own variables, which differ from the agent's in one impo
 |---|---|---|
 | `SHELLHUB_SERVER_ADDRESS` | — | Required |
 | `SHELLHUB_PRIVATE_KEYS` | — | Required. **Plural** — a directory holding one key per container |
-| `SHELLHUB_TENANT_ID` | — | Required. The Connector does not support pairing mode |
+| `SHELLHUB_PROVISIONING_KEY` | — | The provisioning key every container enrolls with. Required unless `SHELLHUB_TENANT_ID` is set |
+| `SHELLHUB_TENANT_ID` | — | The namespace to enroll into. Only a [legacy namespace](/manage/access-control/migrating-from-legacy) accepts it. The Connector does not support pairing mode |
 | `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | Seconds |
 | `SHELLHUB_CONNECTOR_LABEL` | `""` | Only manage containers carrying this label |
 

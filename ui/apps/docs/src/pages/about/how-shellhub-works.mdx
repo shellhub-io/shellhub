@@ -70,9 +70,9 @@ A namespace is the workspace everything else lives inside: devices, members, pol
 It has a name you can change, and a **Tenant ID** — an immutable UUID that devices, API keys and
 sessions actually reference.
 
-A namespace also carries its **SSH access mode**, which decides how connections are authorized.
-Namespaces created today start in identity mode. See
-[How Authorization Works](/manage/access-control).
+A namespace is either **legacy** or new, which decides how connections are authorized and how
+devices enroll. Namespaces created today are new; a legacy one predates identity-based access and
+can be upgraded once. See [How Authorization Works](/manage/access-control).
 
 <Callout variant="info">
 Community is single-namespace. The one namespace is created at setup, and the server

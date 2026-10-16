@@ -16,6 +16,11 @@ removes it when the job ends. The session goes through your own gateway, which i
 this from pasting a tunnel URL into a public log: access is governed by your namespace, the key
 is one you manage, and the session is recorded.
 
+The action names the namespace by its tenant ID, has no setting for a provisioning key, and
+authorizes you with a public key, so it works in a
+[legacy namespace](/manage/access-control/migrating-from-legacy) only. A namespace on the identity
+model refuses a runner that presents its tenant alone.
+
 ## The step
 
 ```yaml

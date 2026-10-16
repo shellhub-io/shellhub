@@ -13,7 +13,7 @@ itself.
 
 | Role | Can |
 |---|---|
-| **Observer** | View device and session details. Nothing else. An observer cannot connect to a device, except by native SSH in the legacy access mode |
+| **Observer** | View device and session details. Nothing else. An observer cannot connect to a device, except by native SSH in a legacy namespace |
 | **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details |
 | **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
 | **Owner** | Everything |
@@ -34,9 +34,9 @@ What the role controls is the console: what they see, what they can change, whet
 remove a device.
 
 A role never grants device access, but it can withhold it. The **observer** role holds no connect
-permission. In the identity access mode an observer is refused before their policies are read, and
+permission. In a new namespace an observer is refused before their policies are read, and
 the refusal covers the whole connection, including file transfer and port forwarding. The
-browser terminal refuses them in either mode. Native SSH in the legacy access mode carries no user
+browser terminal refuses them in both. Native SSH in a legacy namespace carries no user
 identity, so the role cannot be enforced there. Grant an observer a policy and they still connect
 to nothing. Make them an operator and the policy decides.
 

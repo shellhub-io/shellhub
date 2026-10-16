@@ -38,6 +38,10 @@ shellhub_tenant_id="<your-tenant-id>"
 Both the server address and the tenant ID are required — the `rc.d` script validates them at
 startup and exits with an error if either is missing.
 
+The script names the namespace by its tenant ID and has no setting for a provisioning key, so a
+FreeBSD device enrolls into a [legacy namespace](/manage/access-control/migrating-from-legacy)
+only. A new namespace refuses a device that presents its tenant alone.
+
 The agent generates a private key on first run and stores it at `shellhub_private_key`, which
 defaults to `/usr/local/etc/shellhub.key`. That key is the device's identity: delete it and the
 device re-registers as a new one, so it belongs on persistent storage.

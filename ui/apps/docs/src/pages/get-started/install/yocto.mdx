@@ -55,7 +55,7 @@ SHELLHUB_PROVISIONING_KEY = "<your-provisioning-key>"
 | `SHELLHUB_SERVER_ADDRESS` | `https://cloud.shellhub.io` |
 | `SHELLHUB_PRIVATE_KEY` | `/etc/shellhub-agent.key` |
 | `SHELLHUB_PROVISIONING_KEY` | *(none)* |
-| `SHELLHUB_TENANT_ID` | *(none, deprecated)* |
+| `SHELLHUB_TENANT_ID` | *(none, legacy namespaces only)* |
 
 These are written into `/etc/default/shellhub-agent`, which the service reads at start.
 One of the two registration variables is required — the configuration recipe stops the
@@ -67,8 +67,9 @@ no precedence rule on purpose: an image that registers through a source you did 
 choose is the thing worth failing over.
 </Callout>
 
-`SHELLHUB_TENANT_ID` is deprecated. It remains for integrations that already ship with
-it; use the provisioning key for anything new.
+`SHELLHUB_TENANT_ID` enrolls into a [legacy namespace](/manage/access-control/migrating-from-legacy)
+only. It remains for integrations that already ship with it; use the provisioning key for anything
+new.
 
 <Callout variant="info">
 The layer puts the device key at `/etc/shellhub-agent.key`. The installation

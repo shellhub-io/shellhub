@@ -60,7 +60,7 @@
 /user-guides/devices/tunnels             /connect/port-forwarding        301
 /user-guides/devices/tunnels/            /connect/port-forwarding        301
 
-# The legacy access model, and where it is going
+# Legacy namespaces, and where they are going
 /user-guides/firewall/                           /manage/access-control/firewall-rules  301
 /user-guides/firewall                            /manage/access-control/firewall-rules  301
 /user-guides/firewall/create                     /manage/access-control/firewall-rules  301
