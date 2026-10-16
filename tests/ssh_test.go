@@ -1469,63 +1469,10 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				require.NoError(t, sess.WindowChange(48, 160))
 
-				stdout, err := sess.StdoutPipe()
-				require.NoError(t, err)
-
-				lines := make(chan string, 256)
-				go func() {
-					defer close(lines)
-
-					reader := bufio.NewReader(stdout)
-					for {
-						line, err := reader.ReadString('\n')
-						if line != "" {
-							lines <- strings.TrimSpace(line)
-						}
-						if err != nil {
-							return
-						}
-					}
-				}()
-
-				waitFor := func(want string) error {
-					deadline := time.After(30 * time.Second)
-
-					for {
-						select {
-						case line, ok := <-lines:
-							if !ok {
-								return fmt.Errorf("session ended while waiting for %q", want)
-							}
-
-							if line == want {
-								return nil
-							}
-						case <-deadline:
-							return fmt.Errorf("timed out waiting for %q", want)
-						}
-					}
-				}
-
-				started := make(chan error, 1)
-				go func() {
-					started <- sess.Start("exec signal-reporter WINCH")
-				}()
-
-				select {
-				case err := <-started:
-					require.NoError(t, err)
-				case <-time.After(15 * time.Second):
-					require.FailNow(t, "exec went unanswered: the session's request loop is wedged")
-				}
-
-				require.NoError(t, waitFor("READY"))
+				resize := startResizeReporter(t, sess)
 
 				for _, size := range [][2]int{{40, 120}, {24, 80}, {50, 200}, {30, 100}} {
-					rows, cols := size[0], size[1]
-
-					require.NoError(t, sess.WindowChange(rows, cols))
-					require.NoError(t, waitFor(fmt.Sprintf("SIZE %d %d", rows, cols)))
+					resize(size[0], size[1])
 				}
 			},
 		},
