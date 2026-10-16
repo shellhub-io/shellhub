@@ -9,11 +9,6 @@ FROM ghcr.io/static-web-server/static-web-server:${SWS_VERSION} AS sws
 
 FROM node:${NODE_VERSION} AS base
 
-RUN apk add --update build-base python3 curl git gcompat
-
-COPY ui/scripts/install-vale.sh /tmp/install-vale
-RUN /tmp/install-vale /usr/local/bin && rm /tmp/install-vale
-
 WORKDIR /app
 
 COPY ui/package.json ui/package-lock.json ./
@@ -26,6 +21,11 @@ RUN --mount=type=cache,id=shellhub-npm,target=/root/.npm,sharing=shared \
     npm install
 
 FROM base AS development
+
+RUN apk add --no-cache build-base python3 curl git gcompat
+
+COPY ui/scripts/install-vale.sh /tmp/install-vale
+RUN /tmp/install-vale /usr/local/bin && rm /tmp/install-vale
 
 WORKDIR /src
 
@@ -51,7 +51,6 @@ WORKDIR /app
 
 COPY ui/. .
 
-COPY --from=base /app/node_modules ./node_modules
 COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
 
 RUN OPENAPI_SPEC_PATH=./openapi.json npm run generate -w @shellhub/console

@@ -16,11 +16,7 @@ FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 FROM vektra/mockery:${MOCKERY_VERSION} AS mockery
 FROM docker:${DOCKER_VERSION}-cli AS docker-cli
 
-FROM golang:${GOLANG_VERSION} AS toolchain
-
-RUN apk add --no-cache git ca-certificates curl build-base openssh-client
-
-FROM toolchain AS base
+FROM golang:${GOLANG_VERSION} AS base
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub
 COPY ./go.mod ./go.sum ./
@@ -70,11 +66,11 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
         go build -ldflags "$GO_LDFLAGS" -o /server .; \
     fi
 
-FROM toolchain AS tools
+FROM golang:${GOLANG_VERSION} AS tools
 
 ARG MJML_VERSION
 
-RUN apk add --no-cache openssl npm
+RUN apk add --no-cache git ca-certificates curl build-base openssh-client openssl npm
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
 COPY --from=air /go/bin/air /usr/local/bin/air
@@ -99,7 +95,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 FROM alpine:${ALPINE_VERSION} AS production
 
-RUN apk add --no-cache curl openssh-client && \
+RUN apk add --no-cache curl && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
 
 COPY --from=builder /server /server

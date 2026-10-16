@@ -8,11 +8,7 @@ ARG GOLANGCI_LINT_VERSION
 FROM cosmtrek/air:${AIR_VERSION} AS air
 FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 
-FROM golang:${GOLANG_VERSION} AS toolchain
-
-RUN apk add --no-cache git ca-certificates libgcc
-
-FROM toolchain AS base
+FROM golang:${GOLANG_VERSION} AS base
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -41,7 +37,9 @@ RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
     --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
     go build
 
-FROM toolchain AS tools
+FROM golang:${GOLANG_VERSION} AS tools
+
+RUN apk add --no-cache git ca-certificates libgcc
 
 COPY --from=air /go/bin/air /usr/local/bin/air
 COPY --from=golangci-lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
@@ -64,7 +62,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 FROM alpine:${ALPINE_VERSION} AS production
 
-RUN apk add --no-cache ca-certificates libgcc && \
+RUN apk add --no-cache ca-certificates && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
 
 VOLUME /data
