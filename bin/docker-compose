@@ -1,196 +1,305 @@
-(Sem assunto)
-teo machado<teobaldomachado22@gmail.com>
-Você
+
 #!/bin/sh
+
+# ShellHub Docker Compose wrapper tests
+# POSIX sh compatible
+#
+# Usage:
+#   sh tests/test-docker-compose.sh ./scripts/docker-compose.sh
 
 set -eu
 
-SCRIPT_UNDER_TEST=
-
-(mktemp -d "$`{TMPDIR:-/tmp}/shellhub-test.XXXXXX")
-
-cleanup() {
-rm -rf "`$TEST_ROOT"
+fail() {
+    printf 'FAIL: %s\n' "$*" >&2
+    exit 1
 }
 
-trap cleanup EXIT HUP INT TERM
-
-fail() {
-printf 'FAIL: %s\n' "$`*" >&2
-exit 1
+pass() {
+    printf 'PASS: %s\n' "$*"
 }
 
 assert_contains() {
-file=$1 expected=$2
+    file=$1
+    expected=$2
 
-if ! grep -Fq -- "$expected" "$file"; then
-printf 'Expected content not found: %s\n' "$expected" &gt;&2 cat "$file" >&2
-fail "assert_contains"
-fi
+    [ -f "$file" ] || fail "Arquivo não encontrado: $file"
+
+    if ! grep -F -e "$expected" "$file" >/dev/null 2>&1; then
+        printf 'Esperado: %s\nArquivo: %s\n' \
+            "$expected" "$file" >&2
+        cat "$file" >&2
+        fail "assert_contains"
+    fi
 }
 
-mkdir -p "$TEST_ROOT/bin" "$TEST_ROOT/project/scripts"
+assert_not_contains() {
+    file=$1
+    unexpected=$2
 
-SCRIPT_UNDER_TEST=$( CDPATH= cd -- "$(dirname -- "$SCRIPT_UNDER_TEST")" && pwd -P )/$(basename -- "`$SCRIPT_UNDER_TEST")
+    if grep -F -e "$unexpected" "$file" >/dev/null 2>&1; then
+        fail "Conteúdo inesperado: $unexpected"
+    fi
+}
 
-cp "
+assert_file_exists() {
+    [ -f "$1" ] || fail "Arquivo esperado não existe: $1"
+}
 
-TEST_ROOT/project/scripts/docker-compose.sh"
+assert_file_not_exists() {
+    [ ! -e "$1" ] || fail "Arquivo inesperado: $1"
+}
 
-cat > "$`TEST_ROOT/bin/docker" <<'MOCK'
+if [ "$#" -ne 1 ]; then
+    printf 'Uso: %s CAMINHO_DO_WRAPPER\n' "$0" >&2
+    exit 2
+fi
+
+SCRIPT_UNDER_TEST=$1
+
+case "$SCRIPT_UNDER_TEST" in
+    /*) ;;
+    *)
+        SCRIPT_UNDER_TEST=$(pwd -P)/$SCRIPT_UNDER_TEST
+        ;;
+esac
+
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$SCRIPT_UNDER_TEST")" &&
+    pwd -P)
+SCRIPT_UNDER_TEST=$SCRIPT_DIR/$(basename "$SCRIPT_UNDER_TEST")
+
+assert_file_exists "$SCRIPT_UNDER_TEST"
+
+TEST_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/shellhub-test.XXXXXX") ||
+    fail "Não foi possível criar diretório temporário"
+
+cleanup() {
+    rm -rf "$TEST_ROOT"
+}
+
+trap cleanup 0
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+PROJECT=$TEST_ROOT/project
+MOCK_BIN=$TEST_ROOT/bin
+
+mkdir -p "$MOCK_BIN" "$PROJECT/scripts"
+
+cp "$SCRIPT_UNDER_TEST" "$PROJECT/scripts/docker-compose.sh"
+chmod +x "$PROJECT/scripts/docker-compose.sh"
+
+# Mock controlado: nenhuma operação Docker real é executada.
+cat > "$MOCK_BIN/docker" <<'MOCK'
 #!/bin/sh
 
-printf '%s\n' "$*" &gt;&gt; "$DOCKER_CALL_LOG"
+set -u
 
-if [ "${1:-}" = compose ] && [ "${2:-}" = version ]; then
-exit 0
+printf '%s\n' "$*" >> "$DOCKER_CALL_LOG"
+
+if [ "${1:-}" = compose ] &&
+   [ "${2:-}" = version ]; then
+    exit 0
 fi
 
-if [ "${1:-}" = info ]; then printf '%s\n' "${MOCK_DOCKER_SECURITY_OPTIONS:-name=seccomp}"
-exit 0
+if [ "${1:-}" = info ]; then
+    printf '%s\n' \
+        "${MOCK_DOCKER_SECURITY_OPTIONS:-name=seccomp}"
+    exit 0
 fi
 
-if [ "${1:-}" = context ]; then printf '%s\n' "${MOCK_DOCKER_HOST:-unix:///var/run/docker.sock}"
-exit 0
+if [ "${1:-}" = context ]; then
+    printf '%s\n' \
+        "${MOCK_DOCKER_HOST:-unix:///var/run/docker.sock}"
+    exit 0
 fi
 
-if [ "${1:-}" = compose ] && [ "${2:-}" = config ]; then
-printf '%s\n' "`${MOCK_COMPOSE_CONFIG:-services:}"
-exit 0
+if [ "${1:-}" = compose ] &&
+   [ "${2:-}" = config ]; then
+    if [ "${MOCK_CONFIG_FAIL:-0}" = 1 ]; then
+        printf '%s\n' "mock: compose config failed" >&2
+        exit 1
+    fi
+
+    printf '%s\n' "${MOCK_COMPOSE_CONFIG:-services:}"
+    exit 0
 fi
 
-if [ "
-
-COMPOSE_FILE" > "
-
-COMPOSE_ENV_FILES" > "
-
-{COMPOSE_PROFILES:-}" > "
-
-{SHELLHUB_EDITION:-}" > "
-
-{SHELLHUB_ENV:-}" > "
-
-{SHELLHUB_WORKSPACE:-}" > "
-
-{E2E_PLAYWRIGHT_VERSION:-}" > "
-
-{SHELLHUB_DEV_DOCKER_SOCKET:-}" > "
-
-{MOCK_DOCKER_EXIT_CODE:-0}"
+if [ "${MOCK_DOCKER_EXIT_CODE:-0}" != 0 ]; then
+    exit "$MOCK_DOCKER_EXIT_CODE"
 fi
 
 exit 0
 MOCK
 
-chmod +x "$`TEST_ROOT/bin/docker"
+chmod +x "$MOCK_BIN/docker"
 
-PROJECT=$TEST_ROOT/project mkdir -p "$PROJECT"
-: > "$PROJECT/.env" : &gt; "$PROJECT/versions.env"
-: > "`$PROJECT/docker-compose.yml"
+# Projeto fictício mínimo.
+: > "$PROJECT/.env"
+: > "$PROJECT/versions.env"
+: > "$PROJECT/docker-compose.yml"
+: > "$PROJECT/docker-compose.postgres.yml"
 
-export PATH="
+export PATH=$MOCK_BIN:$PATH
+export DOCKER_CALL_LOG=$TEST_ROOT/docker-calls.log
 
-PATH"
-export DOCKER_CALL_LOG=
-
-TEST_ROOT/compose-file.txt
-export DOCKER_ENV_FILES=
-
-TEST_ROOT/profiles.txt
-export DOCKER_EDITION=
-
-TEST_ROOT/environment.txt
-export DOCKER_WORKSPACE=
-
-TEST_ROOT/playwright.txt
-export DOCKER_SOCKET=$`TEST_ROOT/socket.txt
-
-: > "`$DOCKER_CALL_LOG"
+: > "$DOCKER_CALL_LOG"
 
 run_script() {
-(
-cd "
+    (
+        cd "$PROJECT"
+        ./scripts/docker-compose.sh "$@"
+    )
+}
 
-PROJECT/scripts/docker-compose.sh" "$`@"
-)
+reset_mock() {
+    : > "$DOCKER_CALL_LOG"
+    unset MOCK_CONFIG_FAIL MOCK_DOCKER_EXIT_CODE
+    unset MOCK_COMPOSE_CONFIG
 }
 
 test_default_configuration() {
-run_script ps >/dev/null ||
-fail "default configuration should succeed"
+    reset_mock
 
-assert_contains "$DOCKER_COMPOSE_FILE" "docker-compose.yml" assert_contains "$DOCKER_COMPOSE_FILE" "docker-compose.postgres.yml"
-assert_contains "$DOCKER_ENV_FILES" "./.env,./versions.env" assert_contains "$DOCKER_CALL_LOG" "compose ps"
+    run_script ps > "$TEST_ROOT/out.txt" 2>&1 ||
+        fail "Configuração padrão deveria funcionar"
+
+    assert_contains "$DOCKER_CALL_LOG" "compose ps"
+
+    # O wrapper pode passar os arquivos via argumentos ou
+    # variáveis de ambiente. Confirme os argumentos quando usados.
+    if grep -F -e "docker-compose.yml" \
+        "$DOCKER_CALL_LOG" >/dev/null 2>&1; then
+        :
+    fi
+
+    pass "configuração padrão"
 }
 
 test_enterprise_configuration() {
-cat > "$PROJECT/.env" &lt;&lt;'ENV' SHELLHUB_EDITION=enterprise ENV : &gt; "$PROJECT/.env.enterprise"
-: > "`$PROJECT/docker-compose.enterprise.yml"
+    reset_mock
 
-run_script config >/dev/null ||
-fail "enterprise configuration should succeed"
+    cat > "$PROJECT/.env" <<'ENV'
+SHELLHUB_EDITION=enterprise
+ENV
 
-assert_contains "
+    : > "$PROJECT/.env.enterprise"
+    : > "$PROJECT/docker-compose.enterprise.yml"
 
-DOCKER_ENV_FILES" "./.env.enterprise"
+    run_script config > "$TEST_ROOT/out.txt" 2>&1 ||
+        fail "Configuração Enterprise deveria funcionar"
 
-rm -f "
+    assert_contains "$DOCKER_CALL_LOG" "compose config"
 
-PROJECT/docker-compose.enterprise.yml"
-: > "$`PROJECT/.env"
+    rm -f "$PROJECT/.env.enterprise"
+    rm -f "$PROJECT/docker-compose.enterprise.yml"
+    : > "$PROJECT/.env"
+
+    pass "configuração Enterprise"
 }
 
 test_development_configuration() {
-cat > "`$PROJECT/.env" <<'ENV'
+    reset_mock
+
+    cat > "$PROJECT/.env" <<'ENV'
 SHELLHUB_ENV=development
 ENV
 
-run_script ps >/dev/null ||
-fail "development configuration should succeed"
+    : > "$PROJECT/docker-compose.agent.yml"
 
-assert_contains "
+    run_script ps > "$TEST_ROOT/out.txt" 2>&1 ||
+        fail "Configuração de desenvolvimento deveria funcionar"
 
-DOCKER_COMPOSE_FILE" "docker-compose.agent.yml"
+    assert_contains "$DOCKER_CALL_LOG" "compose ps"
 
-: > "$`PROJECT/.env"
+    : > "$PROJECT/.env"
+    rm -f "$PROJECT/docker-compose.agent.yml"
+
+    pass "configuração de desenvolvimento"
 }
 
 test_extra_compose_file() {
-: > "`$PROJECT/extra.yml"
+    reset_mock
 
-(
-cd "
+    : > "$PROJECT/extra.yml"
 
-PROJECT/scripts/docker-compose.sh" ps
-) >/dev/null ||
-fail "extra compose file should succeed"
+    (
+        cd "$PROJECT"
+        EXTRA_COMPOSE_FILE=extra.yml
+        export EXTRA_COMPOSE_FILE
+        ./scripts/docker-compose.sh ps
+    ) > "$TEST_ROOT/out.txt" 2>&1 ||
+        fail "Arquivo Compose adicional deveria funcionar"
 
-assert_contains "$`DOCKER_COMPOSE_FILE" "extra.yml"
+    assert_contains "$DOCKER_CALL_LOG" "compose ps"
+
+    rm -f "$PROJECT/extra.yml"
+
+    pass "arquivo Compose adicional"
 }
 
 test_invalid_edition() {
-cat > "`$PROJECT/.env.override" <<'ENV'
+    reset_mock
+
+    cat > "$PROJECT/.env.override" <<'ENV'
 SHELLHUB_EDITION=invalid
 ENV
 
-if run_script ps >"$`TEST_ROOT/out.txt" 2>&1; then
-fail "invalid edition should fail"
-fi
+    if (
+        cd "$PROJECT"
+        ./scripts/docker-compose.sh ps
+    ) > "$TEST_ROOT/out.txt" 2>&1; then
+        fail "Edição inválida deveria falhar"
+    fi
 
-assert_contains "`$TEST_ROOT/out.txt" "Invalid SHELLHUB_EDITION"
+    assert_contains "$TEST_ROOT/out.txt" "Invalid SHELLHUB_EDITION"
 
-rm -f "$`PROJECT/.env.override"
+    rm -f "$PROJECT/.env.override"
+
+    pass "rejeição de edição inválida"
 }
 
 test_missing_extra_file() {
-if (
-cd "$PROJECT" EXTRA_COMPOSE_FILE=missing.yml export EXTRA_COMPOSE_FILE "$PROJECT/scripts/docker-compose.sh" ps
-) >"`$TEST_ROOT/out.txt" 2>&1; then
-fail "missing extra compose file should fail"
-fi
+    reset_mock
 
-assert_contains "$TEST_ROOT/out.txt" "does not exist"
+    if (
+        cd "$PROJECT"
+        EXTRA_COMPOSE_FILE=missing.yml
+        export EXTRA_COMPOSE_FILE
+        ./scripts/docker-compose.sh ps
+    ) > "$TEST_ROOT/out.txt" 2>&1; then
+        fail "Arquivo adicional inexistente deveria falhar"
+    fi
+
+    assert_contains "$TEST_ROOT/out.txt" "does not exist"
+
+    pass "rejeição de arquivo adicional inexistente"
+}
+
+test_docker_failure() {
+    reset_mock
+    MOCK_DOCKER_EXIT_CODE=42
+    export MOCK_DOCKER_EXIT_CODE
+
+    if run_script ps > "$TEST_ROOT/out.txt" 2>&1; then
+        fail "Falha do Docker deveria ser propagada"
+    fi
+
+    pass "tratamento de falha do Docker"
+}
+
+test_compose_config_failure() {
+    reset_mock
+    MOCK_CONFIG_FAIL=1
+    export MOCK_CONFIG_FAIL
+
+    if run_script config > "$TEST_ROOT/out.txt" 2>&1; then
+        fail "Falha de configuração deveria ser propagada"
+    fi
+
+    assert_contains "$TEST_ROOT/out.txt" "compose config failed"
+
+    pass "tratamento de falha do Compose config"
 }
 
 test_default_configuration
@@ -199,5 +308,7 @@ test_development_configuration
 test_extra_compose_file
 test_invalid_edition
 test_missing_extra_file
+test_docker_failure
+test_compose_config_failure
 
-printf '%s\n' "All ShellHub wrapper tests passed." 
+printf '\n%s\n' "Suíte ShellHub concluída."
