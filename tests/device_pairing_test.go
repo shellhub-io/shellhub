@@ -169,6 +169,12 @@ func awaitAgentLog(t *testing.T, agent testcontainers.Container, line *regexp.Re
 func awaitAgentLogWithin(t *testing.T, agent testcontainers.Container, line *regexp.Regexp, missing string, within time.Duration) string {
 	t.Helper()
 
+	return awaitNthAgentLogWithin(t, agent, line, 1, missing, within)
+}
+
+func awaitNthAgentLogWithin(t *testing.T, agent testcontainers.Container, line *regexp.Regexp, n int, missing string, within time.Duration) string {
+	t.Helper()
+
 	var captured string
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
@@ -177,9 +183,9 @@ func awaitAgentLogWithin(t *testing.T, agent testcontainers.Container, line *reg
 			return
 		}
 
-		match := line.FindSubmatch(logs)
-		if assert.NotNil(tt, match, missing) {
-			captured = string(match[1])
+		matches := line.FindAllSubmatch(logs, -1)
+		if assert.GreaterOrEqual(tt, len(matches), n, missing) {
+			captured = string(matches[n-1][1])
 		}
 	}, within, time.Second)
 
