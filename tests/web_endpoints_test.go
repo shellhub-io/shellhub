@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/container"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -75,10 +77,12 @@ type deviceSeen struct {
 // the API refuses to create, the address and lifetime of what it creates, the gateway carrying a
 // request sent to an endpoint's address through the agent into an HTTP or TLS service on the
 // device, the deprecated tunnel API over the same endpoints, a device merge handing a device's
-// endpoints to the device it merged into, and a connector carrying a request for a container's
-// loopback to the container's own address. The device's services listen in the agents' network
-// namespace, or on another host of the stack's network, and answer with the name they were started
-// with and what they received.
+// endpoints to the device it merged into, the gateway refusing an endpoint whose device is no
+// longer accepted and its deletion taking the endpoint with it, the list refusing a filter or sort
+// it does not take, the roles that may not create or delete an endpoint, and a connector carrying a
+// request for a container's loopback to the container's own address. The device's services listen
+// in the agents' network namespace, or on another host of the stack's network, and answer with the
+// name they were started with and what they received.
 func TestEnterpriseWebEndpoints(t *testing.T) {
 	t.Parallel()
 
@@ -98,6 +102,9 @@ func TestEnterpriseWebEndpoints(t *testing.T) {
 	t.Run("deprecated tunnel API", func(t *testing.T) { testTunnelAPI(t, compose, device, second) })
 	t.Run("another namespace", func(t *testing.T) { testWebEndpointAnotherNamespace(t, ctx, compose, device, first) })
 	t.Run("device merge", func(t *testing.T) { testWebEndpointDeviceMerge(t, ctx, compose, first) })
+	t.Run("device leaving", func(t *testing.T) { testWebEndpointDeviceLeaving(t, ctx, compose, first) })
+	t.Run("listing", func(t *testing.T) { testWebEndpointListing(t, compose) })
+	t.Run("roles", func(t *testing.T) { testWebEndpointRoles(t, compose, device, first) })
 	t.Run("connector", func(t *testing.T) { testWebEndpointConnector(t, ctx, compose) })
 }
 
@@ -239,7 +246,7 @@ func testWebEndpointCreation(t *testing.T, compose *environment.DockerCompose, d
 		requireCreateRefused(t, compose, req, http.StatusForbidden)
 	})
 
-	t.Run("an endpoint for a namespace that no longer exists is refused", func(t *testing.T) {
+	t.Run("a token whose namespace was deleted cannot create an endpoint", func(t *testing.T) {
 		const username, password = "orphan", "password"
 
 		compose.NewUser(t, username, "orphan@shellhub.example.com", password)
@@ -423,6 +430,46 @@ func testWebEndpointLifetime(t *testing.T, compose *environment.DockerCompose, e
 		assert.True(t, listedWebEndpoint(t, compose, infinite.Address).ExpiresIn.IsZero())
 	})
 
+	t.Run("re-creating an expired endpoint restarts its TTL from the re-creation", func(t *testing.T) {
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+		requireRefusedOnceCreatedPastTTL(t, compose, endpoint)
+
+		before := wallClock.Now()
+		recreated := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+		after := wallClock.Now()
+		require.Equal(t, endpoint.Address, recreated.Address)
+
+		listed := listedWebEndpoint(t, compose, recreated.Address)
+		assert.WithinRange(t, listed.CreatedAt, before.Add(-time.Second), after.Add(time.Second))
+		assert.WithinDuration(t, listed.CreatedAt.Add(finiteTTL*time.Second), listed.ExpiresIn, time.Millisecond)
+
+		requireDeviceAnswer(t, compose, recreated.FullAddress, "/")
+	})
+
+	t.Run("re-creating an endpoint idle past its TTL answers again", func(t *testing.T) {
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+		requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
+		compose.MoveWebEndpointLastAccessBack(t, endpoint.Address, (finiteTTL+1)*time.Second)
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
+
+		recreated := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+		require.Equal(t, endpoint.Address, recreated.Address)
+
+		requireDeviceAnswer(t, compose, recreated.FullAddress, "/")
+	})
+
+	t.Run("re-creating an endpoint takes the TTL it is re-created with", func(t *testing.T) {
+		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
+
+		recreated := compose.CreateWebEndpoint(t, withTTL(-1))
+		require.Equal(t, endpoint.Address, recreated.Address)
+		assert.Equal(t, -1, recreated.TTL)
+		assert.True(t, listedWebEndpoint(t, compose, recreated.Address).ExpiresIn.IsZero())
+
+		compose.AgeWebEndpoint(t, recreated.Address, (finiteTTL+1)*time.Second)
+		requireDeviceAnswer(t, compose, recreated.FullAddress, "/")
+	})
+
 	t.Run("an expired endpoint can be deleted", func(t *testing.T) {
 		endpoint := compose.CreateWebEndpoint(t, withTTL(finiteTTL))
 		requireRefusedOnceCreatedPastTTL(t, compose, endpoint)
@@ -515,6 +562,125 @@ func testWebEndpointDeviceMerge(t *testing.T, ctx context.Context, compose *envi
 
 	assert.Equal(t, merged.UID, listedWebEndpoint(t, compose, endpoint.Address).DeviceUID)
 	assert.Equal(t, service.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
+}
+
+func testWebEndpointDeviceLeaving(t *testing.T, ctx context.Context, compose *environment.DockerCompose, service deviceService) {
+	t.Helper()
+
+	agent, device := startAcceptedAgent(t, ctx, compose, NewAgentContainerWithIdentity("020000002204"), NewAgentContainerWithHostname("leaving"))
+
+	endpoint := compose.CreateWebEndpoint(t, service.plain(device.UID, -1))
+	requireDeviceAnswer(t, compose, endpoint.FullAddress, "/")
+
+	require.NoError(t, agent.Stop(ctx, nil))
+	compose.AwaitDeviceOffline(t, device.UID)
+
+	t.Run("an endpoint whose device was removed is refused", func(t *testing.T) {
+		compose.DeleteDevice(t, device.UID)
+		require.Equal(t, models.DeviceStatusRemoved, requireDevice(t, compose, device.UID).Status)
+
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
+	})
+
+	t.Run("an endpoint whose device is back to pending is refused", func(t *testing.T) {
+		require.NoError(t, agent.Start(ctx))
+		awaitDeviceStatus(t, compose, device.UID, models.DeviceStatusPending)
+
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
+	})
+
+	t.Run("an endpoint whose device was rejected is refused", func(t *testing.T) {
+		compose.UpdateDeviceStatus(t, device.UID, environment.DeviceActionReject)
+		require.Equal(t, models.DeviceStatusRejected, requireDevice(t, compose, device.UID).Status)
+
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
+	})
+
+	t.Run("deleting a device deletes its endpoints", func(t *testing.T) {
+		require.NoError(t, agent.Stop(ctx, nil))
+		compose.DeleteDevice(t, device.UID)
+
+		_, resp, err := compose.GetDevice(t.Context(), device.UID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode(), resp.String())
+
+		for _, listed := range compose.ListWebEndpoints(t) {
+			assert.NotEqual(t, endpoint.Address, listed.Address)
+		}
+
+		requireEndpointRefused(t, compose, endpoint.FullAddress)
+	})
+}
+
+func testWebEndpointListing(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	refusals := []struct {
+		description string
+		param       string
+		value       string
+	}{
+		{description: "a filter that is not encoded JSON", param: "filter", value: "not a filter"},
+		{description: "a filter on a field it does not take", param: "filter", value: propertyFilter(t, "port", "eq", 8001)},
+		{description: "a filter with an operator its field does not take", param: "filter", value: propertyFilter(t, "device_id", "contains", "0")},
+		{description: "a sort on a field it does not take", param: "sort_by", value: "device_id"},
+	}
+
+	for _, tc := range refusals {
+		t.Run("a list with "+tc.description+" is refused", func(t *testing.T) {
+			var refusal responses.Error
+
+			resp, err := compose.R(t.Context()).SetQueryParam(tc.param, tc.value).SetError(&refusal).Get("/api/web-endpoints")
+			require.NoError(t, err)
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+			assert.Contains(t, refusal.Fields, tc.param)
+		})
+	}
+}
+
+func testWebEndpointRoles(t *testing.T, compose *environment.DockerCompose, device *models.Device, service deviceService) {
+	t.Helper()
+
+	endpoint := compose.CreateWebEndpoint(t, service.plain(device.UID, -1))
+	unused := environment.WebEndpointCreate{UID: device.UID, Host: deviceServiceHost, Port: 9001, TTL: -1}
+
+	requests := []struct {
+		method string
+		path   string
+		body   any
+	}{
+		{method: http.MethodPost, path: "/api/web-endpoints", body: unused},
+		{method: http.MethodPost, path: "/api/devices/" + device.UID + "/tunnels", body: environment.TunnelCreate{Host: unused.Host, Port: unused.Port, TTL: unused.TTL}},
+		{method: http.MethodDelete, path: "/api/web-endpoints/" + endpoint.Address},
+		{method: http.MethodDelete, path: "/api/devices/" + device.UID + "/tunnels/" + endpoint.Address},
+	}
+
+	for _, role := range []authorizer.Role{authorizer.RoleOperator, authorizer.RoleObserver} {
+		t.Run("a member with the "+string(role)+" role can neither create nor delete an endpoint", func(t *testing.T) {
+			member := newMember(t, compose, "web-"+string(role), role)
+			listed := len(compose.ListWebEndpoints(t))
+
+			for _, req := range requests {
+				resp, err := compose.Anonymous(t.Context()).SetAuthToken(member.Token).SetBody(req.body).Execute(req.method, req.path)
+				require.NoError(t, err)
+				assert.Equal(t, http.StatusForbidden, resp.StatusCode(), "%s %s: %s", req.method, req.path, resp.String())
+			}
+
+			assert.Len(t, compose.ListWebEndpoints(t), listed)
+			assert.Equal(t, service.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
+		})
+	}
+}
+
+func awaitDeviceStatus(t *testing.T, compose *environment.DockerCompose, uid string, status models.DeviceStatus) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		device, resp, err := compose.GetDevice(t.Context(), uid)
+		if assert.NoError(tt, err) && assert.Equal(tt, http.StatusOK, resp.StatusCode()) {
+			assert.Equal(tt, status, device.Status)
+		}
+	}, 30*time.Second, time.Second)
 }
 
 func testWebEndpointConnector(t *testing.T, ctx context.Context, compose *environment.DockerCompose) {
