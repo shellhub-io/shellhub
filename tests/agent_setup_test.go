@@ -164,6 +164,12 @@ func onStackNetworkWithKey(t *testing.T, compose *environment.DockerCompose, mac
 			settings[stack].MacAddress = network.HardwareAddr(hardware)
 		}
 		req.Entrypoint = []string{"sh", "-c", `echo "$0 localhost" > /etc/hosts && exec ./agent`, gatewayIP}
+		withAgentPrivateKey(key)(req)
+	}
+}
+
+func withAgentPrivateKey(key []byte) func(*testcontainers.ContainerRequest) {
+	return func(req *testcontainers.ContainerRequest) {
 		req.Files = append(req.Files, testcontainers.ContainerFile{
 			Reader:            bytes.NewReader(key),
 			ContainerFilePath: req.Env["SHELLHUB_PRIVATE_KEY"],
