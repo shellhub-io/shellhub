@@ -31,3 +31,12 @@ func (dc *DockerCompose) UserPasswordDigest(t *testing.T, username string) strin
 
 	return digest
 }
+
+// DeleteUser deletes the user username through the admin CLI, a process apart from the server
+// that holds the tunnels of the devices in the namespaces the user owns, failing t unless the CLI
+// exits zero. The CLI deletes those namespaces with the user.
+func (dc *DockerCompose) DeleteUser(t *testing.T, username string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.Admin(t.Context(), "user", "delete", username))
+}
