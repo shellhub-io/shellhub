@@ -41,7 +41,8 @@ type LicenseEvaluator interface {
 	// Returns:
 	//   - true if the license permits acceptance
 	//   - false if the device limit has been reached
-	//   - error if the check itself fails (e.g., license fetch error)
+	//   - ErrLicenseNotAuthorized if the installed license does not authorize this edition
+	//   - another error if the check itself fails (e.g., license fetch error)
 	//
 	// It reads the license and the device count through ctx, so a read that fails aborts
 	// any transaction ctx carries. Call it before opening one.
@@ -50,25 +51,30 @@ type LicenseEvaluator interface {
 	// CanConnectDevice reports whether the current license allows connecting to an
 	// already registered device. It differs from CanAcceptDevice at the exact
 	// limit: a fleet sitting on its licensed device count keeps working, it just
-	// cannot grow.
+	// cannot grow. It returns ErrLicenseNotAuthorized when the installed license does not
+	// authorize this edition, and another error when the check itself fails.
 	CanConnectDevice(ctx context.Context) (bool, error)
 }
 
 // LicenseService answers whether the instance's licence permits an action. The community
 // edition permits everything; the enterprise binary registers a real evaluator.
 type LicenseService interface {
-	// EvaluateLicense reports whether the license lets an SSH connection through,
-	// returning ErrLicenseBlocked when it does not.
+	// EvaluateLicense reports whether the license lets an SSH connection through. It
+	// returns ErrLicenseBlocked when the device limit refuses it, ErrLicenseNotAuthorized
+	// when the installed license does not authorize this edition, and the evaluator's error
+	// when the license cannot be evaluated.
 	EvaluateLicense(ctx context.Context) error
 }
 
 // EvaluateLicense reports whether the license lets an SSH connection through. Without
 // an evaluator (Community Edition) there is no license to exceed, so the connection is
-// allowed.
+// allowed. It returns ErrLicenseBlocked when the device limit refuses the connection,
+// ErrLicenseNotAuthorized when the installed license does not authorize this edition,
+// and the evaluator's error when the license cannot be evaluated.
 //
-// Unlike the device acceptance path, which fails open, a license that cannot be
-// evaluated blocks the connection: that is what the HTTP evaluation this replaced did,
-// and it is the conservative direction for a paid limit.
+// Unlike the device acceptance path, which fails open outside Cloud, a license that
+// cannot be evaluated always blocks the connection: that is what the HTTP evaluation
+// this replaced did, and it is the conservative direction for a paid limit.
 func (s *service) EvaluateLicense(ctx context.Context) error {
 	if s.licenseEvaluator == nil {
 		return nil

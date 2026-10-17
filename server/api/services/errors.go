@@ -76,6 +76,7 @@ var (
 	ErrBillingNotAvailable             = errors.New("billing not available", ErrLayer, ErrCodeInvalid)
 	ErrFirewallBlocked                 = errors.New("firewall blocked the connection", ErrLayer, ErrCodeForbidden)
 	ErrLicenseBlocked                  = errors.New("license blocked the connection", ErrLayer, ErrCodePayment)
+	ErrLicenseNotAuthorized            = errors.New("license does not authorize this service", ErrLayer, ErrCodePayment)
 	ErrBillingBlocked                  = errors.New("billing blocked the connection", ErrLayer, ErrCodePayment)
 	ErrNoContentChange                 = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)

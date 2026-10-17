@@ -97,7 +97,13 @@ type DeviceService interface {
 	// uses the same hostname but has a different MAC address, the operation fails.
 	//
 	// Environment-specific Acceptance Rules:
-	//   - Community/Enterprise: Only checks the namespace's device limit
+	//   - Community: Only checks the namespace's device limit
+	//   - Enterprise: Checks the namespace's device limit and returns ErrDeviceLicenseLimit when the license
+	//     refuses another device. A merge keeps the device count and skips that check, and a license that
+	//     cannot be evaluated allows acceptance
+	//   - Cloud (always): First evaluates the installed license, before any merge, device-limit or billing
+	//     check, returning ErrLicenseNotAuthorized when it does not authorize Cloud and the evaluator's error
+	//     when it cannot be evaluated
 	//   - Cloud (billing active): Reports device acceptance to billing service for quota/payment validation
 	//   - Cloud (billing inactive): Checks if the device is removed and evaluates namespace capabilities:
 	//     * If device was previously removed: removes from removed list, then evaluates billing
@@ -419,9 +425,9 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 }
 
 func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.DeviceUpdateStatus, ownerID string) error {
-	licensed := s.licenseAllowsAcceptance(ctx, models.DeviceStatus(req.Status))
+	licensed, licenseErr := s.validateLicenseForDeviceAcceptance(ctx, models.DeviceStatus(req.Status))
 
-	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID, licensed)); err != nil {
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID, licensed, licenseErr)); err != nil {
 		return err
 	}
 
@@ -458,22 +464,28 @@ func (s *service) chargeProvisioningKeyUse(ctx context.Context, tenantID, provis
 	return nil
 }
 
-func (s *service) licenseAllowsAcceptance(ctx context.Context, status models.DeviceStatus) bool {
+func (s *service) validateLicenseForDeviceAcceptance(ctx context.Context, status models.DeviceStatus) (bool, error) {
 	if s.licenseEvaluator == nil || status != models.DeviceStatusAccepted {
-		return true
+		return true, nil
 	}
 
 	ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
 	if err != nil {
+		if s.edition.IsCloud() {
+			log.WithError(err).Error("cloud license evaluation failed; refusing device acceptance")
+
+			return false, err
+		}
+
 		log.WithError(err).Warn("license evaluator returned an error; failing open and allowing device acceptance")
 
-		return true
+		return true, nil
 	}
 
-	return ok
+	return ok, nil
 }
 
-func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string, licensed bool) store.TransactionCb {
+func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string, licensed bool, licenseErr error) store.TransactionCb {
 	return func(ctx context.Context) error {
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
@@ -502,6 +514,10 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 		}
 
 		if newStatus == models.DeviceStatusAccepted {
+			if licenseErr != nil {
+				return licenseErr
+			}
+
 			if err := s.store.DeviceLockMAC(ctx, sc, device.Identity.MAC); err != nil {
 				return err
 			}

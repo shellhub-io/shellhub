@@ -64,6 +64,7 @@ type LicenseCustomer struct {
 // LicenseFeatures is what a [License] unlocks. Devices caps the instance's accepted devices,
 // [UnlimitedDevices] for no cap; the rest are switches.
 type LicenseFeatures struct {
+	Cloud            bool `json:"cloud,omitempty"`
 	Devices          int  `json:"devices"`
 	SessionRecording bool `json:"session_recording"`
 	FirewallRules    bool `json:"firewall_rules"`
@@ -73,8 +74,8 @@ type LicenseFeatures struct {
 }
 
 // FullLicense returns a license that started a day ago, never expires, runs in every region and
-// unlocks every feature for any number of devices. Each call carries an ID of its own, so a test
-// can tell which of two licenses the server holds.
+// unlocks every enterprise feature for any number of devices. It grants no cloud authorization.
+// Each call carries an ID of its own, so a test can tell which of two licenses the server holds.
 func FullLicense() License {
 	now := wallClock.Now()
 

@@ -21,4 +21,6 @@ var (
 	ErrClientClosing           = errors.New("the client connection is closing")
 	ErrWebData                 = errors.New("failed to parse the web session data")
 	ErrLicenseBlock            = fmt.Errorf("Connection blocked: your ShellHub instance has exceeded the maximum number of devices allowed by your license. Please contact support or remove unused devices.") //nolint:all
+
+	ErrLicenseNotAuthorized = fmt.Errorf("Connection blocked: this ShellHub instance's license does not authorize this service. Please contact support.") //nolint:staticcheck,perfsprint // shown verbatim to the SSH client as a full sentence
 )

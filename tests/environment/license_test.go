@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"io/fs"
 	"os"
@@ -13,6 +15,35 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestCloudStackLicenseAuthorization(t *testing.T) {
+	issuer := newLicenseIssuer(t)
+	enterprise := FullLicense()
+	for _, test := range []struct {
+		name    string
+		edition Edition
+		license *License
+		want    bool
+	}{
+		{name: "default enterprise", edition: EditionEnterprise},
+		{name: "default cloud", edition: EditionCloud, want: true},
+		{name: "explicit enterprise license in cloud is not upgraded", edition: EditionCloud, license: &enterprise},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+			envs, _, err := (Config{Name: "shellhub-e2e-grant", Edition: test.edition, License: test.license, Run: &Run{issuer: issuer}}).licensingEnvs()
+			require.NoError(t, err)
+			raw, err := os.ReadFile(envs[licenseFileEnv])
+			require.NoError(t, err)
+			decoded, err := base64.StdEncoding.DecodeString(string(raw))
+			require.NoError(t, err)
+			var license License
+			require.NoError(t, json.Unmarshal(decoded[:len(decoded)-issuer.key.Size()], &license))
+			require.NotNil(t, license.Features)
+			assert.Equal(t, test.want, license.Features.Cloud)
+		})
+	}
+}
 
 func newCloudSource(t *testing.T) string {
 	t.Helper()
