@@ -34,6 +34,29 @@ func (e Email) Labelled(label string) (string, bool) {
 	return "", false
 }
 
+// Text returns the text of the email's body, with each run of whitespace collapsed to one space.
+func (e Email) Text() string {
+	for node := range e.html.Descendants() {
+		if node.Type == html.ElementNode && node.DataAtom == atom.Body {
+			return strings.Join(strings.Fields(textOf(node)), " ")
+		}
+	}
+
+	return ""
+}
+
+// Image returns the source of the first image in the email whose alt text is alt, and false when
+// no image carries it.
+func (e Email) Image(alt string) (string, bool) {
+	for node := range e.html.Descendants() {
+		if node.Type == html.ElementNode && node.DataAtom == atom.Img && attribute(node, "alt") == alt {
+			return attribute(node, "src"), true
+		}
+	}
+
+	return "", false
+}
+
 type mailpitAddress struct {
 	Address string `json:"Address"`
 }
