@@ -136,6 +136,29 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 		Members:  []models.Member{{ID: "user1", Role: "owner"}},
 	}
 
+	populatePairingCode := func(cacheMock *cachemock.MockCache, status models.DeviceStatus) {
+		cacheMock.
+			On("Get", mock.Anything, "login_code/WXYZ2K7Q", mock.Anything).
+			Return(nil).
+			Once()
+		cacheMock.
+			On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*devicePairing)
+				if !ok {
+					panic("mock argument 2 is not a *devicePairing")
+				}
+				*arg = devicePairing{
+					Identity:  &models.DeviceIdentity{MAC: "00:00:00:00:00:01"},
+					Info:      &models.DeviceInfo{ID: "ubuntu", PrettyName: "Ubuntu 24.04 LTS"},
+					PublicKey: "public-key",
+					Status:    status,
+				}
+			}).
+			Return(nil).
+			Once()
+	}
+
 	populateCode := func(cacheMock *cachemock.MockCache) {
 		cacheMock.
 			On("Get", mock.Anything, "login_code/WXYZ2K7Q", mock.Anything).
@@ -256,30 +279,23 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the pairing code was already accepted",
+			userID:      "user1",
+			code:        "WXYZ2K7Q",
+			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
+				populatePairingCode(cacheMock, models.DeviceStatusAccepted)
+			},
+			expected: Expected{
+				preview: nil,
+				err:     NewErrDeviceLoginCodeNotFound("WXYZ2K7Q", nil),
+			},
+		},
+		{
 			description: "succeeds to resolve a pairing code",
 			userID:      "user1",
 			code:        "WXYZ2K7Q",
 			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
-				cacheMock.
-					On("Get", mock.Anything, "login_code/WXYZ2K7Q", mock.Anything).
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
-					Run(func(args mock.Arguments) {
-						arg, ok := args.Get(2).(*devicePairing)
-						if !ok {
-							panic("mock argument 2 is not a *devicePairing")
-						}
-						*arg = devicePairing{
-							Identity:  &models.DeviceIdentity{MAC: "00:00:00:00:00:01"},
-							Info:      &models.DeviceInfo{ID: "ubuntu", PrettyName: "Ubuntu 24.04 LTS"},
-							PublicKey: "public-key",
-							Status:    models.DeviceStatusPending,
-						}
-					}).
-					Return(nil).
-					Once()
+				populatePairingCode(cacheMock, models.DeviceStatusPending)
 			},
 			expected: Expected{
 				preview: &models.DeviceLoginCodePreview{

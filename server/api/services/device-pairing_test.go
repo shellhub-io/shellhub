@@ -25,14 +25,18 @@ func TestCreateDevicePairing(t *testing.T) {
 		PublicKey: "public-key",
 	}
 
-	notAlreadyAccepted := func(storeMock *storemock.MockStore) {
+	resolvesAcceptedByPublicKey := func(storeMock *storemock.MockStore, device *models.Device, err error) {
 		queryOptionsMock := new(storemock.MockQueryOptions)
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
 		queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Maybe()
 		storeMock.
 			On("DeviceResolve", mock.Anything, mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
-			Return(nil, store.ErrNoDocuments).
+			Return(device, err).
 			Once()
+	}
+
+	notAlreadyAccepted := func(storeMock *storemock.MockStore) {
+		resolvesAcceptedByPublicKey(storeMock, nil, store.ErrNoDocuments)
 	}
 
 	noLiveCode := func(cacheMock *cachemock.MockCache) {
@@ -44,10 +48,53 @@ func TestCreateDevicePairing(t *testing.T) {
 			Once()
 	}
 
+	liveCode := func(cacheMock *cachemock.MockCache, code string) {
+		cacheMock.
+			On("Get", mock.Anything, mock.MatchedBy(func(key string) bool {
+				return strings.HasPrefix(key, "pairing_code_pubkey/")
+			}), mock.Anything).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*string)
+				require.True(t, ok)
+				*arg = code
+			}).
+			Return(nil).
+			Once()
+	}
+
+	cachedPairing := func(cacheMock *cachemock.MockCache, code string, pairing devicePairing) {
+		cacheMock.
+			On("Get", mock.Anything, "pairing_code/"+code, mock.Anything).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*devicePairing)
+				require.True(t, ok)
+				*arg = pairing
+			}).
+			Return(nil).
+			Once()
+	}
+
+	acceptedPairing := devicePairing{
+		PublicKey: "public-key",
+		Status:    models.DeviceStatusAccepted,
+		TenantID:  "tenant1",
+		UID:       "uid1",
+	}
+
+	storesCodeReference := func(cacheMock *cachemock.MockCache) {
+		cacheMock.
+			On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+				return regexp.MustCompile(`^pairing_code_pubkey/[0-9a-f]{64}$`).MatchString(key)
+			}), mock.AnythingOfType("string"), devicePairingTTL).
+			Return(nil).
+			Once()
+	}
+
 	type Expected struct {
 		resume    bool
 		tenantID  string
 		reuseCode string
+		staleCode string
 		err       error
 	}
 
@@ -73,25 +120,14 @@ func TestCreateDevicePairing(t *testing.T) {
 					}), devicePairingTTL).
 					Return(nil).
 					Once()
-				cacheMock.
-					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
-						return regexp.MustCompile(`^pairing_code_pubkey/[0-9a-f]{64}$`).MatchString(key)
-					}), mock.AnythingOfType("string"), devicePairingTTL).
-					Return(nil).
-					Once()
+				storesCodeReference(cacheMock)
 			},
 			expected: Expected{resume: false, err: nil},
 		},
 		{
 			description: "resumes when the public key is already accepted",
 			requiredMocks: func(_ *cachemock.MockCache, storeMock *storemock.MockStore) {
-				queryOptionsMock := new(storemock.MockQueryOptions)
-				storeMock.On("Options").Return(queryOptionsMock).Maybe()
-				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Maybe()
-				storeMock.
-					On("DeviceResolve", mock.Anything, mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
-					Return(&models.Device{UID: "uid1", TenantID: "tenant1", Status: models.DeviceStatusAccepted}, nil).
-					Once()
+				resolvesAcceptedByPublicKey(storeMock, &models.Device{UID: "uid1", TenantID: "tenant1", Status: models.DeviceStatusAccepted}, nil)
 			},
 			expected: Expected{resume: true, tenantID: "tenant1", err: nil},
 		},
@@ -99,31 +135,50 @@ func TestCreateDevicePairing(t *testing.T) {
 			description: "reuses the live code when one already exists for the public key",
 			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
 				notAlreadyAccepted(storeMock)
+				liveCode(cacheMock, "WXYZ2K7Q")
+				cachedPairing(cacheMock, "WXYZ2K7Q", devicePairing{PublicKey: "public-key", Status: models.DeviceStatusPending})
+			},
+			expected: Expected{resume: false, reuseCode: "WXYZ2K7Q", err: nil},
+		},
+		{
+			description: "mints a new code when the public key's code was already accepted",
+			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
+				notAlreadyAccepted(storeMock)
+				liveCode(cacheMock, "WXYZ2K7Q")
+				cachedPairing(cacheMock, "WXYZ2K7Q", acceptedPairing)
+				notAlreadyAccepted(storeMock)
 				cacheMock.
-					On("Get", mock.Anything, mock.MatchedBy(func(key string) bool {
-						return strings.HasPrefix(key, "pairing_code_pubkey/")
-					}), mock.Anything).
-					Run(func(args mock.Arguments) {
-						arg, ok := args.Get(2).(*string)
-						require.True(t, ok)
-						*arg = "WXYZ2K7Q"
-					}).
+					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+						return regexp.MustCompile(`^pairing_code/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
+					}), mock.MatchedBy(func(pairing *devicePairing) bool {
+						return pairing.Status == models.DeviceStatusPending && pairing.TenantID == ""
+					}), devicePairingTTL).
 					Return(nil).
 					Once()
+				storesCodeReference(cacheMock)
 				cacheMock.
-					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
-					Run(func(args mock.Arguments) {
-						arg, ok := args.Get(2).(*devicePairing)
-						require.True(t, ok)
-						*arg = devicePairing{
-							PublicKey: "public-key",
-							Status:    models.DeviceStatusPending,
-						}
-					}).
+					On("Delete", mock.Anything, "pairing_code/WXYZ2K7Q").
 					Return(nil).
 					Once()
 			},
-			expected: Expected{resume: false, reuseCode: "WXYZ2K7Q", err: nil},
+			expected: Expected{resume: false, staleCode: "WXYZ2K7Q", err: nil},
+		},
+		{
+			description: "resumes without dropping the code when its accept lands the device after the first lookup",
+			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
+				notAlreadyAccepted(storeMock)
+				liveCode(cacheMock, "WXYZ2K7Q")
+				cachedPairing(cacheMock, "WXYZ2K7Q", acceptedPairing)
+				resolvesAcceptedByPublicKey(storeMock, &models.Device{UID: "uid1", TenantID: "tenant1", Status: models.DeviceStatusAccepted}, nil)
+			},
+			expected: Expected{resume: true, tenantID: "tenant1", err: nil},
+		},
+		{
+			description: "fails without touching the cached code when the store cannot tell whether the key is accepted",
+			requiredMocks: func(_ *cachemock.MockCache, storeMock *storemock.MockStore) {
+				resolvesAcceptedByPublicKey(storeMock, nil, errors.New("error", "", 0))
+			},
+			expected: Expected{resume: false, err: errors.New("error", "", 0)},
 		},
 		{
 			description: "fails when the cache cannot store the pairing",
@@ -163,6 +218,8 @@ func TestCreateDevicePairing(t *testing.T) {
 					require.Regexp(tt, `^[2-9A-HJKMNP-TV-Z]{8}$`, pairing.Code)
 					require.Equal(tt, int(devicePairingTTL.Seconds()), pairing.ExpiresIn)
 					require.Equal(tt, models.DeviceStatusPending, pairing.Status)
+					require.NotEqual(tt, tc.expected.staleCode, pairing.Code)
+					require.Empty(tt, pairing.TenantID)
 				}
 			}
 
@@ -272,7 +329,7 @@ func TestAcceptDevicePairing(t *testing.T) {
 		},
 	}
 
-	populatePairing := func(cacheMock *cachemock.MockCache) {
+	populatePairingWithStatus := func(cacheMock *cachemock.MockCache, status models.DeviceStatus) {
 		cacheMock.
 			On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 			Run(func(args mock.Arguments) {
@@ -282,11 +339,15 @@ func TestAcceptDevicePairing(t *testing.T) {
 					Hostname:  "device1",
 					Identity:  &models.DeviceIdentity{MAC: "00:00:00:00:00:01"},
 					PublicKey: "public-key",
-					Status:    models.DeviceStatusPending,
+					Status:    status,
 				}
 			}).
 			Return(nil).
 			Once()
+	}
+
+	populatePairing := func(cacheMock *cachemock.MockCache) {
+		populatePairingWithStatus(cacheMock, models.DeviceStatusPending)
 	}
 
 	cases := []struct {
@@ -312,6 +373,15 @@ func TestAcceptDevicePairing(t *testing.T) {
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Return(nil).
 					Once()
+			},
+			expectedErr: NewErrDevicePairingCodeNotFound("WXYZ2K7Q", nil),
+		},
+		{
+			description: "fails when the code was already accepted",
+			userID:      "owner1",
+			req:         &requests.DevicePairingAccept{Code: "WXYZ2K7Q", TenantID: "tenant1"},
+			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
+				populatePairingWithStatus(cacheMock, models.DeviceStatusAccepted)
 			},
 			expectedErr: NewErrDevicePairingCodeNotFound("WXYZ2K7Q", nil),
 		},
