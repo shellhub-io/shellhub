@@ -81,6 +81,23 @@ describe("getAcceptErrorMessage", () => {
       });
       expect(msg({ status: 403 })).toMatch(/namespace|permission/i);
     });
+
+    it("names the device limit when the namespace is at the limit set on it", () => {
+      const result = msg({
+        status: 403,
+        message: "maximum number of accepted devices reached",
+      });
+
+      expect(result).toMatch(/reached its device limit/i);
+      expect(result).toMatch(
+        /remove a device or ask the instance administrator/i,
+      );
+      expect(result).not.toMatch(/permission/i);
+    });
+
+    it("keeps the permission copy for any other 403 message", () => {
+      expect(msg({ status: 403, message: "forbidden" })).toMatch(/permission/i);
+    });
   });
 
   describe("409 Conflict", () => {
@@ -134,6 +151,17 @@ describe("getAcceptErrorMessage", () => {
     it("interpolates 'container' into 403 copy", () => {
       const result = msg({ status: 403 }, false, true, "container");
       expect(result).toMatch(/containers/i);
+      expect(result).not.toMatch(/device/i);
+    });
+
+    it("interpolates 'container' into the 403 device-limit copy", () => {
+      const result = msg(
+        { status: 403, message: "maximum number of accepted devices reached" },
+        false,
+        true,
+        "container",
+      );
+      expect(result).toMatch(/container limit/i);
       expect(result).not.toMatch(/device/i);
     });
 

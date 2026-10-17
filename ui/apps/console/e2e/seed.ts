@@ -174,3 +174,7 @@ export function closeSetup() {
   }
   evictCachedSystem();
 }
+
+export function limitNamespaceDevices(namespace: string, maxDevices: number) {
+  serverAdmin("namespace", "limit", namespace, String(maxDevices));
+}

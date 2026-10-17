@@ -4,7 +4,9 @@
  * response body before it is thrown by the SDK with `throwOnError: true`.
  *
  * `message` and `fields` come from the body the API sends. `message` is for API clients — the
- * console renders its own copy, keyed by status; see `apiErrorMessage`.
+ * console renders its own copy, keyed by status; see `apiErrorMessage`. It reads `message` only to
+ * tell apart errors that share a status and carry no `fields`, as `getAcceptErrorMessage` does for
+ * a namespace at its device limit.
  */
 export interface SdkHttpError {
   status: number;
