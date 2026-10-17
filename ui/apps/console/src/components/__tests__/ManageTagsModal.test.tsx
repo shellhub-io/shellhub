@@ -51,7 +51,7 @@ describe("ManageTagsModal", () => {
     const { dialog, onTagDeleted } = await confirmDelete("production");
 
     expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-      '"production" is used in the device filter of public key "deploy", access policy "operators". Remove it from there before deleting the tag.',
+      '"production" is held by public key "deploy", access policy "operators". Remove it from there before deleting the tag.',
     );
     expect(onTagDeleted).not.toHaveBeenCalled();
   });
