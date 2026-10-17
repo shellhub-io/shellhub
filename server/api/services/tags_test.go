@@ -809,6 +809,10 @@ func TestService_DeleteTag(t *testing.T) {
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{}, int64(0), nil).
 					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{}, int64(0), nil).
+					Once()
 			},
 			expected: NewErrTagInUse([]string{`public key "deploy"`}),
 		},
@@ -840,8 +844,80 @@ func TestService_DeleteTag(t *testing.T) {
 						{Name: "admins", Filter: models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{tag.ID}}}},
 					}, int64(2), nil).
 					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{}, int64(0), nil).
+					Once()
 			},
 			expected: NewErrTagInUse([]string{`access policy "operators"`, `access policy "admins"`}),
+		},
+		{
+			description: "fails when provisioning keys not revoked hold the tag",
+			req: &requests.DeleteTag{
+				Name:     "production",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					Return(tag, nil).
+					Once()
+				storeMock.
+					On("PublicKeyList", ctx, mock.Anything).
+					Return([]models.PublicKey{}, int64(0), nil).
+					Once()
+				storeMock.
+					On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{}, int64(0), nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{
+						{Name: "fleet", TagIDs: []string{"tag_other", tag.ID}},
+						{Name: "retired", Revoked: true, TagIDs: []string{tag.ID}},
+						{Name: "untagged"},
+					}, int64(3), nil).
+					Once()
+			},
+			expected: NewErrTagInUse([]string{`provisioning key "fleet"`}),
+		},
+		{
+			description: "fails when the provisioning keys cannot be listed",
+			req: &requests.DeleteTag{
+				Name:     "production",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					Return(tag, nil).
+					Once()
+				storeMock.
+					On("PublicKeyList", ctx, mock.Anything).
+					Return([]models.PublicKey{}, int64(0), nil).
+					Once()
+				storeMock.
+					On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{}, int64(0), nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return(nil, int64(0), errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
 		},
 		{
 			description: "fails when the public keys cannot be listed",
@@ -921,6 +997,10 @@ func TestService_DeleteTag(t *testing.T) {
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{{Name: "untagged"}}, int64(1), nil).
 					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{}, int64(0), nil).
+					Once()
 
 				for _, target := range store.TagTargets() {
 					storeMock.
@@ -958,6 +1038,10 @@ func TestService_DeleteTag(t *testing.T) {
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{{Name: "untagged"}}, int64(1), nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{}, int64(0), nil).
 					Once()
 
 				for _, target := range store.TagTargets() {
@@ -999,6 +1083,10 @@ func TestService_DeleteTag(t *testing.T) {
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{{Name: "untagged"}}, int64(1), nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyList", ctx, mock.Anything).
+					Return([]models.ProvisioningKey{}, int64(0), nil).
 					Once()
 
 				for _, target := range store.TagTargets() {
@@ -1125,6 +1213,10 @@ func TestService_DeleteTag_TagHolder(t *testing.T) {
 			storeMock.
 				On("AccessPolicyList", ctx, mock.Anything).
 				Return([]models.AccessPolicy{}, int64(0), nil).
+				Once()
+			storeMock.
+				On("ProvisioningKeyList", ctx, mock.Anything).
+				Return([]models.ProvisioningKey{}, int64(0), nil).
 				Once()
 
 			if tc.deleted {

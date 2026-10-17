@@ -225,8 +225,8 @@ func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, 
 		return false
 	}
 
-	if len(key.Tags) > 0 {
-		s.applyProvisioningKeyTags(ctx, scope.MustBounded(device.TenantID), uid, key.Tags)
+	if len(key.TagIDs) > 0 {
+		s.applyProvisioningKeyTags(ctx, uid, key.TagIDs)
 	}
 
 	s.decideEnrollment(ctx, device, key, req, uid, hostname, true)

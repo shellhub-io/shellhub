@@ -13,15 +13,44 @@ import (
 
 // ProvisioningKeyCreate implements [store.ProvisioningKeyStore].
 func (pg *Pg) ProvisioningKeyCreate(ctx context.Context, provisioningKey *models.ProvisioningKey) (string, error) {
-	db := pg.GetConnection(ctx)
-
 	provisioningKey.CreatedAt = pg.clock.Now()
 	provisioningKey.UpdatedAt = pg.clock.Now()
-	if _, err := db.NewInsert().Model(entity.ProvisioningKeyFromModel(provisioningKey)).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
+	e := entity.ProvisioningKeyFromModel(provisioningKey)
+
+	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+		if _, err := pg.GetConnection(ctx).NewInsert().Model(e).Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		return pg.provisioningKeyLinkTags(ctx, e, e.CreatedAt)
+	})
+	if err != nil {
+		return "", err
 	}
 
 	return provisioningKey.ID, nil
+}
+
+func (pg *Pg) provisioningKeyLinkTags(ctx context.Context, e *entity.ProvisioningKey, at time.Time) error {
+	db := pg.GetConnection(ctx)
+
+	for _, tag := range e.Tags {
+		link := &entity.ProvisioningKeyTag{
+			ProvisioningKeyDigest:      e.KeyDigest,
+			ProvisioningKeyNamespaceID: e.NamespaceID,
+			TagID:                      tag.ID,
+			CreatedAt:                  at,
+		}
+
+		if _, err := db.NewInsert().
+			Model(link).
+			On("CONFLICT (provisioning_key_digest, provisioning_key_namespace_id, tag_id) DO NOTHING").
+			Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+	}
+
+	return nil
 }
 
 // ProvisioningKeyConflicts implements [store.ProvisioningKeyStore].
@@ -91,6 +120,7 @@ func (pg *Pg) ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...s
 		Model(&entities).
 		ColumnExpr("provisioning_key.*").
 		ColumnExpr(pendingDevicesExpr).
+		Relation("Tags").
 		OrderExpr("(type = 'user') ASC, (type = 'pairing') ASC")
 	var err error
 	query, err = applyScopedOptions(ctx, query, sc, opts...)
@@ -118,9 +148,15 @@ func (pg *Pg) ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolv
 		return nil, err
 	}
 
-	provisioningKey, err := resolveUnique[entity.ProvisioningKey](ctx, pg.GetConnection(ctx), sc, column, val, opts...)
+	db := pg.GetConnection(ctx)
+
+	provisioningKey, err := resolveUnique[entity.ProvisioningKey](ctx, db, sc, column, val, opts...)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := db.NewSelect().Model(provisioningKey).WherePK().Relation("Tags").Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
 	}
 
 	return entity.ProvisioningKeyToModel(provisioningKey), nil
@@ -147,6 +183,7 @@ func (pg *Pg) provisioningKeyResolveSystem(ctx context.Context, sc scope.Scope, 
 	provisioningKey := new(entity.ProvisioningKey)
 	query := db.NewSelect().
 		Model(provisioningKey).
+		Relation("Tags").
 		Where("type = ?", string(keyType)).
 		Where("namespace_id = ?", tenantID)
 
@@ -159,21 +196,35 @@ func (pg *Pg) provisioningKeyResolveSystem(ctx context.Context, sc scope.Scope, 
 
 // ProvisioningKeyUpdate implements [store.ProvisioningKeyStore].
 func (pg *Pg) ProvisioningKeyUpdate(ctx context.Context, provisioningKey *models.ProvisioningKey) error {
-	db := pg.GetConnection(ctx)
-
 	s := entity.ProvisioningKeyFromModel(provisioningKey)
 	s.UpdatedAt = pg.clock.Now()
 
-	r, err := db.NewUpdate().Model(s).WherePK().Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
-	}
+	return pg.inTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
 
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
-	}
+		r, err := db.NewUpdate().Model(s).WherePK().Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
 
-	return nil
+		if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+			return store.ErrNoDocuments
+		}
+
+		if provisioningKey.TagIDs == nil {
+			return nil
+		}
+
+		if _, err := db.NewDelete().
+			Model((*entity.ProvisioningKeyTag)(nil)).
+			Where("provisioning_key_digest = ?", s.KeyDigest).
+			Where("provisioning_key_namespace_id = ?", s.NamespaceID).
+			Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		return pg.provisioningKeyLinkTags(ctx, s, s.UpdatedAt)
+	})
 }
 
 // ProvisioningKeyIncrementUsage implements [store.ProvisioningKeyStore].

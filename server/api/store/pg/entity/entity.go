@@ -7,6 +7,7 @@ func Entities() []any {
 		(*DeviceTag)(nil),
 		(*PublicKeyTag)(nil),
 		(*AccessPolicyTag)(nil),
+		(*ProvisioningKeyTag)(nil),
 
 		(*AccessPolicy)(nil),
 		(*APIKey)(nil),
@@ -15,6 +16,7 @@ func Entities() []any {
 		(*Membership)(nil),
 		(*Namespace)(nil),
 		(*PrivateKey)(nil),
+		(*ProvisioningKey)(nil),
 		(*PublicKey)(nil),
 		(*Session)(nil),
 		(*ActiveSession)(nil),

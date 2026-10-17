@@ -129,6 +129,7 @@ var Groups = []Group{
 	}},
 	{Name: "ProvisioningKeyStore", Tests: []TestFunc{
 		(*Suite).TestProvisioningKeyModeRoundTrip,
+		(*Suite).TestProvisioningKeyTags,
 		(*Suite).TestProvisioningKeyListPendingDevices,
 		(*Suite).TestProvisioningKeyEventCreate,
 		(*Suite).TestProvisioningKeyEventList,

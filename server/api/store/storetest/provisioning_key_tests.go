@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -31,7 +32,6 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 		WebhookURL:    "https://hook.example/enroll",
 		WebhookSecret: "s3cr3t",
 		Reusable:      true,
-		Tags:          []string{},
 		CreatedBy:     owner,
 	})
 	require.NoError(t, err)
@@ -44,7 +44,6 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 		Mode:              models.ProvisioningKeyModeAllowlist,
 		AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"},
 		Reusable:          true,
-		Tags:              []string{},
 		CreatedBy:         owner,
 	})
 	require.NoError(t, err)
@@ -67,6 +66,109 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 	})
 }
 
+// TestProvisioningKeyTags verifies a key holds its tags themselves: every read reports a renamed tag
+// under its new name, and an update replaces the tags the key holds.
+func (s *Suite) TestProvisioningKeyTags(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+	tenantID := s.CreateNamespace(t)
+	sc := scope.MustBounded(tenantID)
+
+	fleet := s.CreateTag(t, WithTagTenant(tenantID), WithTagName("fleet"))
+	edge := s.CreateTag(t, WithTagTenant(tenantID), WithTagName("edge"))
+
+	createKey := func(t *testing.T, digest, name string, tagIDs []string) {
+		t.Helper()
+
+		_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
+			ID:        strings.Repeat(digest, 64),
+			Name:      name,
+			TenantID:  tenantID,
+			Mode:      models.ProvisioningKeyModeAutomatic,
+			Reusable:  true,
+			TagIDs:    tagIDs,
+			CreatedBy: "00000000-0000-4000-0000-000000000009",
+		})
+		require.NoError(t, err)
+	}
+
+	createKey(t, "5", "tagged", []string{fleet, edge})
+
+	renamed, err := st.TagResolve(ctx, sc, store.TagIDResolver, fleet)
+	require.NoError(t, err)
+	renamed.Name = "fleetwide"
+	require.NoError(t, st.TagUpdate(ctx, renamed))
+
+	t.Run("resolving reports a renamed tag under its new name", func(t *testing.T) {
+		got, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "tagged")
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{fleet, edge}, got.TagIDs)
+		assert.ElementsMatch(t, []string{"fleetwide", "edge"}, got.Tags)
+	})
+
+	t.Run("listing reports a renamed tag under its new name", func(t *testing.T) {
+		keys, _, err := st.ProvisioningKeyList(ctx, sc)
+		require.NoError(t, err)
+
+		for _, key := range keys {
+			if key.Name == "tagged" {
+				assert.ElementsMatch(t, []string{"fleetwide", "edge"}, key.Tags)
+
+				return
+			}
+		}
+
+		t.Fatal("the key is not listed")
+	})
+
+	t.Run("an update replaces the tags the key holds", func(t *testing.T) {
+		createKey(t, "6", "replaced", []string{fleet, edge})
+
+		key, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "replaced")
+		require.NoError(t, err)
+
+		key.TagIDs = []string{edge}
+		require.NoError(t, st.ProvisioningKeyUpdate(ctx, key))
+
+		got, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "replaced")
+		require.NoError(t, err)
+		assert.Equal(t, []string{edge}, got.TagIDs)
+		assert.Equal(t, []string{"edge"}, got.Tags)
+	})
+
+	t.Run("an update without TagIDs leaves the tags the key holds", func(t *testing.T) {
+		createKey(t, "7", "kept", []string{fleet, edge})
+
+		key, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "kept")
+		require.NoError(t, err)
+
+		key.TagIDs = nil
+		key.Disabled = true
+		require.NoError(t, st.ProvisioningKeyUpdate(ctx, key))
+
+		got, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "kept")
+		require.NoError(t, err)
+		assert.True(t, got.Disabled)
+		assert.ElementsMatch(t, []string{fleet, edge}, got.TagIDs)
+	})
+
+	t.Run("an update with empty TagIDs drops every tag the key holds", func(t *testing.T) {
+		createKey(t, "8", "emptied", []string{fleet, edge})
+
+		key, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "emptied")
+		require.NoError(t, err)
+
+		key.TagIDs = []string{}
+		require.NoError(t, st.ProvisioningKeyUpdate(ctx, key))
+
+		got, err := st.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, "emptied")
+		require.NoError(t, err)
+		assert.Empty(t, got.TagIDs)
+	})
+}
+
 // TestProvisioningKeyListPendingDevices verifies the per-key count of enrollments awaiting a decision,
 // which is what tells the keys list which key has something to review.
 func (s *Suite) TestProvisioningKeyListPendingDevices(t *testing.T) {
@@ -85,7 +187,6 @@ func (s *Suite) TestProvisioningKeyListPendingDevices(t *testing.T) {
 		TenantID:  tenantID,
 		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: owner,
 	})
 	require.NoError(t, err)
@@ -97,7 +198,6 @@ func (s *Suite) TestProvisioningKeyListPendingDevices(t *testing.T) {
 		TenantID:  tenantID,
 		Mode:      models.ProvisioningKeyModeAutomatic,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: owner,
 	})
 	require.NoError(t, err)

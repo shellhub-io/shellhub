@@ -21,7 +21,11 @@ const (
 // ProvisioningKeyStore persists provisioning keys, their usage counters, and the record of which
 // devices each enrolled.
 type ProvisioningKeyStore interface {
-	// ProvisioningKeyCreate creates a provisioning key with the provided data. Returns the inserted ID and an error if any.
+	// ProvisioningKeyCreate creates a provisioning key with the provided data, linked to the tags its
+	// TagIDs name, in one transaction, and returns the inserted ID. A key digest or (namespace, name)
+	// already in use fails the create with [ErrDuplicate], a ctx cancelled or past its deadline fails
+	// it with ctx's error, and any other failure, such as a TagIDs entry no tag holds, fails it with
+	// [ErrInternal]. Whatever fails, nothing is written.
 	ProvisioningKeyCreate(ctx context.Context, provisioningKey *models.ProvisioningKey) (insertedID string, err error)
 
 	// ProvisioningKeyResolve fetches a provisioning key using a specific resolver within the given namespace
@@ -50,7 +54,11 @@ type ProvisioningKeyStore interface {
 	// Returns the list of provisioning keys, the total count of matched documents, and an error if any.
 	ProvisioningKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
-	// ProvisioningKeyUpdate updates a provisioning key. It returns an error if any.
+	// ProvisioningKeyUpdate updates a provisioning key and, unless its TagIDs are nil, replaces its tag
+	// links with the ones TagIDs name, in one transaction; empty TagIDs drop every link. It returns
+	// [ErrNoDocuments] when no key matches, [ErrDuplicate] when the (namespace, name) pair is taken,
+	// ctx's error when it is cancelled or its deadline passes and [ErrInternal] for any other failure,
+	// such as a TagIDs entry no tag holds, with nothing written.
 	ProvisioningKeyUpdate(ctx context.Context, provisioningKey *models.ProvisioningKey) (err error)
 
 	// ProvisioningKeyIncrementUsage atomically increments the provisioning key's usage counter and sets its last-used

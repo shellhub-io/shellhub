@@ -72,9 +72,11 @@ type TagsService interface {
 	//
 	// It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace cannot
 	// be resolved, [ErrTagNameNotFound] when the tag cannot, and [ErrTagInUse], naming them, while the
-	// device filter of a public key, an access policy or anything the [TagHolder] reports holds the
-	// tag: a public key filter or a firewall rule filter left without its only tag would select
-	// every device, and a deny policy that loses a tag blocks fewer devices and so widens access.
+	// device filter of a public key, an access policy or anything the [TagHolder] reports, or a
+	// provisioning key not revoked, holds the tag: a public key filter or a firewall rule filter left
+	// without its only tag would select every device, a deny policy that loses a tag blocks fewer
+	// devices and so widens access, and a provisioning key would silently stop applying the tag on
+	// enrollment. A revoked key enrolls nothing and can no longer be edited, so it loses the tag.
 	// Any other failure listing those, detaching the tag or deleting it, or of the transaction
 	// itself, is returned unchanged and deletes nothing.
 	DeleteTag(ctx context.Context, req *requests.DeleteTag) (err error)
@@ -249,13 +251,13 @@ func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb
 			return NewErrTagNotFound(req.Name, err)
 		}
 
-		selectors, err := s.tagSelectors(ctx, sc, tag.ID)
+		holders, err := s.tagHolders(ctx, sc, tag.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(selectors) > 0 {
-			return NewErrTagInUse(selectors)
+		if len(holders) > 0 {
+			return NewErrTagInUse(holders)
 		}
 
 		for _, target := range store.TagTargets() {
@@ -268,8 +270,8 @@ func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb
 	}
 }
 
-func (s *service) tagSelectors(ctx context.Context, sc scope.Scope, tagID string) ([]string, error) {
-	selectors := []string{}
+func (s *service) tagHolders(ctx context.Context, sc scope.Scope, tagID string) ([]string, error) {
+	holders := []string{}
 
 	keys, _, err := s.store.PublicKeyList(ctx, sc)
 	if err != nil {
@@ -278,7 +280,7 @@ func (s *service) tagSelectors(ctx context.Context, sc scope.Scope, tagID string
 
 	for _, key := range keys {
 		if slices.Contains(key.Filter.TagIDs, tagID) {
-			selectors = append(selectors, fmt.Sprintf("public key %q", key.Name))
+			holders = append(holders, fmt.Sprintf("public key %q", key.Name))
 		}
 	}
 
@@ -289,12 +291,23 @@ func (s *service) tagSelectors(ctx context.Context, sc scope.Scope, tagID string
 
 	for _, policy := range policies {
 		if slices.Contains(policy.Filter.TagIDs, tagID) {
-			selectors = append(selectors, fmt.Sprintf("access policy %q", policy.Name))
+			holders = append(holders, fmt.Sprintf("access policy %q", policy.Name))
+		}
+	}
+
+	provisioningKeys, _, err := s.store.ProvisioningKeyList(ctx, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range provisioningKeys {
+		if !key.Revoked && slices.Contains(key.TagIDs, tagID) {
+			holders = append(holders, fmt.Sprintf("provisioning key %q", key.Name))
 		}
 	}
 
 	if s.tagHolder == nil {
-		return selectors, nil
+		return holders, nil
 	}
 
 	held, err := s.tagHolder.TagHolders(ctx, sc, tagID)
@@ -302,5 +315,5 @@ func (s *service) tagSelectors(ctx context.Context, sc scope.Scope, tagID string
 		return nil, err
 	}
 
-	return append(selectors, held...), nil
+	return append(holders, held...), nil
 }

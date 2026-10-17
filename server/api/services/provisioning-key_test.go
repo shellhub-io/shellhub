@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -26,6 +27,12 @@ import (
 
 func TestCreateProvisioningKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	queryOptionsMock.On("ForUpdate").Return(nil)
+	forUpdate := mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })
+	storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Maybe()
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
@@ -56,6 +63,12 @@ func TestCreateProvisioningKey(t *testing.T) {
 			c.KeyHint = ""
 			c.Mode = ""
 			c.AllowedIdentities = nil
+
+			if !slices.Equal(got.TagIDs, want.TagIDs) {
+				return false
+			}
+
+			c.TagIDs = want.TagIDs
 
 			return reflect.DeepEqual(&c, want)
 		})
@@ -161,9 +174,11 @@ func TestCreateProvisioningKey(t *testing.T) {
 				uuid.Fix(t, generated)
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "prod", forUpdate).
+					Return(&models.Tag{ID: "prod-id", Name: "prod", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true, UsageLimit: 10,
-					Tags: []string{"prod"}, CreatedBy: "000000000000000000000000",
+					Tags: []string{"prod"}, TagIDs: []string{"prod-id"}, CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{
@@ -172,6 +187,45 @@ func TestCreateProvisioningKey(t *testing.T) {
 					}, nil).Once()
 			},
 			expectedKey: plain,
+		},
+		{
+			description: "creates a tag the key names that the namespace lacks",
+			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				uuid.Fix(t, generated)
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagCreate", ctx, &models.Tag{Name: "edge", TenantID: tenant}).
+					Return("edge-id", nil).Once()
+				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
+					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
+					Tags: []string{"edge"}, TagIDs: []string{"edge-id"}, CreatedBy: "000000000000000000000000",
+				})).Return(hashedKey, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
+					Return(&models.ProvisioningKey{
+						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
+						Tags: []string{"edge"}, TagIDs: []string{"edge-id"}, CreatedBy: "000000000000000000000000",
+					}, nil).Once()
+			},
+			expectedKey: plain,
+		},
+		{
+			description: "fails without creating the key when a tag it names cannot be resolved",
+			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				uuid.Fix(t, generated)
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, errors.New("tag error")).Once()
+			},
+			expectedErr: errors.New("tag error"),
 		},
 		{
 			description: "creates a single-use key when the usage limit is one",
@@ -269,8 +323,12 @@ func TestListProvisioningKeys(t *testing.T) {
 
 func TestUpdateProvisioningKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
+	storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Maybe()
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	queryOptionsMock.On("ForUpdate").Return(nil)
+	forUpdate := mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })
 
 	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
@@ -412,10 +470,81 @@ func TestUpdateProvisioningKey(t *testing.T) {
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
 					Return([]string{}, false, nil).Once()
-				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "runners", TenantID: tenant, Tags: []string{"prod"}}).
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "prod", forUpdate).
+					Return(&models.Tag{ID: "prod-id", Name: "prod", TenantID: tenant}, nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "runners", TenantID: tenant, Tags: []string{"prod"}, TagIDs: []string{"prod-id"}}).
 					Return(nil).Once()
 			},
 			expectedErr: nil,
+		},
+		{
+			description: "leaves the tags the key holds when the request names none",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Disabled: &truePtr},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, TagIDs: []string{"prod-id"}}, nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, Disabled: true}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "drops every tag the key holds when the request names an empty list",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, TagIDs: []string{"prod-id"}}, nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{}, TagIDs: []string{}}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "creates a tag the namespace lacks",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagCreate", ctx, &models.Tag{Name: "edge", TenantID: tenant}).
+					Return("edge-id", nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"edge"}, TagIDs: []string{"edge-id"}}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "fails without updating the key when a tag it names cannot be resolved",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, errors.New("tag error")).Once()
+			},
+			expectedErr: errors.New("tag error"),
+		},
+		{
+			description: "resolves no tag when another field is rejected",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{"edge"}, UsageLimit: &limitTwo},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
+			},
+			expectedErr: NewErrProvisioningKeyInvalidField(map[string]string{
+				"usage_limit": "cannot be lower than the number of times the key was already used",
+			}),
 		},
 		{
 			description: "turns on ephemeral with a timeout",

@@ -307,12 +307,12 @@ func NewErrTagDuplicated(conflicts []string, next error) error {
 	return NewErrDuplicated(ErrDuplicateTagName, conflicts, next)
 }
 
-// NewErrTagInUse returns the conflict a tag delete gets while the device filters of selectors, each
-// described as `public key "name"`, `access policy "name"` or in the form a [TagHolder] reports,
-// such as the enterprise build's `firewall rule "<id>"`, hold the tag. The name field carries only
-// that comma-separated list, so the client writes the sentence around it.
-func NewErrTagInUse(selectors []string) error {
-	return NewErrInvalidFields(ErrTagInUse, map[string]string{"name": strings.Join(selectors, ", ")})
+// NewErrTagInUse returns the conflict a tag delete gets while holders hold the tag, each described
+// as `public key "name"`, `access policy "name"`, `provisioning key "name"` or in the form a
+// [TagHolder] reports, such as the enterprise build's `firewall rule "<id>"`. The name field
+// carries only that comma-separated list, so the client writes the sentence around it.
+func NewErrTagInUse(holders []string) error {
+	return NewErrInvalidFields(ErrTagInUse, map[string]string{"name": strings.Join(holders, ", ")})
 }
 
 // NewErrUserNotFound returns an error when the user is not found.

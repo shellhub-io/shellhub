@@ -75,7 +75,10 @@ properties:
     type: array
     items:
       type: string
-    description: The names of the namespace tags to apply to enrolled devices.
+    description: >-
+      The names of the namespace tags to apply to enrolled devices. A name the
+      namespace has no tag for creates that tag. The key holds the tags
+      themselves, so a renamed tag keeps being applied under its new name.
     example:
       - production
   ephemeral:
