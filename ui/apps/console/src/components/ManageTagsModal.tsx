@@ -31,7 +31,7 @@ function deleteFailure(name: string, err: unknown) {
       : undefined;
   if (!holders) return `Failed to delete "${name}".`;
 
-  return `"${name}" is used in the device filter of ${holders}. Remove it from there before deleting the tag.`;
+  return `"${name}" is held by ${holders}. Remove it from there before deleting the tag.`;
 }
 
 /**
