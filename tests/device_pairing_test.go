@@ -33,7 +33,7 @@ var (
 func TestDevicePairing(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("pairing", func(t *testing.T) { testPairingCode(t, compose) })
 	t.Run("login code", func(t *testing.T) { testDeviceLoginCode(t, compose) })
@@ -46,7 +46,7 @@ func TestDevicePairing(t *testing.T) {
 func TestDevicePairingAgent(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("an agent without a tenant starts a pairing and waits on its code", func(t *testing.T) {
 		agent := startAgent(t, t.Context(), compose, NewAgentContainerUnpaired(), NewAgentContainerWithHostname("pairing-waits"))

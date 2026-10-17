@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import {
+  mockLegacyNamespace,
   mockProvisioningKey,
   mockProvisioningKeyEvent,
 } from "@/tests/factories";
@@ -143,5 +144,30 @@ describe("Provisioning key page", () => {
     expect(
       await screen.findByText("https://hooks.example.com/v1/enroll/devices"),
     ).toBeInTheDocument();
+  });
+
+  it("is the pending queue of a legacy namespace, with nothing to edit or disable", async () => {
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockLegacyNamespace()),
+      ),
+    );
+    renderPage(
+      mockProvisioningKey({
+        id: "legacy-digest",
+        name: "legacy",
+        type: "legacy",
+      }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Pending devices" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Deprecated")).not.toBeInTheDocument();
+    expect(screen.queryByText("Fleet")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Provisioning key actions" }),
+    ).not.toBeInTheDocument();
+    expect(await screen.findByText("Waiting for you")).toBeInTheDocument();
   });
 });

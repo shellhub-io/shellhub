@@ -25,7 +25,7 @@ func TestTagsSelectPublicKeyDevices(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	_, tagged := startAcceptedAgent(t, ctx, compose)
 	_, untagged := startAcceptedAgent(t, ctx, compose)
 
@@ -68,7 +68,7 @@ func TestTagsSelectAccessPolicyDevices(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, tagged := startAcceptedAgent(t, ctx, compose)
 	_, untagged := startAcceptedAgent(t, ctx, compose)
 
@@ -146,7 +146,7 @@ func TestEnterpriseTagsSelectFirewallRuleDevices(t *testing.T) {
 func TestTagDeleteDetachesItEverywhere(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	accepted := enrollDevice(t, compose, "detachaccepted", "02:00:00:00:11:01")
 	compose.UpdateDeviceStatus(t, accepted, environment.DeviceActionAccept)
@@ -177,10 +177,10 @@ func TestTagsAreNamespaceScoped(t *testing.T) {
 		neighbourTenant   = "11111111-1111-4111-1111-111111111111"
 	)
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	compose.NewUser(t, neighbourUsername, "neighbour@ossystems.com.br", ShellHubPassword)
-	compose.NewNamespace(t, neighbourUsername, "neighbourhood", neighbourTenant, models.SSHAccessModeLegacy)
+	compose.NewLegacyNamespace(t, neighbourUsername, "neighbourhood", neighbourTenant)
 	neighbour := compose.AuthUser(t, neighbourUsername, ShellHubPassword)
 	asNeighbour := func(ctx context.Context) *resty.Request {
 		return compose.Anonymous(ctx).SetAuthToken(neighbour.Token)

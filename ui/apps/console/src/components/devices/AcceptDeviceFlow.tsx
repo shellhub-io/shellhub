@@ -28,6 +28,7 @@ import {
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import SignInForm from "@/components/auth/SignInForm";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
@@ -547,8 +548,7 @@ function ViewDeviceButton({
   loading = false,
   ...target
 }: { size: "md" | "lg"; loading?: boolean } & (
-  | { to: string }
-  | { onClick: () => void }
+  { to: string } | { onClick: () => void }
 )) {
   const icon = <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />;
 
@@ -589,7 +589,8 @@ function NamespacePicker({
   onChange: (tenant: string) => void;
   preferredTenant: string;
 }) {
-  const { namespaces, isLoading } = useNamespaces();
+  const { namespaces: allNamespaces, isLoading } = useNamespaces();
+  const namespaces = allNamespaces.filter((n) => !isLegacyNamespace(n));
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -604,6 +605,16 @@ function NamespacePicker({
         <Spinner size="sm" />
         Loading namespaces...
       </div>
+    );
+  }
+
+  if (namespaces.length === 0 && allNamespaces.length > 0) {
+    return (
+      <p className="text-sm text-text-secondary leading-relaxed">
+        Every namespace you belong to is legacy, and a legacy namespace enrolls
+        devices with its tenant ID rather than by pairing. Upgrade one under
+        Settings › SSH to pair devices into it.
+      </p>
     );
   }
 

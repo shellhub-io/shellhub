@@ -21,10 +21,7 @@ vi.mock("@/utils/recordings", async (importOriginal) => ({
   isRecordingSupported: () => true,
 }));
 
-function serveConnectApi(
-  accessMode: "legacy" | "identity",
-  sessionRecord = false,
-) {
+function serveConnectApi(legacy: boolean, sessionRecord = false) {
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(
@@ -32,8 +29,7 @@ function serveConnectApi(
           settings: {
             session_record: sessionRecord,
             connection_announcement: "",
-            ssh_access_mode: accessMode,
-            ssh_legacy_allowed: true,
+            legacy,
           },
         }),
       ),
@@ -70,7 +66,7 @@ describe("ConnectModal", () => {
   beforeEach(() => {
     setEdition("community");
     seedAuthStore({ name: "gustavo", email: "gustavo@shellhub.io" });
-    serveConnectApi("legacy");
+    serveConnectApi(true);
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
       cb(0);
       return 0;
@@ -136,7 +132,7 @@ describe("ConnectModal", () => {
 
     it("states the server recording and offers no switch when the namespace records", async () => {
       setEdition("enterprise");
-      serveConnectApi("legacy", true);
+      serveConnectApi(true, true);
       server.use(
         http.get("*/api/vault", () => new HttpResponse(null, { status: 404 })),
       );
@@ -149,7 +145,7 @@ describe("ConnectModal", () => {
     });
 
     it("records in this browser on community, where the server never records", async () => {
-      serveConnectApi("identity", true);
+      serveConnectApi(false, true);
       renderModal();
 
       await screen.findByRole("group", { name: "Identity" });
@@ -159,7 +155,7 @@ describe("ConnectModal", () => {
   });
 
   it("lets the shell open in the browser with the login empty, in an identity namespace", async () => {
-    serveConnectApi("identity");
+    serveConnectApi(false);
     renderModal();
 
     await screen.findByRole("group", { name: "Identity" });
@@ -170,7 +166,7 @@ describe("ConnectModal", () => {
   });
 
   it("says a new browser key will be added when this browser has none", async () => {
-    serveConnectApi("identity");
+    serveConnectApi(false);
     renderModal();
 
     expect(

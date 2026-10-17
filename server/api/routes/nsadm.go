@@ -27,7 +27,7 @@ const (
 	RemoveNamespaceMemberURL   = "/namespaces/:tenant/members/:uid"
 	EditNamespaceMemberURL     = "/namespaces/:tenant/members/:uid"
 	EditSessionRecordStatusURL = "/users/security/:tenant"
-	EditSSHAccessModeURL       = "/namespaces/ssh-access-mode/:tenant"
+	UpgradeNamespaceURL        = "/namespaces/:tenant/upgrade"
 )
 
 // The path parameter names these routes bind by.
@@ -274,9 +274,11 @@ func (h *Handler) EditNamespaceMember(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// EditSSHAccessMode switches the namespace between key-based and identity-based SSH access.
-func (h *Handler) EditSSHAccessMode(c *gateway.Context) error {
-	var req requests.EditSSHAccessMode
+// UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. It answers 200 with
+// no body, 404 when no namespace carries the tenant, 409 when the namespace is already new, and 403
+// to an API key or to a member who may not update the namespace.
+func (h *Handler) UpgradeNamespace(c *gateway.Context) error {
+	var req requests.UpgradeNamespace
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -285,7 +287,7 @@ func (h *Handler) EditSSHAccessMode(c *gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.EditSSHAccessMode(c.Ctx(), req.SSHAccessMode, req.Tenant); err != nil {
+	if err := h.service.UpgradeNamespace(c.Ctx(), req.Tenant); err != nil {
 		return err
 	}
 

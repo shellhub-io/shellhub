@@ -17,7 +17,7 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
 	t.Run("a pending device creates a code that resolves to it", func(t *testing.T) {
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code", "02:00:00:00:91:01"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "login-code", "02:00:00:00:91:01"))
 		require.Equal(t, models.DeviceStatusPending, device.Status)
 
 		code := createLoginCode(t, compose, device.Token)
@@ -33,7 +33,7 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("a new code invalidates the one before it", func(t *testing.T) {
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code-again", "02:00:00:00:91:02"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "login-code-again", "02:00:00:00:91:02"))
 
 		previous := createLoginCode(t, compose, device.Token)
 		current := createLoginCode(t, compose, device.Token)
@@ -47,7 +47,7 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("a code past its lifetime is not found", func(t *testing.T) {
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code-expired", "02:00:00:00:91:03"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "login-code-expired", "02:00:00:00:91:03"))
 		code := createLoginCode(t, compose, device.Token)
 
 		require.Equal(t, device.UID, requireLoginCodePreview(t, compose, code.Code).UID, "the code was gone before its lifetime ran out")
@@ -60,7 +60,7 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("the device polls its own status until it is accepted", func(t *testing.T) {
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code-polled", "02:00:00:00:91:04"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "login-code-polled", "02:00:00:00:91:04"))
 
 		assert.Equal(t, models.DeviceStatusPending, requireDeviceAuthStatus(t, compose, device.Token))
 
@@ -70,7 +70,7 @@ func testDeviceLoginCode(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("a rejected device reads its rejection", func(t *testing.T) {
-		device := authDevice(t, compose, newDeviceAuthRequest(t, "login-code-rejected", "02:00:00:00:91:05"))
+		device := authDevice(t, compose, harnessDeviceAuthRequest(t, compose, "login-code-rejected", "02:00:00:00:91:05"))
 
 		compose.UpdateDeviceStatus(t, device.UID, environment.DeviceActionReject)
 

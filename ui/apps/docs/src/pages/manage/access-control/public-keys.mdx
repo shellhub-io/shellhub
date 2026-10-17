@@ -1,7 +1,7 @@
 ---
 layout: ../../../layouts/DocsLayout.astro
 title: Public Keys
-description: The pre-identity access model, for namespaces still using it.
+description: How a legacy namespace authorizes SSH.
 ---
 
 import LegacyBanner from "../../../components/LegacyBanner.astro";
@@ -10,13 +10,13 @@ import Shot from "../../../components/Shot.astro";
 # Public Keys
 
 <LegacyBanner>
-  Namespaces created today start in identity mode, where access is decided by
+  Namespaces created today are new, and access there is decided by
   <a href="/manage/access-control/ssh-identities">SSH identities</a> and
-  <a href="/manage/access-control/access-policies">access policies</a>. In identity mode
+  <a href="/manage/access-control/access-policies">access policies</a>. In a new namespace
   this page describes something that is not running.
 </LegacyBanner>
 
-In the legacy model, a public key registered in the namespace *is* the access. Whoever holds the
+In a legacy namespace, a public key registered in the namespace *is* the access. Whoever holds the
 matching private key connects.
 
 <Shot id="public-keys" route="/sshkeys/public-keys" of={{ role: "main" }} accessMode="legacy" alt="The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions" />
@@ -44,7 +44,7 @@ does not stop them handing it on. The audit trail names the key.
 **Revocation is a search.** Removing one person's access means finding every key that is theirs
 and removing each one, and being sure you found them all.
 
-**Unlisted devices are reachable.** The legacy model permits by default within a key's scope, and
+**Unlisted devices are reachable.** A legacy namespace permits by default within a key's scope, and
 firewall rules subtract from that. Get the scope slightly too wide and access exists that nobody
 decided to grant.
 
@@ -56,7 +56,7 @@ inverts the last, since access policies are default deny.
 On Cloud and Enterprise, [firewall rules](/manage/access-control/firewall-rules) restrict what
 keys otherwise permit, matching on source IP, hostname and username.
 
-They are part of this same legacy model and are bypassed entirely in identity mode.
+They are part of how a legacy namespace works and are bypassed entirely in a new namespace.
 
 ## Managing keys
 
@@ -65,5 +65,5 @@ session already open is not interrupted.
 
 ## Where to go next
 
-- [Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy) — Moving to identities.
+- [Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy) — Moving to identities.
 - [Firewall Rules](/manage/access-control/firewall-rules) — The restriction layer.

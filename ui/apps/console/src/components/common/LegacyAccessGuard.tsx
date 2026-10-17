@@ -1,17 +1,16 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 
 /**
- * Redirects the legacy key-ACL, firewall and key-vault pages to Access Policies when the
- * namespace is in identity access mode, where those features are bypassed and the pages would
- * describe rules that no longer apply. It matches the sidebar, which hides the same links.
+ * Redirects the legacy key-ACL, firewall and key-vault pages to Access Policies once the
+ * namespace is new, where those features decide nothing and the pages would describe rules that
+ * no longer apply. It matches the sidebar, which hides the same links, and holds the page while
+ * the namespace loads rather than bouncing a legacy reader out of it.
  */
 export default function LegacyAccessGuard() {
-  const { tenant } = useAuthStore();
-  const { namespace } = useNamespace(tenant ?? "");
+  const legacy = useNamespaceLegacy();
 
-  if (namespace?.settings?.ssh_access_mode === "identity") {
+  if (legacy === false) {
     return <Navigate to="/access-policies" replace />;
   }
 

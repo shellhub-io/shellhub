@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
+	_ "embed"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -22,6 +23,7 @@ import (
 	rediscache "github.com/go-redis/cache/v9"
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -813,15 +815,41 @@ func (s *Stack) NewUser(ctx context.Context, username, email, password string) e
 	return s.Admin(ctx, "user", "create", username, password, email)
 }
 
-// NewNamespace creates a namespace via the server's admin CLI. An empty sshAccessMode leaves the
-// server's default in place.
-func (s *Stack) NewNamespace(ctx context.Context, owner, name, tenant, sshAccessMode string) error {
-	args := []string{"namespace", "create", name, owner, tenant}
-	if sshAccessMode != "" {
-		args = append(args, "--ssh-access-mode", sshAccessMode)
+// NewNamespace creates a namespace via the server's admin CLI. Every namespace the product creates
+// is new; see [Stack.NewLegacyNamespace] for a legacy one.
+func (s *Stack) NewNamespace(ctx context.Context, owner, name, tenant string) error {
+	return s.Admin(ctx, "namespace", "create", name, owner, tenant)
+}
+
+//go:embed legacy_namespace.sql
+var legacyNamespaceSQL string
+
+// NewLegacyNamespace writes a legacy namespace the way the migrations leave one the admin CLI of
+// the stack's edition created before namespaces were new: the namespace row with legacy set, the
+// edition's device limit and login announcement, the owner's membership, the two system
+// provisioning keys and no access policy. No product path creates one, so it writes the rows
+// directly. The owner must exist. It returns an error when the stack's SHELLHUB_EDITION is not an
+// edition, and psql's error otherwise.
+func (s *Stack) NewLegacyNamespace(ctx context.Context, owner, name, tenant string) error {
+	edition, err := ParseEdition(s.envs["SHELLHUB_EDITION"])
+	if err != nil {
+		return err
 	}
 
-	return s.Admin(ctx, args...)
+	maxDevices := -1
+	if edition == EditionCloud {
+		maxDevices = 3
+	}
+
+	_, err = s.SQL(ctx, legacyNamespaceSQL, map[string]string{
+		"owner":        owner,
+		"name":         name,
+		"tenant":       tenant,
+		"max_devices":  strconv.Itoa(maxDevices),
+		"announcement": envs.AnnouncementFor(envs.Edition(edition)),
+	})
+
+	return err
 }
 
 // NewMember adds a user to a namespace with the given role via the server's admin CLI.

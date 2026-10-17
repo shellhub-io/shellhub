@@ -85,7 +85,7 @@ export default function DeviceTrail() {
             ) : undefined
           }
         >
-          <InstallStep>
+          <InstallStep legacy={flow.legacy} tenant={flow.tenant}>
             <PairingCodeField
               onSubmit={flow.submitCode}
               isPending={flow.resolving}

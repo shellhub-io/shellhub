@@ -58,14 +58,14 @@ overhead of a second workspace.
 Membership is per namespace, and so is your role — you can be an administrator in one and an
 observer in another.
 
-## The SSH access mode
+## Legacy or new
 
-A namespace carries its access mode, which decides how connections are authorized. Namespaces
-created today are born in identity mode. Namespaces predating it default to legacy and can be
-switched.
+A namespace is either legacy or new, which decides how connections are authorized and how devices
+enroll. Namespaces created today are new. Namespaces predating identity-based access are legacy,
+and can be upgraded once.
 
-A namespace born in identity mode can never leave it. See
-[How Authorization Works](/manage/access-control).
+A new namespace never becomes legacy. See [How Authorization Works](/manage/access-control) and
+[Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 ## Deleting
 

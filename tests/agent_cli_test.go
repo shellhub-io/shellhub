@@ -25,7 +25,7 @@ import (
 func TestAgentCLI(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), newNamespace)
 
 	t.Run("login prints a code that accepts a pending device and returns once it is accepted", func(t *testing.T) {
 		login := startAgentCommand(t, compose, []string{"./agent", "login"}, NewAgentContainerWithHostname("login-pending"))

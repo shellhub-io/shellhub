@@ -1,11 +1,11 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockDevice } from "@/tests/factories";
+import { mockDevice, mockLegacyNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
@@ -291,7 +291,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
   server.use(
-    http.get("*/api/namespaces/:tenant", () => HttpResponse.json(null)),
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockLegacyNamespace()),
+    ),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
@@ -534,7 +536,7 @@ describe("SecureVault", () => {
       );
     }
 
-    it("disables opening the shell when vault auto-locks while modal is open", () => {
+    it("disables opening the shell when vault auto-locks while modal is open", async () => {
       setupConnectStore("unlocked", [vaultKey]);
       const { rerender } = renderConnectModal();
 
@@ -551,9 +553,11 @@ describe("SecureVault", () => {
         />,
       );
 
-      expect(
-        screen.getByRole("button", { name: "Open in browser" }),
-      ).toBeDisabled();
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Open in browser" }),
+        ).toBeDisabled(),
+      );
     });
 
     it("hides key-selection UI when vault is locked", () => {

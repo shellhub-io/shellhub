@@ -17,7 +17,7 @@ import (
 func TestDeviceAcceptanceLimit(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("a namespace at its device limit refuses accepting a device until the limit is lifted", func(t *testing.T) {
 		within := enrollDevice(t, compose, "accept-within-limit", "02:00:00:00:a2:01")

@@ -41,7 +41,7 @@ func TestEnrollmentWebhook(t *testing.T) {
 
 	compose := newConfiguredSSHEnvironment(t, t.Context(),
 		environment.New(t, run).WithEnv("SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS", "127.0.0.0/8"),
-		models.SSHAccessModeLegacy)
+		newNamespace)
 	webhook := startEnrollmentWebhook(t, compose)
 
 	newKey := func(t *testing.T, req *requests.CreateProvisioningKey) string {

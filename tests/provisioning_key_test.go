@@ -55,7 +55,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
-			compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+			compose := newSSHEnvironment(t, ctx, newNamespace)
 
 			key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
 				Name: string(tc.mode),
@@ -71,7 +71,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 	t.Run("a key the namespace never issued enrolls nothing", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 
 		agent := startAgent(t, ctx, compose, NewAgentContainerWithProvisioningKey(unissuedProvisioningKey))
 
@@ -82,7 +82,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 	t.Run("a key that has used up its enrollments enrolls nothing more", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 
 		key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
 			Name:       "single-use",
@@ -107,7 +107,7 @@ func TestProvisioningKeyEnrollment(t *testing.T) {
 
 	t.Run("a pending device whose enrollment was re-evaluated is still listed", func(t *testing.T) {
 		ctx := context.Background()
-		compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+		compose := newSSHEnvironment(t, ctx, newNamespace)
 
 		key := compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
 			Name:          string(models.ProvisioningKeyModeWebhook),

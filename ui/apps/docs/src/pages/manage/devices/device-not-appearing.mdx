@@ -49,9 +49,11 @@ Two variables are required, and a mistake in either produces a device that never
 `shellhub.example.com`. Self-hosted deployments often have this pointing at the default Cloud
 address by accident.
 
-**`SHELLHUB_TENANT_ID`** — required for Snap and standalone installs. Optional for Docker and
-Podman, which fall back to pairing mode when it is absent — so a container install with no tenant
-is not misconfigured, it is waiting to be paired. Run `shellhub-agent login` on the host. See
+**`SHELLHUB_TENANT_ID`** — accepted by a legacy namespace only; a new namespace refuses it and the
+agent keeps retrying, logging that the namespace requires a provisioning key or pairing. Snap needs
+it, so Snap only enrolls into a legacy namespace. Docker, Podman and standalone fall back to pairing
+mode when it is absent — so an install with no tenant is not misconfigured, it is waiting to be
+paired. Run `shellhub-agent login` on the host. See
 [How a device enrols](/manage/devices#how-a-device-enrols).
 
 A typo'd variable name is ignored silently, which is a particularly quiet way to fail. Check the

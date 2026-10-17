@@ -21,8 +21,7 @@ const mockNamespace: Namespace = {
   settings: {
     session_record: true,
     connection_announcement: "hello",
-    ssh_access_mode: "legacy",
-    ssh_legacy_allowed: true,
+    legacy: true,
   },
   max_devices: 10,
   created_at: "2024-01-01T00:00:00Z",

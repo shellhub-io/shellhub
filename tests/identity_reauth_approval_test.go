@@ -18,7 +18,7 @@ func TestSSHApprovalReauth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	compose := newSSHEnvironment(t, ctx, newNamespace)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := deviceSSHID(device)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -13,29 +13,18 @@ import SshSettings from "../SshSettings";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-function defaultNs(
-  settings: Partial<{
-    ssh_access_mode: "legacy" | "identity";
-    ssh_legacy_allowed: boolean;
-  }> = {},
-) {
+function defaultNs(settings: Partial<{ legacy: boolean }> = {}) {
   return mockNamespace({
     settings: {
       session_record: false,
       connection_announcement: "",
-      ssh_access_mode: "legacy",
-      ssh_legacy_allowed: true,
+      legacy: false,
       ...settings,
     },
   });
 }
 
-function setNamespace(
-  settings: Partial<{
-    ssh_access_mode: "legacy" | "identity";
-    ssh_legacy_allowed: boolean;
-  }> = {},
-) {
+function setNamespace(settings: Partial<{ legacy: boolean }> = {}) {
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(defaultNs(settings)),
@@ -43,14 +32,20 @@ function setNamespace(
   );
 }
 
-async function confirmSwitch(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    await screen.findByRole("button", { name: "Switch to identity" }),
+async function openUpgrade(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: "Upgrade" }));
+
+  return screen.getByRole("dialog", { name: "Upgrade this namespace?" });
+}
+
+async function confirmUpgrade(user: ReturnType<typeof userEvent.setup>) {
+  const dialog = await openUpgrade(user);
+  await user.type(
+    within(dialog).getByLabelText(/type "my-namespace" to confirm/i),
+    "my-namespace",
   );
   await user.click(
-    within(
-      screen.getByRole("dialog", { name: "Switch to identity access?" }),
-    ).getByRole("button", { name: "Switch to identity" }),
+    within(dialog).getByRole("button", { name: "Upgrade namespace" }),
   );
 }
 
@@ -83,100 +78,125 @@ beforeEach(() => {
       "*/api/namespaces/:tenant",
       () => new HttpResponse(null, { status: 204 }),
     ),
-    http.put(
-      "*/api/namespaces/ssh-access-mode/:tenant",
-      () => new HttpResponse(null, { status: 204 }),
+    http.post(
+      "*/api/namespaces/:tenant/upgrade",
+      () => new HttpResponse(null, { status: 200 }),
     ),
   );
 });
 
 describe("SshSettings", () => {
-  describe("access mode", () => {
-    it("offers the other mode to a namespace that may switch", async () => {
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+  describe("legacy or new", () => {
+    it("offers the upgrade to a legacy namespace", async () => {
+      setNamespace({ legacy: true });
       renderSsh();
       expect(await screen.findByText("Legacy")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Switch to identity" }),
+        screen.getByRole("button", { name: "Upgrade" }),
       ).toBeInTheDocument();
     });
 
-    it("shows identity without a choice to a namespace born in it", async () => {
-      setNamespace({ ssh_access_mode: "identity", ssh_legacy_allowed: false });
+    it("shows a new namespace with nothing to upgrade", async () => {
+      setNamespace({ legacy: false });
       renderSsh();
-      expect(await screen.findByText("Identity")).toBeInTheDocument();
+      expect(await screen.findByText("New")).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /switch to/i }),
+        screen.queryByRole("button", { name: /upgrade/i }),
       ).not.toBeInTheDocument();
     });
 
-    it("asks before switching, and warns that no policies deny every login", async () => {
+    it("spells out what the upgrade changes and that there is no way back", async () => {
       const user = userEvent.setup();
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+      setNamespace({ legacy: true });
       renderSsh();
 
-      await user.click(
-        await screen.findByRole("button", { name: "Switch to identity" }),
-      );
+      const dialog = await openUpgrade(user);
 
-      await waitFor(() =>
-        expect(
-          screen.getByRole("dialog", { name: "Switch to identity access?" }),
-        ).toHaveAccessibleDescription(/every SSH login will be denied/i),
+      expect(dialog).toHaveTextContent(/the owner keeps ssh access/i);
+      expect(dialog).toHaveTextContent(
+        /password and public-key logins stop authenticating/i,
       );
+      expect(dialog).toHaveTextContent(
+        /new devices enroll by pairing or a provisioning key/i,
+      );
+      expect(dialog).toHaveTextContent(/no way back/i);
     });
 
-    it("offers no switch to a role that may not change the mode", async () => {
+    it("upgrades only once the namespace's name is typed", async () => {
+      const user = userEvent.setup();
+      setNamespace({ legacy: true });
+      renderSsh();
+
+      const dialog = await openUpgrade(user);
+      const confirm = within(dialog).getByRole("button", {
+        name: "Upgrade namespace",
+      });
+      expect(confirm).toBeDisabled();
+
+      await user.type(
+        within(dialog).getByLabelText(/type "my-namespace" to confirm/i),
+        "my-namespace",
+      );
+      expect(confirm).toBeEnabled();
+    });
+
+    it("offers no upgrade to a role that may not change the namespace", async () => {
       seedAuthStore({ role: "operator" });
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+      setNamespace({ legacy: true });
       renderSsh();
 
       expect(await screen.findByText("Legacy")).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /switch to/i }),
+        screen.queryByRole("button", { name: /upgrade/i }),
       ).not.toBeInTheDocument();
     });
 
-    it("keeps the mode when the switch is cancelled", async () => {
+    it("keeps the namespace legacy when the upgrade is cancelled", async () => {
       const user = userEvent.setup();
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+      setNamespace({ legacy: true });
       renderSsh();
 
-      await user.click(
-        await screen.findByRole("button", { name: "Switch to identity" }),
-      );
+      await openUpgrade(user);
       await user.click(screen.getByRole("button", { name: "Cancel" }));
 
       expect(screen.getByText("Legacy")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Switch to identity" }),
+        screen.getByRole("button", { name: "Upgrade" }),
       ).toBeInTheDocument();
     });
 
-    it("says it saved once the switch is confirmed", async () => {
+    it("posts the upgrade and says it saved once confirmed", async () => {
       const user = userEvent.setup();
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+      let upgraded = 0;
+      server.use(
+        http.post("*/api/namespaces/:tenant/upgrade", () => {
+          upgraded += 1;
+          return new HttpResponse(null, { status: 200 });
+        }),
+      );
+      setNamespace({ legacy: true });
       renderSsh();
 
-      await confirmSwitch(user);
+      await confirmUpgrade(user);
 
       expect(await screen.findByRole("status")).toHaveTextContent("Saved");
+      expect(upgraded).toBe(1);
     });
 
-    it("shows an error when the switch fails", async () => {
+    it("shows an error when the upgrade fails", async () => {
       server.use(
-        http.put("*/api/namespaces/ssh-access-mode/:tenant", () =>
+        http.post("*/api/namespaces/:tenant/upgrade", () =>
           HttpResponse.json({}, { status: 500 }),
         ),
       );
       const user = userEvent.setup();
-      setNamespace({ ssh_access_mode: "legacy", ssh_legacy_allowed: true });
+      setNamespace({ legacy: true });
       renderSsh();
 
-      await confirmSwitch(user);
+      await confirmUpgrade(user);
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
-        /couldn't change the ssh access mode/i,
+        /couldn't upgrade the namespace/i,
       );
     });
   });
@@ -241,7 +261,7 @@ describe("SshSettings", () => {
       mockedGetConfig.mockReturnValue({ ...defaultConfig });
       renderSsh();
 
-      await screen.findByText("Legacy");
+      await screen.findByText("New");
       expect(
         screen.queryByRole("switch", { name: "Session recording" }),
       ).not.toBeInTheDocument();
@@ -276,7 +296,9 @@ describe("SshSettings", () => {
 
       await user.click(await screen.findByRole("button", { name: "Edit" }));
 
-      expect(screen.getByRole("button", { name: "Save banner" })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Save banner" }),
+      ).toBeDisabled();
     });
 
     it("saves the edited banner and closes", async () => {
@@ -309,8 +331,7 @@ describe("SshSettings", () => {
               settings: {
                 session_record: false,
                 connection_announcement: "Authorized use only",
-                ssh_access_mode: "legacy",
-                ssh_legacy_allowed: true,
+                legacy: false,
               },
             }),
           ),
@@ -326,7 +347,9 @@ describe("SshSettings", () => {
       await user.click(view);
 
       const viewer = screen.getByRole("dialog", { name: "Login banner" });
-      expect(within(viewer).getByText(/Authorized use only/)).toBeInTheDocument();
+      expect(
+        within(viewer).getByText(/Authorized use only/),
+      ).toBeInTheDocument();
       expect(within(viewer).queryByRole("textbox")).not.toBeInTheDocument();
     });
 
@@ -342,7 +365,9 @@ describe("SshSettings", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(
         "A banner can be at most 4,096 characters.",
       );
-      expect(screen.getByRole("button", { name: "Save banner" })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Save banner" }),
+      ).toBeDisabled();
     });
 
     it("keeps the dialog open and says why when saving fails", async () => {

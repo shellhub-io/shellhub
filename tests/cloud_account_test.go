@@ -24,7 +24,7 @@ func TestCloudAccountDeletion(t *testing.T) {
 	t.Run("deleting the account removes the member's paired devices", func(t *testing.T) {
 		tenant := uuid.Generate()
 		compose.NewUser(t, "account-owner", "account-owner"+stripeTestEmailDomain, ShellHubPassword)
-		compose.NewNamespace(t, "account-owner", "account-space", tenant, "")
+		compose.NewNamespace(t, "account-owner", "account-space", tenant)
 
 		compose.NewUser(t, "account-deleter", "account-deleter"+stripeTestEmailDomain, ShellHubPassword)
 		compose.NewMember(t, "account-deleter", "account-space", string(authorizer.RoleOperator))

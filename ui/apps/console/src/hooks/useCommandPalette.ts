@@ -13,6 +13,7 @@ import {
 } from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { isEnterpriseOrCloud } from "@/env";
 import { useCopy } from "@/hooks/useCopy";
@@ -88,6 +89,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("device:connect");
   const { namespace } = useNamespace(tenant ?? "");
+  const legacy = useNamespaceLegacy();
   const { namespaces } = useNamespaces();
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const workspace = useWorkspaceTabs();
@@ -239,7 +241,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const commandItems = buildCommandItems({
     go,
     onLogout,
-    isIdentityMode: namespace?.settings?.ssh_access_mode === "identity",
+    isNewNamespace: legacy !== true,
     pages: adminContext
       ? buildAdminItems({ links: adminNavLinks(adminNav.sections), go })
       : undefined,

@@ -20,7 +20,7 @@ import (
 )
 
 func TestDeviceKeyVerificationE2E(t *testing.T) {
-	e := setupEnrollmentE2E(t)
+	e := setupLegacyEnrollmentE2E(t)
 	ctx := context.Background()
 
 	request := func(t *testing.T, key *rsa.PrivateKey, mac string, signed bool) requests.DeviceAuth {

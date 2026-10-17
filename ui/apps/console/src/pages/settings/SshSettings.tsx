@@ -12,10 +12,11 @@ import {
 import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
+import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import {
   useEditNamespace,
-  useSetSshAccessMode,
+  useUpgradeNamespace,
 } from "@/hooks/useNamespaceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useSettingSave } from "@/hooks/useSettingSave";
@@ -29,6 +30,7 @@ import {
 import { isEnterpriseOrCloud } from "@/env";
 import { readableOn } from "@/utils/color";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import InputField from "@/components/common/fields/InputField";
 import FormModal from "@/components/common/FormModal";
 import Modal from "@/components/common/Modal";
 import PageLoader from "@/components/common/PageLoader";
@@ -42,12 +44,10 @@ import {
   type BannerFormValues,
 } from "./bannerSchema";
 
-type AccessMode = "legacy" | "identity";
-
-const MODES = {
-  identity: {
+const MODELS = {
+  new: {
     icon: ShieldCheckIcon,
-    name: "Identity",
+    name: "New",
     how: "Each login is approved in the browser by whoever connects, and an access policy has to allow it.",
   },
   legacy: {
@@ -56,6 +56,14 @@ const MODES = {
     how: "Logins are allowed by the public keys added to this namespace and their filters. There is no browser approval.",
   },
 } as const;
+
+const UPGRADE_CHANGES = [
+  "The owner keeps SSH access through a starter access policy, unless the namespace already has policies, which stay as they are. Everyone else needs a policy that allows them.",
+  "Password and public-key logins stop authenticating, in the web terminal too.",
+  "Each person approves an SSH identity on their first login.",
+  "New devices enroll by pairing or a provisioning key. Devices already enrolled keep working.",
+  "There is no way back to legacy access.",
+];
 
 function NoPoliciesWarning() {
   const { policies, isLoading } = useAccessPolicies();
@@ -75,48 +83,77 @@ function NoPoliciesWarning() {
   );
 }
 
-function AccessModeCard({ ns }: { ns: Namespace }) {
-  const setSshAccessMode = useSetSshAccessMode();
-  const { policies, isLoading: policiesLoading } = useAccessPolicies();
-  const canChange = useHasPermission("namespace:updateSshAccessMode");
-  const { error, saved, run } = useSettingSave(
-    "Couldn't change the SSH access mode. Try again.",
+function UpgradeDialog({
+  ns,
+  onClose,
+  onConfirm,
+}: {
+  ns: Namespace;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const [confirm, setConfirm] = useState("");
+
+  return (
+    <ConfirmDialog
+      open
+      onClose={onClose}
+      onConfirm={onConfirm}
+      icon={<ShieldCheckIcon />}
+      variant="warning"
+      title="Upgrade this namespace?"
+      description="This changes how everyone reaches this namespace's devices."
+      confirmLabel="Upgrade namespace"
+      confirmDisabled={confirm !== ns.name}
+    >
+      <ul className="mb-4 space-y-1.5 pl-4 text-xs text-text-secondary list-disc">
+        {UPGRADE_CHANGES.map((change) => (
+          <li key={change}>{change}</li>
+        ))}
+      </ul>
+      <div className="mb-4">
+        <InputField
+          id="upgrade-ns-confirm"
+          label={`Type "${ns.name}" to confirm`}
+          value={confirm}
+          onChange={setConfirm}
+          placeholder={ns.name}
+        />
+      </div>
+    </ConfirmDialog>
   );
-  const [pending, setPending] = useState<AccessMode | null>(null);
+}
 
-  const mode: AccessMode = ns.settings?.ssh_access_mode ?? "identity";
-  const other: AccessMode = mode === "identity" ? "legacy" : "identity";
-  const legacyAllowed = ns.settings?.ssh_legacy_allowed ?? false;
-  const noPolicies = !policiesLoading && policies.length === 0;
-  const { icon: Icon, name, how } = MODES[mode];
+function NamespaceLegacyCard({ ns }: { ns: Namespace }) {
+  const upgrade = useUpgradeNamespace();
+  const canUpgrade = useHasPermission("namespace:upgrade");
+  const { error, saved, run } = useSettingSave(
+    "Couldn't upgrade the namespace. Try again.",
+  );
+  const [open, setOpen] = useState(false);
 
-  const apply = (next: AccessMode) =>
-    run(() =>
-      setSshAccessMode.mutateAsync({
-        path: { tenant: ns.tenant_id },
-        body: { ssh_access_mode: next },
-      }),
-    );
+  const legacy = isLegacyNamespace(ns);
+  const { icon: Icon, name, how } = legacy ? MODELS.legacy : MODELS.new;
 
   return (
     <>
-      <div role="group" aria-label="SSH access mode">
+      <div role="group" aria-label="Namespace">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4 rounded-xl border border-border bg-card">
           <div className="flex gap-3.5 min-w-0 flex-1 basis-72">
             <span
               aria-hidden="true"
               className={cn(
                 "grid place-items-center w-9 h-9 shrink-0 rounded-lg border",
-                mode === "identity"
-                  ? "bg-primary/10 border-primary/20 text-primary"
-                  : "bg-hover-medium border-border-light text-text-secondary",
+                legacy
+                  ? "bg-hover-medium border-border-light text-text-secondary"
+                  : "bg-primary/10 border-primary/20 text-primary",
               )}
             >
               <Icon className="w-[18px] h-[18px]" />
             </span>
             <div className="min-w-0">
               <p className="text-2xs font-mono uppercase tracking-label text-text-muted">
-                SSH access mode
+                Namespace
               </p>
               <p className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-text-primary">
                 {name}
@@ -125,17 +162,17 @@ function AccessModeCard({ ns }: { ns: Namespace }) {
               <p className="mt-1 max-w-md text-xs text-text-muted leading-relaxed">
                 {how}
               </p>
-              {mode === "identity" && <NoPoliciesWarning />}
+              {!legacy && <NoPoliciesWarning />}
             </div>
           </div>
-          {legacyAllowed && canChange && (
+          {legacy && canUpgrade && (
             <Button
               size="sm"
-              variant={other === "identity" ? "primary" : "secondary"}
-              disabled={setSshAccessMode.isPending}
-              onClick={() => setPending(other)}
+              variant="primary"
+              disabled={upgrade.isPending}
+              onClick={() => setOpen(true)}
             >
-              Switch to {MODES[other].name.toLowerCase()}
+              Upgrade
             </Button>
           )}
         </div>
@@ -146,32 +183,18 @@ function AccessModeCard({ ns }: { ns: Namespace }) {
         )}
       </div>
 
-      <ConfirmDialog
-        open={pending !== null}
-        onClose={() => setPending(null)}
-        onConfirm={async () => {
-          const next = pending;
-          setPending(null);
-          if (next) await apply(next);
-        }}
-        icon={<ShieldCheckIcon />}
-        variant="warning"
-        title={
-          pending === "identity"
-            ? "Switch to identity access?"
-            : "Switch to legacy access?"
-        }
-        description={
-          pending === "identity"
-            ? noPolicies
-              ? "Every login will need browser approval and an access policy that allows it. There are no policies yet, so every SSH login will be denied until you add one."
-              : "Every login will need browser approval and an access policy that allows it. Public keys stop granting access on their own."
-            : "Logins will be authorized by public keys and their filters. Access policies and browser approval stop applying."
-        }
-        confirmLabel={
-          pending === "identity" ? "Switch to identity" : "Switch to legacy"
-        }
-      />
+      {open && (
+        <UpgradeDialog
+          ns={ns}
+          onClose={() => setOpen(false)}
+          onConfirm={async () => {
+            setOpen(false);
+            await run(() =>
+              upgrade.mutateAsync({ path: { tenant: ns.tenant_id } }),
+            );
+          }}
+        />
+      )}
     </>
   );
 }
@@ -231,7 +254,10 @@ function LoginPrompt({ ns }: { ns: Namespace }) {
     readableOn(style.background, candidates, style.color);
   return (
     <>
-      <span style={{ color: on([ansi("green"), ansi("brightGreen")]) }} className="font-bold">
+      <span
+        style={{ color: on([ansi("green"), ansi("brightGreen")]) }}
+        className="font-bold"
+      >
         $
       </span>{" "}
       ssh{" "}
@@ -373,7 +399,9 @@ function BannerViewer({
       >
         <LoginPrompt ns={ns} />
         {"\n"}
-        {current || <span className="italic opacity-60">No banner is set.</span>}
+        {current || (
+          <span className="italic opacity-60">No banner is set.</span>
+        )}
       </pre>
     </Modal>
   );
@@ -406,9 +434,9 @@ function BannerCard({ ns }: { ns: Namespace }) {
 
 /**
  * The SSH settings: how logins are authorized, whether sessions are recorded on the server, and
- * the banner shown at login. Recording applies at once, the access mode after a confirmation
- * since it can lock every login out, and the banner is edited in its own dialog, or read in one
- * by a role that may not edit it.
+ * the banner shown at login. Recording applies at once, the upgrade of a legacy namespace after a
+ * confirmation that spells out what changes and asks for the namespace's name, since it cannot be
+ * undone, and the banner is edited in its own dialog, or read in one by a role that may not edit it.
  */
 export default function SshSettings() {
   const { tenant: tenantId } = useAuthStore();
@@ -421,7 +449,7 @@ export default function SshSettings() {
       title="SSH"
       description="How logins to this namespace's devices are authorized and recorded."
     >
-      <AccessModeCard ns={ns} />
+      <NamespaceLegacyCard ns={ns} />
       {isEnterpriseOrCloud() && <RecordingCard ns={ns} />}
       <BannerCard ns={ns} />
     </SettingsSection>

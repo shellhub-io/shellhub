@@ -50,7 +50,10 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 // to the caller, whose device is misconfigured in a way that repeating the same request cannot
 // settle. Transport failures, 429 and 5xx are left to the client-wide retry condition, which
 // reports them as a server that cannot answer rather than one that refuses the device.
-func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
+//
+// ctx bounds the call and every retry: once it is done, the call stops waiting and returns its
+// error.
+func (c *client) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, key crypto.Signer) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
 
 	var body any = req
@@ -60,6 +63,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest, key crypto.Signer) (*
 	}
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		AddRetryCondition(func(r *resty.Response, err error) bool {
 			if err != nil || r == nil || serverAtFault(r.StatusCode()) {
 				return false
@@ -86,10 +90,11 @@ type signedDeviceAuth struct {
 	key crypto.Signer
 }
 
-func (c *client) signDeviceAuth(signed *signedDeviceAuth) error {
+func (c *client) signDeviceAuth(ctx context.Context, signed *signedDeviceAuth) error {
 	var challenge *models.DeviceAuthChallenge
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		SetResult(&challenge).
 		Post("/api/devices/auth/challenge")
 	if err != nil {

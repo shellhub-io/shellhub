@@ -183,11 +183,12 @@ Every namespace's key list carries two rows it manages itself.
 link printed with it. There is nothing to reveal and no mode worth setting — the code itself is
 the acceptance.
 
-**Tenant-only enrollment** is the legacy path for devices that enroll with the namespace
-identifier and no key at all. It is deprecated and will be removed. It starts on manual mode,
-which is why a plain tenant-only enrollment lands in **Pending** — but its mode is editable like
-any other, and it is worth confirming nobody has moved it to automatic. On automatic, anything
-holding your namespace identifier enrolls itself.
+**Tenant-only registration** is the path a [legacy
+namespace](/manage/access-control/migrating-from-legacy) enrolls devices through: the namespace
+identifier and no key at all. It is fixed on manual mode and cannot be edited or disabled, so every
+tenant-only enrollment lands in **Pending** and its activity page is the namespace's pending queue.
+A new namespace never consults it and refuses a tenant-only enrollment. It lists the row only while
+devices enrolled before an upgrade are still pending under it.
 
 ## Treating a key as a secret
 

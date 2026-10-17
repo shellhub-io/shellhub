@@ -117,7 +117,7 @@ func testAdminExports(t *testing.T, compose *environment.DockerCompose) {
 	compose.NewUser(t, "export-beta", "beta@export.shellhub.io", ShellHubPassword)
 
 	tenant := uuid.Generate()
-	compose.NewNamespace(t, "export-alpha", "export-space", tenant, "")
+	compose.NewNamespace(t, "export-alpha", "export-space", tenant)
 
 	alpha := adminUser(t, compose, "export-alpha")
 	beta := adminUser(t, compose, "export-beta")
@@ -178,7 +178,7 @@ func testAdminStats(t *testing.T, compose *environment.DockerCompose) {
 
 		compose.NewUser(t, "stats-owner", "stats-owner@shellhub.io", ShellHubPassword)
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "stats-owner", "stats-space", tenant, "")
+		compose.NewLegacyNamespace(t, "stats-owner", "stats-space", tenant)
 		owner := compose.AuthUser(t, "stats-owner", ShellHubPassword)
 
 		enrollPendingDevice(t, compose, "stats-pending", "02:00:00:00:24:01")
@@ -212,7 +212,7 @@ func testAdminAuthToken(t *testing.T, compose *environment.DockerCompose) {
 	t.Run("an administrator gets a token that signs in as the user", func(t *testing.T) {
 		compose.NewUser(t, "impersonated", "impersonated@shellhub.io", ShellHubPassword)
 		tenant := uuid.Generate()
-		compose.NewNamespace(t, "impersonated", "impersonated-space", tenant, "")
+		compose.NewNamespace(t, "impersonated", "impersonated-space", tenant)
 		target := adminUser(t, compose, "impersonated")
 
 		token := struct {

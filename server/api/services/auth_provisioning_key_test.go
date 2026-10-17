@@ -95,7 +95,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			req:         requests.DeviceAuth{TenantID: tenant, Hostname: "d", Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"}, Info: &requests.DeviceInfo{}, PublicKey: "pk"},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("d", "aa:bb:cc:dd:ee:ff", "pk")
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(&models.ProvisioningKey{ID: "legacydigest", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Mode: models.ProvisioningKeyModeManual}, nil).Once()
@@ -150,9 +150,6 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-// TestEnrollmentProvisioningKey covers keyless enrollment-source resolution: the pairing-code flow (paired)
-// attributes to the pairing system key, a plain tenant-only enrollment attributes to the legacy key,
-// and neither resolves the other's key.
 func TestEnrollmentProvisioningKey(t *testing.T) {
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
@@ -161,20 +158,46 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 
 	cases := []struct {
 		description   string
+		req           requests.DeviceAuth
 		paired        bool
+		legacy        bool
 		requiredMocks func(context.Context, *mocks.MockStore)
 		expectedKey   *models.ProvisioningKey
+		expectedErr   error
 	}{
 		{
-			description: "attributes a tenant-only enrollment to the legacy key",
-			paired:      false,
+			description: "legacy namespace attributes a tenant-only enrollment to the legacy key",
+			req:         requests.DeviceAuth{TenantID: tenant},
+			legacy:      true,
 			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
 				s.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(legacy, nil).Once()
 			},
 			expectedKey: legacy,
 		},
 		{
-			description: "attributes a paired enrollment to the pairing key, not the legacy key",
+			description:   "legacy namespace refuses a presented provisioning key",
+			req:           requests.DeviceAuth{TenantID: tenant, ProvisioningKey: "any"},
+			legacy:        true,
+			requiredMocks: func(context.Context, *mocks.MockStore) {},
+			expectedErr:   NewErrAuthNamespaceLegacy(),
+		},
+		{
+			description:   "legacy namespace refuses a pairing",
+			req:           requests.DeviceAuth{TenantID: tenant},
+			paired:        true,
+			legacy:        true,
+			requiredMocks: func(context.Context, *mocks.MockStore) {},
+			expectedErr:   NewErrAuthNamespaceLegacy(),
+		},
+		{
+			description:   "new namespace refuses a tenant-only enrollment",
+			req:           requests.DeviceAuth{TenantID: tenant},
+			requiredMocks: func(context.Context, *mocks.MockStore) {},
+			expectedErr:   NewErrAuthNamespaceRequiresCredential(),
+		},
+		{
+			description: "new namespace attributes a paired enrollment to the pairing key",
+			req:         requests.DeviceAuth{TenantID: tenant},
 			paired:      true,
 			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
 				s.On("ProvisioningKeyResolveSystemPairing", ctx, scope.MustBounded(tenant)).Return(pairing, nil).Once()
@@ -182,7 +205,8 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 			expectedKey: pairing,
 		},
 		{
-			description: "attributes nothing when the pairing key is missing",
+			description: "new namespace attributes nothing when the pairing key is missing",
+			req:         requests.DeviceAuth{TenantID: tenant},
 			paired:      true,
 			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
 				s.On("ProvisioningKeyResolveSystemPairing", ctx, scope.MustBounded(tenant)).Return(nil, store.ErrNoDocuments).Once()
@@ -199,9 +223,9 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 			tc.requiredMocks(ctx, storeMock)
 
 			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
-			key, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), requests.DeviceAuth{TenantID: tenant}, tc.paired)
+			key, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), tc.req, tc.paired, &models.NamespaceSettings{Legacy: tc.legacy})
 
-			require.NoError(tt, err)
+			require.Equal(tt, tc.expectedErr, err)
 			require.Equal(tt, tc.expectedKey, key)
 			storeMock.AssertExpectations(tt)
 		})

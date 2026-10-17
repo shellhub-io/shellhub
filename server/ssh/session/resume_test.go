@@ -58,7 +58,7 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 		UpdateSession(mock.Anything, tenantScope, models.UID("test-uid"), mock.Anything).
 		Return(nil)
 
-	sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+	sess := newIdentitySession(serviceMock, false)
 	agent := dialertest.NewAgent(t)
 	sess.dialer = agent
 	sess.Device.PublicKey = agent.PublicKey()
@@ -97,7 +97,7 @@ func TestAuthRetriesAfterTheDialToTheDeviceFailed(t *testing.T) {
 		Return(&models.Session{}, nil). //nolint:exhaustruct // the session is registered, not read back
 		Once()
 
-	sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+	sess := newIdentitySession(serviceMock, false)
 	sess.dialer = &dialertest.Stub{Err: dialer.ErrNoConnection} //nolint:exhaustruct
 	sess.Events = NewEvents(sess.UID, tenantScope, serviceMock)
 

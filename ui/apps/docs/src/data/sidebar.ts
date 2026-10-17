@@ -225,7 +225,7 @@ export const sidebar: SidebarSection[] = [
             href: "/manage/access-control/connection-denied",
           },
           {
-            label: "Migrating from the Legacy Model",
+            label: "Upgrading a Legacy Namespace",
             href: "/manage/access-control/migrating-from-legacy",
           },
           {

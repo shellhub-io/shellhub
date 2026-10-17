@@ -138,7 +138,7 @@ func TestGateway(t *testing.T) {
 
 	ctx := context.Background()
 
-	compose := newSSHEnvironment(t, ctx, "legacy")
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	host := gatewayHost(t, compose)
 	port := strings.TrimPrefix(host, "localhost:")
 

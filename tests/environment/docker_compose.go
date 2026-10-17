@@ -128,15 +128,20 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the server's
 // "admin namespace create" command.
 //
-// sshAccessMode selects the namespace's SSH authorization model ("legacy" or "identity"); an empty value
-// leaves the server's default in place.
-//
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, failing t immediately if any do.
-func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
+func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant string) {
 	t.Helper()
 
-	require.NoError(t, dc.stack.NewNamespace(t.Context(), owner, name, tenant, sshAccessMode))
+	require.NoError(t, dc.stack.NewNamespace(t.Context(), owner, name, tenant))
+}
+
+// NewLegacyNamespace writes a namespace in the state the migrations leave a legacy one, as [Stack.NewLegacyNamespace] does for the stack's edition, failing t
+// immediately if it fails.
+func (dc *DockerCompose) NewLegacyNamespace(t *testing.T, owner, name, tenant string) {
+	t.Helper()
+
+	require.NoError(t, dc.stack.NewLegacyNamespace(t.Context(), owner, name, tenant))
 }
 
 // NewMember adds an existing user to a namespace as "owner", "administrator", "operator" or
@@ -180,19 +185,36 @@ func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {
 	require.NoError(t, dc.stack.DeleteNamespace(t.Context(), name))
 }
 
-// EditSSHAccessMode switches the namespace tenant to the SSH access mode mode through the API, as
-// the bearer of the JWT set with [DockerCompose.JWT], failing the test unless the server answers
-// 200. The server answers 403 unless tenant is the token's namespace and its bearer may update it,
-// and refuses the legacy mode unless the namespace allows it, as one created in that mode does.
-// Switching to the identity mode seeds an access policy granting the owner every device and login
-// when the namespace has no access policy yet. It runs on a context that outlives the test, so it
-// can sit in a cleanup.
-func (dc *DockerCompose) EditSSHAccessMode(t *testing.T, tenant, mode string) {
+// GetNamespace reads the namespace tenant through the API, as the bearer of the JWT set with
+// [DockerCompose.JWT], failing t unless the server answers 200.
+func (dc *DockerCompose) GetNamespace(t *testing.T, tenant string) *models.Namespace {
 	t.Helper()
 
-	resp, err := dc.R(context.WithoutCancel(t.Context())).
-		SetBody(map[string]string{"ssh_access_mode": mode}).
-		Put("/api/namespaces/ssh-access-mode/" + tenant)
+	namespace := new(models.Namespace)
+
+	resp, err := dc.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + tenant)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	return namespace
+}
+
+// PostNamespaceUpgrade asks the server to upgrade the legacy namespace tenant to the identity
+// model, as the bearer of the JWT set with [DockerCompose.JWT], and returns the response. It
+// returns the error only for a request that never got an answer. The server answers 403 unless
+// tenant is the token's namespace and its bearer may update it, 409 when the namespace is already
+// new, and 200 once it upgraded, seeding an access policy granting the owner every device and login
+// when the namespace has none.
+func (dc *DockerCompose) PostNamespaceUpgrade(ctx context.Context, tenant string) (*resty.Response, error) {
+	return dc.R(ctx).Post("/api/namespaces/" + tenant + "/upgrade")
+}
+
+// UpgradeNamespace upgrades the legacy namespace tenant through [DockerCompose.PostNamespaceUpgrade],
+// failing the test unless the server answers 200.
+func (dc *DockerCompose) UpgradeNamespace(t *testing.T, tenant string) {
+	t.Helper()
+
+	resp, err := dc.PostNamespaceUpgrade(t.Context(), tenant)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 }
@@ -543,7 +565,7 @@ func (dc *DockerCompose) ProvisioningKeyHistory(t *testing.T, id string) []model
 
 // CreateAccessPolicy creates an access policy in the namespace the client is authenticated
 // against and returns it as stored, failing t unless the server accepts it. The policy takes
-// effect on the next login decision; a namespace in the identity mode is born holding one that
+// effect on the next login decision; a new namespace is born holding one that
 // grants its owner.
 func (dc *DockerCompose) CreateAccessPolicy(t *testing.T, req *requests.AccessPolicyCreate) models.AccessPolicy {
 	t.Helper()

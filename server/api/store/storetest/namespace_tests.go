@@ -326,16 +326,16 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.True(t, ns.Settings.SessionRecord)
 	})
 
-	t.Run("born identity with the owner access policy seeded", func(t *testing.T) {
+	t.Run("born new with the owner access policy seeded, whatever the caller asks", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		userID := s.CreateUser(t)
 
 		namespace := &models.Namespace{
-			Name:       "identity-first-ns",
+			Name:       "asks-for-legacy-ns",
 			Owner:      userID,
 			MaxDevices: -1,
-			Settings:   &models.NamespaceSettings{SessionRecord: true},
+			Settings:   &models.NamespaceSettings{SessionRecord: true, Legacy: true},
 		}
 
 		tenantID, err := st.NamespaceCreate(ctx, namespace)
@@ -343,8 +343,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
-		assert.Equal(t, models.SSHAccessModeIdentity, ns.Settings.SSHAccessMode)
-		assert.False(t, ns.Settings.SSHLegacyAllowed)
+		assert.False(t, ns.Settings.IsLegacy(), "nothing creates a legacy namespace")
 
 		policies, count, err := st.AccessPolicyList(ctx, scope.MustBounded(tenantID))
 		require.NoError(t, err)
@@ -357,30 +356,64 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.True(t, policies[0].Filter.All, "the owner reaches every device because the seed says so")
 		assert.Equal(t, models.PolicyActionAllow, policies[0].Action)
 	})
+}
 
-	t.Run("explicit legacy mode grants the legacy permission and is not seeded", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
+// TestNamespaceUpgrade covers the only writer of the legacy flag: a conditional update that flips
+// a legacy namespace to new once and refuses every later call.
+func (s *Suite) TestNamespaceUpgrade(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
 
-		userID := s.CreateUser(t)
+	provider, ok := s.provider.(dbAccessor)
+	if !ok {
+		t.Skip("provider does not expose the raw DB; a legacy namespace cannot be planted")
+	}
 
-		namespace := &models.Namespace{
-			Name:       "legacy-ns",
-			Owner:      userID,
-			MaxDevices: -1,
-			Settings:   &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy},
-		}
+	require.NoError(t, s.provider.CleanDatabase(t))
 
-		tenantID, err := st.NamespaceCreate(ctx, namespace)
+	legacyNamespace := func(t *testing.T, name string) string {
+		t.Helper()
+
+		tenantID := s.CreateNamespace(t, WithNamespaceName(name))
+		_, err := provider.DB().NewRaw("UPDATE namespaces SET legacy = true WHERE id = ?", tenantID).Exec(ctx)
 		require.NoError(t, err)
+
+		return tenantID
+	}
+
+	t.Run("flips a legacy namespace to new", func(t *testing.T) {
+		tenantID := legacyNamespace(t, "flips-to-new")
+		require.NoError(t, st.NamespaceUpgrade(ctx, tenantID))
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
-		assert.Equal(t, models.SSHAccessModeLegacy, ns.Settings.SSHAccessMode)
-		assert.True(t, ns.Settings.SSHLegacyAllowed)
+		assert.False(t, ns.Settings.IsLegacy())
+	})
 
-		_, count, err := st.AccessPolicyList(ctx, scope.MustBounded(tenantID))
+	t.Run("refuses a namespace that is already new", func(t *testing.T) {
+		tenantID := legacyNamespace(t, "upgraded-twice")
+		require.NoError(t, st.NamespaceUpgrade(ctx, tenantID))
+
+		assert.ErrorIs(t, st.NamespaceUpgrade(ctx, tenantID), store.ErrNamespaceNotLegacy)
+	})
+
+	t.Run("refuses a namespace that does not exist", func(t *testing.T) {
+		assert.ErrorIs(t, st.NamespaceUpgrade(ctx, "00000000-0000-4000-0000-00000000dead"), store.ErrNamespaceNotLegacy)
+	})
+
+	t.Run("a full update never writes the flag back", func(t *testing.T) {
+		tenantID := legacyNamespace(t, "stays-upgraded")
+		require.NoError(t, st.NamespaceUpgrade(ctx, tenantID))
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(0), count)
+
+		ns.Settings.Legacy = true
+		require.NoError(t, st.NamespaceUpdate(ctx, ns))
+
+		ns, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.False(t, ns.Settings.IsLegacy(), "NamespaceUpdate skips the column")
 	})
 }
 

@@ -5,8 +5,15 @@ import React from "react";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockDevice, mockNamespace, mockStats } from "@/tests/factories";
+import {
+  mockDevice,
+  mockLegacyNamespace,
+  mockNamespace,
+  mockProvisioningKey,
+  mockStats,
+} from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
+import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import Devices from "../index";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
@@ -79,9 +86,15 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 function renderPage(initialEntries: string[] = ["/"]) {
-  return render(<Devices />, {
-    wrapper: createTestWrapper({ initialEntries }),
-  });
+  return render(
+    <>
+      <Devices />
+      <NamespaceModeProbe />
+    </>,
+    {
+      wrapper: createTestWrapper({ initialEntries }),
+    },
+  );
 }
 
 let lastDevicesUrl: URL | null;
@@ -200,5 +213,39 @@ describe("Devices empty state", () => {
     expect(
       screen.queryByRole("link", { name: /continue setup/i }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("Devices pending queue", () => {
+  it("is not offered by a new namespace", async () => {
+    renderPage();
+
+    await screen.findByText("mode: new");
+    expect(
+      screen.queryByRole("link", { name: /pending$/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("is linked from a legacy namespace with its count", async () => {
+    server.use(
+      http.get("*/api/namespaces/provisioning-key", () =>
+        jsonWithTotal([
+          mockProvisioningKey({
+            id: "legacy-digest",
+            name: "legacy",
+            type: "legacy",
+            pending_devices: 3,
+          }),
+        ]),
+      ),
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockLegacyNamespace()),
+      ),
+    );
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: "3 pending" }),
+    ).toHaveAttribute("href", "/devices/add/fleet/legacy-digest/activity");
   });
 });

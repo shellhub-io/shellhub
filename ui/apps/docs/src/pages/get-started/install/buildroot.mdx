@@ -56,8 +56,9 @@ PROVISIONING_KEY="<your-provisioning-key>"
 EOF
 ```
 
-`TENANT_ID` is the deprecated alternative to `PROVISIONING_KEY`, and the two do not go
-together. Set the provisioning key.
+`TENANT_ID` is the alternative to `PROVISIONING_KEY` for a [legacy
+namespace](/manage/access-control/migrating-from-legacy), and the two do not go together. Set
+the provisioning key.
 
 **Why the tenant is the wrong one.** A device registering with the tenant alone goes
 through the namespace's legacy registration path, which holds it for manual review —

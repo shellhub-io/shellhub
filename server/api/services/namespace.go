@@ -43,7 +43,13 @@ type NamespaceService interface {
 	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
-	EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error
+	// UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. The
+	// flag and the owner's starter Access Policy, skipped when the namespace already has one, are
+	// written in one transaction, so a namespace never reaches the new model with no policy to
+	// authorize anyone. It returns ErrNamespaceNotFound when no namespace carries the tenant,
+	// ErrNamespaceNotLegacy when the namespace is already new, and the store's error otherwise,
+	// with the upgrade rolled back when the failure comes inside the transaction.
+	UpgradeNamespace(ctx context.Context, tenantID string) error
 }
 
 // CreateNamespace creates a new namespace.
@@ -299,15 +305,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 	return nil
 }
 
-// EditSSHAccessMode sets the namespace's SSH authorization mode ("legacy" or
-// "identity"). Legacy is only reachable by grandfathered namespaces
-// (SSHLegacyAllowed); namespaces born identity are refused. Switching to
-// "identity" gates SSH logins on browser approval and governs access through
-// Access Policies; to avoid a silent lockout on a namespace with no policies,
-// the owner-scoped starter policy is seeded on the first switch (see
-// seedAccessPolicy). The switch and the seed share one transaction, so a
-// namespace never reaches identity mode with no policy to authorize anyone.
-func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error {
+func (s *service) UpgradeNamespace(ctx context.Context, tenantID string) error {
 	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
 		switch {
@@ -318,19 +316,13 @@ func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID
 		}
 	}
 
-	if sshAccessMode == models.SSHAccessModeLegacy && !n.Settings.SSHLegacyAllowed {
-		return NewErrForbidden(ErrNamespaceLegacyNotAllowed, nil)
-	}
-
-	n.Settings.SSHAccessMode = sshAccessMode
-
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		if err := s.store.NamespaceUpdate(ctx, n); err != nil {
-			return err
-		}
+		if err := s.store.NamespaceUpgrade(ctx, tenantID); err != nil {
+			if errors.Is(err, store.ErrNamespaceNotLegacy) {
+				return NewErrNamespaceNotLegacy(tenantID, err)
+			}
 
-		if sshAccessMode != models.SSHAccessModeIdentity {
-			return nil
+			return err
 		}
 
 		return s.seedAccessPolicy(ctx, tenantID, n.Owner)

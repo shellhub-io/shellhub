@@ -3,7 +3,6 @@ import {
   execFileSync,
 } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import type { NamespaceSettings } from "@/client";
 import type { AssignableRole } from "@/pages/team/helpers";
 import { requireEnv } from "./env";
 
@@ -52,10 +51,18 @@ export function runInGateway(args: string[], command: string[] = []) {
   ).trim();
 }
 
-export function startAgent(tenant: string, hostname: string) {
+export type NamespaceCredential = { tenant: string; provisioningKey?: string };
+
+function credentialEnv({ tenant, provisioningKey }: NamespaceCredential) {
+  return provisioningKey
+    ? `--env=SHELLHUB_PROVISIONING_KEY=${provisioningKey}`
+    : `--env=SHELLHUB_TENANT_ID=${tenant}`;
+}
+
+export function startAgent(credential: NamespaceCredential, hostname: string) {
   return runInGateway([
     "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
-    `--env=SHELLHUB_TENANT_ID=${tenant}`,
+    credentialEnv(credential),
     `--env=SHELLHUB_PREFERRED_HOSTNAME=${hostname}`,
     `--env=SHELLHUB_PREFERRED_IDENTITY=${hostname}`,
     "--env=SHELLHUB_PRIVATE_KEY=/tmp/shellhub.key",
@@ -115,23 +122,44 @@ export function createUser(prefix: string, { admin = false } = {}) {
 }
 
 export type NamespaceOptions = {
-  sshAccessMode?: NamespaceSettings["ssh_access_mode"];
+  legacy?: boolean;
 };
+
+export function createLegacyNamespace(
+  owner: string,
+  name: string,
+  tenant: string,
+) {
+  execFileSync(
+    requireEnv("E2E_STACK_BIN"),
+    [
+      "legacy-namespace",
+      "--name",
+      requireEnv("E2E_STACK_NAME"),
+      owner,
+      name,
+      tenant,
+    ],
+    {
+      cwd: requireEnv("E2E_STACK_DIR"),
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 60_000,
+    },
+  );
+}
 
 export function createNamespace(
   owner: string,
   name: string,
   tenant: string,
-  { sshAccessMode }: NamespaceOptions = {},
+  { legacy = false }: NamespaceOptions = {},
 ) {
-  serverAdmin(
-    "namespace",
-    "create",
-    name,
-    owner,
-    tenant,
-    ...(sshAccessMode ? [`--ssh-access-mode=${sshAccessMode}`] : []),
-  );
+  if (legacy) {
+    createLegacyNamespace(owner, name, tenant);
+    return;
+  }
+  serverAdmin("namespace", "create", name, owner, tenant);
 }
 
 export function addMember(

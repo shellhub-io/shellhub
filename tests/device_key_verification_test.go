@@ -20,7 +20,7 @@ import (
 func TestDeviceKeyVerification(t *testing.T) {
 	t.Parallel()
 
-	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	unsigned := newDeviceAuthRequest(t, "verified", "02:00:00:00:02:00")
 	stored, ok := devicePrivateKeys.Load(unsigned.PublicKey)
@@ -134,7 +134,7 @@ func TestDeviceKeyVerificationWithAReleasedAgent(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 
 	_, current := startAcceptedAgent(t, ctx, compose)
 	requireSession(t, ctx, compose, current)

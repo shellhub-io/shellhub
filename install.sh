@@ -9,6 +9,13 @@ require_tenant() {
   }
 }
 
+require_namespace_credential() {
+  [ -z "$TENANT_ID" ] && [ -z "$PROVISIONING_KEY" ] && {
+    echo "ERROR: TENANT_ID or PROVISIONING_KEY is required for this installation method."
+    exit 1
+  }
+}
+
 install_agent_wrapper() {
   _RUNTIME="$1"
 
@@ -63,7 +70,7 @@ enrollment_summary() {
   if [ -n "$PROVISIONING_KEY" ]; then
     echo "provisioning key"
   elif [ -n "$TENANT_ID" ]; then
-    echo "tenant $TENANT_ID (device lands pending)"
+    echo "tenant $TENANT_ID (legacy namespace, device lands pending)"
   else
     echo "none — enroll with 'shellhub-agent login'"
   fi
@@ -158,7 +165,7 @@ podman_install() {
     shift 1
     ;;
   "connector")
-    require_tenant
+    require_namespace_credential
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
@@ -243,7 +250,7 @@ docker_install() {
     shift 1
     ;;
   "connector")
-    require_tenant
+    require_namespace_credential
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"

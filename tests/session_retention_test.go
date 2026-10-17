@@ -20,7 +20,7 @@ func TestSessionRetention(t *testing.T) {
 
 	compose := newConfiguredSSHEnvironment(t, ctx,
 		environment.New(t, run).WithEnv("SHELLHUB_SESSION_RETENTION_DAYS", "1").WithCronTrigger(),
-		"legacy")
+		legacyNamespace)
 	compose.AwaitServerLog(t, "session retention enabled")
 
 	_, device := startAcceptedAgent(t, ctx, compose)

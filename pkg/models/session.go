@@ -28,7 +28,7 @@ type Session struct {
 	APIKeyID string `json:"-"`
 	// Principal is who opened the session: the person or the API key that presented the
 	// credential, projected from UserID and APIKeyID. It is absent, rather than empty, under the
-	// legacy access model, where a session has no principal by design.
+	// legacy namespace, where a session has no principal by design.
 	Principal     *Principal      `json:"principal,omitempty"`
 	IPAddress     string          `json:"ip_address"`
 	StartedAt     time.Time       `json:"started_at"`

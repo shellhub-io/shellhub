@@ -98,8 +98,7 @@ export function mockNamespace(overrides: Partial<Namespace> = {}): Namespace {
     settings: {
       session_record: false,
       connection_announcement: "",
-      ssh_access_mode: "legacy",
-      ssh_legacy_allowed: true,
+      legacy: false,
     },
     max_devices: 3,
     created_at: "2024-01-01T00:00:00Z",
@@ -453,5 +452,24 @@ export function mockMembershipInvitation(
     role: "observer",
     invite_url: `https://shellhub.test/accept-invite?invite=${user.id}`,
     ...overrides,
+  };
+}
+
+/**
+ * A legacy namespace: public keys, firewall and password for SSH, a
+ * tenant alone to enroll a device. Everything else is mockNamespace's.
+ */
+export function mockLegacyNamespace(
+  overrides: Partial<Namespace> = {},
+): Namespace {
+  const base = mockNamespace(overrides);
+  return {
+    ...base,
+    settings: {
+      session_record: false,
+      connection_announcement: "",
+      ...base.settings,
+      legacy: true,
+    },
   };
 }

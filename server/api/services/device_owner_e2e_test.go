@@ -80,11 +80,14 @@ type ownershipE2E struct {
 	ownerID string
 }
 
+const teamKey = 0x7e
+
 func setupOwnershipE2E(t *testing.T) *ownershipE2E {
 	t.Helper()
 
 	e := setupEnrollmentE2E(t)
 	e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
+	e.provisioningKey(t, digest(teamKey), "team", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	ns, err := e.st.NamespaceResolve(context.Background(), store.NamespaceTenantIDResolver, e.tenantID)
 	require.NoError(t, err)
@@ -143,11 +146,12 @@ func (e *ownershipE2E) enrollKey(t *testing.T, mac, publicKey string) string {
 
 func (e *ownershipE2E) authRequest(mac, publicKey string) requests.DeviceAuth {
 	return requests.DeviceAuth{
-		TenantID:  e.tenantID,
-		Hostname:  "host-" + mac,
-		Identity:  &requests.DeviceIdentity{MAC: mac},
-		Info:      &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
-		PublicKey: publicKey,
+		TenantID:        e.tenantID,
+		Hostname:        "host-" + mac,
+		Identity:        &requests.DeviceIdentity{MAC: mac},
+		Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
+		PublicKey:       publicKey,
+		ProvisioningKey: plaintextFor(teamKey),
 	}
 }
 
@@ -308,12 +312,14 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 		accepted := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
 		require.NoError(t, e.svc.DeleteDevice(ctx, models.UID(accepted.UID), e.tenantID))
 
-		_, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:01", "pk-1"))
+		req := e.authRequest("aa:bb:cc:dd:ee:01", "pk-1")
+		req.ProvisioningKey = ""
+		_, err := e.svc.AuthDevice(ctx, req)
 		require.ErrorIs(t, err, ErrAuthUnathorized)
 		assert.Equal(t, models.DeviceStatusRemoved, e.device(t, accepted.UID).Status)
 	})
 
-	t.Run("a device enrolled by tenant revives as pending", func(t *testing.T) {
+	t.Run("a device enrolled by a provisioning key revives as pending", func(t *testing.T) {
 		e := setupOwnershipE2E(t)
 
 		uid := e.enrollKey(t, "aa:bb:cc:dd:ee:01", "pk-1")

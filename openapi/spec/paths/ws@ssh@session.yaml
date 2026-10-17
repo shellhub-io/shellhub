@@ -40,7 +40,7 @@ post:
                   description: The fingerprint of the public key used for authentication
                 public_key:
                   type: string
-                  description: The browser's enrolled SSH public key line (identity access mode)
+                  description: The browser's enrolled SSH public key line (new namespaces)
   responses:
     '200':
       description: Successfully created a web SSH session token

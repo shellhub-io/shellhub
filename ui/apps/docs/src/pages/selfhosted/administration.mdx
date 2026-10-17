@@ -82,13 +82,10 @@ The tenant identifier is optional; one is generated when it is omitted.
 | Flag | Default | Meaning |
 |---|---|---|
 | `--type` | `team` | The namespace type |
-| `--ssh-access-mode` | `identity` | `legacy` or `identity` |
 
-<Callout variant="warning">
-A namespace created with `--ssh-access-mode legacy` can move to identity mode and cannot move
-back. Only namespaces that predate identity mode keep the return path. See
-[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
-</Callout>
+Every namespace the CLI creates is new: identities and access policies decide SSH access, and
+devices enroll by pairing or a provisioning key. Only a namespace that predates identity-based
+access is legacy. See [Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 Deleting a namespace removes its devices, identities, policies and session records.
 

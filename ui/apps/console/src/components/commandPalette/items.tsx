@@ -306,11 +306,12 @@ export function buildAdminItems(deps: {
 export function buildCommandItems(deps: {
   go: (path: string) => void;
   onLogout: () => void;
-  isIdentityMode?: boolean;
+  isNewNamespace?: boolean;
   pages?: CommandItem[];
 }): CommandItem[] {
-  const { go, onLogout, isIdentityMode, pages } = deps;
+  const { go, onLogout, isNewNamespace, pages } = deps;
   const legacyPaths = ["/sshkeys/public-keys", "/secure-vault"];
+  const identityPaths = ["/accept-device"];
   const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
     { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
     { label: "Devices", path: "/devices", icon: icons.devices },
@@ -321,7 +322,11 @@ export function buildCommandItems(deps: {
     { label: "Settings", path: "/settings", icon: icons.settings },
     { label: "Add Device", path: "/devices/add", icon: icons.add },
     { label: "Claim a Device", path: "/accept-device", icon: icons.add },
-  ].filter((n) => !isIdentityMode || !legacyPaths.includes(n.path));
+  ].filter((n) =>
+    isNewNamespace
+      ? !legacyPaths.includes(n.path)
+      : !identityPaths.includes(n.path),
+  );
 
   const list: CommandItem[] = pages
     ? [...pages]

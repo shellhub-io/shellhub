@@ -23,8 +23,8 @@ type AccessPolicyService interface {
 	// Authorize decides whether the user may reach the device as the given login,
 	// connecting from sourceIP, under the namespace's Access Policies. It is
 	// default-deny and fail-closed: access is granted iff at least one policy
-	// grants it, and any store failure denies. It is the authorization model for
-	// the identity-based SSH access mode; the gateway calls it at the
+	// grants it, and any store failure denies. It is the authorization model of
+	// a new namespace; the gateway calls it at the
 	// ephemeral-key mint point.
 	//
 	// A member whose role lacks [authorizer.DeviceConnect] is refused with
@@ -42,7 +42,7 @@ type AccessPolicyService interface {
 	ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error)
 
 	// NamespaceHasAccessPolicies reports whether the namespace has any access
-	// policy. The gateway uses it to refuse an identity-mode login before minting
+	// policy. The gateway uses it to refuse a new namespace's login before minting
 	// an approval when no policy could ever grant access (default-deny), so the
 	// user is not asked to approve a login that is certain to be denied.
 	NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error)

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -72,7 +73,7 @@ func TestRetriedAttemptsAreReportedAsWhatTheServerDid(t *testing.T) {
 			mock.RegisterResponder("POST", "/api/devices/auth",
 				mock.NewStringResponder(test.status, `{"message":"nope"}`).Then(accepted))
 
-			_, err = cli.AuthDevice(authRequest(), nil)
+			_, err = cli.AuthDevice(context.Background(), authRequest(), nil)
 			require.NoError(t, err)
 
 			require.NotEmpty(t, hook.AllEntries())
@@ -96,7 +97,7 @@ func TestForbiddenIsRetriedAsSomethingAnOperatorClears(t *testing.T) {
 	mock.RegisterResponder("POST", "/api/devices/auth",
 		mock.NewStringResponder(http.StatusForbidden, `{"message":"device limit reached"}`).Then(accepted))
 
-	response, err := cli.AuthDevice(authRequest(), nil)
+	response, err := cli.AuthDevice(context.Background(), authRequest(), nil)
 	require.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -152,7 +153,7 @@ func TestARefusalDoesNotReportThatTheServerCameBack(t *testing.T) {
 		mock.NewStringResponder(http.StatusNotFound, `{"message":"no such namespace"}`).
 			Then(mock.NewStringResponder(http.StatusBadRequest, `{"message":"malformed"}`)))
 
-	_, err = cli.AuthDevice(authRequest(), nil)
+	_, err = cli.AuthDevice(context.Background(), authRequest(), nil)
 	require.Error(t, err)
 
 	for _, entry := range hook.AllEntries() {
@@ -232,7 +233,7 @@ func TestTheServerAnswerIsBoundedBeforeItReachesTheLog(t *testing.T) {
 	mock.RegisterResponder("POST", "/api/devices/auth",
 		mock.NewStringResponder(http.StatusBadGateway, page).Then(accepted))
 
-	_, err = cli.AuthDevice(authRequest(), nil)
+	_, err = cli.AuthDevice(context.Background(), authRequest(), nil)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, hook.AllEntries())

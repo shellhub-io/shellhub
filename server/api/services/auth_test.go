@@ -97,7 +97,7 @@ func TestAuthDevice(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -116,7 +116,7 @@ func TestAuthDevice(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -138,7 +138,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -176,7 +176,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -225,7 +225,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -268,7 +268,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -331,7 +331,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
@@ -392,7 +392,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
@@ -477,7 +477,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -541,7 +541,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -615,7 +615,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -682,7 +682,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -753,7 +753,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -867,7 +867,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -949,7 +949,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -1025,7 +1025,7 @@ func TestAuthDevice(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -3202,7 +3202,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		storeMock.
 			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.
 			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -3280,7 +3280,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		storeMock.
 			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.
 			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
@@ -3335,7 +3335,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		storeMock.
 			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.
 			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).

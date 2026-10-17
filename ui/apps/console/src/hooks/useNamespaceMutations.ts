@@ -6,7 +6,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   editNamespaceMutation,
-  setSshAccessModeMutation,
+  upgradeNamespaceMutation,
   createNamespace as createNamespaceSdk,
   deleteNamespace as deleteNamespaceSdk,
   leaveNamespace as leaveNamespaceSdk,
@@ -29,13 +29,18 @@ export function useEditNamespace() {
 }
 
 /**
- * Sets how SSH access is granted in the namespace. It changes who can reach every device at
- * once, so the namespace queries are refreshed with it.
+ * Upgrades a legacy namespace to a new one, once and for good. It changes who can reach
+ * every device at once and seeds the owner's access policy, so the namespace and policy queries
+ * are refreshed with it.
  */
-export function useSetSshAccessMode() {
-  const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
+export function useUpgradeNamespace() {
+  const invalidate = useInvalidateByIds(
+    "getNamespaces",
+    "getNamespace",
+    "listAccessPolicies",
+  );
   return useMutation({
-    ...setSshAccessModeMutation(),
+    ...upgradeNamespaceMutation(),
     onSuccess: invalidate,
   });
 }
