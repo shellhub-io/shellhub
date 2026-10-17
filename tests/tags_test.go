@@ -167,6 +167,39 @@ func TestTagDeleteDetachesItEverywhere(t *testing.T) {
 	requireDeviceTags(t, compose, pending, "kept")
 }
 
+// TestTagNamesAreUniqueInNamespace covers a tag name already taken in the namespace: creating a tag
+// or renaming another to it answers 409 naming the field, and leaves both tags as they were.
+func TestTagNamesAreUniqueInNamespace(t *testing.T) {
+	t.Parallel()
+
+	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+
+	createTag(t, compose, "taken")
+	createTag(t, compose, "other")
+
+	attempts := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{"creating a tag with a taken name answers 409", http.MethodPost, "/api/tags"},
+		{"renaming a tag to a taken name answers 409", http.MethodPatch, "/api/tags/other"},
+	}
+
+	for _, attempt := range attempts {
+		t.Run(attempt.name, func(t *testing.T) {
+			refusal := new(responses.Error)
+
+			resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": "taken"}).SetError(refusal).Execute(attempt.method, attempt.path)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+			assert.Equal(t, map[string]string{"name": "duplicated"}, refusal.Fields)
+
+			assert.ElementsMatch(t, []string{"taken", "other"}, listedTags(t, compose.R(t.Context())))
+		})
+	}
+}
+
 // TestTagsAreNamespaceScoped covers two namespaces using the same tag name. Each namespace sees,
 // attaches, renames and deletes only its own tag, so a change in one leaves the other untouched.
 func TestTagsAreNamespaceScoped(t *testing.T) {
