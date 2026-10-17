@@ -91,6 +91,19 @@ func (dc *DockerCompose) RemoveLicenses(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// StoreLicense writes contents to the license store as the newest license, failing t if the row
+// cannot be written. It skips the admin API, which on Cloud refuses a license that grants no cloud
+// authorization, so a test can stand in for an installed license that stopped authorizing the
+// edition. It outlives t's context, so a deferred call or a t.Cleanup can restore a license with it.
+func (dc *DockerCompose) StoreLicense(t *testing.T, contents []byte) {
+	t.Helper()
+
+	_, err := dc.stack.SQL(context.WithoutCancel(t.Context()),
+		"INSERT INTO licenses (raw_data, created_at) VALUES (convert_to(:'license', 'UTF8'), clock_timestamp())",
+		map[string]string{"license": string(contents)})
+	require.NoError(t, err)
+}
+
 // LicenseRows returns how many licenses the server has stored. Installing one adds a row rather
 // than replacing one, so the count tells whether a license was written. It fails t when the count
 // cannot be read.
