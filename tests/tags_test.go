@@ -200,6 +200,69 @@ func TestTagNamesAreUniqueInNamespace(t *testing.T) {
 	}
 }
 
+// TestTagsAppliedByProvisioningKey covers a tag a provisioning key applies to the devices it enrolls.
+// The key holds the tag itself, not its name, so a rename carries over to the devices it enrolls
+// next. A key left without a tag would silently stop applying it, so the tag cannot be deleted while
+// a key holds it, unless the key is revoked and so enrolls nothing more.
+func TestTagsAppliedByProvisioningKey(t *testing.T) {
+	t.Parallel()
+
+	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+
+	newKey := func(t *testing.T, name, tag string) string {
+		t.Helper()
+
+		return compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{
+			Name: name,
+			Mode: string(models.ProvisioningKeyModeAutomatic),
+			Tags: []string{tag},
+		}).Key
+	}
+
+	t.Run("a renamed tag keeps being applied under its new name", func(t *testing.T) {
+		key := newKey(t, "renamedtag", "keybefore")
+		before := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "renamedbefore", "02:00:00:00:13:01"))
+		require.Equal(t, []string{"keybefore"}, tagNames(before.Tags))
+
+		renameTag(t, compose, "keybefore", "keyafter")
+
+		after := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "renamedafter", "02:00:00:00:13:02"))
+
+		assert.Equal(t, []string{"keyafter"}, compose.ProvisioningKey(t, "renamedtag").Tags)
+		requireDeviceTags(t, compose, before.UID, "keyafter")
+		assert.Equal(t, []string{"keyafter"}, tagNames(after.Tags))
+		assert.NotContains(t, listedTags(t, compose.R(t.Context())), "keybefore")
+	})
+
+	t.Run("a tag a provisioning key applies is not deleted", func(t *testing.T) {
+		key := newKey(t, "heldtag", "keyheld")
+		before := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "heldbefore", "02:00:00:00:13:03"))
+		require.Equal(t, []string{"keyheld"}, tagNames(before.Tags))
+
+		requireTagInUse(t, compose, "keyheld", `provisioning key "heldtag"`)
+
+		after := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "heldafter", "02:00:00:00:13:04"))
+
+		assert.Contains(t, listedTags(t, compose.R(t.Context())), "keyheld")
+		assert.Equal(t, []string{"keyheld"}, compose.ProvisioningKey(t, "heldtag").Tags)
+		requireDeviceTags(t, compose, before.UID, "keyheld")
+		assert.Equal(t, []string{"keyheld"}, tagNames(after.Tags))
+	})
+
+	t.Run("a tag only a revoked provisioning key holds is deleted", func(t *testing.T) {
+		key := newKey(t, "revokedtag", "keyrevoked")
+		before := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "revokedbefore", "02:00:00:00:13:05"))
+		require.Equal(t, []string{"keyrevoked"}, tagNames(before.Tags))
+		compose.UpdateProvisioningKey(t, "revokedtag", map[string]any{"revoked": true})
+
+		deleteTag(t, compose, "keyrevoked")
+
+		assert.NotContains(t, listedTags(t, compose.R(t.Context())), "keyrevoked")
+		assert.Empty(t, compose.ProvisioningKey(t, "revokedtag").Tags)
+		requireDeviceTags(t, compose, before.UID)
+	})
+}
+
 // TestTagsAreNamespaceScoped covers two namespaces using the same tag name. Each namespace sees,
 // attaches, renames and deletes only its own tag, so a change in one leaves the other untouched.
 func TestTagsAreNamespaceScoped(t *testing.T) {
