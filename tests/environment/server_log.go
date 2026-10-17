@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -28,11 +29,27 @@ func (dc *DockerCompose) ServerLogMark(t *testing.T) int {
 func (dc *DockerCompose) ServerLogSince(t *testing.T, mark int) string {
 	t.Helper()
 
-	logs, err := readServerLog(t.Context(), dc.Service(ServiceServer))
+	logs, err := dc.ReadServerLogSince(t.Context(), mark)
 	require.NoError(t, err)
-	require.LessOrEqual(t, mark, len(logs))
 
-	return logs[mark:]
+	return logs
+}
+
+// ReadServerLogSince returns what the server logged after mark. ctx bounds the read of the
+// server's container log. It returns the error reading the log fails with, ctx's error among
+// them, or an error when the log holds less than mark, so a caller polling inside
+// [assert.CollectT] can retry rather than fail.
+func (dc *DockerCompose) ReadServerLogSince(ctx context.Context, mark int) (string, error) {
+	logs, err := readServerLog(ctx, dc.Service(ServiceServer))
+	if err != nil {
+		return "", err
+	}
+
+	if mark > len(logs) {
+		return "", fmt.Errorf("the server log holds %d bytes, less than the mark at %d", len(logs), mark)
+	}
+
+	return logs[mark:], nil
 }
 
 // AwaitServerLogLine waits until a single line the server logged after mark holds every one of
@@ -45,12 +62,12 @@ func (dc *DockerCompose) AwaitServerLogLine(t *testing.T, mark int, substrs ...s
 	var found string
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		logs, err := readServerLog(t.Context(), dc.Service(ServiceServer))
-		if !assert.NoError(tt, err) || !assert.LessOrEqual(tt, mark, len(logs)) {
+		logs, err := dc.ReadServerLogSince(t.Context(), mark)
+		if !assert.NoError(tt, err) {
 			return
 		}
 
-		line, ok := firstLineHoldingAll(logs[mark:], substrs)
+		line, ok := firstLineHoldingAll(logs, substrs)
 		if assert.True(tt, ok, "no line the server logged after the mark holds all of %q", substrs) {
 			found = line
 		}
