@@ -35,7 +35,7 @@ func NewAgentContainerWithoutIdentity() NewAgentContainerOption {
 }
 
 // TestAgentSetup covers what an agent does on its own before the server knows it: the key it
-// generates and the identity it reads from its network interface.
+// generates and the identity it enrolls under, read from its network interface unless it is given one.
 func TestAgentSetup(t *testing.T) {
 	t.Parallel()
 
@@ -107,6 +107,24 @@ func TestAgentSetup(t *testing.T) {
 
 		compose.AwaitDeviceOnline(t, first.UID)
 		assert.Len(t, compose.ListDevices(t, models.DeviceStatusEmpty), 2, "the first mac address came back as another device")
+	})
+
+	t.Run("an agent with a preferred identity enrolls under it instead of its mac address", func(t *testing.T) {
+		compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+
+		identity := "preferred-" + randomHex(t)
+
+		agent, device := startAcceptedAgent(t, t.Context(), compose, NewAgentContainerWithIdentity(identity))
+
+		require.NotNil(t, device.Identity)
+		assert.Equal(t, identity, device.Identity.MAC)
+
+		require.NoError(t, agent.Stop(t.Context(), nil))
+		compose.AwaitDeviceOffline(t, device.UID)
+
+		require.NoError(t, agent.Start(t.Context()))
+		compose.AwaitDeviceOnline(t, device.UID)
+		assert.Len(t, compose.ListDevices(t, models.DeviceStatusEmpty), 1, "the restarted agent enrolled under another identity")
 	})
 }
 
