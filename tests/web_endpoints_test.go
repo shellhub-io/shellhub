@@ -239,7 +239,7 @@ func testWebEndpointCreation(t *testing.T, compose *environment.DockerCompose, d
 		requireCreateRefused(t, compose, req, http.StatusForbidden)
 	})
 
-	t.Run("an endpoint for a namespace that no longer exists is refused", func(t *testing.T) {
+	t.Run("a token whose namespace was deleted cannot create an endpoint", func(t *testing.T) {
 		const username, password = "orphan", "password"
 
 		compose.NewUser(t, username, "orphan@shellhub.example.com", password)
