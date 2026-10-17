@@ -30,7 +30,9 @@ type DeviceLoginCodeService interface {
 	// ResolveDeviceLoginCode resolves a login code into a device preview for the
 	// accept page. It requires the requesting user to be a member of the device's
 	// namespace; unknown, expired, and non-member codes all return the same
-	// not-found error to avoid leaking the existence of a code.
+	// not-found error to avoid leaking the existence of a code. A pairing code
+	// resolves only while it is pending, matching what AcceptDevicePairing
+	// accepts.
 	ResolveDeviceLoginCode(ctx context.Context, userID, code string) (*models.DeviceLoginCodePreview, error)
 }
 
@@ -64,7 +66,7 @@ func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code strin
 	data := new(deviceLoginCode)
 	if err := s.cache.Get(ctx, "login_code/"+code, data); err != nil || data.UID == "" {
 		pairing := new(devicePairing)
-		if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err == nil && pairing.PublicKey != "" {
+		if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err == nil && pairing.PublicKey != "" && pairing.Status == models.DeviceStatusPending {
 			return &models.DeviceLoginCodePreview{
 				Kind:     models.DeviceLoginCodeKindPairing,
 				Name:     pairingPreviewName(pairing),

@@ -36,6 +36,20 @@ type DevicePairingService interface {
 	// CreateDevicePairing stores the identity payload of a tenant-less agent and
 	// returns a short-lived code that deep-links it into the console's accept
 	// page. No device exists until a user accepts the pairing into a namespace.
+	//
+	// When an accepted device already holds the public key, it returns the
+	// accepted status and that device's tenant, with no code. While the key's
+	// previous code is still pending, it returns that code again. Once that code
+	// was accepted, it looks for an accepted device again and answers as above
+	// if it finds one.
+	// Otherwise it drops the code and returns a new one; a drop that fails
+	// leaves the old code cached until it expires, where AcceptDevicePairing
+	// still refuses it.
+	//
+	// It returns the store's error when it cannot tell whether an accepted
+	// device holds the key, leaving any cached code untouched, and the cache's
+	// error when the new code cannot be stored. ctx bounds every store and
+	// cache call; a cancellation surfaces as one of those errors.
 	CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error)
 
 	// GetDevicePairingStatus reports the pairing outcome to the agent. The code
@@ -44,7 +58,8 @@ type DevicePairingService interface {
 
 	// AcceptDevicePairing materializes the pairing payload as a device in the
 	// chosen namespace and accepts it. The user must be a member of the chosen
-	// namespace with the device accept permission.
+	// namespace with the device accept permission. A code is accepted once: an
+	// unknown, expired or already accepted code returns not found.
 	//
 	// The response carries the surviving device's owner, which is empty only when
 	// the device merged into a team device. It returns an error when the accepted
@@ -53,9 +68,8 @@ type DevicePairingService interface {
 }
 
 func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
-	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
-	if device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, req.PublicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); err == nil && device != nil {
-		return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: device.TenantID}, nil
+	if accepted, ok, err := s.acceptedDevicePairing(ctx, req.PublicKey); err != nil || ok {
+		return accepted, err
 	}
 
 	pubKeyRef := "pairing_code_pubkey/" + hashPublicKey(req.PublicKey)
@@ -64,12 +78,21 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 	if err := s.cache.Get(ctx, pubKeyRef, &existingCode); err == nil && existingCode != "" {
 		existing := new(devicePairing)
 		if err := s.cache.Get(ctx, "pairing_code/"+existingCode, existing); err == nil && existing.PublicKey != "" {
-			return &models.DevicePairing{
-				Code:      existingCode,
-				ExpiresIn: int(devicePairingTTL.Seconds()),
-				Status:    existing.Status,
-				TenantID:  existing.TenantID,
-			}, nil
+			if existing.Status == models.DeviceStatusPending {
+				return &models.DevicePairing{
+					Code:      existingCode,
+					ExpiresIn: int(devicePairingTTL.Seconds()),
+					Status:    models.DeviceStatusPending,
+				}, nil
+			}
+
+			if accepted, ok, err := s.acceptedDevicePairing(ctx, req.PublicKey); err != nil || ok {
+				return accepted, err
+			}
+
+			if err := s.cache.Delete(ctx, "pairing_code/"+existingCode); err != nil {
+				log.WithError(err).Warn("failed to drop the accepted pairing code; it stays cached until it expires")
+			}
 		}
 	}
 
@@ -110,6 +133,19 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 	}, nil
 }
 
+func (s *service) acceptedDevicePairing(ctx context.Context, publicKey string) (*models.DevicePairing, bool, error) {
+	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
+	device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, publicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+	switch {
+	case err == nil && device != nil:
+		return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: device.TenantID}, true, nil
+	case err != nil && !errors.Is(err, store.ErrNoDocuments):
+		return nil, false, err
+	default:
+		return nil, false, nil
+	}
+}
+
 func hashPublicKey(publicKey string) string {
 	sum := sha256.Sum256([]byte(publicKey))
 
@@ -141,6 +177,10 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 	pairing := new(devicePairing)
 	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
 		return nil, NewErrDevicePairingCodeNotFound(code, err)
+	}
+
+	if pairing.Status != models.DeviceStatusPending {
+		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
