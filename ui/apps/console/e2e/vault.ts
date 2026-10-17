@@ -54,7 +54,7 @@ export async function setUpVault(
 export const keyEntry = (page: Page, name: string) =>
   page.getByRole("button", { name: `Edit ${name}` });
 
-export async function addKey(
+export async function submitKey(
   page: Page,
   { privateKey = buildPrivateKey(), passphrase = "" } = {},
 ) {
@@ -68,6 +68,14 @@ export async function addKey(
     await dialog.getByLabel("Passphrase", { exact: true }).fill(passphrase);
   }
   await dialog.getByRole("button", { name: "Add key" }).click();
+  return { name, dialog };
+}
+
+export async function addKey(
+  page: Page,
+  options?: Parameters<typeof submitKey>[1],
+) {
+  const { name } = await submitKey(page, options);
   await expect(keyEntry(page, name)).toBeVisible();
   return name;
 }
