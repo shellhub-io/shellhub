@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"regexp"
 	"slices"
 	"testing"
@@ -321,6 +322,18 @@ func newMember(t *testing.T, compose *environment.DockerCompose, username string
 	compose.NewMember(t, username, ShellHubNamespaceName, string(role))
 
 	return compose.AuthUser(t, username, ShellHubPassword)
+}
+
+func reassignRoleAndSignIn(t *testing.T, compose *environment.DockerCompose, member *models.UserAuthResponse, role authorizer.Role) *models.UserAuthResponse {
+	t.Helper()
+
+	resp, err := compose.R(t.Context()).
+		SetBody(map[string]any{"role": role}).
+		Patch("/api/namespaces/" + ShellHubNamespace + "/members/" + member.ID)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	return compose.AuthUser(t, member.User, ShellHubPassword)
 }
 
 func newAPIKeyIdentity(t *testing.T, compose *environment.DockerCompose, name string, singleUse bool) (*responses.CreateAPIKey, ssh.Signer) {
