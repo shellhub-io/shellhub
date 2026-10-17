@@ -17,6 +17,8 @@ const agentUpdateCheckWindow = 5 * time.Second
 
 var agentUpdateApplied = regexp.MustCompile(`msg="Update successfully applied".* next_version=(\S+)`)
 
+var agentUpdateWaiting = regexp.MustCompile(`msg="Waiting for the next update check"`)
+
 var agentUpdateCheckLines = regexp.MustCompile(`msg="(Update successfully applied|Failed to check update|Failed to apply update|Waiting for the next update check)"`)
 
 var agentRetriedRequest = regexp.MustCompile(`msg="(Cannot reach the server, retrying until it answers|Cannot authorize the device, retrying until the server accepts it)"`)

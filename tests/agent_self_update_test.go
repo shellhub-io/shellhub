@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -49,9 +50,7 @@ func TestAgentDockerSelfUpdate(t *testing.T) {
 	current := pushDockerAgent(t, registry, selfUpdateFromVersion)
 	nextImage := pushDockerAgent(t, registry, next)
 
-	docker, err := client.New(client.FromEnv)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = docker.Close() })
+	docker := newDockerClient(t)
 
 	original := startDockerAgent(t, compose, docker, current)
 
@@ -80,6 +79,56 @@ func TestAgentDockerSelfUpdate(t *testing.T) {
 				assert.Equal(tt, []string{replacement.ID}, ids, "the container that ran the update is still there")
 			}
 		}, 30*time.Second, time.Second)
+	})
+}
+
+// TestAgentDockerSelfUpdateFailure covers a Docker self-update that cannot pull the server's
+// version: the registry the agent came from holds only the agent's own version. The agent logs the
+// failure, does not report the update as applied, and stays in the container it started in,
+// connected to the server.
+func TestAgentDockerSelfUpdateFailure(t *testing.T) {
+	t.Parallel()
+
+	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	next := strings.TrimPrefix(reportedServerVersion(t, compose), "v")
+
+	registry, err := environment.StartRegistry(t.Context(), run)
+	require.NoError(t, err)
+	t.Cleanup(func() { assert.NoError(t, registry.Close(t.Context())) })
+
+	current := pushDockerAgent(t, registry, selfUpdateFromVersion)
+
+	docker := newDockerClient(t)
+
+	original := startDockerAgent(t, compose, docker, current)
+
+	var logs string
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		read, err := readContainerLogs(t.Context(), docker, original.ID)
+		if !assert.NoError(tt, err) {
+			return
+		}
+
+		logs = read
+		assert.Regexp(tt, agentUpdateWaiting, logs, "the agent has not finished its first update check")
+	}, selfUpdateTimeout, time.Second)
+
+	t.Run("the agent logs the failure and does not report the update as applied", func(t *testing.T) {
+		assert.Regexp(t, `msg="Failed to apply update".* next_version=`+regexp.QuoteMeta(next)+`\b`, logs)
+		assert.NotRegexp(t, agentUpdateApplied, logs)
+	})
+
+	t.Run("the agent keeps running in its own container and connects to the server", func(t *testing.T) {
+		acceptPendingDevice(t, compose)
+
+		inspected, err := docker.ContainerInspect(t.Context(), original.Name, client.ContainerInspectOptions{})
+		require.NoError(t, err)
+		assert.Equal(t, original.ID, inspected.Container.ID, "another container took the agent's name")
+		assert.True(t, inspected.Container.State.Running, "the agent's container stopped")
+		assert.Equal(t, current, inspected.Container.Config.Image)
+
+		assert.Regexp(t, agentConnectedLine, daemonContainerLogs(t, docker, original.ID))
 	})
 }
 
@@ -169,20 +218,40 @@ func awaitContainerReplaced(t *testing.T, docker *client.Client, original contai
 	return replacement
 }
 
+func newDockerClient(t *testing.T) *client.Client {
+	t.Helper()
+
+	docker, err := client.New(client.FromEnv)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = docker.Close() })
+
+	return docker
+}
+
 func daemonContainerLogs(t *testing.T, docker *client.Client, id string) string {
 	t.Helper()
 
-	reader, err := docker.ContainerLogs(t.Context(), id, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	logs, err := readContainerLogs(t.Context(), docker, id)
 	require.NoError(t, err)
+
+	return logs
+}
+
+func readContainerLogs(ctx context.Context, docker *client.Client, id string) (string, error) {
+	reader, err := docker.ContainerLogs(ctx, id, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		return "", err
+	}
 
 	defer reader.Close() //nolint:errcheck // the logs have been read in full
 
 	var stdout, stderr bytes.Buffer
 
-	_, err = stdcopy.StdCopy(&stdout, &stderr, reader)
-	require.NoError(t, err)
+	if _, err := stdcopy.StdCopy(&stdout, &stderr, reader); err != nil {
+		return "", err
+	}
 
-	return stdout.String() + stderr.String()
+	return stdout.String() + stderr.String(), nil
 }
 
 func containersFrom(ctx context.Context, docker *client.Client, image string) ([]string, error) {
