@@ -19,6 +19,7 @@ import {
   masterPassword,
   openSetUp,
   setUpVault,
+  submitKey,
   uninitializedState,
 } from "./vault";
 
@@ -265,6 +266,35 @@ test.describe("Secure vault", () => {
       await resetVault(page);
 
       await expectStatus(getVault, { token: owner.token }, 404);
+    });
+
+    test("a session holding a stale vault cannot overwrite a key another session saved", async ({
+      page,
+      browser,
+    }) => {
+      const { owner } = await openVault(page);
+      await setUpVault(page, "server");
+
+      const staleContext = await browser.newContext();
+      const stale = await staleContext.newPage();
+      await signInAndOpen(stale, owner.username, "/secure-vault");
+      await unlock(stale, masterPassword);
+      await expect(
+        stale.getByRole("button", { name: "Add Private Key" }),
+      ).toBeVisible();
+
+      const saved = await addKey(page);
+
+      const refused = await submitKey(stale);
+      await expect(refused.dialog.getByRole("alert")).toHaveText(
+        "The vault was changed in another session. Reload the vault and try again.",
+      );
+
+      await stale.reload();
+      await unlock(stale, masterPassword);
+      await expect(keyEntry(stale, saved)).toBeVisible();
+      await expect(keyEntry(stale, refused.name)).toHaveCount(0);
+      await staleContext.close();
     });
 
     test("moves a device-only vault to the server", async ({ page }) => {
