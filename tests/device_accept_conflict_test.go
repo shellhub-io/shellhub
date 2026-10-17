@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -64,13 +66,18 @@ func TestDeviceAcceptNameConflicts(t *testing.T) {
 	})
 }
 
-func requireAcceptConflict(t *testing.T, compose *environment.DockerCompose, uid string) {
+func requireAcceptConflict(t *testing.T, compose *environment.DockerCompose, uid string) responses.Error {
 	t.Helper()
 
 	resp, err := compose.PatchDeviceStatus(t.Context(), uid, environment.DeviceActionAccept)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
 	assert.Equal(t, models.DeviceStatusPending, requireDevice(t, compose, uid).Status)
+
+	var refusal responses.Error
+	require.NoError(t, json.Unmarshal(resp.Body(), &refusal), resp.String())
+
+	return refusal
 }
 
 func renameDevice(t *testing.T, compose *environment.DockerCompose, uid, name string) {
