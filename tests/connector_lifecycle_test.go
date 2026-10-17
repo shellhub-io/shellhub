@@ -64,6 +64,52 @@ func TestConnectorContainerLifecycle(t *testing.T) {
 	require.Equal(t, uid, awaitContainerWithStatus(t, compose, models.DeviceStatusPending).UID, "the removed container asked to join again under another uid")
 }
 
+// TestConnectorRestart covers a connector coming back while the containers it served keep running.
+// No container starts after the connector does, so only the list the connector reads as it starts
+// can bring them back, and only the key it kept for each one lets them back under their uids.
+func TestConnectorRestart(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+
+	label := "restarted-" + randomHex(t)
+	for range 2 {
+		startIdleContainer(t, ctx, label+"-"+randomHex(t), map[string]string{connectorLabel: label})
+	}
+
+	connector := startConnector(t, ctx, compose, connectorLabel+"="+label)
+
+	served := awaitContainersWithStatus(t, compose, models.DeviceStatusPending, 2)
+	for _, c := range served {
+		compose.UpdateDeviceStatus(t, c.UID, environment.DeviceActionAccept)
+		compose.AwaitDeviceOnline(t, c.UID)
+	}
+
+	require.NoError(t, connector.Stop(ctx, nil))
+	for _, c := range served {
+		compose.AwaitDeviceOffline(t, c.UID)
+	}
+
+	require.NoError(t, connector.Start(ctx))
+
+	for _, c := range served {
+		compose.AwaitDeviceOnline(t, c.UID)
+	}
+
+	assert.Equal(t, containerKeys(served), containerKeys(awaitContainersWithStatus(t, compose, models.DeviceStatusEmpty, 2)), "the restarted connector served the containers under other uids or keys")
+}
+
+func containerKeys(devices []models.Device) map[string]string {
+	keys := make(map[string]string, len(devices))
+	for _, device := range devices {
+		keys[device.UID] = device.PublicKey
+	}
+
+	return keys
+}
+
 func startLabelledContainer(t *testing.T, ctx context.Context, name string) testcontainers.Container {
 	t.Helper()
 
