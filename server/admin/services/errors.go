@@ -27,5 +27,6 @@ var (
 	ErrFailedNamespaceAddMember    = errors.New("could not add this member to this namespace")
 	ErrUserUnhandledDuplicate      = errors.New("unhandled duplicated field for the user")
 	ErrFailedListNamespaces        = errors.New("failed to list namespaces")
+	ErrFailedLimitNamespace        = errors.New("failed to set the namespace's device limit")
 	ErrFailedListUsers             = errors.New("failed to list users")
 )

@@ -155,6 +155,21 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 	return nil
 }
 
+// NamespaceLimit implements [Services].
+func (s *service) NamespaceLimit(ctx context.Context, input *inputs.NamespaceLimit) (*models.Namespace, error) {
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	ns.MaxDevices = input.MaxDevices
+	if err := s.store.NamespaceUpdate(ctx, ns); err != nil {
+		return nil, ErrFailedLimitNamespace
+	}
+
+	return ns, nil
+}
+
 // NamespaceList retrieves all namespaces available to the user
 func (s *service) NamespaceList(ctx context.Context) ([]models.Namespace, error) {
 	namespaces, _, err := s.store.NamespaceList(ctx)

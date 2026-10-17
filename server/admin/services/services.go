@@ -65,6 +65,13 @@ type Services interface {
 	// the listing, the deletion and the evictions, so a ctx cancelled after the deletion leaves the
 	// cached authorizations to expire on their own.
 	NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error
+	// NamespaceLimit sets the device limit of the namespace of the provided name, -1 meaning no
+	// limit, and returns the namespace with the new limit. Devices already accepted stay accepted;
+	// the limit refuses the next accept once the accepted count reaches it. It returns
+	// ErrNamespaceNotFound, and ErrFailedLimitNamespace when the store fails to save the limit.
+	// Both store calls run under ctx, so a cancelled ctx surfaces as ErrNamespaceNotFound or
+	// ErrFailedLimitNamespace, depending on the call it interrupts.
+	NamespaceLimit(ctx context.Context, input *inputs.NamespaceLimit) (*models.Namespace, error)
 	// NamespaceList retrieves all namespaces available to the user
 	NamespaceList(ctx context.Context) ([]models.Namespace, error)
 	// NamespaceResolve retrieves a namespace using the specified resolver

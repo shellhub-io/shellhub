@@ -15,3 +15,9 @@ type NamespaceCreate struct {
 type NamespaceDelete struct {
 	Namespace string `validate:"required,hostname_rfc1123,excludes=.,lowercase"`
 }
+
+// NamespaceLimit defines the structure for inputs when setting a namespace's device limit.
+type NamespaceLimit struct {
+	Namespace  string `validate:"required,hostname_rfc1123,excludes=.,lowercase"`
+	MaxDevices int    `validate:"min=-1,ne=0"`
+}
