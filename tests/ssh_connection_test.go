@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/moby/moby/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -216,6 +217,56 @@ func TestSSHServerRestart(t *testing.T) {
 		requireSessionActive(t, ctx, compose, orphaned.UID, false)
 		requireSessionActive(t, ctx, compose, idle.UID, true)
 	})
+}
+
+// TestSSHUnresponsiveDevice covers a device that holds its tunnel but never dials back: a V1 agent
+// paused as soon as it comes online, whose kernel keeps the tunnel's socket open while the agent
+// reads nothing from it. The tunnel is pinged once a minute, so it outlives the server's 30 second
+// wait for the dial-back by about half a minute; the client fails at that wait, while the device
+// still holds its tunnel, and does not wait out the 180 seconds the server allows a handshake.
+func TestSSHUnresponsiveDevice(t *testing.T) {
+	t.Parallel()
+
+	const (
+		tunnelPingInterval = 59 * time.Second
+		failWithin         = 45 * time.Second
+	)
+
+	ctx := context.Background()
+
+	compose := newConfiguredSSHEnvironment(t, ctx,
+		environment.New(t, run).WithEnv("SHELLHUB_TUNNEL_PING_INTERVAL", tunnelPingInterval.String()),
+		models.SSHAccessModeLegacy)
+	signer := registerDeviceKey(t, ctx, compose)
+	agent, device := startAcceptedAgent(t, ctx, compose, NewAgentContainerWithConnectionVersion(1))
+
+	docker := newDockerClient(t)
+
+	_, err := docker.ContainerPause(ctx, agent.GetContainerID(), client.ContainerPauseOptions{})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, _ = docker.ContainerUnpause(context.Background(), agent.GetContainerID(), client.ContainerUnpauseOptions{})
+	})
+
+	mark := compose.ServerLogMark(t)
+
+	dialCtx, cancel := context.WithTimeout(ctx, 4*time.Minute)
+	defer cancel()
+
+	started := time.Now() //nolint:forbidigo // measures how long a real client waits
+	err = handshakeWith(dialCtx, compose.SSHAddress(), &ssh.ClientConfig{
+		User:            deviceSSHID(device),
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // the test stack's host key is ephemeral
+	})
+	waited := time.Since(started)
+
+	require.Error(t, err, "the client reached a device that cannot answer")
+	t.Logf("the client failed after %s: %v", waited, err)
+	assert.Less(t, waited, failWithin, "the client waited past the server's dial-back bound")
+	assert.True(t, requireDevice(t, compose, device.UID).Online, "the tunnel closed before the client failed, so the dial-back bound was not what ended the wait")
+
+	compose.AwaitServerLogLine(t, mark, "sshid="+deviceSSHID(device), "the device holds a tunnel but did not answer")
 }
 
 func requireAccessDenied(t *testing.T, compose *environment.DockerCompose, sshid string, signer ssh.Signer, reasons ...string) {
