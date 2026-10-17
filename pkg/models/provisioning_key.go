@@ -116,8 +116,12 @@ type ProvisioningKey struct {
 	// EphemeralTimeout is how many minutes an ephemeral device may stay offline before removal
 	// (1-10). Only meaningful when Ephemeral is true.
 	EphemeralTimeout int `json:"ephemeral_timeout"`
-	// Tags are the names of the namespace tags applied to devices enrolled with the key.
+	// Tags are the names of the namespace tags applied to devices enrolled with the key, as of the
+	// last read. The store writes the tags through TagIDs only.
 	Tags []string `json:"tags"`
+	// TagIDs are the IDs of the tags the key holds, so a renamed tag stays on it under its new name.
+	// On an update, nil leaves the key's tags as they are and an empty slice drops them all.
+	TagIDs []string `json:"-"`
 	// Revoked reports whether the key has been permanently revoked. Revocation is one-way: a revoked
 	// key can never enroll again. For a reversible pause, use Disabled instead.
 	Revoked bool `json:"revoked"`

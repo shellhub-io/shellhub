@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -161,8 +162,11 @@ func (s *service) decryptProvisioningKey(encoded string) (string, error) {
 // a provisioning key is also kept encrypted so an operator can read it back.
 type ProvisioningKeyService interface {
 	// CreateProvisioningKey creates a new provisioning key for the specified namespace. It generates a random key,
-	// stores its SHA256 hash plus an encrypted-at-rest copy, and returns the plaintext key once. It
-	// returns the created key and an error, if any.
+	// stores its SHA256 hash plus an encrypted-at-rest copy, and returns the plaintext key once. The key
+	// holds the tags it names, creating any the namespace lacks, so a later rename carries over to it.
+	// A tag that can be neither resolved nor created fails the request with the store's error. Tags and
+	// key are written in one transaction, so a failed request creates no tag. It returns the created key
+	// and an error, if any.
 	CreateProvisioningKey(ctx context.Context, req *requests.CreateProvisioningKey) (res *responses.CreateProvisioningKey, err error)
 
 	// RevealProvisioningKey returns the plaintext of a provisioning key, decrypted from its at-rest ciphertext. It
@@ -174,7 +178,11 @@ type ProvisioningKeyService interface {
 	// list, the total count of documents, and an error, if any.
 	ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
-	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. It returns an error, if any.
+	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. Tags, when set,
+	// replace the tags the key holds, creating any the namespace lacks, and a tag that can be neither
+	// resolved nor created fails the request with the store's error. Tags are resolved only once every
+	// field has validated, in the transaction that writes the key, so a rejected request creates no
+	// tag. It returns an error, if any.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
 	// ListProvisioningKeyEvents retrieves the append-only enrollment history of the provisioning key identified by
@@ -255,7 +263,18 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 		KeyHint:            provisioningKeyHint(key),
 	}
 
-	if _, err := s.store.ProvisioningKeyCreate(ctx, data); err != nil {
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		tagIDs, err := s.provisioningKeyTagIDs(ctx, sc, req.Tags)
+		if err != nil {
+			return err
+		}
+
+		data.TagIDs = tagIDs
+
+		_, err = s.store.ProvisioningKeyCreate(ctx, data)
+
+		return err
+	}); err != nil {
 		return nil, err
 	}
 
@@ -332,10 +351,6 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		provisioningKey.Name = req.Name
 	}
 
-	if req.Tags != nil {
-		provisioningKey.Tags = req.Tags
-	}
-
 	if req.Mode != nil {
 		provisioningKey.Mode = models.ProvisioningKeyMode(*req.Mode)
 	}
@@ -409,11 +424,44 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		provisioningKey.ExpiresAt = provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn.Value)
 	}
 
-	if err := s.store.ProvisioningKeyUpdate(ctx, provisioningKey); err != nil {
-		return err
+	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		provisioningKey.TagIDs = nil
+
+		if req.Tags != nil {
+			tagIDs, err := s.provisioningKeyTagIDs(ctx, sc, req.Tags)
+			if err != nil {
+				return err
+			}
+
+			provisioningKey.Tags = req.Tags
+			provisioningKey.TagIDs = tagIDs
+		}
+
+		return s.store.ProvisioningKeyUpdate(ctx, provisioningKey)
+	})
+}
+
+func (s *service) provisioningKeyTagIDs(ctx context.Context, sc scope.Scope, names []string) ([]string, error) {
+	tagIDs := make([]string, 0, len(names))
+
+	for _, name := range names {
+		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, name, s.store.Options().ForUpdate())
+		switch {
+		case err == nil:
+			tagIDs = append(tagIDs, tag.ID)
+		case errors.Is(err, store.ErrNoDocuments):
+			id, err := s.store.TagCreate(ctx, &models.Tag{Name: name, TenantID: sc.TenantID()})
+			if err != nil {
+				return nil, err
+			}
+
+			tagIDs = append(tagIDs, id)
+		default:
+			return nil, err
+		}
 	}
 
-	return nil
+	return tagIDs, nil
 }
 
 func (s *service) RevealProvisioningKey(ctx context.Context, req *requests.RevealProvisioningKey) (string, error) {

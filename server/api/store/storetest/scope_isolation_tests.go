@@ -141,7 +141,6 @@ func (s *Suite) TestScopeIsolationProvisioningKeyResolve(t *testing.T) {
 			TenantID:  key.tenant,
 			Mode:      models.ProvisioningKeyModeManual,
 			Reusable:  true,
-			Tags:      []string{},
 			CreatedBy: "00000000-0000-4000-0000-000000000009",
 		})
 		require.NoError(t, err)
@@ -176,7 +175,6 @@ func (s *Suite) TestScopeIsolationProvisioningKeyList(t *testing.T) {
 		TenantID:  owner,
 		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
@@ -221,7 +219,6 @@ func (s *Suite) TestScopeIsolationProvisioningKeyConflicts(t *testing.T) {
 		TenantID:  owner,
 		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
@@ -272,7 +269,6 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventList(t *testing.T) {
 		TenantID:  owner,
 		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
@@ -553,7 +549,6 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventStampDecision(t *testing.T
 		TenantID:  owner,
 		Mode:      models.ProvisioningKeyModeManual,
 		Reusable:  true,
-		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)

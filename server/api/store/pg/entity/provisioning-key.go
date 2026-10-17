@@ -27,7 +27,6 @@ type ProvisioningKey struct {
 	LastUsedAt         *time.Time `bun:"last_used_at,nullzero,skipupdate"`
 	Ephemeral          bool       `bun:"ephemeral"`
 	EphemeralTimeout   int        `bun:"ephemeral_timeout"`
-	Tags               []string   `bun:"tags,array"`
 	Revoked            bool       `bun:"revoked"`
 	Disabled           bool       `bun:"disabled"`
 	Type               string     `bun:"type"`
@@ -39,6 +38,20 @@ type ProvisioningKey struct {
 	ExpiresAt          *time.Time `bun:"expires_at,nullzero"`
 	// PendingDevices is counted by ProvisioningKeyList; it is not a stored column.
 	PendingDevices int `bun:"pending_devices,scanonly"`
+
+	Tags []*Tag `bun:"m2m:provisioning_key_tags,join:ProvisioningKey=Tag"`
+}
+
+// ProvisioningKeyTag joins a provisioning key to a tag it applies on enrollment.
+type ProvisioningKeyTag struct {
+	bun.BaseModel              `bun:"table:provisioning_key_tags"`
+	ProvisioningKeyDigest      string    `bun:"provisioning_key_digest,pk"`
+	ProvisioningKeyNamespaceID string    `bun:"provisioning_key_namespace_id,pk"`
+	TagID                      string    `bun:"tag_id,pk"`
+	CreatedAt                  time.Time `bun:"created_at"`
+
+	ProvisioningKey *ProvisioningKey `bun:"rel:belongs-to,join:provisioning_key_digest=key_digest,join:provisioning_key_namespace_id=namespace_id"`
+	Tag             *Tag             `bun:"rel:belongs-to,join:tag_id=id"`
 }
 
 // ProvisioningKeyFromModel projects a provisioning key into its row form.
@@ -48,9 +61,9 @@ func ProvisioningKeyFromModel(model *models.ProvisioningKey) *ProvisioningKey {
 		allowedIdentities = []string{}
 	}
 
-	tags := model.Tags
-	if tags == nil {
-		tags = []string{}
+	tags := make([]*Tag, len(model.TagIDs))
+	for i, tagID := range model.TagIDs {
+		tags[i] = &Tag{ID: tagID}
 	}
 
 	keyType := model.Type
@@ -74,7 +87,6 @@ func ProvisioningKeyFromModel(model *models.ProvisioningKey) *ProvisioningKey {
 		LastUsedAt:         model.LastUsedAt,
 		Ephemeral:          model.Ephemeral,
 		EphemeralTimeout:   model.EphemeralTimeout,
-		Tags:               tags,
 		Revoked:            model.Revoked,
 		Disabled:           model.Disabled,
 		Type:               string(keyType),
@@ -84,11 +96,19 @@ func ProvisioningKeyFromModel(model *models.ProvisioningKey) *ProvisioningKey {
 		CreatedAt:          model.CreatedAt,
 		UpdatedAt:          model.UpdatedAt,
 		ExpiresAt:          model.ExpiresAt,
+		Tags:               tags,
 	}
 }
 
 // ProvisioningKeyToModel rebuilds a provisioning key from its row.
 func ProvisioningKeyToModel(entity *ProvisioningKey) *models.ProvisioningKey {
+	tags := make([]string, len(entity.Tags))
+	tagIDs := make([]string, len(entity.Tags))
+	for i, tag := range entity.Tags {
+		tags[i] = tag.Name
+		tagIDs[i] = tag.ID
+	}
+
 	return &models.ProvisioningKey{
 		ID:                 entity.KeyDigest,
 		Name:               entity.Name,
@@ -106,7 +126,8 @@ func ProvisioningKeyToModel(entity *ProvisioningKey) *models.ProvisioningKey {
 		LastUsedAt:         entity.LastUsedAt,
 		Ephemeral:          entity.Ephemeral,
 		EphemeralTimeout:   entity.EphemeralTimeout,
-		Tags:               entity.Tags,
+		Tags:               tags,
+		TagIDs:             tagIDs,
 		Revoked:            entity.Revoked,
 		Disabled:           entity.Disabled,
 		Type:               models.ProvisioningKeyType(entity.Type),

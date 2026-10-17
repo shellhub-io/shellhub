@@ -146,30 +146,10 @@ func deviceHostname(hostname, mac string) string {
 	return ""
 }
 
-func (s *service) applyProvisioningKeyTags(ctx context.Context, sc scope.Scope, deviceUID string, tags []string) {
-	tenantID := sc.TenantID()
-
-	for _, name := range tags {
-		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, name)
-		if err != nil {
-			if !errors.Is(err, store.ErrNoDocuments) {
-				log.WithError(err).WithField("tag", name).Warn("failed to resolve provisioning key tag")
-
-				continue
-			}
-
-			id, cerr := s.store.TagCreate(ctx, &models.Tag{Name: name, TenantID: tenantID})
-			if cerr != nil {
-				log.WithError(cerr).WithField("tag", name).Warn("failed to create provisioning key tag")
-
-				continue
-			}
-
-			tag = &models.Tag{ID: id, Name: name, TenantID: tenantID}
-		}
-
-		if err := s.store.TagPushToTarget(ctx, tag.ID, store.TagTargetDevice, deviceUID); err != nil {
-			log.WithError(err).WithField("tag", name).Warn("failed to apply provisioning key tag to device")
+func (s *service) applyProvisioningKeyTags(ctx context.Context, deviceUID string, tagIDs []string) {
+	for _, tagID := range tagIDs {
+		if err := s.store.TagPushToTarget(ctx, tagID, store.TagTargetDevice, deviceUID); err != nil {
+			log.WithError(err).WithField("tag_id", tagID).Warn("failed to apply provisioning key tag to device")
 		}
 	}
 }
@@ -531,8 +511,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			return nil, err
 		}
 
-		if provisioningKey != nil && len(provisioningKey.Tags) > 0 {
-			s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
+		if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
+			s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
 		}
 
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
@@ -582,8 +562,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 				return nil, err
 			}
 
-			if provisioningKey != nil && len(provisioningKey.Tags) > 0 {
-				s.applyProvisioningKeyTags(ctx, sc, uid, provisioningKey.Tags)
+			if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
+				s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
 			}
 
 			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
