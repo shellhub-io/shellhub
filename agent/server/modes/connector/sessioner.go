@@ -3,7 +3,7 @@ package connector
 import (
 	"errors"
 	"io"
-	"sync"
+	"net"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -52,31 +52,17 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	}
 	defer resp.Close()
 
-	var wg sync.WaitGroup
-	wg.Go(func() {
-		defer func() {
-			code, err := exitCodeExecFromContainer(s.docker, id)
-			if err != nil {
-				log.WithError(err).Error("connector session I/O failed")
-			}
-
-			session.Exit(code) //nolint:errcheck
-		}()
-
-		if _, err := io.Copy(session, resp.Conn); err != nil && !errors.Is(err, io.EOF) {
-			log.WithError(err).Error("connector session I/O failed")
-		}
-	})
-
-	wg.Go(func() {
+	go func() {
 		defer resp.Close()
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
-			log.WithError(err).Error("connector session I/O failed")
-		}
-	})
+		copyInput(resp.Conn, session)
+	}()
 
-	wg.Wait()
+	if _, err := io.Copy(session, resp.Conn); err != nil && !errors.Is(err, io.EOF) {
+		log.WithError(err).Error("connector session I/O failed")
+	}
+
+	s.exit(session, id)
 
 	return nil
 }
@@ -98,37 +84,23 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	}
 	defer resp.Close()
 
-	var wg sync.WaitGroup
-	wg.Go(func() {
-		defer func() {
-			code, err := exitCodeExecFromContainer(s.docker, id)
-			if err != nil {
-				log.WithError(err).Error("connector session I/O failed")
-			}
-
-			session.Exit(code) //nolint:errcheck
-		}()
-
-		if isPty {
-			if _, err := io.Copy(session, resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-				log.WithError(err).Error("connector session I/O failed")
-			}
-		} else {
-			if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-				log.WithError(err).Error("connector session I/O failed")
-			}
-		}
-	})
-
-	wg.Go(func() {
+	go func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
+		copyInput(resp.Conn, session)
+	}()
+
+	if isPty {
+		if _, err := io.Copy(session, resp.Reader); err != nil && !errors.Is(err, io.EOF) {
 			log.WithError(err).Error("connector session I/O failed")
 		}
-	})
+	} else {
+		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
+			log.WithError(err).Error("connector session I/O failed")
+		}
+	}
 
-	wg.Wait()
+	s.exit(session, id)
 
 	return nil
 }
@@ -153,31 +125,32 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	}
 	defer resp.Close()
 
-	var wg sync.WaitGroup
-	wg.Go(func() {
-		defer func() {
-			code, err := exitCodeExecFromContainer(s.docker, id)
-			if err != nil {
-				log.WithError(err).Error("connector session I/O failed")
-			}
-
-			session.Exit(code) //nolint:errcheck
-		}()
-
-		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-			log.WithError(err).Error("connector session I/O failed")
-		}
-	})
-
-	wg.Go(func() {
+	go func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
-			log.WithError(err).Error("connector session I/O failed")
-		}
-	})
+		copyInput(resp.Conn, session)
+	}()
 
-	wg.Wait()
+	if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
+		log.WithError(err).Error("connector session I/O failed")
+	}
+
+	s.exit(session, id)
 
 	return nil
+}
+
+func (s *Sessioner) exit(session gliderssh.Session, id string) {
+	code, err := exitCodeExecFromContainer(s.docker, id)
+	if err != nil {
+		log.WithError(err).Error("connector session I/O failed")
+	}
+
+	session.Exit(code) //nolint:errcheck
+}
+
+func copyInput(dst io.Writer, src io.Reader) {
+	if _, err := io.Copy(dst, src); err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) {
+		log.WithError(err).Error("connector session I/O failed")
+	}
 }

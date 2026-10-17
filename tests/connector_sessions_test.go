@@ -82,6 +82,76 @@ func TestConnectorSessions(t *testing.T) {
 		assert.Equal(t, "heredoc in "+name, strings.TrimSpace(stdout.String()))
 	})
 
+	for _, tc := range []struct {
+		name   string
+		pty    bool
+		start  func(*ssh.Session) error
+		input  string
+		status int
+	}{
+		{
+			name:   "an interactive shell ends with its exit status while the client keeps stdin open",
+			pty:    true,
+			start:  (*ssh.Session).Shell,
+			input:  "exit 5\n",
+			status: 5,
+		},
+		{
+			name:   "a PTY exec session ends with the command while the client keeps stdin open",
+			pty:    true,
+			start:  func(sess *ssh.Session) error { return sess.Start("false") },
+			status: 1,
+		},
+		{
+			name:   "an exec session ends with the command while the client keeps stdin open",
+			start:  func(sess *ssh.Session) error { return sess.Start("false") },
+			status: 1,
+		},
+		{
+			name:   "a heredoc session ends with the shell while the client keeps stdin open",
+			start:  (*ssh.Session).Shell,
+			input:  "exit 7\n",
+			status: 7,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			conn := dialDevice(t, ctx, compose, &device, signer)
+			defer conn.Close() //nolint:errcheck // the test is over once the session ended
+
+			sess, err := conn.NewSession()
+			require.NoError(t, err)
+
+			defer sess.Close() //nolint:errcheck // Wait already reaped the session
+
+			stdin, err := sess.StdinPipe()
+			require.NoError(t, err)
+
+			defer stdin.Close() //nolint:errcheck // the session is gone by the time the test closes stdin
+
+			if tc.pty {
+				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{ssh.ECHO: 0}))
+			}
+
+			require.NoError(t, tc.start(sess))
+
+			_, err = stdin.Write([]byte(tc.input))
+			require.NoError(t, err)
+
+			done := make(chan error, 1)
+
+			go func() { done <- sess.Wait() }()
+
+			select {
+			case err := <-done:
+				var exit *ssh.ExitError
+				require.ErrorAs(t, err, &exit)
+				assert.Equal(t, tc.status, exit.ExitStatus())
+			case <-time.After(30 * time.Second):
+				require.Fail(t, "the session outlived its process while stdin stayed open")
+			}
+		})
+	}
+
 	t.Run("an SFTP session is refused", func(t *testing.T) {
 		conn := dialDevice(t, ctx, compose, &device, signer)
 		defer conn.Close() //nolint:errcheck // the test is over once the client gave up
