@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -13,7 +14,8 @@ import (
 
 // TestPairedDevicesFollowTheirMember covers the devices a member pairs: they belong to that member,
 // and they leave the namespace with them, when the member is demoted below accepting devices,
-// removed, or leaves. The owner may keep some of them as team devices on a demotion or a removal.
+// removed, or leaves. The owner may keep some of them as team devices on a demotion or a removal,
+// or make one a team device ahead of time, which a member who cannot create provisioning keys may not.
 // The cases share one stack, so each signs in its own member and pairs devices under hostnames and
 // MAC addresses no other case uses.
 func TestPairedDevicesFollowTheirMember(t *testing.T) {
@@ -60,6 +62,34 @@ func TestPairedDevicesFollowTheirMember(t *testing.T) {
 		requireRemovedDevice(t, compose, gone.UID)
 	})
 
+	t.Run("a paired device made a team device ahead of time stays when its member is removed", func(t *testing.T) {
+		member := signInPairingMember(t, compose, "team-ahead-pairer")
+		paired := pairDeviceAs(t, compose, member, "team-ahead", "02:00:00:00:a6:41")
+
+		resp, err := deleteDeviceOwner(compose.R(t.Context()), paired.UID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
+
+		requireTeamDevice(t, compose, paired.UID)
+
+		resp, err = compose.R(t.Context()).Delete("/api/namespaces/" + ShellHubNamespace + "/members/" + member.ID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		requireTeamDevice(t, compose, paired.UID)
+	})
+
+	t.Run("a member who cannot create provisioning keys cannot make a device a team device", func(t *testing.T) {
+		member := signInPairingMember(t, compose, "team-refused-pairer")
+		paired := pairDeviceAs(t, compose, member, "team-refused", "02:00:00:00:a6:51")
+
+		resp, err := deleteDeviceOwner(asBearer(t, compose, member.Token), paired.UID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		assert.Equal(t, member.ID, requireDevice(t, compose, paired.UID).OwnerID, "a refused request cleared the device's owner")
+	})
+
 	t.Run("leaving the namespace removes the member's paired devices", func(t *testing.T) {
 		member := signInPairingMember(t, compose, "leaving-pairer")
 		paired := pairDeviceAs(t, compose, member, "gone-on-leave", "02:00:00:00:a6:31")
@@ -87,6 +117,10 @@ func pairDeviceAs(t *testing.T, compose *environment.DockerCompose, member *mode
 	pairing := startPairing(t, compose, newPairingRequest(t, hostname, mac))
 
 	return acceptPairing(t, asBearer(t, compose, member.Token), pairing.Code)
+}
+
+func deleteDeviceOwner(req *resty.Request, uid string) (*resty.Response, error) {
+	return req.Delete("/api/devices/" + uid + "/owner")
 }
 
 func requireTeamDevice(t *testing.T, compose *environment.DockerCompose, uid string) {
