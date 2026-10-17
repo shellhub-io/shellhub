@@ -1,13 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { createDeviceLoginCode, getDevice } from "@/client";
-import { isCommunity } from "./env";
+import { createDeviceLoginCode, getDevice, updateDeviceStatus } from "@/client";
+import { isCloud, isCommunity } from "./env";
 import {
+  createTeam,
   createTeamWithOwnerInAnother,
   signInAndOpen,
   singleNamespaceReason,
 } from "./helpers";
 import { enrollDevice } from "./devices";
 import { buildRequestContext } from "./api";
+import { limitNamespaceDevices } from "./seed";
 
 async function requestLoginCode(tenant: string) {
   const device = await enrollDevice(tenant);
@@ -56,5 +58,40 @@ test.describe("accepting a device by its login code", () => {
       path: { uid: device.uid },
     });
     expect(data.status).toBe("accepted");
+  });
+});
+
+test.describe("accepting a device at the namespace device limit", () => {
+  test.skip(isCloud, "the cloud refuses with a billing message on a 402");
+
+  test("the accept page names the device limit instead of a permission problem", async ({
+    page,
+  }) => {
+    const { owner, namespace, tenant } = await createTeam();
+    const accepted = await enrollDevice(tenant);
+    await updateDeviceStatus({
+      ...buildRequestContext({ token: owner.token }),
+      path: { uid: accepted.uid, status: "accept" },
+    });
+    limitNamespaceDevices(namespace, 1);
+    const device = await requestLoginCode(tenant);
+
+    await signInAndOpen(
+      page,
+      owner.username,
+      `/accept-device?code=${device.code}`,
+    );
+    await page.getByRole("button", { name: "Accept device" }).click();
+
+    await expect(
+      page.getByText(
+        "This namespace has reached its device limit. Remove a device or ask the instance administrator to raise the limit, then accept this device again.",
+      ),
+    ).toBeVisible();
+    const { data } = await getDevice({
+      ...buildRequestContext({ token: owner.token }),
+      path: { uid: device.uid },
+    });
+    expect(data.status).toBe("pending");
   });
 });
