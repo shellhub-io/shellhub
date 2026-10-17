@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"net/netip"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -18,8 +20,10 @@ const unroutableCIDR = "203.0.113.0/24"
 
 // TestAccessPolicyEvaluation covers what each part of an access policy matches: the subject, by
 // person, role, every member or API key; the device, by tag; the login; and the source address.
-// It also covers the two refusals no policy can lift, a person outside the namespace and a deny
-// that cannot be read. Each case reaches the device as someone only its own policies grant, so the
+// It also covers the three refusals no policy can lift: a person outside the namespace, a member
+// whose role cannot connect, and a deny that cannot be read. A policy naming only principals that
+// can never connect is refused when its subject is such a role and flagged as matching nobody when
+// it names such a person or an expired API key. Each case reaches the device as someone only its own policies grant, so the
 // owner's starter policy never decides it. Default-deny, deny-over-allow and a member with no grant
 // are covered by [TestIdentityAccessPolicy].
 func TestAccessPolicyEvaluation(t *testing.T) {
@@ -154,6 +158,59 @@ func TestAccessPolicyEvaluation(t *testing.T) {
 		})
 
 		requireStraightThrough(t, compose, sshid, signer)
+	})
+
+	t.Run("a member whose role cannot connect is refused before any policy naming them is read", func(t *testing.T) {
+		member, signer := memberWithKey(t, compose, "demoted", authorizer.RoleOperator)
+
+		personal := grant(t, compose, &requests.AccessPolicyCreate{
+			Name:    "demoted",
+			Subject: userSubject(member.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
+			Logins:  []string{"*"},
+		})
+		grant(t, compose, &requests.AccessPolicyCreate{Name: "everyone", Subject: everyone, Filter: requests.AccessPolicyFilter{All: true}, Logins: []string{"*"}})
+
+		requireStraightThrough(t, compose, sshid, signer)
+		assert.True(t, accessPolicy(t, compose, personal.ID).SubjectMatches)
+
+		changeRole(t, compose, member, authorizer.RoleObserver)
+
+		mark := compose.ServerLogMark(t)
+		requireRefusedAtAuth(t, compose, sshid, signer)
+		compose.AwaitServerLogLine(t, mark, "reason="+string(models.ReasonRoleCannotConnect), "user="+member.ID)
+
+		assert.False(t, accessPolicy(t, compose, personal.ID).SubjectMatches,
+			"a policy naming only an observer can never grant, and should say so")
+	})
+
+	t.Run("a policy naming a role that cannot connect is refused", func(t *testing.T) {
+		resp, err := compose.R(t.Context()).
+			SetBody(&requests.AccessPolicyCreate{
+				Name:    "observers",
+				Subject: requests.AccessPolicySubject{Type: string(models.PolicySubjectRole), Value: string(authorizer.RoleObserver)},
+				Filter:  requests.AccessPolicyFilter{All: true},
+				Logins:  []string{"*"},
+			}).
+			Post("/api/access-policies")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("a policy naming only an expired API key is flagged as matching nobody", func(t *testing.T) {
+		key, _ := newAPIKeyIdentity(t, compose, "lapsing", false)
+
+		policy := grant(t, compose, &requests.AccessPolicyCreate{
+			Name:    "lapsing",
+			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
+			Logins:  []string{"*"},
+		})
+		assert.True(t, accessPolicy(t, compose, policy.ID).SubjectMatches)
+
+		compose.ExpireAPIKeyIn(t, key.Name, -time.Minute)
+
+		assert.False(t, accessPolicy(t, compose, policy.ID).SubjectMatches)
 	})
 
 	t.Run("an every-member policy grants members and not API keys", func(t *testing.T) {
