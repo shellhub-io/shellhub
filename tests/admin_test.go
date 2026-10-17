@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,8 +23,9 @@ import (
 // TestEnterpriseAdmin drives the enterprise admin API as an instance administrator and as the
 // callers it must turn away: the instance API keys an administrator mints and when they stop
 // authenticating, the guard that keeps every other user off /admin/api, the user and namespace
-// exports, the instance-wide statistics, and the token that signs an administrator in as another
-// user. The cases share one stack; each creates the users, namespaces and devices it reads.
+// exports, the instance-wide statistics, the token that signs an administrator in as another
+// user, and the writes an administrator makes to users and namespaces. The cases share one stack;
+// each creates the users, namespaces and devices it reads.
 func TestEnterpriseAdmin(t *testing.T) {
 	t.Parallel()
 
@@ -34,6 +36,8 @@ func TestEnterpriseAdmin(t *testing.T) {
 	t.Run("exports", func(t *testing.T) { testAdminExports(t, compose) })
 	t.Run("stats", func(t *testing.T) { testAdminStats(t, compose) })
 	t.Run("auth token", func(t *testing.T) { testAdminAuthToken(t, compose) })
+	t.Run("user writes", func(t *testing.T) { testAdminUserWrites(t, compose) })
+	t.Run("namespace writes", func(t *testing.T) { testAdminNamespaceWrites(t, compose) })
 }
 
 func testInstanceAPIKeys(t *testing.T, compose *environment.DockerCompose) {
@@ -244,6 +248,156 @@ func testAdminAuthToken(t *testing.T, compose *environment.DockerCompose) {
 	t.Run("a token for a user that does not exist is refused as not found", func(t *testing.T) {
 		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/auth/token/"+uuid.Generate(), http.StatusNotFound)
 	})
+}
+
+func testAdminUserWrites(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("an administrator creates a user who can sign in", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("created")), http.MethodPost, "/admin/api/users", http.StatusOK)
+
+		created := adminUser(t, compose, "created")
+		assert.Equal(t, "created@admin.shellhub.io", created.Email)
+		assert.Equal(t, models.UserStatusConfirmed, created.Status)
+
+		signedIn := compose.AuthUser(t, "created", ShellHubPassword)
+		assert.Equal(t, created.ID, signedIn.ID)
+		assert.Equal(t, "created", signedIn.User)
+	})
+
+	t.Run("creating a user whose username or email is taken is refused", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("taken")), http.MethodPost, "/admin/api/users", http.StatusOK)
+
+		sameUsername := newAdminUserBody("taken")
+		sameUsername["email"] = "other-taken@admin.shellhub.io"
+
+		sameEmail := newAdminUserBody("other-taken")
+		sameEmail["email"] = "taken@admin.shellhub.io"
+
+		for field, body := range map[string]map[string]any{"username": sameUsername, "email": sameEmail} {
+			resp, err := compose.R(t.Context()).SetBody(body).Post("/admin/api/users")
+			require.NoError(t, err)
+			require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+
+			conflicts := []string{}
+			require.NoError(t, json.Unmarshal(resp.Body(), &conflicts), resp.String())
+			assert.Equal(t, []string{field}, conflicts)
+		}
+
+		assert.NotContains(t, usernames(adminUsers(t, compose)), "other-taken")
+		assert.Equal(t, "taken@admin.shellhub.io", adminUser(t, compose, "taken").Email)
+	})
+
+	t.Run("an update that names only some fields keeps the others", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("partial")), http.MethodPost, "/admin/api/users", http.StatusOK)
+		before := adminUser(t, compose, "partial")
+
+		requireAnswer(t, compose.R(t.Context()).SetBody(map[string]any{"max_namespaces": 7}), http.MethodPut, "/admin/api/users/"+before.ID, http.StatusOK)
+
+		after := adminUser(t, compose, "partial")
+		assert.Equal(t, 7, after.MaxNamespaces)
+		assert.Equal(t, before.UserData, after.UserData)
+		assert.Equal(t, before.Status, after.Status)
+		assert.Equal(t, before.Admin, after.Admin)
+
+		requireAnswer(t, compose.R(t.Context()).SetBody(map[string]any{"password": "partial-replaced"}), http.MethodPut, "/admin/api/users/"+before.ID, http.StatusOK)
+
+		after = adminUser(t, compose, "partial")
+		assert.Equal(t, before.UserData, after.UserData)
+		assert.Equal(t, 7, after.MaxNamespaces)
+		assert.Equal(t, before.ID, compose.AuthUser(t, "partial", "partial-replaced").ID)
+	})
+
+	t.Run("a password an administrator sets refuses the user's earlier tokens", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("reset")), http.MethodPost, "/admin/api/users", http.StatusOK)
+		earlier := compose.AuthUser(t, "reset", ShellHubPassword)
+		requireAnswer(t, asBearer(t, compose, earlier.Token), http.MethodGet, "/api/auth/user", http.StatusOK)
+
+		requireAnswer(t, compose.R(t.Context()).SetBody(map[string]any{"password": "reset-by-admin"}), http.MethodPut, "/admin/api/users/"+earlier.ID, http.StatusOK)
+
+		requireAnswer(t, asBearer(t, compose, earlier.Token), http.MethodGet, "/api/auth/user", http.StatusUnauthorized)
+		requireAnswer(t, asBearer(t, compose, compose.AuthUser(t, "reset", "reset-by-admin").Token), http.MethodGet, "/api/auth/user", http.StatusOK)
+	})
+
+	t.Run("the generated password reset refuses a user who already has a password", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("has-password")), http.MethodPost, "/admin/api/users", http.StatusOK)
+		user := compose.AuthUser(t, "has-password", ShellHubPassword)
+
+		requireAnswer(t, compose.R(t.Context()), http.MethodPatch, "/admin/api/users/"+user.ID+"/password/reset", http.StatusBadRequest)
+
+		requireAnswer(t, asBearer(t, compose, user.Token), http.MethodGet, "/api/auth/user", http.StatusOK)
+		compose.AuthUser(t, "has-password", ShellHubPassword)
+	})
+
+	t.Run("deleting a user takes their owned namespaces and paired devices with them", func(t *testing.T) {
+		requireAnswer(t, compose.R(t.Context()).SetBody(newAdminUserBody("doomed")), http.MethodPost, "/admin/api/users", http.StatusOK)
+
+		tenant := uuid.Generate()
+		compose.NewNamespace(t, "doomed", "doomed-space", tenant, "")
+		owner := signIntoTenant(t, compose, "doomed", ShellHubPassword, tenant)
+
+		req := newDeviceAuthRequest(t, "doomed-owned", "02:00:00:00:24:11")
+		req.TenantID = tenant
+		owned := authDevice(t, compose, req).UID
+		requireAnswer(t, asBearer(t, compose, owner.Token), http.MethodPatch, "/api/devices/"+owned+"/"+string(environment.DeviceActionAccept), http.StatusOK)
+
+		compose.NewMember(t, "doomed", ShellHubNamespaceName, string(authorizer.RoleOperator))
+		member := signIntoTenant(t, compose, "doomed", ShellHubPassword, ShellHubNamespace)
+		paired := pairDeviceAs(t, compose, member, "doomed-paired", "02:00:00:00:24:12")
+		require.Equal(t, owner.ID, paired.OwnerID)
+
+		requireAnswer(t, compose.R(t.Context()), http.MethodDelete, "/admin/api/users/"+owner.ID, http.StatusOK)
+
+		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/users/"+owner.ID, http.StatusNotFound)
+		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/namespaces/"+tenant, http.StatusNotFound)
+		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/devices/"+owned, http.StatusNotFound)
+		requireRemovedDevice(t, compose, paired.UID)
+	})
+}
+
+func testAdminNamespaceWrites(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	t.Run("a device limit an administrator sets holds on the next accept", func(t *testing.T) {
+		compose.NewUser(t, "limited", "limited@admin.shellhub.io", ShellHubPassword)
+		tenant := uuid.Generate()
+		compose.NewNamespace(t, "limited", "limited-space", tenant, "")
+		owner := compose.AuthUser(t, "limited", ShellHubPassword)
+
+		held := enrollPendingDeviceAs(t, compose, owner, "limited-held", "02:00:00:00:24:21")
+		requireAnswer(t, asBearer(t, compose, owner.Token), http.MethodPatch, "/api/devices/"+held.UID+"/"+string(environment.DeviceActionAccept), http.StatusOK)
+		over := enrollPendingDeviceAs(t, compose, owner, "limited-over", "02:00:00:00:24:22")
+
+		before := adminNamespace(t, compose, tenant)
+		updateNamespaceAsAdmin(t, compose, before, 1)
+
+		after := adminNamespace(t, compose, tenant)
+		assert.Equal(t, 1, after.MaxDevices)
+		assert.Equal(t, before.Name, after.Name)
+
+		requireAnswer(t, asBearer(t, compose, owner.Token), http.MethodPatch, "/api/devices/"+over.UID+"/"+string(environment.DeviceActionAccept), http.StatusForbidden)
+
+		updateNamespaceAsAdmin(t, compose, before, 2)
+
+		requireAnswer(t, asBearer(t, compose, owner.Token), http.MethodPatch, "/api/devices/"+over.UID+"/"+string(environment.DeviceActionAccept), http.StatusOK)
+	})
+}
+
+func newAdminUserBody(username string) map[string]any {
+	return map[string]any{
+		"name":     username + " by admin",
+		"username": username,
+		"email":    username + "@admin.shellhub.io",
+		"password": ShellHubPassword,
+	}
+}
+
+func updateNamespaceAsAdmin(t *testing.T, compose *environment.DockerCompose, namespace models.Namespace, maxDevices int) {
+	t.Helper()
+
+	namespace.MaxDevices = maxDevices
+
+	requireAnswer(t, compose.R(t.Context()).SetBody(namespace), http.MethodPut, "/admin/api/namespaces-update/"+namespace.TenantID, http.StatusOK)
 }
 
 func createInstanceAPIKey(t *testing.T, req *resty.Request, name string) *responses.CreateInstanceAPIKey {
