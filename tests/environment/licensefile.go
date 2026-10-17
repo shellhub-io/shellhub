@@ -22,6 +22,8 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 	license := FullLicense()
 	if cfg.License != nil {
 		license = *cfg.License
+	} else if cfg.Edition == EditionCloud {
+		license.Features.Cloud = true
 	}
 
 	signed, err := issuer.Sign(license)

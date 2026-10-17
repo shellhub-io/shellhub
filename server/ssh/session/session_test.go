@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 	"sync"
 	"testing"
@@ -183,9 +184,34 @@ func TestEvaluate(t *testing.T) {
 		expectStateEvaluated bool
 	}{
 		{
+			description: "cloud: license blocks before firewall and billing",
+			edition:     envs.Cloud,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(services.ErrLicenseBlocked).Once()
+			},
+			expectedErr: ErrLicenseBlock,
+		},
+		{
+			description: "cloud: an unauthorized license blocks with its own message",
+			edition:     envs.Cloud,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(services.ErrLicenseNotAuthorized).Once()
+			},
+			expectedErr: ErrLicenseNotAuthorized,
+		},
+		{
+			description: "cloud: license store failure blocks the connection",
+			edition:     envs.Cloud,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(io.ErrUnexpectedEOF).Once()
+			},
+			expectedErr: io.ErrUnexpectedEOF,
+		},
+		{
 			description: "cloud: firewall denies the connection",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(nil).Once()
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(services.ErrFirewallBlocked).
@@ -198,6 +224,7 @@ func TestEvaluate(t *testing.T) {
 			description: "cloud: a firewall evaluation failure is not a rule block",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(nil).Once()
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(errors.New("no license to evaluate the firewall against")).
@@ -210,6 +237,7 @@ func TestEvaluate(t *testing.T) {
 			description: "cloud: firewall allows and billing succeeds",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(nil).Once()
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(nil).
@@ -227,6 +255,7 @@ func TestEvaluate(t *testing.T) {
 			description: "cloud: firewall allows but billing blocks",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().EvaluateLicense(mock.Anything).Return(nil).Once()
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(nil).

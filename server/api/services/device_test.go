@@ -2191,6 +2191,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
+	errLicenseStore := errors.New("license store unavailable", "", 0)
 	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
@@ -2259,6 +2260,72 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Once()
 			},
 			expectedError: ErrDeviceLicenseLimit,
+		},
+		{
+			description: "failure (accepted) - cloud refuses on license evaluation failure before the MAC lock, merge or billing",
+			edition:     envs.Cloud,
+			req: &requests.DeviceUpdateStatus{
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				UID:      "cloud-license-error-device",
+				Status:   "accepted",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "cloud-license-error-device", mock.AnythingOfType("[]store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:      "cloud-license-error-device",
+							Name:     "test-device",
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Status:   models.DeviceStatusPending,
+							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+						},
+						nil,
+					).
+					Once()
+				licenseEvaluator.
+					On("CanAcceptDevice", ctx).
+					Return(false, errLicenseStore).
+					Once()
+			},
+			expectedError: errLicenseStore,
+		},
+		{
+			description: "failure (accepted) - cloud license does not authorize the service before the MAC lock, merge or billing",
+			edition:     envs.Cloud,
+			req: &requests.DeviceUpdateStatus{
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				UID:      "cloud-unauthorized-device",
+				Status:   "accepted",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "cloud-unauthorized-device", mock.AnythingOfType("[]store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:      "cloud-unauthorized-device",
+							Name:     "test-device",
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Status:   models.DeviceStatusPending,
+							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+						},
+						nil,
+					).
+					Once()
+				licenseEvaluator.
+					On("CanAcceptDevice", ctx).
+					Return(false, ErrLicenseNotAuthorized).
+					Once()
+			},
+			expectedError: ErrLicenseNotAuthorized,
 		},
 		{
 			description: "success (accepted) (different MAC) - license allows acceptance",

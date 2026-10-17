@@ -340,6 +340,12 @@ get:
                 description: License's features
                 type: object
                 properties:
+                  cloud:
+                    description: >-
+                      Signed permission to run the hosted cloud edition. Absent on
+                      existing enterprise licenses.
+                    type: boolean
+                    example: true
                   devices:
                     description: |
                       Number of devices allowed

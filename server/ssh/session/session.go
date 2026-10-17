@@ -826,11 +826,14 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 
 func (s *Session) checkLicense(ctx context.Context) error {
 	err := s.service.EvaluateLicense(ctx)
-	if errors.Is(err, services.ErrLicenseBlocked) {
+	switch {
+	case errors.Is(err, services.ErrLicenseBlocked):
 		return ErrLicenseBlock
+	case errors.Is(err, services.ErrLicenseNotAuthorized):
+		return ErrLicenseNotAuthorized
+	default:
+		return err
 	}
-
-	return err
 }
 
 // Edition is the edition of the server that accepted the session.
@@ -842,7 +845,7 @@ func (s *Session) Edition() envs.Edition {
 // firewall rules and the namespace's own restrictions. It runs before the client has
 // authenticated, and needs no tunnel to the device.
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
-	if s.edition.IsEnterprise() {
+	if s.edition.IsEnterpriseOrCloud() {
 		if err := s.checkLicense(ctx); err != nil {
 			return err
 		}
