@@ -126,6 +126,52 @@ func TestCreateDevicePairing(t *testing.T) {
 			expected: Expected{resume: false, reuseCode: "WXYZ2K7Q", err: nil},
 		},
 		{
+			description: "mints a new code when the public key's code was already accepted",
+			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
+				notAlreadyAccepted(storeMock)
+				cacheMock.
+					On("Get", mock.Anything, mock.MatchedBy(func(key string) bool {
+						return strings.HasPrefix(key, "pairing_code_pubkey/")
+					}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						arg, ok := args.Get(2).(*string)
+						require.True(t, ok)
+						*arg = "WXYZ2K7Q"
+					}).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
+					Run(func(args mock.Arguments) {
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
+							PublicKey: "public-key",
+							Status:    models.DeviceStatusAccepted,
+							TenantID:  "tenant1",
+							UID:       "uid1",
+						}
+					}).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+						return regexp.MustCompile(`^pairing_code/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
+					}), mock.MatchedBy(func(pairing *devicePairing) bool {
+						return pairing.Status == models.DeviceStatusPending && pairing.TenantID == ""
+					}), devicePairingTTL).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+						return regexp.MustCompile(`^pairing_code_pubkey/[0-9a-f]{64}$`).MatchString(key)
+					}), mock.AnythingOfType("string"), devicePairingTTL).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{resume: false, err: nil},
+		},
+		{
 			description: "fails when the cache cannot store the pairing",
 			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
 				notAlreadyAccepted(storeMock)

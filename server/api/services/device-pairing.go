@@ -63,12 +63,11 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 	var existingCode string
 	if err := s.cache.Get(ctx, pubKeyRef, &existingCode); err == nil && existingCode != "" {
 		existing := new(devicePairing)
-		if err := s.cache.Get(ctx, "pairing_code/"+existingCode, existing); err == nil && existing.PublicKey != "" {
+		if err := s.cache.Get(ctx, "pairing_code/"+existingCode, existing); err == nil && existing.PublicKey != "" && existing.Status == models.DeviceStatusPending {
 			return &models.DevicePairing{
 				Code:      existingCode,
 				ExpiresIn: int(devicePairingTTL.Seconds()),
-				Status:    existing.Status,
-				TenantID:  existing.TenantID,
+				Status:    models.DeviceStatusPending,
 			}, nil
 		}
 	}
