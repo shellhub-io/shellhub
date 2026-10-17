@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -100,13 +99,7 @@ func licenseForDevices(devices int) environment.License {
 func acceptedDevices(t *testing.T, compose *environment.DockerCompose) int {
 	t.Helper()
 
-	namespace := new(responses.Namespace)
-
-	resp, err := compose.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + ShellHubNamespace)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-
-	return int(namespace.DevicesAcceptedCount)
+	return int(compose.Namespace(t, ShellHubNamespace).DevicesAcceptedCount)
 }
 
 func testLicenseFile(t *testing.T, compose *environment.DockerCompose, startup environment.License) {
