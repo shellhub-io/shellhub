@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -25,6 +26,7 @@ func namespaceCommands(service serviceFunc) *cobra.Command {
 	cmd.AddCommand(
 		namespaceCreate(service),
 		namespaceDelete(service),
+		namespaceLimit(service),
 		namespaceList(service),
 		namespaceInspect(service),
 		memberCommands(service),
@@ -115,6 +117,53 @@ func namespaceDelete(service serviceFunc) *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func namespaceLimit(service serviceFunc) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "limit <namespace> <max-devices>",
+		Short: "Set a namespace's device limit",
+		Long: `Sets how many accepted devices a namespace may hold. Use -1 to remove the limit.
+Devices already accepted stay accepted; the namespace refuses the next accept once it holds the limit.`,
+		Example: `./bin/cli namespace limit dev 10
+./bin/cli namespace limit dev -1`,
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			maxDevices, err := strconv.Atoi(args[1])
+			if err != nil {
+				return ErrInvalidMaxDevices
+			}
+
+			input := inputs.NamespaceLimit{
+				Namespace:  strings.ToLower(args[0]),
+				MaxDevices: maxDevices,
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
+			}
+
+			namespace, err := service().NamespaceLimit(cmd.Context(), &input)
+			if err != nil {
+				return err
+			}
+
+			cmd.Println("Namespace limit set successfully")
+			cmd.Println("Namespace:", namespace.Name)
+			cmd.Println("Tenant:", namespace.TenantID)
+			if namespace.MaxDevices == services.MaxNumberDevicesUnlimited {
+				cmd.Println("Max Devices: unlimited")
+			} else {
+				cmd.Println("Max Devices:", namespace.MaxDevices)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().SetInterspersed(false)
+
+	return cmd
 }
 
 func namespaceList(service serviceFunc) *cobra.Command {

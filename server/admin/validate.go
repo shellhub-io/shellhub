@@ -13,7 +13,7 @@ func validateInput(input any) error {
 }
 
 func mapValidationError(fields map[string]any) error {
-	for _, field := range []string{"Username", "Owner", "Password", "Email", "Namespace", "TenantID", "Type"} {
+	for _, field := range []string{"Username", "Owner", "Password", "Email", "Namespace", "TenantID", "Type", "MaxDevices"} {
 		if _, ok := fields[field]; !ok {
 			continue
 		}
@@ -30,6 +30,8 @@ func mapValidationError(fields map[string]any) error {
 			return ErrInvalidType
 		case "TenantID":
 			return ErrInvalidTenantID
+		case "MaxDevices":
+			return ErrInvalidMaxDevices
 		}
 	}
 

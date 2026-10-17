@@ -712,6 +712,76 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+func TestNamespaceLimit(t *testing.T) {
+	type Expected struct {
+		namespace *models.Namespace
+		err       error
+	}
+
+	mock := new(mocks.MockStore)
+	ctx := context.TODO()
+
+	cases := []struct {
+		description   string
+		input         inputs.NamespaceLimit
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "fails when could not find a namespace",
+			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: 1},
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "fails when the store cannot save the limit",
+			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: 1},
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
+					Return(&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil).Once()
+				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: 1}).Return(errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrFailedLimitNamespace},
+		},
+		{
+			description: "sets the limit",
+			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: 1},
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
+					Return(&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil).Once()
+				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: 1}).Return(nil).Once()
+			},
+			expected: Expected{&models.Namespace{Name: "namespace", MaxDevices: 1}, nil},
+		},
+		{
+			description: "lifts the limit",
+			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: MaxNumberDevicesUnlimited},
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
+					Return(&models.Namespace{Name: "namespace", MaxDevices: 1}, nil).Once()
+				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}).Return(nil).Once()
+			},
+			expected: Expected{&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			s := NewService(store.Store(mock))
+			ns, err := s.NamespaceLimit(ctx, &tc.input)
+
+			assert.Equal(t, tc.expected.namespace, ns)
+			assert.ErrorIs(t, err, tc.expected.err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
 func TestNamespaceDelete(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 
