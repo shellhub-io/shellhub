@@ -16,6 +16,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -327,4 +328,105 @@ func TestGateway(t *testing.T) {
 			output.Write(frame)
 		}
 	})
+
+	t.Run("a plain GET to an agent tunnel endpoint is answered with a single 400", func(t *testing.T) {
+		device := authDevice(t, compose, newDeviceAuthRequest(t, "plain-get", "02:00:00:00:27:01"))
+
+		endpoints := []struct {
+			transport string
+			path      string
+		}{
+			{transport: "v1", path: "/ssh/connection"},
+			{transport: "v2", path: "/agent/connection"},
+		}
+
+		for _, endpoint := range endpoints {
+			t.Run(endpoint.transport, func(t *testing.T) {
+				plain := fetch(t, withoutRedirects, compose.BaseURL()+endpoint.path, "", deviceTunnelHeader(device))
+
+				assert.Equal(t, http.StatusBadRequest, plain.status)
+				assert.Equal(t, "Bad Request\n", plain.body)
+			})
+		}
+	})
+
+	t.Run("a plain GET to the reverse dial pickup of a waiting dial is answered with a single 400", func(t *testing.T) {
+		device := authDevice(t, compose, newDeviceAuthRequest(t, "plain-pickup", "02:00:00:00:27:02"))
+
+		config, err := websocket.NewConfig(strings.Replace(compose.BaseURL(), "http", "ws", 1)+"/ssh/connection", compose.BaseURL())
+		require.NoError(t, err)
+
+		config.Header = deviceTunnelHeader(device)
+
+		tunnel, err := config.DialContext(t.Context())
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = tunnel.Close() })
+
+		tunnel.PayloadType = websocket.BinaryFrame
+
+		compose.AwaitDeviceOnline(t, device.UID)
+
+		closed := make(chan struct{})
+
+		go func() {
+			defer close(closed)
+
+			_, _ = compose.R(context.WithoutCancel(t.Context())).
+				SetBody(map[string]string{"device": device.UID}).
+				Post("/api/sessions/" + uuid.Generate() + "/close")
+		}()
+
+		pickup := awaitRevdialConnReady(t, tunnel)
+
+		plain := fetch(t, withoutRedirects, compose.BaseURL()+pickup, "", nil)
+
+		assert.Equal(t, http.StatusBadRequest, plain.status)
+		assert.Equal(t, "Bad Request\n", plain.body)
+
+		failed, err := json.Marshal(revdialMessage{Command: "pickup-failed", ConnPath: pickup, Err: "e2e"})
+		require.NoError(t, err)
+
+		_, err = tunnel.Write(append(failed, '\n'))
+		require.NoError(t, err)
+
+		select {
+		case <-closed:
+		case <-time.After(30 * time.Second):
+			t.Fatal("the dial the pickup left waiting never ended")
+		}
+	})
+}
+
+type revdialMessage struct {
+	Command  string `json:"command,omitempty"`
+	ConnPath string `json:"connPath,omitempty"`
+	Err      string `json:"err,omitempty"`
+}
+
+func deviceTunnelHeader(device *models.DeviceAuthResponse) http.Header {
+	return http.Header{
+		"Authorization": {"Bearer " + device.Token},
+		"X-Device-Uid":  {device.UID},
+		"X-Tenant-Id":   {device.TenantID},
+	}
+}
+
+func awaitRevdialConnReady(t *testing.T, tunnel *websocket.Conn) string {
+	t.Helper()
+
+	require.NoError(t, tunnel.SetReadDeadline(wallClock.Now().Add(30*time.Second)))
+
+	messages := bufio.NewReader(tunnel)
+
+	for {
+		line, err := messages.ReadBytes('\n')
+		require.NoError(t, err, "the tunnel closed before the server dialed through it")
+
+		var message revdialMessage
+		require.NoError(t, json.Unmarshal(line, &message), string(line))
+
+		if message.Command == "conn-ready" {
+			return message.ConnPath
+		}
+	}
 }
