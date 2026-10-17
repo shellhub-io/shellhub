@@ -225,6 +225,16 @@ func (s billedSubscription) object(fields map[string]any) map[string]any {
 	return object
 }
 
+func (s billedSubscription) storeIn(t *testing.T, compose *environment.DockerCompose, status models.BillingStatus) {
+	t.Helper()
+
+	compose.SubscribeNamespaceThrough(t, s.tenant, s.customer, s.id, status)
+}
+
+func (s billedSubscription) inStatus(status models.BillingStatus) map[string]any {
+	return s.object(map[string]any{"status": string(status)})
+}
+
 func (s billedSubscription) canceled(at int64) map[string]any {
 	return s.object(map[string]any{"status": string(models.BillingStatusCanceled), "canceled_at": at})
 }
@@ -426,8 +436,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		subscription := subscribe(t, compose, owner.tenant)
 		awaitStripeUsage(t, compose, subscription.id, 0)
 
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated,
-			subscription.object(map[string]any{"status": string(models.BillingStatusPastDue)}))
+		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.inStatus(models.BillingStatusPastDue))
 		require.Equal(t, models.BillingStatusPastDue, subscriptionStatus(t, compose, owner.tenant))
 
 		device := enrollIn(t, compose, owner.tenant, "past-due", "02:00:00:00:44:02")
@@ -440,8 +449,7 @@ func testBilledDeviceAcceptance(t *testing.T, compose *environment.DockerCompose
 		owner := newBillingOwner(t, compose, "billing-unpaid")
 		subscription := subscribe(t, compose, owner.tenant)
 
-		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated,
-			subscription.object(map[string]any{"status": string(models.BillingStatusUnpaid)}))
+		requireStripeEventAnswered(t, compose, stripeSubscriptionUpdated, subscription.inStatus(models.BillingStatusUnpaid))
 		require.Equal(t, models.BillingStatusUnpaid, subscriptionStatus(t, compose, owner.tenant))
 
 		device := enrollIn(t, compose, owner.tenant, "unpaid", "02:00:00:00:44:03")

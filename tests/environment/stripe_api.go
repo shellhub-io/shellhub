@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -64,4 +65,20 @@ func (dc *DockerCompose) BillNamespaceThrough(t *testing.T, tenant, customer str
 	dc.updateOne(t,
 		"UPDATE namespaces SET billing = jsonb_build_object('customer_id', :'customer') WHERE id = :'tenant'",
 		map[string]string{"tenant": tenant, "customer": customer})
+}
+
+// SubscribeNamespaceThrough replaces the whole billing of the namespace tenant with one that bills
+// through the Stripe customer customer on the subscription subscription, in status. Neither has to
+// exist on Stripe while the status grants less than full service, because the server then answers
+// from the store alone; under a status that grants it, the server asks Stripe for the
+// subscription. It fails t unless exactly that namespace changed.
+func (dc *DockerCompose) SubscribeNamespaceThrough(t *testing.T, tenant, customer, subscription string, status models.BillingStatus) {
+	t.Helper()
+
+	dc.updateOne(t,
+		`UPDATE namespaces SET billing = jsonb_build_object(
+			'customer_id', :'customer',
+			'subscription', jsonb_build_object('id', :'subscription', 'status', :'status', 'current_period_end', 0)
+		) WHERE id = :'tenant'`,
+		map[string]string{"tenant": tenant, "customer": customer, "subscription": subscription, "status": string(status)})
 }
