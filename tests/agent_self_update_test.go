@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -46,8 +47,8 @@ func TestAgentDockerSelfUpdate(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, registry.Close(t.Context())) })
 
-	current := pushDockerAgent(t, registry, selfUpdateFromVersion)
-	nextImage := pushDockerAgent(t, registry, next)
+	current := pushDockerAgent(t, registry, selfUpdateRepository, selfUpdateFromVersion)
+	nextImage := pushDockerAgent(t, registry, selfUpdateRepository, next)
 
 	docker, err := client.New(client.FromEnv)
 	require.NoError(t, err)
@@ -83,6 +84,53 @@ func TestAgentDockerSelfUpdate(t *testing.T) {
 	})
 }
 
+// TestAgentDockerSelfUpdateFailure covers a Docker self-update that cannot pull the server's
+// version: the registry the agent came from holds only the agent's own version. The agent logs the
+// failure, does not report the update as applied, and stays in the container it started in,
+// connected to the server.
+func TestAgentDockerSelfUpdateFailure(t *testing.T) {
+	t.Parallel()
+
+	compose := newSSHEnvironment(t, t.Context(), models.SSHAccessModeLegacy)
+	next := strings.TrimPrefix(reportedServerVersion(t, compose), "v")
+
+	registry, err := environment.StartRegistry(t.Context(), run)
+	require.NoError(t, err)
+	t.Cleanup(func() { assert.NoError(t, registry.Close(t.Context())) })
+
+	current := pushDockerAgent(t, registry, selfUpdateRepository+"-stale", selfUpdateFromVersion)
+
+	docker, err := client.New(client.FromEnv)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = docker.Close() })
+
+	original := startDockerAgent(t, compose, docker, current)
+
+	var logs string
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		logs = daemonContainerLogs(t, docker, original.ID)
+		assert.Regexp(tt, agentUpdateWaiting, logs, "the agent has not finished its first update check")
+	}, selfUpdateTimeout, time.Second)
+
+	t.Run("the agent logs the failure and does not report the update as applied", func(t *testing.T) {
+		assert.Regexp(t, `msg="Failed to apply update".* next_version=`+regexp.QuoteMeta(next)+`\b`, logs)
+		assert.NotRegexp(t, agentUpdateApplied, logs)
+	})
+
+	t.Run("the agent keeps running in its own container and connects to the server", func(t *testing.T) {
+		acceptPendingDevice(t, compose)
+
+		inspected, err := docker.ContainerInspect(t.Context(), original.Name, client.ContainerInspectOptions{})
+		require.NoError(t, err)
+		assert.Equal(t, original.ID, inspected.Container.ID, "another container took the agent's name")
+		assert.True(t, inspected.Container.State.Running, "the agent's container stopped")
+		assert.Equal(t, current, inspected.Container.Config.Image)
+
+		assert.Regexp(t, agentConnectedLine, daemonContainerLogs(t, docker, original.ID))
+	})
+}
+
 func reportedServerVersion(t *testing.T, compose *environment.DockerCompose) string {
 	t.Helper()
 
@@ -96,13 +144,13 @@ func reportedServerVersion(t *testing.T, compose *environment.DockerCompose) str
 	return info.Version
 }
 
-func pushDockerAgent(t *testing.T, registry *environment.Registry, version string) string {
+func pushDockerAgent(t *testing.T, registry *environment.Registry, repository, version string) string {
 	t.Helper()
 
 	image, err := buildAgentImage(t.Context(), version, "docker")
 	require.NoError(t, err)
 
-	reference, err := registry.Push(t.Context(), image, selfUpdateRepository, version)
+	reference, err := registry.Push(t.Context(), image, repository, version)
 	require.NoError(t, err)
 
 	return reference
