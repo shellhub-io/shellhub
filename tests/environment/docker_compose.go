@@ -520,6 +520,20 @@ func (dc *DockerCompose) CopyCacheEntry(t *testing.T, from, to string) {
 	require.NoError(t, dc.stack.CopyCacheEntry(t.Context(), from, to))
 }
 
+// Namespace returns the namespace tenant as the API reports it, device counts included, failing t
+// unless the server answers 200. The client must be authenticated against a member of tenant.
+func (dc *DockerCompose) Namespace(t *testing.T, tenant string) responses.Namespace {
+	t.Helper()
+
+	var namespace responses.Namespace
+
+	resp, err := dc.R(t.Context()).SetResult(&namespace).Get("/api/namespaces/" + tenant)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+	return namespace
+}
+
 // LimitNamespaceToItsAcceptedDevices sets the device limit of the namespace tenant to the number of
 // devices it has accepted, so accepting one more is refused, and lifts the limit when t ends. The
 // client must be authenticated against a member of tenant. A namespace that has accepted no device
@@ -527,10 +541,7 @@ func (dc *DockerCompose) CopyCacheEntry(t *testing.T, from, to string) {
 func (dc *DockerCompose) LimitNamespaceToItsAcceptedDevices(t *testing.T, tenant string) {
 	t.Helper()
 
-	namespace := new(responses.Namespace)
-	resp, err := dc.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + tenant)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	namespace := dc.Namespace(t, tenant)
 	require.Positive(t, namespace.DevicesAcceptedCount, "a limit of zero devices is no limit")
 
 	require.NoError(t, dc.SetNamespaceMaxDevices(t.Context(), tenant, int(namespace.DevicesAcceptedCount)))
@@ -588,6 +599,36 @@ func (dc *DockerCompose) AwaitDeviceWithStatus(t *testing.T, status models.Devic
 	}, 30*time.Second, 1*time.Second)
 
 	return devices[0]
+}
+
+// AwaitDeviceNamed waits until a device named name is listed in the namespace, whatever its status,
+// and returns it. Only the first 100 devices are searched. It fails t if no such device is listed
+// within 30 seconds.
+func (dc *DockerCompose) AwaitDeviceNamed(t *testing.T, name string) models.Device {
+	t.Helper()
+
+	var found models.Device
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		devices := []models.Device{}
+
+		resp, err := dc.R(t.Context()).SetQueryParam("per_page", "100").SetResult(&devices).Get("/api/devices")
+		if !assert.NoError(tt, err) || !assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String()) {
+			return
+		}
+
+		for _, device := range devices {
+			if device.Name == name {
+				found = device
+
+				return
+			}
+		}
+
+		assert.Fail(tt, "no device is named "+name)
+	}, 30*time.Second, time.Second)
+
+	return found
 }
 
 // DeviceStatusAction is the last path segment of PATCH /api/devices/:uid/:status, naming the status
