@@ -380,6 +380,10 @@ func userSubject(id string) requests.AccessPolicySubject {
 	return requests.AccessPolicySubject{Type: string(models.PolicySubjectUser), Value: id}
 }
 
+func roleSubject(role authorizer.Role) requests.AccessPolicySubject {
+	return requests.AccessPolicySubject{Type: string(models.PolicySubjectRole), Value: string(role)}
+}
+
 func apiKeySubject(id string) requests.AccessPolicySubject {
 	return requests.AccessPolicySubject{Type: string(models.PolicySubjectAPIKey), Value: id}
 }
