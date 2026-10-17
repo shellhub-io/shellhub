@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -703,10 +704,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				sent, err := sess.OpenFile("/tmp/sent", (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
 				require.NoError(t, err)
 
-				wrote, err := fmt.Fprintf(sent, "sent file content")
+				_, err = fmt.Fprintf(sent, "sent file content")
 				require.NoError(t, err)
+				require.NoError(t, sent.Close())
 
-				assert.Equal(t, 17, wrote)
+				assert.Equal(t, "sent file content", runOnDevice(t, conn, "cat /tmp/sent"))
 
 				_ = sess.Close()
 				_ = conn.Close()
@@ -1042,22 +1044,43 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				remoteFile, err := client.Create("/tmp/large-file-test.bin")
 				require.NoError(t, err)
-				defer remoteFile.Close() //nolint:errcheck
 
 				written, err := io.Copy(remoteFile, localFile)
 				require.NoError(t, err)
 				assert.Equal(t, int64(fileSize), written)
+				require.NoError(t, remoteFile.Close())
 
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-				defer sess.Close() //nolint:errcheck
+				sum := sha256.Sum256(randomData)
+				received := strings.Fields(runOnDevice(t, conn, "sha256sum /tmp/large-file-test.bin"))
+				require.NotEmpty(t, received)
+				assert.Equal(t, hex.EncodeToString(sum[:]), received[0])
+			},
+		},
+		{
+			name: "OpenSSH scp in SFTP mode uploads a file and exits 0",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
 
-				output, err := sess.Output("stat -c %s /tmp/large-file-test.bin")
-				require.NoError(t, err)
+				execInAgent(t, environment.agent, "ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", "/tmp/scp-key")
+				registerAuthorizedKey(t, t.Context(), environment.services, "openssh-scp", execInAgent(t, environment.agent, "cat", "/tmp/scp-key.pub"))
 
-				size, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
-				require.NoError(t, err)
-				assert.Equal(t, int64(fileSize), size)
+				execInAgent(t, environment.agent, "sh", "-c", "head -c 1048576 /dev/urandom > /tmp/scp-source")
+
+				execInAgent(t, environment.agent, "scp", "-s",
+					"-i", "/tmp/scp-key",
+					"-o", "BatchMode=yes",
+					"-o", "StrictHostKeyChecking=no",
+					"-o", "UserKnownHostsFile=/dev/null",
+					"-o", "User="+deviceSSHID(device),
+					"-P", "2222",
+					"/tmp/scp-source", "server:/tmp/scp-received",
+				)
+
+				sent := strings.Fields(execInAgent(t, environment.agent, "sha256sum", "/tmp/scp-source"))
+				received := strings.Fields(execInAgent(t, environment.agent, "sha256sum", "/tmp/scp-received"))
+				require.NotEmpty(t, sent)
+				require.NotEmpty(t, received)
+				assert.Equal(t, sent[0], received[0])
 			},
 		},
 		{
@@ -1690,32 +1713,18 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				defer sess.Close() //nolint:errcheck
 
 				modes := ssh.TerminalModes{
-					ssh.ECHO:          0,     // Disable echo
-					ssh.TTY_OP_ISPEED: 14400, // Input speed
-					ssh.TTY_OP_OSPEED: 14400, // Output speed
-					ssh.ICRNL:         1,     // Map CR to NL on input
-					ssh.OPOST:         1,     // Enable output processing
+					ssh.ECHO:  0,
+					ssh.VINTR: 0x07,
 				}
 
-				err = sess.RequestPty("xterm-256color", 24, 80, modes)
-				require.NoError(t, err)
+				require.NoError(t, sess.RequestPty("xterm-256color", 24, 80, modes))
 
-				stdin, err := sess.StdinPipe()
-				require.NoError(t, err)
+				output, err := sess.Output("stty -a")
+				require.NoError(t, err, string(output))
 
-				stdout, err := sess.StdoutPipe()
-				require.NoError(t, err)
-
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				_, err = stdin.Write([]byte("stty -echo && echo 'no echo test' && exit\n"))
-				require.NoError(t, err)
-
-				buffer := make([]byte, 1024)
-				n, err := stdout.Read(buffer)
-				require.NoError(t, err)
-				assert.Positive(t, n)
+				settings := strings.Fields(string(output))
+				assert.Contains(t, settings, "-echo", "echo is still on: %s", output)
+				assert.Contains(t, string(output), "intr = ^G", "the interrupt character is not the one asked for: %s", output)
 			},
 		},
 	}
@@ -1838,9 +1847,17 @@ func registerDeviceKey(t *testing.T, ctx context.Context, compose *environment.D
 
 	signer, data := newSigner(t)
 
+	registerAuthorizedKey(t, ctx, compose, "e2e", data)
+
+	return signer
+}
+
+func registerAuthorizedKey(t *testing.T, ctx context.Context, compose *environment.DockerCompose, name, data string) {
+	t.Helper()
+
 	resp, err := compose.R(ctx).
 		SetBody(&requests.PublicKeyCreate{
-			Name:     "e2e",
+			Name:     name,
 			Username: ".*",
 			Data:     []byte(data),
 			Filter: requests.PublicKeyFilter{
@@ -1850,8 +1867,6 @@ func registerDeviceKey(t *testing.T, ctx context.Context, compose *environment.D
 		Post("/api/sshkeys/public-keys")
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode(), resp.String())
-
-	return signer
 }
 
 func skipUnlessAgentAcceptsPasswords(t *testing.T) {
