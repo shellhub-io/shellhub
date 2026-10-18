@@ -164,9 +164,13 @@ type ProvisioningKeyService interface {
 	// CreateProvisioningKey creates a new provisioning key for the specified namespace. It generates a random key,
 	// stores its SHA256 hash plus an encrypted-at-rest copy, and returns the plaintext key once. The key
 	// holds the tags it names, creating any the namespace lacks, so a later rename carries over to it.
-	// A tag that can be neither resolved nor created fails the request with the store's error. Tags and
-	// key are written in one transaction, so a failed request creates no tag. It returns the created key
-	// and an error, if any.
+	// Tags and key are written in one transaction, so a failed request creates no tag. It returns
+	// [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace does not exist,
+	// [ErrProvisioningKeyInvalidField] for an unknown mode or one its webhook or identity settings do
+	// not satisfy and [ErrProvisioningKeyDuplicated] when the name is taken. A ctx cancelled or past
+	// its deadline returns [ErrNamespaceNotFound] when it stops the namespace lookup and ctx's error
+	// after it. Any other failure returns the underlying error, the store's for a tag that can be
+	// neither resolved nor created included.
 	CreateProvisioningKey(ctx context.Context, req *requests.CreateProvisioningKey) (res *responses.CreateProvisioningKey, err error)
 
 	// RevealProvisioningKey returns the plaintext of a provisioning key, decrypted from its at-rest ciphertext. It
@@ -179,10 +183,17 @@ type ProvisioningKeyService interface {
 	ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
 	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. Tags, when set,
-	// replace the tags the key holds, creating any the namespace lacks, and a tag that can be neither
-	// resolved nor created fails the request with the store's error. Tags are resolved only once every
-	// field has validated, in the transaction that writes the key, so a rejected request creates no
-	// tag. It returns an error, if any.
+	// replace the tags the key holds, creating any the namespace lacks. Tags are resolved only once
+	// every field has validated, in the transaction that writes the key, so a rejected request creates
+	// no tag. It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when the namespace
+	// does not exist, [ErrProvisioningKeyNotFound] when no key has the current name and
+	// [ErrProvisioningKeyForbidden] for the pairing key, a revoked key, or a system key asked to change
+	// its name, revocation, usage limit, expiry, tags or ephemeral settings. It returns
+	// [ErrProvisioningKeyDuplicated] for a new name already taken, [ErrProvisioningKeyInvalidField]
+	// for an unknown mode or one its settings do not satisfy, a usage limit below the times the key
+	// was used or an expiry outside 1 to 36500 days. A ctx cancelled or past its deadline returns
+	// [ErrNamespaceNotFound] when it stops the namespace lookup and ctx's error after it. Any other
+	// failure returns the store's error, a tag that can be neither resolved nor created included.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
 	// ListProvisioningKeyEvents retrieves the append-only enrollment history of the provisioning key identified by
