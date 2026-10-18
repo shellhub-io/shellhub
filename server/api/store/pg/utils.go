@@ -103,10 +103,13 @@ func applyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Sc
 	return applyOptions(ctx, query, append([]store.QueryOption{ScopeOption(sc)}, opts...)...)
 }
 
-func resolveUnique[E any](ctx context.Context, db bun.IDB, sc scope.Scope, column, val string, opts ...store.QueryOption) (*E, error) {
+func resolveUnique[E any](ctx context.Context, db bun.IDB, sc scope.Scope, column, val string, relations []string, opts ...store.QueryOption) (*E, error) {
 	rows := make([]E, 0, 2)
 
 	query := db.NewSelect().Model(&rows).Where("? = ?", bun.Ident(column), val).Limit(2)
+	for _, relation := range relations {
+		query = query.Relation(relation)
+	}
 
 	query, err := applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {

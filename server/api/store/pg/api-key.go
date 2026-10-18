@@ -105,7 +105,7 @@ func (pg *Pg) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.
 		return nil, err
 	}
 
-	apiKey, err := resolveUnique[entity.APIKey](ctx, pg.GetConnection(ctx), sc, column, val, opts...)
+	apiKey, err := resolveUnique[entity.APIKey](ctx, pg.GetConnection(ctx), sc, column, val, nil, opts...)
 	if err != nil {
 		return nil, err
 	}
