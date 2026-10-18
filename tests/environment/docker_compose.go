@@ -444,6 +444,21 @@ func (dc *DockerCompose) AgeSession(t *testing.T, uid string, age time.Duration)
 	require.Contains(t, output, "UPDATE 1")
 }
 
+// RecordClosedSessions writes count closed sessions on the device uid of the namespace tenant,
+// failing t unless all of them were written. It stands in for a device's connection history, which
+// otherwise takes a running agent and an SSH session for each entry.
+func (dc *DockerCompose) RecordClosedSessions(t *testing.T, tenant, uid string, count int) {
+	t.Helper()
+
+	output, err := dc.stack.SQL(t.Context(), `
+		INSERT INTO sessions (id, namespace_id, device_id, username, ip_address, started_at, seen_at, authenticated, created_at, updated_at)
+		SELECT md5(random()::text || n), :'tenant', :'uid', 'root', '127.0.0.1', now(), now(), true, now(), now()
+		FROM generate_series(1, :'count'::int) AS n`,
+		map[string]string{"tenant": tenant, "uid": uid, "count": strconv.Itoa(count)})
+	require.NoError(t, err)
+	require.Contains(t, output, "INSERT 0 "+strconv.Itoa(count))
+}
+
 // SessionEventCount returns how many events the database holds for the session uid, terminal
 // output included, reading the table directly so it still answers once the session is gone. It
 // fails t when the count cannot be read.
