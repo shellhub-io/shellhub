@@ -28,19 +28,26 @@ type ProvisioningKeyStore interface {
 	// [ErrInternal]. Whatever fails, nothing is written.
 	ProvisioningKeyCreate(ctx context.Context, provisioningKey *models.ProvisioningKey) (insertedID string, err error)
 
-	// ProvisioningKeyResolve fetches a provisioning key using a specific resolver within the given namespace
-	// scope. The digest is unique across namespaces, so resolving by ID unbounded finds the namespace
-	// that owns the key. A name is unique only within a namespace, and an unbounded resolve by name
-	// that matches keys in several namespaces returns [ErrAmbiguous].
+	// ProvisioningKeyResolve fetches a provisioning key and its tags using a specific resolver within
+	// the given namespace scope. The digest is unique across namespaces, so resolving by ID unbounded
+	// finds the namespace that owns the key. A name is unique only within a namespace, and an
+	// unbounded resolve by name that matches keys in several namespaces returns [ErrAmbiguous]. It
+	// returns [ErrResolverNotFound] for a resolver it does not know, [ErrInvalidScope] for a scope
+	// never constructed, [ErrNoDocuments] when no key matches, ctx's error when it is cancelled or
+	// its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolver ProvisioningKeyResolver, value string, opts ...QueryOption) (*models.ProvisioningKey, error)
 
-	// ProvisioningKeyResolveSystem fetches the namespace's system-managed legacy key. It returns the key if
-	// found and an error, if any.
+	// ProvisioningKeyResolveSystem fetches the namespace's system-managed legacy key and its tags. It
+	// returns [ErrInvalidScope] for a scope not bounded to a namespace, [ErrNoDocuments] when the
+	// namespace has no such key, ctx's error when it is cancelled or its deadline passes and
+	// [ErrInternal] for any other failure.
 	ProvisioningKeyResolveSystem(ctx context.Context, sc scope.Scope) (*models.ProvisioningKey, error)
 
-	// ProvisioningKeyResolveSystemPairing fetches the namespace's system-managed pairing key: the source
-	// attributed to devices accepted through the tenant-less pairing-code flow. It returns the key if
-	// found and an error, if any.
+	// ProvisioningKeyResolveSystemPairing fetches the namespace's system-managed pairing key and its
+	// tags: the source attributed to devices accepted through the tenant-less pairing-code flow. It
+	// returns [ErrInvalidScope] for a scope not bounded to a namespace, [ErrNoDocuments] when the
+	// namespace has no such key, ctx's error when it is cancelled or its deadline passes and
+	// [ErrInternal] for any other failure.
 	ProvisioningKeyResolveSystemPairing(ctx context.Context, sc scope.Scope) (*models.ProvisioningKey, error)
 
 	// ProvisioningKeyConflicts reports whether the target contains conflicting attributes with the database. Pass zero
