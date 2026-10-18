@@ -66,6 +66,10 @@ func TestCloudBilling(t *testing.T) {
 	t.Run("device connection", func(t *testing.T) { testBilledDeviceConnection(t, ctx, compose) })
 	t.Run("webhook", func(t *testing.T) { testBillingWebhook(t, compose) })
 	t.Run("namespace deletion", func(t *testing.T) { testBilledNamespaceDeletion(t, compose) })
+	t.Run("subscription", func(t *testing.T) { testBillingSubscription(t, compose) })
+	t.Run("payment methods", func(t *testing.T) { testBillingPaymentMethods(t, compose) })
+	t.Run("device chooser", func(t *testing.T) { testBillingDeviceChooser(t, compose) })
+	t.Run("permissions", func(t *testing.T) { testBillingPermissions(t, compose) })
 }
 
 type billingOwner struct {
@@ -122,6 +126,12 @@ func subscriptionStatus(t *testing.T, compose *environment.DockerCompose, tenant
 func subscribe(t *testing.T, compose *environment.DockerCompose, tenant string) billedSubscription {
 	t.Helper()
 
+	return startSubscription(t, compose, tenant, becomeCustomer(t, compose, tenant), acceptedTestCard)
+}
+
+func becomeCustomer(t *testing.T, compose *environment.DockerCompose, tenant string) string {
+	t.Helper()
+
 	var customer string
 
 	t.Cleanup(func() {
@@ -143,7 +153,7 @@ func subscribe(t *testing.T, compose *environment.DockerCompose, tenant string) 
 
 	customer = billing.CustomerID
 
-	return startSubscription(t, compose, tenant, customer, acceptedTestCard)
+	return customer
 }
 
 func namespaceCustomer(t *testing.T, compose *environment.DockerCompose, tenant string) string {
@@ -165,9 +175,7 @@ func namespaceCustomer(t *testing.T, compose *environment.DockerCompose, tenant 
 func attachCard(t *testing.T, compose *environment.DockerCompose, card string) {
 	t.Helper()
 
-	resp, err := compose.R(t.Context()).SetBody(map[string]string{"id": card}).Post("/api/billing/paymentmethod/attach")
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	postBillingCard(t, compose, "attach", card, http.StatusOK)
 }
 
 func startSubscription(t *testing.T, compose *environment.DockerCompose, tenant, customer, card string) billedSubscription {
@@ -175,9 +183,7 @@ func startSubscription(t *testing.T, compose *environment.DockerCompose, tenant,
 
 	attachCard(t, compose, card)
 
-	resp, err := compose.R(t.Context()).Post("/api/billing/subscription")
-	require.NoError(t, err)
-	require.Equal(t, http.StatusCreated, resp.StatusCode(), resp.String())
+	postBillingSubscription(t, compose, http.StatusCreated)
 
 	namespace := billedNamespace(t, compose, tenant)
 	require.NotNil(t, namespace.Billing.Subscription)
@@ -605,9 +611,7 @@ func testBilledNamespaceDeletion(t *testing.T, compose *environment.DockerCompos
 		require.Equal(t, http.StatusPaymentRequired, resp.StatusCode(), resp.String())
 		assert.Equal(t, owner.tenant, billedNamespace(t, compose, owner.tenant).TenantID)
 
-		resp, err = compose.StripeAPI(t.Context()).Post("/invoices/" + invoice + "/void")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		voidStripeInvoice(t, compose, invoice)
 
 		resp, err = compose.R(t.Context()).Delete("/api/namespaces/" + owner.tenant)
 		require.NoError(t, err)
@@ -654,6 +658,14 @@ func openStripeInvoice(t *testing.T, compose *environment.DockerCompose, subscri
 	require.Positive(t, invoice.AmountDue)
 
 	return invoice.ID
+}
+
+func voidStripeInvoice(t *testing.T, compose *environment.DockerCompose, invoice string) {
+	t.Helper()
+
+	resp, err := compose.StripeAPI(t.Context()).Post("/invoices/" + invoice + "/void")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 }
 
 type stripeTestClock struct {
