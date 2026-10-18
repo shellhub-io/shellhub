@@ -148,15 +148,9 @@ func (pg *Pg) ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolv
 		return nil, err
 	}
 
-	db := pg.GetConnection(ctx)
-
-	provisioningKey, err := resolveUnique[entity.ProvisioningKey](ctx, db, sc, column, val, opts...)
+	provisioningKey, err := resolveUnique[entity.ProvisioningKey](ctx, pg.GetConnection(ctx), sc, column, val, []string{"Tags"}, opts...)
 	if err != nil {
 		return nil, err
-	}
-
-	if err := db.NewSelect().Model(provisioningKey).WherePK().Relation("Tags").Scan(ctx); err != nil {
-		return nil, fromSQLError(err)
 	}
 
 	return entity.ProvisioningKeyToModel(provisioningKey), nil
