@@ -691,6 +691,25 @@ func (s *Stack) CacheEntryTTL(ctx context.Context, key string) (time.Duration, e
 	return time.Duration(left) * time.Millisecond, nil
 }
 
+// HoldsCacheEntry reports whether the cache holds an entry named key. ctx bounds the exec. It
+// returns the errors [Stack.ExpireCacheEntryIn] does, except the one for an absent key, and an
+// error when the CLI replies anything but a count of 0 or 1.
+func (s *Stack) HoldsCacheEntry(ctx context.Context, key string) (bool, error) {
+	reply, err := s.cacheReply(ctx, "EXISTS", key)
+	if err != nil {
+		return false, err
+	}
+
+	switch reply {
+	case "0":
+		return false, nil
+	case "1":
+		return true, nil
+	default:
+		return false, fmt.Errorf("valkey-cli EXISTS %s replied %q", key, reply)
+	}
+}
+
 // CopyCacheEntry stores a copy of the cache entry from under the key to, with the time from has
 // left. ctx bounds the exec. It returns the errors [Stack.ExpireCacheEntryIn] does, an error when
 // the cache holds no entry named from, and an error when it already holds one named to.
