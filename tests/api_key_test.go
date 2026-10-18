@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 	"slices"
 	"testing"
@@ -152,6 +154,11 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 			path:        "/api/namespaces/api-key/" + key.Name,
 		},
 		{
+			description: "revoking the user's tokens",
+			method:      http.MethodDelete,
+			path:        "/api/users/tokens",
+		},
+		{
 			description: "leaving the namespace",
 			method:      http.MethodDelete,
 			path:        "/api/namespaces/" + ShellHubNamespace + "/members",
@@ -167,11 +174,87 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 	}
 }
 
+// TestEditionRoutesThatRefuseAPIKeys covers the routes the enterprise and cloud editions add that
+// refuse a namespace API key whatever its role: creating a namespace, MFA, the vault, re-authenticating
+// a web terminal, and each edition's own account routes, SAML re-authentication on enterprise and
+// email confirmation and password recovery on cloud. Each edition runs its own stack. The community
+// routes are covered by [TestRoutesThatRefuseAPIKeys].
+func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
+	t.Parallel()
+
+	type route struct{ method, path string }
+
+	shared := []route{
+		{http.MethodPost, "/api/namespaces"},
+		{http.MethodGet, "/api/user/mfa/generate"},
+		{http.MethodPost, "/api/user/mfa/auth"},
+		{http.MethodPut, "/api/user/mfa/enable"},
+		{http.MethodPut, "/api/user/mfa/disable"},
+		{http.MethodPut, "/api/user/mfa/recovery/disable"},
+		{http.MethodPost, "/api/user/mfa/recover"},
+		{http.MethodPost, "/api/user/mfa/reset"},
+		{http.MethodPut, "/api/user/mfa/reset/any"},
+		{http.MethodPost, "/api/web-terminal/reauth"},
+		{http.MethodGet, "/api/vault"},
+		{http.MethodPut, "/api/vault/meta"},
+		{http.MethodPut, "/api/vault/data"},
+		{http.MethodPut, "/api/vault/settings"},
+		{http.MethodDelete, "/api/vault"},
+	}
+
+	editions := []struct {
+		edition environment.Edition
+		own     []route
+	}{
+		{
+			edition: environment.EditionEnterprise,
+			own:     []route{{http.MethodGet, "/api/user/saml/reauth"}},
+		},
+		{
+			edition: environment.EditionCloud,
+			own: []route{
+				{http.MethodPost, "/api/user/resend_email"},
+				{http.MethodGet, "/api/user/validation_account"},
+				{http.MethodPost, "/api/user/recover_password"},
+				{http.MethodPost, "/api/user/any/update_password"},
+			},
+		},
+	}
+
+	for _, tc := range editions {
+		t.Run(string(tc.edition), func(t *testing.T) {
+			t.Parallel()
+
+			compose := environment.New(t, run).WithEdition(tc.edition).Up(t.Context())
+			t.Cleanup(compose.Down)
+
+			compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, "")
+			compose.JWT(compose.AuthUser(t, ShellHubUsername, ShellHubPassword).Token)
+
+			key := compose.CreateAPIKey(t, &requests.CreateAPIKey{
+				Name:      "automation",
+				ExpiresAt: -1,
+				OptRole:   authorizer.RoleAdministrator,
+			})
+
+			requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/devices", http.StatusOK)
+
+			for _, r := range append(slices.Clone(shared), tc.own...) {
+				t.Run("refuses "+r.method+" "+r.path, func(t *testing.T) {
+					requireAnswer(t, withAPIKey(t, compose, key.Key), r.method, r.path, http.StatusForbidden)
+				})
+			}
+		})
+	}
+}
+
 // TestNamespaceAPIKeyAuthentication covers what a namespace API key can do once minted: manage the
 // namespace's tags, act only within its role, keep working when it never expires, and stop working
-// once its expiry passes. It also covers a key carrying the instance key prefix, which the server
-// honours only on the admin API, being refused on a namespace route. The routes that refuse a key whatever its role are covered by
-// [TestRoutesThatRefuseAPIKeys].
+// once its expiry passes. A role change and a deletion take effect on the key's next request, past
+// the cached copy authentication keeps, and no two keys of a namespace share a name. The routes that
+// refuse a key whatever its role are covered by [TestRoutesThatRefuseAPIKeys], and an instance key
+// refused on a namespace route by [TestEnterpriseAdmin].
 func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 	t.Parallel()
 
@@ -297,10 +380,61 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 	})
 
-	t.Run("a key carrying the instance key prefix is refused on a namespace route", func(t *testing.T) {
-		resp, err := withAPIKey(t, compose, models.InstanceAPIKeyPrefix+uuid.Generate()).Get("/api/devices")
+	t.Run("a deleted key stops authenticating at once and leaves the cache", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "deleted", ExpiresAt: -1})
+
+		requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/devices", http.StatusOK)
+		require.True(t, compose.HoldsCacheEntry(t, apiKeyCacheKey(key.Key)), "authentication did not cache the key")
+
+		requireAnswer(t, compose.R(t.Context()), http.MethodDelete, "/api/namespaces/api-key/"+key.Name, http.StatusOK)
+
+		assert.False(t, compose.HoldsCacheEntry(t, apiKeyCacheKey(key.Key)), "the deletion left the key cached")
+		requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/devices", http.StatusUnauthorized)
+	})
+
+	t.Run("a role change takes effect on the key's next request", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "promoted", ExpiresAt: -1, OptRole: authorizer.RoleObserver})
+
+		changeRole := func(t *testing.T, role authorizer.Role) {
+			t.Helper()
+
+			resp, err := compose.R(t.Context()).
+				SetBody(map[string]string{"role": role.String()}).
+				Patch("/api/namespaces/api-key/" + key.Name)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+			assert.False(t, compose.HoldsCacheEntry(t, apiKeyCacheKey(key.Key)), "the role change left the key cached")
+		}
+
+		requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/access-policies", http.StatusForbidden)
+		require.True(t, compose.HoldsCacheEntry(t, apiKeyCacheKey(key.Key)), "authentication did not cache the key")
+
+		changeRole(t, authorizer.RoleAdministrator)
+		requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/access-policies", http.StatusOK)
+
+		changeRole(t, authorizer.RoleObserver)
+		requireAnswer(t, withAPIKey(t, compose, key.Key), http.MethodGet, "/api/access-policies", http.StatusForbidden)
+		assert.Equal(t, authorizer.RoleObserver, listedAPIKey(t, compose, key.Name).Role)
+	})
+
+	t.Run("a name another key holds is refused on create and on rename", func(t *testing.T) {
+		compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "taken", ExpiresAt: -1})
+		other := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "other", ExpiresAt: -1})
+
+		resp, err := compose.R(t.Context()).
+			SetBody(&requests.CreateAPIKey{Name: "taken", ExpiresAt: -1}).
+			Post("/api/namespaces/api-key")
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
+		assert.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+
+		resp, err = compose.R(t.Context()).
+			SetBody(map[string]string{"name": "taken"}).
+			Patch("/api/namespaces/api-key/" + other.Name)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+
+		listedAPIKey(t, compose, other.Name)
+		requireAnswer(t, withAPIKey(t, compose, other.Key), http.MethodGet, "/api/devices", http.StatusOK)
 	})
 
 	t.Run("a key is refused once its expiry passes", func(t *testing.T) {
@@ -359,6 +493,40 @@ func TestAPIKeyRoleCap(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
 	})
 
+	t.Run("no key is raised to owner", func(t *testing.T) {
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "raised", ExpiresAt: -1, OptRole: authorizer.RoleObserver})
+
+		resp, err := compose.R(t.Context()).
+			SetBody(map[string]string{"role": authorizer.RoleOwner.String()}).
+			Patch("/api/namespaces/api-key/" + key.Name)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		assert.Equal(t, authorizer.RoleObserver, listedAPIKey(t, compose, key.Name).Role)
+	})
+
+	t.Run("an administrator raises a key no higher than administrator", func(t *testing.T) {
+		administrator := newMember(t, compose, "raiser", authorizer.RoleAdministrator)
+		key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "raised-by-admin", ExpiresAt: -1, OptRole: authorizer.RoleObserver})
+
+		raise := func(role authorizer.Role) *resty.Response {
+			resp, err := asBearer(t, compose, administrator.Token).
+				SetBody(map[string]string{"role": role.String()}).
+				Patch("/api/namespaces/api-key/" + key.Name)
+			require.NoError(t, err)
+
+			return resp
+		}
+
+		resp := raise(authorizer.RoleOwner)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+		assert.Equal(t, authorizer.RoleObserver, listedAPIKey(t, compose, key.Name).Role)
+
+		resp = raise(authorizer.RoleAdministrator)
+		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, authorizer.RoleAdministrator, listedAPIKey(t, compose, key.Name).Role)
+	})
+
 	t.Run("an operator creates no key", func(t *testing.T) {
 		operator := newMember(t, compose, "operator", authorizer.RoleOperator)
 
@@ -400,6 +568,12 @@ func listedAPIKey(t *testing.T, compose *environment.DockerCompose, name string)
 	require.GreaterOrEqual(t, index, 0, "the key %s is not listed", name)
 
 	return keys[index]
+}
+
+func apiKeyCacheKey(plaintext string) string {
+	digest := sha256.Sum256([]byte(plaintext))
+
+	return "api-key/unique-digest={" + hex.EncodeToString(digest[:]) + "}"
 }
 
 func withAPIKey(t *testing.T, compose *environment.DockerCompose, plaintext string) *resty.Request {

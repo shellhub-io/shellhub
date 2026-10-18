@@ -492,6 +492,17 @@ func (dc *DockerCompose) CacheEntryTTL(t *testing.T, key string) time.Duration {
 	return left
 }
 
+// HoldsCacheEntry reports whether the cache holds an entry named key, failing t on any error
+// [Stack.HoldsCacheEntry] returns.
+func (dc *DockerCompose) HoldsCacheEntry(t *testing.T, key string) bool {
+	t.Helper()
+
+	holds, err := dc.stack.HoldsCacheEntry(t.Context(), key)
+	require.NoError(t, err)
+
+	return holds
+}
+
 // DropDeviceAuthCache deletes the cached authentication of the device uid, so the device's next
 // authentication reads the database and reconciles a pending enrollment. It fails t on any error
 // [Stack.DropCacheEntry] returns, so not when the entry already expired.

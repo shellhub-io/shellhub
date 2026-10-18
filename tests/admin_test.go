@@ -21,11 +21,12 @@ import (
 )
 
 // TestEnterpriseAdmin drives the enterprise admin API as an instance administrator and as the
-// callers it must turn away: the instance API keys an administrator mints and when they stop
-// authenticating, the guard that keeps every other user off /admin/api, the user and namespace
-// exports, the instance-wide statistics, the token that signs an administrator in as another
-// user, and the writes an administrator makes to users and namespaces. The cases share one stack;
-// each creates the users, namespaces and devices it reads.
+// callers it must turn away: the instance API keys an administrator mints, when they stop
+// authenticating and the namespace and key-management routes that refuse them, the guard that
+// keeps every other user off /admin/api, the user and namespace exports, the instance-wide
+// statistics, the token that signs an administrator in as another user, and the writes an
+// administrator makes to users and namespaces. The cases share one stack; each creates the users,
+// namespaces and devices it reads.
 func TestEnterpriseAdmin(t *testing.T) {
 	t.Parallel()
 
@@ -51,6 +52,24 @@ func testInstanceAPIKeys(t *testing.T, compose *environment.DockerCompose) {
 		}
 
 		requireAnswer(t, withAPIKey(t, compose, models.InstanceAPIKeyPrefix+uuid.Generate()), http.MethodGet, "/admin/api/users", http.StatusUnauthorized)
+	})
+
+	t.Run("an instance key is refused on a namespace route", func(t *testing.T) {
+		key := createInstanceAPIKey(t, compose.R(t.Context()), "admin-only")
+
+		requireAnswer(t, withAPIKey(t, compose, key.ID), http.MethodGet, "/api/devices", http.StatusUnauthorized)
+		requireAnswer(t, withAPIKey(t, compose, key.ID), http.MethodGet, "/admin/api/users", http.StatusOK)
+	})
+
+	t.Run("an instance key cannot manage instance keys", func(t *testing.T) {
+		key := createInstanceAPIKey(t, compose.R(t.Context()), "no-minting")
+
+		requireAnswer(t, withAPIKey(t, compose, key.ID).SetBody(map[string]any{"name": "minted", "expires_at": 30}), http.MethodPost, "/admin/api/instance-api-keys", http.StatusForbidden)
+		requireAnswer(t, withAPIKey(t, compose, key.ID), http.MethodGet, "/admin/api/instance-api-keys", http.StatusForbidden)
+		requireAnswer(t, withAPIKey(t, compose, key.ID), http.MethodDelete, "/admin/api/instance-api-keys/"+key.Name, http.StatusForbidden)
+
+		assert.NotContains(t, instanceAPIKeyNames(t, compose), "minted")
+		assert.Contains(t, instanceAPIKeyNames(t, compose), key.Name)
 	})
 
 	t.Run("a user who is not an instance administrator cannot create an instance key", func(t *testing.T) {
