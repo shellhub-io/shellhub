@@ -8,6 +8,14 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// DeletedDevice is a device [DeviceStore.DeviceDeleteMany] deleted, with the namespace and status
+// it had, which are what a caller adjusts the namespace's device counts by.
+type DeletedDevice struct {
+	UID      string
+	TenantID string
+	Status   models.DeviceStatus
+}
+
 // DeviceAcceptable selects how the acceptable flag is computed for the devices a query
 // returns. It depends on the namespace's limit, so it cannot be a stored column.
 type DeviceAcceptable uint
@@ -108,8 +116,11 @@ type DeviceStore interface {
 	DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error
 
 	DeviceDelete(ctx context.Context, device *models.Device) error
-	// DeviceDeleteMany deletes multiple devices by their UIDs.
-	DeviceDeleteMany(ctx context.Context, uids []string) (deletedCount int64, err error)
+	// DeviceDeleteMany deletes the devices uids names, with their sessions, and returns the ones it
+	// deleted. A uid that names no device, including one another call deleted first, is left out,
+	// so the result can be shorter than uids, and an empty uids deletes nothing. It returns ctx's
+	// error when ctx ends, and an error wrapping [ErrInternal] for any other database failure.
+	DeviceDeleteMany(ctx context.Context, uids []string) (deleted []DeletedDevice, err error)
 
 	// DeviceListExpiredEphemeral lists ephemeral devices that have stayed offline longer than their
 	// per-device ephemeral timeout (in minutes), so the cleanup can remove them.

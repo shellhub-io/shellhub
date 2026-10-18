@@ -346,11 +346,11 @@ func (pg *Pg) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) err
 
 // DeviceDelete implements [store.DeviceStore].
 func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
-	deletedCount, err := pg.DeviceDeleteMany(ctx, []string{device.UID})
+	deleted, err := pg.DeviceDeleteMany(ctx, []string{device.UID})
 	switch {
 	case err != nil:
 		return err
-	case deletedCount < 1:
+	case len(deleted) < 1:
 		return store.ErrNoDocuments
 	default:
 		return nil
@@ -358,7 +358,7 @@ func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 }
 
 // DeviceDeleteMany implements [store.DeviceStore].
-func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error) {
+func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) ([]store.DeletedDevice, error) {
 	db := pg.GetConnection(ctx)
 	fn := pg.deviceDeleteManyFn(ctx, uids)
 
@@ -367,7 +367,7 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error
 	} else {
 		tx, err := pg.driver.BeginTx(ctx, nil)
 		if err != nil {
-			return 0, fromSQLError(err)
+			return nil, fromSQLError(err)
 		}
 
 		defer func() {
@@ -377,38 +377,49 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error
 			}
 		}()
 
-		count, err := fn(tx)
+		deleted, err := fn(tx)
 		if err != nil {
 			_ = tx.Rollback()
 
-			return 0, err
+			return nil, err
 		}
 
 		if err := tx.Commit(); err != nil {
-			return 0, fromSQLError(err)
+			return nil, fromSQLError(err)
 		}
 
-		return count, nil
+		return deleted, nil
 	}
 }
 
-func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun.Tx) (int64, error) {
-	return func(tx bun.Tx) (int64, error) {
-		r, err := tx.NewDelete().Model((*entity.Device)(nil)).Where("id IN (?)", bun.List(uids)).Exec(ctx)
-		if err != nil {
-			return 0, fromSQLError(err)
+func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun.Tx) ([]store.DeletedDevice, error) {
+	return func(tx bun.Tx) ([]store.DeletedDevice, error) {
+		deleted := []store.DeletedDevice{}
+		if len(uids) == 0 {
+			return deleted, nil
 		}
 
-		count, _ := r.RowsAffected()
+		rows := []entity.Device{}
+		if err := tx.NewDelete().
+			Model(&rows).
+			Where("id IN (?)", bun.List(uids)).
+			Returning("id, namespace_id, status").
+			Scan(ctx); err != nil {
+			return nil, fromSQLError(err)
+		}
 
 		if _, err := tx.NewDelete().
 			Model((*entity.Session)(nil)).
 			Where("device_id IN (?)", bun.List(uids)).
 			Exec(ctx); err != nil {
-			return 0, fromSQLError(err)
+			return nil, fromSQLError(err)
 		}
 
-		return count, nil
+		for _, row := range rows {
+			deleted = append(deleted, store.DeletedDevice{UID: row.ID, TenantID: row.NamespaceID, Status: models.DeviceStatus(row.Status)})
+		}
+
+		return deleted, nil
 	}
 }
 

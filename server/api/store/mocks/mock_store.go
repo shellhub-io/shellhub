@@ -1597,22 +1597,24 @@ func (_c *MockStore_DeviceDeleteCustomField_Call) RunAndReturn(run func(ctx cont
 }
 
 // DeviceDeleteMany provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error) {
+func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, uids []string) ([]store.DeletedDevice, error) {
 	ret := _mock.Called(ctx, uids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceDeleteMany")
 	}
 
-	var r0 int64
+	var r0 []store.DeletedDevice
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) (int64, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) ([]store.DeletedDevice, error)); ok {
 		return returnFunc(ctx, uids)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) int64); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) []store.DeletedDevice); ok {
 		r0 = returnFunc(ctx, uids)
 	} else {
-		r0 = ret.Get(0).(int64)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]store.DeletedDevice)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, []string) error); ok {
 		r1 = returnFunc(ctx, uids)
@@ -1652,12 +1654,12 @@ func (_c *MockStore_DeviceDeleteMany_Call) Run(run func(ctx context.Context, uid
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) Return(deletedCount int64, err error) *MockStore_DeviceDeleteMany_Call {
-	_c.Call.Return(deletedCount, err)
+func (_c *MockStore_DeviceDeleteMany_Call) Return(deleted []store.DeletedDevice, err error) *MockStore_DeviceDeleteMany_Call {
+	_c.Call.Return(deleted, err)
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, uids []string) (int64, error)) *MockStore_DeviceDeleteMany_Call {
+func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, uids []string) ([]store.DeletedDevice, error)) *MockStore_DeviceDeleteMany_Call {
 	_c.Call.Return(run)
 	return _c
 }

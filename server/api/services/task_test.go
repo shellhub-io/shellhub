@@ -173,7 +173,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2"}).
-					Return(int64(0), errors.New("delete error")).
+					Return(nil, errors.New("delete error")).
 					Once()
 			},
 			expected: errors.New("delete error"),
@@ -215,7 +215,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
-					Return(int64(3), nil).
+					Return([]store.DeletedDevice{{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}, {UID: "device-2", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}, {UID: "device-3", TenantID: "tenant-2", Status: models.DeviceStatusRemoved}}, nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-2)).
@@ -265,7 +265,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
-					Return(int64(3), nil).
+					Return([]store.DeletedDevice{{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}, {UID: "device-2", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}, {UID: "device-3", TenantID: "tenant-2", Status: models.DeviceStatusRemoved}}, nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-2)).
@@ -273,6 +273,52 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusRemoved, int64(-1)).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "decrements the counters only by the devices it deleted",
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilter())).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
+					Return([]models.Device{}, int64(3), nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilter())).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
+					Return(
+						[]models.Device{
+							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-3", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
+						},
+						int64(3),
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return([]store.DeletedDevice{{UID: "device-2", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}}, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 			},
@@ -313,7 +359,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDeleteMany", ctx, []string{"device-1"}).
-					Return(int64(1), nil).
+					Return([]store.DeletedDevice{{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusRemoved}}, nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -339,7 +385,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDeleteMany", ctx, []string{"device-2"}).
-					Return(int64(1), nil).
+					Return([]store.DeletedDevice{{UID: "device-2", TenantID: "tenant-2", Status: models.DeviceStatusRemoved}}, nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -381,6 +427,92 @@ func TestService_DeviceCleanup(t *testing.T) {
 		t.Run(tc.description, func(tt *testing.T) {
 			tc.requiredMocks()
 			require.Equal(tt, tc.expected, s.DeviceCleanup()(ctx))
+		})
+	}
+}
+
+func TestService_EphemeralCleanup(t *testing.T) {
+	ctx := context.Background()
+
+	expired := []models.Device{
+		{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusAccepted},
+		{UID: "device-2", TenantID: "tenant-1", Status: models.DeviceStatusPending},
+		{UID: "device-3", TenantID: "tenant-2", Status: models.DeviceStatusAccepted},
+	}
+
+	cases := []struct {
+		description   string
+		requiredMocks func(storeMock *storemock.MockStore)
+		expected      error
+	}{
+		{
+			description: "fails when cannot delete the devices",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
+				storeMock.
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return(nil, errors.New("delete error")).
+					Once()
+			},
+			expected: errors.New("delete error"),
+		},
+		{
+			description: "decrements each namespace's counter for the status of every device it deleted",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
+				storeMock.
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return([]store.DeletedDevice{
+						{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusAccepted},
+						{UID: "device-2", TenantID: "tenant-1", Status: models.DeviceStatusPending},
+						{UID: "device-3", TenantID: "tenant-2", Status: models.DeviceStatusAccepted},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusAccepted, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusAccepted, int64(-1)).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "decrements the counters only by the devices it deleted",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
+				storeMock.
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return([]store.DeletedDevice{
+						{UID: "device-3", TenantID: "tenant-2", Status: models.DeviceStatusAccepted},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusAccepted, int64(-1)).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			storeMock := storemock.NewMockStore(tt)
+			storeMock.
+				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
+			tc.requiredMocks(storeMock)
+
+			s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
+			require.Equal(tt, tc.expected, s.EphemeralCleanup()(ctx))
 		})
 	}
 }
