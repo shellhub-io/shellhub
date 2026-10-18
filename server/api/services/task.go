@@ -261,11 +261,10 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			uids := make([]string, len(devices))
 			for i, device := range devices {
 				uids[i] = device.UID
-				totalDeleted++
-				deletedPerTenant[device.TenantID]++
 			}
 
-			if _, err := s.store.DeviceDeleteMany(ctx, uids); err != nil {
+			deleted, err := s.store.DeviceDeleteMany(ctx, uids)
+			if err != nil {
 				log.WithField("page", page+1).
 					WithError(err).
 					Info("Failed to delete devices")
@@ -273,7 +272,12 @@ func (s *service) deviceCleanup() store.TransactionCb {
 				return err
 			}
 
-			log.WithFields(log.Fields{"page": page + 1, "total_pages": totalPages, "devices": len(devices), "total_deleted": totalDeleted}).
+			for _, device := range deleted {
+				totalDeleted++
+				deletedPerTenant[device.TenantID]++
+			}
+
+			log.WithFields(log.Fields{"page": page + 1, "total_pages": totalPages, "listed": len(devices), "deleted": len(deleted), "total_deleted": totalDeleted}).
 				Info("Processing page of removed devices")
 
 			if page < totalPages-1 {
@@ -318,19 +322,23 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 		log.WithField("total_devices", len(devices)).Info("Found offline ephemeral devices to cleanup")
 
 		uids := make([]string, len(devices))
-		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)
 		for i, device := range devices {
 			uids[i] = device.UID
+		}
+
+		deleted, err := s.store.DeviceDeleteMany(ctx, uids)
+		if err != nil {
+			log.WithError(err).Error("Failed to delete offline ephemeral devices")
+
+			return err
+		}
+
+		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)
+		for _, device := range deleted {
 			if deletedPerTenant[device.TenantID] == nil {
 				deletedPerTenant[device.TenantID] = make(map[models.DeviceStatus]int64)
 			}
 			deletedPerTenant[device.TenantID][device.Status]++
-		}
-
-		if _, err := s.store.DeviceDeleteMany(ctx, uids); err != nil {
-			log.WithError(err).Error("Failed to delete offline ephemeral devices")
-
-			return err
 		}
 
 		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
@@ -345,7 +353,7 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			}
 		}
 
-		log.WithField("total_deleted", len(devices)).Info("Ephemeral device cleanup completed successfully")
+		log.WithField("total_deleted", len(deleted)).Info("Ephemeral device cleanup completed successfully")
 
 		return nil
 	}

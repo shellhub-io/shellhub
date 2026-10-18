@@ -895,9 +895,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-1"))
 		s.CreateDevice(t, WithDeviceName("device-2"))
 
-		deletedCount, err := st.DeviceDeleteMany(ctx, []string{})
+		deleted, err := st.DeviceDeleteMany(ctx, []string{})
 		require.NoError(t, err)
-		assert.Equal(t, int64(0), deletedCount)
+		assert.Empty(t, deleted)
 	})
 
 	t.Run("succeeds when devices match", func(t *testing.T) {
@@ -908,9 +908,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		uid3 := s.CreateDevice(t, WithDeviceName("device-3"))
 
 		uids := []string{string(uid1), string(uid2)}
-		deletedCount, err := st.DeviceDeleteMany(ctx, uids)
+		deleted, err := st.DeviceDeleteMany(ctx, uids)
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), deletedCount)
+		assert.Len(t, deleted, 2)
 
 		for _, uid := range uids {
 			_, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, uid)
@@ -920,6 +920,40 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid3))
 		require.NoError(t, err)
 		assert.Equal(t, string(uid3), device.UID)
+	})
+
+	t.Run("returns the namespace and status of each device it deleted", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		accepted := s.CreateDevice(t, WithDeviceStatus(models.DeviceStatusAccepted))
+		removed := s.CreateDevice(t, WithDeviceStatus(models.DeviceStatusRemoved))
+
+		acceptedDevice, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(accepted))
+		require.NoError(t, err)
+		removedDevice, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(removed))
+		require.NoError(t, err)
+
+		deleted, err := st.DeviceDeleteMany(ctx, []string{string(accepted), string(removed)})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []store.DeletedDevice{
+			{UID: string(accepted), TenantID: acceptedDevice.TenantID, Status: models.DeviceStatusAccepted},
+			{UID: string(removed), TenantID: removedDevice.TenantID, Status: models.DeviceStatusRemoved},
+		}, deleted)
+	})
+
+	t.Run("leaves out a device an earlier call already deleted", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		first := s.CreateDevice(t, WithDeviceName("deleted-first"))
+		second := s.CreateDevice(t, WithDeviceName("deleted-second"))
+
+		_, err := st.DeviceDeleteMany(ctx, []string{string(first)})
+		require.NoError(t, err)
+
+		deleted, err := st.DeviceDeleteMany(ctx, []string{string(first), string(second)})
+		require.NoError(t, err)
+		require.Len(t, deleted, 1)
+		assert.Equal(t, string(second), deleted[0].UID)
 	})
 
 	t.Run("deletes related sessions in cascade", func(t *testing.T) {
@@ -934,9 +968,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		session3UID := s.CreateSession(t, WithSessionDevice(uid3))
 
 		uids := []string{string(uid1), string(uid2)}
-		deletedCount, err := st.DeviceDeleteMany(ctx, uids)
+		deleted, err := st.DeviceDeleteMany(ctx, uids)
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), deletedCount)
+		assert.Len(t, deleted, 2)
 
 		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session1UID))
 		require.ErrorIs(t, err, store.ErrNoDocuments)
@@ -954,15 +988,15 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		uid1 := s.CreateDevice(t, WithDeviceName("device-tx-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-tx-2"))
 
-		var deletedCount int64
+		var deleted []store.DeletedDevice
 		err := st.WithTransaction(ctx, func(ctx context.Context) error {
 			var err error
-			deletedCount, err = st.DeviceDeleteMany(ctx, []string{string(uid1), string(uid2)})
+			deleted, err = st.DeviceDeleteMany(ctx, []string{string(uid1), string(uid2)})
 
 			return err
 		})
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), deletedCount)
+		assert.Len(t, deleted, 2)
 
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
 		require.ErrorIs(t, err, store.ErrNoDocuments)
@@ -983,9 +1017,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 			"non-existent-uid-2",
 		}
 
-		deletedCount, err := st.DeviceDeleteMany(ctx, uids)
+		deleted, err := st.DeviceDeleteMany(ctx, uids)
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), deletedCount)
+		assert.Len(t, deleted, 2)
 
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
 		require.ErrorIs(t, err, store.ErrNoDocuments)
@@ -1002,9 +1036,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		session2UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user2"))
 		session3UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user3"))
 
-		deletedCount, err := st.DeviceDeleteMany(ctx, []string{string(deviceUID)})
+		deleted, err := st.DeviceDeleteMany(ctx, []string{string(deviceUID)})
 		require.NoError(t, err)
-		assert.Equal(t, int64(1), deletedCount)
+		assert.Len(t, deleted, 1)
 
 		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session1UID))
 		require.ErrorIs(t, err, store.ErrNoDocuments)
