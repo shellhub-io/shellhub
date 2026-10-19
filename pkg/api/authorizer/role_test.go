@@ -107,8 +107,7 @@ func TestRolePermissions(t *testing.T) {
 			description: "succeeds with 'owner'",
 			role:        authorizer.RoleOwner,
 			expected: []authorizer.Permission{
-				authorizer.DeviceAccept,
-				authorizer.DeviceReject,
+				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceRemove,
 				authorizer.DeviceConnect,
 				authorizer.DeviceRename,
@@ -164,8 +163,7 @@ func TestRolePermissions(t *testing.T) {
 			description: "succeeds with 'administrator'",
 			role:        authorizer.RoleAdministrator,
 			expected: []authorizer.Permission{
-				authorizer.DeviceAccept,
-				authorizer.DeviceReject,
+				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceRemove,
 				authorizer.DeviceConnect,
 				authorizer.DeviceRename,
@@ -212,8 +210,7 @@ func TestRolePermissions(t *testing.T) {
 			description: "succeeds with 'operator'",
 			role:        authorizer.RoleOperator,
 			expected: []authorizer.Permission{
-				authorizer.DeviceAccept,
-				authorizer.DeviceReject,
+				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceConnect,
 				authorizer.DeviceRename,
 				authorizer.DeviceDetails,

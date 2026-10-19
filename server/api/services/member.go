@@ -268,7 +268,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 
 	sc := scope.MustBounded(namespace.TenantID)
 
-	if member.Role.HasPermission(authorizer.DeviceAccept) {
+	if member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
 		if err := s.store.NamespaceUpdateMembership(ctx, sc, member); err != nil {
 			return err
 		}

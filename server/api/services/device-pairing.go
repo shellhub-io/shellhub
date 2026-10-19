@@ -58,7 +58,7 @@ type DevicePairingService interface {
 
 	// AcceptDevicePairing materializes the pairing payload as a device in the
 	// chosen namespace and accepts it. The user must be a member of the chosen
-	// namespace with the device accept permission. A code is accepted once: an
+	// namespace with the device status permission. A code is accepted once: an
 	// unknown, expired or already accepted code returns not found.
 	//
 	// The response carries the surviving device's owner, which is empty only when
@@ -193,7 +193,7 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrNamespaceMemberNotFound(userID, nil)
 	}
 
-	if !member.Role.HasPermission(authorizer.DeviceAccept) {
+	if !member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
 		return nil, NewErrRoleForbidden()
 	}
 
