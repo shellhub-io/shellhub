@@ -46,7 +46,7 @@ type Device struct {
 	TenantID  string          `json:"tenant_id"`
 
 	// LastSeen represents the timestamp of the most recent ping from the device to the server.
-	LastSeen time.Time `json:"last_seen"`
+	LastSeen time.Time `json:"last_seen,omitzero"`
 	// DisconnectedAt stores the timestamp when the device disconnected from the server.
 	// When nil, it indicates the device is potentially online.
 	//

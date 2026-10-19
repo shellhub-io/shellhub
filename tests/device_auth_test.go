@@ -55,6 +55,18 @@ func TestDeviceAuth(t *testing.T) {
 		assert.Equal(t, &authorizer.DeviceClaims{UID: res.UID, TenantID: ShellHubNamespace, KeyVerified: true}, claims)
 	})
 
+	t.Run("authenticating alone leaves the device offline", func(t *testing.T) {
+		req := newDeviceAuthRequest(t, "offline", "02:00:00:00:01:f0")
+
+		res := authDevice(t, compose, req)
+		compose.UpdateDeviceStatus(t, res.UID, environment.DeviceActionAccept)
+		authDevice(t, compose, req)
+
+		device := requireDevice(t, compose, res.UID)
+		assert.False(t, device.Online, "a device that never opened a tunnel reads online")
+		assert.True(t, device.LastSeen.IsZero(), "last_seen %s was written by an authentication", device.LastSeen)
+	})
+
 	t.Run("the uid is derived from the identity", func(t *testing.T) {
 		otherPublicKey := newDevicePublicKey(t)
 

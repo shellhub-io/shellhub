@@ -57,8 +57,8 @@ type AuthService interface {
 	// provisioning key or a pairing, [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new device
-	// cannot be stored. It returns the store's error when the device, the namespace's pairing or legacy key, its counters or its heartbeat cannot
-	// be read or written.
+	// cannot be stored. It returns the store's error when the device, the namespace's pairing or
+	// legacy key, or its counters cannot be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. It returns
 	// [ErrAuthUnathorized] for claims without a valid tenant, for a token of a device the store no
@@ -495,8 +495,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			CreatedAt:       s.clock.Now(),
 			UID:             uid,
 			TenantID:        req.TenantID,
-			LastSeen:        s.clock.Now(),
-			DisconnectedAt:  nil,
 			Status:          models.DeviceStatusPending,
 			StatusUpdatedAt: s.clock.Now(),
 			Name:            strings.ToLower(hostname),
@@ -546,9 +544,6 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		revived := device.RemovedAt != nil
-
-		device.LastSeen = s.clock.Now()
-		device.DisconnectedAt = nil
 
 		if ip := net.ParseIP(req.RealIP); ip != nil {
 			device.RemoteAddr = req.RealIP
@@ -621,13 +616,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		if err := update(ctx, device); err != nil {
-			log.WithError(err).Error("failed to updated device to online")
-
-			return nil, err
-		}
-
-		if _, err := s.store.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: uid, At: device.LastSeen}}); err != nil {
-			log.WithError(err).Error("failed to update device last_seen to online")
+			log.WithError(err).Error("failed to update the authenticated device")
 
 			return nil, err
 		}

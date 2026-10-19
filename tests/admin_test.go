@@ -219,7 +219,7 @@ func testAdminStats(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, before.PendingDevices+2, after.PendingDevices, "pending devices")
 		assert.Equal(t, before.RegisteredDevices+2, after.RegisteredDevices, "registered devices")
 		assert.Equal(t, before.RejectedDevices+1, after.RejectedDevices, "rejected devices")
-		assert.Equal(t, before.OnlineDevices+2, after.OnlineDevices, "online devices")
+		assert.Equal(t, before.OnlineDevices+1, after.OnlineDevices, "online devices: only the agent holding a tunnel")
 		assert.Equal(t, before.ActiveSessions+1, after.ActiveSessions, "active sessions")
 
 		require.NoError(t, conn.Close())

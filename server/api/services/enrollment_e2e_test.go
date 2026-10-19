@@ -765,6 +765,7 @@ func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) 
 
 	first := e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
 	require.Equal(t, models.DeviceStatusAccepted, e.status(t, first))
+	e.connect(t, first)
 
 	second := e.enrollAs(t, "second-box", mac, "pk-second", plaintextFor(0x70))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, second), "a connected twin keeps the device; the newcomer waits")
@@ -775,6 +776,7 @@ func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) 
 	t.Run("both agents keep authenticating and nothing flips", func(t *testing.T) {
 		for range 3 {
 			e.clock.Advance(models.EnrollmentReconcileInterval + time.Second)
+			e.connect(t, first)
 			e.enrollAs(t, "first-box", mac, "pk-first", plaintextFor(0x70))
 			e.enrollAs(t, "second-box", mac, "pk-second", plaintextFor(0x70))
 		}
@@ -884,6 +886,7 @@ func TestEnrollmentE2E_AutomaticKeyMergesOnceTheTwinDisconnects(t *testing.T) {
 	e.provisioningKey(t, digest(0x71), "auto-reflash", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
 
 	old := e.enrollAs(t, "field-box", mac, "pk-old", plaintextFor(0x71))
+	e.connect(t, old)
 	reflashed := e.enrollAs(t, "fresh-image", mac, "pk-reflashed", plaintextFor(0x71))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, reflashed))
 
