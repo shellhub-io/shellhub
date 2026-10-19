@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/testport"
+	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
@@ -186,7 +187,7 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 func startValkey(t *testing.T) string {
 	t.Helper()
 
-	valkey, err := redis.Run(t.Context(), "docker.io/valkey/valkey:9.1-alpine", testport.Bind("6379/tcp"))
+	valkey, err := redis.Run(t.Context(), "docker.io/valkey/valkey:9.1-alpine", testport.Bind("6379/tcp"), testrun.Labelled())
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

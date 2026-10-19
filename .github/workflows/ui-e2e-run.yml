@@ -161,7 +161,7 @@ jobs:
         env:
           EDITIONS: ${{ steps.editions.outputs.list }}
           E2E_RUNNER: host
-          E2E_KEEP_STACK: "1"
+          E2E_KEEP: "1"
           SHELLHUB_E2E_IMAGE_REPOSITORY: ghcr.io/shellhub-io/shellhub-e2e-images
           SHELLHUB_E2E_IMAGE_PUSH: ${{ inputs.push-images }}
           CLOUD_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/testport"
+	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -26,6 +27,7 @@ func (srv *Server) Up(ctx context.Context) error {
 			wait.ForListeningPort("5432/tcp").WithStartupTimeout(60*time.Second),
 		),
 		testport.Bind("5432/tcp"),
+		testrun.Labelled(),
 	)
 	if err != nil {
 		return err

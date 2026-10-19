@@ -1,6 +1,9 @@
 x-e2e-labels: &e2e-labels
   io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
   io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+  io.shellhub.e2e.kind: ${SHELLHUB_E2E_KIND:-}
+  io.shellhub.e2e.expires: ${SHELLHUB_E2E_EXPIRES:-}
+  io.shellhub.e2e.checkout: ${SHELLHUB_E2E_CHECKOUT:-}
 
 services:
   postgres:
@@ -8,11 +11,11 @@ services:
     labels: *e2e-labels
     command: postgres -c io_method=worker
     healthcheck:
-      start_period: 10s
+      start_period: 90s
       interval: 2s
-      timeout: 3s
+      timeout: 5s
       retries: 10
-      test: ["CMD-SHELL", "pg_isready -U ${SHELLHUB_POSTGRES_USERNAME} -d ${SHELLHUB_POSTGRES_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${SHELLHUB_POSTGRES_USERNAME} -d ${SHELLHUB_POSTGRES_DATABASE}"]
     environment:
       - POSTGRES_USER=${SHELLHUB_POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}

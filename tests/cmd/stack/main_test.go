@@ -95,3 +95,17 @@ func TestPrintExportsMailpitURL(t *testing.T) {
 		})
 	}
 }
+
+func TestPrintExportsStackExpiry(t *testing.T) {
+	var out bytes.Buffer
+	require.NoError(t, printExports(&out, &stateFile{Envs: map[string]string{
+		"SHELLHUB_ACCOUNT_LOCKOUT_BASE": "5s",
+		"SHELLHUB_E2E_EXPIRES":          "2026-10-20T12:00:00Z",
+	}}, nil, "../../cloud"))
+
+	sh := exec.CommandContext(t.Context(), "sh")
+	sh.Stdin = strings.NewReader(out.String() + `printf '%s' "$E2E_STACK_EXPIRES"`)
+	got, err := sh.Output()
+	require.NoError(t, err)
+	assert.Equal(t, "2026-10-20T12:00:00Z", string(got))
+}

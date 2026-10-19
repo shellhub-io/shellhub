@@ -53,6 +53,10 @@ jobs:
               - 'tests/ui/**'
               - 'versions.env'
               - '.github/workflows/checks.yml'
+            e2e-script:
+              - 'ui/scripts/e2e.sh'
+              - 'tests/ui/e2e.bats'
+              - '.github/workflows/checks.yml'
             comment-scan:
               - 'devscripts/comment-scan'
               - 'tests/devscripts/comment-scan.bats'
@@ -233,6 +237,10 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/src" -w /src "alpine:$ALPINE_VERSION" \
             sh -c 'apk add --no-cache bats jq >/dev/null && bats tests/ui/gen-config.bats'
+
+      - name: Run the e2e script tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.e2e-script == 'true' }}
+        run: bats tests/ui/e2e.bats
 
       - name: Lint comment-scan
         if: ${{ !cancelled() && steps.shellcheck.outcome == 'success' && steps.changes.outputs.comment-scan == 'true' }}
