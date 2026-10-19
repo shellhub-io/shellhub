@@ -163,8 +163,8 @@ type DeviceAuthResponse struct {
 
 // DeviceLoginCode is a short-lived code that deep-links a pending device into
 // the console's accept page. It carries no authority by itself: accepting the
-// device still requires an authenticated user with the DeviceAccept permission
-// in the device's namespace.
+// device still requires an authenticated user with the DeviceStatusUpdate
+// permission in the device's namespace.
 type DeviceLoginCode struct {
 	Code      string `json:"code"`
 	ExpiresIn int    `json:"expires_in_seconds"`

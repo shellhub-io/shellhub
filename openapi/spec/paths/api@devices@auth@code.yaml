@@ -7,7 +7,7 @@ post:
     `shellhub-agent login`.
 
     The code carries no authority by itself: accepting the device still
-    requires an authenticated user with the device accept permission in the
+    requires an authenticated user with the device status permission in the
     device's namespace. Issuing a new code invalidates the previous one for
     the same device.
 

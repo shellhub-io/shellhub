@@ -163,7 +163,7 @@ func TestMCPGetDevice(t *testing.T) {
 }
 
 // TestMCPUpdateDeviceStatus ensures uid and status become path parameters and
-// an owner (who has DeviceAccept) succeeds.
+// an owner (who has DeviceStatusUpdate) succeeds.
 func TestMCPUpdateDeviceStatus(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
@@ -183,9 +183,9 @@ func TestMCPUpdateDeviceStatus(t *testing.T) {
 }
 
 // TestMCPUpdateDeviceStatusForbidden is the crux of the parity work: an
-// observer lacks DeviceAccept, so RequiresPermission on the route returns 403
-// before the handler runs. The tool no longer checks permissions itself -- the
-// middleware does. The service must never be reached.
+// observer lacks DeviceStatusUpdate, so RequiresPermission on the route
+// returns 403 before the handler runs. The tool no longer checks permissions
+// itself -- the middleware does. The service must never be reached.
 func TestMCPUpdateDeviceStatusForbidden(t *testing.T) {
 	mock := mocks.NewMockService(t)
 

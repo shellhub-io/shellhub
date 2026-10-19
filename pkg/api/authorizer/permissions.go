@@ -8,8 +8,7 @@ type Permission int
 // The actions a role can be granted. Grouped by resource, and deliberately finer-grained than the
 // routes: one route may require several, and a role is the set it holds.
 const (
-	DeviceAccept Permission = iota
-	DeviceReject
+	DeviceStatusUpdate Permission = iota
 	DeviceUpdate
 	DeviceRemove
 	DeviceConnect
@@ -84,8 +83,7 @@ var observerPermissions = []Permission{
 }
 
 var operatorPermissions = []Permission{
-	DeviceAccept,
-	DeviceReject,
+	DeviceStatusUpdate,
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
@@ -103,8 +101,7 @@ var operatorPermissions = []Permission{
 }
 
 var adminPermissions = []Permission{
-	DeviceAccept,
-	DeviceReject,
+	DeviceStatusUpdate,
 	DeviceRemove,
 	DeviceConnect,
 	DeviceRename,
@@ -159,8 +156,7 @@ var adminPermissions = []Permission{
 }
 
 var ownerPermissions = []Permission{
-	DeviceAccept,
-	DeviceReject,
+	DeviceStatusUpdate,
 	DeviceRemove,
 	DeviceConnect,
 	DeviceRename,
