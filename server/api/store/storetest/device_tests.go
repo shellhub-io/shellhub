@@ -690,6 +690,45 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 	})
 }
 
+// TestDeviceListExpiredEphemeral covers which ephemeral devices the cleanup lists: those offline
+// for longer than their own timeout, counted from the later of their last beat and status change,
+// never a device that still reads online, and one not accepted only once its tunnel closed after
+// its last status change.
+func (s *Suite) TestDeviceListExpiredEphemeral(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	now := s.Clock().Now()
+	past := now.Add(-time.Hour)
+	pending := WithDeviceStatus(models.DeviceStatusPending)
+	ephemeral := WithDeviceEphemeral(5)
+	changedLongAgo := WithDeviceStatusUpdatedAt(past)
+
+	expired := s.CreateDevice(t, WithDeviceName("expired"), ephemeral, changedLongAgo, WithDeviceLastSeen(now.Add(-6*time.Minute)))
+	s.CreateDevice(t, WithDeviceName("seen-lately"), ephemeral, changedLongAgo, WithDeviceLastSeen(now.Add(-4*time.Minute)))
+	neverSeen := s.CreateDevice(t, WithDeviceName("never-seen"), ephemeral, changedLongAgo, WithDeviceLastSeen(time.Time{}))
+	s.CreateDevice(t, WithDeviceName("just-accepted"), ephemeral, WithDeviceStatusUpdatedAt(now), WithDeviceLastSeen(time.Time{}))
+	s.CreateDevice(t, WithDeviceName("pending-never-seen"), ephemeral, pending, changedLongAgo, WithDeviceLastSeen(time.Time{}))
+	s.CreateDevice(t, WithDeviceName("pending-authenticated"), ephemeral, pending, changedLongAgo, WithDeviceLastSeen(now.Add(-6*time.Minute)))
+	pendingDisconnected := s.CreateDevice(t, WithDeviceName("pending-disconnected"), ephemeral, pending, changedLongAgo, WithDeviceLastSeen(now.Add(-6*time.Minute)), WithDeviceDisconnectedAt(now.Add(-6*time.Minute)))
+	s.CreateDevice(t, WithDeviceName("demoted-after-disconnect"), ephemeral, pending, WithDeviceStatusUpdatedAt(now.Add(-10*time.Minute)), WithDeviceLastSeen(now.Add(-30*time.Minute)), WithDeviceDisconnectedAt(now.Add(-30*time.Minute)))
+	s.CreateDevice(t, WithDeviceName("not-ephemeral"), changedLongAgo, WithDeviceLastSeen(past))
+	s.CreateDevice(t, WithDeviceName("beat-lost"), WithDeviceEphemeral(1), changedLongAgo, WithDeviceLastSeen(now.Add(-90*time.Second)))
+	justDisconnected := s.CreateDevice(t, WithDeviceName("just-disconnected"), WithDeviceEphemeral(1), changedLongAgo, WithDeviceLastSeen(now.Add(-90*time.Second)), WithDeviceDisconnectedAt(now.Add(-80*time.Second)))
+
+	devices, err := st.DeviceListExpiredEphemeral(ctx)
+	require.NoError(t, err)
+
+	uids := make([]string, 0, len(devices))
+	for _, device := range devices {
+		uids = append(uids, device.UID)
+	}
+
+	assert.ElementsMatch(t, []string{string(expired), string(neverSeen), string(justDisconnected), string(pendingDisconnected)}, uids)
+}
+
 // TestDeviceHeartbeat tests device heartbeat updates
 func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 	ctx := context.Background()

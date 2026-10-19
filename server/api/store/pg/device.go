@@ -106,13 +106,15 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 // DeviceListExpiredEphemeral implements [store.DeviceStore].
 func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, error) {
 	db := pg.GetConnection(ctx)
+	now := pg.clock.Now()
 
 	entities := make([]entity.Device, 0)
 	err := db.NewSelect().
 		Model(&entities).
 		Where("ephemeral = TRUE").
-		Where("disconnected_at IS NOT NULL").
-		Where("disconnected_at + make_interval(mins => ephemeral_timeout) < ?", pg.clock.Now()).
+		Where("NOT (disconnected_at IS NULL AND last_seen > ?)", OnlineCutoff(pg.clock)).
+		Where("status = ? OR disconnected_at > status_updated_at", models.DeviceStatusAccepted).
+		Where("GREATEST(last_seen, status_updated_at) + make_interval(mins => ephemeral_timeout) < ?", now).
 		Limit(1000).
 		Scan(ctx)
 	if err != nil {
