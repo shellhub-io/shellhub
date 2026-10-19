@@ -11,7 +11,7 @@ interface LastSeenCellProps {
 export default function LastSeenCell({ value }: LastSeenCellProps) {
   return (
     <span className="text-xs text-text-secondary">
-      {formatRelative(value ?? "")}
+      {formatRelative(value)}
     </span>
   );
 }

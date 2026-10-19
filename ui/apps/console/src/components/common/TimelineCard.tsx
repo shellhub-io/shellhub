@@ -5,7 +5,7 @@ import { formatDateFull, formatRelative } from "@/utils/date";
 
 interface TimelineCardProps {
   createdAt: string;
-  lastSeen: string;
+  lastSeen?: string;
   statusUpdatedAt: string;
 }
 

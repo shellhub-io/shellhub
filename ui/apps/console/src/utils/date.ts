@@ -1,10 +1,10 @@
 import { formatDistanceToNow, format } from "date-fns";
 
 /**
- * Formats a timestamp as a distance from now ("3 hours ago"). An empty string renders as an em
- * dash, so a missing date reads as absent rather than as the epoch.
+ * Formats a timestamp as a distance from now ("3 hours ago"). An absent or empty value renders
+ * as an em dash, so a missing date reads as absent rather than as the epoch.
  */
-export function formatRelative(dateStr: string): string {
+export function formatRelative(dateStr?: string): string {
   if (!dateStr) return "—";
   return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
 }
@@ -19,10 +19,10 @@ export function formatExpiry(expiresIn: number): string {
 }
 
 /**
- * Formats a timestamp as date and time, for where the exact moment matters. Empty renders as an
- * em dash.
+ * Formats a timestamp as date and time, for where the exact moment matters. Absent or empty
+ * renders as an em dash.
  */
-export function formatDateFull(dateStr: string): string {
+export function formatDateFull(dateStr?: string): string {
   if (!dateStr) return "—";
   return format(new Date(dateStr), "MMM d, yyyy, HH:mm");
 }
