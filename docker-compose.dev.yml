@@ -23,6 +23,7 @@ services:
       - ./.mockery.yaml:/go/src/github.com/shellhub-io/shellhub/.mockery.yaml
       - ./go.sum:/go/src/github.com/shellhub-io/shellhub/go.sum
       - ./install.sh:/go/src/github.com/shellhub-io/shellhub/install.sh
+      - ./versions.env:/go/src/github.com/shellhub-io/shellhub/versions.env
     environment:
       - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
       - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}

@@ -317,7 +317,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	if err := tcDc.WithEnv(merged).Up(ctx, compose.Wait(true)); err != nil {
-		return nil, down(err)
+		return nil, down(errors.Join(err, cfg.Run.unhealthyServices(context.WithoutCancel(ctx), cfg.Name)))
 	}
 
 	if needsBuild {

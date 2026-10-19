@@ -294,7 +294,7 @@ func (r *Run) adoptImage(ctx context.Context, image stackImage) error {
 		return err
 	}
 
-	return r.relabel(ctx, image.remote, image.local, r.id)
+	return r.relabel(ctx, image.remote, image.local, r.ID())
 }
 
 func (r *Run) publishImage(ctx context.Context, image stackImage) error {

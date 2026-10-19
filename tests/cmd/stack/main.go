@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,6 +17,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/spf13/cobra"
@@ -30,6 +33,7 @@ const (
 	projectPrefix  = "shellhub-e2e-"
 
 	accountLockoutBase = 5 * time.Second
+	keptStackTTL       = 24 * time.Hour
 )
 
 var validName = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
@@ -116,6 +120,10 @@ func printExports(w io.Writer, s *stateFile, expired []byte, cloudDir string) er
 		{"E2E_ACCOUNT_LOCKOUT_BASE_MS", strconv.FormatInt(lockoutBase.Milliseconds(), 10)},
 	}
 
+	if expires := s.Envs["SHELLHUB_E2E_EXPIRES"]; expires != "" {
+		exports = append(exports, export{"E2E_STACK_EXPIRES", expires})
+	}
+
 	if s.MailpitURL != "" {
 		exports = append(exports, export{"E2E_MAILPIT_URL", s.MailpitURL})
 	}
@@ -185,23 +193,27 @@ func teardown(ctx context.Context, cmd *cobra.Command, name string) error {
 		return fmt.Errorf("attaching to stack: %w", err)
 	}
 
+	return teardownStack(ctx, cmd, stack, name)
+}
+
+func teardownStack(ctx context.Context, cmd *cobra.Command, stack *environment.Stack, name string) error {
 	saveLogs(ctx, cmd, stack, name)
 
-	cmd.PrintErrf("Tearing down %q...\n", existing.Name)
+	cmd.PrintErrf("Tearing down %q...\n", projectPrefix+name)
 
 	if err := stack.Down(ctx); err != nil {
 		return fmt.Errorf("tearing down stack: %w", err)
 	}
 
-	if err := os.Remove(statePath(name)); err != nil {
+	if err := os.Remove(statePath(name)); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		cmd.PrintErrf("Could not remove state file: %v\n", err)
 	}
 
 	return nil
 }
 
-func teardownRun(ctx context.Context, cmd *cobra.Command, name string) error {
-	run, err := environment.StartStackRun(ctx, projectPrefix+name, nil)
+func teardownRun(ctx context.Context, cmd *cobra.Command, name string, opts testrun.StackOptions) error {
+	run, err := environment.StartStackRun(ctx, projectPrefix+name, opts, nil)
 	if err != nil {
 		return fmt.Errorf("starting the stack's run: %w", err)
 	}
@@ -213,6 +225,55 @@ func teardownRun(ctx context.Context, cmd *cobra.Command, name string) error {
 	}
 
 	return err
+}
+
+func ready(ctx context.Context, cmd *cobra.Command, stack *environment.Stack, edition environment.Edition, agentImage string, issuer *environment.LicenseIssuer, name, cloudDir string) error {
+	cmd.PrintErrln("Waiting for API...")
+
+	if err := stack.AwaitAPI(ctx); err != nil {
+		return fmt.Errorf("waiting for API: %w", err)
+	}
+
+	cmd.PrintErrln("Seeding admin user...")
+
+	if err := stack.NewUser(ctx, adminUsername, adminEmail, adminPassword); err != nil {
+		return fmt.Errorf("creating admin user: %w", err)
+	}
+
+	if err := stack.NewNamespace(ctx, adminUsername, adminNamespace, uuid.Generate(), ""); err != nil {
+		return fmt.Errorf("creating admin namespace: %w", err)
+	}
+
+	cmd.PrintErrln("Verifying login...")
+
+	if _, err := stack.AwaitLogin(ctx, adminUsername, adminPassword); err != nil {
+		return fmt.Errorf("verifying admin login: %w", err)
+	}
+
+	state := &stateFile{
+		Name:       projectPrefix + name,
+		Edition:    string(edition),
+		Files:      stack.Files(),
+		Envs:       stack.Envs(),
+		AgentImage: agentImage,
+		MailpitURL: stack.MailpitURL(),
+	}
+
+	if err := writeState(state, name); err != nil {
+		return fmt.Errorf("writing state file: %w", err)
+	}
+
+	var expired []byte
+	if edition != environment.EditionCommunity {
+		var err error
+		if expired, err = expiredLicense(issuer); err != nil {
+			return fmt.Errorf("signing the expired license: %w", err)
+		}
+	}
+
+	cmd.PrintErrln("Stack ready.")
+
+	return printExports(cmd.OutOrStdout(), state, expired, cloudDir)
 }
 
 func main() {
@@ -249,6 +310,7 @@ func main() {
 	var (
 		editionFlag string
 		httpPort    string
+		ttl         time.Duration
 	)
 
 	upCmd := &cobra.Command{
@@ -256,7 +318,6 @@ func main() {
 		Short: "Bring the e2e stack up",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
-			stdout := cmd.OutOrStdout()
 
 			edition, err := environment.ParseEdition(editionFlag)
 			if err != nil {
@@ -275,7 +336,9 @@ func main() {
 
 			projectName := projectPrefix + name
 
-			if err := teardownRun(ctx, cmd, name); err != nil {
+			opts := testrun.StackOptions{TTL: ttl, Checkout: root}
+
+			if err := teardownRun(ctx, cmd, name, opts); err != nil {
 				return err
 			}
 
@@ -284,7 +347,7 @@ func main() {
 				return fmt.Errorf("loading the license issuer: %w", err)
 			}
 
-			run, err := environment.StartStackRun(ctx, projectName, issuer)
+			run, err := environment.StartStackRun(ctx, projectName, opts, issuer)
 			if err != nil {
 				return fmt.Errorf("starting the stack's run: %w", err)
 			}
@@ -323,62 +386,25 @@ func main() {
 				return fmt.Errorf("bringing stack up: %w", err)
 			}
 
-			cmd.PrintErrln("Waiting for API...")
+			if err := ready(ctx, cmd, stack, edition, agentImage, issuer, name, cloudDir); err != nil {
+				cmd.PrintErrln("Tearing the stack down after the failure...")
 
-			if err := stack.AwaitAPI(ctx); err != nil {
-				return fmt.Errorf("waiting for API: %w", err)
+				return errors.Join(err, teardownStack(context.WithoutCancel(ctx), cmd, stack, name), run.Close(context.WithoutCancel(ctx)))
 			}
 
-			cmd.PrintErrln("Seeding admin user...")
-
-			if err := stack.NewUser(ctx, adminUsername, adminEmail, adminPassword); err != nil {
-				return fmt.Errorf("creating admin user: %w", err)
-			}
-
-			if err := stack.NewNamespace(ctx, adminUsername, adminNamespace, uuid.Generate(), ""); err != nil {
-				return fmt.Errorf("creating admin namespace: %w", err)
-			}
-
-			cmd.PrintErrln("Verifying login...")
-
-			if _, err := stack.AwaitLogin(ctx, adminUsername, adminPassword); err != nil {
-				return fmt.Errorf("verifying admin login: %w", err)
-			}
-
-			state := &stateFile{
-				Name:       projectName,
-				Edition:    string(edition),
-				Files:      stack.Files(),
-				Envs:       stack.Envs(),
-				AgentImage: agentImage,
-				MailpitURL: stack.MailpitURL(),
-			}
-
-			if err := writeState(state, name); err != nil {
-				return fmt.Errorf("writing state file: %w", err)
-			}
-
-			var expired []byte
-			if edition != environment.EditionCommunity {
-				if expired, err = expiredLicense(issuer); err != nil {
-					return fmt.Errorf("signing the expired license: %w", err)
-				}
-			}
-
-			cmd.PrintErrln("Stack ready.")
-
-			return printExports(stdout, state, expired, cloudDir)
+			return nil
 		},
 	}
 
 	upCmd.Flags().StringVar(&editionFlag, "edition", "community", "ShellHub edition (community, enterprise, cloud)")
 	upCmd.Flags().StringVar(&httpPort, "http-port", "", "host HTTP port (random if empty)")
+	upCmd.Flags().DurationVar(&ttl, "ttl", keptStackTTL, "how long the kept stack lives before a later run sweeps it")
 
 	downCmd := &cobra.Command{
 		Use:   "down",
 		Short: "Tear the e2e stack down",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if err := teardownRun(cmd.Context(), cmd, name); err != nil {
+			if err := teardownRun(cmd.Context(), cmd, name, testrun.StackOptions{TTL: keptStackTTL, Checkout: root}); err != nil {
 				return err
 			}
 

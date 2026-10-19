@@ -6,6 +6,9 @@ name_args=()
 [ -n "${E2E_STACK_NAME:-}" ] && name_args=(--name "$E2E_STACK_NAME")
 edition=${E2E_EDITION:-community}
 runner=${E2E_RUNNER:-docker}
+ttl_args=()
+drop_command="${E2E_RUNNER:+E2E_RUNNER=$E2E_RUNNER }${E2E_STACK_NAME:+E2E_STACK_NAME=$E2E_STACK_NAME }ui/scripts/e2e.sh down"
+[ -n "${E2E_KEEP_TTL:-}" ] && ttl_args=(--ttl "$E2E_KEEP_TTL")
 
 case $runner in
   host | docker) ;;
@@ -31,15 +34,38 @@ require_tools_services() {
 stack() {
   if [ "$runner" = host ]; then
     (cd "$REPO_ROOT/tests" && go run ./cmd/stack "$@")
-    return
+  else
+    local run_args=(-w "$REPO_ROOT/tests")
+    local var
+    for var in STRIPE_SECRET_KEY STRIPE_PRICE_ID SHELLHUB_STRIPE_PUBLISHABLE_KEY; do
+      run_args+=(-e "$var")
+    done
+    compose_run "${run_args[@]}" test go run ./cmd/stack "$@"
   fi
+}
 
-  local run_args=(-w "$REPO_ROOT/tests")
-  local var
-  for var in STRIPE_SECRET_KEY STRIPE_PRICE_ID SHELLHUB_STRIPE_PUBLISHABLE_KEY; do
-    run_args+=(-e "$var")
-  done
-  compose_run "${run_args[@]}" test go run ./cmd/stack "$@"
+teardown_interrupted() {
+  echo "teardown interrupted; drop it with: $drop_command" >&2
+  exit "$1"
+}
+
+finish_test() {
+  local status=$?
+  trap 'teardown_interrupted 129' HUP
+  trap 'teardown_interrupted 130' INT
+  trap 'teardown_interrupted 143' TERM
+  if [ -z "${E2E_KEEP:-}" ]; then
+    stack down ${name_args[@]+"${name_args[@]}"} || echo "could not tear the stack down; drop it with: $drop_command" >&2
+  elif [ -n "${E2E_BASE_URL:-}" ]; then
+    echo "stack '$E2E_COMPOSE_PROJECT' ($E2E_EDITION) kept at $E2E_BASE_URL until ${E2E_STACK_EXPIRES:-?}; drop it with: $drop_command" >&2
+  fi
+  exit "$status"
+}
+
+stop_playwright() {
+  [ -n "${playwright_pid:-}" ] || return 0
+  kill -TERM -- "-$playwright_pid" 2>/dev/null || true
+  wait "$playwright_pid" 2>/dev/null || true
 }
 
 playwright() {
@@ -63,7 +89,7 @@ fi
 case "${1:-test}" in
   up)
     shift
-    stack up --edition "$edition" ${name_args[@]+"${name_args[@]}"} "$@" | grep '^export '
+    stack up --edition "$edition" ${ttl_args[@]+"${ttl_args[@]}"} ${name_args[@]+"${name_args[@]}"} "$@" | grep '^export '
     ;;
   down)
     stack down ${name_args[@]+"${name_args[@]}"}
@@ -77,16 +103,18 @@ case "${1:-test}" in
         *) playwright_args+=("$arg") ;;
       esac
     done
-    if [ -n "${CI:-}" ] && [ -z "${E2E_KEEP_STACK:-}" ]; then
-      trap 'stack down ${name_args[@]+"${name_args[@]}"}' EXIT
-    fi
-    env=$(stack up --edition "$edition" ${name_args[@]+"${name_args[@]}"}) || exit $?
+    trap finish_test EXIT
+    trap 'stop_playwright; exit 129' HUP
+    trap 'stop_playwright; exit 130' INT
+    trap 'stop_playwright; exit 143' TERM
+    env=$(stack up --edition "$edition" ${ttl_args[@]+"${ttl_args[@]}"} ${name_args[@]+"${name_args[@]}"}) || exit $?
     eval "$(echo "$env" | grep '^export ')"
+    set -m
+    playwright ${playwright_args[@]+"${playwright_args[@]}"} </dev/null &
+    playwright_pid=$!
+    set +m
     status=0
-    playwright ${playwright_args[@]+"${playwright_args[@]}"} || status=$?
-    if [ -z "${CI:-}" ]; then
-      echo "stack '$E2E_COMPOSE_PROJECT' ($E2E_EDITION) kept at $E2E_BASE_URL; drop it with: ui/scripts/e2e.sh down" >&2
-    fi
+    wait "$playwright_pid" || status=$?
     exit "$status"
     ;;
   *)

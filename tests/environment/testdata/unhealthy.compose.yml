@@ -1,0 +1,21 @@
+x-e2e-labels: &e2e-labels
+  io.shellhub.e2e.run: ${SHELLHUB_E2E_RUN:?}
+  io.shellhub.e2e.lease: ${SHELLHUB_E2E_LEASE:-}
+  io.shellhub.e2e.kind: ${SHELLHUB_E2E_KIND:-}
+  io.shellhub.e2e.expires: ${SHELLHUB_E2E_EXPIRES:-}
+  io.shellhub.e2e.checkout: ${SHELLHUB_E2E_CHECKOUT:-}
+
+services:
+  sick:
+    image: ${ALPINE_IMAGE:?}
+    labels: *e2e-labels
+    command: ["sleep", "3600"]
+    healthcheck:
+      test: ["CMD-SHELL", "echo probe-says-no; exit 1"]
+      interval: 1s
+      timeout: 1s
+      retries: 2
+
+networks:
+  default:
+    labels: *e2e-labels

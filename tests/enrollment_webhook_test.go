@@ -17,9 +17,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/testimage"
+	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -322,8 +324,12 @@ func startEnrollmentWebhook(t *testing.T, compose *environment.DockerCompose) *e
 				Context:   "cmd/enrollment-webhook",
 				KeepImage: true,
 				BuildArgs: buildArgs,
+				BuildOptionsModifier: func(options *client.ImageBuildOptions) {
+					options.Labels = map[string]string{testrun.RunLabel: run.ID()}
+				},
 			},
-			Env: map[string]string{"ADDRESS": ":" + enrollmentWebhookPort},
+			Labels: run.Labels(),
+			Env:    map[string]string{"ADDRESS": ":" + enrollmentWebhookPort},
 			HostConfigModifier: func(hc *container.HostConfig) {
 				hc.NetworkMode = container.NetworkMode("container:" + server)
 			},
