@@ -130,10 +130,8 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(device, nil).Once()
 
 		pinned := *device
-		pinned.LastSeen = now
 		pinned.KeyVerifiedAt = &now
 		storeMock.On("DeviceUpdateUnlessRemoved", ctx, &pinned).Return(nil).Once()
-		storeMock.On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).Return([]string{}, nil).Once()
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 
@@ -171,10 +169,8 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(device, nil).Once()
 
 		verified := *device
-		verified.LastSeen = now
 		verified.KeyVerifiedAt = &now
 		storeMock.On("DeviceUpdateUnlessRemoved", ctx, &verified).Return(nil).Once()
-		storeMock.On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).Return([]string{}, nil).Once()
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 

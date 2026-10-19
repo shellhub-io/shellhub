@@ -21,7 +21,7 @@ properties:
   tenant_id:
     $ref: namespaceTenantID.yaml
   last_seen:
-    description: Device's last seen date
+    description: When the device's tunnel last answered the server. Absent for a device that never connected.
     type: string
     format: date-time
     example: 2020-01-01T00:00:00Z
@@ -113,4 +113,3 @@ required:
   - online
   - tenant_id
   - created_at
-  - last_seen

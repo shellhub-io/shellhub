@@ -28,6 +28,14 @@ func (e *enrollmentE2E) acceptedDevice(t *testing.T, mac string) string {
 	return uid
 }
 
+func (e *enrollmentE2E) connect(t *testing.T, uid string) {
+	t.Helper()
+
+	gone, err := e.st.DeviceHeartbeat(context.Background(), []store.DeviceBeat{{UID: uid, At: e.clock.Now()}})
+	require.NoError(t, err)
+	require.Empty(t, gone)
+}
+
 func (e *enrollmentE2E) disconnect(t *testing.T, uid string) {
 	t.Helper()
 
@@ -230,6 +238,7 @@ func TestDeviceAcceptE2E_RefusesToMergeAwayAConnectedDevice(t *testing.T) {
 	const mac = "aa:bb:cc:dd:51:05"
 
 	oldUID := e.acceptedDevice(t, mac)
+	e.connect(t, oldUID)
 	oldName := e.device(t, oldUID).Name
 	newUID := e.enrollWithPublicKey(t, mac, "pk-new", "")
 

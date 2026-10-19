@@ -259,6 +259,7 @@ func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) {
 	member := e.member(t, "member", authorizer.RoleOperator)
 
 	old := e.pair(t, first, mac, "pk-old").UID
+	e.connect(t, old)
 
 	pairing, err := e.svc.CreateDevicePairing(ctx, pairingRequest(mac, "pk-new"))
 	require.NoError(t, err)

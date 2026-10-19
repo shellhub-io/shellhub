@@ -189,8 +189,6 @@ func TestAuthDevice(t *testing.T) {
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
 				expectedDevice.Info = &models.DeviceInfo{
 					ID:         "test",
 					PrettyName: "Test",
@@ -238,8 +236,6 @@ func TestAuthDevice(t *testing.T) {
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
 
 				storeMock.
 					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
@@ -281,16 +277,10 @@ func TestAuthDevice(t *testing.T) {
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
 
 				storeMock.
 					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -323,7 +313,6 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = clk.Now()
 
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
@@ -340,10 +329,6 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-					Return([]string{}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
@@ -384,7 +369,6 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = clk.Now()
 
 				cacheMock.
 					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
@@ -401,10 +385,6 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-					Return([]string{}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
@@ -490,8 +470,6 @@ func TestAuthDevice(t *testing.T) {
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
 				expectedDevice.Info = &models.DeviceInfo{
 					ID:         "test",
 					PrettyName: "Test",
@@ -503,10 +481,6 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -562,8 +536,6 @@ func TestAuthDevice(t *testing.T) {
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
 				expectedDevice.RemovedAt = nil
 				expectedDevice.Status = models.DeviceStatusPending
 				expectedDevice.StatusUpdatedAt = now
@@ -571,10 +543,6 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdate", ctx, device).
 					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-					Return([]string{}, nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -633,8 +601,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "new-device",
@@ -700,8 +666,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "new-device",
@@ -771,8 +735,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "new-device",
@@ -885,8 +847,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "new-device",
@@ -967,8 +927,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "aa-bb-cc-dd-ee-ff",
@@ -1043,8 +1001,6 @@ func TestAuthDevice(t *testing.T) {
 							CreatedAt:       now,
 							UID:             uid,
 							TenantID:        "00000000-0000-4000-0000-000000000000",
-							LastSeen:        now,
-							DisconnectedAt:  nil,
 							Status:          models.DeviceStatusPending,
 							StatusUpdatedAt: now,
 							Name:            "new-device",
@@ -3224,8 +3180,6 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 					CreatedAt:       now,
 					UID:             uid,
 					TenantID:        tenantID,
-					LastSeen:        now,
-					DisconnectedAt:  nil,
 					Status:          models.DeviceStatusPending,
 					StatusUpdatedAt: now,
 					Name:            "invalid-ip-device",
@@ -3293,16 +3247,10 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		expectedDevice := *device
 		expectedDevice.RemoteAddr = "203.0.113.10"
-		expectedDevice.LastSeen = now
-		expectedDevice.DisconnectedAt = nil
 
 		storeMock.
 			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 			Return(nil).
-			Once()
-		storeMock.
-			On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-			Return([]string{}, nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
@@ -3348,16 +3296,10 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		expectedDevice := *device
 		expectedDevice.RemoteAddr = "198.51.100.1"
-		expectedDevice.LastSeen = now
-		expectedDevice.DisconnectedAt = nil
 
 		storeMock.
 			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
 			Return(nil).
-			Once()
-		storeMock.
-			On("DeviceHeartbeat", ctx, []store.DeviceBeat{{UID: uid, At: now}}).
-			Return([]string{}, nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
