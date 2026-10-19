@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-// AgeDeviceDisconnection moves the time the device uid disconnected back by age, failing t unless
-// exactly that device changed. Only a device that has disconnected has the stamp, so it fails for a
-// device still online. It stands in for the minutes an ephemeral device's timeout takes to lapse.
-func (dc *DockerCompose) AgeDeviceDisconnection(t *testing.T, uid string, age time.Duration) {
+// AgeDevice moves the device uid's creation, last status change and the last time its tunnel was
+// seen back by age, failing t unless exactly that device changed. It stands in for the minutes an
+// ephemeral device's timeout takes to lapse.
+func (dc *DockerCompose) AgeDevice(t *testing.T, uid string, age time.Duration) {
 	t.Helper()
 
 	dc.updateOne(t,
-		"UPDATE devices SET disconnected_at = disconnected_at - :'age'::interval WHERE id = :'uid' AND disconnected_at IS NOT NULL",
+		"UPDATE devices SET created_at = created_at - :'age'::interval, status_updated_at = status_updated_at - :'age'::interval, last_seen = last_seen - :'age'::interval WHERE id = :'uid'",
 		map[string]string{"uid": uid, "age": interval(age)})
 }
 

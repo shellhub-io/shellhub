@@ -49,7 +49,7 @@ func TestDeviceCleanup(t *testing.T) {
 
 		before := compose.Namespace(t, ShellHubNamespace)
 
-		compose.AgeDeviceDisconnection(t, offline.UID, 2*time.Minute)
+		compose.AgeDevice(t, offline.UID, 2*time.Minute)
 
 		compose.RunCron(t, ephemeralCleanupCron)
 

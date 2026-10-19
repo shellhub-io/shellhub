@@ -207,6 +207,13 @@ func WithDeviceRemovedAt(removedAt *time.Time) DeviceOption {
 	}
 }
 
+// WithDeviceDisconnectedAt marks the device's tunnel as closed at the given time
+func WithDeviceDisconnectedAt(at time.Time) DeviceOption {
+	return func(d *models.Device) {
+		d.DisconnectedAt = &at
+	}
+}
+
 // WithDeviceLastSeen sets the last_seen timestamp
 func WithDeviceLastSeen(lastSeen time.Time) DeviceOption {
 	return func(d *models.Device) {
@@ -225,6 +232,14 @@ func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
 func WithDeviceRemoteAddr(addr string) DeviceOption {
 	return func(d *models.Device) {
 		d.RemoteAddr = addr
+	}
+}
+
+// WithDeviceEphemeral enrolls the device as ephemeral, removable once unseen for timeout minutes.
+func WithDeviceEphemeral(timeout int) DeviceOption {
+	return func(d *models.Device) {
+		d.Ephemeral = true
+		d.EphemeralTimeout = timeout
 	}
 }
 

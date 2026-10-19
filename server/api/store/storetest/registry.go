@@ -56,6 +56,7 @@ var Groups = []Group{
 		(*Suite).TestDeviceUpdateDoesNotClobberHeartbeat,
 		(*Suite).TestDeviceHeartbeat,
 		(*Suite).TestDeviceOffline,
+		(*Suite).TestDeviceListExpiredEphemeral,
 		(*Suite).TestDeviceDelete,
 		(*Suite).TestDeviceDeleteMany,
 		(*Suite).TestDeviceSetOwner,
