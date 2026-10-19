@@ -351,43 +351,75 @@ func TestRenameDevice(t *testing.T) {
 func TestUpdateDeviceStatus(t *testing.T) {
 	cases := []struct {
 		title          string
+		role           authorizer.Role
 		path           string
 		expectedStatus models.DeviceStatus
 		expectedCode   int
 	}{
 		{
 			title:          "accept sets the device accepted",
+			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/accept",
 			expectedStatus: models.DeviceStatusAccepted,
 			expectedCode:   http.StatusOK,
 		},
 		{
 			title:          "reject sets the device rejected",
+			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/reject",
 			expectedStatus: models.DeviceStatusRejected,
 			expectedCode:   http.StatusOK,
 		},
 		{
 			title:          "pending sets the device pending",
+			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/pending",
 			expectedStatus: models.DeviceStatusPending,
 			expectedCode:   http.StatusOK,
 		},
 		{
 			title:          "the container route sets the device accepted",
+			role:           authorizer.RoleOwner,
 			path:           "/api/containers/uid/accept",
 			expectedStatus: models.DeviceStatusAccepted,
 			expectedCode:   http.StatusOK,
 		},
 		{
 			title:        "unused is rejected",
+			role:         authorizer.RoleOwner,
 			path:         "/api/devices/uid/unused",
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			title:        "a model status is rejected",
+			role:         authorizer.RoleOwner,
 			path:         "/api/devices/uid/accepted",
 			expectedCode: http.StatusBadRequest,
+		},
+		{
+			title:          "an operator can accept",
+			role:           authorizer.RoleOperator,
+			path:           "/api/devices/uid/accept",
+			expectedStatus: models.DeviceStatusAccepted,
+			expectedCode:   http.StatusOK,
+		},
+		{
+			title:        "an observer cannot accept",
+			role:         authorizer.RoleObserver,
+			path:         "/api/devices/uid/accept",
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			title:        "an observer cannot reject",
+			role:         authorizer.RoleObserver,
+			path:         "/api/devices/uid/reject",
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			title:        "an observer cannot set pending",
+			role:         authorizer.RoleObserver,
+			path:         "/api/devices/uid/pending",
+			expectedCode: http.StatusForbidden,
 		},
 	}
 
@@ -403,7 +435,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.path, nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Role", tc.role.String())
 			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
