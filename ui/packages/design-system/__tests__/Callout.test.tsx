@@ -122,6 +122,18 @@ describe("Callout — className pass-through", () => {
   });
 });
 
+describe("Callout — semantic typeface", () => {
+  it.each(["error", "success", "warning", "info"] as const)(
+    "applies font-sans and not font-mono on the %s root",
+    (variant) => {
+      const { container } = render(<Callout variant={variant}>Body</Callout>);
+      const cls = (container.firstChild as HTMLElement).className;
+      expect(cls).toContain("font-sans");
+      expect(cls).not.toContain("font-mono");
+    },
+  );
+});
+
 describe("Callout — feature variant", () => {
   it("renders role=note", () => {
     render(<Callout variant="feature">Body</Callout>);

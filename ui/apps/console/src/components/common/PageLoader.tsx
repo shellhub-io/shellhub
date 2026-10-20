@@ -35,7 +35,7 @@ export default function PageLoader({
     return (
       <div role="status" aria-label={label} className={cn(wrapper, "gap-3")}>
         <Spinner size={resolvedSize} />
-        <span className="text-xs font-mono text-text-muted">{label}</span>
+        <span className="text-xs text-text-muted">{label}</span>
       </div>
     );
   }

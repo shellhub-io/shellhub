@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
-import { KeyIcon, ChevronDownIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { KeyIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Callout } from "@shellhub/design-system/primitives";
 import { configureSamlAuthentication } from "@/client";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -98,13 +99,9 @@ export default function SamlConfigModal({
       ) : (
         <div className="space-y-4">
           {noUrlProvided && (
-            <div className="flex items-start gap-2 bg-accent-yellow/8 border border-accent-yellow/20 text-accent-yellow px-3.5 py-2.5 rounded-md text-xs font-mono">
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                strokeWidth={2}
-              />
+            <Callout variant="warning">
               Please provide at least one Sign-On URL (POST or Redirect)
-            </div>
+            </Callout>
           )}
 
           <FormInputField
