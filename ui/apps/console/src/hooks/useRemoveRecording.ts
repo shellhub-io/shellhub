@@ -1,4 +1,4 @@
-import { useDeleteSessionRecording } from "@/hooks/useSessionMutations";
+import { useDeleteSessionRecording } from "@/hooks/useSessionRequests";
 import { heldByBrowser, useRecordingsStore } from "@/stores/recordingsStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 

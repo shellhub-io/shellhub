@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ClockIcon,
   ShieldExclamationIcon,
@@ -40,8 +41,8 @@ import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import { sessionTerminal } from "@/utils/session";
 import ObjectName from "@/components/common/ObjectName";
-import { useSession } from "../hooks/useSession";
-import { useCloseSession } from "../hooks/useSessionMutations";
+import { getSessionOptions } from "@/client";
+import { useCloseSession } from "@/hooks/useSessionRequests";
 import { useSessionRecording } from "../hooks/useSessionRecording";
 import CopyButton from "../components/common/CopyButton";
 import DeviceChip from "../components/common/DeviceChip";
@@ -250,7 +251,9 @@ function DurationStat({
  */
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
-  const { session, isLoading, error } = useSession(uid!);
+  const { data: session, isLoading, error } = useQuery(
+    getSessionOptions({ path: { uid: uid! } }),
+  );
   const principalName = usePrincipalName();
 
   const closeSession = useCloseSession();
