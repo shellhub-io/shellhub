@@ -9,6 +9,7 @@ import (
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 func newAgentVersionSession(service *servicemocks.MockService, version string) *Session {
@@ -201,6 +202,22 @@ func TestPublicKeyOfferPassesTheClientContextToTheKeyLookup(t *testing.T) {
 	sess := newAgentVersionSession(serviceMock, "latest")
 
 	require.ErrorIs(t, AuthPublicKey(newTestSSHKey(t)).Offer(ctx, sess), context.Canceled)
+}
+
+func TestKeyAuthPassesTheClientContextToTheDeviceKeyCreation(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	serviceMock := servicemocks.NewMockService(t)
+	serviceMock.EXPECT().
+		CreatePrivateKey(mock.MatchedBy(isCancelled)).
+		Return(nil, context.Canceled).
+		Once()
+
+	sess := newTestSession(serviceMock, nil)
+
+	err := AuthPublicKey(newTestSSHKey(t)).Auth()(ctx, sess, &gossh.ClientConfig{})
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func expectKeyAdmitted(service *servicemocks.MockService) {

@@ -17,10 +17,10 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-type authFunc func(*Session, *gossh.ClientConfig) error
+type authFunc func(context.Context, *Session, *gossh.ClientConfig) error
 
-func mintEphemeralSigner(session *Session, config *gossh.ClientConfig) error {
-	privateKey, err := session.service.CreatePrivateKey(context.Background())
+func mintEphemeralSigner(ctx context.Context, session *Session, config *gossh.ClientConfig) error {
+	privateKey, err := session.service.CreatePrivateKey(ctx)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,12 @@ func mintEphemeralSigner(session *Session, config *gossh.ClientConfig) error {
 // x/crypto runs the publickey callback for that query, so anything reachable
 // before a signature must stay cheap and free of side effects.
 type Auth interface {
-	// Auth defines the callback that must be called when authenticating the session.
+	// Auth returns the callback that fills in how the gateway logs in to the
+	// device. The callback receives the client connection's context and passes it
+	// to every service call it makes. The password callback never fails. The
+	// key-based callbacks return CreatePrivateKey's error, which wraps ctx's
+	// error once the client has disconnected, or the error from turning that key
+	// into a signer.
 	Auth() authFunc
 
 	// Offer decides whether the credential is acceptable at all. It may run before
@@ -160,7 +165,7 @@ func AuthPassword(pwd string) Auth {
 }
 
 func (p *passwordAuth) Auth() authFunc {
-	return func(_ *Session, config *gossh.ClientConfig) error {
+	return func(_ context.Context, _ *Session, config *gossh.ClientConfig) error {
 		config.Auth = []gossh.AuthMethod{
 			gossh.Password(p.pwd),
 		}

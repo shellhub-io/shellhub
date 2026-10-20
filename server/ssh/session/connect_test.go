@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func noAuth(*Session, *gossh.ClientConfig) error { return nil }
+func noAuth(context.Context, *Session, *gossh.ClientConfig) error { return nil }
 
 // TestConnectBoundsASilentAgent is the reason ConnectTimeout exists.
 //
