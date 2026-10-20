@@ -30,7 +30,9 @@ func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 
 // WithTransaction implements [store.TransactionStore]. The callback receives a context
 // carrying the transaction, so every store call made with it joins the same transaction;
-// returning an error rolls it back.
+// returning an error rolls it back and returns that error. A failure to begin or commit the
+// transaction returns ctx's error when it is cancelled or its deadline passes and
+// [store.ErrInternal] otherwise.
 //
 // Example:
 //
@@ -49,7 +51,7 @@ func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) (err error) {
 	tx, err := pg.driver.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fromSQLError(err)
 	}
 
 	defer func() {
@@ -70,7 +72,7 @@ func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) (err 
 		return err
 	}
 
-	return tx.Commit()
+	return fromSQLError(tx.Commit())
 }
 
 func (pg *Pg) inTransaction(ctx context.Context, fn store.TransactionCb) error {

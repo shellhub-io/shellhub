@@ -4,11 +4,14 @@ import (
 	"time"
 )
 
-// ProvisioningKeyEvent is one row in a provisioning key's append-only enrollment history: it records a single
-// device enrolling with the key. The device facts are captured and denormalized at enrollment time so
-// the audit survives a later device rename or removal (including ephemeral devices, which are
-// auto-removed). The enrollment facts are immutable; the outcome (DecidedStatus/DecidedAt) is stamped
-// once when the device is accepted/rejected. Rows are never deleted by the application.
+// ProvisioningKeyEvent is one row in a provisioning key's enrollment history: it records a single
+// device enrolling with the key, or, when Refusal is set, a device the namespace refused. The device
+// facts are captured and denormalized at enrollment time so the audit survives a later device rename
+// or removal (including ephemeral devices, which are auto-removed). An enrollment's facts are
+// immutable and its outcome (DecidedStatus/DecidedAt) is stamped once when the device is
+// accepted/rejected. A refusal row is the exception: each retry of the same refusal rewrites its
+// device facts and Timestamp to the latest attempt and counts it in Attempts, and it is never stamped.
+// Rows are never deleted by the application.
 type ProvisioningKeyEvent struct {
 	// ID is the unique identifier of the event.
 	ID string `json:"id"`
@@ -44,9 +47,10 @@ type ProvisioningKeyEvent struct {
 	// Timestamp is when the enrollment was recorded.
 	Timestamp time.Time `json:"timestamp"`
 	// DeviceStatus is the enrolled device's *current* status (accepted/pending/rejected), joined live
-	// at list time so the history can offer an accept/reject action. It is empty when the device no
-	// longer exists (hard-deleted). It is not stored on the event row.
-	DeviceStatus DeviceStatus `json:"device_status"`
+	// at list time so the history can offer an accept/reject action. It is empty, and left out of the
+	// JSON, for a refusal, even one of a removed device whose row remains, and when the device was
+	// hard-deleted. It is not stored on the event row.
+	DeviceStatus DeviceStatus `json:"device_status,omitempty"`
 	// DecidedStatus and DecidedAt freeze the enrollment's outcome on the event: the terminal status
 	// (accepted/rejected) and when it was set. They are stamped once, when the device is accepted or
 	// rejected, so the audit survives the device being removed (the live status can't). Nil/empty while
@@ -58,4 +62,17 @@ type ProvisioningKeyEvent struct {
 	// the newest one alone; older events are historical. Computed at read time; drives the accept/reject
 	// action only (the decision itself is frozen per-event above).
 	IsCurrent bool `json:"is_current"`
+	// Refusal is why the server refused the device instead of enrolling it, empty for an enrollment.
+	// A refusal never carries DeviceStatus or a decision.
+	Refusal ProvisioningKeyEventRefusal `json:"refusal,omitempty"`
+	// Attempts counts the requests this event stands for: a refused device that keeps retrying
+	// refreshes its refusal instead of adding one, and an enrollment is a single attempt.
+	Attempts int `json:"attempts"`
 }
+
+// ProvisioningKeyEventRefusal is why the server refused a device that tried to enroll.
+type ProvisioningKeyEventRefusal string
+
+// ProvisioningKeyEventRefusalUnverifiedDeviceKey refuses an agent that did not sign the server's
+// challenge in a namespace that requires verified device keys.
+const ProvisioningKeyEventRefusalUnverifiedDeviceKey ProvisioningKeyEventRefusal = "unverified_device_key"

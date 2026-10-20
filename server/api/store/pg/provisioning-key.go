@@ -246,17 +246,66 @@ func (pg *Pg) ProvisioningKeyIncrementUsage(ctx context.Context, provisioningKey
 
 // ProvisioningKeyEventCreate implements [store.ProvisioningKeyStore].
 func (pg *Pg) ProvisioningKeyEventCreate(ctx context.Context, event *models.ProvisioningKeyEvent) error {
-	db := pg.GetConnection(ctx)
-
 	e := entity.ProvisioningKeyEventFromModel(event)
 	e.ID = uuid.Generate()
 	e.CreatedAt = pg.clock.Now()
+	e.Attempts = 1
 
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+	if e.Refusal == "" {
+		return pg.insertProvisioningKeyEvent(ctx, e)
+	}
+
+	return pg.WithTransaction(ctx, func(ctx context.Context) error {
+		if _, err := pg.GetConnection(ctx).ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", "provisioning-key-refusal:"+e.NamespaceID+":"+e.DeviceUID); err != nil {
+			return fromSQLError(err)
+		}
+
+		refreshed, err := pg.refreshRefusal(ctx, e)
+		if err != nil || refreshed {
+			return err
+		}
+
+		return pg.insertProvisioningKeyEvent(ctx, e)
+	})
+}
+
+func (pg *Pg) insertProvisioningKeyEvent(ctx context.Context, e *entity.ProvisioningKeyEvent) error {
+	if _, err := pg.GetConnection(ctx).NewInsert().Model(e).Exec(ctx); err != nil {
 		return fromSQLError(err)
 	}
 
 	return nil
+}
+
+func (pg *Pg) refreshRefusal(ctx context.Context, e *entity.ProvisioningKeyEvent) (bool, error) {
+	db := pg.GetConnection(ctx)
+
+	newest := db.NewSelect().
+		Model((*entity.ProvisioningKeyEvent)(nil)).
+		Column("id").
+		Where("namespace_id = ?", e.NamespaceID).
+		Where("device_uid = ?", e.DeviceUID).
+		Order("created_at DESC").
+		Limit(1)
+
+	r, err := db.NewUpdate().
+		Model(e).
+		Column("hostname", "identity", "info_id", "info_pretty_name", "info_version", "info_arch", "info_platform", "source_ip", "created_at").
+		Set("attempts = attempts + 1").
+		Where("id IN (?)", newest).
+		Where("provisioning_key_id = ?", e.ProvisioningKeyID).
+		Where("refusal = ?", e.Refusal).
+		Exec(ctx)
+	if err != nil {
+		return false, fromSQLError(err)
+	}
+
+	rowsAffected, err := r.RowsAffected()
+	if err != nil {
+		return false, fromSQLError(err)
+	}
+
+	return rowsAffected > 0, nil
 }
 
 // ProvisioningKeyEventStampDecision implements [store.ProvisioningKeyStore].
@@ -267,6 +316,7 @@ func (pg *Pg) ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Sc
 		Model((*entity.ProvisioningKeyEvent)(nil)).
 		Column("id").
 		Where("device_uid = ?", deviceUID).
+		Where("refusal IS NULL").
 		Order("created_at DESC").
 		Limit(1)
 
@@ -300,7 +350,7 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 		Model(&entities).
 		ModelTableExpr("provisioning_key_events AS e").
 		ColumnExpr("e.*").
-		ColumnExpr("(SELECT status FROM devices d WHERE d.id = e.device_uid) AS device_status").
+		ColumnExpr("CASE WHEN e.refusal IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid) END AS device_status").
 		ColumnExpr("(e.created_at = MAX(e.created_at) OVER (PARTITION BY e.device_uid)) AS is_current").
 		Where("e.provisioning_key_id = ?", keyDigest)
 

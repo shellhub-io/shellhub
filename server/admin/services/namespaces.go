@@ -54,8 +54,9 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 			},
 		},
 		Settings: &models.NamespaceSettings{
-			SessionRecord:          true,
-			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
+			SessionRecord:            true,
+			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
+			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
 		},
 		CreatedAt: s.clock.Now(),
 		Type:      models.NewDefaultType(),

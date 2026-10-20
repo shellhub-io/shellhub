@@ -29,6 +29,8 @@ type env struct {
 	RedisURI           string `env:"REDIS_URI,default=redis://redis:6379"`
 
 	Edition envs.Edition `env:"SHELLHUB_EDITION"`
+
+	NamespaceRequireVerifiedDeviceKey bool `env:"SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY,default=true"`
 }
 
 type serviceFunc func() services.Services
@@ -88,5 +90,9 @@ func connect(ctx context.Context) (services.Services, error) {
 		return nil, err
 	}
 
-	return services.NewService(store, services.WithEdition(cfg.Edition), services.WithCache(cache)), nil
+	return services.NewService(store,
+		services.WithEdition(cfg.Edition),
+		services.WithCache(cache),
+		services.WithNamespaceRequireVerifiedDeviceKey(cfg.NamespaceRequireVerifiedDeviceKey),
+	), nil
 }

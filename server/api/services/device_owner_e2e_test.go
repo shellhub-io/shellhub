@@ -320,6 +320,21 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 		assert.Equal(t, models.DeviceStatusRemoved, e.device(t, accepted.UID).Status)
 	})
 
+	t.Run("an unsigned re-authentication is refused for its key first when the namespace requires verification", func(t *testing.T) {
+		e := setupOwnershipE2E(t)
+		member := e.member(t, "member", authorizer.RoleOperator)
+
+		accepted := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
+		require.NoError(t, e.svc.DeleteDevice(ctx, models.UID(accepted.UID), e.tenantID))
+		e.requireVerifiedDeviceKey(t, true)
+
+		req := e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1")
+		req.ProvisioningKey = ""
+		_, err := e.svc.AuthDevice(ctx, req)
+		require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
+		assert.Equal(t, models.DeviceStatusRemoved, e.device(t, accepted.UID).Status)
+	})
+
 	t.Run("a device enrolled by a provisioning key revives as pending", func(t *testing.T) {
 		e := setupOwnershipE2E(t)
 

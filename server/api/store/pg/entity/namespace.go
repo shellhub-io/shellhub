@@ -31,10 +31,11 @@ type Namespace struct {
 // NamespaceSettings is embedded into the namespaces row rather than being its own table, so a
 // namespace and its settings are read in one query.
 type NamespaceSettings struct {
-	MaxDevices             int    `bun:"max_devices"`
-	SessionRecord          bool   `bun:"record_sessions"`
-	ConnectionAnnouncement string `bun:"connection_announcement,type:text"`
-	Legacy                 bool   `bun:"legacy,skipupdate"`
+	MaxDevices               int    `bun:"max_devices"`
+	SessionRecord            bool   `bun:"record_sessions"`
+	ConnectionAnnouncement   string `bun:"connection_announcement,type:text"`
+	Legacy                   bool   `bun:"legacy,skipupdate"`
+	RequireVerifiedDeviceKey bool   `bun:"require_verified_device_key"`
 }
 
 // NamespaceFromModel projects a namespace into its row form, defaulting an unset type to
@@ -64,6 +65,7 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 		namespace.Settings.SessionRecord = model.Settings.SessionRecord
 		namespace.Settings.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
 		namespace.Settings.Legacy = model.Settings.Legacy
+		namespace.Settings.RequireVerifiedDeviceKey = model.Settings.RequireVerifiedDeviceKey
 	}
 
 	namespace.Memberships = make([]Membership, len(model.Members))
@@ -93,9 +95,10 @@ func NamespaceToModel(entity *Namespace) *models.Namespace {
 		DevicesRejectedCount: entity.DevicesRejectedCount,
 		DevicesRemovedCount:  entity.DevicesRemovedCount,
 		Settings: &models.NamespaceSettings{
-			SessionRecord:          entity.Settings.SessionRecord,
-			ConnectionAnnouncement: entity.Settings.ConnectionAnnouncement,
-			Legacy:                 entity.Settings.Legacy,
+			SessionRecord:            entity.Settings.SessionRecord,
+			ConnectionAnnouncement:   entity.Settings.ConnectionAnnouncement,
+			Legacy:                   entity.Settings.Legacy,
+			RequireVerifiedDeviceKey: entity.Settings.RequireVerifiedDeviceKey,
 		},
 	}
 

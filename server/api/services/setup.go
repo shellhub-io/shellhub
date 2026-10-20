@@ -117,8 +117,9 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		},
 		CreatedAt: s.clock.Now(),
 		Settings: &models.NamespaceSettings{
-			SessionRecord:          false,
-			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
+			SessionRecord:            false,
+			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
+			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
 		},
 	}
 

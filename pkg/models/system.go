@@ -13,22 +13,9 @@ type System struct {
 }
 
 // SystemAuthentication groups the authentication methods an instance offers. A nil Local is
-// disabled. A nil Device requires verified device keys, as a new instance does.
+// disabled.
 type SystemAuthentication struct {
-	Local  *SystemAuthenticationLocal  `json:"local"`
-	Device *SystemAuthenticationDevice `json:"device"`
-}
-
-// RequiresVerifiedDeviceKey reports whether device authentication must sign a server challenge.
-// Settings that leave device authentication out, a nil receiver included, require it, as a new
-// instance does.
-func (a *SystemAuthentication) RequiresVerifiedDeviceKey() bool {
-	return a == nil || a.Device == nil || a.Device.RequireVerifiedKey
-}
-
-// SystemAuthenticationDevice configures how devices authenticate to the instance.
-type SystemAuthenticationDevice struct {
-	RequireVerifiedKey bool `json:"require_verified_key"`
+	Local *SystemAuthenticationLocal `json:"local"`
 }
 
 // SystemAuthenticationLocal configures username-and-password authentication.

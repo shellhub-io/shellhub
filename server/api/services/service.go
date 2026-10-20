@@ -39,7 +39,7 @@ type service struct {
 	challengeKey      []byte
 	clock             clock.Clock
 
-	requireVerifiedDeviceKey bool
+	namespaceRequireVerifiedDeviceKey bool
 
 	edition      envs.Edition
 	version      string
@@ -140,12 +140,12 @@ func WithIssuer(issuer string) Option {
 	}
 }
 
-// WithVerifiedDeviceKeyRequired refuses every device authentication that does not prove possession
-// of the device's key, which agents released before device key verification cannot send. Without it
-// such an authentication is still accepted for a device that has never verified its key.
-func WithVerifiedDeviceKeyRequired() Option {
+// WithNamespaceRequireVerifiedDeviceKey sets whether a namespace the service creates starts out
+// requiring verified device keys, refusing agents released before device key verification. Without
+// it a new namespace does not require them. It changes nothing for a namespace that already exists.
+func WithNamespaceRequireVerifiedDeviceKey(required bool) Option {
 	return func(service *APIService) {
-		service.requireVerifiedDeviceKey = true
+		service.namespaceRequireVerifiedDeviceKey = required
 	}
 }
 

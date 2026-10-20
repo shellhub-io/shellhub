@@ -255,14 +255,6 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		assert.Equal(t, NewErrAuthUnathorized(nil), service.AuthDeviceToken(ctx, deviceClaims))
 	})
 
-	t.Run("an unsigned request is refused when the instance requires verification", func(t *testing.T) {
-		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer), WithVerifiedDeviceKeyRequired(), WithClock(clock.NewFixed(now)))
-
-		res, err := service.AuthDevice(context.TODO(), unsigned)
-		assert.Nil(t, res)
-		assert.Equal(t, refused, err)
-	})
-
 	t.Run("the same signed request is honoured twice within the window", func(t *testing.T) {
 		ctx := context.TODO()
 		storeMock := mocks.NewMockStore(t)
@@ -425,7 +417,8 @@ func TestAuthDeviceToken(t *testing.T) {
 		device      *models.Device
 		resolveErr  error
 		keyVerified bool
-		options     []Option
+		namespace   *models.Namespace
+		resolveNs   error
 		expected    error
 	}{
 		{
@@ -441,12 +434,25 @@ func TestAuthDeviceToken(t *testing.T) {
 		{
 			description: "honours a token of a device that never verified its key",
 			device:      &models.Device{UID: uid, TenantID: tenantID},
+			namespace:   &models.Namespace{TenantID: tenantID, Settings: &models.NamespaceSettings{}},
 		},
 		{
-			description: "refuses a token of a device that never verified its key when the instance requires verification",
+			description: "refuses a token of a device that never verified its key when its namespace requires verification",
 			device:      &models.Device{UID: uid, TenantID: tenantID},
-			options:     []Option{WithVerifiedDeviceKeyRequired()},
+			namespace:   &models.Namespace{TenantID: tenantID, Settings: &models.NamespaceSettings{RequireVerifiedDeviceKey: true}},
 			expected:    NewErrAuthUnathorized(nil),
+		},
+		{
+			description: "refuses a token of a device that never verified its key once its namespace is gone",
+			device:      &models.Device{UID: uid, TenantID: tenantID},
+			resolveNs:   store.ErrNoDocuments,
+			expected:    NewErrAuthUnathorized(nil),
+		},
+		{
+			description: "reports a store failure reading the namespace of a device that never verified its key",
+			device:      &models.Device{UID: uid, TenantID: tenantID},
+			resolveNs:   errors.New("error", "store", 0),
+			expected:    errors.New("error", "store", 0),
 		},
 		{
 			description: "refuses a token of a device the store no longer has",
@@ -465,8 +471,11 @@ func TestAuthDeviceToken(t *testing.T) {
 			ctx := context.TODO()
 			storeMock := mocks.NewMockStore(t)
 			storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(tc.device, tc.resolveErr).Once()
+			if tc.namespace != nil || tc.resolveNs != nil {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).Return(tc.namespace, tc.resolveNs).Once()
+			}
 
-			service := NewService(storeMock, privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), tc.options...)
+			service := NewService(storeMock, privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t))
 
 			err := service.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: uid, TenantID: tenantID, KeyVerified: tc.keyVerified})
 			assert.Equal(t, tc.expected, err)

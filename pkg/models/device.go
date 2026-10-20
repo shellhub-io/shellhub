@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -32,7 +33,7 @@ const DeviceOnlineWindow = 2 * time.Minute
 
 // Device is an enrolled machine. Its UID is derived from the identity the agent presents, so two
 // agents presenting the same identity are the same device rather than two of them.
-type Device struct {
+type Device struct { //nolint:recvcheck // MarshalJSON takes a value so a Device passed by value still gets key_verified
 	// UID is the unique identifier for a device.
 	UID string `json:"uid"`
 
@@ -87,6 +88,17 @@ type Device struct {
 	KeyVerifiedAt           *time.Time `json:"-"`
 
 	Taggable `json:",inline"`
+}
+
+// MarshalJSON encodes the device with key_verified derived from KeyVerifiedAt, so the flag cannot
+// disagree with KeyVerifiedAt.
+func (d Device) MarshalJSON() ([]byte, error) {
+	type device Device
+
+	return json.Marshal(struct {
+		device
+		KeyVerified bool `json:"key_verified"`
+	}{device(d), d.KeyVerifiedAt != nil})
 }
 
 // EnrollWith records key as the provisioning key the device enrolled with and takes its ephemeral

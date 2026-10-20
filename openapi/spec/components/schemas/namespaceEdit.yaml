@@ -11,3 +11,5 @@ properties:
         $ref: namespaceSessionRecord.yaml
       connection_announcement:
         $ref: namespaceConnectionAnnouncement.yaml
+      require_verified_device_key:
+        $ref: namespaceRequireVerifiedDeviceKey.yaml

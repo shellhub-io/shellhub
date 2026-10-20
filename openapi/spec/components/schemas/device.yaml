@@ -29,6 +29,13 @@ properties:
     description: Device's availability status
     type: boolean
     example: true
+  key_verified:
+    description: |
+      Whether the device's agent has proven it holds the device key by signing a server
+      challenge. A device that never did, which every agent older than 0.27 is, stops connecting
+      once its namespace requires verified device keys.
+    type: boolean
+    example: true
   namespace:
     $ref: namespaceName.yaml
   status:

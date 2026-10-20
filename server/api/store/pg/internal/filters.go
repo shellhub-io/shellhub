@@ -64,6 +64,19 @@ func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, erro
 	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
 }
 
+func fromKeyVerifiedFilter(value any) (string, []any, bool, error) {
+	verified, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
+	}
+
+	if verified {
+		return `"device"."key_verified_at" IS NOT NULL`, nil, true, nil
+	}
+
+	return `"device"."key_verified_at" IS NULL`, nil, true, nil
+}
+
 func fromClosedFilter(value any) (string, []any, bool, error) {
 	closed, err := parseBoolFilterValue(value)
 	if err != nil {
@@ -130,6 +143,10 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string, onlineCuto
 
 	if fp.Name == "active" {
 		return fromActiveFilter(fp.Value, tableAlias)
+	}
+
+	if fp.Name == "key_verified" {
+		return fromKeyVerifiedFilter(fp.Value)
 	}
 
 	if fp.Name == "closed" && tableAlias == "session" {

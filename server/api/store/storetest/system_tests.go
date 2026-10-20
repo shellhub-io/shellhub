@@ -2,7 +2,6 @@ package storetest
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -38,40 +37,6 @@ func (s *Suite) TestSystemGet(t *testing.T) {
 		assert.NotNil(t, system.Authentication)
 		assert.True(t, system.Authentication.Local.Enabled)
 	})
-
-	t.Run("requires verified device keys when the system written leaves device authentication out", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		require.NoError(t, st.SystemSet(ctx, &models.System{
-			Authentication: &models.SystemAuthentication{Local: &models.SystemAuthenticationLocal{Enabled: false}},
-		}))
-
-		system, err := st.SystemGet(ctx)
-		require.NoError(t, err)
-		require.NotNil(t, system.Authentication.Device)
-		assert.True(t, system.Authentication.Device.RequireVerifiedKey, "a row first written without device settings belongs to a new instance")
-	})
-
-	t.Run("reads back whether device keys must be verified", func(t *testing.T) {
-		for _, required := range []bool{true, false} {
-			t.Run(fmt.Sprintf("require verified key %t", required), func(t *testing.T) {
-				require.NoError(t, s.provider.CleanDatabase(t))
-
-				require.NoError(t, st.SystemSet(ctx, &models.System{
-					Setup: true,
-					Authentication: &models.SystemAuthentication{
-						Local:  &models.SystemAuthenticationLocal{Enabled: true},
-						Device: &models.SystemAuthenticationDevice{RequireVerifiedKey: required},
-					},
-				}))
-
-				system, err := st.SystemGet(ctx)
-				require.NoError(t, err)
-				require.NotNil(t, system.Authentication.Device)
-				assert.Equal(t, required, system.Authentication.Device.RequireVerifiedKey)
-			})
-		}
-	})
 }
 
 // TestSystemGetDefault tests that SystemGet returns default config when DB is empty
@@ -90,8 +55,6 @@ func (s *Suite) TestSystemGetDefault(t *testing.T) {
 		assert.NotNil(t, system.Authentication)
 		assert.NotNil(t, system.Authentication.Local)
 		assert.True(t, system.Authentication.Local.Enabled)
-		require.NotNil(t, system.Authentication.Device)
-		assert.True(t, system.Authentication.Device.RequireVerifiedKey, "a new instance requires verified device keys")
 	})
 }
 

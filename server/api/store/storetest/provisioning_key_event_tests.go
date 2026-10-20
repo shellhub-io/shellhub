@@ -2,7 +2,9 @@ package storetest
 
 import (
 	"context"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -82,6 +84,140 @@ func (s *Suite) TestProvisioningKeyEventCreate(t *testing.T) {
 			Hostname:          "web-01",
 		})
 		require.Error(t, err)
+	})
+
+	refusal := func(tenantID, digest, sourceIP string) *models.ProvisioningKeyEvent {
+		return &models.ProvisioningKeyEvent{
+			ProvisioningKeyID: digest,
+			TenantID:          tenantID,
+			DeviceUID:         "refused-uid",
+			Hostname:          "old-box",
+			SourceIP:          sourceIP,
+			Refusal:           models.ProvisioningKeyEventRefusalUnverifiedDeviceKey,
+		}
+	}
+
+	history := func(t *testing.T, tenantID, digest string) []models.ProvisioningKeyEvent {
+		t.Helper()
+
+		events, _, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
+		require.NoError(t, err)
+
+		return events
+	}
+
+	t.Run("refreshes a repeated refusal instead of appending one", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.1")))
+		first := history(t, tenantID, digest)[0].Timestamp
+
+		s.Clock().Set(first.Add(time.Minute))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.2")))
+
+		events := history(t, tenantID, digest)
+		require.Len(t, events, 1)
+		assert.Equal(t, 2, events[0].Attempts)
+		assert.Equal(t, "192.0.2.2", events[0].SourceIP)
+		assert.WithinDuration(t, first.Add(time.Minute), events[0].Timestamp, time.Millisecond)
+	})
+
+	t.Run("starts a new refusal after the device enrolled, leaving the old one as it was", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+		enrollment := refusal(tenantID, digest, "192.0.2.1")
+		enrollment.Refusal = ""
+
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.1")))
+		s.Clock().Set(s.Clock().Now().Add(time.Minute))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, enrollment))
+		s.Clock().Set(s.Clock().Now().Add(time.Minute))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.3")))
+
+		events := history(t, tenantID, digest)
+		require.Len(t, events, 3)
+		for _, event := range events {
+			assert.Equal(t, 1, event.Attempts)
+		}
+	})
+
+	t.Run("stamps a decision on the enrollment, not on a newer refusal", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+		enrollment := refusal(tenantID, digest, "192.0.2.1")
+		enrollment.Refusal = ""
+
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, enrollment))
+		s.Clock().Set(s.Clock().Now().Add(time.Minute))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.2")))
+
+		decidedAt := s.Clock().Now().Add(time.Minute)
+		require.NoError(t, st.ProvisioningKeyEventStampDecision(ctx, scope.MustBounded(tenantID), "refused-uid", models.DeviceStatusAccepted, decidedAt))
+
+		events := history(t, tenantID, digest)
+		require.Len(t, events, 2)
+		for _, event := range events {
+			if event.Refusal != "" {
+				assert.Empty(t, event.DecidedStatus, "a refusal carries no decision")
+				assert.Nil(t, event.DecidedAt)
+
+				continue
+			}
+
+			assert.Equal(t, models.DeviceStatusAccepted, event.DecidedStatus)
+			require.NotNil(t, event.DecidedAt)
+			assert.WithinDuration(t, decidedAt, *event.DecidedAt, time.Millisecond)
+		}
+	})
+
+	t.Run("records the same device's refusal on another key as its own", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+		tenantKey, err := st.ProvisioningKeyResolveSystem(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.1")))
+		s.Clock().Set(s.Clock().Now().Add(time.Minute))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, tenantKey.ID, "192.0.2.1")))
+
+		assert.Len(t, history(t, tenantID, digest), 1)
+		assert.Len(t, history(t, tenantID, tenantKey.ID), 1)
+	})
+
+	t.Run("keeps one row for refusals of the same device that arrive together", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+
+		const attempts = 64
+
+		var wg sync.WaitGroup
+		errs := make(chan error, attempts)
+		for range attempts {
+			wg.Go(func() {
+				errs <- st.ProvisioningKeyEventCreate(ctx, refusal(tenantID, digest, "192.0.2.1"))
+			})
+		}
+		wg.Wait()
+		close(errs)
+
+		for err := range errs {
+			require.NoError(t, err)
+		}
+
+		events := history(t, tenantID, digest)
+		require.Len(t, events, 1)
+		assert.Equal(t, attempts, events[0].Attempts)
 	})
 }
 

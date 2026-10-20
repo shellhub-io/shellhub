@@ -91,8 +91,9 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			},
 		},
 		Settings: &models.NamespaceSettings{
-			SessionRecord:          true,
-			ConnectionAnnouncement: envs.AnnouncementFor(s.edition),
+			SessionRecord:            true,
+			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
+			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
 		},
 		TenantID: req.TenantID,
 		Type:     models.NewDefaultType(),
@@ -267,6 +268,10 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 
 	if req.Settings.ConnectionAnnouncement != nil {
 		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
+	}
+
+	if req.Settings.RequireVerifiedDeviceKey != nil {
+		namespace.Settings.RequireVerifiedDeviceKey = *req.Settings.RequireVerifiedDeviceKey
 	}
 
 	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {

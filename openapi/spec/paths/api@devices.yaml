@@ -8,6 +8,10 @@ get:
     `eq` operator and matches the devices that member paired. A value that is not a
     UUID is a bad request.
 
+    **Filtering by key verification.** The `key_verified` field takes a boolean
+    with the `bool` or `eq` operator and matches the devices whose agent has, or
+    has never, signed a server challenge with its device key.
+
     **Deprecated filter field names.** The `filter` parameter still accepts the
     legacy Mongo-style field names `info.platform` and `identity.mac`, which are
     duplicates of `platform` and `mac` respectively. These aliases are kept for
