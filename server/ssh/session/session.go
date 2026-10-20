@@ -636,7 +636,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		Timeout: sshconf.ConnectTimeout,
 	}
 
-	if err := authOpt(s, config); err != nil {
+	if err := authOpt(ctx, s, config); err != nil {
 		return errors.New("fail to generate the authentication information")
 	}
 
