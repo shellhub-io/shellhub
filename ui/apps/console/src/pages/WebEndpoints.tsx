@@ -1,14 +1,19 @@
 import { useState, FormEvent } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useWebEndpoints } from "@/hooks/useWebEndpoints";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
-  useCreateWebEndpoint,
-  useDeleteWebEndpoint,
-} from "@/hooks/useWebEndpointMutations";
-import type { Webendpoint } from "@/client";
+  createWebEndpointMutation,
+  deleteWebEndpointMutation,
+  listWebEndpoints,
+  listWebEndpointsQueryKey,
+  type Webendpoint,
+} from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -45,7 +50,7 @@ import {
   Toggle,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -324,7 +329,11 @@ function EndpointModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const createEndpoint = useCreateWebEndpoint();
+  const invalidateEndpoints = useInvalidateByIds("listWebEndpoints");
+  const createEndpoint = useMutation({
+    ...createWebEndpointMutation(),
+    onSuccess: invalidateEndpoints,
+  });
 
   const [device, setDevice] = useState<NormalizedDevice | null>(null);
   const [hostMode, setHostMode] = useState<"localhost" | "custom">("localhost");
@@ -819,6 +828,15 @@ const DEFAULTS: WebEndpointsParams = {
   search: "",
 };
 
+function addressFilter(address: string): string {
+  return toBase64Json([
+    {
+      type: "property",
+      params: { name: "address", operator: "contains", value: address },
+    },
+  ]);
+}
+
 function WebEndpointsContent() {
   const sectionTitle = useNavSectionTitle("/web-endpoints");
   const { params, setPage, setSearch } =
@@ -828,11 +846,22 @@ function WebEndpointsContent() {
     SEARCH_DEBOUNCE_MS,
   );
 
-  const { webEndpoints, totalCount, isLoading } = useWebEndpoints({
-    page: params.page,
-    addressFilter: debouncedSearch,
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(listWebEndpoints, listWebEndpointsQueryKey, {
+      query: {
+        page: params.page,
+        per_page: PER_PAGE,
+        ...(debouncedSearch ? { filter: addressFilter(debouncedSearch) } : {}),
+      },
+    }),
+  );
+  const webEndpoints = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const invalidateEndpoints = useInvalidateByIds("listWebEndpoints");
+  const deleteEndpoint = useMutation({
+    ...deleteWebEndpointMutation(),
+    onSuccess: invalidateEndpoints,
   });
-  const deleteEndpoint = useDeleteWebEndpoint();
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     address: string;

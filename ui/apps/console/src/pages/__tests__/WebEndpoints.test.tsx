@@ -7,6 +7,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockWebEndpoint } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { defaultHandlers } from "@/tests/handlers";
+import { decodeB64url } from "@/tests/decodeB64url";
 import WebEndpoints from "../WebEndpoints";
 
 vi.mock("@/hooks/useResetOnOpen");
@@ -130,4 +131,23 @@ describe("WebEndpoints — modal toggles", () => {
       expect(toggle).toHaveAttribute("aria-checked", "true");
     },
   );
+});
+
+describe("WebEndpoints — address search", () => {
+  it("filters on the trimmed address", async () => {
+    renderPage(["/?search=%20%20ep1.example%20%20"]);
+    await waitFor(() => expect(lastRequestUrl).not.toBeNull());
+    expect(decodeB64url(lastRequestUrl!.searchParams.get("filter")!)).toEqual([
+      {
+        type: "property",
+        params: { name: "address", operator: "contains", value: "ep1.example" },
+      },
+    ]);
+  });
+
+  it("sends no filter for a blank search", async () => {
+    renderPage(["/?search=%20%20%20"]);
+    await waitFor(() => expect(lastRequestUrl).not.toBeNull());
+    expect(lastRequestUrl!.searchParams.has("filter")).toBe(false);
+  });
 });
