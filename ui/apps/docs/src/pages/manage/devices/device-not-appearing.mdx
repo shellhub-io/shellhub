@@ -23,6 +23,24 @@ Accept it and it comes online. To stop needing to, use a
 [provisioning key](/manage/devices/provisioning-keys). See
 [Provisioning Keys](/manage/devices/provisioning-keys#reviewing-a-pending-enrollment).
 
+## Was it refused for not proving its key?
+
+In a namespace that has [Device signature enforcement](/manage/settings#device-signature-enforcement)
+on, an agent older than 0.27 is refused: it cannot sign the server's challenge with its device
+key. The refusal shows up in **Pending devices** as one line per device, with the hostname,
+address, agent version, last attempt and how many times it tried. The agent keeps retrying and
+the line stays one line.
+
+There is nothing to accept on that line. Two ways out:
+
+- **Update the agent** to 0.27 or later. Its next attempt signs and the device lands pending as
+  usual.
+- **Turn Device signature enforcement off** in **Settings** → **SSH**. The agent's next attempt
+  lands pending. Anyone who knows the device's hostname, MAC address, public key and the tenant ID
+  can then authenticate as a device that never signed, so prefer updating the agent.
+
+The agent's own log shows the refusal as `status_code=403`.
+
 ## Is the agent running?
 
 Depends on how it was installed:

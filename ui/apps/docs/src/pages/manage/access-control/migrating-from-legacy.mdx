@@ -65,6 +65,14 @@ lands pending for somebody to accept. Images and scripts that bake the tenant in
 a [provisioning key](/manage/devices/provisioning-keys) accepts and tags a fleet without that
 queue, and a Docker connector takes it as `SHELLHUB_PROVISIONING_KEY`.
 
+**7. Check the agent versions.** The upgrade does not change which agents may connect. That is
+the separate [Device signature enforcement](/manage/settings#device-signature-enforcement)
+setting, off in a namespace that predates it and on in one created after. If you move a fleet
+with agents older than 0.27 into a new namespace instead of upgrading this one, turn the setting
+off there first, or update the agents: an old agent cannot sign the server's challenge and is
+refused. A refused agent whose device the namespace does not have shows up at **Pending devices**
+with the reason.
+
 ## Upgrading
 
 Click **Upgrade** on the namespace's SSH settings. The confirmation spells out what

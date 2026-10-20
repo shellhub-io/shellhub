@@ -159,6 +159,12 @@ at from somewhere else.
 This is the audit trail for enrollment. When a device turns up that you did not expect, this is
 where you find out which key let it in.
 
+On Pending devices, an agent the namespace refused because it could not prove it holds its device
+key is a line marked **refused**, with the agent version and how many times it tried, and nothing
+to accept. It stays one line while the agent retries. Update the agent, or turn off [Device
+signature enforcement](/manage/settings#device-signature-enforcement), and its next attempt lands
+pending.
+
 <Callout variant="info">
 Provisioning key management refuses API keys. It is a human-only operation.
 </Callout>
