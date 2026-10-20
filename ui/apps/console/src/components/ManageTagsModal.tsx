@@ -1,12 +1,14 @@
 import { useState, useRef, FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useTags } from "@/hooks/useTagRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  createTagMutation,
+  deleteTagMutation,
+  updateTagMutation,
+} from "@/client";
 import { apiErrorFields, isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useTags } from "../hooks/useTags";
-import {
-  useCreateTag,
-  useUpdateTag,
-  useDeleteTag,
-} from "../hooks/useTagMutations";
 import Modal from "./common/Modal";
 import ConfirmDialog from "./common/ConfirmDialog";
 import {
@@ -50,9 +52,10 @@ export default function ManageTagsModal({
   onTagDeleted?: (name: string) => void;
 }) {
   const { tags, isLoading } = useTags();
-  const createTag = useCreateTag();
-  const updateTag = useUpdateTag();
-  const deleteTag = useDeleteTag();
+  const invalidateTagged = useInvalidateByIds("getTags", "getDevices", "getDevice");
+  const createTag = useMutation({ ...createTagMutation(), onSuccess: invalidateTagged });
+  const updateTag = useMutation({ ...updateTagMutation(), onSuccess: invalidateTagged });
+  const deleteTag = useMutation({ ...deleteTagMutation(), onSuccess: invalidateTagged });
   const [newName, setNewName] = useState("");
   const [editingTag, setEditingTag] = useState<string | null>(null);
   const [editName, setEditName] = useState("");

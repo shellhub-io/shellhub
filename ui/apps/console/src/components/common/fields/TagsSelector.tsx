@@ -2,7 +2,7 @@ import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useTags } from "@/hooks/useTags";
+import { useTags } from "@/hooks/useTagRequests";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import FieldError from "@/components/common/fields/FieldError";
 import FieldHint from "@/components/common/fields/FieldHint";

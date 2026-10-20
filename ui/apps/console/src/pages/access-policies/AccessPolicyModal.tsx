@@ -27,7 +27,7 @@ import {
   roleSubjectCount as countRoleSubject,
 } from "./subjectCount";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
-import { useTags } from "@/hooks/useTags";
+import { useTags } from "@/hooks/useTagRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   createAccessPolicyMutation,

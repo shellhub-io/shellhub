@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Dropdown } from "@shellhub/design-system/primitives";
-import { useTags } from "@/hooks/useTags";
+import { useTags } from "@/hooks/useTagRequests";
 
 /**
  * The tag filter above a list. Selecting several narrows to devices carrying all of them, which
