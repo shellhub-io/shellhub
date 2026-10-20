@@ -21,6 +21,7 @@ func TestDeviceKeyVerification(t *testing.T) {
 	t.Parallel()
 
 	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
+	requireVerifiedDeviceKeys(t, compose, true)
 
 	unsigned := newDeviceAuthRequest(t, "verified", "02:00:00:00:02:00")
 	stored, ok := devicePrivateKeys.Load(unsigned.PublicKey)
@@ -56,7 +57,7 @@ func TestDeviceKeyVerification(t *testing.T) {
 		return resp.StatusCode()
 	}
 
-	t.Run("a new instance refuses the device's public metadata alone", func(t *testing.T) {
+	t.Run("a namespace that requires verified device keys refuses the device's public metadata alone", func(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, status(t, unsigned))
 	})
 
@@ -130,11 +131,22 @@ func requireSession(t *testing.T, ctx context.Context, compose *environment.Dock
 	}, 60*time.Second, 2*time.Second, "no session reached %s", device.Name)
 }
 
+func requireVerifiedDeviceKeys(t *testing.T, compose *environment.DockerCompose, required bool) {
+	t.Helper()
+
+	resp, err := compose.R(t.Context()).
+		SetBody(map[string]any{"settings": map[string]bool{"require_verified_device_key": required}}).
+		Put("/api/namespaces/" + ShellHubNamespace)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+}
+
 func TestDeviceKeyVerificationWithAReleasedAgent(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
 	compose := newSSHEnvironment(t, ctx, legacyNamespace)
+	requireVerifiedDeviceKeys(t, compose, true)
 
 	_, current := startAcceptedAgent(t, ctx, compose)
 	requireSession(t, ctx, compose, current)
@@ -142,5 +154,40 @@ func TestDeviceKeyVerificationWithAReleasedAgent(t *testing.T) {
 	released := startReleasedAgent(t, ctx, compose, NewAgentContainerWithHostname("released"))
 	environment.AwaitLogContains(t, released, "status_code=403")
 
-	assert.NotContains(t, deviceNames(compose.ListDevices(t, models.DeviceStatusEmpty)), "released", "a new instance never enrolls an agent that cannot sign")
+	t.Run("a namespace that requires verified device keys never enrolls an agent that cannot sign", func(t *testing.T) {
+		assert.NotContains(t, deviceNames(compose.ListDevices(t, models.DeviceStatusEmpty)), "released")
+	})
+
+	t.Run("the refused agent stays a single line in the tenant ID history while it retries", func(t *testing.T) {
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			var events []models.ProvisioningKeyEvent
+			resp, err := compose.R(ctx).SetResult(&events).Get("/api/devices/tenant-registrations")
+			require.NoError(tt, err)
+			require.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String())
+
+			var refused []models.ProvisioningKeyEvent
+			for _, event := range events {
+				if event.Hostname == "released" {
+					refused = append(refused, event)
+				}
+			}
+
+			require.Len(tt, refused, 1)
+			assert.Equal(tt, models.ProvisioningKeyEventRefusalUnverifiedDeviceKey, refused[0].Refusal)
+			assert.GreaterOrEqual(tt, refused[0].Attempts, 2)
+			assert.Empty(tt, refused[0].DeviceStatus)
+		}, 3*time.Minute, 2*time.Second)
+	})
+
+	t.Run("the refused agent lands pending once the namespace stops requiring verified device keys", func(t *testing.T) {
+		requireVerifiedDeviceKeys(t, compose, false)
+
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			var devices []models.Device
+			resp, err := compose.R(ctx).SetQueryParam("status", string(models.DeviceStatusPending)).SetResult(&devices).Get("/api/devices")
+			require.NoError(tt, err)
+			require.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String())
+			assert.Contains(tt, deviceNames(devices), "released")
+		}, 3*time.Minute, 2*time.Second)
+	})
 }
