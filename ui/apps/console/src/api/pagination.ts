@@ -26,3 +26,20 @@ export function paginatedQueryFn<T, O>(
     return { data, totalCount };
   };
 }
+
+/**
+ * Query options for a paginated list: the key comes from the same options the call is made with,
+ * so each page and filter caches on its own. Read the rows from data.data and the total from
+ * data.totalCount, which is 0 when the response carries no X-Total-Count. The query fails with
+ * the SDK error when the call does.
+ */
+export function paginatedQueryOptions<T, O, K extends readonly unknown[]>(
+  sdkFn: SdkListFn<T, O>,
+  queryKey: (options: O) => K,
+  options: O,
+) {
+  return {
+    queryKey: queryKey(options),
+    queryFn: paginatedQueryFn(sdkFn, options),
+  };
+}
