@@ -5,7 +5,7 @@ import CopyButton from "@/components/common/CopyButton";
 import ConnectModal from "@/components/ConnectModal";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useDevice } from "@/hooks/useDevice";
+import { useDevice } from "@/hooks/useDeviceRequests";
 import { useSshEndpoint } from "@/hooks/useSshEndpoint";
 import {
   DEFAULT_LOGIN,

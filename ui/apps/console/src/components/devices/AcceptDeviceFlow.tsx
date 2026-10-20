@@ -22,7 +22,7 @@ import {
   NamespaceCreateForm,
   CommunityInstructions,
 } from "@/components/common/CreateNamespace";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
+import { useAcceptDevice } from "@/hooks/useDeviceRequests";
 import {
   useResolveDeviceCode,
   useAcceptDevicePairing,

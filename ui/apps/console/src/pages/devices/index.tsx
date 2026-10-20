@@ -25,7 +25,7 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
   useRenameDevice,
-} from "@/hooks/useDeviceMutations";
+} from "@/hooks/useDeviceRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import {
   PlusIcon,

@@ -1,11 +1,10 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
-import {
-  useSetDeviceCustomField,
-  useDeleteDeviceCustomField,
-} from "@/hooks/useDeviceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { setDeviceCustomFieldMutation, deleteDeviceCustomFieldMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -22,8 +21,15 @@ export default function CustomFieldsSection({
   uid,
   customFields,
 }: CustomFieldsSectionProps) {
-  const setMutation = useSetDeviceCustomField();
-  const deleteMutation = useDeleteDeviceCustomField();
+  const invalidateDevice = useInvalidateByIds("getDevices", "getDevice");
+  const setMutation = useMutation({
+    ...setDeviceCustomFieldMutation(),
+    onSuccess: invalidateDevice,
+  });
+  const deleteMutation = useMutation({
+    ...deleteDeviceCustomFieldMutation(),
+    onSuccess: invalidateDevice,
+  });
   const canEdit = useHasPermission("device:customField:update");
   const [keyInput, setKeyInput] = useState("");
   const [valueInput, setValueInput] = useState("");

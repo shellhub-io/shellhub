@@ -8,7 +8,7 @@ import {
   useAcceptDevicePairing,
   useResolveDeviceCode,
 } from "@/hooks/useDeviceCode";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
+import { useAcceptDevice } from "@/hooks/useDeviceRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
