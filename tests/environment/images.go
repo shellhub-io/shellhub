@@ -299,7 +299,11 @@ func (r *Run) adoptImage(ctx context.Context, image stackImage) error {
 
 func (r *Run) publishImage(ctx context.Context, image stackImage) error {
 	if err := r.relabel(ctx, image.local, image.remote, ""); err != nil {
-		return err
+		if _, inspectErr := r.client.ImageInspect(ctx, image.remote); inspectErr != nil {
+			return err
+		}
+
+		log.WithError(err).WithField("image", image.remote).Info("another run labeled the image first, pushing it")
 	}
 
 	auth, err := registryAuth(image.remote)
