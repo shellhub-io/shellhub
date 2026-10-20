@@ -1,6 +1,5 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listAccessPoliciesOptions, type AccessPolicy } from "../client";
+import { listAccessPoliciesOptions, type AccessPolicy } from "@/client";
 
 /**
  * The namespace's access policies. Returns an empty array rather than undefined while loading,
@@ -9,10 +8,7 @@ import { listAccessPoliciesOptions, type AccessPolicy } from "../client";
 export function useAccessPolicies() {
   const result = useQuery(listAccessPoliciesOptions());
 
-  const policies = useMemo<AccessPolicy[]>(
-    () => result.data ?? [],
-    [result.data],
-  );
+  const policies: AccessPolicy[] = result.data ?? [];
 
   return {
     policies,

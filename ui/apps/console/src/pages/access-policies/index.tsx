@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   ShieldCheckIcon,
   PlusIcon,
@@ -22,13 +23,13 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useAccessPolicies } from "@/hooks/useAccessPolicies";
-import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
+import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useAuthStore } from "@/stores/authStore";
-import type { AccessPolicy } from "@/client";
+import { deleteAccessPolicyMutation, type AccessPolicy } from "@/client";
 import { roleSubjectCount as countRoleSubject } from "./subjectCount";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -241,7 +242,11 @@ export default function AccessPolicies() {
   const apiKeyName = (id: string) => apiKeys.find((k) => k.id === id)?.name;
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members });
-  const deletePolicy = useDeleteAccessPolicy();
+  const invalidatePolicies = useInvalidateByIds("listAccessPolicies");
+  const deletePolicy = useMutation({
+    ...deleteAccessPolicyMutation(),
+    onSuccess: invalidatePolicies,
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccessPolicy | null>(null);

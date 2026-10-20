@@ -22,7 +22,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import IdentityModal from "@/pages/ssh-identities/IdentityModal";
 import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
 import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
-import { useAccessPolicies } from "@/hooks/useAccessPolicies";
+import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatDateShort } from "@/utils/date";
