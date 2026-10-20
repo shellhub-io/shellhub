@@ -37,6 +37,32 @@ Sessions on this namespace are recorded.
 It is also a reasonable place for an environment warning — anything that makes somebody pause
 before typing on the wrong machine.
 
+## Device signature enforcement
+
+Whether the namespace refuses an agent that cannot prove it holds its device key. Since 0.27 the
+agent signs a challenge from the server with its device key on every connection. Older agents
+cannot sign, so with this on they stop connecting, devices already registered included, until
+you update the agent.
+
+A namespace created after this setting was introduced starts with it on, unless the instance sets
+`SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY=false` (see
+[Environment Variables](/selfhosted/environment-variables)). A namespace that already existed
+when the server was updated starts with it off, so the update itself cuts no agent off.
+
+While it is off, the setting warns how many accepted or pending devices have never signed.
+Turning it on applies at once when there are none, and otherwise asks you to confirm that those
+devices stop connecting. Turning it off applies at once, and a refused agent lands pending on its
+next attempt.
+
+The device list API reports whether each device has signed as `key_verified`, and filters on it.
+
+A device that has signed once is never accepted unsigned again, whatever this setting says, until
+it is removed.
+
+An agent refused for not signing shows up at **Pending devices** with the reason when its device
+is not in the namespace, or was removed from it. A device already in the list is refused without
+a line there. See [Device Not Appearing](/manage/devices/device-not-appearing).
+
 ## Legacy or new
 
 Shows whether the namespace is legacy or new, and offers a legacy namespace a one-way upgrade to
