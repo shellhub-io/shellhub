@@ -20,7 +20,7 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
 } from "@/hooks/useDeviceRequests";
-import { useNamespace } from "../hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useProvisioningKeys } from "@/hooks/useProvisioningKeyRequests";
 import {
   enrollmentSourceName,

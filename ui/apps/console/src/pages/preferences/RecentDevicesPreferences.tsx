@@ -1,7 +1,7 @@
 import { ClockIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import SettingsSection from "@/components/settings/SettingsSection";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useRecentDevicesStore } from "@/stores/recentDevicesStore";
 import { formatRelative } from "@/utils/date";
 

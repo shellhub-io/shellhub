@@ -5,7 +5,7 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
-import { useSwitchNamespace } from "../useNamespaceMutations";
+import { useSwitchNamespace } from "../useNamespaceRequests";
 
 beforeEach(() => {
   seedAuthStore({ tenant: "tenant-home" });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespaceMembers } from "@/hooks/useNamespaces";
+import { useNamespaceMembers } from "@/hooks/useNamespaceRequests";
 import MakeTeamDeviceModal from "./MakeTeamDeviceModal";
 
 /**

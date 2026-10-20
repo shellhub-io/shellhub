@@ -10,7 +10,7 @@ import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { OpfsCastRecorder } from "@/utils/recordings";

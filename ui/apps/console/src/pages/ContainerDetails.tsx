@@ -16,7 +16,7 @@ import {
   useRemoveContainerTag,
 } from "@/hooks/useContainerRequests";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
-import { useNamespace } from "../hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import { useActionDialog } from "../hooks/useActionDialog";

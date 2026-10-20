@@ -20,7 +20,7 @@ import type {
   EntityOperation,
 } from "@/hooks/useActionDialog";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { capitalize } from "@/utils/string";

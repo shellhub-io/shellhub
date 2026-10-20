@@ -1,7 +1,6 @@
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces, useStats } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
-import { useStats } from "@/hooks/useStats";
 
 /**
  * Whether the current user is on their account's first run: a member who can accept devices,

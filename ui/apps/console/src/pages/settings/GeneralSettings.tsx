@@ -6,10 +6,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
-import { useEditNamespace } from "@/hooks/useNamespaceMutations";
+import {
+  type Namespace,
+  useEditNamespace,
+  useNamespace,
+  useStats,
+} from "@/hooks/useNamespaceRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useStats } from "@/hooks/useStats";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import { formatDateShort } from "@/utils/date";

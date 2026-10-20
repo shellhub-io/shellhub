@@ -21,7 +21,7 @@ import ChatwootProvider from "./ChatwootProvider";
 import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
 import CreateNamespaceHost from "./CreateNamespaceHost";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useWindowShown } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";

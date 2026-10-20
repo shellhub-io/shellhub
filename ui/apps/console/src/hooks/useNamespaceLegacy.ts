@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
+import { useNamespace, type Namespace } from "@/hooks/useNamespaceRequests";
 
 /**
  * Whether a namespace is legacy. A namespace with no settings is new.

@@ -15,7 +15,7 @@ import {
 } from "@/stores/workspaceTabsStore";
 import { mockNamespace } from "@/tests/factories";
 import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
-import { useNamespaces } from "../useNamespaces";
+import { useNamespaces } from "../useNamespaceRequests";
 import { useWorkspaceTabs } from "../useWorkspaceTabs";
 
 const home = namespaceTab("tenant-home", "home", "/devices");

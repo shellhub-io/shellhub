@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useAuthStore } from "@/stores/authStore";
 import { buildSshid } from "@/utils/sshid";

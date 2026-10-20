@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiErrorMessage } from "@/api/errors";
-import { useEnterNamespace } from "@/hooks/useNamespaceMutations";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useEnterNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import {

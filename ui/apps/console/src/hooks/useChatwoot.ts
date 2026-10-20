@@ -7,7 +7,7 @@ import {
 } from "react";
 import { getConfig, isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useSupportIdentifier } from "@/hooks/useSupportIdentifier";
 import { hasActiveSubscription } from "@/utils/billing";
 import {

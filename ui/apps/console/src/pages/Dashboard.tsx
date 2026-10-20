@@ -4,9 +4,8 @@ import {
   CheckCircleIcon,
   SignalIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
-import { useStats } from "@/hooks/useStats";
 import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import PageHeader from "@/components/common/PageHeader";

@@ -1,6 +1,6 @@
 import { useState, useId } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import BaseDialog from "@/components/common/BaseDialog";
 import CopyButton from "@/components/common/CopyButton";

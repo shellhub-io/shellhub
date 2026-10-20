@@ -1,8 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { isCloud } from "@/env";
-import { useStats } from "@/hooks/useStats";
+import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { hasActiveSubscription } from "@/utils/billing";
-import { useNamespace } from "@/hooks/useNamespaces";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useAuthStore } from "@/stores/authStore";
 
