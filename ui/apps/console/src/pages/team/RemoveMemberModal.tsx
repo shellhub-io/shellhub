@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   KeyIcon,
@@ -7,15 +8,15 @@ import {
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
-import type { MemberView } from "@/client";
+import { type MemberView, removeNamespaceMemberMutation } from "@/client";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useMemberDevices } from "@/hooks/useMemberDevices";
-import { useRemoveMember } from "@/hooks/useMemberMutations";
 import DepartingDevices from "@/components/common/DepartingDevices";
 import Modal from "@/components/common/Modal";
 import ObjectName from "@/components/common/ObjectName";
 import UserBadge from "@/components/common/UserBadge";
 import { LABEL_BASE } from "@/utils/styles";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { RoleBadge } from "./constants";
 
 const CONSEQUENCES = [
@@ -42,7 +43,17 @@ export default function RemoveMemberModal({
   member: MemberView;
   onClose: () => void;
 }) {
-  const removeMember = useRemoveMember();
+  const invalidateMembership = useInvalidateByIds(
+    "getNamespaces",
+    "getNamespace",
+    "listNamespaceMembers",
+    "getDevices",
+    "getStats",
+  );
+  const removeMember = useMutation({
+    ...removeNamespaceMemberMutation(),
+    onSuccess: invalidateMembership,
+  });
   const devices = useMemberDevices(member.id ?? "");
   const canKeepDevices = useHasPermission("provisioningKey:create");
   const [keepDevices, setKeepDevices] = useState<string[]>([]);
