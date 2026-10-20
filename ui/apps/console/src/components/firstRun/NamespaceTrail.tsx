@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@shellhub/design-system/primitives";
 import { isCloud, isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import { useUserInfo } from "@/hooks/useUserInfo";
+import { getUserInfoOptions } from "@/client";
 import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import {
   CommunityInstructions,
@@ -94,7 +95,10 @@ function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
 export default function NamespaceTrail() {
   const name = useAuthStore((s) => s.name);
   const email = useAuthStore((s) => s.email);
-  const { user, error, refetch } = useUserInfo({ enabled: !isCommunity() });
+  const { data: user, error, refetch } = useQuery({
+    ...getUserInfoOptions(),
+    enabled: !isCommunity(),
+  });
   const eyebrow = `Welcome, ${name || email || "back"}`;
 
   if (!isCommunity() && error) {
