@@ -4,7 +4,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useDeleteSessionRecording } from "../useSessionMutations";
+import { useDeleteSessionRecording } from "../useSessionRequests";
 
 beforeEach(() => {
   useTerminalStore.setState({ sessions: [], recordings: [] });

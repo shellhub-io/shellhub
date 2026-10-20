@@ -1,22 +1,28 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { CommandLineIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Callout, Card } from "@shellhub/design-system/primitives";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
-import { useSessions } from "@/hooks/useSessions";
 import { formatRelative } from "@/utils/date";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import SessionLogin from "@/components/sessions/SessionLogin";
 import EmptyCell from "@/components/common/EmptyCell";
-import type { Session } from "@/client";
+import { getSessions, getSessionsQueryKey, type Session } from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
 import { apiErrorMessage } from "@/api/errors";
 
 /**
  * The five most recent sessions, for the dashboard.
  */
 export default function RecentSessionsTable() {
-  const { sessions, isLoading, error } = useSessions({ page: 1, perPage: 5 });
+  const { data, isLoading, error } = useQuery(
+    paginatedQueryOptions(getSessions, getSessionsQueryKey, {
+      query: { page: 1, per_page: 5 },
+    }),
+  );
+  const sessions = data?.data ?? [];
   const navigate = useNavigate();
 
   const columns: Column<Session>[] = [

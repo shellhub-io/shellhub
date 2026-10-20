@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { CommandLineIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import {
@@ -9,12 +10,12 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useSessions } from "@/hooks/useSessions";
-import { useCloseSession } from "@/hooks/useSessionMutations";
+import { useCloseSession } from "@/hooks/useSessionRequests";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
 import { useLocalRecordings } from "@/hooks/useLocalRecordings";
 import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
-import type { Session } from "@/client";
+import { getSessions, getSessionsQueryKey, type Session } from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -144,10 +145,13 @@ export default function Sessions() {
   const { params, setPage } = usePaginatedListState<SessionsParams>({
     defaults: DEFAULTS,
   });
-  const { sessions, totalCount, isLoading, error } = useSessions({
-    page: params.page,
-    perPage: PER_PAGE,
-  });
+  const { data, isLoading, error } = useQuery(
+    paginatedQueryOptions(getSessions, getSessionsQueryKey, {
+      query: { page: params.page, per_page: PER_PAGE },
+    }),
+  );
+  const sessions = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
   const closeSession = useCloseSession();
   const navigate = useNavigate();
   const premium = isEnterpriseOrCloud();

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { closeSessionMutation, deleteSessionRecord } from "../client";
+import { closeSessionMutation, deleteSessionRecord } from "@/client";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useInvalidateByIds } from "./useInvalidateQueries";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
  * Closes an open session. The device's status changes with it, so the device counts are
