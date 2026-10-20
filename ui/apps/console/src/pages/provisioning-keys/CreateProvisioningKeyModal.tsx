@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState, FormEvent } from "react";
 import {
   CheckIcon,
@@ -6,12 +7,13 @@ import {
 import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
 import { buildInstallCommand } from "@/utils/installCommand";
 import CopyButton from "@/components/common/CopyButton";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
+import { provisioningKeyCreateMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import EphemeralField from "./EphemeralField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
@@ -37,7 +39,11 @@ function CreateProvisioningKeyModal({
   onClose: () => void;
   onCreated?: (name: string) => void;
 }) {
-  const createKey = useCreateProvisioningKey();
+  const invalidateKeys = useInvalidateByIds("provisioningKeyList");
+  const createKey = useMutation({
+    ...provisioningKeyCreateMutation(),
+    onSuccess: invalidateKeys,
+  });
   const [name, setName] = useState("");
   const [mode, setMode] = useState<ProvisioningKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");

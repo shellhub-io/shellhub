@@ -15,8 +15,10 @@ import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
-import { useProvisioningKeys } from "@/hooks/useProvisioningKeys";
-import { useRevealProvisioningKey } from "@/hooks/useRevealProvisioningKey";
+import {
+  useProvisioningKeys,
+  useRevealProvisioningKey,
+} from "@/hooks/useProvisioningKeyRequests";
 import { formatDateShort } from "@/utils/date";
 import { capitalize } from "@/utils/string";
 import ProvisioningKeyActions from "./ProvisioningKeyActions";
@@ -262,7 +264,7 @@ export default function ProvisioningKeyHistoryPage() {
   } | null;
   const [detailsChoice, setDetailsChoice] = useState<boolean | null>(null);
 
-  const { provisioningKeys, isLoading } = useProvisioningKeys({ perPage: 100 });
+  const { provisioningKeys, isLoading } = useProvisioningKeys();
   const key = provisioningKeys.find((k) => k.id === id) ?? state?.key ?? null;
   const pendingQueue =
     useNamespaceLegacy() === true && !!key && isLegacyKey(key);

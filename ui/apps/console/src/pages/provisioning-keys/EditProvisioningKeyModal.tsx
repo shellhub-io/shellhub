@@ -3,7 +3,7 @@ import { CheckIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
+import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyRequests";
 import { type ProvisioningKey, type ProvisioningKeyUpdate } from "@/client";
 import { getRemainingDays, keyExpiryUpdatePayload } from "./helpers";
 import Modal from "@/components/common/Modal";

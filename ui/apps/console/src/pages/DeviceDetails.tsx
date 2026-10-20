@@ -21,7 +21,7 @@ import {
   useRemoveDeviceTag,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useProvisioningKeys } from "../hooks/useProvisioningKeys";
+import { useProvisioningKeys } from "@/hooks/useProvisioningKeyRequests";
 import {
   enrollmentSourceName,
   provisioningKeyActivityPath,
@@ -59,7 +59,7 @@ export default function DeviceDetails() {
   const { device, isLoading, error } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const { provisioningKeys } = useProvisioningKeys({ perPage: 100 });
+  const { provisioningKeys } = useProvisioningKeys();
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
