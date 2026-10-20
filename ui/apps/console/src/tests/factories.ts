@@ -99,6 +99,7 @@ export function mockNamespace(overrides: Partial<Namespace> = {}): Namespace {
       session_record: false,
       connection_announcement: "",
       legacy: false,
+      require_verified_device_key: false,
     },
     max_devices: 3,
     created_at: "2024-01-01T00:00:00Z",
@@ -379,6 +380,7 @@ export function mockProvisioningKeyEvent(
     re_registration: false,
     timestamp: "2024-03-05T10:00:00Z",
     is_current: true,
+    attempts: 1,
     ...overrides,
   };
 }
@@ -468,6 +470,7 @@ export function mockLegacyNamespace(
     settings: {
       session_record: false,
       connection_announcement: "",
+      require_verified_device_key: false,
       ...base.settings,
       legacy: true,
     },

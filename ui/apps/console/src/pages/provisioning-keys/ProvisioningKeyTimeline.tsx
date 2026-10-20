@@ -20,11 +20,12 @@ import { formatDateFull } from "@/utils/date";
 import EventPublicKey from "./EventPublicKey";
 import { formatCount } from "./helpers";
 
-type Outcome = "waiting" | "accepted" | "rejected" | "settled";
+type Outcome = "waiting" | "accepted" | "rejected" | "settled" | "refused";
 
 type Decide = (entity: EntityBase, operation: "accept" | "reject") => void;
 
 function outcomeOf(event: ProvisioningKeyEvent): Outcome {
+  if (event.refusal) return "refused";
   if (event.is_current && event.device_status === "pending") return "waiting";
   const decided = event.decided_status;
   if (decided === "accepted" || decided === "rejected") return decided;
@@ -46,6 +47,7 @@ const DOT: Record<Outcome, string> = {
   accepted: "bg-accent-green",
   rejected: "bg-accent-red",
   settled: "bg-text-muted/40",
+  refused: "bg-accent-red/60",
 };
 
 const VERDICT: Record<Outcome, { label: string; className: string }> = {
@@ -53,6 +55,7 @@ const VERDICT: Record<Outcome, { label: string; className: string }> = {
   accepted: { label: "accepted", className: "text-accent-green" },
   rejected: { label: "rejected", className: "text-accent-red" },
   settled: { label: "", className: "" },
+  refused: { label: "refused", className: "text-accent-red" },
 };
 
 function Dot({ outcome, top }: { outcome: Outcome; top: string }) {
@@ -68,7 +71,13 @@ function Dot({ outcome, top }: { outcome: Outcome; top: string }) {
   );
 }
 
-function Headline({ event }: { event: ProvisioningKeyEvent }) {
+function Headline({
+  event,
+  linked = true,
+}: {
+  event: ProvisioningKeyEvent;
+  linked?: boolean;
+}) {
   return (
     <>
       <time
@@ -77,12 +86,18 @@ function Headline({ event }: { event: ProvisioningKeyEvent }) {
       >
         {format(new Date(event.timestamp), "HH:mm")}
       </time>
-      <Link
-        to={`/devices/${event.device_uid}`}
-        className="text-sm font-medium text-text-primary hover:text-primary hover:underline truncate"
-      >
-        {event.hostname}
-      </Link>
+      {!linked ? (
+        <span className="text-sm font-medium text-text-primary truncate">
+          {event.hostname}
+        </span>
+      ) : (
+        <Link
+          to={`/devices/${event.device_uid}`}
+          className="text-sm font-medium text-text-primary hover:text-primary hover:underline truncate"
+        >
+          {event.hostname}
+        </Link>
+      )}
       {event.re_registration && (
         <span className="text-xs text-text-muted">· re-registered</span>
       )}
@@ -202,7 +217,10 @@ function DetailsToggle({
 
 function Details({ event }: { event: ProvisioningKeyEvent }) {
   const rows: [string, ReactNode][] = [
-    ["Registered", formatDateFull(event.timestamp)],
+    [
+      event.refusal ? "Last attempt" : "Registered",
+      formatDateFull(event.timestamp),
+    ],
   ];
   if (event.decided_at)
     rows.push(["Decided", formatDateFull(event.decided_at)]);
@@ -237,6 +255,69 @@ function Details({ event }: { event: ProvisioningKeyEvent }) {
   );
 }
 
+function refusalReason(event: ProvisioningKeyEvent): string {
+  const agent = event.info?.version
+    ? `agent ${event.info.version}`
+    : "the agent";
+  const times =
+    event.attempts === 1 ? "once" : `${formatCount(event.attempts)} times`;
+  return `Refused ${times}: ${agent} can't sign its connections.`;
+}
+
+function EntryRow({
+  event,
+  outcome,
+  linked = true,
+  action,
+  note,
+}: {
+  event: ProvisioningKeyEvent;
+  outcome: Outcome;
+  linked?: boolean;
+  action?: ReactNode;
+  note?: ReactNode;
+}) {
+  const { toggle, details } = useEventDetails(event, "text-text-muted/80");
+  const verdict = VERDICT[outcome];
+
+  return (
+    <li className="relative pl-8 py-2">
+      <Dot outcome={outcome} top="top-[15px]" />
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <Headline event={event} linked={linked} />
+        {verdict.label && (
+          <span className={cn("text-xs", verdict.className)}>
+            · {verdict.label}
+          </span>
+        )}
+        {action}
+        {toggle}
+      </div>
+      {note}
+      {details}
+    </li>
+  );
+}
+
+function RefusedEntry({ event }: { event: ProvisioningKeyEvent }) {
+  return (
+    <EntryRow
+      event={event}
+      outcome="refused"
+      linked={false}
+      note={
+        <p className="mt-0.5 ml-12 text-2xs text-text-muted">
+          <span>{refusalReason(event)}</span> Update the agent, or turn off{" "}
+          <Link to="/settings/ssh" className="text-primary hover:underline">
+            Device signature enforcement
+          </Link>
+          .
+        </p>
+      }
+    />
+  );
+}
+
 function Entry({
   event,
   decide,
@@ -245,6 +326,7 @@ function Entry({
   decide: Decide;
 }) {
   const outcome = outcomeOf(event);
+  if (outcome === "refused") return <RefusedEntry event={event} />;
   return outcome === "waiting" ? (
     <WaitingEntry event={event} decide={decide} />
   ) : (
@@ -261,21 +343,14 @@ function ResolvedEntry({
   outcome: Outcome;
   decide: Decide;
 }) {
-  const { toggle, details } = useEventDetails(event, "text-text-muted/80");
-  const verdict = VERDICT[outcome];
   const reconsider = event.is_current && outcome === "rejected";
 
   return (
-    <li className="relative pl-8 py-2">
-      <Dot outcome={outcome} top="top-[15px]" />
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <Headline event={event} />
-        {verdict.label && (
-          <span className={cn("text-xs", verdict.className)}>
-            · {verdict.label}
-          </span>
-        )}
-        {reconsider && (
+    <EntryRow
+      event={event}
+      outcome={outcome}
+      action={
+        reconsider && (
           <span className="text-2xs font-medium">
             <RestrictedAction action="device:accept">
               <button
@@ -287,11 +362,9 @@ function ResolvedEntry({
               </button>
             </RestrictedAction>
           </span>
-        )}
-        {toggle}
-      </div>
-      {details}
-    </li>
+        )
+      }
+    />
   );
 }
 
@@ -327,7 +400,8 @@ function RegistrationDays({
 /**
  * A registration history, newest first and grouped by day, one line per registration with how it
  * ended. A device still waiting for a decision stands out as a card in the line, with what it
- * reported and its accept and reject; any other line expands to the same details. Older
+ * reported and its accept and reject; any other line expands to the same details. A refused agent
+ * is a line with the reason and a link to the setting that refused it, and nothing to accept. Older
  * registrations load as the reader nears the end; a page that fails keeps the ones already shown
  * and offers a retry. emptyMessage is what an empty history says.
  */

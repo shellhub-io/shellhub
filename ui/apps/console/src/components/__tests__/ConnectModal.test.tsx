@@ -30,6 +30,7 @@ function serveConnectApi(legacy: boolean, sessionRecord = false) {
             session_record: sessionRecord,
             connection_announcement: "",
             legacy,
+            require_verified_device_key: false,
           },
         }),
       ),

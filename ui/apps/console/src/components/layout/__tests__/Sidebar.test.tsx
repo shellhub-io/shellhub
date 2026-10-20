@@ -20,6 +20,7 @@ async function renderSidebar(legacy: boolean) {
             session_record: false,
             connection_announcement: "",
             legacy,
+            require_verified_device_key: false,
           },
         }),
       );

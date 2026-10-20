@@ -6,6 +6,7 @@ const editNamespaceFields = z.object({
   name: z.string(),
   maxDevices: z.string(),
   sessionRecord: z.boolean(),
+  requireVerifiedDeviceKey: z.boolean(),
 });
 
 /**
@@ -49,6 +50,8 @@ export function buildEditNamespaceDefaults(
     name: namespace?.name ?? "",
     maxDevices: String(namespace?.max_devices ?? -1),
     sessionRecord: namespace?.settings?.session_record ?? false,
+    requireVerifiedDeviceKey:
+      namespace?.settings?.require_verified_device_key ?? false,
   };
 }
 
@@ -68,6 +71,7 @@ export function buildEditNamespaceBody(
       connection_announcement:
         namespace.settings?.connection_announcement ?? "",
       session_record: values.sessionRecord,
+      require_verified_device_key: values.requireVerifiedDeviceKey,
     },
   };
 }

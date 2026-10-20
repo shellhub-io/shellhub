@@ -83,6 +83,50 @@ describe("PendingDevices", () => {
     );
   });
 
+  it("shows an agent refused for not proving its key with why, and nothing to accept", async () => {
+    seedAuthStore({ role: "owner" });
+    server.use(
+      http.get("*/api/devices/tenant-registrations", () =>
+        jsonWithTotal([
+          mockProvisioningKeyEvent({
+            id: "refused",
+            device_uid: "uid-refused",
+            hostname: "old-box",
+            refusal: "unverified_device_key",
+            attempts: 7,
+            info: {
+              id: "debian",
+              pretty_name: "Debian",
+              version: "v0.26.1",
+              arch: "amd64",
+              platform: "docker",
+            },
+          }),
+        ]),
+      ),
+    );
+    renderPage();
+
+    expect(
+      await screen.findByText(
+        "Refused 7 times: agent v0.26.1 can't sign its connections.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Device signature enforcement" }),
+    ).toHaveAttribute("href", "/settings/ssh");
+    expect(screen.getByText("old-box")).not.toHaveAttribute("href");
+    expect(
+      screen.queryByRole("button", { name: /accept|reject/i }),
+    ).not.toBeInTheDocument();
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Show details for old-box" }));
+    expect(screen.getByText("Last attempt")).toBeInTheDocument();
+    expect(screen.queryByText("Registered")).not.toBeInTheDocument();
+  });
+
   it("says so when no device registered with the tenant ID", async () => {
     seedAuthStore({ role: "owner" });
     server.use(

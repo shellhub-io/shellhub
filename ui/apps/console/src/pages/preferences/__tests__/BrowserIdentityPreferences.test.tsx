@@ -42,6 +42,7 @@ describe("BrowserIdentityPreferences", () => {
           session_record: false,
           connection_announcement: "",
           legacy: false,
+          require_verified_device_key: false,
         },
       }),
     );
