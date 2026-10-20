@@ -52,7 +52,10 @@ const OPERATION: Record<
     variant: "danger",
     icon: <TrashIcon />,
     outcome: (name) => (
-      <>{name} is removed from the namespace. This can't be undone.</>
+      <>
+        {name} is removed from the namespace. While its agent keeps running,
+        it can enroll again.
+      </>
     ),
   },
 };
