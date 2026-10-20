@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
+import { useQuery } from "@tanstack/react-query";
+import { getContainers, getContainersQueryKey } from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
+import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
+import { toBase64Json } from "@/utils/encoding";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
@@ -21,7 +25,7 @@ import {
   useAddContainerTag,
   useRemoveContainerTag,
   useRenameContainer,
-} from "@/hooks/useContainerMutations";
+} from "@/hooks/useContainerRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import RenameableName from "@/components/common/RenameableName";
 import { useActionDialog } from "@/hooks/useActionDialog";
@@ -62,6 +66,23 @@ const statusTabs: { label: string; value: ValidStatus }[] = [
   { label: "Pending", value: "pending" },
   { label: "Rejected", value: "rejected" },
 ];
+
+function nameAndTagsFilter(search: string, tags: string[]): string {
+  const filters: Record<string, unknown>[] = [];
+  if (search) {
+    filters.push({
+      type: "property",
+      params: { name: "name", operator: "contains", value: search },
+    });
+  }
+  if (tags.length > 0) {
+    filters.push({
+      type: "property",
+      params: { name: "tags.name", operator: "contains", value: tags },
+    });
+  }
+  return toBase64Json(filters);
+}
 
 type ContainersParams = {
   page: number;
@@ -120,15 +141,22 @@ export default function Containers() {
     onSortChange: () => setPage(1),
   });
 
-  const { containers, totalCount, isLoading, error, refetch } = useContainers({
-    page: params.page,
-    perPage: PER_PAGE,
-    status: params.status,
-    search: debouncedSearch,
-    filterTags: params.tags,
-    sortBy,
-    orderBy,
-  });
+  const { data, isLoading, error, refetch } = useQuery(
+    paginatedQueryOptions(getContainers, getContainersQueryKey, {
+      query: {
+        page: params.page,
+        per_page: PER_PAGE,
+        sort_by: sortBy,
+        order_by: orderBy,
+        ...(params.status ? { status: params.status } : {}),
+        ...(debouncedSearch || params.tags.length > 0
+          ? { filter: nameAndTagsFilter(debouncedSearch, params.tags) }
+          : {}),
+      },
+    }),
+  );
+  const containers = data?.data.map(normalizeDeviceTags) ?? [];
+  const totalCount = data?.totalCount ?? 0;
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
@@ -155,8 +183,8 @@ export default function Containers() {
     setArrayFilter("tags", []);
   };
 
-  const columns = ((): Column<NormalizedContainer>[] => {
-    const baseColumns: Column<NormalizedContainer>[] = [
+  const columns = ((): Column<TaggedDevice>[] => {
+    const baseColumns: Column<TaggedDevice>[] = [
       {
         key: "name",
         header: "Hostname",
