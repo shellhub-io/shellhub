@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { usePublicKeys } from "@/hooks/usePublicKeys";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { paginatedQueryOptions } from "@/api/pagination";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { toBase64Json } from "@/utils/encoding";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -24,10 +26,15 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { PublicKeyResponse as PublicKey } from "@/client";
+import {
+  deletePublicKeyMutation,
+  getPublicKeys,
+  getPublicKeysQueryKey,
+  type PublicKeyResponse as PublicKey,
+} from "@/client";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -98,6 +105,21 @@ type PublicKeysParams = {
   search: string;
 };
 
+function nameOrFingerprintFilter(search: string): string {
+  return toBase64Json([
+    { type: "operator", params: { name: "or" } },
+    {
+      type: "property",
+      params: { name: "name", operator: "contains", value: search },
+    },
+    { type: "operator", params: { name: "or" } },
+    {
+      type: "property",
+      params: { name: "fingerprint", operator: "contains", value: search },
+    },
+  ]);
+}
+
 const DEFAULTS: PublicKeysParams = {
   page: 1,
   search: "",
@@ -114,11 +136,22 @@ export default function PublicKeys() {
     });
 
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
-  const { publicKeys, totalCount, isLoading } = usePublicKeys({
-    page: params.page,
-    search: debouncedSearch,
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(getPublicKeys, getPublicKeysQueryKey, {
+      query: {
+        page: params.page,
+        per_page: PER_PAGE,
+        ...(debouncedSearch ? { filter: nameOrFingerprintFilter(debouncedSearch) } : {}),
+      },
+    }),
+  );
+  const publicKeys = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const invalidateKeys = useInvalidateByIds("getPublicKeys");
+  const deleteKey = useMutation({
+    ...deletePublicKeyMutation(),
+    onSuccess: invalidateKeys,
   });
-  const deleteKey = useDeletePublicKey();
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{

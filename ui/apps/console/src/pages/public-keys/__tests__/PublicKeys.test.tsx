@@ -8,6 +8,7 @@ import PublicKeys from "../index";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockPublicKey } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
+import { decodeB64url } from "@/tests/decodeB64url";
 
 vi.mock("../KeyModal", () => ({
   default: () => null,
@@ -121,5 +122,29 @@ describe("PublicKeys — delete error handling", () => {
         screen.queryByRole("dialog", { name: /delete public key/i }),
       ).not.toBeInTheDocument(),
     );
+  });
+});
+
+describe("PublicKeys — search", () => {
+  it("matches the search against the key's name or fingerprint", async () => {
+    let filter: string | null = null;
+    server.use(
+      http.get("*/api/sshkeys/public-keys", ({ request }) => {
+        filter = new URL(request.url).searchParams.get("filter");
+        return jsonWithTotal([]);
+      }),
+    );
+    renderPage(["/?search=ab12"]);
+
+    await waitFor(() => expect(filter).not.toBeNull());
+    expect(decodeB64url(filter!)).toEqual([
+      { type: "operator", params: { name: "or" } },
+      { type: "property", params: { name: "name", operator: "contains", value: "ab12" } },
+      { type: "operator", params: { name: "or" } },
+      {
+        type: "property",
+        params: { name: "fingerprint", operator: "contains", value: "ab12" },
+      },
+    ]);
   });
 });

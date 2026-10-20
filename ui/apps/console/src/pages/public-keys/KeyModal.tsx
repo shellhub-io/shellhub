@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useWatch } from "react-hook-form";
 import { isSdkError } from "@/api/errors";
 import {
@@ -8,11 +9,12 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@shellhub/design-system/primitives";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
-  useCreatePublicKey,
-  useUpdatePublicKey,
-} from "@/hooks/usePublicKeyMutations";
-import type { PublicKeyResponse } from "@/client";
+  createPublicKeyMutation,
+  updatePublicKeyMutation,
+  type PublicKeyResponse,
+} from "@/client";
 import RadioCard from "@/components/common/fields/RadioCard";
 import FormModal from "@/components/common/FormModal";
 import {
@@ -43,8 +45,15 @@ export default function KeyModal({
   editKey: PublicKeyResponse | null;
   onClose: () => void;
 }) {
-  const createKey = useCreatePublicKey();
-  const updateKey = useUpdatePublicKey();
+  const invalidateKeys = useInvalidateByIds("getPublicKeys");
+  const createKey = useMutation({
+    ...createPublicKeyMutation(),
+    onSuccess: invalidateKeys,
+  });
+  const updateKey = useMutation({
+    ...updatePublicKeyMutation(),
+    onSuccess: invalidateKeys,
+  });
   const isEdit = !!editKey;
 
   const schema = keySchema(isEdit ? "edit" : "create");
