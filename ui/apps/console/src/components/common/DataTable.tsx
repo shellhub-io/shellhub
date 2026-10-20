@@ -185,7 +185,7 @@ export default function DataTable<T>({
             <tr>
               <td colSpan={columns.length} className="px-4 py-16 text-center">
                 {emptyState ?? (
-                  <p className="text-xs font-mono text-text-muted">
+                  <p className="text-xs text-text-muted">
                     {emptyMessage}
                   </p>
                 )}

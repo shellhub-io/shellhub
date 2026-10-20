@@ -69,7 +69,7 @@ export default function NoticeBanner({
               <span
                 className={cn("inline-flex rounded-full h-1.5 w-1.5 shrink-0", dot)}
               />
-              <p className="text-xs font-mono">{children}</p>
+              <p className="text-xs">{children}</p>
             </>
           )}
         </div>
