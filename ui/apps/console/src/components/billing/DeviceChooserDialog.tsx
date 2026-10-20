@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   CheckIcon,
@@ -23,10 +24,9 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import {
-  useChoiceDevices,
-  useSuggestedDevices,
-} from "@/hooks/useDeviceChooser";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { choiceDevicesMutation, getDevicesMostUsedOptions } from "@/client";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
 import { cn } from "@shellhub/design-system/cn";
@@ -72,12 +72,21 @@ export default function DeviceChooserDialog({
   const suggestedPanelId = useId();
   const allPanelId = useId();
 
-  const choice = useChoiceDevices();
+  const invalidateChosen = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+  );
+  const choice = useMutation({
+    ...choiceDevicesMutation(),
+    onSuccess: invalidateChosen,
+  });
   const {
-    devices: suggested,
+    data: mostUsed,
     isLoading: suggestedLoading,
     error: suggestedError,
-  } = useSuggestedDevices(open);
+  } = useQuery({ ...getDevicesMostUsedOptions(), enabled: open });
+  const suggested = (mostUsed ?? []).map(normalizeDeviceTags);
 
   const suggestedEmpty =
     !suggestedLoading && !suggestedError && suggested.length === 0;

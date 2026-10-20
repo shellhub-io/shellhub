@@ -13,13 +13,13 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useDevice } from "../hooks/useDevice";
 import { useActionDialog } from "../hooks/useActionDialog";
 import {
+  useDevice,
   useRenameDevice,
   useAddDeviceTag,
   useRemoveDeviceTag,
-} from "../hooks/useDeviceMutations";
+} from "@/hooks/useDeviceRequests";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useProvisioningKeys } from "@/hooks/useProvisioningKeyRequests";
 import {

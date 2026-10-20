@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   ArrowRightIcon,
@@ -6,11 +7,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
-import { useMakeTeamDevice } from "@/hooks/useDeviceMutations";
 import Modal from "@/components/common/Modal";
 import ObjectName from "@/components/common/ObjectName";
 import UserBadge from "@/components/common/UserBadge";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
+import { makeTeamDeviceMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 const UNCHANGED = [
   "The device stays accepted and connected. Its agent is not told.",
@@ -35,7 +37,11 @@ export default function MakeTeamDeviceModal({
   ownerEmail: string;
   onClose: () => void;
 }) {
-  const makeTeamDevice = useMakeTeamDevice();
+  const invalidateDevice = useInvalidateByIds("getDevices", "getDevice");
+  const makeTeamDevice = useMutation({
+    ...makeTeamDeviceMutation(),
+    onSuccess: invalidateDevice,
+  });
   const [error, setError] = useState<string | null>(null);
 
   const confirm = async () => {

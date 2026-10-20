@@ -1,9 +1,7 @@
-import { useCallback } from "react";
-import {
-  useAcceptDevice,
-  useRejectDevice,
-  useRemoveDevice,
-} from "@/hooks/useDeviceMutations";
+import { useMutation } from "@tanstack/react-query";
+import { deleteDeviceMutation, updateDeviceStatusMutation } from "@/client";
+import { useAcceptDevice } from "@/hooks/useDeviceRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
 /**
@@ -12,19 +10,30 @@ import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
  */
 export function useDeviceActionRunner() {
   const accept = useAcceptDevice();
-  const reject = useRejectDevice();
-  const remove = useRemoveDevice();
-
-  return useCallback(
-    async (entity: EntityBase, operation: EntityOperation) => {
-      if (operation === "reject") {
-        await reject.mutateAsync({ path: { uid: entity.uid, status: "reject" } });
-        return;
-      }
-
-      const action = operation === "accept" ? accept : remove;
-      await action.mutateAsync({ path: { uid: entity.uid } });
-    },
-    [accept, reject, remove],
+  const invalidateDevices = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+    "getStats",
+    "provisioningKeyList",
+    "listTenantRegistrations",
   );
+  const reject = useMutation({
+    ...updateDeviceStatusMutation(),
+    onSuccess: invalidateDevices,
+  });
+  const remove = useMutation({
+    ...deleteDeviceMutation(),
+    onSuccess: invalidateDevices,
+  });
+
+  return async (entity: EntityBase, operation: EntityOperation) => {
+    if (operation === "reject") {
+      await reject.mutateAsync({ path: { uid: entity.uid, status: "reject" } });
+      return;
+    }
+
+    const action = operation === "accept" ? accept : remove;
+    await action.mutateAsync({ path: { uid: entity.uid } });
+  };
 }

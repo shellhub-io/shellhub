@@ -47,7 +47,7 @@ import { INPUT } from "../utils/styles";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, Callout, StatusDot } from "@shellhub/design-system/primitives";
 import DistroIcon from "@/components/common/DistroIcon";
-import { useDevice } from "@/hooks/useDevice";
+import { useDevice } from "@/hooks/useDeviceRequests";
 import { useSSHIdentities } from "@/hooks/useSSHIdentities";
 import { DEFAULT_LOGIN, parseSshid, sshUrl } from "@/utils/sshid";
 import type { VaultKeyEntry } from "../types/vault";
