@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
+import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyRequests";
 import { type ProvisioningKey } from "@/client";
 
 /**

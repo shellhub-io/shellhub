@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyMutations";
+import { useUpdateProvisioningKey } from "@/hooks/useProvisioningKeyRequests";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { type ProvisioningKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";

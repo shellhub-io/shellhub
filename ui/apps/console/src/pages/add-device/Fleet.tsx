@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -7,14 +8,18 @@ import {
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import CopyButton from "@/components/common/CopyButton";
-import { type ProvisioningKey } from "@/client";
+import {
+  provisioningKeyList,
+  provisioningKeyListQueryKey,
+  type ProvisioningKey,
+} from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useProvisioningKeys } from "@/hooks/useProvisioningKeys";
-import { useRevealProvisioningKey } from "@/hooks/useRevealProvisioningKey";
+import { useRevealProvisioningKey } from "@/hooks/useProvisioningKeyRequests";
 import { methodsForNewNamespace, type Method } from "@/pages/install/methods";
 import CreateProvisioningKeyModal from "@/pages/provisioning-keys/CreateProvisioningKeyModal";
 import EditProvisioningKeyModal from "@/pages/provisioning-keys/EditProvisioningKeyModal";
@@ -28,7 +33,7 @@ import {
 } from "@/pages/provisioning-keys/helpers";
 import { useToggleProvisioningKey } from "@/pages/provisioning-keys/useToggleProvisioningKey";
 import { buildConnectorCommand } from "@/utils/installCommand";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import InstallCommand from "./InstallCommand";
 
 type ProvisioningKeyListParams = {
@@ -79,9 +84,13 @@ export default function Fleet() {
     defaults: PROVISIONING_KEY_LIST_DEFAULTS,
   });
   const page = params.page;
-  const { provisioningKeys, totalCount, isLoading } = useProvisioningKeys({
-    page,
-  });
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(provisioningKeyList, provisioningKeyListQueryKey, {
+      query: { page, per_page: PER_PAGE, sort_by: "created_at", order_by: "desc" },
+    }),
+  );
+  const provisioningKeys = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
   const totalPages = pageCount(totalCount);
 
   const [openName, setOpenName] = useState<string | null>(null);
