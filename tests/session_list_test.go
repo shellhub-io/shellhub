@@ -89,7 +89,7 @@ func TestSessionList(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 400, resp.StatusCode(), resp.String())
 
-		assert.Equal(t, map[string]string{"filter": query.ErrFilterPropertyInvalid.Error()}, refusal.Fields)
+		assert.Equal(t, map[string]string{"filter": "operator gt is not valid for device_uid"}, refusal.Fields)
 	})
 
 	t.Run("newest started first", func(t *testing.T) {

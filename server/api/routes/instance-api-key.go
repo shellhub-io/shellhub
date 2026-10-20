@@ -1,14 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 // The instance API key routes, relative to the admin API's base path. They are mounted by the
@@ -42,39 +41,8 @@ func (h *Handler) CreateInstanceAPIKey(c *gateway.Context) error {
 }
 
 // ListInstanceAPIKeys serves every instance API key, without their plaintext.
-func (h *Handler) ListInstanceAPIKeys(c *gateway.Context) error {
-	req := new(requests.ListInstanceAPIKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if req.Sorter.By == "" {
-		req.Sorter.By = "created_at"
-	}
-
-	if req.Sorter.Order == "" {
-		req.Sorter.Order = "desc"
-	}
-
-	if err := query.ValidateSorter(&req.Sorter, services.InstanceAPIKeySortFields); err != nil {
-		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListInstanceAPIKeys(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	return c.JSON(http.StatusOK, res)
+func (h *Handler) ListInstanceAPIKeys(ctx context.Context, _ scope.Scope, _ gateway.Actor, req *requests.ListInstanceAPIKey) ([]models.InstanceAPIKey, int64, error) {
+	return h.service.ListInstanceAPIKeys(ctx, req)
 }
 
 // DeleteInstanceAPIKey revokes an instance API key, taking effect immediately.

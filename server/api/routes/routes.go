@@ -118,6 +118,19 @@ func WithEdition(edition envs.Edition) Option {
 	}
 }
 
+const (
+	deviceHoldsNoCredentialYet = "a device authenticates with its own credentials, and holds none before this call answers"
+	signingInComesFirst        = "signing in is what produces a credential, so it cannot demand one"
+)
+
+const (
+	membersReadTheDevices    = "every namespace member reads the namespace's devices, and the scope the request is bounded to is what limits the answer"
+	membersReadTheSessions   = "every namespace member reads the namespace's sessions, and the scope the request is bounded to is what limits the answer"
+	membersReadTheTags       = "every namespace member reads the namespace's tags, and the scope the request is bounded to is what limits the answer"
+	callerEditsOwnAccount    = "the caller edits their own account, which is theirs to edit whatever role they hold anywhere"
+	tokenOnlyForOwnNamespace = "the service mints a token only for a namespace the caller already belongs to, which is a membership question and not a role one"
+)
+
 // NewRouter builds the API router over service, applying each option in turn.
 // It returns a nil router and an error wrapping the option's own error when an
 // option fails, or an error when [DefaultHTTPHandler] does not build an
@@ -135,127 +148,179 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 		}
 	}
 
-	publicAPI := router.Group("/api")
-	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+	publicAPI := gateway.MountOn(router, router.Group(publicAPIPrefix))
 
-	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
-	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
-	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(AuthDeviceChallengeURL, gateway.Handler(handler.CreateDeviceAuthChallenge))
-	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback))
-	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))
-	publicAPI.POST(AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser))
-	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
+	gateway.GET(publicAPI, HealthCheckURL, gateway.None(handler.EvaluateHealth),
+		gateway.Unbounded("the health check reports on the instance, which belongs to no namespace"),
+		gateway.Anonymous("the health check is what a load balancer asks before any credential exists"))
 
-	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyCreate))
-	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys), routesmiddleware.BlockAPIKey)
-	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyUpdate))
-	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyDelete))
-	publicAPI.POST(CreateAPIKeySSHIdentityURL, gateway.Handler(handler.CreateAPIKeySSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
-	publicAPI.GET(ListAPIKeySSHIdentitiesURL, gateway.Handler(handler.ListAPIKeySSHIdentities), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
+	gateway.GET(publicAPI, AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken), // TODO: method POST
+		gateway.PermissionInHandler(tokenOnlyForOwnNamespace))
+	gateway.GET(publicAPI, AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), gateway.NoAPIKey(), // TODO: method POST
+		gateway.PermissionInHandler(tokenOnlyForOwnNamespace))
+	gateway.POST(publicAPI, AuthDeviceURL, gateway.Handler(handler.AuthDevice),
+		gateway.Anonymous(deviceHoldsNoCredentialYet))
+	gateway.POST(publicAPI, AuthDeviceChallengeURL, gateway.Handler(handler.CreateDeviceAuthChallenge),
+		gateway.Anonymous("a device asks for the challenge it will sign before it holds any credential"))
+	gateway.POST(publicAPI, AuthDeviceURLV2, gateway.Handler(handler.AuthDevice),
+		gateway.Anonymous(deviceHoldsNoCredentialYet))
+	gateway.POST(publicAPI, EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback),
+		gateway.Anonymous("the enrollment provider calls back with the token it was issued, not with a ShellHub credential"))
+	gateway.POST(publicAPI, AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser),
+		gateway.Anonymous(signingInComesFirst))
+	gateway.POST(publicAPI, AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser),
+		gateway.Anonymous(signingInComesFirst))
+	gateway.POST(publicAPI, AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey),
+		gateway.NoPermission("the agent authenticates with its own device token, which carries no role, and the service signs with the private key the fingerprint names rather than reading the namespace the token is scoped to"))
 
-	publicAPI.POST(CreateProvisioningKeyURL, gateway.Handler(handler.CreateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
-	publicAPI.GET(ListProvisioningKeysURL, gateway.Handler(handler.ListProvisioningKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
-	publicAPI.PATCH(UpdateProvisioningKeyURL, gateway.Handler(handler.UpdateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyUpdate))
-	publicAPI.GET(RevealProvisioningKeyURL, gateway.Handler(handler.RevealProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyReveal))
-	publicAPI.GET(HistoryProvisioningKeyURL, gateway.Handler(handler.HistoryProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
+	gateway.POST(publicAPI, CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyCreate))
+	gateway.GET(publicAPI, ListAPIKeysURL, gateway.List(handler.ListAPIKeys), gateway.Accepts(services.APIKeyQuery), gateway.NoAPIKey(),
+		gateway.NoPermission("the listing is bounded to the namespace the caller is scoped to, and names no key's secret"))
+	gateway.PATCH(publicAPI, UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyUpdate))
+	gateway.DELETE(publicAPI, DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), gateway.NoAPIKey(), gateway.Requires(authorizer.APIKeyDelete))
+	gateway.POST(publicAPI, CreateAPIKeySSHIdentityURL, gateway.Handler(handler.CreateAPIKeySSHIdentity), gateway.Requires(authorizer.SSHIdentityManage))
+	gateway.GET(publicAPI, ListAPIKeySSHIdentitiesURL, gateway.Handler(handler.ListAPIKeySSHIdentities), gateway.Requires(authorizer.SSHIdentityManage))
 
-	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
-	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
-	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
-	publicAPI.DELETE(URLRevokeUserTokens, gateway.Handler(handler.RevokeUserTokens), routesmiddleware.BlockAPIKey)
+	gateway.POST(publicAPI, CreateProvisioningKeyURL, gateway.Handler(handler.CreateProvisioningKey), gateway.NoAPIKey(), gateway.Requires(authorizer.ProvisioningKeyCreate))
+	gateway.GET(publicAPI, ListProvisioningKeysURL, gateway.List(handler.ListProvisioningKeys), gateway.Accepts(services.ProvisioningKeyQuery), gateway.NoAPIKey(), gateway.Requires(authorizer.ProvisioningKeyList))
+	gateway.PATCH(publicAPI, UpdateProvisioningKeyURL, gateway.Handler(handler.UpdateProvisioningKey), gateway.NoAPIKey(), gateway.Requires(authorizer.ProvisioningKeyUpdate))
+	gateway.GET(publicAPI, RevealProvisioningKeyURL, gateway.Handler(handler.RevealProvisioningKey), gateway.NoAPIKey(), gateway.Requires(authorizer.ProvisioningKeyReveal))
+	gateway.GET(publicAPI, HistoryProvisioningKeyURL, gateway.List(handler.HistoryProvisioningKey), gateway.Accepts(services.ProvisioningKeyEventQuery), gateway.NoAPIKey(), gateway.Requires(authorizer.ProvisioningKeyList))
 
-	publicAPI.POST(RegisterUserURL, gateway.Handler(handler.RegisterUser))
-	publicAPI.GET(URLResolveInvitation, gateway.Handler(handler.ResolveInvitation))
-	publicAPI.POST(URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
-	publicAPI.PATCH(URLAcceptInvite, gateway.Handler(handler.AcceptInvite), routesmiddleware.BlockAPIKey)
-	publicAPI.GET(URLUserMembershipInvitationList, gateway.Handler(handler.GetUserMembershipInvitationList))
-	publicAPI.GET(URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
-	publicAPI.DELETE(URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
+	gateway.PATCH(publicAPI, URLUpdateUser, gateway.Handler(handler.UpdateUser), gateway.NoAPIKey(),
+		gateway.NoPermission(callerEditsOwnAccount))
+	gateway.PATCH(publicAPI, URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), gateway.NoAPIKey(), // WARN: DEPRECATED.
+		gateway.NoPermission(callerEditsOwnAccount))
+	gateway.PATCH(publicAPI, URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), gateway.NoAPIKey(), // WARN: DEPRECATED.
+		gateway.NoPermission("the caller changes their own password, which is theirs to change whatever role they hold anywhere"))
+	gateway.DELETE(publicAPI, URLRevokeUserTokens, gateway.Handler(handler.RevokeUserTokens), gateway.NoAPIKey(),
+		gateway.NoPermission("the caller revokes their own tokens, which are theirs to revoke whatever role they hold anywhere"))
 
-	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
-	publicAPI.GET(ResolveDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.ResolveDevice)))
-	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
-	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))
-	publicAPI.GET(TenantRegistrationsURL, gateway.Handler(handler.TenantRegistrations), routesmiddleware.RequiresPermission(authorizer.DeviceStatusUpdate))
-	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.RequiresPermission(authorizer.DeviceStatusUpdate))
+	gateway.POST(publicAPI, RegisterUserURL, gateway.Handler(handler.RegisterUser),
+		gateway.Anonymous("registering is what creates the person a credential would name"))
+	gateway.GET(publicAPI, URLResolveInvitation, gateway.Handler(handler.ResolveInvitation),
+		gateway.Anonymous("an invitee follows the link before holding an account, and the signed invitation is the credential"))
+	gateway.POST(publicAPI, URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), gateway.NoAPIKey(), gateway.Requires(authorizer.NamespaceAddMember))
+	gateway.PATCH(publicAPI, URLAcceptInvite, gateway.Handler(handler.AcceptInvite), gateway.NoAPIKey(),
+		gateway.NoPermission("accepting is what grants the role, so the invitee holds none in the namespace yet"))
+	gateway.GET(publicAPI, URLUserMembershipInvitationList, gateway.List(handler.GetUserMembershipInvitationList), gateway.Accepts(services.MembershipInvitationQuery),
+		gateway.Unbounded("an invitation is addressed to a person across namespaces, and the invitee may belong to none yet"),
+		gateway.NoPermission("the listing answers which invitations name the caller, who holds no role in the namespaces inviting them"))
+	gateway.GET(publicAPI, URLNamespaceMembershipInvitationList, gateway.List(handler.GetNamespaceMembershipInvitationList), gateway.Accepts(services.MembershipInvitationQuery), gateway.Requires(authorizer.NamespaceEditMember))
+	gateway.DELETE(publicAPI, URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), gateway.Requires(authorizer.NamespaceRemoveMember))
 
-	publicAPI.POST(CreateDeviceLoginCodeURL, gateway.Handler(handler.CreateDeviceLoginCode))
-	publicAPI.GET(GetDeviceAuthStatusURL, gateway.Handler(handler.GetDeviceAuthStatus))
-	publicAPI.GET(ResolveDeviceLoginCodeURL, gateway.Handler(handler.ResolveDeviceLoginCode), routesmiddleware.BlockAPIKey)
+	gateway.GET(publicAPI, GetDeviceListURL, gateway.List(handler.GetDeviceList), gateway.Accepts(services.DeviceQuery), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission(membersReadTheDevices))
+	gateway.GET(publicAPI, GetDeviceURL, gateway.One(handler.GetDevice), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission(membersReadTheDevices))
+	gateway.GET(publicAPI, ResolveDeviceURL, gateway.Handler(handler.ResolveDevice), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission(membersReadTheDevices))
+	gateway.PUT(publicAPI, UpdateDevice, gateway.Handler(handler.UpdateDevice), gateway.Requires(authorizer.DeviceUpdate))
+	gateway.PATCH(publicAPI, RenameDeviceURL, gateway.Handler(handler.RenameDevice), gateway.Requires(authorizer.DeviceRename))
+	gateway.GET(publicAPI, TenantRegistrationsURL, gateway.List(handler.TenantRegistrations), gateway.Accepts(services.ProvisioningKeyEventQuery), gateway.Requires(authorizer.DeviceStatusUpdate))
+	gateway.PATCH(publicAPI, UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), gateway.Requires(authorizer.DeviceStatusUpdate))
 
-	publicAPI.POST(CreateDevicePairingURL, gateway.Handler(handler.CreateDevicePairing))
-	publicAPI.GET(GetDevicePairingStatusURL, gateway.Handler(handler.GetDevicePairingStatus))
-	publicAPI.POST(AcceptDevicePairingURL, gateway.Handler(handler.AcceptDevicePairing), routesmiddleware.BlockAPIKey)
+	gateway.POST(publicAPI, CreateDeviceLoginCodeURL, gateway.Handler(handler.CreateDeviceLoginCode),
+		gateway.NoPermission("the caller is a device authenticating with its own token, which names no member and carries no role"))
+	gateway.GET(publicAPI, GetDeviceAuthStatusURL, gateway.Handler(handler.GetDeviceAuthStatus),
+		gateway.NoPermission("the caller is a device polling its own login code, which names no member and carries no role"))
+	gateway.GET(publicAPI, ResolveDeviceLoginCodeURL, gateway.Handler(handler.ResolveDeviceLoginCode), gateway.NoAPIKey(),
+		gateway.PermissionInHandler("the device's namespace comes from the code in the path and not from the caller's session, so the service is where membership in it is checked, and a code that names a pairing rather than a device answers before there is a namespace to be a member of"))
 
-	publicAPI.GET(GetSSHApprovalURL, gateway.Handler(handler.GetSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.POST(ConfirmSSHApprovalURL, gateway.Handler(handler.ConfirmSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.POST(RejectSSHApprovalURL, gateway.Handler(handler.RejectSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
-	publicAPI.DELETE(MakeTeamDeviceURL, gateway.Handler(handler.MakeTeamDevice), routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
-	publicAPI.PUT(SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
-	publicAPI.DELETE(DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
+	gateway.POST(publicAPI, CreateDevicePairingURL, gateway.Handler(handler.CreateDevicePairing),
+		gateway.Anonymous("an unpaired agent asks for a pairing code with no namespace behind it yet"))
+	gateway.GET(publicAPI, GetDevicePairingStatusURL, gateway.Handler(handler.GetDevicePairingStatus),
+		gateway.Anonymous("the agent polls its own pairing code, which is the only secret the call needs"))
+	gateway.POST(publicAPI, AcceptDevicePairingURL, gateway.Handler(handler.AcceptDevicePairing), gateway.NoAPIKey(),
+		gateway.PermissionInHandler("the namespace being paired into comes from the code in the path and not from the caller's session, so the service is where the role can be checked against it"))
 
-	publicAPI.GET(URLGetTags, gateway.Handler(handler.GetTags))
-	publicAPI.POST(URLCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.PATCH(URLUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
-	publicAPI.DELETE(URLDeleteTag, gateway.Handler(handler.DeleteTag), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-	publicAPI.POST(URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.DELETE(URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
+	gateway.GET(publicAPI, GetSSHApprovalURL, gateway.Handler(handler.GetSSHApproval), gateway.NoAPIKey(),
+		gateway.PermissionInHandler("the approval names the namespace, not the caller's session, so the service is where membership in it is checked"))
+	gateway.POST(publicAPI, ConfirmSSHApprovalURL, gateway.Handler(handler.ConfirmSSHApproval), gateway.NoAPIKey(),
+		gateway.PermissionInHandler("the approval names the namespace, not the caller's session, so SessionApprove and SSHIdentityAdd are checked in the service against the role the caller holds there"))
+	gateway.POST(publicAPI, RejectSSHApprovalURL, gateway.Handler(handler.RejectSSHApproval), gateway.NoAPIKey(),
+		gateway.PermissionInHandler("the approval names the namespace, not the caller's session, so SessionApprove is checked in the service against the role the caller holds there"))
+	gateway.DELETE(publicAPI, DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), gateway.Requires(authorizer.DeviceRemove))
+	gateway.DELETE(publicAPI, MakeTeamDeviceURL, gateway.Handler(handler.MakeTeamDevice), gateway.Requires(authorizer.ProvisioningKeyCreate))
+	gateway.PUT(publicAPI, SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), gateway.Requires(authorizer.DeviceCustomFieldUpdate))
+	gateway.DELETE(publicAPI, DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), gateway.Requires(authorizer.DeviceCustomFieldUpdate))
 
-	publicAPI.GET(URLOldGetTags, gateway.Handler(handler.GetTags))
-	publicAPI.POST(URLOldCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.PATCH(URLOldUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
-	publicAPI.DELETE(URLOldDeleteTag, gateway.Handler(handler.DeleteTag), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-	publicAPI.POST(URLOldPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.DELETE(URLOldPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
+	gateway.GET(publicAPI, URLGetTags, gateway.List(handler.GetTags), gateway.Accepts(services.TagQuery),
+		gateway.NoPermission(membersReadTheTags))
+	gateway.POST(publicAPI, URLCreateTag, gateway.Handler(handler.CreateTag), gateway.Requires(authorizer.TagCreate))
+	gateway.PATCH(publicAPI, URLUpdateTag, gateway.Handler(handler.UpdateTag), gateway.Requires(authorizer.TagUpdate))
+	gateway.DELETE(publicAPI, URLDeleteTag, gateway.Handler(handler.DeleteTag), gateway.Requires(authorizer.TagDelete))
+	gateway.POST(publicAPI, URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), gateway.Requires(authorizer.TagCreate))
+	gateway.DELETE(publicAPI, URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), gateway.Requires(authorizer.TagDelete))
 
-	publicAPI.GET(GetSessionsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
-	publicAPI.GET(GetSessionURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSession)))
+	gateway.GET(publicAPI, URLOldGetTags, gateway.List(handler.GetTags), gateway.Accepts(services.TagQuery),
+		gateway.NoPermission(membersReadTheTags))
+	gateway.POST(publicAPI, URLOldCreateTag, gateway.Handler(handler.CreateTag), gateway.Requires(authorizer.TagCreate))
+	gateway.PATCH(publicAPI, URLOldUpdateTag, gateway.Handler(handler.UpdateTag), gateway.Requires(authorizer.TagUpdate))
+	gateway.DELETE(publicAPI, URLOldDeleteTag, gateway.Handler(handler.DeleteTag), gateway.Requires(authorizer.TagDelete))
+	gateway.POST(publicAPI, URLOldPushTagToDevice, gateway.Handler(handler.PushTagToDevice), gateway.Requires(authorizer.TagCreate))
+	gateway.DELETE(publicAPI, URLOldPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), gateway.Requires(authorizer.TagDelete))
 
-	publicAPI.GET(GetStatsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetStats)))
-	publicAPI.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
-	publicAPI.GET(GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
+	gateway.GET(publicAPI, GetSessionsURL, gateway.List(handler.GetSessionList), gateway.Accepts(services.SessionQuery), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission(membersReadTheSessions))
+	gateway.GET(publicAPI, GetSessionURL, gateway.Handler(handler.GetSession), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission(membersReadTheSessions))
 
-	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyCreate))
-	publicAPI.GET(GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
-	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
+	gateway.GET(publicAPI, GetStatsURL, gateway.Handler(handler.GetStats), gateway.Guard(routesmiddleware.Authorize),
+		gateway.NoPermission("the counts describe the namespace the request is bounded to, and name nothing a member cannot already read"))
+	gateway.GET(publicAPI, GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo),
+		gateway.Anonymous("the instance describes itself to a browser that has not signed in yet"))
+	gateway.GET(publicAPI, GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript),
+		gateway.Anonymous("the install script is fetched by a shell on a machine that holds no credential"))
+
+	gateway.POST(publicAPI, CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), gateway.Requires(authorizer.PublicKeyCreate))
+	gateway.GET(publicAPI, GetPublicKeysURL, gateway.List(handler.GetPublicKeys), gateway.Accepts(services.PublicKeyQuery),
+		gateway.NoPermission("every namespace member reads the namespace's public keys, and the scope the request is bounded to is what limits the answer"))
+	gateway.PUT(publicAPI, UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), gateway.Requires(authorizer.PublicKeyEdit))
+	gateway.DELETE(publicAPI, DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), gateway.Requires(authorizer.PublicKeyRemove))
 
 	if handler.edition.IsEnterpriseOrCloud() {
-		publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), routesmiddleware.BlockAPIKey)
+		gateway.POST(publicAPI, CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), gateway.NoAPIKey(),
+			gateway.NoPermission("creating a namespace is prior to holding a role in one, and the caller becomes its owner"))
 	}
-	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
-	publicAPI.GET(ListNamespaceURL, gateway.Handler(handler.GetNamespaceList), routesmiddleware.BlockAPIKey)
-	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
-	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceDelete))
+	gateway.GET(publicAPI, GetNamespaceURL, gateway.Handler(handler.GetNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)),
+		gateway.PermissionInHandler("the handler refuses a user the namespace does not list as a member, which is a membership question and not a role one, and the tenant guard is what bounds a credential naming no user"))
+	gateway.GET(publicAPI, ListNamespaceURL, gateway.List(handler.GetNamespaceList), gateway.Accepts(services.NamespaceQuery), gateway.NoAPIKey(),
+		gateway.Unbounded("the list answers which namespaces the caller belongs to, and the caller may have selected none"),
+		gateway.NoPermission("the answer is about the caller rather than about any one namespace, so there is no namespace to hold a role in"))
+	gateway.PUT(publicAPI, EditNamespaceURL, gateway.Handler(handler.EditNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceUpdate))
+	gateway.DELETE(publicAPI, DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceDelete))
 
-	publicAPI.GET(ListNamespaceMembersURL, gateway.Handler(handler.ListNamespaceMembers), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
-	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
-	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
-	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
-	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
+	gateway.GET(publicAPI, ListNamespaceMembersURL, gateway.List(handler.ListNamespaceMembers), gateway.Accepts(services.MemberQuery), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)),
+		gateway.NoPermission("every namespace member reads who else belongs, and the scope the request is bounded to is what limits the answer"))
+	gateway.POST(publicAPI, AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), gateway.Requires(authorizer.NamespaceAddMember))
+	gateway.PATCH(publicAPI, EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), gateway.Requires(authorizer.NamespaceEditMember))
+	gateway.DELETE(publicAPI, RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), gateway.Requires(authorizer.NamespaceRemoveMember))
+	gateway.DELETE(publicAPI, LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), gateway.NoAPIKey(),
+		gateway.NoPermission("leaving removes the caller's own membership, which needs no authority over anyone else"))
 
-	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
-	publicAPI.POST(UpgradeNamespaceURL, gateway.Handler(handler.UpgradeNamespace), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
+	gateway.PUT(publicAPI, EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceEnableSessionRecord))
+	gateway.POST(publicAPI, UpgradeNamespaceURL, gateway.Handler(handler.UpgradeNamespace), gateway.NoAPIKey(), gateway.Guard(routesmiddleware.RequiresTenant(ParamNamespaceTenant)), gateway.Requires(authorizer.NamespaceUpdate))
 
-	publicAPI.GET(ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.POST(CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.GET(GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.PUT(UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.DELETE(DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+	gateway.GET(publicAPI, ListAccessPoliciesURL, gateway.List(handler.ListAccessPolicies), gateway.Accepts(services.AccessPolicyQuery), gateway.Requires(authorizer.AccessPolicyManage))
+	gateway.POST(publicAPI, CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
+	gateway.GET(publicAPI, GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
+	gateway.PUT(publicAPI, UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
+	gateway.DELETE(publicAPI, DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), gateway.Requires(authorizer.AccessPolicyManage))
 
-	publicAPI.GET(ListSSHIdentitiesURL, gateway.Handler(handler.ListSSHIdentities))
-	publicAPI.POST(CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
-	publicAPI.PATCH(UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
-	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
+	gateway.GET(publicAPI, ListSSHIdentitiesURL, gateway.List(handler.ListSSHIdentities), gateway.Accepts(services.SSHIdentityQuery),
+		gateway.PermissionInHandler("the listing narrows to the caller's own identities without SSHIdentityManage, so the permission widens the answer rather than admitting the call"))
+	gateway.POST(publicAPI, CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), gateway.Requires(authorizer.SSHIdentityAdd))
+	gateway.PATCH(publicAPI, UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), gateway.Requires(authorizer.SSHIdentityAdd))
+	gateway.DELETE(publicAPI, DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity),
+		gateway.RequiresAny(authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage))
 
-	publicAPI.POST(WebReauthURL, gateway.Handler(handler.WebReauthVerify))
+	gateway.POST(publicAPI, WebReauthURL, gateway.Handler(handler.WebReauthVerify),
+		gateway.NoPermission("the caller re-proves they are themselves, which is about their own credential and not about a role"))
 
 	if !handler.edition.IsCloud() {
-		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
+		gateway.POST(publicAPI, SetupEndpoint, gateway.Handler(handler.Setup),
+			gateway.Anonymous("the first administrator is created before anyone can hold a credential"))
 	}
 
 	SetupMCPRoutes(router)

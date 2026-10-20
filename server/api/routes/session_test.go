@@ -44,7 +44,7 @@ func TestGetSessionList(t *testing.T) {
 		{
 			description: "fails when try to searching a session list of a existing session",
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers:     map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -59,7 +59,7 @@ func TestGetSessionList(t *testing.T) {
 		{
 			description: "success when try to searching a session list of a existing session",
 			paginator:   query.Paginator{Page: 2, PerPage: 5},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers:     map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -91,24 +91,24 @@ func TestGetSessionList(t *testing.T) {
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
-			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers:       map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
-				expectedFields:  map[string]string{"filter": query.ErrFilterPropertyInvalid.Error()},
+				expectedFields:  map[string]string{"filter": "names an unknown field: username"},
 			},
 		},
 		{
 			description:   "returns 400 when filter is malformed non-base64",
 			paginator:     query.Paginator{Page: 1, PerPage: 10},
 			filter:        "!!!not-base64!!!",
-			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers:       map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
-				expectedFields:  map[string]string{"filter": query.ErrFilterInvalid.Error()},
+				expectedFields:  map[string]string{"filter": "is not valid base64"},
 			},
 		},
 		{
@@ -130,7 +130,7 @@ func TestGetSessionList(t *testing.T) {
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
-			headers: map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			headers: map[string]string{"X-ID": "000000000000000000000000", "X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {

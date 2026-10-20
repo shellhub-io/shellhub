@@ -18,7 +18,6 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -634,12 +633,12 @@ func testWebEndpointListing(t *testing.T, compose *environment.DockerCompose) {
 		description string
 		param       string
 		value       string
-		reason      error
+		reason      string
 	}{
-		{description: "a filter that is not encoded JSON", param: "filter", value: "not a filter", reason: query.ErrFilterInvalid},
-		{description: "a filter on a field it does not take", param: "filter", value: propertyFilter(t, "port", "eq", 8001), reason: query.ErrFilterPropertyInvalid},
-		{description: "a filter with an operator its field does not take", param: "filter", value: propertyFilter(t, "device_id", "contains", "0"), reason: query.ErrFilterPropertyInvalid},
-		{description: "a sort on a field it does not take", param: "sort_by", value: "device_id", reason: query.ErrSorterFieldInvalid},
+		{description: "a filter that is not encoded JSON", param: "filter", value: "not a filter", reason: "is not valid base64"},
+		{description: "a filter on a field it does not take", param: "filter", value: propertyFilter(t, "port", "eq", 8001), reason: "names an unknown field: port"},
+		{description: "a filter with an operator its field does not take", param: "filter", value: propertyFilter(t, "device_id", "contains", "0"), reason: "operator contains is not valid for device_id"},
+		{description: "a sort on a field it does not take", param: "sort_by", value: "device_id", reason: "names an unknown field: device_id"},
 	}
 
 	for _, tc := range refusals {
@@ -649,7 +648,7 @@ func testWebEndpointListing(t *testing.T, compose *environment.DockerCompose) {
 			resp, err := compose.R(t.Context()).SetQueryParam(tc.param, tc.value).SetError(&refusal).Get("/api/web-endpoints")
 			require.NoError(t, err)
 			require.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
-			assert.Equal(t, map[string]string{tc.param: tc.reason.Error()}, refusal.Fields)
+			assert.Equal(t, map[string]string{tc.param: tc.reason}, refusal.Fields)
 		})
 	}
 }

@@ -1,0 +1,621 @@
+package gateway_test
+
+import (
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+const probeTenant = "00000000-0000-4000-0000-000000000000"
+
+type probeRequest struct {
+	Count int    `query:"count"`
+	Name  string `query:"name" validate:"omitempty,min=3"`
+	query.Paginator
+	query.Sorter
+	query.Filters
+}
+
+type probeCall struct {
+	called bool
+	scope  scope.Scope
+	actor  gateway.Actor
+	req    *probeRequest
+	tenant string
+}
+
+func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
+	t.Helper()
+
+	e := echo.New()
+	e.Binder = handlers.NewBinder()
+	e.Validator = handlers.NewValidator()
+	e.HTTPErrorHandler = handlers.NewErrors(nil)
+
+	if withGatewayContext {
+		e.Use(gateway.WithContext())
+	}
+
+	return e
+}
+
+func probeHandler(call *probeCall, res []string, count int64, err error) gateway.ListHandler[probeRequest, []string] {
+	return func(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
+		call.called = true
+		call.scope = sc
+		call.actor = actor
+		call.req = req
+
+		if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+			call.tenant = tenant.ID
+		}
+
+		return res, count, err
+	}
+}
+
+func TestWrapperCeremony(t *testing.T) {
+	cases := []struct {
+		description        string
+		withGatewayContext bool
+		headers            map[string]string
+		target             string
+		options            []gateway.RouteOption
+		expectedStatus     int
+		expectedCall       bool
+		assert             func(*testing.T, *probeCall)
+	}{
+		{
+			description:        "normalizes the paginator and the sorter before the handler sees them",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe?page=0&per_page=999",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, int64(query.MinPage), call.req.Paginator.Page)
+				assert.Equal(t, int64(query.MaxPerPage), call.req.Paginator.PerPage)
+				assert.Equal(t, query.OrderDesc, call.req.Sorter.Order)
+			},
+		},
+		{
+			description:        "refuses a request whose query cannot bind",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe?count=not-a-number",
+			expectedStatus:     http.StatusUnprocessableEntity,
+		},
+		{
+			description:        "refuses a request that fails validation",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe?name=ab",
+			expectedStatus:     http.StatusBadRequest,
+		},
+		{
+			description:        "bounds the handler to the namespace the caller carries",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, scope.MustBounded(probeTenant), call.scope)
+			},
+		},
+		{
+			description:        "refuses a bounded route when the caller carries no namespace",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-ID": "user-id"},
+			target:             "/probe",
+			expectedStatus:     http.StatusForbidden,
+		},
+		{
+			description:        "hands an unbounded route the reason its registration stated",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-ID": "user-id"},
+			target:             "/probe",
+			options:            []gateway.RouteOption{gateway.Unbounded("the probe reads every namespace")},
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.False(t, call.scope.IsBounded())
+				assert.Equal(t, "the probe reads every namespace", call.scope.Reason())
+			},
+		},
+		{
+			description:        "hands the handler the identity the request authenticated as",
+			withGatewayContext: true,
+			headers: map[string]string{
+				"X-Tenant-ID": probeTenant,
+				"X-ID":        "user-id",
+				"X-Username":  "username",
+			},
+			target:         "/probe",
+			expectedStatus: http.StatusOK,
+			expectedCall:   true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, gateway.Actor{ID: "user-id", Username: "username"}, call.actor)
+			},
+		},
+		{
+			description:        "accepts an api key as the acting identity",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-API-Key": "key"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, gateway.Actor{APIKey: "key"}, call.actor)
+			},
+		},
+		{
+			description:        "refuses a route that requires an actor when the request carries none",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant},
+			target:             "/probe",
+			expectedStatus:     http.StatusUnauthorized,
+		},
+		{
+			description:        "runs an anonymous route with no actor at all",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant},
+			target:             "/probe",
+			options:            []gateway.RouteOption{gateway.Anonymous("the probe establishes the actor")},
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.True(t, call.actor.IsZero())
+			},
+		},
+		{
+			description:        "refuses the request when the gateway context is not installed",
+			withGatewayContext: false,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe",
+			expectedStatus:     http.StatusInternalServerError,
+		},
+		{
+			description:        "keeps the gateway context reachable from the request context",
+			withGatewayContext: true,
+			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, probeTenant, call.tenant)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			call := new(probeCall)
+
+			e := probeRouter(t, tc.withGatewayContext)
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)), tc.options...)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
+			for name, value := range tc.headers {
+				req.Header.Set(name, value)
+			}
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, tc.expectedStatus, rec.Code, rec.Body.String())
+			require.Equal(t, tc.expectedCall, call.called)
+
+			if tc.assert != nil {
+				tc.assert(t, call)
+			}
+		})
+	}
+}
+
+func TestListWritesTheTotalCountAfterTheErrorCheck(t *testing.T) {
+	cases := []struct {
+		description    string
+		count          int64
+		err            error
+		expectedStatus int
+		expectedCount  string
+	}{
+		{
+			description:    "writes the count the handler returned",
+			count:          42,
+			expectedStatus: http.StatusOK,
+			expectedCount:  "42",
+		},
+		{
+			description:    "writes no count when the handler failed",
+			count:          42,
+			err:            errors.New("boom", "route", 3),
+			expectedStatus: http.StatusUnauthorized,
+			expectedCount:  "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			call := new(probeCall)
+
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err)))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
+			req.Header.Set("X-Tenant-ID", probeTenant)
+			req.Header.Set("X-ID", "user-id")
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, tc.expectedStatus, rec.Code, rec.Body.String())
+			assert.Equal(t, tc.expectedCount, rec.Header().Get("X-Total-Count"))
+		})
+	}
+}
+
+func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
+	type plainRequest struct {
+		UID string `query:"uid"`
+	}
+
+	var got *plainRequest
+
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, req *plainRequest) (string, error) {
+		got = req
+
+		return "ok", nil
+	}))
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe?uid=device&page=0&per_page=999", nil)
+	req.Header.Set("X-Tenant-ID", probeTenant)
+	req.Header.Set("X-ID", "user-id")
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.NotNil(t, got)
+	assert.Equal(t, "device", got.UID)
+}
+
+func TestOneEncodesTheHandlerResult(t *testing.T) {
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) (map[string]string, error) {
+		return map[string]string{"name": "value"}, nil
+	}))
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
+	req.Header.Set("X-Tenant-ID", probeTenant)
+	req.Header.Set("X-ID", "user-id")
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.JSONEq(t, `{"name":"value"}`, rec.Body.String())
+	assert.Empty(t, rec.Header().Get("X-Total-Count"))
+}
+
+func TestNoneAnswersWithoutABody(t *testing.T) {
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/probe", gateway.None(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) error {
+		return nil
+	}))
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
+	req.Header.Set("X-Tenant-ID", probeTenant)
+	req.Header.Set("X-ID", "user-id")
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Empty(t, rec.Body.String())
+}
+
+func TestDeclarationsRecordEveryClaim(t *testing.T) {
+	const unboundedReason = "the declared probe reads every namespace"
+
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/declared", gateway.List(probeHandler(new(probeCall), nil, 0, nil)),
+		gateway.Unbounded(unboundedReason),
+		gateway.Anonymous("the declared probe establishes the actor"))
+
+	var found bool
+
+	for _, declaration := range gateway.Declarations(e) {
+		if declaration.UnboundedReason != unboundedReason {
+			continue
+		}
+
+		found = true
+
+		assert.Equal(t, gateway.ShapeList, declaration.Shape)
+		assert.True(t, declaration.Anonymous)
+		assert.Equal(t, "the declared probe establishes the actor", declaration.AnonymousReason)
+		assert.NotEmpty(t, declaration.Handler)
+	}
+
+	assert.True(t, found, "the wrapper recorded no declaration for the probe route")
+}
+
+func TestListHoldsTheQueryToTheContractItsRegistrationNamed(t *testing.T) {
+	contract := query.Contract{
+		Filter:      query.NewFieldConstraints(map[string][]string{"name": {"contains"}}),
+		Sort:        query.NewFieldSet("name", "created_at"),
+		DefaultSort: query.Sorter{By: "created_at", Order: query.OrderAsc},
+	}
+
+	cases := []struct {
+		description    string
+		target         string
+		expectedStatus int
+		expectedFields map[string]string
+		assert         func(*testing.T, *probeCall)
+	}{
+		{
+			description:    "names the field a filter the contract does not allow asked for",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "signature", "contains"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "names an unknown field: signature"},
+		},
+		{
+			description:    "names the operator a filter used against a field that does not accept it",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "name", "eq"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "operator eq is not valid for name"},
+		},
+		{
+			description:    "says a filter is not base64 when it decodes under neither alphabet",
+			target:         "/probe?filter=not-base64!!",
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is not valid base64"},
+		},
+		{
+			description:    "says a filter is not JSON when it decodes but does not parse",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`not json at all`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is not valid JSON"},
+		},
+		{
+			description:    "separates JSON that parses but is not a filter from JSON that does not parse",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`{"nonsense":true}`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is valid JSON but not a filter"},
+		},
+		{
+			description:    "says a filter node names a type the package does not define",
+			target:         "/probe?filter=" + base64.RawURLEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "is valid JSON but not a filter"},
+		},
+		{
+			description:    "blames the size of a value of an acceptable type rather than its type",
+			target:         "/probe?filter=" + encodeProbeFilterValue(t, "name", "contains", strings.Repeat("A", query.MaxStringValueLen+1)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "value exceeds the maximum size for name"},
+		},
+		{
+			description:    "truncates an echoed field name and marks that it truncated it",
+			target:         "/probe?filter=" + encodeProbeFilter(t, strings.Repeat("z", 80), "contains"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "names an unknown field: " + strings.Repeat("z", 64) + "..."},
+		},
+		{
+			description:    "truncates a multi-byte echoed field name by rune, not by byte",
+			target:         "/probe?filter=" + encodeProbeFilter(t, strings.Repeat("é", 80), "contains"),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "names an unknown field: " + strings.Repeat("é", 64) + "..."},
+		},
+		{
+			description:    "truncates an echoed operator",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "name", strings.Repeat("z", 80)),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "operator " + strings.Repeat("z", 64) + "... is not valid for name"},
+		},
+		{
+			description:    "says a filter exceeds the maximum size rather than blaming its contents",
+			target:         "/probe?filter=" + strings.Repeat("A", query.MaxFilterRawBytes+1),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "exceeds the maximum size"},
+		},
+		{
+			description:    "says a filter carries too many entries",
+			target:         "/probe?filter=" + encodeProbeFilters(t, query.MaxFilterItems+1),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "carries too many entries"},
+		},
+		{
+			description:    "names the field whose value is not valid",
+			target:         "/probe?filter=" + encodeProbeFilterValue(t, "name", "contains", map[string]any{"nested": true}),
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"filter": "value is not valid for name"},
+		},
+		{
+			description:    "says why an order outside asc and desc was refused",
+			target:         "/probe?order_by=sideways",
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"order_by": "is neither asc nor desc"},
+		},
+		{
+			description:    "refuses a sort naming a field the contract does not allow",
+			target:         "/probe?sort_by=secret",
+			expectedStatus: http.StatusBadRequest,
+			expectedFields: map[string]string{"sort_by": "names an unknown field: secret"},
+		},
+		{
+			description:    "hands the handler a decoded filter, a normalized page and the contract's default sort",
+			target:         "/probe?page=0&per_page=999&filter=" + encodeProbeFilter(t, "name", "contains"),
+			expectedStatus: http.StatusOK,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				require.Len(t, call.req.Filters.Data, 1)
+				assert.Equal(t, &query.FilterProperty{Name: "name", Operator: "contains", Value: "value"}, call.req.Filters.Data[0].Params)
+				assert.Equal(t, int64(query.MinPage), call.req.Paginator.Page)
+				assert.Equal(t, int64(query.MaxPerPage), call.req.Paginator.PerPage)
+				assert.Equal(t, "created_at", call.req.Sorter.By)
+				assert.Equal(t, query.OrderAsc, call.req.Sorter.Order)
+			},
+		},
+		{
+			description:    "leaves a sort the client asked for alone when the contract allows it",
+			target:         "/probe?sort_by=name&order_by=asc",
+			expectedStatus: http.StatusOK,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, "name", call.req.Sorter.By)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			call := new(probeCall)
+
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)), gateway.Accepts(contract))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
+			req.Header.Set("X-Tenant-ID", probeTenant)
+			req.Header.Set("X-ID", "user-id")
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, tc.expectedStatus, rec.Code, rec.Body.String())
+			require.Equal(t, tc.expectedStatus == http.StatusOK, call.called)
+
+			if tc.expectedFields != nil {
+				var body responses.Error
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+				assert.Equal(t, tc.expectedFields, body.Fields)
+			}
+
+			if tc.assert != nil {
+				tc.assert(t, call)
+			}
+		})
+	}
+}
+
+func TestListWithoutAContractRefusesEveryFilterAndSort(t *testing.T) {
+	cases := []struct {
+		description    string
+		target         string
+		expectedFields map[string]string
+	}{
+		{
+			description:    "refuses a filter",
+			target:         "/probe?filter=" + encodeProbeFilter(t, "name", "contains"),
+			expectedFields: map[string]string{"filter": "names an unknown field: name"},
+		},
+		{
+			description:    "refuses a sort",
+			target:         "/probe?sort_by=name",
+			expectedFields: map[string]string{"sort_by": "names an unknown field: name"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			call := new(probeCall)
+
+			e := probeRouter(t, true)
+			gateway.GET(rootOf(e), "/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)))
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
+			req.Header.Set("X-Tenant-ID", probeTenant)
+			req.Header.Set("X-ID", "user-id")
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
+			require.False(t, call.called)
+
+			var body responses.Error
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+			assert.Equal(t, tc.expectedFields, body.Fields)
+		})
+	}
+}
+
+func TestAcceptsRecordsTheContractOnTheDeclaration(t *testing.T) {
+	e := probeRouter(t, true)
+	gateway.GET(rootOf(e), "/accepting", gateway.List(probeHandler(new(probeCall), nil, 0, nil)),
+		gateway.Accepts(query.Contract{Sort: query.NewFieldSet("name")}))
+	gateway.GET(rootOf(e), "/silent", gateway.List(probeHandler(new(probeCall), nil, 0, nil)))
+
+	accepts := make(map[string]bool)
+	for _, declaration := range gateway.Declarations(e) {
+		accepts[declaration.Path] = declaration.AcceptsQuery
+	}
+
+	assert.True(t, accepts["/accepting"])
+	assert.False(t, accepts["/silent"])
+}
+
+func encodeProbeFilters(t *testing.T, count int) string {
+	t.Helper()
+
+	data := make([]query.Filter, count)
+	for i := range data {
+		data[i] = query.Filter{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "value"}}
+	}
+
+	encoded, err := json.Marshal(data)
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(encoded)
+}
+
+func encodeProbeFilterValue(t *testing.T, name, operator string, value any) string {
+	t.Helper()
+
+	encoded, err := json.Marshal([]query.Filter{
+		{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: name, Operator: operator, Value: value}},
+	})
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(encoded)
+}
+
+func encodeProbeFilter(t *testing.T, name, operator string) string {
+	t.Helper()
+
+	return encodeProbeFilterValue(t, name, operator, "value")
+}
