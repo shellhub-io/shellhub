@@ -1,6 +1,4 @@
-import {
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
@@ -75,8 +73,8 @@ export default function EditNamespaceModal({
       title="Edit namespace"
       description={
         <>
-          Rename <ObjectName>{namespace?.name}</ObjectName>, cap its devices or
-          turn session recording on and off.
+          Rename <ObjectName>{namespace?.name}</ObjectName>, cap its devices,
+          turn session recording on and off or enforce device signatures.
         </>
       }
       submitLabel="Save changes"
@@ -111,6 +109,13 @@ export default function EditNamespaceModal({
         control={control}
         id="edit-namespace-session-record"
         label="Session Recording"
+      />
+
+      <FormCheckboxField
+        name="requireVerifiedDeviceKey"
+        control={control}
+        id="edit-namespace-require-verified-device-key"
+        label="Device signature enforcement"
       />
     </FormModal>
   );

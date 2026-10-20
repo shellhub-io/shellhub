@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -13,18 +13,24 @@ import SshSettings from "../SshSettings";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-function defaultNs(settings: Partial<{ legacy: boolean }> = {}) {
+type Settings = Partial<{
+  legacy: boolean;
+  require_verified_device_key: boolean;
+}>;
+
+function defaultNs(settings: Settings = {}) {
   return mockNamespace({
     settings: {
       session_record: false,
       connection_announcement: "",
       legacy: false,
+      require_verified_device_key: false,
       ...settings,
     },
   });
 }
 
-function setNamespace(settings: Partial<{ legacy: boolean }> = {}) {
+function setNamespace(settings: Settings = {}) {
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(defaultNs(settings)),
@@ -74,6 +80,7 @@ beforeEach(() => {
   server.use(
     http.get("*/api/namespaces/:tenant", () => HttpResponse.json(defaultNs())),
     http.get("*/api/access-policies", () => jsonWithTotal([])),
+    http.get("*/api/devices", () => jsonWithTotal([])),
     http.put(
       "*/api/namespaces/:tenant",
       () => new HttpResponse(null, { status: 204 }),
@@ -268,6 +275,219 @@ describe("SshSettings", () => {
     });
   });
 
+  describe("device signatures", () => {
+    function recordPuts() {
+      const bodies: unknown[] = [];
+      server.use(
+        http.put("*/api/namespaces/:tenant", async ({ request }) => {
+          bodies.push(await request.json());
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+      return bodies;
+    }
+
+    function unsignedDevices(accepted: number, pending = 0) {
+      const queries: URLSearchParams[] = [];
+      server.use(
+        http.get("*/api/devices", ({ request }) => {
+          const query = new URL(request.url).searchParams;
+          queries.push(query);
+          return jsonWithTotal(
+            [],
+            query.get("status") === "pending" ? pending : accepted,
+          );
+        }),
+      );
+      return queries;
+    }
+
+    function knownDevices(accepted: number, pending = 0) {
+      server.use(
+        http.get("*/api/namespaces/:tenant", () =>
+          HttpResponse.json({
+            ...defaultNs(),
+            devices_accepted_count: accepted,
+            devices_pending_count: pending,
+          }),
+        ),
+      );
+    }
+
+    const findSwitch = () =>
+      screen.findByRole("switch", { name: "Device signature enforcement" });
+
+    async function turnOn(user: ReturnType<typeof userEvent.setup>) {
+      const toggle = await findSwitch();
+      await waitFor(() => expect(toggle).toBeEnabled());
+      await user.click(toggle);
+    }
+
+    it("shows whether the namespace enforces device signatures", async () => {
+      setNamespace({ require_verified_device_key: true });
+      renderSsh();
+
+      expect(await findSwitch()).toBeChecked();
+    });
+
+    it("locks the switch for a role below administrator", async () => {
+      seedAuthStore({ role: "operator" });
+      renderSsh();
+
+      expect(await findSwitch()).toBeDisabled();
+    });
+
+    it("counts the accepted and pending devices that never signed", async () => {
+      const queries = unsignedDevices(0);
+      renderSsh();
+
+      await findSwitch();
+      await waitFor(() => expect(queries).toHaveLength(2));
+      expect(queries.map((query) => query.get("status")).sort()).toEqual([
+        "accepted",
+        "pending",
+      ]);
+      for (const query of queries) {
+        expect(JSON.parse(atob(query.get("filter") ?? ""))).toEqual([
+          {
+            type: "property",
+            params: { name: "key_verified", operator: "bool", value: false },
+          },
+        ]);
+      }
+    });
+
+    it("counts a pending device that can't sign in the warning", async () => {
+      unsignedDevices(2, 1);
+      knownDevices(40, 2);
+      renderSsh();
+
+      expect(
+        await screen.findByText(
+          "3 of your 42 devices don't support signatures yet. Update them before you enforce them here.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("turns on at once when no accepted or pending device would stop connecting", async () => {
+      unsignedDevices(0);
+      const bodies = recordPuts();
+      const user = userEvent.setup();
+      renderSsh();
+
+      await turnOn(user);
+
+      await waitFor(() =>
+        expect(bodies).toEqual([
+          { settings: { require_verified_device_key: true } },
+        ]),
+      );
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("warns about the devices that can't sign while it is off", async () => {
+      unsignedDevices(3);
+      knownDevices(42);
+      renderSsh();
+
+      const card = await screen.findByRole("group", {
+        name: "Device signature enforcement",
+      });
+      expect(
+        await within(card).findByText(
+          "3 of your 42 devices don't support signatures yet. Update them before you enforce them here.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("warns about nothing once it is on", async () => {
+      unsignedDevices(3);
+      setNamespace({ require_verified_device_key: true });
+      renderSsh();
+
+      await findSwitch();
+      expect(
+        screen.queryByText(/don't support signatures/),
+      ).not.toBeInTheDocument();
+    });
+
+    it("says how many devices stop connecting before turning on, and saves once confirmed", async () => {
+      unsignedDevices(3);
+      knownDevices(42);
+      const bodies = recordPuts();
+      const user = userEvent.setup();
+      renderSsh();
+
+      await screen.findByText(/don't support signatures/);
+      await turnOn(user);
+
+      const dialog = await screen.findByRole("dialog", {
+        name: "Enforce device signatures?",
+      });
+      expect(dialog).toHaveAccessibleDescription(
+        "3 of 42 devices will stop connecting.",
+      );
+      expect(dialog).toHaveTextContent(
+        "ShellHub will refuse their agents until they're updated",
+      );
+      expect(bodies).toEqual([]);
+
+      await user.click(
+        within(dialog).getByRole("button", { name: "Enforce anyway" }),
+      );
+
+      expect(await screen.findByRole("status")).toHaveTextContent("Saved");
+      expect(bodies).toEqual([
+        { settings: { require_verified_device_key: true } },
+      ]);
+    });
+
+    it("still asks when the devices cannot be counted", async () => {
+      server.use(
+        http.get("*/api/devices", () => HttpResponse.json({}, { status: 500 })),
+      );
+      const user = userEvent.setup();
+      renderSsh();
+
+      await turnOn(user);
+
+      const dialog = await screen.findByRole("dialog", {
+        name: "Enforce device signatures?",
+      });
+      expect(dialog).toHaveAccessibleDescription(
+        "Devices whose agent can't sign will stop connecting.",
+      );
+    });
+
+    it("saves nothing when turning it on is cancelled", async () => {
+      unsignedDevices(3);
+      const bodies = recordPuts();
+      const user = userEvent.setup();
+      renderSsh();
+
+      await turnOn(user);
+      await user.click(await screen.findByRole("button", { name: "Cancel" }));
+
+      expect(await findSwitch()).not.toBeChecked();
+      expect(bodies).toEqual([]);
+    });
+
+    it("turns it off at once, without a confirmation", async () => {
+      const bodies = recordPuts();
+      setNamespace({ require_verified_device_key: true });
+      const user = userEvent.setup();
+      renderSsh();
+
+      await user.click(await findSwitch());
+
+      expect(await screen.findByRole("status")).toHaveTextContent("Saved");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(bodies).toEqual([
+        { settings: { require_verified_device_key: false } },
+      ]);
+    });
+  });
+
   describe("login banner", () => {
     it("edits the banner in a dialog, not on the page", async () => {
       const user = userEvent.setup();
@@ -332,6 +552,7 @@ describe("SshSettings", () => {
                 session_record: false,
                 connection_announcement: "Authorized use only",
                 legacy: false,
+                require_verified_device_key: false,
               },
             }),
           ),

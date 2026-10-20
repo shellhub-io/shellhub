@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import {
   getDevices as getDevicesSdk,
   getDevicesQueryKey,
@@ -102,5 +102,52 @@ export function useDevices({
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,
+  };
+}
+
+function unverifiedDevicesOptions(status: "accepted" | "pending") {
+  return {
+    query: {
+      page: 1,
+      per_page: 1,
+      status,
+      filter: toBase64Json([
+        {
+          type: "property",
+          params: { name: "key_verified", operator: "bool", value: false },
+        },
+      ]),
+    },
+  };
+}
+
+/**
+ * How many accepted or pending devices have an agent that never signed a server challenge with
+ * its device key, and so stop connecting once the namespace enforces device signatures. It reads
+ * the totals of one-device pages rather than the devices. count is undefined until both totals
+ * have been read once; after that it keeps the last totals, while disabled and after a failed
+ * read too. isLoading is true while either total is being read, the first time or again, so a
+ * caller that waits for it never acts on a stale count.
+ */
+export function useUnverifiedDeviceCount({ enabled = true } = {}) {
+  const results = useQueries({
+    queries: (["accepted", "pending"] as const).map((status) => {
+      const options = unverifiedDevicesOptions(status);
+      return {
+        queryKey: getDevicesQueryKey(options),
+        queryFn: paginatedQueryFn(getDevicesSdk, options),
+        enabled,
+      };
+    }),
+  });
+
+  const counts = results.map((result) => result.data?.totalCount);
+
+  return {
+    count: counts.some((count) => count === undefined)
+      ? undefined
+      : counts.reduce<number>((sum, count) => sum + (count ?? 0), 0),
+    isLoading: results.some((result) => result.isFetching),
+    error: results.find((result) => result.error)?.error ?? null,
   };
 }

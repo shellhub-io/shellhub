@@ -196,6 +196,14 @@ export default function NamespaceDetails() {
                 {namespace.settings?.session_record ? "Enabled" : "Disabled"}
               </span>
             </InfoItem>
+            <InfoItem
+              label="Device Signature Enforcement"
+              value={
+                namespace.settings?.require_verified_device_key
+                  ? "Enabled"
+                  : "Disabled"
+              }
+            />
             {namespace.settings?.connection_announcement && (
               <InfoItem label="Connection Announcement">
                 <div className="overflow-x-auto rounded-lg bg-surface border border-border p-3">

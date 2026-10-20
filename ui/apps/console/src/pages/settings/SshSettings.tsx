@@ -6,6 +6,8 @@ import {
   CommandLineIcon,
   KeyIcon,
   ExclamationTriangleIcon,
+  LockClosedIcon,
+  LockOpenIcon,
   ShieldCheckIcon,
   VideoCameraIcon,
 } from "@heroicons/react/24/outline";
@@ -14,6 +16,8 @@ import { cn } from "@shellhub/design-system/cn";
 import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
+import { useUnverifiedDeviceCount } from "@/hooks/useDevices";
+import { formatCount } from "@/pages/provisioning-keys/helpers";
 import {
   useEditNamespace,
   useUpgradeNamespace,
@@ -35,6 +39,7 @@ import FormModal from "@/components/common/FormModal";
 import Modal from "@/components/common/Modal";
 import PageLoader from "@/components/common/PageLoader";
 import RecBadge from "@/components/sessions/RecBadge";
+import StatePill from "@/components/common/StatePill";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SavedMark from "@/components/settings/SavedMark";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
@@ -230,6 +235,135 @@ function RecordingCard({ ns }: { ns: Namespace }) {
         />
       }
     />
+  );
+}
+
+function UnsignedWarning({
+  unsigned,
+  total,
+}: {
+  unsigned: number;
+  total: number;
+}) {
+  return (
+    <p className="flex items-center gap-2 px-3 py-2 rounded-lg border border-accent-yellow/20 bg-accent-yellow/8 text-xs text-accent-yellow">
+      <ExclamationTriangleIcon
+        aria-hidden="true"
+        className="w-4 h-4 shrink-0"
+        strokeWidth={2}
+      />
+      {unsigned === 1
+        ? `1 of your ${formatCount(total)} devices doesn't support signatures yet. Update it before you enforce them here.`
+        : `${formatCount(unsigned)} of your ${formatCount(total)} devices don't support signatures yet. Update them before you enforce them here.`}
+    </p>
+  );
+}
+
+function EnforcedBadge({
+  enforced,
+  disabled,
+  onChange,
+}: {
+  enforced: boolean;
+  disabled: boolean;
+  onChange: (enforced: boolean) => void;
+}) {
+  const Icon = enforced ? LockClosedIcon : LockOpenIcon;
+
+  return (
+    <StatePill
+      on={enforced}
+      onClassName="border-accent-green/40 bg-accent-green/10 text-accent-green"
+      onToggle={() => onChange(!enforced)}
+      label="Device signature enforcement"
+      disabled={disabled}
+    >
+      <Icon aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
+      <span className="font-mono text-[10px] font-bold tracking-wider">
+        {enforced ? "ON" : "OFF"}
+      </span>
+    </StatePill>
+  );
+}
+
+function EnforceSignaturesCard({ ns }: { ns: Namespace }) {
+  const editNs = useEditNamespace();
+  const canChange = useHasPermission("namespace:requireVerifiedDeviceKeys");
+  const { error, saved, run } = useSettingSave(
+    "Couldn't change device signature enforcement. Try again.",
+  );
+  const [confirming, setConfirming] = useState(false);
+  const enforced = ns.settings?.require_verified_device_key ?? false;
+  const unverified = useUnverifiedDeviceCount({ enabled: !enforced });
+  const unsigned = unverified.count ?? 0;
+  const total = Math.max(
+    (ns.devices_accepted_count ?? 0) + (ns.devices_pending_count ?? 0),
+    unsigned,
+  );
+  const counted = !unverified.isLoading && !unverified.error;
+  const nobodyCutOff = counted && unsigned === 0;
+
+  const save = (next: boolean) =>
+    run(() =>
+      editNs.mutateAsync({
+        path: { tenant: ns.tenant_id },
+        body: { settings: { require_verified_device_key: next } },
+      }),
+    );
+
+  const disabled =
+    !canChange || editNs.isPending || (!enforced && unverified.isLoading);
+  const change = (next: boolean) => {
+    if (disabled) return;
+    if (!next || nobodyCutOff) void save(next);
+    else setConfirming(true);
+  };
+
+  return (
+    <>
+      <SettingsSwitchCard
+        icon={<LockClosedIcon />}
+        title="Device signature enforcement"
+        description="Refuse agents that can't prove they hold the device's key."
+        error={error}
+        saved={saved}
+        control={
+          <EnforcedBadge
+            enforced={enforced}
+            disabled={disabled}
+            onChange={change}
+          />
+        }
+        footer={
+          !enforced &&
+          counted &&
+          unsigned > 0 && <UnsignedWarning unsigned={unsigned} total={total} />
+        }
+      />
+      <ConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        onConfirm={async () => {
+          setConfirming(false);
+          await save(true);
+        }}
+        icon={<LockClosedIcon />}
+        variant="warning"
+        title="Enforce device signatures?"
+        description={
+          counted
+            ? `${formatCount(unsigned)} of ${formatCount(total)} devices will stop connecting.`
+            : "Devices whose agent can't sign will stop connecting."
+        }
+        confirmLabel="Enforce anyway"
+      >
+        <p className="mb-4 text-xs text-text-secondary leading-relaxed">
+          {unsigned === 1
+            ? "ShellHub will refuse its agent until it's updated, and you won't be able to reach it in the meantime."
+            : "ShellHub will refuse their agents until they're updated, and you won't be able to reach them in the meantime."}
+        </p>
+      </ConfirmDialog>
+    </>
   );
 }
 
@@ -433,10 +567,13 @@ function BannerCard({ ns }: { ns: Namespace }) {
 }
 
 /**
- * The SSH settings: how logins are authorized, whether sessions are recorded on the server, and
- * the banner shown at login. Recording applies at once, the upgrade of a legacy namespace after a
- * confirmation that spells out what changes and asks for the namespace's name, since it cannot be
- * undone, and the banner is edited in its own dialog, or read in one by a role that may not edit it.
+ * The SSH settings: how logins are authorized, whether sessions are recorded on the server, whether
+ * agents must sign their connections with the device key, and the banner shown at login. Recording
+ * applies at once. Enforcing device signatures applies at once when no accepted or pending device
+ * would stop connecting, and otherwise asks first, showing how many would; it also asks when that
+ * count cannot be read. Lifting it applies at once. The upgrade of a legacy namespace asks for the
+ * namespace's name after spelling out what changes, since it cannot be undone. The banner is edited
+ * in its own dialog, or read in one by a role that may not edit it.
  */
 export default function SshSettings() {
   const { tenant: tenantId } = useAuthStore();
@@ -451,6 +588,7 @@ export default function SshSettings() {
     >
       <NamespaceModelCard ns={ns} />
       {isEnterpriseOrCloud() && <RecordingCard ns={ns} />}
+      <EnforceSignaturesCard ns={ns} />
       <BannerCard ns={ns} />
     </SettingsSection>
   );

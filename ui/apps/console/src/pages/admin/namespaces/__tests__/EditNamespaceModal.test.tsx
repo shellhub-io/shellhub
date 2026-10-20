@@ -13,16 +13,19 @@ vi.mock("@/components/common/Modal", async () => ({
 
 const Wrapper = createTestWrapper();
 
+const mockSettings = {
+  session_record: true,
+  connection_announcement: "hello",
+  legacy: true,
+  require_verified_device_key: false,
+};
+
 const mockNamespace: Namespace = {
   name: "my-namespace",
   owner: "owner-1",
   tenant_id: "tenant-abc",
   members: [],
-  settings: {
-    session_record: true,
-    connection_announcement: "hello",
-    legacy: true,
-  },
+  settings: mockSettings,
   max_devices: 10,
   created_at: "2024-01-01T00:00:00Z",
   billing: null,
@@ -168,6 +171,47 @@ describe("EditNamespaceModal", () => {
           expect.objectContaining({
             body: expect.objectContaining({
               settings: expect.objectContaining({ session_record: false }),
+            }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe("device signature enforcement", () => {
+    it("shows whether the namespace enforces device signatures", () => {
+      renderModal({
+        namespace: {
+          ...mockNamespace,
+          settings: {
+            ...mockSettings,
+            require_verified_device_key: true,
+          },
+        },
+      });
+
+      expect(
+        screen.getByLabelText(/device signature enforcement/i),
+      ).toBeChecked();
+    });
+
+    it("sends the requirement once it is ticked", async () => {
+      renderModal();
+
+      await userEvent.click(
+        screen.getByLabelText(/device signature enforcement/i),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      await waitFor(() => {
+        expect(editSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              settings: expect.objectContaining({
+                require_verified_device_key: true,
+              }),
             }),
           }),
         );
