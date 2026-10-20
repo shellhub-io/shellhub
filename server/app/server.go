@@ -196,8 +196,14 @@ type Server struct {
 const (
 	httpAddress = ":8080"
 
+	readHeaderTimeout = 10 * time.Second
+
 	heartbeaterDrainTimeout = 10 * time.Second
 )
+
+func newHTTPServer(handler http.Handler, headerTimeout time.Duration) *http.Server {
+	return &http.Server{Handler: handler, ReadHeaderTimeout: headerTimeout}
+}
 
 // Setup initializes all server components including database connections, cache, services, API routes, and background workers.
 // It prepares the server for starting but does not actually begin serving requests.
@@ -441,7 +447,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	s.http = &http.Server{Handler: s.router} //nolint:gosec
+	s.http = newHTTPServer(s.router, readHeaderTimeout)
 
 	errs := make(chan error, 2)
 
