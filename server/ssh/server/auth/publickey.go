@@ -48,7 +48,7 @@ func PublicKeyOffer(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
 		return false
 	}
 
-	if err := auth.Offer(sess); err != nil {
+	if err := auth.Offer(ctx, sess); err != nil {
 		logger.WithError(err).Warn("refused the offered public key")
 
 		return false

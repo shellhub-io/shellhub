@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -95,7 +96,7 @@ func TestPublicKeyOfferAgentVersionFloor(t *testing.T) {
 
 			sess := newAgentVersionSession(serviceMock, tc.version)
 
-			err := AuthPublicKey(newTestSSHKey(t)).Offer(sess)
+			err := AuthPublicKey(newTestSSHKey(t)).Offer(t.Context(), sess)
 
 			if tc.expectedErr != nil {
 				require.ErrorIs(t, err, tc.expectedErr)
@@ -174,7 +175,7 @@ func TestPublicKeyOfferKeyEvaluation(t *testing.T) {
 
 			sess := newAgentVersionSession(serviceMock, "latest")
 
-			err := AuthPublicKey(newTestSSHKey(t)).Offer(sess)
+			err := AuthPublicKey(newTestSSHKey(t)).Offer(t.Context(), sess)
 
 			if tc.expectedErr != nil {
 				require.ErrorIs(t, err, tc.expectedErr)
@@ -187,10 +188,29 @@ func TestPublicKeyOfferKeyEvaluation(t *testing.T) {
 	}
 }
 
+func TestPublicKeyOfferPassesTheClientContextToTheKeyLookup(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	serviceMock := servicemocks.NewMockService(t)
+	serviceMock.EXPECT().
+		GetPublicKey(mock.MatchedBy(isCancelled), mock.Anything, "tenant-id").
+		Return(nil, context.Canceled).
+		Once()
+
+	sess := newAgentVersionSession(serviceMock, "latest")
+
+	require.ErrorIs(t, AuthPublicKey(newTestSSHKey(t)).Offer(ctx, sess), context.Canceled)
+}
+
 func expectKeyAdmitted(service *servicemocks.MockService) {
 	key := &models.PublicKey{Fingerprint: "fingerprint"}
 
 	service.EXPECT().GetPublicKey(mock.Anything, mock.Anything, "tenant-id").Return(key, nil).Once()
 	service.EXPECT().EvaluateKeyUsername(mock.Anything, key, "user").Return(true, nil).Once()
 	service.EXPECT().EvaluateKeyFilter(mock.Anything, key, mock.Anything).Return(true, nil).Once()
+}
+
+func isCancelled(ctx context.Context) bool {
+	return ctx.Err() != nil
 }
