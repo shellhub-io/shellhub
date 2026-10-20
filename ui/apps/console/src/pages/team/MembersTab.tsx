@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useState } from "react";
 import {
   PlusIcon,
@@ -9,17 +10,21 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import type { MemberView, MembershipInvitation } from "@/client";
+import {
+  cancelMembershipInvitationMutation,
+  getNamespaceMembershipInvitationList,
+  getNamespaceMembershipInvitationListQueryKey,
+  type MembershipInvitation,
+  type MemberView,
+} from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespaceMembers } from "@/hooks/useNamespaces";
-import { useNamespaceInvitations } from "@/hooks/useInvitations";
+import { paginatedQueryOptions } from "@/api/pagination";
 import { useApproveMember } from "@/hooks/useMemberMutations";
-import {
-  useCancelMembershipInvitation,
-  useGenerateInvitationLink,
-} from "@/hooks/useInvitationMutations";
+import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { isSdkError } from "@/api/errors";
-import { isInvitationExpired } from "@/utils/invitations";
+import { invitationStatusFilter, isInvitationExpired } from "@/utils/invitations";
 import { formatDateShort } from "@/utils/date";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
@@ -85,15 +90,27 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const { members: memberViews, isLoading: membersLoading } =
     useNamespaceMembers(tenantId);
 
-  const { invitations } = useNamespaceInvitations({
-    tenantId,
-    status: "pending",
-    perPage: 100,
-    enabled: true,
+  const { data: pendingInvitations } = useQuery({
+    ...paginatedQueryOptions(
+      getNamespaceMembershipInvitationList,
+      getNamespaceMembershipInvitationListQueryKey,
+      {
+        path: { tenant: tenantId },
+        query: { filter: invitationStatusFilter("pending"), page: 1, per_page: 100 },
+      },
+    ),
+    enabled: !!tenantId,
   });
+  const invitations = pendingInvitations?.data ?? [];
 
   const approveMember = useApproveMember();
-  const cancelInvitation = useCancelMembershipInvitation();
+  const invalidateInvitations = useInvalidateByIds(
+    "getNamespaceMembershipInvitationList",
+  );
+  const cancelInvitation = useMutation({
+    ...cancelMembershipInvitationMutation(),
+    onSuccess: invalidateInvitations,
+  });
   const regenerateInvitation = useGenerateInvitationLink();
 
   const currentUserEmail = useAuthStore((s) => s.email);

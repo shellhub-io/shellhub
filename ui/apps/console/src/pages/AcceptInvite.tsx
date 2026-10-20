@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ComponentType, SVGProps, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -8,8 +9,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
-import { useAcceptInvite } from "@/hooks/useInvitationMutations";
-import { useResolveInvitation } from "@/hooks/useInvitations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
@@ -17,6 +16,8 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
+import { acceptInviteMutation, resolveInvitationOptions } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
@@ -49,14 +50,36 @@ export default function AcceptInvite() {
 
   const invite = searchParams.get("invite") ?? "";
 
-  const acceptInvite = useAcceptInvite();
+  const invalidateMemberships = useInvalidateByIds(
+    "getMembershipInvitationList",
+    "getNamespace",
+    "getNamespaces",
+  );
+  const acceptInvite = useMutation({
+    ...acceptInviteMutation(),
+    onSuccess: invalidateMemberships,
+  });
   const switchNamespace = useSwitchNamespace();
 
   const signUp = useSignUpStore((s) => s.signUp);
   const signUpLoading = useSignUpStore((s) => s.signUpLoading);
   const signUpError = useSignUpStore((s) => s.signUpError);
 
-  const { resolved, isLoading, isError } = useResolveInvitation(invite);
+  const { data: invitation, isLoading, isError } = useQuery({
+    ...resolveInvitationOptions({ query: { invite } }),
+    enabled: !!invite,
+    retry: false,
+    staleTime: Infinity,
+  });
+  const resolved =
+    invitation?.tenant_id && invitation.user_id && invitation.status
+      ? {
+          tenantId: invitation.tenant_id,
+          userId: invitation.user_id,
+          email: invitation.email ?? "",
+          status: invitation.status,
+        }
+      : null;
 
   const tenant = resolved?.tenantId ?? "";
   const inviteEmail = resolved?.email ?? "";

@@ -7,7 +7,7 @@ import {
   CheckCircleIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
-import { useGenerateInvitationLink } from "@/hooks/useInvitationMutations";
+import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
 import Modal from "@/components/common/Modal";
 import CopyButton from "@/components/common/CopyButton";
 import { FormInputField } from "@/components/common/fields/rhf";
