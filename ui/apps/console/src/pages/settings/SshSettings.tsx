@@ -15,7 +15,7 @@ import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
-import { useAccessPolicies } from "@/hooks/useAccessPolicies";
+import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useUnverifiedDeviceCount } from "@/hooks/useDevices";
 import { formatCount } from "@/pages/provisioning-keys/helpers";
 import {

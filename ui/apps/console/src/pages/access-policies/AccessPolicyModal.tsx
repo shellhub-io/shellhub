@@ -1,4 +1,5 @@
 import { useState, useRef, KeyboardEvent, FormEvent, ReactNode } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   UsersIcon,
   UserIcon,
@@ -27,11 +28,13 @@ import {
 } from "./subjectCount";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useTags } from "@/hooks/useTags";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
-  useCreateAccessPolicy,
-  useUpdateAccessPolicy,
-} from "@/hooks/useAccessPolicyMutations";
-import type { AccessPolicy, AccessPolicyRequest } from "@/client";
+  createAccessPolicyMutation,
+  updateAccessPolicyMutation,
+  type AccessPolicy,
+  type AccessPolicyRequest,
+} from "@/client";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
 import Modal from "@/components/common/Modal";
@@ -356,8 +359,15 @@ function AccessPolicyModal({
   const { namespace } = useNamespace(tenantId ?? "");
   const { tags: allTagObjects } = useTags();
   const allTags = allTagObjects.map((t) => t.name);
-  const createPolicy = useCreateAccessPolicy();
-  const updatePolicy = useUpdateAccessPolicy();
+  const invalidatePolicies = useInvalidateByIds("listAccessPolicies");
+  const createPolicy = useMutation({
+    ...createAccessPolicyMutation(),
+    onSuccess: invalidatePolicies,
+  });
+  const updatePolicy = useMutation({
+    ...updateAccessPolicyMutation(),
+    onSuccess: invalidatePolicies,
+  });
   const isEdit = !!editPolicy;
 
   const members = (namespace?.members ?? []).filter(
