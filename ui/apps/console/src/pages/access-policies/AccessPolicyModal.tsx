@@ -25,7 +25,7 @@ import {
   POLICY_SUBJECT_ROLES,
   roleSubjectCount as countRoleSubject,
 } from "./subjectCount";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useTags } from "@/hooks/useTags";
 import {
   useCreateAccessPolicy,
@@ -363,7 +363,7 @@ function AccessPolicyModal({
   const members = (namespace?.members ?? []).filter(
     (m): m is NamespaceMember => !!m.id && !!m.role && !!m.email,
   );
-  const { apiKeys } = useApiKeys({ perPage: 100 });
+  const apiKeys = useApiKeys();
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members });
 
