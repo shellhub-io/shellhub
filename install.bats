@@ -169,7 +169,7 @@ discover_version() {
 
     call_install enrollment_summary
 
-    [ "$output" = "tenant $TENANT_ID (device lands pending)" ]
+    [ "$output" = "tenant $TENANT_ID" ]
 }
 
 @test "enrollment_summary points at the login flow when no credential is given" {
@@ -264,7 +264,6 @@ discover_version() {
 
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
-    assert_output_contains "provisioning key's namespace"
 }
 
 @test "enroll_agent_interactively skips the login flow for a persisted tenant" {
@@ -288,7 +287,6 @@ discover_version() {
 
     [ "$status" -eq 0 ]
     assert_output_contains "remembered at $AGENT_KEY.tenant"
-    refute_output_contains "provisioning key's namespace"
 }
 
 @test "enroll_agent_interactively skips the login flow for a tenant" {
@@ -299,16 +297,78 @@ discover_version() {
 
     [ "$status" -eq 0 ]
     refute_called "shellhub-agent"
-    assert_output_contains "appear as pending in the console"
 }
 
-@test "observe_enrollment reports an agent that enrolled" {
-    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\""'
+@test "observe_enrollment reports a device the server accepted" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" status=accepted tenant_id=t"'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The device is accepted"
+    refute_output_contains "pending"
+}
+
+@test "observe_enrollment reports a device the server left pending" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" status=pending tenant_id=t"'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The device is pending: accept it in the console"
+}
+
+@test "observe_enrollment reports a device rejected in the console" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" status=rejected tenant_id=t"'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "the device is rejected"
+    assert_output_contains "A member rejected it in the console. Accept it there to enroll it."
+    refute_output_contains "provisioning key"
+    refute_output_contains "pending"
+}
+
+@test "observe_enrollment names the provisioning key's policy for a rejected device" {
+    export PROVISIONING_KEY=key-1
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" status=rejected tenant_id=t"'
+
+    call_install observe_enrollment agent-log
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "provisioning key's allowlist or webhook refused it"
+}
+
+@test "enroll_agent_interactively names a persisted tenant ahead of the observed outcome" {
+    export PERSISTED_TENANT=00000000-0000-4000-0000-000000000000
+    export PRIVATE_KEY="$AGENT_KEY"
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" status=accepted tenant_id=t"'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "remembered at $AGENT_KEY.tenant"
+    assert_output_contains "The device is accepted"
+}
+
+@test "observe_enrollment does not claim a status the agent did not log" {
+    stub_bin agent-log 'echo "time=now level=info msg=\"Listening for connections\" tenant_id=t"'
 
     call_install observe_enrollment agent-log
 
     [ "$status" -eq 0 ]
     assert_output_contains "is listening for connections"
+    assert_output_contains "accepted or still pending"
+}
+
+@test "enroll_agent_interactively does not predict a pending device before a refusal" {
+    with_tenant
+    stub_bin agent-log 'echo "level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\""'
+
+    call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
+
+    assert_output_contains "404 Not Found"
+    refute_output_contains "pending"
 }
 
 @test "refusal_reason prints only the reason a log line carries" {
@@ -436,7 +496,6 @@ LOG
 
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
 
-    assert_output_contains "provisioning key's namespace"
     assert_output_contains "404 Not Found"
 }
 
@@ -445,7 +504,6 @@ LOG
 
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
 
-    assert_output_contains "provisioning key's namespace"
     assert_output_contains "does not expose"
 }
 
@@ -466,7 +524,6 @@ LOG
 
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY" agent-log
 
-    assert_output_contains "appear as pending in the console"
     assert_output_contains "404 Not Found"
 }
 
@@ -1374,7 +1431,7 @@ LOG
     run_install
 
     [ "$status" -eq 0 ]
-    assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
+    assert_output_contains "Enrollment: tenant $TENANT_ID"
 }
 
 @test "the installer discovers the agent version from the server" {
@@ -1505,7 +1562,7 @@ LOG
     run_install
 
     [ "$status" -eq 0 ]
-    assert_output_contains "Enrollment: tenant $TENANT_ID (device lands pending)"
+    assert_output_contains "Enrollment: tenant $TENANT_ID"
     refute_output_contains "remembered at"
 }
 

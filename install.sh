@@ -89,7 +89,7 @@ enrollment_summary() {
   elif [ -n "$PROVISIONING_KEY" ]; then
     echo "provisioning key"
   elif [ -n "$TENANT_ID" ]; then
-    echo "tenant $TENANT_ID (device lands pending)"
+    echo "tenant $TENANT_ID"
   else
     echo "none — enroll with 'shellhub-agent login'"
   fi
@@ -115,7 +115,7 @@ observe_enrollment() {
 
   if [ -z "$_LOG_CMD" ]; then
     echo "ℹ️ This install method does not expose the agent's output to the installer."
-    echo "   Check the console to confirm the device enrolled."
+    echo "   Check the console to confirm the device enrolled, and accept it there if it is pending."
 
     return 0
   fi
@@ -128,7 +128,29 @@ observe_enrollment() {
 
     case "$_OBSERVED" in
     *"Listening for connections"*)
-      echo "✅ The agent connected to the server and is listening for connections."
+      _LISTENING=$(echo "$_OBSERVED" | grep "Listening for connections" | tail -n 1)
+
+      case "$_LISTENING" in
+      *" status=accepted"*)
+        echo "✅ The device is accepted and the agent is listening for connections."
+        ;;
+      *" status=pending"*)
+        echo "✅ The agent is listening for connections. The device is pending: accept it in the console."
+        ;;
+      *" status=rejected"*)
+        echo "❌ The agent connected, but the device is rejected."
+
+        if [ -n "$PROVISIONING_KEY" ]; then
+          echo "   The provisioning key's allowlist or webhook refused it, or a member rejected it in the console."
+        else
+          echo "   A member rejected it in the console. Accept it there to enroll it."
+        fi
+        ;;
+      *)
+        echo "✅ The agent connected to the server and is listening for connections."
+        echo "   Check the console to see whether the device is accepted or still pending."
+        ;;
+      esac
 
       return 0
       ;;
@@ -180,29 +202,13 @@ enroll_agent_interactively() {
   _WAIT_KEY="$2"
   _AGENT_LOG="$3"
 
-  if [ -n "$PERSISTED_TENANT" ]; then
+  if [ -n "$PERSISTED_TENANT" ] || [ -n "$PROVISIONING_KEY" ] || [ -n "$TENANT_ID" ]; then
     echo ""
-    echo "The device will enroll into tenant $PERSISTED_TENANT, remembered at $(tenant_file)."
-    echo "Delete that file to enroll it somewhere else."
 
-    observe_enrollment "$_AGENT_LOG"
-
-    return 0
-  fi
-
-  if [ -n "$PROVISIONING_KEY" ]; then
-    echo ""
-    echo "The device will enroll into the provisioning key's namespace."
-    echo "Whether it is accepted straight away or left pending is the key's own setting."
-
-    observe_enrollment "$_AGENT_LOG"
-
-    return 0
-  fi
-
-  if [ -n "$TENANT_ID" ]; then
-    echo ""
-    echo "The device will appear as pending in the console — accept it there."
+    if [ -n "$PERSISTED_TENANT" ]; then
+      echo "The device will enroll into tenant $PERSISTED_TENANT, remembered at $(tenant_file)."
+      echo "Delete that file to enroll it somewhere else."
+    fi
 
     observe_enrollment "$_AGENT_LOG"
 
