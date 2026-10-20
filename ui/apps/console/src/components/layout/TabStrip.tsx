@@ -21,7 +21,7 @@ import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { accountDisplayName, useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import {
   useWorkspaceTabsStore,
   type WorkspaceTab,

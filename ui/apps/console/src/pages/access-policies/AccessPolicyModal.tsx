@@ -21,11 +21,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
-import {
-  POLICY_SUBJECT_ROLES,
-  roleSubjectCount as countRoleSubject,
-} from "./subjectCount";
+import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaceRequests";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useTags } from "@/hooks/useTagRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
@@ -39,6 +35,10 @@ import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
 import Modal from "@/components/common/Modal";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
+import {
+  POLICY_SUBJECT_ROLES,
+  roleSubjectCount as countRoleSubject,
+} from "./subjectCount";
 
 type SubjectType = "all-members" | "role" | "user" | "api-key";
 type FilterOption = "all" | "tags";

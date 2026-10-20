@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getNamespacesOptions } from "@/client";
-import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { useSwitchNamespace } from "@/hooks/useNamespaceRequests";
 
 const CHECK_INTERVAL_MS = 5000;
 

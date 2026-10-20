@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useController } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -13,15 +14,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useNamespace, type Namespace } from "@/hooks/useNamespaces";
+import {
+  type Namespace,
+  useEditNamespace,
+  useNamespace,
+} from "@/hooks/useNamespaceRequests";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useUnverifiedDeviceCount } from "@/hooks/useDevices";
 import { formatCount } from "@/pages/provisioning-keys/helpers";
-import {
-  useEditNamespace,
-  useUpgradeNamespace,
-} from "@/hooks/useNamespaceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useSettingSave } from "@/hooks/useSettingSave";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -43,6 +44,8 @@ import StatePill from "@/components/common/StatePill";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SavedMark from "@/components/settings/SavedMark";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
+import { upgradeNamespaceMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   BANNER_MAX_LENGTH,
   bannerSchema,
@@ -130,7 +133,15 @@ function UpgradeDialog({
 }
 
 function NamespaceModelCard({ ns }: { ns: Namespace }) {
-  const upgrade = useUpgradeNamespace();
+  const invalidateUpgraded = useInvalidateByIds(
+    "getNamespaces",
+    "getNamespace",
+    "listAccessPolicies",
+  );
+  const upgrade = useMutation({
+    ...upgradeNamespaceMutation(),
+    onSuccess: invalidateUpgraded,
+  });
   const canUpgrade = useHasPermission("namespace:upgrade");
   const { error, saved, run } = useSettingSave(
     "Couldn't upgrade the namespace. Try again.",

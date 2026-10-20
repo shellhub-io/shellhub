@@ -4,7 +4,7 @@ import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
 import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
 import { useAuthStore } from "@/stores/authStore";

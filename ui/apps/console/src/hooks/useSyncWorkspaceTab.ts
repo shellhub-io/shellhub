@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { isAccountPath } from "@/utils/accountRoute";
 import { isPreferencesPath } from "@/utils/preferencesRoute";
 import {

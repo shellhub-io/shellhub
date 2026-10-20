@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { getConfig } from "@/env";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useAttachPaymentMethod,

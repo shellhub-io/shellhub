@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";

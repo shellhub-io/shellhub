@@ -24,8 +24,10 @@ import { webTerminalReauth, getSamlReauthUrl } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useSSHApproval, ApprovalDetails } from "@/hooks/useSSHApproval";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespaces } from "@/hooks/useNamespaces";
-import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import {
+  useNamespaces,
+  useSwitchNamespace,
+} from "@/hooks/useNamespaceRequests";
 import { getInitials } from "@/utils/string";
 import { formatDateFull } from "@/utils/date";
 

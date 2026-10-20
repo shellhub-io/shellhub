@@ -12,7 +12,7 @@ import {
   type RecentDevice,
 } from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { isEnterpriseOrCloud } from "@/env";

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
-import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
+import { useInitRole, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";

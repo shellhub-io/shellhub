@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { validateNamespaceName } from "@/utils/validation";
-import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
+import { useCreateNamespace } from "@/hooks/useNamespaceRequests";
 
 const GENERIC_ERROR = "An unexpected error occurred. Please try again.";
 

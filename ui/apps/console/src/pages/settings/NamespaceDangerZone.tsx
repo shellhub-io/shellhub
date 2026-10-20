@@ -6,11 +6,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
-import { type Namespace } from "@/hooks/useNamespaces";
 import {
+  type Namespace,
   useDeleteNamespace,
   useLeaveNamespace,
-} from "@/hooks/useNamespaceMutations";
+} from "@/hooks/useNamespaceRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useMemberDevices } from "@/hooks/useMemberDevices";
 import { useAuthStore } from "@/stores/authStore";

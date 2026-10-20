@@ -19,7 +19,7 @@ import {
   type MemberView,
 } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespaceMembers } from "@/hooks/useNamespaces";
+import { useNamespaceMembers } from "@/hooks/useNamespaceRequests";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";

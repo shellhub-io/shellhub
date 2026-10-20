@@ -27,17 +27,17 @@ import {
   useResolveDeviceCode,
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
-import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import {
+  type Namespace,
+  useNamespace,
+  useNamespaces,
+  useSwitchNamespace,
+} from "@/hooks/useNamespaceRequests";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import SignInForm from "@/components/auth/SignInForm";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
 import DeviceAccepted from "@/components/devices/DeviceAccepted";
-import {
-  useNamespace,
-  useNamespaces,
-  type Namespace,
-} from "@/hooks/useNamespaces";
 import { getInitials } from "@/utils/string";
 import { formatPairingCode, normalizePairingCode } from "@/utils/pairingCode";
 import PairingCodeForm from "@/components/common/PairingCodeForm";

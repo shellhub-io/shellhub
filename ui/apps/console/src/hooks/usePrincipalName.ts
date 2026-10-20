@@ -1,6 +1,6 @@
 import type { SessionPrincipal } from "@/client";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
-import { useNamespace } from "@/hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 
 /**

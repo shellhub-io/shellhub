@@ -13,7 +13,7 @@ import { useTerminalStore } from "../stores/terminalStore";
 import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
-import { useNamespace } from "../hooks/useNamespaces";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {

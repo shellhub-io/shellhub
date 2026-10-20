@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
-import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { useSwitchNamespace } from "@/hooks/useNamespaceRequests";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
   FormInputField,

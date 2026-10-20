@@ -1,46 +1,148 @@
+import { useEffect } from "react";
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
-  editNamespaceMutation,
-  upgradeNamespaceMutation,
   createNamespace as createNamespaceSdk,
   deleteNamespace as deleteNamespaceSdk,
+  editNamespaceMutation,
+  getNamespaceOptions,
+  getNamespacesOptions,
+  getNamespaceTokenOptions,
+  getStatusDevicesOptions,
   leaveNamespace as leaveNamespaceSdk,
-} from "../client";
-import { getNamespaceTokenOptions } from "../client/@tanstack/react-query.gen";
-import { useAuthStore } from "../stores/authStore";
-import { useVaultStore } from "../stores/vaultStore";
+  listNamespaceMembersOptions,
+  type Namespace as GeneratedNamespace,
+  type NamespaceMemberRole,
+} from "@/client";
+import { useAuthStore } from "@/stores/authStore";
+import { useVaultStore } from "@/stores/vaultStore";
 import { consumePendingDeviceCode } from "@/utils/navigation";
-import { queryOperationId, useInvalidateByIds } from "./useInvalidateQueries";
+import { queryOperationId, useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
- * Edits the namespace's settings.
+ * A namespace as the console uses it: the generated model plus the type the cloud API adds and
+ * the spec does not describe.
+ */
+export type Namespace = GeneratedNamespace & { type?: string };
+
+/**
+ * A member of a namespace. status tells an accepted member from an invitation not yet taken up;
+ * both appear in the same list, and only the first has an id that means anything.
+ */
+export interface NamespaceMember {
+  id: string;
+  role: NamespaceMemberRole;
+  email: string;
+  added_at?: string;
+  status?: "accepted" | "pending";
+  account_status?: "confirmed" | "not-confirmed";
+  awaiting_approval?: boolean;
+}
+
+/**
+ * Every namespace the user belongs to. Fetched as one page of a hundred — the switcher shows
+ * them all, and nobody is in more.
+ */
+export function useNamespaces() {
+  const result = useQuery({
+    ...getNamespacesOptions({ query: { page: 1, per_page: 100 } }),
+  });
+
+  return {
+    namespaces: (result.data ?? []) as Namespace[],
+    isLoading: result.isLoading,
+    error: result.error,
+    refetch: result.refetch,
+  };
+}
+
+/**
+ * Fetches a fresh namespace token on every cold start, so the role in authStore comes from the
+ * server. That covers a first login, which has no role yet, and a stale role restored from
+ * localStorage. Call it once, at the authenticated boundary in NamespaceGuard. Idle while no
+ * tenant is set.
+ */
+export function useInitRole() {
+  const tenant = useAuthStore((s) => s.tenant);
+
+  const { data } = useQuery({
+    ...getNamespaceTokenOptions({ path: { tenant: tenant ?? "" } }),
+    enabled: !!tenant,
+  });
+
+  useEffect(() => {
+    if (!data || !tenant) return;
+    useAuthStore
+      .getState()
+      .setSession({ token: data.token, tenant, role: data.role });
+  }, [data, tenant]);
+}
+
+/**
+ * One namespace by tenant id. Idle until an id is given.
+ */
+export function useNamespace(tenantId: string) {
+  const result = useQuery({
+    ...getNamespaceOptions({ path: { tenant: tenantId } }),
+    enabled: !!tenantId,
+  });
+
+  return {
+    namespace: result.data ?? null,
+    isLoading: result.isLoading,
+    error: result.error,
+    refetch: result.refetch,
+  };
+}
+
+/**
+ * Lists a namespace's members with their full identity (name, username, email)
+ * and a flattened account status. Backs the members table; the (cloud/enterprise)
+ * pending invitations are fetched separately and merged in the component.
+ * Member lists are small, so a single large page is fetched (no pagination UI).
+ */
+export function useNamespaceMembers(tenantId: string) {
+  const result = useQuery({
+    ...listNamespaceMembersOptions({
+      path: { tenant: tenantId },
+      query: { page: 1, per_page: 100 },
+    }),
+    enabled: !!tenantId,
+  });
+
+  return {
+    members: result.data ?? [],
+    isLoading: result.isLoading,
+    error: result.error,
+  };
+}
+
+/**
+ * The namespace's device counts, by status. Returns null while loading rather than zeroes, so a
+ * dashboard does not flash "0 devices" at someone who has some.
+ */
+export function useStats() {
+  const result = useQuery(getStatusDevicesOptions());
+
+  return {
+    stats: result.data ?? null,
+    isLoading: result.isLoading,
+    error: result.error,
+  };
+}
+
+/**
+ * Edits the namespace's settings, refreshing the namespace list and the namespace itself.
  */
 export function useEditNamespace() {
   const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
     ...editNamespaceMutation(),
-    onSuccess: invalidate,
-  });
-}
-
-/**
- * Upgrades a legacy namespace to a new one, once and for good. It changes who can reach
- * every device at once and seeds the owner's access policy, so the namespace and policy queries
- * are refreshed with it.
- */
-export function useUpgradeNamespace() {
-  const invalidate = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
-    "listAccessPolicies",
-  );
-  return useMutation({
-    ...upgradeNamespaceMutation(),
     onSuccess: invalidate,
   });
 }
