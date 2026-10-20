@@ -1,9 +1,11 @@
 import { useWatch } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
-  useCreateFirewallRule,
-  useUpdateFirewallRule,
-} from "@/hooks/useFirewallRuleMutations";
-import type { FirewallRulesResponse } from "@/client";
+  createFirewallRuleMutation,
+  updateFirewallRuleMutation,
+  type FirewallRulesResponse,
+} from "@/client";
 import RadioCard from "@/components/common/fields/RadioCard";
 import {
   UserGroupIcon,
@@ -54,8 +56,15 @@ export default function RuleModal({
   editRule: FirewallRulesResponse | null;
   onClose: () => void;
 }) {
-  const createRule = useCreateFirewallRule();
-  const updateRule = useUpdateFirewallRule();
+  const invalidateRules = useInvalidateByIds("getFirewallRules");
+  const createRule = useMutation({
+    ...createFirewallRuleMutation(),
+    onSuccess: invalidateRules,
+  });
+  const updateRule = useMutation({
+    ...updateFirewallRuleMutation(),
+    onSuccess: invalidateRules,
+  });
   const isEdit = !!editRule;
 
   const form = useDrawerForm(
