@@ -1,14 +1,16 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { PencilSquareIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
-import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
 import ContextualDialog from "@/components/common/ContextualDialog";
 import ObjectName from "@/components/common/ObjectName";
 import DepartingDevices from "@/components/common/DepartingDevices";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useMemberDevices } from "@/hooks/useMemberDevices";
 import { hasPermission } from "@/utils/permission";
+import { updateNamespaceMemberMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { RoleSelector } from "./constants";
 import { assignableRoleOr, type AssignableRole } from "./helpers";
 
@@ -30,7 +32,17 @@ export default function MemberRoleDialog({
   const current = assignableRoleOr(role, "operator");
   const [next, setNext] = useState<AssignableRole>(current);
   const [keepDevices, setKeepDevices] = useState<string[]>([]);
-  const updateRole = useUpdateMemberRole();
+  const invalidateMembership = useInvalidateByIds(
+    "getNamespaces",
+    "getNamespace",
+    "listNamespaceMembers",
+    "getDevices",
+    "getStats",
+  );
+  const updateRole = useMutation({
+    ...updateNamespaceMemberMutation(),
+    onSuccess: invalidateMembership,
+  });
   const canKeepDevices = useHasPermission("provisioningKey:create");
   const devicesLeave = !hasPermission(next, "device:accept");
   const devices = useMemberDevices(memberId, devicesLeave);

@@ -11,6 +11,7 @@ import {
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import {
+  approveUserMutation,
   cancelMembershipInvitationMutation,
   getNamespaceMembershipInvitationList,
   getNamespaceMembershipInvitationListQueryKey,
@@ -20,7 +21,6 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespaceMembers } from "@/hooks/useNamespaces";
 import { paginatedQueryOptions } from "@/api/pagination";
-import { useApproveMember } from "@/hooks/useMemberMutations";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { isSdkError } from "@/api/errors";
@@ -103,7 +103,15 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   });
   const invitations = pendingInvitations?.data ?? [];
 
-  const approveMember = useApproveMember();
+  const invalidateMembers = useInvalidateByIds(
+    "getNamespaces",
+    "getNamespace",
+    "listNamespaceMembers",
+  );
+  const approveMember = useMutation({
+    ...approveUserMutation(),
+    onSuccess: invalidateMembers,
+  });
   const invalidateInvitations = useInvalidateByIds(
     "getNamespaceMembershipInvitationList",
   );
