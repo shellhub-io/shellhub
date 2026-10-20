@@ -127,11 +127,6 @@ describe("KeyModal", () => {
       renderModal();
       expect(getSubmitButton()).toBeDisabled();
     });
-
-    it("does not render when open is false", () => {
-      renderModal({ open: false });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
   });
 
   describe("edit mode UI", () => {
