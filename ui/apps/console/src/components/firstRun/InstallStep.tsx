@@ -45,8 +45,8 @@ export default function InstallStep({
           {legacy ? (
             <>
               <span className="text-text-secondary">
-                The device will appear as pending in the console — accept it
-                there.
+                ✅ The agent is listening for connections. The device is
+                pending: accept it in the console.
               </span>
               {"\n"}
               <span className="text-text-muted select-none">$ </span>
