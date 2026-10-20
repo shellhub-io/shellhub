@@ -20,9 +20,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const defaultBodyLimit = 1 << 20
+
 // DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v5] package, with the default
 // configuration required by ShellHub's services and the [github.com/shellhub-io/shellhub/server/api/pkg/gateway]
-// loaded into the context. Its error handler reports nowhere until [WithReporter] replaces it.
+// loaded into the context. Its error handler reports nowhere until [WithReporter] replaces it. Request bodies are
+// capped at 1 MiB: a read past the cap returns [echo.ErrStatusRequestEntityTooLarge], which the error handler
+// answers with 413, and a route replaces the cap with [routesmiddleware.BodyLimit].
 func DefaultHTTPHandler() http.Handler {
 	server := echo.New()
 
@@ -44,6 +48,7 @@ func DefaultHTTPHandler() http.Handler {
 	server.Use(echoMiddleware.Secure())
 	server.Use(gateway.WithContext())
 	server.Use(pkgmiddleware.Log)
+	server.Use(routesmiddleware.DefaultBodyLimit(defaultBodyLimit))
 
 	return server
 }
