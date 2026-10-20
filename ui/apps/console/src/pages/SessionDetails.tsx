@@ -570,7 +570,7 @@ export default function SessionDetails() {
       />
 
       {logsError && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-banner px-4 py-2.5 bg-accent-red/10 border border-accent-red/30 text-accent-red text-sm font-mono rounded-lg shadow-lg">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-banner px-4 py-2.5 bg-accent-red/10 border border-accent-red/30 text-accent-red text-sm rounded-lg shadow-lg">
           {logsError}
         </div>
       )}

@@ -265,10 +265,7 @@ export default function TagsPopover({
                   )}
 
                   {error && (
-                    <p
-                      role="alert"
-                      className="text-2xs font-mono text-accent-red"
-                    >
+                    <p role="alert" className="text-2xs text-accent-red">
                       {error}
                     </p>
                   )}

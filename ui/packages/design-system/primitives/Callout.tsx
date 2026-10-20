@@ -130,7 +130,7 @@ export function Callout({
       role={role}
       aria-live={ariaLive}
       className={cn(
-        "flex items-center gap-2 border px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down",
+        "flex items-center gap-2 border px-3.5 py-2.5 rounded-md text-xs font-sans animate-slide-down",
         bg,
         border,
         text,

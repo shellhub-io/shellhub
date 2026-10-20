@@ -905,7 +905,7 @@ function AccessPolicyModal({
         </div>
 
         {error && (
-          <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
+          <p className="text-xs text-accent-red flex items-center gap-1.5">
             <ExclamationCircleIcon
               className="w-3.5 h-3.5 shrink-0"
               strokeWidth={2}
