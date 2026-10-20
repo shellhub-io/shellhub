@@ -153,7 +153,7 @@ func TestResolveKeyAuth(t *testing.T) {
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
-		require.NoError(t, auth.Offer(sess))
+		require.NoError(t, auth.Offer(t.Context(), sess))
 
 		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
 	})

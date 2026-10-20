@@ -57,10 +57,22 @@ type Auth interface {
 	// Auth defines the callback that must be called when authenticating the session.
 	Auth() authFunc
 
-	// Offer decides whether the credential is acceptable at all. It may run
-	// before the client has proven it holds the key — including for a key it
-	// does not hold — so it must only read.
-	Offer(*Session) error
+	// Offer decides whether the credential is acceptable at all. It may run before
+	// the client has proven it holds the key, even for a key it does not hold, so
+	// it must only read. Every read uses ctx, the client connection's context.
+	// Only the public key auth reads anything; the others accept.
+	//
+	// Unless the instance allows agents below 0.6.0, the public key auth returns
+	// ErrInvalidVersion for an agent version it cannot parse and
+	// ErrUnsuportedPublicKeyAuth for one below 0.6.0. An agent reporting "latest"
+	// skips this check. The key lookup returns ErrForbidden for an empty tenant,
+	// ErrNamespaceNotFound when the namespace does not resolve, a disconnect
+	// during that lookup included, ErrPublicKeyNotFound for a fingerprint with no
+	// match, or the store's error. Once the client has disconnected, the lookup's
+	// error wraps ctx's error. It returns ErrEvaluatePublicKey for a key the
+	// username or the filter refuses or whose evaluation fails, a disconnect
+	// during evaluation included.
+	Offer(context.Context, *Session) error
 
 	// Evaluate runs once the credential is proven, and is where anything with a
 	// cost or a side effect belongs. It's not always necessary.
@@ -98,7 +110,7 @@ func (*publicKeyAuth) Approved(*Session, string) error {
 	return nil
 }
 
-func (p *publicKeyAuth) Offer(session *Session) error {
+func (p *publicKeyAuth) Offer(ctx context.Context, session *Session) error {
 	if !sshconf.AllowPublickeyAccessBelow060 {
 		version := session.Device.Info.Version
 		if version != "latest" {
@@ -113,7 +125,6 @@ func (p *publicKeyAuth) Offer(session *Session) error {
 		}
 	}
 
-	ctx := context.Background()
 	fingerprint := gossh.FingerprintLegacyMD5(p.pk)
 
 	key, err := session.service.GetPublicKey(ctx, fingerprint, session.Device.TenantID)
@@ -166,7 +177,7 @@ func (*passwordAuth) Approved(*Session, string) error {
 	return nil
 }
 
-func (*passwordAuth) Offer(*Session) error {
+func (*passwordAuth) Offer(context.Context, *Session) error {
 	return nil
 }
 
@@ -237,7 +248,7 @@ func (*approvalAuth) Auth() authFunc {
 	return mintEphemeralSigner
 }
 
-func (*approvalAuth) Offer(*Session) error {
+func (*approvalAuth) Offer(context.Context, *Session) error {
 	return nil
 }
 
@@ -270,7 +281,7 @@ func (*identityAuth) Auth() authFunc {
 	return mintEphemeralSigner
 }
 
-func (*identityAuth) Offer(*Session) error {
+func (*identityAuth) Offer(context.Context, *Session) error {
 	return nil
 }
 
