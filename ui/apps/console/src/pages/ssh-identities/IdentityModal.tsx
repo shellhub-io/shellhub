@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   ExclamationCircleIcon,
   PencilSquareIcon,
@@ -6,12 +7,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useCreateSSHIdentity } from "@/hooks/useSSHIdentityRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
-  useCreateSSHIdentity,
-  useRenameSSHIdentity,
-} from "@/hooks/useSSHIdentityMutations";
-import { useCreateApiKeySSHIdentity } from "@/hooks/useSSHIdentityMutations";
-import type { SshIdentity } from "@/client";
+  createApiKeySshIdentityMutation,
+  renameSshIdentityMutation,
+  type SshIdentity,
+} from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
@@ -46,8 +48,15 @@ function IdentityModal({
   onClose: () => void;
 }) {
   const createIdentity = useCreateSSHIdentity();
-  const renameIdentity = useRenameSSHIdentity();
-  const createApiKeyIdentity = useCreateApiKeySSHIdentity();
+  const invalidateIdentities = useInvalidateByIds("listSshIdentities");
+  const renameIdentity = useMutation({
+    ...renameSshIdentityMutation(),
+    onSuccess: invalidateIdentities,
+  });
+  const createApiKeyIdentity = useMutation({
+    ...createApiKeySshIdentityMutation(),
+    onSuccess: invalidateIdentities,
+  });
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isEdit = !!editIdentity;
 

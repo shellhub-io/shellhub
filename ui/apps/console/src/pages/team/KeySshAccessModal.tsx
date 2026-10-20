@@ -20,8 +20,10 @@ import {
 import Modal from "@/components/common/Modal";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import IdentityModal from "@/pages/ssh-identities/IdentityModal";
-import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
-import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
+import {
+  useApiKeySshIdentities,
+  useDeleteSSHIdentity,
+} from "@/hooks/useSSHIdentityRequests";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";

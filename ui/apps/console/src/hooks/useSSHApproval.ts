@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { getSshApproval } from "@/client";
-import { isSdkError } from "@/api/errors";
+import { useMutation } from "@tanstack/react-query";
 import {
-  useConfirmSSHApproval,
-  useRejectSSHApproval,
-} from "./useSSHIdentityMutations";
+  confirmSshApprovalMutation,
+  getSshApproval,
+  rejectSshApprovalMutation,
+} from "@/client";
+import { isSdkError } from "@/api/errors";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
  * Drives the SSH login approval modal: fetch the request the gateway is holding
@@ -58,8 +60,12 @@ export function useSSHApproval(code: string) {
   const [actionError, setActionError] = useState("");
   const [confirmationCode, setConfirmationCode] = useState("");
   const expiresAtRef = useRef(0);
-  const confirmMutation = useConfirmSSHApproval();
-  const rejectMutation = useRejectSSHApproval();
+  const invalidateIdentities = useInvalidateByIds("listSshIdentities");
+  const confirmMutation = useMutation({
+    ...confirmSshApprovalMutation(),
+    onSuccess: invalidateIdentities,
+  });
+  const rejectMutation = useMutation(rejectSshApprovalMutation());
 
   useEffect(() => {
     let cancelled = false;

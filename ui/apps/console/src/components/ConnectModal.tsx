@@ -15,7 +15,6 @@ import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
-import { useCreateSSHIdentity } from "../hooks/useSSHIdentityMutations";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {
   ensureBrowserKey,
@@ -48,7 +47,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { Button, Callout, StatusDot } from "@shellhub/design-system/primitives";
 import DistroIcon from "@/components/common/DistroIcon";
 import { useDevice } from "@/hooks/useDeviceRequests";
-import { useSSHIdentities } from "@/hooks/useSSHIdentities";
+import {
+  useCreateSSHIdentity,
+  useSSHIdentities,
+} from "@/hooks/useSSHIdentityRequests";
 import { DEFAULT_LOGIN, parseSshid, sshUrl } from "@/utils/sshid";
 import type { VaultKeyEntry } from "../types/vault";
 

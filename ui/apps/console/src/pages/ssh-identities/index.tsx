@@ -21,8 +21,10 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useSSHIdentities } from "@/hooks/useSSHIdentities";
-import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
+import {
+  useDeleteSSHIdentity,
+  useSSHIdentities,
+} from "@/hooks/useSSHIdentityRequests";
 import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
 import PageHeader from "@/components/common/PageHeader";

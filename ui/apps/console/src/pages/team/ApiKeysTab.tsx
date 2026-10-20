@@ -10,7 +10,7 @@ import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { paginatedQueryOptions } from "@/api/pagination";
-import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
+import { useApiKeySshIdentities } from "@/hooks/useSSHIdentityRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useTableSort } from "@/hooks/useTableSort";
 import {
