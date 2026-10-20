@@ -1,4 +1,5 @@
 import { useState, useRef, type ComponentType, type SVGProps } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   InformationCircleIcon,
   ExclamationTriangleIcon,
@@ -17,7 +18,7 @@ import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import CopyButton from "@/components/common/CopyButton";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useUploadLicense } from "@/hooks/useUploadLicense";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   formatLicenseTimestamp,
   formatDeviceCount,
@@ -26,7 +27,7 @@ import {
   validateLicenseFile,
   getLicenseAlertConfig,
 } from "@/utils/license";
-import type { GetLicenseResponse } from "@/client";
+import { sendLicenseMutation, type GetLicenseResponse } from "@/client";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
@@ -203,7 +204,11 @@ function LicenseFeatures({
 }
 
 function LicenseUpload() {
-  const upload = useUploadLicense();
+  const invalidateLicense = useInvalidateByIds("getLicense");
+  const upload = useMutation({
+    ...sendLicenseMutation(),
+    onSuccess: invalidateLicense,
+  });
   const [file, setFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
