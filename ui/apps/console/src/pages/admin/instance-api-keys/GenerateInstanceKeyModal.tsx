@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Card, Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateInstanceApiKey } from "@/hooks/useInstanceApiKeyMutations";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { createInstanceApiKeyMutation } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
 import Modal from "@/components/common/Modal";
 import {
@@ -34,7 +36,11 @@ function GenerateInstanceKeyModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const createKey = useCreateInstanceApiKey();
+  const invalidateKeys = useInvalidateByIds("listInstanceApiKeys");
+  const createKey = useMutation({
+    ...createInstanceApiKeyMutation(),
+    onSuccess: invalidateKeys,
+  });
   const form = useDrawerForm(
     open,
     generateInstanceKeySchema,
