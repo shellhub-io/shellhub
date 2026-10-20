@@ -2,7 +2,7 @@ import { useState } from "react";
 import { TagIcon, XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
-import { useTags } from "@/hooks/useTags";
+import { useTags } from "@/hooks/useTagRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { LABEL_BASE } from "@/utils/styles";
 

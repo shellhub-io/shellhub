@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
-import { useTags } from "@/hooks/useTags";
+import { useTags } from "@/hooks/useTagRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import {
   ContextualDialogHeader,
