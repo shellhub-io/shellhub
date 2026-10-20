@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { paginatedQueryFn } from "../pagination";
+import { paginatedQueryFn, paginatedQueryOptions } from "../pagination";
 
 function mockSdkFn(data: unknown[], headers: Record<string, string>) {
   return vi.fn().mockResolvedValue({
@@ -32,5 +32,22 @@ describe("paginatedQueryFn", () => {
     const sdkFn = vi.fn().mockRejectedValue(new Error("network failure"));
 
     await expect(paginatedQueryFn(sdkFn, {})()).rejects.toThrow("network failure");
+  });
+});
+
+describe("paginatedQueryOptions", () => {
+  it("keys the query on the options it fetches with", async () => {
+    const sdkFn = mockSdkFn([{ uid: "1" }], { "X-Total-Count": "7" });
+    const options = { query: { page: 2, per_page: 5 } };
+
+    const { queryKey, queryFn } = paginatedQueryOptions(
+      sdkFn,
+      (o: typeof options) => ["getThings", o],
+      options,
+    );
+
+    expect(queryKey).toEqual(["getThings", options]);
+    expect(await queryFn()).toEqual({ data: [{ uid: "1" }], totalCount: 7 });
+    expect(sdkFn).toHaveBeenCalledWith({ ...options, throwOnError: true });
   });
 });
