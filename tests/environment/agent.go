@@ -195,7 +195,11 @@ func composeBuildAgent(ctx context.Context, run *Run, build AgentBuild, image st
 	project := &types.Project{
 		Name:       "shellhub-e2e-agent-" + run.ID(),
 		WorkingDir: contextDir,
-		Services:   types.Services{"agent": {Name: "agent", Image: image, Build: config}},
+		Services: types.Services{"agent": {
+			Name:          "agent",
+			ContainerSpec: types.ContainerSpec{Image: image},
+			WorkloadSpec:  types.WorkloadSpec{Build: config},
+		}},
 	}
 
 	if err := service.Build(ctx, project, composeapi.BuildOptions{Services: []string{"agent"}, Progress: "plain", Out: output}); err != nil {
