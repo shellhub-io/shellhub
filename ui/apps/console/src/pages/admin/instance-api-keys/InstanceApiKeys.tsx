@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   KeyIcon,
   TrashIcon,
@@ -6,16 +7,21 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useInstanceApiKeys } from "@/hooks/useInstanceApiKeys";
-import { useDeleteInstanceApiKey } from "@/hooks/useInstanceApiKeyMutations";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { paginatedQueryOptions } from "@/api/pagination";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { type InstanceApiKey } from "@/client";
+import {
+  deleteInstanceApiKeyMutation,
+  listInstanceApiKeys,
+  listInstanceApiKeysQueryKey,
+  type InstanceApiKey,
+} from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { formatDateShort } from "@/utils/date";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import GenerateInstanceKeyModal from "./GenerateInstanceKeyModal";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -39,9 +45,19 @@ function InstanceApiKeys() {
     defaults: INSTANCE_API_KEY_LIST_DEFAULTS,
   });
   const page = params.page;
-  const { apiKeys, totalCount, isLoading } = useInstanceApiKeys({ page });
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(listInstanceApiKeys, listInstanceApiKeysQueryKey, {
+      query: { page, per_page: PER_PAGE, order_by: "desc" },
+    }),
+  );
+  const apiKeys = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
 
-  const deleteKey = useDeleteInstanceApiKey();
+  const invalidateKeys = useInvalidateByIds("listInstanceApiKeys");
+  const deleteKey = useMutation({
+    ...deleteInstanceApiKeyMutation(),
+    onSuccess: invalidateKeys,
+  });
   const [generateOpen, setGenerateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<InstanceApiKey | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
