@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import RenameSection from "@/components/common/RenameSection";
@@ -8,12 +9,12 @@ import {
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useContainer } from "../hooks/useContainer";
+import { getContainerOptions } from "@/client";
 import {
   useRenameContainer,
   useAddContainerTag,
   useRemoveContainerTag,
-} from "../hooks/useContainerMutations";
+} from "@/hooks/useContainerRequests";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
@@ -44,7 +45,9 @@ export default function ContainerDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { container, isLoading, error } = useContainer(uid ?? "");
+  const { data: container, isLoading, error } = useQuery(
+    getContainerOptions({ path: { uid: uid! } }),
+  );
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);

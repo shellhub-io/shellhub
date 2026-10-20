@@ -7,6 +7,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockContainer, mockNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
+import { decodeB64url } from "@/tests/decodeB64url";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -198,4 +199,31 @@ describe("Containers list", () => {
       );
     },
   );
+});
+
+describe("Containers — search and tag filter", () => {
+  function sentFilter() {
+    const raw = lastContainersUrl?.searchParams.get("filter");
+    return raw ? decodeB64url(raw) : null;
+  }
+
+  it("filters on the name and every chosen tag", async () => {
+    renderPage(["/?search=web&tags=prod&tags=eu"]);
+
+    await waitFor(() => expect(lastContainersUrl).not.toBeNull());
+    expect(sentFilter()).toEqual([
+      { type: "property", params: { name: "name", operator: "contains", value: "web" } },
+      {
+        type: "property",
+        params: { name: "tags.name", operator: "contains", value: ["prod", "eu"] },
+      },
+    ]);
+  });
+
+  it("sends no filter when there is neither a search nor a tag", async () => {
+    renderPage();
+
+    await waitFor(() => expect(lastContainersUrl).not.toBeNull());
+    expect(lastContainersUrl!.searchParams.has("filter")).toBe(false);
+  });
 });

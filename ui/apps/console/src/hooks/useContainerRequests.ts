@@ -1,39 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import { isSdkError } from "../api/errors";
+import { isSdkError } from "@/api/errors";
 import {
-  deleteContainerMutation,
   updateContainerMutation,
-  updateContainerStatusMutation,
   createTag,
   pushTagToContainer,
   pullTagFromContainer,
-} from "../client";
-import { useInvalidateByIds } from "./useInvalidateQueries";
+} from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
- * Accepts or rejects a pending container, refreshing the list and the container itself.
- */
-export function useUpdateContainerStatus() {
-  const invalidate = useInvalidateByIds("getContainers", "getContainer");
-  return useMutation({
-    ...updateContainerStatusMutation(),
-    onSuccess: invalidate,
-  });
-}
-
-/**
- * Removes a container from the namespace.
- */
-export function useRemoveContainer() {
-  const invalidate = useInvalidateByIds("getContainers", "getContainer");
-  return useMutation({
-    ...deleteContainerMutation(),
-    onSuccess: invalidate,
-  });
-}
-
-/**
- * Renames a container.
+ * Renames a container, refreshing the container list and the container itself.
  */
 export function useRenameContainer() {
   const invalidate = useInvalidateByIds("getContainers", "getContainer");

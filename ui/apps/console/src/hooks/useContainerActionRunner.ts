@@ -1,8 +1,9 @@
-import { useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
-  useUpdateContainerStatus,
-  useRemoveContainer,
-} from "@/hooks/useContainerMutations";
+  deleteContainerMutation,
+  updateContainerStatusMutation,
+} from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
 /**
@@ -10,18 +11,22 @@ import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
  * have to know which mutation each operation maps to.
  */
 export function useContainerActionRunner() {
-  const status = useUpdateContainerStatus();
-  const remove = useRemoveContainer();
+  const invalidateContainers = useInvalidateByIds("getContainers", "getContainer");
+  const status = useMutation({
+    ...updateContainerStatusMutation(),
+    onSuccess: invalidateContainers,
+  });
+  const remove = useMutation({
+    ...deleteContainerMutation(),
+    onSuccess: invalidateContainers,
+  });
 
-  return useCallback(
-    async (entity: EntityBase, operation: EntityOperation) => {
-      if (operation === "remove") {
-        await remove.mutateAsync({ path: { uid: entity.uid } });
-        return;
-      }
+  return async (entity: EntityBase, operation: EntityOperation) => {
+    if (operation === "remove") {
+      await remove.mutateAsync({ path: { uid: entity.uid } });
+      return;
+    }
 
-      await status.mutateAsync({ path: { uid: entity.uid, status: operation } });
-    },
-    [status, remove],
-  );
+    await status.mutateAsync({ path: { uid: entity.uid, status: operation } });
+  };
 }
