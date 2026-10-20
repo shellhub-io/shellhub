@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -10,7 +11,14 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
-import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import {
+  deleteFirewallRuleMutation,
+  getFirewallRules,
+  getFirewallRulesQueryKey,
+  type FirewallRulesResponse as FirewallRule,
+} from "@/client";
+import { paginatedQueryOptions } from "@/api/pagination";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -19,12 +27,10 @@ import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
-import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
-import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import RuleModal from "./RuleModal";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import ObjectName from "@/components/common/ObjectName";
 
 type FirewallRulesParams = {
@@ -45,8 +51,18 @@ export default function FirewallRules() {
   const { params, setPage, setSearch } =
     usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
 
-  const { rules, totalCount, isLoading } = useFirewallRules({ page: params.page });
-  const deleteRule = useDeleteFirewallRule();
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(getFirewallRules, getFirewallRulesQueryKey, {
+      query: { page: params.page, per_page: PER_PAGE },
+    }),
+  );
+  const rules = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const invalidateRules = useInvalidateByIds("getFirewallRules");
+  const deleteRule = useMutation({
+    ...deleteFirewallRuleMutation(),
+    onSuccess: invalidateRules,
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
