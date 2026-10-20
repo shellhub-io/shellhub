@@ -1,16 +1,18 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState, useId } from "react";
 import {
   KeyIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import InputField from "@/components/common/fields/InputField";
 import { Button } from "@shellhub/design-system/primitives";
 import DialogHeader from "@/components/common/DialogHeader";
+import { adminResetUserPasswordMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 interface ResetPasswordDialogProps {
   open: boolean;
@@ -27,7 +29,11 @@ export default function ResetPasswordDialog({
   onClose,
   userId,
 }: ResetPasswordDialogProps) {
-  const resetPassword = useResetUserPassword();
+  const invalidateUser = useInvalidateByIds("getUsers", "getUser");
+  const resetPassword = useMutation({
+    ...adminResetUserPasswordMutation(),
+    onSuccess: invalidateUser,
+  });
   const [step, setStep] = useState<"confirm" | "result">("confirm");
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [error, setError] = useState("");

@@ -116,7 +116,6 @@ export function useAdminUsers({
     isLoading: result.isLoading,
     error: result.error,
     isError: result.isError,
-    refetch: result.refetch,
   };
 }
 

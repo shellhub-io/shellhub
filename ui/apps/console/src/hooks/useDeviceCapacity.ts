@@ -1,5 +1,5 @@
 import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminStats } from "@/hooks/useAdminRequests";
 import { deviceCapacity, type DeviceCapacity } from "@/utils/license";
 
 /**

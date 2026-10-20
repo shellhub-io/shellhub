@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NoSymbolIcon } from "@heroicons/react/24/outline";
-import { useDeleteUser } from "@/hooks/useAdminUserMutations";
+import { useDeleteUser } from "@/hooks/useAdminRequests";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
 

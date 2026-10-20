@@ -1,8 +1,9 @@
+import { useMutation } from "@tanstack/react-query";
 import {
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { useUpdateUser } from "@/hooks/useAdminUserMutations";
 import { useAuthStore } from "@/stores/authStore";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -13,7 +14,7 @@ import {
   buildUserPayload,
   type UserFormValues,
 } from "./userSchema";
-import type { UserAdminResponse } from "@/client";
+import { adminUpdateUserMutation, type UserAdminResponse } from "@/client";
 import ObjectName from "@/components/common/ObjectName";
 
 interface EditUserModalProps {
@@ -30,7 +31,11 @@ export default function EditUserModal({
   onClose,
   user,
 }: EditUserModalProps) {
-  const updateUser = useUpdateUser();
+  const invalidateUser = useInvalidateByIds("getUsers", "getUser");
+  const updateUser = useMutation({
+    ...adminUpdateUserMutation(),
+    onSuccess: invalidateUser,
+  });
   const currentUserId = useAuthStore((s) => s.userId);
 
   const usernameRequired = !!user?.username;

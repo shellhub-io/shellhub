@@ -1,8 +1,10 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { CheckBadgeIcon } from "@heroicons/react/24/outline";
-import { useApproveAccountRequest } from "@/hooks/useAdminAccountRequestMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
+import { approveUserMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 interface ApproveAccountDialogProps {
   open: boolean;
@@ -19,7 +21,15 @@ export default function ApproveAccountDialog({
   onClose,
   user,
 }: ApproveAccountDialogProps) {
-  const approve = useApproveAccountRequest();
+  const invalidateApproved = useInvalidateByIds(
+    "getUsers",
+    "getUser",
+    "getNamespaceAdmin",
+  );
+  const approve = useMutation({
+    ...approveUserMutation(),
+    onSuccess: invalidateApproved,
+  });
   const [error, setError] = useState("");
 
   return (

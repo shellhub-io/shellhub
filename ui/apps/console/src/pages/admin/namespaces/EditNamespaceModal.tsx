@@ -1,5 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
-import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
 import {
@@ -12,13 +12,14 @@ import {
   NAMESPACE_NAME_HINT,
   NAMESPACE_NAME_MAX_LENGTH,
 } from "@/utils/validation";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   editNamespaceSchema,
   buildEditNamespaceDefaults,
   buildEditNamespaceBody,
   type EditNamespaceFormValues,
 } from "./editNamespaceSchema";
-import type { Namespace } from "@/client";
+import { editNamespaceAdminMutation, type Namespace } from "@/client";
 import ObjectName from "@/components/common/ObjectName";
 
 interface EditNamespaceModalProps {
@@ -36,7 +37,14 @@ export default function EditNamespaceModal({
   onClose,
   namespace,
 }: EditNamespaceModalProps) {
-  const editNamespace = useAdminEditNamespace();
+  const invalidateNamespaces = useInvalidateByIds(
+    "getNamespacesAdmin",
+    "getNamespaceAdmin",
+  );
+  const editNamespace = useMutation({
+    ...editNamespaceAdminMutation(),
+    onSuccess: invalidateNamespaces,
+  });
 
   const schema = editNamespaceSchema(namespace?.name ?? "");
   const defaults = buildEditNamespaceDefaults(namespace);
