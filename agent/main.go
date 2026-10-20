@@ -138,6 +138,7 @@ func main() {
 						"tenant_id":          cfg.TenantID,
 						"server_address":     cfg.ServerAddress,
 						"preferred_hostname": cfg.PreferredHostname,
+						"status":             ag.EnrollmentStatus(),
 					}).Info("Listening for connections")
 
 					err = ag.Listen(ctx)

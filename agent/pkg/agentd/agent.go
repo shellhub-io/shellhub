@@ -737,6 +737,14 @@ func (a *Agent) Namespace() string {
 	return a.authData.Namespace
 }
 
+// EnrollmentStatus returns the device's status as the server reported it on the last
+// authorization, such as accepted, pending or rejected. It is empty when the server did not
+// report one: an older server, or a current one answering from its authorization cache. Unlike
+// [Agent.DeviceStatus] it makes no request. The agent must be authorized first.
+func (a *Agent) EnrollmentStatus() models.DeviceStatus {
+	return a.authData.Status
+}
+
 func (a *Agent) isClosed() bool {
 	return a.closed.Load()
 }
