@@ -74,7 +74,7 @@ jobs:
 
       - name: Upload the Semgrep SARIF report
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('semgrep.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -157,42 +157,42 @@ jobs:
 
       - name: Upload the govulncheck SARIF report (root)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-root.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-root.sarif
           category: govulncheck-root
 
       - name: Upload the govulncheck SARIF report (server)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-server.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-server.sarif
           category: govulncheck-server
 
       - name: Upload the govulncheck SARIF report (agent)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-agent.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-agent.sarif
           category: govulncheck-agent
 
       - name: Upload the govulncheck SARIF report (gateway)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-gateway.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-gateway.sarif
           category: govulncheck-gateway
 
       - name: Upload the govulncheck SARIF report (openapi)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-openapi.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-openapi.sarif
           category: govulncheck-openapi
 
       - name: Upload the govulncheck SARIF report (tests)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-tests.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: govulncheck-tests.sarif
           category: govulncheck-tests
@@ -295,28 +295,28 @@ jobs:
 
       - name: Upload the Trivy SARIF report (server)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-server.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-server.sarif
           category: trivy-server
 
       - name: Upload the Trivy SARIF report (gateway)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-gateway.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-gateway.sarif
           category: trivy-gateway
 
       - name: Upload the Trivy SARIF report (ui)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-ui.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-ui.sarif
           category: trivy-ui
 
       - name: Upload the Trivy SARIF report (agent)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-agent.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-agent.sarif
           category: trivy-agent
