@@ -26,7 +26,7 @@ import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
 import { roleSubjectCount as countRoleSubject } from "./subjectCount";
@@ -235,7 +235,7 @@ export default function AccessPolicies() {
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const isNewNamespace = useNamespaceLegacy() !== true;
 
-  const { apiKeys } = useApiKeys({ perPage: 100 });
+  const apiKeys = useApiKeys();
   const members = ns?.members ?? [];
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
   const apiKeyName = (id: string) => apiKeys.find((k) => k.id === id)?.name;

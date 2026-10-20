@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ChevronRightIcon,
   KeyIcon,
@@ -7,12 +8,17 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { paginatedQueryOptions } from "@/api/pagination";
 import { useApiKeySshIdentities } from "@/hooks/useApiKeySshIdentities";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { useTableSort } from "@/hooks/useTableSort";
-import { type ApiKey } from "@/client";
+import {
+  apiKeyDeleteMutation,
+  apiKeyList,
+  apiKeyListQueryKey,
+  type ApiKey,
+} from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -23,7 +29,7 @@ import GenerateKeyModal from "./GenerateKeyModal";
 import KeySshAccessModal from "./KeySshAccessModal";
 import EditKeyModal from "./EditKeyModal";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { pageCount } from "@/utils/pagination";
+import { pageCount, PER_PAGE } from "@/utils/pagination";
 import ObjectName from "@/components/common/ObjectName";
 
 type SortField = "name" | "created_at" | "expires_in";
@@ -93,13 +99,19 @@ function ApiKeysTab() {
     defaultField: "created_at",
     onSortChange: () => setPage(1),
   });
-  const { apiKeys, totalCount, isLoading } = useApiKeys({
-    page,
-    sortBy,
-    orderBy,
-  });
+  const { data, isLoading } = useQuery(
+    paginatedQueryOptions(apiKeyList, apiKeyListQueryKey, {
+      query: { page, per_page: PER_PAGE, sort_by: sortBy, order_by: orderBy },
+    }),
+  );
+  const apiKeys = data?.data ?? [];
+  const totalCount = data?.totalCount ?? 0;
 
-  const deleteKey = useDeleteApiKey();
+  const invalidateKeys = useInvalidateByIds("apiKeyList");
+  const deleteKey = useMutation({
+    ...apiKeyDeleteMutation(),
+    onSuccess: invalidateKeys,
+  });
   const canManageIdentities = useHasPermission("sshIdentity:manage");
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);

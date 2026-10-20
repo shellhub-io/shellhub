@@ -1,5 +1,5 @@
 import type { SessionPrincipal } from "@/client";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -13,7 +13,7 @@ export function usePrincipalName(): (
 ) => string | undefined {
   const tenant = useAuthStore((state) => state.tenant);
   const { namespace } = useNamespace(tenant ?? "");
-  const { apiKeys } = useApiKeys({ perPage: 100 });
+  const apiKeys = useApiKeys();
 
   return (principal) =>
     principal.kind === "api-key"

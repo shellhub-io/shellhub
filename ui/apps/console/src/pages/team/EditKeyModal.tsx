@@ -1,8 +1,9 @@
 import {
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
-import { type ApiKey } from "@/client";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { apiKeyUpdateMutation, type ApiKey } from "@/client";
 import FormModal from "@/components/common/FormModal";
 import { FormInputField } from "@/components/common/fields/rhf";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -27,7 +28,11 @@ function EditKeyModal({
   onClose: () => void;
   apiKey: ApiKey | null;
 }) {
-  const updateKey = useUpdateApiKey();
+  const invalidateKeys = useInvalidateByIds("apiKeyList");
+  const updateKey = useMutation({
+    ...apiKeyUpdateMutation(),
+    onSuccess: invalidateKeys,
+  });
   const defaults = buildEditKeyDefaults(apiKey);
   const form = useDrawerForm(open, editKeySchema, defaults);
   const { control, setError, clearErrors } = form;
