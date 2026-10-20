@@ -50,8 +50,9 @@ type NamespaceEdit struct {
 	TenantParam
 	Name     string `json:"name" validate:"omitempty,hostname_rfc1123,excludes=."`
 	Settings struct {
-		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`
-		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=4096"`
+		SessionRecord            *bool   `json:"session_record" validate:"omitempty"`
+		ConnectionAnnouncement   *string `json:"connection_announcement" validate:"omitempty,min=0,max=4096"`
+		RequireVerifiedDeviceKey *bool   `json:"require_verified_device_key" validate:"omitempty"`
 	} `json:"settings"`
 }
 

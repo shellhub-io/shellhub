@@ -23,9 +23,6 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 					Local: &models.SystemAuthenticationLocal{
 						Enabled: true,
 					},
-					Device: &models.SystemAuthenticationDevice{
-						RequireVerifiedKey: true,
-					},
 				},
 			}
 

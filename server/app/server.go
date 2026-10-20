@@ -94,7 +94,10 @@ type Env struct {
 	// to it rather than honoured.
 	SessionKeepAliveTimeout time.Duration `env:"SHELLHUB_SESSION_KEEPALIVE_TIMEOUT,default=5m"`
 
-	RequireVerifiedDeviceKey bool `env:"SHELLHUB_REQUIRE_VERIFIED_DEVICE_KEY,default=false"`
+	// NamespaceRequireVerifiedDeviceKey is whether a namespace created from now on refuses agents
+	// that cannot sign the server's challenge, which every agent older than 0.27 is. A namespace
+	// that already exists keeps its own setting.
+	NamespaceRequireVerifiedDeviceKey bool `env:"SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY,default=true"`
 
 	// Edition is the edition the instance runs as. A value outside the three editions fails the
 	// parse, so a misconfigured instance stops at boot.
@@ -295,14 +298,8 @@ func (s *Server) Setup(ctx context.Context) error {
 		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
 		services.WithDevelopmentMode(s.env.Development()),
 		services.WithEnrollmentWebhookCIDRs(services.ParseEnrollmentWebhookCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
+		services.WithNamespaceRequireVerifiedDeviceKey(s.env.NamespaceRequireVerifiedDeviceKey),
 	)
-
-	verifiedKeyOpts, err := s.verifiedDeviceKeyOption(ctx, store)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, verifiedKeyOpts...)
 
 	privKey, pubKey, err := services.LoadKeys(s.env.PrivateKey, s.env.PublicKey)
 	if err != nil {
@@ -495,24 +492,6 @@ func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) 
 	}
 
 	return opts, nil
-}
-
-func (s *Server) verifiedDeviceKeyOption(ctx context.Context, st store.Store) ([]services.Option, error) {
-	required := s.env.RequireVerifiedDeviceKey
-	if !required {
-		system, err := st.SystemGet(ctx)
-		if err != nil {
-			return nil, errors.Join(errors.New("init device key verification"), err)
-		}
-
-		required = system.Authentication.RequiresVerifiedDeviceKey()
-	}
-
-	if !required {
-		return nil, nil
-	}
-
-	return []services.Option{services.WithVerifiedDeviceKeyRequired()}, nil
 }
 
 func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {

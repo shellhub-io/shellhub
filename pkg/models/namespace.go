@@ -78,17 +78,25 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 }
 
 // NamespaceSettings is the per-namespace policy the SSH gateway reads on every connection. A nil
-// Settings on a Namespace means the defaults, not "everything off".
+// Settings on a Namespace means the defaults, not "everything off", except RequireVerifiedDeviceKey,
+// which a nil Settings treats as not required.
 type NamespaceSettings struct {
-	SessionRecord          bool   `json:"session_record"`
-	ConnectionAnnouncement string `json:"connection_announcement"`
-	Legacy                 bool   `json:"legacy"`
+	SessionRecord            bool   `json:"session_record"`
+	ConnectionAnnouncement   string `json:"connection_announcement"`
+	Legacy                   bool   `json:"legacy"`
+	RequireVerifiedDeviceKey bool   `json:"require_verified_device_key"`
 }
 
 // IsLegacy reports whether the namespace still runs the legacy model. It is nil-safe: nil
 // settings mean a new namespace.
 func (s *NamespaceSettings) IsLegacy() bool {
 	return s != nil && s.Legacy
+}
+
+// RequiresVerifiedDeviceKey reports whether the namespace refuses agents that do not prove they
+// hold their device key. It is nil-safe: nil settings do not require it.
+func (s *NamespaceSettings) RequiresVerifiedDeviceKey() bool {
+	return s != nil && s.RequireVerifiedDeviceKey
 }
 
 // NamespaceConflicts holds namespace attributes that must be unique for each document and can be utilized in queries

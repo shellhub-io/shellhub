@@ -73,13 +73,19 @@ type ProvisioningKeyStore interface {
 	// [ErrNoDocuments] when the key is already overused, closing the race between concurrent enrollments.
 	ProvisioningKeyIncrementUsage(ctx context.Context, provisioningKey *models.ProvisioningKey) (err error)
 
-	// ProvisioningKeyEventCreate appends one immutable row to a provisioning key's enrollment history. The store
-	// stamps the event ID and timestamp. It returns an error, if any.
+	// ProvisioningKeyEventCreate appends one row to a provisioning key's enrollment history, a single
+	// attempt. The store stamps the event ID and timestamp and sets Attempts to 1. A refusal whose device's newest event is
+	// already the same refusal on the same key refreshes that row instead: its timestamp, hostname,
+	// identity, info and source address, and one more attempt. Refusals of the same device are
+	// serialized, so ones that arrive together still leave one row. It returns ctx's error when it
+	// is cancelled or its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyEventCreate(ctx context.Context, event *models.ProvisioningKeyEvent) (err error)
 
 	// ProvisioningKeyEventStampDecision freezes the enrollment outcome (accepted/rejected + when) on the
-	// device's newest history event, so the audit survives the device being removed. Best-effort: a
-	// device with no event stamps nothing.
+	// device's newest enrollment event, so the audit survives the device being removed; a refusal is
+	// never stamped, even when it is newer. Best-effort: a device with no enrollment event stamps
+	// nothing. It returns [ErrInvalidScope] for a scope not bounded to a namespace, ctx's error when
+	// it is cancelled or its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) (err error)
 
 	// ProvisioningKeyEventList retrieves the enrollment history of the provisioning key identified by its digest

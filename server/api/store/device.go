@@ -80,7 +80,7 @@ type DeviceStore interface {
 	// KeyVerifiedAt fails. It writes KeyVerifiedAt only while the stored one is unset and the device
 	// is not removed, so a snapshot read before a verification cannot undo it and a removal racing a
 	// verification wins, and clears it when the device is written as removed, so a removed device
-	// accepts unsigned authentication again until the instance requires verification.
+	// accepts unsigned authentication again unless its namespace requires verification.
 	DeviceUpdate(ctx context.Context, device *models.Device) error
 	// DeviceUpdateUnlessRemoved updates a device the way DeviceUpdate does, but only while it is not
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so

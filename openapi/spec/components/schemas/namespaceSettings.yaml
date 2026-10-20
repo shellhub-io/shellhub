@@ -16,7 +16,10 @@ properties:
     type: boolean
     readOnly: true
     example: false
+  require_verified_device_key:
+    $ref: namespaceRequireVerifiedDeviceKey.yaml
 required:
   - session_record
   - connection_announcement
   - legacy
+  - require_verified_device_key

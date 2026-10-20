@@ -1,0 +1,9 @@
+description: |
+  Whether the namespace refuses an agent that does not prove it holds its device key by signing a
+  server challenge. Agents older than 0.27 cannot sign, so they stop connecting while it is on,
+  those of devices already registered included. A device that has signed once is never accepted
+  unsigned again, whatever this says, until it is removed. A namespace created after the setting
+  was introduced starts with the instance's `SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY`, on by
+  default; one that existed before starts off.
+type: boolean
+example: true

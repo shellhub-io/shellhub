@@ -29,6 +29,7 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"platform":      {"contains", "eq", "ne"},
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
+	"key_verified":  {"bool", "eq"},
 	"custom_fields": {"contains"},
 	"owner_id":      {"eq"},
 

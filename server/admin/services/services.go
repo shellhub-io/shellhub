@@ -89,10 +89,21 @@ type service struct {
 	cache   cache.Cache
 	edition envs.Edition
 	clock   clock.Clock
+
+	namespaceRequireVerifiedDeviceKey bool
 }
 
 // Option configures the service at construction.
 type Option func(*service)
+
+// WithNamespaceRequireVerifiedDeviceKey sets whether a namespace the service creates starts out
+// requiring verified device keys, refusing agents released before device key verification. Without
+// it a new namespace does not require them.
+func WithNamespaceRequireVerifiedDeviceKey(required bool) Option {
+	return func(s *service) {
+		s.namespaceRequireVerifiedDeviceKey = required
+	}
+}
 
 // WithEdition sets the edition the namespace device limit and the connection announcement follow.
 // Without it the service runs as Community.

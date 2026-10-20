@@ -98,6 +98,23 @@ properties:
       so older events should not display it.
     type: boolean
     example: true
+  refusal:
+    description: |
+      Why the server refused the device instead of registering it; absent for a registration.
+      `unverified_device_key` is an agent that did not sign the server's challenge in a namespace
+      that requires verified device keys. A refused event never has `device_status`, even for a
+      removed device, and an agent that keeps retrying refreshes the same event.
+    type: string
+    enum:
+      - unverified_device_key
+    example: unverified_device_key
+  attempts:
+    description: |
+      How many requests the event stands for. A registration is one; a refusal counts every attempt
+      since it was first recorded, and its timestamp, source IP and info are the last attempt's.
+    type: integer
+    minimum: 1
+    example: 1
 required:
   - id
   - provisioning_key_id
@@ -107,3 +124,4 @@ required:
   - ephemeral
   - re_registration
   - timestamp
+  - attempts

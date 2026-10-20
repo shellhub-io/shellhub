@@ -47,25 +47,33 @@ type AuthService interface {
 	// from [AuthService.CreateDeviceAuthChallenge] proves the device holds its key, and the server
 	// refuses unsigned requests for that device until it is removed. ctx bounds every cache and store call.
 	//
-	// It returns [ErrDeviceKeyVerificationRefused] for a request carrying only one of the challenge and the
-	// signature, for a challenge that this server's key did not issue, that is malformed, older than its
-	// window or stamped ahead of the clock, for a signature
-	// that does not verify, and for an unsigned request when the instance requires verification or the
-	// device has verified its key before. It returns [ErrAuthUnathorized] for a removed device that was
-	// paired, [ErrAuthInvalid] for a provisioning key that is unknown or unusable,
-	// [ErrAuthNamespaceLegacy] for a device a legacy namespace does not know that presents a
-	// provisioning key or a pairing, [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
+	// It returns [ErrDeviceKeyVerificationRefused] for a request carrying only one of the challenge
+	// and the signature, for a challenge that this server's key did not issue, that is malformed,
+	// older than its window or stamped ahead of the clock, for a signature that does not verify, and
+	// for an unsigned request when the namespace requires verification or the device has verified
+	// its key before. When the namespace refuses an unsigned request from a device it does not know
+	// or has removed, and has a tenant-only key, the refusal is recorded on that key, one event per
+	// device that each retry refreshes; failing to record it is only logged. That namespace refusal
+	// comes before the token is signed and the device is looked up or enrolled, so an unsigned
+	// request there gets it rather than [ErrAuthUnathorized], [ErrAuthInvalid] for an enrollment
+	// key, [ErrAuthNamespaceLegacy], [ErrTokenSigned] or [ErrDeviceCreate]. It also returns
+	// [ErrAuthUnathorized] for a removed device that was paired, [ErrAuthInvalid] for a provisioning
+	// key, the one that names the tenant
+	// or the one a new device enrolls with, that is unknown or unusable, [ErrAuthNamespaceLegacy] for
+	// a device a legacy namespace does not know that presents a provisioning key or a pairing,
+	// [ErrNamespaceNotFound] when the tenant's namespace cannot be resolved,
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
-	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new device
-	// cannot be stored. It returns the store's error when the device, the namespace's pairing or
-	// legacy key, or its counters cannot be read or written.
+	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new
+	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
+	// or legacy key, or its counters cannot be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. It returns
 	// [ErrAuthUnathorized] for claims without a valid tenant, for a token of a device the store no
 	// longer has, since device tokens never expire and a purged device's token would otherwise
 	// outlive it, for a token issued without a signature to a device that has verified its key, and
-	// for any token of a device that never verified it while the instance requires verification.
-	// ctx bounds the store read, and the store's error is returned when the device cannot be read.
+	// for any token of a device that never verified it while its namespace requires verification,
+	// or whose namespace is gone. ctx bounds the store reads, and the store's error is returned when
+	// the device or its namespace cannot be read.
 	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
 	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
@@ -156,6 +164,15 @@ func (s *service) applyProvisioningKeyTags(ctx context.Context, deviceUID string
 }
 
 func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+	event := provisioningKeyEvent(key, req, uid, hostname)
+	event.ReRegistration = reRegistration
+
+	if err := s.store.ProvisioningKeyEventCreate(ctx, event); err != nil {
+		log.WithError(err).WithField("provisioning_key", key.Name).Warn("failed to append provisioning key enrollment event")
+	}
+}
+
+func provisioningKeyEvent(key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string) *models.ProvisioningKeyEvent {
 	event := &models.ProvisioningKeyEvent{
 		ProvisioningKeyID: key.ID,
 		TenantID:          req.TenantID,
@@ -164,7 +181,6 @@ func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.Pr
 		SourceIP:          req.RealIP,
 		PublicKey:         req.PublicKey,
 		Ephemeral:         key.Ephemeral,
-		ReRegistration:    reRegistration,
 	}
 
 	event.Identity = claimedIdentity(req)
@@ -179,8 +195,38 @@ func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.Pr
 		}
 	}
 
+	return event
+}
+
+func (s *service) recordUnverifiedDeviceKeyRefusal(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, uid, hostname string) {
+	logger := log.WithFields(log.Fields{"tenant_id": req.TenantID, "uid": uid})
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
+	switch {
+	case err == nil && device.RemovedAt == nil:
+		return
+	case err != nil && !errors.Is(err, store.ErrNoDocuments):
+		logger.WithError(err).Warn("failed to resolve the device refused for an unverified key")
+
+		return
+	}
+
+	key, err := s.tenantEnrollmentKey(ctx, sc)
+	if err != nil {
+		logger.WithError(err).Warn("failed to resolve the tenant key to record a refused device")
+
+		return
+	}
+
+	if key == nil {
+		return
+	}
+
+	event := provisioningKeyEvent(key, req, uid, hostname)
+	event.Refusal = models.ProvisioningKeyEventRefusalUnverifiedDeviceKey
+
 	if err := s.store.ProvisioningKeyEventCreate(ctx, event); err != nil {
-		log.WithError(err).WithField("provisioning_key", key.Name).Warn("failed to append provisioning key enrollment event")
+		logger.WithError(err).Warn("failed to record a device refused for an unverified key")
 	}
 }
 
@@ -275,7 +321,15 @@ func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.Device
 	}
 
 	if device.KeyVerifiedAt == nil {
-		if s.requireVerifiedDeviceKey {
+		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, claims.TenantID)
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAuthUnathorized(nil)
+		case err != nil:
+			return err
+		}
+
+		if namespace.Settings.RequiresVerifiedDeviceKey() {
 			return NewErrAuthUnathorized(nil)
 		}
 
@@ -351,10 +405,6 @@ func (v keyVerification) refusedFor(deviceVerified bool) bool {
 
 func (s *service) verifyDeviceKey(req requests.DeviceAuth) (keyVerification, error) {
 	if req.Challenge == "" && req.Signature == "" {
-		if s.requireVerifiedDeviceKey {
-			return keyUnverified, NewErrDeviceKeyVerificationRefused()
-		}
-
 		return keyUnverified, nil
 	}
 
@@ -441,6 +491,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
 	uid := hex.EncodeToString(uidSHA[:])
+
+	if enrollment.verification == keyUnverified && namespace.Settings.RequiresVerifiedDeviceKey() {
+		s.recordUnverifiedDeviceKeyRefusal(ctx, sc, req, uid, hostname)
+
+		return nil, NewErrDeviceKeyVerificationRefused()
+	}
 
 	keyVerifiedAt := s.clock.Now()
 

@@ -45,6 +45,8 @@ type ProvisioningKeyEvent struct {
 	CreatedAt         time.Time  `bun:"created_at"`
 	DecidedStatus     string     `bun:"decided_status,nullzero"`
 	DecidedAt         *time.Time `bun:"decided_at,nullzero"`
+	Refusal           string     `bun:"refusal,nullzero"`
+	Attempts          int        `bun:"attempts,nullzero,default:1"`
 	// DeviceStatus and IsCurrent are populated by the live join / window in ProvisioningKeyEventList; they
 	// are not stored columns (used only for the live accept/reject action).
 	DeviceStatus string `bun:"device_status,scanonly"`
@@ -67,6 +69,8 @@ func ProvisioningKeyEventFromModel(model *models.ProvisioningKeyEvent) *Provisio
 		CreatedAt:         model.Timestamp,
 		DecidedStatus:     string(model.DecidedStatus),
 		DecidedAt:         model.DecidedAt,
+		Refusal:           string(model.Refusal),
+		Attempts:          model.Attempts,
 	}
 
 	if model.Info != nil {
@@ -99,6 +103,8 @@ func ProvisioningKeyEventToModel(entity *ProvisioningKeyEvent) *models.Provision
 		DecidedAt:         entity.DecidedAt,
 		DeviceStatus:      models.DeviceStatus(entity.DeviceStatus),
 		IsCurrent:         entity.IsCurrent,
+		Refusal:           models.ProvisioningKeyEventRefusal(entity.Refusal),
+		Attempts:          entity.Attempts,
 	}
 
 	if entity.InfoID != "" || entity.InfoPrettyName != "" || entity.InfoVersion != "" || entity.InfoArch != "" || entity.InfoPlatform != "" {

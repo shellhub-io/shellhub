@@ -12,6 +12,7 @@ type TransactionStore interface {
 	// WithTransaction executes a callback cb within a transaction, ensuring that a series of store
 	// operations are executed as a single unit, committing the changes when the callback returns nil.
 	// If any operation fails, the transaction is aborted, rolling back all operations and returning the
-	// error from the callback. If the transaction cannot start, it returns that error.
+	// error from the callback. If the transaction cannot start or commit, it returns ctx's error when
+	// it is cancelled or its deadline passes and [ErrInternal] otherwise.
 	WithTransaction(ctx context.Context, cb TransactionCb) error
 }

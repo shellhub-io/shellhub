@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -439,6 +440,26 @@ func TestNamespaceCreate(t *testing.T) {
 			}
 
 			mock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestNamespaceCreateRequiresVerifiedDeviceKeyAsConfigured(t *testing.T) {
+	ctx := context.TODO()
+
+	for _, required := range []bool{true, false} {
+		t.Run(map[bool]string{true: "required", false: "not required"}[required], func(t *testing.T) {
+			st := new(mocks.MockStore)
+			st.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(&models.User{ID: "507f191e810c19729de860ea"}, nil).Once()
+			st.On("NamespaceCreate", ctx, testifymock.MatchedBy(func(ns *models.Namespace) bool {
+				return ns.Settings.RequireVerifiedDeviceKey == required
+			})).Return("00000000-0000-4000-0000-000000000000", nil).Once()
+
+			s := NewService(store.Store(st), WithNamespaceRequireVerifiedDeviceKey(required))
+			_, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: "namespace", Owner: "john_doe"})
+			require.NoError(t, err)
+
+			st.AssertExpectations(t)
 		})
 	}
 }
