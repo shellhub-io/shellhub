@@ -1,12 +1,14 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { isSdkError } from "@/api/errors";
 import { isCloud } from "@/env";
-import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
+import { deleteNamespaceAdminMutation } from "@/client";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 interface DeleteNamespaceDialogProps {
   open: boolean;
@@ -25,7 +27,14 @@ export default function DeleteNamespaceDialog({
   namespace,
   onDeleted,
 }: DeleteNamespaceDialogProps) {
-  const deleteNamespace = useAdminDeleteNamespace();
+  const invalidateNamespaces = useInvalidateByIds(
+    "getNamespacesAdmin",
+    "getNamespaceAdmin",
+  );
+  const deleteNamespace = useMutation({
+    ...deleteNamespaceAdminMutation(),
+    onSuccess: invalidateNamespaces,
+  });
   const [error, setError] = useState("");
 
   return (

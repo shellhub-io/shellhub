@@ -57,7 +57,6 @@ export function useAdminNamespaces({
     isLoading: result.isLoading,
     error: result.error,
     isError: result.isError,
-    refetch: result.refetch,
   };
 }
 

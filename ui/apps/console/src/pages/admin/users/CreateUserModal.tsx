@@ -1,11 +1,13 @@
+import { useMutation } from "@tanstack/react-query";
 import {
   PlusIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
-import { useCreateUser } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { createUserAdminMutation } from "@/client";
 import UserFormFields from "./UserFormFields";
 import {
   userSchema,
@@ -27,7 +29,11 @@ export default function CreateUserModal({
   open,
   onClose,
 }: CreateUserModalProps) {
-  const createUser = useCreateUser();
+  const invalidateUsers = useInvalidateByIds("getUsers", "getStats");
+  const createUser = useMutation({
+    ...createUserAdminMutation(),
+    onSuccess: invalidateUsers,
+  });
 
   const schema = userSchema("create");
   const defaults = buildUserDefaults();
