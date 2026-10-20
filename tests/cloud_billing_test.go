@@ -487,7 +487,7 @@ func testBilledDeviceConnection(t *testing.T, ctx context.Context, compose *envi
 	subscription := subscribe(t, compose, ShellHubNamespace)
 	acceptDevicesIn(t, compose, requireHarnessProvisioningKey(t, compose), "connection", freeTierDevices)
 
-	signer := registerDeviceKey(t, ctx, compose)
+	signer, _ := enrollOwnerKey(t, compose)
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	t.Run("an active subscription lets SSH through past the free tier", func(t *testing.T) {
@@ -521,7 +521,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("customer.deleted clears billing and reverts to the free tier", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-customer-deleted")
+		owner := newBillingOwner(t, compose, "billing-cus-deleted")
 		maxNamespaces := owner.maxNamespaces(t, compose)
 
 		subscription := subscribe(t, compose, owner.tenant)
@@ -538,7 +538,7 @@ func testBillingWebhook(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("customer.subscription.deleted cancels the subscription and takes back the namespace it allowed", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-subscription-deleted")
+		owner := newBillingOwner(t, compose, "billing-sub-deleted")
 		maxNamespaces := owner.maxNamespaces(t, compose)
 
 		subscription := subscribe(t, compose, owner.tenant)
@@ -592,7 +592,7 @@ func testBilledNamespaceDeletion(t *testing.T, compose *environment.DockerCompos
 	t.Helper()
 
 	t.Run("a namespace with an active subscription is deleted only once the subscription is canceled", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-active-delete")
+		owner := newBillingOwner(t, compose, "billing-active-del")
 		subscription := subscribe(t, compose, owner.tenant)
 
 		resp, err := compose.R(t.Context()).Delete("/api/namespaces/" + owner.tenant)

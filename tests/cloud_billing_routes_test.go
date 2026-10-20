@@ -69,7 +69,7 @@ func testBillingSubscription(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
 	t.Run("subscribing again while the subscription is active is refused", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-subscribe-twice")
+		owner := newBillingOwner(t, compose, "billing-sub-twice")
 		subscription := subscribe(t, compose, owner.tenant)
 
 		postBillingSubscription(t, compose, http.StatusConflict)
@@ -82,7 +82,7 @@ func testBillingSubscription(t *testing.T, compose *environment.DockerCompose) {
 	})
 
 	t.Run("a canceled namespace whose subscription has an open invoice subscribes again only once the invoice is voided", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-resubscribe-due")
+		owner := newBillingOwner(t, compose, "billing-resub-due")
 		subscription := subscribe(t, compose, owner.tenant)
 		invoice := openStripeInvoice(t, compose, subscription)
 
@@ -137,7 +137,7 @@ func testBillingPaymentMethods(t *testing.T, compose *environment.DockerCompose)
 	})
 
 	t.Run("an active subscription refuses detaching a card and changing the default", func(t *testing.T) {
-		owner := newBillingOwner(t, compose, "billing-cards-subscribed")
+		owner := newBillingOwner(t, compose, "billing-cards-active")
 		subscribe(t, compose, owner.tenant)
 
 		cards := billingCards(t, compose)
@@ -160,7 +160,7 @@ func testBillingDeviceChooser(t *testing.T, compose *environment.DockerCompose) 
 		devices := make([]models.Device, len(sessions))
 
 		for i, count := range sessions {
-			devices[i] = enrollIn(t, compose, owner.tenant, fmt.Sprintf("chooser-%d", i), fmt.Sprintf("02:00:00:00:45:%02x", i))
+			devices[i] = enrollIn(t, compose, owner.key, fmt.Sprintf("chooser-%d", i), fmt.Sprintf("02:00:00:00:45:%02x", i))
 			compose.UpdateDeviceStatus(t, devices[i].UID, environment.DeviceActionAccept)
 			compose.RecordClosedSessions(t, owner.tenant, devices[i].UID, count)
 		}
