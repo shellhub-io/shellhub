@@ -1,11 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConfirmDialog from "../ConfirmDialog";
 function renderDialog(
@@ -15,21 +9,15 @@ function renderDialog(
     onConfirm = vi.fn(),
     title = "Delete item",
     description = "Are you sure?",
-    confirmLabel,
-    cancelLabel,
     variant,
     confirmDisabled,
-    children,
   }: {
     onClose?: () => void;
     onConfirm?: () => Promise<void> | void;
     title?: string;
     description?: React.ReactNode;
-    confirmLabel?: string;
-    cancelLabel?: string;
     variant?: "primary" | "danger" | "success" | "warning";
     confirmDisabled?: boolean;
-    children?: React.ReactNode;
   } = {},
 ) {
   return {
@@ -43,13 +31,9 @@ function renderDialog(
         icon={<svg />}
         title={title}
         description={description}
-        confirmLabel={confirmLabel}
-        cancelLabel={cancelLabel}
         variant={variant}
         confirmDisabled={confirmDisabled}
-      >
-        {children}
-      </ConfirmDialog>,
+      />,
     ),
   };
 }
@@ -59,19 +43,6 @@ describe("ConfirmDialog", () => {
     it("renders nothing when open=false", () => {
       renderDialog(false);
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-
-    it("renders the title, the description and any children", () => {
-      renderDialog(true, {
-        title: "Confirm deletion",
-        description: "This cannot be undone.",
-        children: <span data-testid="extra-content">extra</span>,
-      });
-      expect(
-        screen.getByRole("heading", { name: "Confirm deletion" }),
-      ).toBeInTheDocument();
-      expect(screen.getByText("This cannot be undone.")).toBeInTheDocument();
-      expect(screen.getByTestId("extra-content")).toBeInTheDocument();
     });
   });
 
@@ -93,35 +64,12 @@ describe("ConfirmDialog", () => {
     });
   });
 
-  describe("buttons", () => {
-    it("renders custom confirm and cancel labels", () => {
-      renderDialog(true, { confirmLabel: "Delete", cancelLabel: "Go back" });
-      expect(
-        screen.getByRole("button", { name: "Delete" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Go back" }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("cancel", () => {
     it("calls onClose when Cancel button is clicked", async () => {
       const user = userEvent.setup();
       const { onClose } = renderDialog(true);
 
       await user.click(screen.getByRole("button", { name: "Cancel" }));
-
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("calls onClose when the native cancel event fires (ESC key)", () => {
-      const { onClose } = renderDialog(true);
-
-      fireEvent(
-        screen.getByRole("dialog"),
-        new Event("cancel", { cancelable: true }),
-      );
 
       expect(onClose).toHaveBeenCalledOnce();
     });

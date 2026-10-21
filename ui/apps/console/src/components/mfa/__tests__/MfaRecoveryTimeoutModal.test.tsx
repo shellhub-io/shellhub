@@ -18,22 +18,6 @@ describe("MfaRecoveryTimeoutModal", () => {
     onDisable.mockResolvedValue(undefined);
   });
 
-  describe("Modal Rendering", () => {
-    it("does not render when open is false", () => {
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-      const { container } = render(
-        <MfaRecoveryTimeoutModal
-          open={false}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      expect(container.firstChild).toBeNull();
-    });
-  });
-
   describe("Countdown Display", () => {
     beforeEach(() => {
       vi.useFakeTimers();

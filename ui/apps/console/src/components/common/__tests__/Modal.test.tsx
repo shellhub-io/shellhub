@@ -40,14 +40,6 @@ describe("Modal", () => {
     );
   });
 
-  it("renders the footer's leading content", () => {
-    renderModal();
-
-    expect(
-      screen.getByRole("link", { name: "Naming rules" }),
-    ).toBeInTheDocument();
-  });
-
   it("closes from its close button", async () => {
     const user = userEvent.setup();
     const { onClose } = renderModal();

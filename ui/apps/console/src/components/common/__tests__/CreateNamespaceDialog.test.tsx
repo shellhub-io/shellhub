@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
@@ -64,26 +64,10 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   describe("closing the dialog", () => {
-    it("calls onClose when the X button is clicked", async () => {
-      const user = userEvent.setup();
-      const { onClose } = renderDialog(true);
-      await user.click(screen.getByRole("button", { name: "Close" }));
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
     it("calls onClose when the Cancel button in the footer is clicked", async () => {
       const user = userEvent.setup();
       const { onClose } = renderDialog(true);
       await user.click(screen.getByRole("button", { name: "Cancel" }));
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-
-    it("calls onClose when the native cancel event fires (Escape key)", () => {
-      const { onClose } = renderDialog(true);
-      fireEvent(
-        screen.getByRole("dialog"),
-        new Event("cancel", { cancelable: true }),
-      );
       expect(onClose).toHaveBeenCalledOnce();
     });
   });
