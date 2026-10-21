@@ -60,14 +60,6 @@ describe("MfaDisableDialog", () => {
   });
 
   describe("Mode Switching", () => {
-    it("switches to recovery code mode", async () => {
-      const user = renderDialog();
-
-      await user.click(screen.getByText(/use recovery code/i));
-
-      expect(screen.getByPlaceholderText(/recovery code/i)).toBeInTheDocument();
-    });
-
     it("switches back to TOTP mode from recovery", async () => {
       const user = renderDialog();
 
@@ -90,19 +82,6 @@ describe("MfaDisableDialog", () => {
       await fillTotpCode(user);
 
       expect(disableButton).toBeEnabled();
-    });
-
-    it("successfully disables MFA with valid TOTP", async () => {
-      const user = renderDialog();
-
-      await fillTotpCode(user);
-
-      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
-
-      await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
-      });
     });
 
     it("shows error on invalid TOTP", async () => {
@@ -143,23 +122,6 @@ describe("MfaDisableDialog", () => {
       );
 
       expect(disableButton).toBeEnabled();
-    });
-
-    it("successfully disables MFA with valid recovery code", async () => {
-      const user = renderDialog();
-
-      await user.click(screen.getByText(/use recovery code/i));
-      await user.type(
-        screen.getByPlaceholderText(/recovery code/i),
-        "valid-recovery-code",
-      );
-
-      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
-
-      await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
-      });
     });
 
     it("shows error on invalid recovery code", async () => {

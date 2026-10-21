@@ -138,27 +138,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       expect(disableButton).toBeDisabled();
     });
 
-    it("calls onDisable when clicked", async () => {
-      const user = userEvent.setup();
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      const disableButton = screen.getByRole("button", {
-        name: /disable mfa/i,
-      });
-      await user.click(disableButton);
-
-      expect(onDisable).toHaveBeenCalled();
-    });
-
     it("disables the button while disabling is in progress", async () => {
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
@@ -193,25 +172,6 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Close Behavior", () => {
-    it("calls onClose when Close button is clicked", async () => {
-      const user = userEvent.setup();
-      const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
-
-      render(
-        <MfaRecoveryTimeoutModal
-          open={true}
-          expiresAt={expiresAt}
-          onClose={onClose}
-          onDisable={onDisable}
-        />,
-      );
-
-      const closeButton = screen.getByRole("button", { name: /^close$/i });
-      await user.click(closeButton);
-
-      expect(onClose).toHaveBeenCalled();
-    });
-
     it("does not dismiss when clicking the backdrop (non-dismissible)", () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 

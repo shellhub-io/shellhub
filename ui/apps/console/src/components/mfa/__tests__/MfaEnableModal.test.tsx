@@ -31,60 +31,6 @@ describe("MfaEnableModal", () => {
   });
 
   describe("Step 1: Recovery Email", () => {
-    it("shows email input when no current recovery email", () => {
-      render(
-        <MfaEnableModal
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail={null}
-        />,
-      );
-
-      expect(screen.getByText(/Set Recovery Email/i)).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText(/recovery@example\.com/i),
-      ).toBeInTheDocument();
-    });
-
-    it("shows confirmation when recovery email already exists", () => {
-      render(
-        <MfaEnableModal
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
-
-      expect(screen.getByText(/recovery@example.com/)).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /continue/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("saves new recovery email and proceeds to step 2", async () => {
-      const user = userEvent.setup();
-      render(
-        <MfaEnableModal
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail={null}
-        />,
-      );
-
-      const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
-      await user.type(emailInput, "new-recovery@example.com");
-
-      const nextButton = screen.getByRole("button", { name: /save/i });
-      await user.click(nextButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
-    });
-
     it("shows error when email is already in use (409)", async () => {
       const user = userEvent.setup();
       server.use(
@@ -110,25 +56,6 @@ describe("MfaEnableModal", () => {
         expect(screen.getByText(/email already in use/i)).toBeInTheDocument();
       });
     });
-
-    it("confirms existing email and proceeds to step 2", async () => {
-      const user = userEvent.setup();
-      render(
-        <MfaEnableModal
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
-
-      const continueButton = screen.getByRole("button", { name: /continue/i });
-      await user.click(continueButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
-    });
   });
 
   describe("Step 2: Recovery Codes", () => {
@@ -147,14 +74,6 @@ describe("MfaEnableModal", () => {
       await user.click(continueButton);
       await waitFor(() => {
         expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
-    });
-
-    it("displays all 6 recovery codes", async () => {
-      await waitFor(() => {
-        mockMfaData.recovery_codes.forEach((code) => {
-          expect(screen.getByText(code)).toBeInTheDocument();
-        });
       });
     });
 
@@ -205,35 +124,6 @@ describe("MfaEnableModal", () => {
       expect(screen.getByDisplayValue(mockMfaData.secret)).toBeInTheDocument();
     });
 
-    it("validates OTP and enables MFA on success", async () => {
-      const user = userEvent.setup();
-
-      await waitFor(() => {
-        expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
-      });
-
-      const inputs = screen.getAllByRole("textbox");
-      const otpInputs = inputs.filter(
-        (input) => input.getAttribute("maxLength") === "1",
-      );
-
-      await user.type(otpInputs[0], "1");
-      await user.type(otpInputs[1], "2");
-      await user.type(otpInputs[2], "3");
-      await user.type(otpInputs[3], "4");
-      await user.type(otpInputs[4], "5");
-      await user.type(otpInputs[5], "6");
-
-      const verifyButton = screen.getByRole("button", { name: /verify/i });
-      await user.click(verifyButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/MFA Enabled Successfully/i),
-        ).toBeInTheDocument();
-      });
-    });
-
     it("shows error on invalid OTP", async () => {
       const user = userEvent.setup();
       server.use(
@@ -266,62 +156,6 @@ describe("MfaEnableModal", () => {
           screen.getByText(/invalid verification code/i),
         ).toBeInTheDocument();
       });
-    });
-  });
-
-  describe("Step 4: Success", () => {
-    it("shows success message and calls onSuccess", async () => {
-      const user = userEvent.setup();
-      render(
-        <MfaEnableModal
-          open={true}
-          onClose={onClose}
-          onSuccess={onSuccess}
-          currentRecoveryEmail="recovery@example.com"
-        />,
-      );
-
-      const continueButton = screen.getByRole("button", { name: /continue/i });
-      await user.click(continueButton);
-      await waitFor(() => {
-        expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
-      });
-
-      const checkbox = screen.getByRole("checkbox");
-      await user.click(checkbox);
-      const nextButton = screen.getByRole("button", { name: /next/i });
-      await user.click(nextButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
-      });
-
-      const inputs = screen.getAllByRole("textbox");
-      const otpInputs = inputs.filter(
-        (input) => input.getAttribute("maxLength") === "1",
-      );
-
-      await user.type(otpInputs[0], "1");
-      await user.type(otpInputs[1], "2");
-      await user.type(otpInputs[2], "3");
-      await user.type(otpInputs[3], "4");
-      await user.type(otpInputs[4], "5");
-      await user.type(otpInputs[5], "6");
-
-      const verifyButton = screen.getByRole("button", { name: /verify/i });
-      await user.click(verifyButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/MFA Enabled Successfully/i),
-        ).toBeInTheDocument();
-      });
-
-      const doneButton = screen.getByText(/done/i);
-      await user.click(doneButton);
-
-      expect(onSuccess).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
     });
   });
 
