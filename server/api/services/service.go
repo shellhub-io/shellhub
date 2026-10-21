@@ -174,8 +174,8 @@ func WithDevelopmentMode(development bool) Option {
 	}
 }
 
-// WithEnrollmentWebhookCIDRs lets a provisioning key webhook reach the given prefixes, which the
-// SSRF guard refuses otherwise. See webhook.ParseCIDRs.
+// WithEnrollmentWebhookCIDRs lets provisioning key webhooks and namespace webhooks reach the given
+// prefixes, which the SSRF guard refuses otherwise. See webhook.ParseCIDRs.
 func WithEnrollmentWebhookCIDRs(prefixes []netip.Prefix) Option {
 	return func(service *APIService) {
 		service.webhookCIDRs = prefixes

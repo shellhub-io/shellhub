@@ -112,7 +112,8 @@ type DeviceService interface {
 	//     * Billing evaluation determines if the namespace can accept more devices based on subscription status
 	//
 	// All operations are performed within a database transaction to ensure consistency during device merging
-	// and counter updates.
+	// and counter updates. It returns the store's error when the device.<status> event of the new status
+	// cannot be recorded, and the status change rolls back.
 	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
 
 	// MakeTeamDevice clears the owner of an accepted device, so it stays in the namespace whoever
@@ -609,6 +610,12 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 
 		if newStatus == models.DeviceStatusAccepted && ownerID != "" {
 			if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ownerID); err != nil {
+				return err
+			}
+		}
+
+		if event, ok := deviceStatusEvent(newStatus); ok {
+			if err := s.recordDeviceEvent(ctx, event, device); err != nil {
 				return err
 			}
 		}

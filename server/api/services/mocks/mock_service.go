@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -2961,6 +2962,52 @@ func (_c *MockService_DeleteWebhook_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// DeliverWebhooks provides a mock function for the type MockService
+func (_mock *MockService) DeliverWebhooks() worker.TaskHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeliverWebhooks")
+	}
+
+	var r0 worker.TaskHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.TaskHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.TaskHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_DeliverWebhooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeliverWebhooks'
+type MockService_DeliverWebhooks_Call struct {
+	*mock.Call
+}
+
+// DeliverWebhooks is a helper method to define mock.On call
+func (_e *MockService_Expecter) DeliverWebhooks() *MockService_DeliverWebhooks_Call {
+	return &MockService_DeliverWebhooks_Call{Call: _e.mock.On("DeliverWebhooks")}
+}
+
+func (_c *MockService_DeliverWebhooks_Call) Run(run func()) *MockService_DeliverWebhooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_DeliverWebhooks_Call) Return(taskHandler worker.TaskHandler) *MockService_DeliverWebhooks_Call {
+	_c.Call.Return(taskHandler)
+	return _c
+}
+
+func (_c *MockService_DeliverWebhooks_Call) RunAndReturn(run func() worker.TaskHandler) *MockService_DeliverWebhooks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DepartNamespaceMember provides a mock function for the type MockService
 func (_mock *MockService) DepartNamespaceMember(ctx context.Context, tenantID string, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
 	ret := _mock.Called(ctx, tenantID, memberID, departure)
@@ -5605,6 +5652,80 @@ func (_c *MockService_ListTenantRegistrations_Call) Return(events []models.Provi
 }
 
 func (_c *MockService_ListTenantRegistrations_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error)) *MockService_ListTenantRegistrations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListWebhookDeliveries provides a mock function for the type MockService
+func (_mock *MockService) ListWebhookDeliveries(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListWebhookDeliveries")
+	}
+
+	var r0 []models.WebhookDelivery
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhookDeliveries) []models.WebhookDelivery); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.WebhookDelivery)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListWebhookDeliveries) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListWebhookDeliveries) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListWebhookDeliveries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListWebhookDeliveries'
+type MockService_ListWebhookDeliveries_Call struct {
+	*mock.Call
+}
+
+// ListWebhookDeliveries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListWebhookDeliveries
+func (_e *MockService_Expecter) ListWebhookDeliveries(ctx any, req any) *MockService_ListWebhookDeliveries_Call {
+	return &MockService_ListWebhookDeliveries_Call{Call: _e.mock.On("ListWebhookDeliveries", ctx, req)}
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) Run(run func(ctx context.Context, req *requests.ListWebhookDeliveries)) *MockService_ListWebhookDeliveries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListWebhookDeliveries
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListWebhookDeliveries)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) Return(webhookDeliverys []models.WebhookDelivery, n int64, err error) *MockService_ListWebhookDeliveries_Call {
+	_c.Call.Return(webhookDeliverys, n, err)
+	return _c
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error)) *MockService_ListWebhookDeliveries_Call {
 	_c.Call.Return(run)
 	return _c
 }
