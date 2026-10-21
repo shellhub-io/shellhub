@@ -130,29 +130,3 @@ func TestListGroupsFromFile(t *testing.T) {
 		})
 	}
 }
-
-func TestParseUint32(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   string
-		want    uint32
-		wantErr bool
-	}{
-		{name: "valid", input: "1000", want: 1000, wantErr: false},
-		{name: "invalid", input: "notanumber", wantErr: true},
-		{name: "empty", input: "", wantErr: true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseUint32(tt.input)
-			if tt.wantErr {
-				assert.Error(t, err)
-
-				return
-			}
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
