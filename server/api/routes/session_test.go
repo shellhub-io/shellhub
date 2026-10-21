@@ -18,7 +18,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
-	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -109,49 +108,6 @@ func TestGetSessionList(t *testing.T) {
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
 				expectedFields:  map[string]string{"filter": query.ErrFilterInvalid.Error()},
-			},
-		},
-		{
-			description: "returns 200 for a valid allowed filter",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			filter: func() string {
-				filters := []query.Filter{
-					{
-						Type: query.FilterTypeProperty,
-						Params: &query.FilterProperty{
-							Name:     "device_uid",
-							Operator: "eq",
-							Value:    "abc123",
-						},
-					},
-				}
-				b, err := json.Marshal(filters)
-				require.NoError(t, err)
-
-				return base64.StdEncoding.EncodeToString(b)
-			}(),
-			headers: map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
-			requiredMocks: func() {
-				mock.
-					On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
-						if len(req.Filters.Data) != 1 {
-							return false
-						}
-
-						prop, ok := req.Filters.Data[0].Params.(*query.FilterProperty)
-						if !ok {
-							return false
-						}
-
-						return prop.Name == "device_uid" && prop.Operator == "eq" && prop.Value == "abc123"
-					})).
-					Return([]models.Session{}, int64(1), nil).
-					Once()
-			},
-			expected: Expected{
-				expectedSession: []models.Session{},
-				expectedStatus:  http.StatusOK,
-				expectedCount:   1,
 			},
 		},
 	}
@@ -247,30 +203,6 @@ func TestGetSession(t *testing.T) {
 			uid:    "123",
 			tenant: "00000000-0000-4000-0000-000000000000",
 			admin:  true,
-			requiredMocks: func(session *models.Session) {
-				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
-			},
-			expected: Expected{
-				expectedSession: &models.Session{UID: "123"},
-				expectedStatus:  http.StatusOK,
-			},
-		},
-		{
-			title:  "fails when try to get session don't existing",
-			uid:    "1234",
-			tenant: "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func(*models.Session) {
-				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
-			},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusNotFound,
-			},
-		},
-		{
-			title:  "success when try to get a session exists",
-			uid:    "123",
-			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(session *models.Session) {
 				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
 			},

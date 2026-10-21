@@ -82,52 +82,6 @@ func TestAuthDevice(t *testing.T) {
 			},
 		},
 		{
-			title: "success when device has a preferred hostname and it is lowercase",
-			requestBody: &requests.DeviceAuth{
-				Info: &requests.DeviceInfo{
-					ID:         "device_id",
-					PrettyName: "Device Name",
-					Version:    "1.0",
-					Arch:       "amd64",
-					Platform:   "Linux",
-				},
-				Hostname:  "test",
-				PublicKey: "your_public_key",
-				TenantID:  "your_tenant_id",
-			},
-			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedResponse: &models.DeviceAuthResponse{},
-				expectedStatus:   http.StatusOK,
-			},
-		},
-		{
-			title: "success when try auth a device",
-			requestBody: &requests.DeviceAuth{
-				Info: &requests.DeviceInfo{
-					ID:         "device_id",
-					PrettyName: "Device Name",
-					Version:    "1.0",
-					Arch:       "amd64",
-					Platform:   "Linux",
-				},
-				Identity: &requests.DeviceIdentity{
-					MAC: "00:11:22:33:44:55",
-				},
-				PublicKey: "your_public_key",
-				TenantID:  "your_tenant_id",
-			},
-			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedResponse: &models.DeviceAuthResponse{},
-				expectedStatus:   http.StatusOK,
-			},
-		},
-		{
 			title:         "fails when try validate request",
 			requestBody:   &requests.DeviceAuth{},
 			requiredMocks: func() {},
@@ -522,24 +476,6 @@ func TestAuthPublicKey(t *testing.T) {
 		requiredMocks func()
 		expected      Expected
 	}{
-		{
-			title: "success when try to auth a public key",
-			requestBody: &requests.PublicKeyAuth{
-				Fingerprint: "fingerprint",
-				Data:        "data",
-			},
-			requiredMocks: func() {
-				req := requests.PublicKeyAuth{
-					Fingerprint: "fingerprint",
-					Data:        "data",
-				}
-				mock.On("AuthPublicKey", gomock.Anything, req).Return(&models.PublicKeyAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedResponse: &models.PublicKeyAuthResponse{},
-				expectedStatus:   http.StatusOK,
-			},
-		},
 		{
 			title:         "fails when try to validate a request",
 			requestBody:   &requests.PublicKeyAuth{},

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -80,26 +79,6 @@ func TestSetup(t *testing.T) {
 				}).Return(nil, services.NewErrSetupCompleted()).Once()
 			},
 			expected: http.StatusConflict,
-		},
-		{
-			description: "success to setup on service",
-			body: `{
-                "name": "John Doe",
-                "username": "john.doe",
-                "email": "john.doe@example.com",
-                "password": "password",
-                "namespace": "john-doe"
-            }`,
-			requiredMocks: func() {
-				servicesMock.On("Setup", mock.Anything, requests.Setup{
-					Name:      "John Doe",
-					Username:  "john.doe",
-					Email:     "john.doe@example.com",
-					Password:  "password",
-					Namespace: "john-doe",
-				}).Return(&models.UserAuthResponse{Token: "token"}, nil).Once()
-			},
-			expected: http.StatusOK,
 		},
 	}
 

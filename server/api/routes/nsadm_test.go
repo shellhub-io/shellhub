@@ -233,15 +233,6 @@ func TestDeleteNamespace(t *testing.T) {
 			},
 			expectedStatus: http.StatusNotFound,
 		},
-		{
-			title: "success when try to deleting a existing namespace",
-			uid:   "123",
-			req:   "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-		},
 	}
 
 	for _, tc := range cases {

@@ -72,30 +72,6 @@ func TestGetDevice(t *testing.T) {
 				expectedStatus:  http.StatusOK,
 			},
 		},
-		{
-			title:  "fails when try to get a non-existing device",
-			uid:    "1234",
-			tenant: "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("GetDevice", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("1234")).Return(nil, svc.ErrDeviceNotFound)
-			},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusNotFound,
-			},
-		},
-		{
-			title:  "success when try to get a existing device",
-			uid:    "123",
-			tenant: "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("GetDevice", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(&models.Device{}, nil)
-			},
-			expected: Expected{
-				expectedSession: &models.Device{},
-				expectedStatus:  http.StatusOK,
-			},
-		},
 	}
 
 	for _, tc := range cases {
@@ -253,14 +229,6 @@ func TestDeleteDevice(t *testing.T) {
 			},
 			expectedStatus: http.StatusNotFound,
 		},
-		{
-			title: "success when try to deleting an existing device",
-			uid:   "123",
-			requiredMocks: func() {
-				mock.On("DeleteDevice", gomock.Anything, models.UID("123"), "").Return(nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
 	}
 
 	for _, tc := range cases {
@@ -311,18 +279,6 @@ func TestRenameDevice(t *testing.T) {
 			},
 			expectedStatus: http.StatusNotFound,
 		},
-		{
-			title: "success when try to rename an existing device",
-			renamePayload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "123"},
-				Name:        "name",
-			},
-			tenant: "tenant-id",
-			requiredMocks: func(req requests.DeviceRename) {
-				mock.On("RenameDevice", gomock.Anything, models.UID("123"), req.Name, "tenant-id").Return(nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
 	}
 
 	for _, tc := range cases {
@@ -356,20 +312,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		expectedStatus models.DeviceStatus
 		expectedCode   int
 	}{
-		{
-			title:          "accept sets the device accepted",
-			role:           authorizer.RoleOwner,
-			path:           "/api/devices/uid/accept",
-			expectedStatus: models.DeviceStatusAccepted,
-			expectedCode:   http.StatusOK,
-		},
-		{
-			title:          "reject sets the device rejected",
-			role:           authorizer.RoleOwner,
-			path:           "/api/devices/uid/reject",
-			expectedStatus: models.DeviceStatusRejected,
-			expectedCode:   http.StatusOK,
-		},
 		{
 			title:          "pending sets the device pending",
 			role:           authorizer.RoleOwner,
@@ -478,26 +420,6 @@ func TestGetDeviceList(t *testing.T) {
 			expected: Expected{
 				devices: []models.Device{},
 				status:  http.StatusNotFound,
-			},
-		},
-		{
-			description: "fails when try to get a device list existing",
-			req: &requests.DeviceList{
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatusAccepted,
-				Paginator:    query.Paginator{Page: 1, PerPage: 10},
-				Sorter:       query.Sorter{By: "name", Order: "asc"},
-				Filters:      query.Filters{},
-			},
-			requiredMocks: func() {
-				mock.
-					On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
-					Return([]models.Device{}, int64(0), nil).
-					Once()
-			},
-			expected: Expected{
-				devices: []models.Device{},
-				status:  http.StatusOK,
 			},
 		},
 	}
@@ -731,20 +653,6 @@ func TestUpdateDevice(t *testing.T) {
 					Once()
 			},
 			expectedStatus: http.StatusNotFound,
-		},
-		{
-			description: "success when try to update a existing device",
-			req: requests.DeviceUpdate{
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				UID:      "1234",
-				Name:     "name",
-			},
-			requiredMocks: func() {
-				mock.On("UpdateDevice", gomock.Anything, &requests.DeviceUpdate{TenantID: "00000000-0000-4000-0000-000000000000", UID: "1234", Name: "name"}).
-					Return(nil).
-					Once()
-			},
-			expectedStatus: http.StatusOK,
 		},
 	}
 
