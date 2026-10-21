@@ -151,3 +151,15 @@ describe("WebEndpoints — address search", () => {
     expect(lastRequestUrl!.searchParams.has("filter")).toBe(false);
   });
 });
+
+describe("WebEndpoints — list error", () => {
+  it("does not show the first-endpoint splash when the list fails to load", async () => {
+    server.use(
+      http.get("*/api/web-endpoints", () => HttpResponse.json({}, { status: 500 })),
+    );
+    renderPage();
+
+    await screen.findByRole("alert");
+    expect(screen.queryByText("Create your first endpoint")).not.toBeInTheDocument();
+  });
+});

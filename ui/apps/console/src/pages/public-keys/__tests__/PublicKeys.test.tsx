@@ -148,3 +148,25 @@ describe("PublicKeys — search", () => {
     ]);
   });
 });
+
+describe("PublicKeys — list error", () => {
+  it("does not show the first-key splash when the list fails to load", async () => {
+    server.use(
+      http.get("*/api/sshkeys/public-keys", () => HttpResponse.json({}, { status: 500 })),
+    );
+    renderPage();
+
+    await screen.findByRole("alert");
+    expect(screen.queryByText("Add your first key")).not.toBeInTheDocument();
+  });
+});
+
+describe("PublicKeys — empty page", () => {
+  it("keeps the table when a page comes back empty but the namespace has keys", async () => {
+    setKeys([], 11);
+    renderPage(["/?page=2"]);
+
+    expect(await screen.findByText("No public keys found")).toBeInTheDocument();
+    expect(screen.queryByText("Add your first key")).not.toBeInTheDocument();
+  });
+});
