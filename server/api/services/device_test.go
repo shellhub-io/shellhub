@@ -1446,6 +1446,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
 
 	ctx := context.Background()
 	cases := []struct {
@@ -2140,6 +2141,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
 
 	licenseEvaluator := &mockLicenseEvaluator{}
 	licenseEvaluator.Test(t)
@@ -2524,6 +2526,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
 
 	ctx := context.Background()
 	const tenantID = "00000000-0000-0000-0000-000000000000"

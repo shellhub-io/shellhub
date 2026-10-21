@@ -1,20 +1,44 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
+	"io"
+	"math/big"
+	"net/http"
 	"slices"
+	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/pkg/worker"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/store"
+	log "github.com/sirupsen/logrus"
 )
 
-const webhookLimit = 10
+const (
+	webhookLimit = 10
+
+	webhookMaxAttempts        = 12
+	webhookRetryBase          = time.Minute
+	webhookRetryMax           = time.Hour
+	webhookRetryMaxDoublings  = 6
+	webhookDeliveryBatch      = 10
+	webhookDeliveryLease      = time.Minute
+	webhookRequestTimeout     = 10 * time.Second
+	webhookResponseDrainLimit = 64 << 10
+)
 
 // WebhookService manages the webhooks a namespace's events are sent to.
 type WebhookService interface {
@@ -55,6 +79,18 @@ type WebhookService interface {
 	// webhook, the decryption's error when the stored secret cannot be decrypted and the store's
 	// error otherwise, a ctx cancelled or past its deadline included.
 	RevealWebhookSecret(ctx context.Context, req *requests.WebhookID) (string, error)
+
+	// ListWebhookDeliveries returns a page of the deliveries to the namespace's webhook with
+	// req.ID, newest first, and how many there are. It returns ErrForbidden for an empty tenant,
+	// ErrWebhookNotFound when the namespace has no such webhook and the store's error otherwise,
+	// a ctx cancelled or past its deadline included.
+	ListWebhookDeliveries(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error)
+
+	// DeliverWebhooks returns the task that sends every delivery due now, in batches, until none
+	// is left. A delivery answered 2xx is delivered; any other answer, a timeout or a redirect
+	// schedules a retry with backoff, and the last allowed attempt failing abandons it. The task
+	// returns only a failure to claim deliveries; a failed send is recorded on the delivery.
+	DeliverWebhooks() worker.TaskHandler
 }
 
 func uniqueWebhookEvents(events []models.WebhookEventType) []models.WebhookEventType {
@@ -238,4 +274,197 @@ func (s *service) RevealWebhookSecret(ctx context.Context, req *requests.Webhook
 	}
 
 	return s.decryptAtRest(webhook.SecretEncrypted)
+}
+
+func (s *service) ListWebhookDeliveries(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error) {
+	webhook, err := s.resolveWebhook(ctx, req.TenantID, req.ID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return s.store.WebhookDeliveryList(ctx, scope.MustBounded(webhook.TenantID), webhook.ID, s.store.Options().Paginate(&req.Paginator))
+}
+
+func deviceStatusEvent(status models.DeviceStatus) (models.WebhookEventType, bool) {
+	switch status {
+	case models.DeviceStatusPending:
+		return models.WebhookEventDevicePending, true
+	case models.DeviceStatusAccepted:
+		return models.WebhookEventDeviceAccepted, true
+	case models.DeviceStatusRejected:
+		return models.WebhookEventDeviceRejected, true
+	case models.DeviceStatusRemoved:
+		return models.WebhookEventDeviceRemoved, true
+	default:
+		return "", false
+	}
+}
+
+type webhookDevice struct {
+	UID             string                 `json:"uid"`
+	Name            string                 `json:"name"`
+	Status          models.DeviceStatus    `json:"status"`
+	TenantID        string                 `json:"tenant_id"`
+	Namespace       string                 `json:"namespace"`
+	Identity        *models.DeviceIdentity `json:"identity"`
+	Info            *models.DeviceInfo     `json:"info"`
+	Tags            []models.Tag           `json:"tags"`
+	CreatedAt       time.Time              `json:"created_at"`
+	StatusUpdatedAt time.Time              `json:"status_updated_at"`
+	RemovedAt       *time.Time             `json:"removed_at"`
+}
+
+func newWebhookDevice(device *models.Device) webhookDevice {
+	tags := device.Tags
+	if tags == nil {
+		tags = []models.Tag{}
+	}
+
+	return webhookDevice{
+		UID:             device.UID,
+		Name:            device.Name,
+		Status:          device.Status,
+		TenantID:        device.TenantID,
+		Namespace:       device.Namespace,
+		Identity:        device.Identity,
+		Info:            device.Info,
+		Tags:            tags,
+		CreatedAt:       device.CreatedAt,
+		StatusUpdatedAt: device.StatusUpdatedAt,
+		RemovedAt:       device.RemovedAt,
+	}
+}
+
+func (s *service) recordDeviceEvent(ctx context.Context, eventType models.WebhookEventType, device *models.Device) error {
+	data, err := json.Marshal(map[string]webhookDevice{"device": newWebhookDevice(device)})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.store.WebhookEventRecord(ctx, &models.WebhookEvent{
+		ID:        uuid.Generate(),
+		TenantID:  device.TenantID,
+		Type:      eventType,
+		Data:      data,
+		CreatedAt: s.clock.Now(),
+	})
+
+	return err
+}
+
+func (s *service) DeliverWebhooks() worker.TaskHandler {
+	return func(ctx context.Context, _ []byte) error {
+		return s.deliverWebhooks(ctx)
+	}
+}
+
+func (s *service) deliverWebhooks(ctx context.Context) error {
+	client := webhook.NewClient(s.webhookCIDRs)
+	defer client.CloseIdleConnections()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+
+	for {
+		now := s.clock.Now()
+
+		dispatches, err := s.store.WebhookDeliveryClaim(ctx, now, now.Add(webhookDeliveryLease), webhookDeliveryBatch)
+		if err != nil {
+			return err
+		}
+
+		var wg sync.WaitGroup
+		for i := range dispatches {
+			wg.Go(func() { s.dispatchWebhook(ctx, client, &dispatches[i]) })
+		}
+		wg.Wait()
+
+		if len(dispatches) < webhookDeliveryBatch {
+			return nil
+		}
+	}
+}
+
+func webhookRetryDelay(attempts int) time.Duration {
+	delay := min(webhookRetryBase<<min(attempts-1, webhookRetryMaxDoublings), webhookRetryMax)
+
+	jitter, err := rand.Int(rand.Reader, big.NewInt(int64(delay/10)))
+	if err != nil {
+		return delay
+	}
+
+	return delay + time.Duration(jitter.Int64())
+}
+
+func (s *service) dispatchWebhook(ctx context.Context, client *http.Client, dispatch *store.WebhookDispatch) {
+	delivery := dispatch.Delivery
+
+	statusCode, sendErr := s.sendWebhook(ctx, client, dispatch)
+	now := s.clock.Now()
+
+	delivery.Attempts++
+	delivery.LastStatusCode = statusCode
+
+	switch {
+	case sendErr == nil:
+		delivery.Status = models.WebhookDeliveryDelivered
+		delivery.DeliveredAt = &now
+		delivery.LastError = ""
+	case delivery.Attempts >= webhookMaxAttempts:
+		delivery.Status = models.WebhookDeliveryFailed
+		delivery.LastError = webhook.Describe(sendErr)
+	default:
+		delivery.NextAttemptAt = now.Add(webhookRetryDelay(delivery.Attempts))
+		delivery.LastError = webhook.Describe(sendErr)
+	}
+
+	if sendErr != nil {
+		log.WithError(sendErr).WithFields(log.Fields{"delivery_id": delivery.ID, "webhook_id": delivery.WebhookID, "attempts": delivery.Attempts}).
+			Warn("webhook delivery attempt failed")
+	}
+
+	if err := s.store.WebhookDeliveryFinish(ctx, &delivery); err != nil {
+		log.WithError(err).WithFields(log.Fields{"delivery_id": delivery.ID, "webhook_id": delivery.WebhookID}).
+			Error("failed to record the webhook delivery attempt; it is retried when its lease expires")
+	}
+}
+
+func (s *service) sendWebhook(ctx context.Context, client *http.Client, dispatch *store.WebhookDispatch) (int, error) {
+	secret, err := s.decryptAtRest(dispatch.SecretEncrypted)
+	if err != nil {
+		return 0, err
+	}
+
+	body, err := json.Marshal(dispatch.Event)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, webhookRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, dispatch.URL, bytes.NewReader(body))
+	if err != nil {
+		return 0, err
+	}
+
+	timestamp := s.clock.Now().Unix()
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-ShellHub-Event-ID", dispatch.Event.ID)
+	req.Header.Set("X-ShellHub-Event-Type", string(dispatch.Event.Type))
+	req.Header.Set("X-ShellHub-Timestamp", strconv.FormatInt(timestamp, 10))
+	req.Header.Set("X-ShellHub-Signature", webhook.SignV1(secret, timestamp, body))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close() //nolint:errcheck // the body is only drained, so a close error changes nothing
+
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, webhookResponseDrainLimit))
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return resp.StatusCode, webhook.StatusError(resp.StatusCode)
+	}
+
+	return resp.StatusCode, nil
 }

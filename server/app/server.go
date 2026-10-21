@@ -123,8 +123,8 @@ type Env struct {
 	// deployment without that service can point the validator at a file it already carries.
 	OpenAPISchema string `env:"SHELLHUB_OPENAPI_SCHEMA"`
 
-	// EnrollmentWebhookAllowedCIDRs is the comma-separated list of prefixes a provisioning key
-	// webhook may reach although they are private.
+	// EnrollmentWebhookAllowedCIDRs is the comma-separated list of prefixes provisioning key
+	// webhooks and namespace webhooks may reach although they are private.
 	EnrollmentWebhookAllowedCIDRs string `env:"SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"`
 
 	// PrivateKey and PublicKey are the paths of the RSA key pair the API signs its tokens with.
