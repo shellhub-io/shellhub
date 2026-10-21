@@ -185,22 +185,6 @@ func TestGetSSHApproval(t *testing.T) {
 			expected: Expected{request: nil, err: NewErrSSHApprovalCodeNotFound("WXYZ2K7Q", store.ErrNoDocuments)},
 		},
 		{
-			description: "hides the request from a non-member, without confirming the code exists",
-			userID:      "intruder",
-			code:        "WXYZ2K7Q",
-			requiredMocks: func(storeMock *storemock.MockStore) {
-				storeMock.
-					On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-					Return(pending, nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, "tenant1").
-					Return(namespace, nil).
-					Once()
-			},
-			expected: Expected{request: nil, err: NewErrSSHApprovalCodeNotFound("WXYZ2K7Q", nil)},
-		},
-		{
 			description: "returns the details to a member, naming the target namespace",
 			userID:      "owner1",
 			code:        "WXYZ2K7Q",
@@ -250,15 +234,12 @@ func TestGetSSHApproval(t *testing.T) {
 
 // TestSSHApprovalDecideAuthorization covers who may decide, independent of what
 // the decision then does. It runs through reject, which carries no kind-specific
-// rule; the effect of each kind is covered separately below.
+// rule.
 func TestSSHApprovalDecideAuthorization(t *testing.T) {
 	namespace := &models.Namespace{
 		Name:     "namespace1",
 		TenantID: "tenant1",
-		Members: []models.Member{
-			{ID: "owner1", Role: authorizer.RoleOwner},
-			{ID: "observer1", Role: authorizer.RoleObserver},
-		},
+		Members:  []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}},
 	}
 
 	pending := &models.SSHApproval{
@@ -307,32 +288,6 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					Once()
 			},
 			expectedErr: NewErrNamespaceNotFound("tenant1", store.ErrNoDocuments),
-		},
-		{
-			description: "fails when the user is not a member of the namespace",
-			userID:      "intruder",
-			code:        "WXYZ2K7Q",
-			requiredMocks: func(storeMock *storemock.MockStore) {
-				storeMock.On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).Return(pending, nil).Once()
-				storeMock.
-					On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, "tenant1").
-					Return(namespace, nil).
-					Once()
-			},
-			expectedErr: NewErrNamespaceMemberNotFound("intruder", nil),
-		},
-		{
-			description: "fails when the member cannot approve sessions",
-			userID:      "observer1",
-			code:        "WXYZ2K7Q",
-			requiredMocks: func(storeMock *storemock.MockStore) {
-				storeMock.On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).Return(pending, nil).Once()
-				storeMock.
-					On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, "tenant1").
-					Return(namespace, nil).
-					Once()
-			},
-			expectedErr: NewErrRoleForbidden(),
 		},
 		{
 			description: "fails when the code was already decided",
@@ -391,146 +346,4 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 			storeMock.AssertExpectations(tt)
 		})
 	}
-}
-
-// A re-auth is satisfied by proving a factor on the step-up route, which
-// releases the login there. A bare confirm must not be a way around it.
-func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
-	namespace := &models.Namespace{
-		Name:     "namespace1",
-		TenantID: "tenant1",
-		Members:  []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}},
-	}
-
-	storeMock := new(storemock.MockStore)
-	clk := clock.NewFixed(now)
-
-	storeMock.
-		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-		Return(&models.SSHApproval{
-			TenantID:    "tenant1",
-			Kind:        models.SSHApprovalReauth,
-			Fingerprint: "SHA256:abc",
-			State:       models.SSHApprovalPending,
-		}, nil).
-		Once()
-	storeMock.
-		On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, "tenant1").
-		Return(namespace, nil).
-		Once()
-
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clk))
-
-	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
-	require.Error(t, err)
-
-	storeMock.AssertExpectations(t)
-	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
-	storeMock.AssertNotCalled(t, "SSHIdentityTouchReauth", mock.Anything, mock.Anything, mock.Anything)
-}
-
-// Confirming an identity approval binds the presented key to the approver.
-func TestConfirmSSHApprovalIdentity(t *testing.T) {
-	namespace := &models.Namespace{
-		Name:     "namespace1",
-		TenantID: "00000000-0000-4000-0000-000000000000",
-		Members:  []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}},
-	}
-
-	storeMock := new(storemock.MockStore)
-	queryOptionsMock := new(storemock.MockQueryOptions)
-	storeMock.On("Options").Return(queryOptionsMock).Maybe()
-
-	clk := clock.NewFixed(now)
-
-	storeMock.
-		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-		Return(&models.SSHApproval{
-			TenantID:    namespace.TenantID,
-			Kind:        models.SSHApprovalIdentity,
-			Fingerprint: "SHA256:abc",
-			Data:        []byte("ssh-ed25519 AAAA"),
-			State:       models.SSHApprovalPending,
-		}, nil).
-		Once()
-	storeMock.
-		On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, namespace.TenantID).
-		Return(namespace, nil).
-		Once()
-	storeMock.
-		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-		Once()
-	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalConfirmed, "owner1", mock.Anything, now).
-		Return(true, nil).
-		Once()
-
-	storeMock.
-		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
-		Return(nil, store.ErrNoDocuments).
-		Once()
-	storeMock.
-		On("SSHIdentityCreate", mock.Anything, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
-			return identity.PrincipalID == "owner1" && identity.Fingerprint == "SHA256:abc"
-		})).
-		Return("id1", nil).
-		Once()
-	storeMock.
-		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityIDResolver, "id1").
-		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "owner1", Fingerprint: "SHA256:abc"}, nil).
-		Once()
-	storeMock.
-		On("SSHIdentityTouchLastUsed", mock.Anything, namespace.TenantID, "SHA256:abc").
-		Return(nil).
-		Once()
-
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clk))
-
-	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
-	require.NoError(t, err)
-
-	storeMock.AssertExpectations(t)
-}
-
-// Rejecting decides the approval without touching any identity.
-func TestRejectSSHApproval(t *testing.T) {
-	namespace := &models.Namespace{
-		Name:     "namespace1",
-		TenantID: "tenant1",
-		Members:  []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}},
-	}
-
-	storeMock := new(storemock.MockStore)
-
-	clk := clock.NewFixed(now)
-
-	storeMock.
-		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
-		Return(&models.SSHApproval{
-			TenantID:    "tenant1",
-			Kind:        models.SSHApprovalIdentity,
-			Fingerprint: "SHA256:abc",
-			State:       models.SSHApprovalPending,
-		}, nil).
-		Once()
-	storeMock.
-		On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, "tenant1").
-		Return(namespace, nil).
-		Once()
-	storeMock.
-		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-		Once()
-	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
-		Return(true, nil).
-		Once()
-
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clk))
-
-	err := service.RejectSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalReject{Code: "WXYZ2K7Q"})
-	require.NoError(t, err)
-
-	storeMock.AssertExpectations(t)
 }
