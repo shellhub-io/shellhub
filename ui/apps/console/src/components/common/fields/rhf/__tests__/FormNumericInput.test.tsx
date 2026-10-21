@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { useEffect } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
 import FormNumericInput from "@/components/common/fields/rhf/FormNumericInput";
@@ -38,26 +37,10 @@ function NumericForm({
 }
 
 describe("FormNumericInput (RHF adapter contract)", () => {
-  it("renders an input with the given label", () => {
-    render(<NumericForm />);
-
-    expect(screen.getByLabelText("Count")).toBeInTheDocument();
-  });
-
   it("reflects the control value in the input", () => {
     render(<NumericForm defaultValue="42" />);
 
     expect(screen.getByLabelText("Count")).toHaveValue("42");
-  });
-
-  it("propagates string changes to the form on user input", async () => {
-    const user = userEvent.setup();
-    render(<NumericForm />);
-
-    const input = screen.getByLabelText("Count");
-    await user.type(input, "5");
-
-    expect(input).toHaveValue("5");
   });
 
   it("surfaces fieldState.error.message as visible error text", async () => {

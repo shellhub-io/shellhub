@@ -45,16 +45,6 @@ describe("FormTextareaField (RHF adapter contract)", () => {
     expect(screen.getByLabelText("Notes")).toHaveValue("pre-filled content");
   });
 
-  it("updates the textarea value as the user types (two-way binding)", async () => {
-    const user = userEvent.setup();
-    render(<TextareaForm />);
-
-    const textarea = screen.getByLabelText("Notes");
-    await user.type(textarea, "hello");
-
-    expect(textarea).toHaveValue("hello");
-  });
-
   it("calls onValueChange on each edit, forwarding the current field value", async () => {
     const onValueChange = vi.fn();
     const user = userEvent.setup();

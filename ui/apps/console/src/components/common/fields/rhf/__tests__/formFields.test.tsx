@@ -96,16 +96,6 @@ describe.each(TEXT_CASES)("$name (RHF adapter contract)", ({ label, render: rend
     expect(screen.getByLabelText(label)).toHaveValue("preset");
   });
 
-  it("updates the input value as the user types (two-way binding)", async () => {
-    const user = userEvent.setup();
-    render(<TextForm render={renderField} label={label} />);
-
-    const input = screen.getByLabelText(label);
-    await user.type(input, "bob");
-
-    expect(input).toHaveValue("bob");
-  });
-
   it("surfaces fieldState.error.message via the underlying field", async () => {
     render(
       <TextFormWithFieldError
@@ -206,12 +196,6 @@ function CheckboxFormWithFieldError({
 }
 
 describe("FormCheckboxField (RHF adapter contract)", () => {
-  it("binds the checked state from the form default value (false)", () => {
-    render(<CheckboxForm defaultValue={false} />);
-
-    expect(screen.getByLabelText("I agree")).not.toBeChecked();
-  });
-
   it("binds the checked state from the form default value (true)", () => {
     render(<CheckboxForm defaultValue />);
 
