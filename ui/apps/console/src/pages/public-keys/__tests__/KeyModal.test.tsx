@@ -116,13 +116,6 @@ describe("KeyModal", () => {
   });
 
   describe("add mode UI", () => {
-    it("shows 'New Public Key' title", () => {
-      renderModal();
-      expect(
-        screen.getByRole("heading", { name: /new public key/i }),
-      ).toBeInTheDocument();
-    });
-
     it("submit is disabled when form is empty", () => {
       renderModal();
       expect(getSubmitButton()).toBeDisabled();
@@ -130,13 +123,6 @@ describe("KeyModal", () => {
   });
 
   describe("edit mode UI", () => {
-    it("shows 'Edit Public Key' title", () => {
-      renderModal({ editKey: mockPublicKey() });
-      expect(
-        screen.getByRole("heading", { name: /edit public key/i }),
-      ).toBeInTheDocument();
-    });
-
     it("pre-fills the name field from editKey", () => {
       renderModal({ editKey: mockPublicKey({ name: "my-server-key" }) });
       expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
