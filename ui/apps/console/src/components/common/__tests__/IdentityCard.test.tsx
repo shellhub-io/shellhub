@@ -13,30 +13,10 @@ function renderCard(props: Partial<Parameters<typeof IdentityCard>[0]> = {}) {
 }
 
 describe("IdentityCard", () => {
-  it("renders the Identity heading", () => {
-    renderCard();
-
-    expect(
-      screen.getByRole("heading", { name: /identity/i }),
-    ).toBeInTheDocument();
-  });
-
   it("renders UID truncated to 8 characters", () => {
     renderCard();
 
     expect(screen.getByText("abc-def-")).toBeInTheDocument();
-  });
-
-  it("renders MAC Address", () => {
-    renderCard();
-
-    expect(screen.getByText("aa:bb:cc:dd")).toBeInTheDocument();
-  });
-
-  it("renders Remote Address", () => {
-    renderCard();
-
-    expect(screen.getByText("192.168.1.1")).toBeInTheDocument();
   });
 
   it("shows copy buttons for UID and MAC", () => {

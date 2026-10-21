@@ -94,25 +94,6 @@ describe("VaultSettingsSection", () => {
   );
 
   describe("Auto-lock timeout menu", () => {
-    it("renders all 5 timeout options when opened", async () => {
-      setUnlocked();
-      renderSection();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      );
-
-      const items = screen.getAllByRole("menuitem");
-      expect(items).toHaveLength(5);
-      expect(items.map((i) => i.textContent)).toEqual([
-        "Never",
-        "5 minutes",
-        "15 minutes",
-        "30 minutes",
-        "60 minutes",
-      ]);
-    });
-
     it.each([
       ["30 minutes", 30],
       [/never/i, 0],

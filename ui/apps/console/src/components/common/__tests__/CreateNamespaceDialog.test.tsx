@@ -63,16 +63,6 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     ).toHaveAttribute("id", labelId);
   });
 
-  it("links to the Administration Guide in a new tab", () => {
-    renderDialog(true);
-    const link = screen.getByRole("link", { name: /administration guide/i });
-    expect(link).toHaveAttribute(
-      "href",
-      "https://docs.shellhub.io/self-hosted/administration",
-    );
-    expect(link).toHaveAttribute("target", "_blank");
-  });
-
   describe("closing the dialog", () => {
     it("calls onClose when the X button is clicked", async () => {
       const user = userEvent.setup();

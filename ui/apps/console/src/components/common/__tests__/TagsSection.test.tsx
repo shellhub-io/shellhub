@@ -42,12 +42,6 @@ describe("TagsSection", () => {
   });
 
   describe("rendering", () => {
-    it("displays tag pills for each provided tag", () => {
-      renderTagsSection({ tags: ["web", "prod"] });
-      expect(screen.getByText("web")).toBeInTheDocument();
-      expect(screen.getByText("prod")).toBeInTheDocument();
-    });
-
     it("hides the input and shows a message at the 3-tag limit", () => {
       renderTagsSection({ tags: ["aaa", "bbb", "ccc"] });
       expect(

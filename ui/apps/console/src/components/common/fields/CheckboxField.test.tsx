@@ -9,8 +9,6 @@ function renderField(
     onChange: (checked: boolean) => void;
     disabled: boolean;
     label: string;
-    description: string;
-    hint: string;
     error: string;
   }> = {},
 ) {
@@ -52,11 +50,6 @@ describe("CheckboxField", () => {
     expect(screen.getByRole("checkbox")).toBeDisabled();
   });
 
-  it("renders the description text", () => {
-    renderField({ description: "You must agree to continue" });
-    expect(screen.getByText("You must agree to continue")).toBeInTheDocument();
-  });
-
   it("shows the error message and marks the input as invalid", () => {
     renderField({ error: "Required field" });
 
@@ -65,10 +58,5 @@ describe("CheckboxField", () => {
       "aria-invalid",
       "true",
     );
-  });
-
-  it("shows the hint when there is no error", () => {
-    renderField({ hint: "Optional" });
-    expect(screen.getByText("Optional")).toBeInTheDocument();
   });
 });

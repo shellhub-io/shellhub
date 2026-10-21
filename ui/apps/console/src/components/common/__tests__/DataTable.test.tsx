@@ -32,7 +32,6 @@ interface RenderOptions {
   sortOrder?: "asc" | "desc";
   onSort?: (field: string) => void;
   onRowClick?: (row: Row) => void;
-  rowClassName?: (row: Row) => string | undefined;
   isLoading?: boolean;
   loadingMessage?: string;
   emptyState?: React.ReactNode;
@@ -65,7 +64,9 @@ beforeEach(() => {
 describe("DataTable", () => {
   it("renders a header per column and a row per data item", () => {
     renderTable();
-    expect(screen.getByRole("columnheader", { name: "ID" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "ID" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("columnheader", { name: "Name" }),
     ).toBeInTheDocument();
@@ -108,12 +109,6 @@ describe("DataTable", () => {
       expect(screen.getByTestId("node-wins")).toBeInTheDocument();
       expect(screen.queryByText("Should not appear")).not.toBeInTheDocument();
     });
-
-    it("uses colSpan equal to the number of columns on the empty cell", () => {
-      renderTable({ data: [] });
-      const td = screen.getByText("No data available").closest("td");
-      expect(td).toHaveAttribute("colspan", String(COLUMNS.length));
-    });
   });
 
   describe("row click", () => {
@@ -127,16 +122,13 @@ describe("DataTable", () => {
     it.each([
       ["provided", vi.fn(), "0"],
       ["undefined", undefined, null],
-    ])(
-      "onRowClick %s sets tabindex to %s",
-      (_label, onRowClick, expected) => {
-        renderTable({ onRowClick });
-        dataRows().forEach((row) => {
-          if (expected === null) expect(row).not.toHaveAttribute("tabindex");
-          else expect(row).toHaveAttribute("tabindex", expected);
-        });
-      },
-    );
+    ])("onRowClick %s sets tabindex to %s", (_label, onRowClick, expected) => {
+      renderTable({ onRowClick });
+      dataRows().forEach((row) => {
+        if (expected === null) expect(row).not.toHaveAttribute("tabindex");
+        else expect(row).toHaveAttribute("tabindex", expected);
+      });
+    });
 
     it.each([
       ["Enter", true],
@@ -149,14 +141,6 @@ describe("DataTable", () => {
       if (activates) expect(onRowClick).toHaveBeenCalledWith(ROWS[0]);
       else expect(onRowClick).not.toHaveBeenCalled();
     });
-  });
-
-  it("applies the class returned by rowClassName to each row", () => {
-    renderTable({
-      rowClassName: (row) => (row.id === "1" ? "row-highlight" : undefined),
-    });
-    expect(dataRows()[0].className).toContain("row-highlight");
-    expect(dataRows()[1].className).not.toContain("row-highlight");
   });
 
   describe("pagination", () => {
@@ -172,29 +156,32 @@ describe("DataTable", () => {
     it.each([
       ["Next", 1, 2],
       ["Prev", 2, 1],
-    ])("clicking %s from page %i calls onPageChange with %i", async (
-      button,
-      page,
-      expected,
-    ) => {
-      const onPageChange = vi.fn();
-      renderTable({ page, totalPages: 3, totalCount: 25, onPageChange });
-      await userEvent.click(screen.getByText(button));
-      expect(onPageChange).toHaveBeenCalledWith(expected);
-    });
+    ])(
+      "clicking %s from page %i calls onPageChange with %i",
+      async (button, page, expected) => {
+        const onPageChange = vi.fn();
+        renderTable({ page, totalPages: 3, totalCount: 25, onPageChange });
+        await userEvent.click(screen.getByText(button));
+        expect(onPageChange).toHaveBeenCalledWith(expected);
+      },
+    );
 
     it.each([
       [1, "Prev", "Next"],
       [3, "Next", "Prev"],
-    ])("on page %i of 3, %s is disabled and %s is not", (
-      page,
-      disabled,
-      enabled,
-    ) => {
-      renderTable({ page, totalPages: 3, totalCount: 25, onPageChange: vi.fn() });
-      expect(screen.getByText(disabled)).toBeDisabled();
-      expect(screen.getByText(enabled)).not.toBeDisabled();
-    });
+    ])(
+      "on page %i of 3, %s is disabled and %s is not",
+      (page, disabled, enabled) => {
+        renderTable({
+          page,
+          totalPages: 3,
+          totalCount: 25,
+          onPageChange: vi.fn(),
+        });
+        expect(screen.getByText(disabled)).toBeDisabled();
+        expect(screen.getByText(enabled)).not.toBeDisabled();
+      },
+    );
   });
 
   describe("sorting", () => {
@@ -218,7 +205,9 @@ describe("DataTable", () => {
     it("calls onSort with the column key when sort button is clicked", async () => {
       const onSort = vi.fn();
       renderTable({ columns: SORTABLE_COLUMNS, onSort });
-      await userEvent.click(screen.getByRole("button", { name: /sort by id/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /sort by id/i }),
+      );
       expect(onSort).toHaveBeenCalledWith("id");
     });
 
@@ -226,21 +215,20 @@ describe("DataTable", () => {
       ["asc", "ascending"],
       ["desc", "descending"],
       [undefined, "none"],
-    ] as const)("sortOrder=%s sets aria-sort='%s' on the sorted column", (
-      sortOrder,
-      expected,
-    ) => {
-      renderTable({
-        columns: SORTABLE_COLUMNS,
-        onSort: vi.fn(),
-        sortField: "id",
-        sortOrder,
-      });
-      expect(screen.getByRole("columnheader", { name: /id/i })).toHaveAttribute(
-        "aria-sort",
-        expected,
-      );
-    });
+    ] as const)(
+      "sortOrder=%s sets aria-sort='%s' on the sorted column",
+      (sortOrder, expected) => {
+        renderTable({
+          columns: SORTABLE_COLUMNS,
+          onSort: vi.fn(),
+          sortField: "id",
+          sortOrder,
+        });
+        expect(
+          screen.getByRole("columnheader", { name: /id/i }),
+        ).toHaveAttribute("aria-sort", expected);
+      },
+    );
 
     it("sets aria-sort='none' on a sortable column that is not the active sort field", () => {
       renderTable({

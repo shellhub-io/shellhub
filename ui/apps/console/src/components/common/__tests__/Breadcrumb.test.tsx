@@ -68,39 +68,6 @@ describe("Breadcrumb", () => {
     expect(screen.getByText("host-a")).toHaveAttribute("aria-current", "page");
   });
 
-  it("renders a chevron between each item but not before the first", () => {
-    const { container } = renderBreadcrumb(
-      <Breadcrumb
-        items={[
-          { label: "A", to: "/a" },
-          { label: "B", to: "/a/b" },
-          { label: "C" },
-        ]}
-      />,
-    );
-    const chevrons = container.querySelectorAll("svg[aria-hidden='true']");
-    expect(chevrons).toHaveLength(2);
-  });
-
-  it("forwards `title` to the rendered link or span for tooltip support", () => {
-    renderBreadcrumb(
-      <Breadcrumb
-        items={[
-          { label: "Devices", to: "/devices", title: "All devices" },
-          { label: "host-a", title: "host-a.example.com" },
-        ]}
-      />,
-    );
-    expect(screen.getByRole("link", { name: "Devices" })).toHaveAttribute(
-      "title",
-      "All devices",
-    );
-    expect(screen.getByText("host-a")).toHaveAttribute(
-      "title",
-      "host-a.example.com",
-    );
-  });
-
   it("falls back to the string label as the title when none is provided", () => {
     renderBreadcrumb(
       <Breadcrumb

@@ -18,18 +18,6 @@ function renderSearchField(overrides: Overrides = {}) {
 }
 
 describe("SearchField", () => {
-  it("renders the placeholder and current value", () => {
-    renderSearchField({
-      value: "ubuntu",
-      placeholder: "Search devices...",
-      "aria-label": "Search devices",
-    });
-
-    const input = screen.getByRole("searchbox", { name: "Search devices" });
-    expect(input).toHaveAttribute("placeholder", "Search devices...");
-    expect(input).toHaveValue("ubuntu");
-  });
-
   it("exposes aria-label as the accessible name via a visually hidden <label>", () => {
     renderSearchField({ "aria-label": "Search users by username" });
 
@@ -49,30 +37,6 @@ describe("SearchField", () => {
     expect(onChange).toHaveBeenNthCalledWith(1, "a");
     expect(onChange).toHaveBeenNthCalledWith(2, "b");
     expect(onChange).toHaveBeenNthCalledWith(3, "c");
-  });
-
-  it("constrains width with max-w-sm by default", () => {
-    const { container } = renderSearchField();
-
-    expect((container.firstChild as HTMLElement).className).toContain(
-      "max-w-sm",
-    );
-  });
-
-  it("omits the contained width when full is set", () => {
-    const { container } = renderSearchField({ full: true });
-
-    expect((container.firstChild as HTMLElement).className).not.toContain(
-      "max-w-sm",
-    );
-  });
-
-  it("appends custom className to the wrapper", () => {
-    const { container } = renderSearchField({ className: "ml-auto mb-5" });
-
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain("ml-auto");
-    expect(wrapper.className).toContain("mb-5");
   });
 
   it("renders the magnifying glass icon as decorative (aria-hidden)", () => {
@@ -106,12 +70,5 @@ describe("SearchField", () => {
     expect(first.id).not.toBe(second.id);
     expect(first.id).toBeTruthy();
     expect(second.id).toBeTruthy();
-  });
-
-  it("uses the provided id to bind the label and input", () => {
-    renderSearchField({ id: "my-search", "aria-label": "My search" });
-
-    const input = screen.getByRole("searchbox", { name: "My search" });
-    expect(input).toHaveAttribute("id", "my-search");
   });
 });

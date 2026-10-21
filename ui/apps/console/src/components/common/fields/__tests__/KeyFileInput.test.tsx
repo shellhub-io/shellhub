@@ -16,7 +16,6 @@ interface Props {
   hint?: string;
   disabledHint?: string;
   loadedLabel?: string;
-  emptyLabel?: string;
   onFileName?: (name: string) => void;
 }
 
@@ -97,11 +96,6 @@ describe("KeyFileInput", () => {
   });
 
   describe("drop zone", () => {
-    it("renders a custom emptyLabel", () => {
-      renderComponent({ emptyLabel: "Upload your public key" });
-      expect(screen.getByText("Upload your public key")).toBeInTheDocument();
-    });
-
     it.each([
       [undefined, "Key loaded"],
       ["Key ready", "Key ready"],

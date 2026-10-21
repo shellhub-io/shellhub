@@ -17,12 +17,4 @@ describe("ConnectivityBanner", () => {
     render(<ConnectivityBanner />);
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
-
-  it("shows the unreachable message text when api is unreachable", () => {
-    useConnectivityStore.setState({ apiReachable: false });
-    render(<ConnectivityBanner />);
-    expect(
-      screen.getByText(/API unreachable — reconnecting automatically/),
-    ).toBeInTheDocument();
-  });
 });

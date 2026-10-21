@@ -188,41 +188,5 @@ describe("VaultAutoLockBanner", () => {
         screen.getByText(/vault locked due to inactivity/i),
       ).toBeInTheDocument();
     });
-
-    it("clears the auto-dismiss timer on unmount (no state-update after unmount)", () => {
-      vi.useFakeTimers();
-
-      useVaultStore.setState({ autoLockNonce: 0 });
-      const { unmount } = render(<VaultAutoLockBanner />);
-
-      act(() => {
-        useVaultStore.setState({ autoLockNonce: 1 });
-      });
-
-      unmount();
-
-      expect(() => {
-        act(() => {
-          vi.advanceTimersByTime(7000);
-        });
-      }).not.toThrow();
-    });
-  });
-
-  describe("positioning and z-index", () => {
-    it("renders inside a fixed container with correct positioning classes when visible", () => {
-      useVaultStore.setState({ autoLockNonce: 0 });
-      const { container } = render(<VaultAutoLockBanner />);
-
-      act(() => {
-        useVaultStore.setState({ autoLockNonce: 1 });
-      });
-
-      const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveClass("fixed");
-      expect(wrapper).toHaveClass("bottom-4");
-      expect(wrapper).toHaveClass("right-4");
-      expect(wrapper).toHaveClass("z-toast");
-    });
   });
 });

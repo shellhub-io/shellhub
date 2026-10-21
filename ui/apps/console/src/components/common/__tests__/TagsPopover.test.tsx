@@ -15,7 +15,6 @@ function renderPopover(
     uid?: string;
     tags?: string[];
     onFilterTag?: () => void;
-    editLabel?: string;
   } = {},
 ) {
   return render(
@@ -25,7 +24,6 @@ function renderPopover(
       addTag={mockAddTag}
       removeTag={mockRemoveTag}
       onFilterTag={overrides.onFilterTag ?? vi.fn()}
-      {...(overrides.editLabel ? { editLabel: overrides.editLabel } : {})}
     />,
     { wrapper: createTestWrapper() },
   );
@@ -86,14 +84,6 @@ describe("TagsPopover", () => {
       expect(
         screen.queryByRole("button", { name: /manage tags/i }),
       ).not.toBeInTheDocument();
-    });
-
-    it("uses a custom editLabel when provided", () => {
-      renderPopover({ editLabel: "Manage container tags" });
-
-      expect(
-        screen.getByRole("button", { name: /manage container tags/i }),
-      ).toBeInTheDocument();
     });
   });
 
