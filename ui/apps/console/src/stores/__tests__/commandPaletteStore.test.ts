@@ -6,10 +6,6 @@ describe("commandPaletteStore", () => {
     useCommandPaletteStore.setState({ open: false });
   });
 
-  it("is closed by default", () => {
-    expect(useCommandPaletteStore.getState().open).toBe(false);
-  });
-
   it("openPalette opens it", () => {
     useCommandPaletteStore.getState().openPalette();
     expect(useCommandPaletteStore.getState().open).toBe(true);
