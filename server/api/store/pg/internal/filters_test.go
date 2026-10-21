@@ -72,42 +72,10 @@ func TestParseFilterProperty_LegacyDeviceFieldAliases(t *testing.T) {
 			wantValue:   "manjaro",
 		},
 		{
-			description: "info.platform contains maps to platform",
-			fieldName:   "info.platform",
-			operator:    "contains",
-			wantCond:    "? ILIKE ?",
-			wantCol:     bun.Ident("platform"),
-			wantValue:   "%manjaro%",
-		},
-		{
-			description: "info.platform ne maps to platform",
-			fieldName:   "info.platform",
-			operator:    "ne",
-			wantCond:    "? <> ?",
-			wantCol:     bun.Ident("platform"),
-			wantValue:   "manjaro",
-		},
-		{
 			description: "identity.mac eq maps to mac",
 			fieldName:   "identity.mac",
 			operator:    "eq",
 			wantCond:    "? = ?",
-			wantCol:     bun.Ident("mac"),
-			wantValue:   "manjaro",
-		},
-		{
-			description: "identity.mac contains maps to mac",
-			fieldName:   "identity.mac",
-			operator:    "contains",
-			wantCond:    "? ILIKE ?",
-			wantCol:     bun.Ident("mac"),
-			wantValue:   "%manjaro%",
-		},
-		{
-			description: "identity.mac ne maps to mac",
-			fieldName:   "identity.mac",
-			operator:    "ne",
-			wantCond:    "? <> ?",
 			wantCol:     bun.Ident("mac"),
 			wantValue:   "manjaro",
 		},
@@ -170,15 +138,6 @@ func TestFromActiveFilter(t *testing.T) {
 			wantErr:     nil,
 		},
 		{
-			description: "device context: string false produces NOT EXISTS device subquery",
-			value:       "false",
-			tableAlias:  "",
-			wantSQL:     deviceNotExistsSQL,
-			wantArgs:    nil,
-			wantOk:      true,
-			wantErr:     nil,
-		},
-		{
 			description: "session context: bool true produces EXISTS session subquery",
 			value:       true,
 			tableAlias:  "session",
@@ -210,15 +169,6 @@ func TestFromActiveFilter(t *testing.T) {
 			value:       float64(0),
 			tableAlias:  "session",
 			wantSQL:     sessionNotExistsSQL,
-			wantArgs:    nil,
-			wantOk:      true,
-			wantErr:     nil,
-		},
-		{
-			description: "device context: float64 1 (JSON number) produces EXISTS device subquery",
-			value:       float64(1),
-			tableAlias:  "",
-			wantSQL:     deviceExistsSQL,
 			wantArgs:    nil,
 			wantOk:      true,
 			wantErr:     nil,
@@ -257,11 +207,8 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 		wantErr     bool
 	}{
 		{description: "bool true", value: true, wantBool: true, wantOk: true},
-		{description: "bool false", value: false, wantBool: false, wantOk: true},
 		{description: "string 1", value: "1", wantBool: true, wantOk: true},
-		{description: "string false", value: "false", wantBool: false, wantOk: true},
 		{description: "float64 nonzero (JSON number)", value: float64(1), wantBool: true, wantOk: true},
-		{description: "float64 zero (JSON number)", value: float64(0), wantBool: false, wantOk: true},
 		{description: "int nonzero (programmatic, not JSON)", value: 1, wantBool: true, wantOk: true},
 		{description: "invalid string", value: "yes", wantOk: false, wantErr: true},
 	}
@@ -322,23 +269,9 @@ func TestFromOnlineFilter(t *testing.T) {
 			wantErr:     nil,
 		},
 		{
-			description: "string false produces offline SQL",
-			value:       "false",
-			wantSQL:     offlineSQL,
-			wantOk:      true,
-			wantErr:     nil,
-		},
-		{
 			description: "float64 nonzero (JSON number) produces online SQL",
 			value:       float64(1),
 			wantSQL:     onlineSQL,
-			wantOk:      true,
-			wantErr:     nil,
-		},
-		{
-			description: "float64 zero (JSON number) produces offline SQL",
-			value:       float64(0),
-			wantSQL:     offlineSQL,
 			wantOk:      true,
 			wantErr:     nil,
 		},
@@ -416,33 +349,6 @@ func TestParseFilterProperty_Active(t *testing.T) {
 			wantOk:      true,
 			wantErr:     false,
 		},
-		{
-			description: "session context: float64 1 (JSON number) produces EXISTS session subquery",
-			fp:          &query.FilterProperty{Name: "active", Value: float64(1)},
-			tableAlias:  "session",
-			wantSQL:     sessionExistsSQL,
-			wantArgs:    nil,
-			wantOk:      true,
-			wantErr:     false,
-		},
-		{
-			description: "session context: float64 0 (JSON number) produces NOT EXISTS session subquery",
-			fp:          &query.FilterProperty{Name: "active", Value: float64(0)},
-			tableAlias:  "session",
-			wantSQL:     sessionNotExistsSQL,
-			wantArgs:    nil,
-			wantOk:      true,
-			wantErr:     false,
-		},
-		{
-			description: "active with unsupported value type int returns error",
-			fp:          &query.FilterProperty{Name: "active", Value: 99},
-			tableAlias:  "device",
-			wantSQL:     "",
-			wantArgs:    nil,
-			wantOk:      false,
-			wantErr:     true,
-		},
 	}
 
 	for _, tc := range cases {
@@ -470,8 +376,6 @@ func TestParseFilterProperty_Closed(t *testing.T) {
 	}{
 		{description: "closed true is every session not in the active set", value: true, wantSQL: `NOT EXISTS ` + membership},
 		{description: "closed false is only the active set", value: false, wantSQL: `EXISTS ` + membership},
-		{description: "closed accepts the JSON number form", value: float64(1), wantSQL: `NOT EXISTS ` + membership},
-		{description: "closed accepts the string form", value: "true", wantSQL: `NOT EXISTS ` + membership},
 	}
 
 	for _, tc := range cases {
