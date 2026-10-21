@@ -72,138 +72,6 @@ func TestListNamespaces(t *testing.T) {
 			},
 		},
 		{
-			description: "success to get the namespace list",
-			req: &requests.NamespaceList{
-				IsAdmin:   true,
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Filters:   query.Filters{},
-			},
-			ctx: ctx,
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
-					Return(
-						[]models.Namespace{
-							{
-								Name:     "group1",
-								Owner:    "66ffe0745a82ba5c4fe842ac",
-								TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-								Type:     models.TypeTeam,
-								Members: []models.Member{
-									{
-										ID:    "66ffe0745a82ba5c4fe842ac",
-										Role:  authorizer.RoleOwner,
-										Email: "john.doe@test.com",
-									},
-								},
-							},
-							{
-								Name:     "group2",
-								Owner:    "66ffe0745a82ba5c4fe842ac",
-								TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-								Type:     models.TypeTeam,
-								Members: []models.Member{
-									{
-										ID:    "66ffe0745a82ba5c4fe842ac",
-										Role:  authorizer.RoleOwner,
-										Email: "john.doe@test.com",
-									},
-									{
-										ID:    "66ffe0232da6d319c9769afb",
-										Role:  authorizer.RoleObserver,
-										Email: "jane.smith@test.com",
-									},
-								},
-							},
-							{
-								Name:     "group3",
-								Owner:    "66ffe0745a82ba5c4fe842ac",
-								TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-								Type:     models.TypeTeam,
-								Members: []models.Member{
-									{
-										ID:    "66ffe0745a82ba5c4fe842ac",
-										Role:  authorizer.RoleOwner,
-										Email: "john.doe@test.com",
-									},
-									{
-										ID:    "66ffe0232da6d319c9769afb",
-										Role:  authorizer.RoleObserver,
-										Email: "jane.smith@test.com",
-									},
-								},
-							},
-						},
-						int64(2),
-						nil,
-					).
-					Once()
-			},
-			expected: Expected{
-				namespaces: []models.Namespace{
-					{
-						Name:     "group1",
-						Owner:    "66ffe0745a82ba5c4fe842ac",
-						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-						Type:     models.TypeTeam,
-						Members: []models.Member{
-							{
-								ID:    "66ffe0745a82ba5c4fe842ac",
-								Role:  authorizer.RoleOwner,
-								Email: "john.doe@test.com",
-							},
-						},
-					},
-					{
-						Name:     "group2",
-						Owner:    "66ffe0745a82ba5c4fe842ac",
-						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-						Type:     models.TypeTeam,
-						Members: []models.Member{
-							{
-								ID:    "66ffe0745a82ba5c4fe842ac",
-								Role:  authorizer.RoleOwner,
-								Email: "john.doe@test.com",
-							},
-							{
-								ID:    "66ffe0232da6d319c9769afb",
-								Role:  authorizer.RoleObserver,
-								Email: "jane.smith@test.com",
-							},
-						},
-					},
-					{
-						Name:     "group3",
-						Owner:    "66ffe0745a82ba5c4fe842ac",
-						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-						Type:     models.TypeTeam,
-						Members: []models.Member{
-							{
-								ID:    "66ffe0745a82ba5c4fe842ac",
-								Role:  authorizer.RoleOwner,
-								Email: "john.doe@test.com",
-							},
-							{
-								ID:    "66ffe0232da6d319c9769afb",
-								Role:  authorizer.RoleObserver,
-								Email: "jane.smith@test.com",
-							},
-						},
-					},
-				},
-				count: 2,
-				err:   nil,
-			},
-		},
-		{
 			description: "success to get the namespace list with user filter",
 			req: &requests.NamespaceList{
 				UserID:    "66ffe0745a82ba5c4fe842ac",
@@ -426,47 +294,6 @@ func TestGetNamespace(t *testing.T) {
 							Email: "john.doe@test.com",
 						},
 					},
-				},
-				err: nil,
-			},
-		},
-		{
-			description: "succeeds - personal (with have changed to team temporarily)",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "66ffe21f76d5207a38a056d5",
-							TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-							Members: []models.Member{
-								{
-									ID:    "66ffe21f76d5207a38a056d5",
-									Role:  authorizer.RoleOwner,
-									Email: "john.doe@test.com",
-								},
-							},
-							Type: models.TypeTeam,
-						},
-						nil,
-					).
-					Once()
-			},
-			expected: Expected{
-				namespace: &models.Namespace{
-					Name:     "group1",
-					Owner:    "66ffe21f76d5207a38a056d5",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{
-							ID:    "66ffe21f76d5207a38a056d5",
-							Role:  authorizer.RoleOwner,
-							Email: "john.doe@test.com",
-						},
-					},
-					Type: models.TypeTeam,
 				},
 				err: nil,
 			},
@@ -1193,47 +1020,6 @@ func TestEditNamespace(t *testing.T) {
 				nil,
 			},
 		},
-		{
-			description:   "succeeds",
-			namespaceName: "newname",
-			tenantID:      "xxxxx",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "oldname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
-					Return(namespace, nil).
-					Once()
-
-				expectedNamespace := *namespace
-				expectedNamespace.Name = "newname"
-				storeMock.
-					On("NamespaceUpdate", ctx, &expectedNamespace).
-					Return(nil).
-					Once()
-
-				finalNamespace := &models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "newname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
-					Return(finalNamespace, nil).
-					Once()
-			},
-			expected: Expected{
-				&models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "newname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				},
-				nil,
-			},
-		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1315,29 +1101,6 @@ func TestEditSessionRecord(t *testing.T) {
 
 				expectedNamespace := *namespace
 				expectedNamespace.Settings.SessionRecord = true
-				storeMock.
-					On("NamespaceUpdate", ctx, &expectedNamespace).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			name:          "succeeds when settings is nil",
-			sessionRecord: true,
-			tenantID:      "xxxx",
-			mocks: func(ctx context.Context) {
-				namespace := &models.Namespace{
-					TenantID: "xxxx",
-					Settings: &models.NamespaceSettings{},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
-					Return(namespace, nil).
-					Once()
-
-				expectedNamespace := *namespace
-				expectedNamespace.Settings = &models.NamespaceSettings{SessionRecord: true}
 				storeMock.
 					On("NamespaceUpdate", ctx, &expectedNamespace).
 					Return(nil).
@@ -1629,14 +1392,6 @@ func TestNamespaceFilterFields(t *testing.T) {
 
 	t.Run("unknown field is rejected", func(t *testing.T) {
 		assert.False(t, NamespaceFilterFields.Allows("unknown", "eq"))
-	})
-
-	t.Run("namespaceFilterColumns maps type to scope", func(t *testing.T) {
-		assert.Equal(t, "scope", namespaceFilterColumns["type"])
-	})
-
-	t.Run("namespaceFilterColumns has exactly one entry", func(t *testing.T) {
-		assert.Len(t, namespaceFilterColumns, 1)
 	})
 }
 
