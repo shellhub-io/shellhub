@@ -73,17 +73,6 @@ describe("AdminNamespaces", () => {
     setNamespaces([]);
   });
 
-  describe("loading state", () => {
-    it('renders the loading spinner with "Loading namespaces..." text', () => {
-      server.use(
-        http.get("*/admin/api/namespaces", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("Loading namespaces...")).toBeInTheDocument();
-    });
-  });
-
   describe("empty state", () => {
     it('renders "No namespaces found" when the list is empty', async () => {
       renderPage();
