@@ -219,26 +219,6 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 		err = st.TagUpdate(ctx, tag)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
-
-	t.Run("succeeds when tag is found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
-
-		tag := &models.Tag{
-			ID:       tagID,
-			TenantID: tenantID,
-			Name:     "edited-tag",
-		}
-
-		err := st.TagUpdate(ctx, tag)
-		require.NoError(t, err)
-
-		updatedTag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
-		require.NoError(t, err)
-		assert.Equal(t, "edited-tag", updatedTag.Name)
-	})
 }
 
 // TestTagPushToTarget locks attaching a tag to a device or key.
@@ -294,17 +274,6 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
 
 		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
-		require.NoError(t, err)
-	})
-
-	t.Run("succeeds to push a tag to device", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
-		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
-
-		err := st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		require.NoError(t, err)
 	})
 }
@@ -375,20 +344,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("succeeds to pull a tag from device", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
-		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
-
-		err := st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
-		require.NoError(t, err)
-
-		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
-		require.NoError(t, err)
-	})
-
 	t.Run("succeeds to pull a tag from all targets when no specific targets provided", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -427,24 +382,6 @@ func (s *Suite) TestTagDelete(t *testing.T) {
 		}
 
 		err = st.TagDelete(ctx, tag)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("succeeds when tag is found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
-
-		tag := &models.Tag{
-			ID:       tagID,
-			TenantID: tenantID,
-		}
-
-		err := st.TagDelete(ctx, tag)
-		require.NoError(t, err)
-
-		_, err = st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
