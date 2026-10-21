@@ -25,8 +25,9 @@ var WebhookEventTypes = []WebhookEventType{
 }
 
 // Webhook is a namespace's subscription to events: where to send them, which ones, and the secret
-// that signs each delivery. A webhook that is not Enabled receives no new events. The secret is
-// stored encrypted and never returned with the webhook.
+// that signs each delivery. A webhook that is not Enabled records no new events, and its pending
+// deliveries wait until it is enabled again. The secret is stored encrypted and never returned
+// with the webhook.
 type Webhook struct {
 	ID              string             `json:"id"`
 	TenantID        string             `json:"tenant_id"`

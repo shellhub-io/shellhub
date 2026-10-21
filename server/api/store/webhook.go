@@ -2,12 +2,23 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-// WebhookStore persists namespaces' webhooks.
+// WebhookDispatch is a claimed delivery with what sending it takes: the event, where it goes and
+// the secret that signs it.
+type WebhookDispatch struct {
+	Delivery        models.WebhookDelivery
+	Event           models.WebhookEvent
+	URL             string
+	SecretEncrypted string
+}
+
+// WebhookStore persists namespaces' webhooks, the events recorded for them and the deliveries of
+// those events.
 type WebhookStore interface {
 	// WebhookCreate stores webhook, stamping its ID and timestamps, and returns the ID. It returns
 	// ctx's error when it is cancelled or its deadline passes and [ErrInternal] for any other
@@ -42,4 +53,33 @@ type WebhookStore interface {
 	// bounded to a namespace, ctx's error when it is cancelled or its deadline passes and
 	// [ErrInternal] for any other failure.
 	WebhookDelete(ctx context.Context, sc scope.Scope, id string) error
+
+	// WebhookEventRecord stores event with one pending delivery, due at the event's creation, for
+	// each enabled webhook of the event's namespace subscribed to its type, and returns how many
+	// deliveries it stored. With no such webhook it stores nothing. Call it with the transaction
+	// of the change the event describes, so the event exists exactly when the change commits. It
+	// returns ctx's error when it is cancelled or its deadline passes and [ErrInternal] for any
+	// other failure.
+	WebhookEventRecord(ctx context.Context, event *models.WebhookEvent) (int64, error)
+
+	// WebhookDeliveryClaim leases up to limit pending deliveries due at now whose lease, if any,
+	// expired by now, oldest due first, until leaseUntil, and returns them for sending. A delivery
+	// another claim leased, or is leasing at the same moment, is skipped, so two claims never
+	// return the same delivery while its lease holds. A delivery to a disabled webhook is not due,
+	// so it waits until the webhook is enabled again. It reads every namespace. It returns ctx's
+	// error when it is cancelled or its deadline passes and [ErrInternal] for any other failure.
+	WebhookDeliveryClaim(ctx context.Context, now, leaseUntil time.Time, limit int) ([]WebhookDispatch, error)
+
+	// WebhookDeliveryFinish writes delivery's status, attempts, next attempt, last status code,
+	// last error and delivery time, releases its lease and stamps its update time. It returns
+	// [ErrNoDocuments] when no delivery has its ID, ctx's error when it is cancelled or its
+	// deadline passes and [ErrInternal] for any other failure.
+	WebhookDeliveryFinish(ctx context.Context, delivery *models.WebhookDelivery) error
+
+	// WebhookDeliveryList returns a page of the scope's deliveries to the webhook with webhookID,
+	// newest first, and how many there are in all. A webhookID that is not a UUID names no webhook,
+	// so it returns an empty page and no error. It returns [ErrInvalidScope] for a scope never
+	// constructed, ctx's error when it is cancelled or its deadline passes and [ErrInternal] for
+	// any other failure.
+	WebhookDeliveryList(ctx context.Context, sc scope.Scope, webhookID string, opts ...QueryOption) ([]models.WebhookDelivery, int64, error)
 }

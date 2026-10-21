@@ -16,17 +16,33 @@ func TestNewClientSSRF(t *testing.T) {
 	defer srv.Close()
 
 	t.Run("blocks a loopback webhook target by default", func(t *testing.T) {
-		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
-		_, err := NewClient(nil).Get(srv.URL)
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL, nil)
+		require.NoError(t, err)
+
+		_, err = NewClient(nil).Do(req) //nolint:bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
 		require.Error(t, err, "a webhook to loopback must be refused so it can't reach the host's own services")
 	})
 
 	t.Run("allows a target the operator explicitly permits", func(t *testing.T) {
-		//nolint:noctx // exercising the dial path in a test
-		resp, err := NewClient(ParseCIDRs("127.0.0.0/8,::1/128")).Get(srv.URL)
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL, nil)
+		require.NoError(t, err)
+
+		resp, err := NewClient(ParseCIDRs("127.0.0.0/8,::1/128")).Do(req)
 		require.NoError(t, err)
 		require.NoError(t, resp.Body.Close())
 	})
+}
+
+func TestSign(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "22b0f73be999eaa51329b3d06e101dc4cd11f330c696b9000c0f7c05b9f65dc2", Sign("s3cr3t", []byte("body")))
+}
+
+func TestSignV1(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "v1=44179dce73147efe36b07b18dbe5bc64d2883e10e723dec9ee95914290939de2", SignV1("s3cr3t", 1700000000, []byte("body")))
 }
 
 func TestParseCIDRs(t *testing.T) {

@@ -92,6 +92,32 @@ type WebhookDelivery struct {
 	UpdatedAt      time.Time  `bun:"updated_at"`
 }
 
+// WebhookDeliveryFromModel projects a delivery into its row form, with its lease released.
+func WebhookDeliveryFromModel(model *models.WebhookDelivery) *WebhookDelivery {
+	delivery := &WebhookDelivery{
+		ID:            model.ID,
+		EventID:       model.EventID,
+		WebhookID:     model.WebhookID,
+		NamespaceID:   model.TenantID,
+		Status:        string(model.Status),
+		Attempts:      model.Attempts,
+		NextAttemptAt: model.NextAttemptAt,
+		DeliveredAt:   model.DeliveredAt,
+		CreatedAt:     model.CreatedAt,
+		UpdatedAt:     model.UpdatedAt,
+	}
+
+	if model.LastStatusCode != 0 {
+		delivery.LastStatusCode = &model.LastStatusCode
+	}
+
+	if model.LastError != "" {
+		delivery.LastError = &model.LastError
+	}
+
+	return delivery
+}
+
 // WebhookDeliveryToModel rebuilds a delivery from its row.
 func WebhookDeliveryToModel(e *WebhookDelivery) *models.WebhookDelivery {
 	delivery := &models.WebhookDelivery{
