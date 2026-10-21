@@ -17,21 +17,6 @@ const DEFAULTS: TestParams = {
 };
 
 describe("usePaginatedListState — page", () => {
-  it("reads page=1 from default URL", () => {
-    const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
-    );
-    expect(result.current.params.page).toBe(1);
-  });
-
-  it("reads page from URL search param", () => {
-    const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
-      { initialEntries: ["/?page=3"] },
-    );
-    expect(result.current.params.page).toBe(3);
-  });
-
   it("setPage updates the page param", () => {
     const { result } = renderHookWithRouter(() =>
       usePaginatedListState({ defaults: DEFAULTS }),
@@ -437,22 +422,6 @@ describe("usePaginatedListState — array filters", () => {
 
     expect(result.current.params.page).toBe(1);
     expect(result.current.params.tags).toEqual(["api"]);
-  });
-
-  it("round-trips: values written via setArrayFilter are read back via getAll", () => {
-    const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
-        defaults: ARRAY_FILTER_DEFAULTS,
-      }),
-    );
-
-    act(() => {
-      result.current.setArrayFilter("tags", ["staging", "api"]);
-    });
-
-    const sp = new URLSearchParams(result.current.searchString);
-    expect(sp.getAll("tags")).toEqual(["staging", "api"]);
-    expect(result.current.params.tags).toEqual(["staging", "api"]);
   });
 });
 

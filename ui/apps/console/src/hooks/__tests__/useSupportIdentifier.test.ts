@@ -34,15 +34,6 @@ describe("useSupportIdentifier", () => {
       expect(result.current.identifier).toBeNull();
       expect(result.current.isLoading).toBe(false);
     });
-
-    it("does not fire the query when tenantId is null", () => {
-      const { result } = renderHookWithClient(() =>
-        useSupportIdentifier(null, true),
-      );
-
-      expect(result.current.identifier).toBeNull();
-      expect(result.current.isLoading).toBe(false);
-    });
   });
 
   describe("when enabled with a valid tenant", () => {

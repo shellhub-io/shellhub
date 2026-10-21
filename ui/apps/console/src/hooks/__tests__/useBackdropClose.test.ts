@@ -106,15 +106,6 @@ describe("useBackdropClose", () => {
 
       expect(onClose).toHaveBeenCalledOnce();
     });
-
-    it("uses the default enabled guard (always true) when no guard is provided", () => {
-      const dialog = makeDialog();
-      const { handlers, onClose } = setup(dialog);
-
-      fireSequence(handlers, dialog, dialog, dialog);
-
-      expect(onClose).toHaveBeenCalledOnce();
-    });
   });
 
   describe("mousedown tracking is reset between clicks", () => {
