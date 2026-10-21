@@ -12,33 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestVerifyPasswordHashPass(t *testing.T) {
-	hashPassword := "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN." //nolint:gosec
-	passwd := "123"
-
-	result := VerifyPasswordHash(hashPassword, passwd)
-
-	assert.True(t, result)
-}
-
-func TestVerifyPasswordHashFail(t *testing.T) {
-	hashPassword := "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN." //nolint:gosec
-	passwd := "test"
-
-	result := VerifyPasswordHash(hashPassword, passwd)
-
-	assert.False(t, result)
-}
-
-func TestVerifyPasswordHashMD5Pass(t *testing.T) {
-	hashPassword := "$1$YW4a91HG$31CtH9bzW/oyJ1VOD.H/d/" //nolint:gosec
-	passwd := "test"
-
-	result := VerifyPasswordHash(hashPassword, passwd)
-
-	assert.True(t, result)
-}
-
 func TestVerifyPasswordHash(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -62,6 +35,12 @@ func TestVerifyPasswordHash(t *testing.T) {
 			name:     "md5 correct",
 			hash:     "$1$YW4a91HG$31CtH9bzW/oyJ1VOD.H/d/",
 			password: "test",
+			want:     true,
+		},
+		{
+			name:     "yescrypt correct",
+			hash:     "$y$j9T$AAt9R641xPvCI9nXw1HHW/$nCv3bckjDEC9Q5ahIEpyXVNGZhySye/ZdjxNxTY5ttB",
+			password: "password",
 			want:     true,
 		},
 		{
@@ -102,11 +81,6 @@ func TestVerifyPasswordHash(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-}
-
-func TestVerifyPasswordHash_YescryptInvocation(t *testing.T) {
-	yesHash := "$y$e0801$w1Jl9GJH1j4h0w==$Wj2b7m2vWw2m3l1iQe8qvQ=="
-	_ = VerifyPasswordHash(yesHash, "password")
 }
 
 //nolint:gosec
