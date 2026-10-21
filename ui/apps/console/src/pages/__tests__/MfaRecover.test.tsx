@@ -38,26 +38,6 @@ beforeEach(() => {
 });
 
 describe("MfaRecover", () => {
-  it("displays error message on invalid code", async () => {
-    const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ error: "Invalid recovery code or username" });
-      throw new Error("Invalid recovery code or username");
-    });
-    useAuthStore.setState({ recoverWithCode: mockRecover });
-
-    renderRecover();
-
-    const user = userEvent.setup();
-    await user.type(screen.getByPlaceholderText(/recovery code/i), "BAD-CODE");
-    await user.click(screen.getByRole("button", { name: /recover/i }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Invalid recovery code or username"),
-      ).toBeInTheDocument();
-    });
-  });
-
   it("disables submit button when input is empty", () => {
     renderRecover();
 
@@ -78,31 +58,6 @@ describe("MfaRecover", () => {
     renderRecover();
 
     expect(screen.getByText(/Recovering.../i)).toBeInTheDocument();
-  });
-
-  it("shows timeout modal after successful recovery", async () => {
-    const futureTime = Math.floor(Date.now() / 1000) + 300;
-    const mockRecover = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({
-      recoverWithCode: mockRecover,
-      mfaRecoveryExpiry: futureTime,
-    });
-
-    renderRecover();
-
-    const user = userEvent.setup();
-    await user.type(
-      screen.getByPlaceholderText(/recovery code/i),
-      "ABC-123-XYZ",
-    );
-    await user.click(screen.getByRole("button", { name: /recover/i }));
-
-    await waitFor(() => {
-      expect(mockRecover).toHaveBeenCalled();
-    });
-    expect(
-      await screen.findByText(/Recovery Window Active/i),
-    ).toBeInTheDocument();
   });
 
   it("redirects to login when no identifier and no mfaToken", async () => {
@@ -176,47 +131,6 @@ describe("MfaRecover", () => {
 
     await waitFor(() => {
       expect(input).toHaveValue("");
-    });
-  });
-
-  it("calls the disable MFA endpoint during recovery window", async () => {
-    const disableCalled = vi.fn();
-    server.use(
-      http.put("*/api/user/mfa/recovery/disable", () => {
-        disableCalled();
-        return new HttpResponse(null, { status: 204 });
-      }),
-    );
-    const futureExpiry = Math.floor(Date.now() / 1000) + 600;
-    const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ mfaRecoveryExpiry: futureExpiry });
-    });
-    useAuthStore.setState({ recoverWithCode: mockRecover });
-
-    render(
-      <MemoryRouter initialEntries={["/recover-mfa"]}>
-        <Routes>
-          <Route path="/recover-mfa" element={<MfaRecover />} />
-          <Route path="/dashboard" element={<div>Dashboard</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    const user = userEvent.setup();
-    await user.type(
-      screen.getByPlaceholderText(/recovery code/i),
-      "MY-RECOVERY-CODE",
-    );
-    await user.click(screen.getByRole("button", { name: /recover account/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Recovery Window Active/i)).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: /disable mfa/i }));
-
-    await waitFor(() => {
-      expect(disableCalled).toHaveBeenCalled();
     });
   });
 

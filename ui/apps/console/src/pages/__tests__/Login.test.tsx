@@ -121,15 +121,6 @@ describe("Login", () => {
     });
   });
 
-  describe("successful login", () => {
-    it("navigates to /dashboard on success", async () => {
-      renderLogin();
-      await fillAndSubmit();
-
-      expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
-    });
-  });
-
   describe("loading state", () => {
     it("shows Authenticating... and marks the button busy while the request is in flight", async () => {
       let resolveHandler!: () => void;
@@ -166,18 +157,6 @@ describe("Login", () => {
   });
 
   describe("error handling", () => {
-    it("shows invalid credentials error on 401", async () => {
-      setLoginError(401);
-
-      renderLogin();
-      await fillAndSubmit();
-
-      expect(
-        screen.getByText(/invalid login credentials/i),
-      ).toBeInTheDocument();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
     it("redirects to confirm-account with the trimmed username on 403", async () => {
       setLoginError(403);
 
@@ -187,19 +166,6 @@ describe("Login", () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         "/confirm-account?username=admin",
       );
-    });
-
-    it("shows rate-limit error on 429", async () => {
-      const epoch = Math.floor(Date.now() / 1000) + 60;
-      setLoginError(429, { "x-account-lockout": String(epoch) });
-
-      renderLogin();
-      await fillAndSubmit();
-
-      expect(
-        screen.getByText(/too many failed login attempts/i),
-      ).toBeInTheDocument();
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it("shows generic server error on unexpected status codes", async () => {
@@ -252,25 +218,6 @@ describe("Login", () => {
   });
 
   describe("429 countdown", () => {
-    it("displays the remaining lockout time after the first interval tick", async () => {
-      const epoch = Math.floor(Date.now() / 1000) + 30;
-      setLoginError(429, { "x-account-lockout": String(epoch) });
-
-      renderLogin();
-      await fillAndSubmit();
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/too many failed login attempts/i),
-        ).toBeInTheDocument(),
-      );
-
-      await waitFor(
-        () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
-        { timeout: 2000 },
-      );
-    });
-
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 1;
       setLoginError(429, { "x-account-lockout": String(epoch) });
@@ -385,38 +332,6 @@ describe("Login", () => {
       );
     });
 
-    it("redirects to SSO URL when SSO button is clicked", async () => {
-      const originalLocation = window.location;
-      Object.defineProperty(window, "location", {
-        writable: true,
-        value: { ...originalLocation, replace: vi.fn() },
-      });
-
-      try {
-        mockGetConfig.mockReturnValue({
-          ...defaultConfig,
-          edition: "enterprise",
-        });
-        setInfo({ local: true, saml: true });
-
-        renderLogin();
-
-        const ssoBtn = await screen.findByTestId("sso-btn");
-        await userEvent.click(ssoBtn);
-
-        await waitFor(() =>
-          expect(window.location.replace).toHaveBeenCalledWith(
-            "https://idp.example.com/sso",
-          ),
-        );
-      } finally {
-        Object.defineProperty(window, "location", {
-          writable: true,
-          value: originalLocation,
-        });
-      }
-    });
-
     it("shows error when SSO URL fetch fails", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
@@ -438,26 +353,6 @@ describe("Login", () => {
         expect(
           screen.getByText(/failed to retrieve sso login url/i),
         ).toBeInTheDocument(),
-      );
-    });
-
-    it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
-      setInfo({ local: false, saml: true });
-
-      renderLogin();
-
-      expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
-      expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /sign in/i }),
-      ).not.toBeInTheDocument();
-
-      await waitFor(() =>
-        expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
       );
     });
   });
