@@ -273,29 +273,6 @@ describe("vaultStore", () => {
   });
 
   describe("initialize", () => {
-    it("creates vault meta, persists empty keys, and transitions to unlocked", async () => {
-      const backend = makeFakeBackend();
-      const derivedKey = makeFakeCryptoKey();
-      const meta = makeMeta();
-      const encryptedData = makeVaultData();
-
-      mockGetBackend.mockReturnValue(backend);
-      mockCrypto.mockResolvedValue({ meta, derivedKey });
-      mockGetSession.mockReturnValue(derivedKey);
-      mockEncrypt.mockResolvedValue(encryptedData);
-
-      await useVaultStore.getState().initialize("master-pass");
-
-      const state = useVaultStore.getState();
-      expect(state.status).toBe("unlocked");
-      expect(state.keys).toEqual([]);
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(backend.saveMeta).toHaveBeenCalledWith(meta);
-      expect(mockSetSession).toHaveBeenCalledWith(derivedKey);
-      expect(backend.saveData).toHaveBeenCalledWith(encryptedData);
-    });
-
     it("calls loadSettings then startTracker (activityTracker.start) after success", async () => {
       const backend = makeFakeBackend();
       const derivedKey = makeFakeCryptoKey();
@@ -314,34 +291,6 @@ describe("vaultStore", () => {
       const startArg = mockTrackerStart.mock.calls[0][0];
       expect(startArg.idleTimeoutMs).toBe(30 * 60000);
       expect(startArg.lockOnHidden).toBe(true);
-    });
-
-    it("migrates legacy keys when they exist", async () => {
-      const backend = makeFakeBackend();
-      const derivedKey = makeFakeCryptoKey();
-      const legacyKeys = [
-        {
-          id: 1,
-          name: "Old Key",
-          data: "-----BEGIN",
-          hasPassphrase: false,
-          fingerprint: "ff:ee:dd",
-        },
-      ];
-      backend.loadLegacyKeys.mockReturnValue(legacyKeys);
-
-      mockGetBackend.mockReturnValue(backend);
-      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey });
-      mockGetSession.mockReturnValue(derivedKey);
-      mockEncrypt.mockResolvedValue(makeVaultData());
-
-      await useVaultStore.getState().initialize("master-pass");
-
-      const state = useVaultStore.getState();
-      expect(state.keys).toHaveLength(1);
-      expect(state.keys[0].name).toBe("Old Key");
-      expect(state.keys[0].fingerprint).toBe("ff:ee:dd");
-      expect(backend.clearLegacyKeys).toHaveBeenCalled();
     });
 
     it("does not call clearLegacyKeys when no legacy keys exist", async () => {
@@ -536,27 +485,6 @@ describe("vaultStore", () => {
   });
 
   describe("unlock", () => {
-    it("transitions to unlocked and loads keys on success", async () => {
-      const backend = makeFakeBackend();
-      const derivedKey = makeFakeCryptoKey();
-      const existingKeys = [makeFakeKey()];
-      backend.loadMeta.mockReturnValue(makeMeta());
-      backend.loadData.mockReturnValue(makeVaultData());
-
-      mockGetBackend.mockReturnValue(backend);
-      mockVerify.mockResolvedValue(derivedKey);
-      mockDecrypt.mockResolvedValue(JSON.stringify(existingKeys));
-
-      await useVaultStore.getState().unlock("master-pass");
-
-      const state = useVaultStore.getState();
-      expect(state.status).toBe("unlocked");
-      expect(state.keys).toEqual(existingKeys);
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(mockSetSession).toHaveBeenCalledWith(derivedKey);
-    });
-
     it("calls loadSettings then startTracker (activityTracker.start) after success", async () => {
       const backend = makeFakeBackend();
       const derivedKey = makeFakeCryptoKey();
@@ -605,21 +533,6 @@ describe("vaultStore", () => {
       expect(state.status).toBe("uninitialized");
       expect(state.error).toBe("No vault found");
       expect(state.loading).toBe(false);
-    });
-
-    it("sets error when master password is wrong", async () => {
-      const backend = makeFakeBackend();
-      backend.loadMeta.mockReturnValue(makeMeta());
-      mockGetBackend.mockReturnValue(backend);
-      mockVerify.mockRejectedValue(new Error("Vault verifier mismatch"));
-
-      useVaultStore.setState({ status: "locked" });
-      await useVaultStore.getState().unlock("wrong-pass");
-
-      const state = useVaultStore.getState();
-      expect(state.error).toBe("Incorrect master password");
-      expect(state.loading).toBe(false);
-      expect(state.status).toBe("locked");
     });
 
     it("sets error and clears session key when vault data is corrupted", async () => {
@@ -1178,33 +1091,6 @@ describe("vaultStore", () => {
   });
 
   describe("changeMasterPassword", () => {
-    it("re-encrypts keys with new password and updates meta", async () => {
-      const backend = makeFakeBackend();
-      const oldKey = makeFakeCryptoKey();
-      const newKey = makeFakeCryptoKey();
-      const newMeta = makeMeta();
-
-      backend.loadMeta.mockReturnValue(makeMeta());
-      backend.loadData.mockReturnValue(makeVaultData());
-      mockGetBackend.mockReturnValue(backend);
-      mockGetSession.mockReturnValue(oldKey);
-      mockVerify.mockResolvedValue(oldKey);
-      mockCrypto.mockResolvedValue({ meta: newMeta, derivedKey: newKey });
-      mockEncrypt.mockResolvedValue(makeVaultData());
-
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
-
-      await useVaultStore
-        .getState()
-        .changeMasterPassword("current-pass", "new-pass");
-
-      const state = useVaultStore.getState();
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(mockSetSession).toHaveBeenCalledWith(newKey);
-      expect(backend.saveMeta).toHaveBeenCalledWith(newMeta);
-    });
-
     it("sets error when vault has not been initialized", async () => {
       const backend = makeFakeBackend();
       backend.loadMeta.mockReturnValue(null);

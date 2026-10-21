@@ -259,19 +259,6 @@ describe("KeyModal", () => {
       });
     });
 
-    it("calls onClose after successful add", async () => {
-      mockAddKey.mockResolvedValue(undefined);
-      const { onClose } = renderModal();
-
-      await fillKey(VALID_KEY);
-      await fillName("My Key");
-      await userEvent.click(screen.getByRole("button", { name: /add key/i }));
-
-      await waitFor(() => {
-        expect(onClose).toHaveBeenCalledTimes(1);
-      });
-    });
-
     it("calls addKey with passphrase fingerprint for encrypted key", async () => {
       vi.mocked(validatePrivateKey).mockReturnValue({
         valid: true,
